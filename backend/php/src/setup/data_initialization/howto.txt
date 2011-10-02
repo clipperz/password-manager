@@ -1,0 +1,13 @@
+Hello there,
+
+To make use of the Data Initialization feature in POG Setup, put your insert statements in the data_initialization.sql file. (One per line).
+Then, on step 1 of Setup, choose "Drop, recreate tables and reset data":
+
+This will 
+
+1. Drop any tables that have the same name as the object(s) you have in the objects folder.
+2. Recreate the tables and indexes(if needed)
+3. Execute the insert statements in data_initialization.sql one by one.
+
+Regards,
+The POG Team

@@ -1,0 +1,87 @@
+<!--
+
+Copyright 2008-2011 Clipperz Srl
+
+This file is part of Clipperz's Javascript Crypto Library.
+Javascript Crypto Library provides web developers with an extensive
+and efficient set of cryptographic functions. The library aims to
+obtain maximum execution speed while preserving modularity and
+reusability.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com
+
+* Javascript Crypto Library is free software: you can redistribute
+  it and/or modify it under the terms of the GNU Affero General Public
+  License as published by the Free Software Foundation, either version
+  3 of the License, or (at your option) any later version.
+
+* Javascript Crypto Library is distributed in the hope that it will
+  be useful, but WITHOUT ANY WARRANTY; without even the implied
+  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Javascript Crypto Library.  If not, see
+  <http://www.gnu.org/licenses/>.
+
+-->
+
+<html>
+<head>
+	<title>@page.title@</title>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+@copyright@
+@css@
+
+	<link rel="shortcut icon" href="./clipperz.ico" />
+
+	<meta name="description" content="Login to your web accounts with just one click. Never type a password again! Use multiple complex passwords and forget them. A password manager that enhances your online security." />
+	<meta name="keywords" content="password manager,gestor de contraseñas,gerenciador de senhas,Kennwortmanager,passwords,security,privacy,cryptography" />
+<script>
+	Clipperz_IEisBroken = false;
+	Clipperz_normalizedNewLine = '\n';
+	Clipperz_dumpUrl = "/dump/";
+</script>
+
+<!--[if IE]><script>
+Clipperz_IEisBroken = true;
+Clipperz_normalizedNewLine = '\x0d\x0a';
+</script><![endif]-->
+
+@CLIPPERZ_DEBUG_VERSION@
+
+</head>
+<body>
+<div id="mainDiv">
+	<div id="loading">
+		<a href="http://www.clipperz.com" target="_blank"><div id="logo"></div></a>
+		<h5 class="clipperzPayoff">keep it to yourself!</h5>
+		<h2>loading ...</h2>
+	</div>
+
+@CLIPPERZ_INSTALLED_VERSION@
+	
+</div>
+<div id="applicationVersionType" class="@application.version.type@"></div>
+
+<!-- -->
+<div id="javaScriptAlert">
+	<div class="mask"></div>
+	<div class="message">
+		<div class="header"></div>
+		<div class="body">
+			<div class="alertLogo"></div>
+			<div class="alert">
+				<h1>Attention!</h1>
+				<p>If you can read this message, the chances are that your browser does not properly support JavaScript? or you have disabled this functionality yourself.</p>
+				<h3>Javascript is required to access Clipperz.</h3>
+				<h5>Please enable scripting or upgrade your browser.</h5>
+			</div>
+		</div>
+		<div class="footer"></div>
+	</div>
+</div>
+<!-- -->
+
+</body>
+</html>
