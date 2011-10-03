@@ -1,0 +1,31 @@
+Instructions on how to install and configure your personal instance of the Clipperz application
+
+Configure the settings on the /php/configuration.php file.
+The most important configuration options are the one to connect to the MySQL database:
+- $configuration['db']		= 'clipperz'; 	//	database name
+- $configuration['host']	= 'localhost';	//	database host
+- $configuration['user']	= 'root';		//	database user
+- $configuration['pass']	= 'pass';		//	database password
+- $configuration['port'] 	= '3306';		//	database port
+
+
+The MySQL database configured above, should already exists, but the setup procedure will take care of creating all the tables used by the application.
+
+Once the configuration are setup, you should load the /php/setup/index.php page.
+Following the instructions, the script will generate all the database objects, and run some tests to double-check that everything works fine.
+In the first page you have to press the "POG me up!" button at the bottom of the page; in the next page, if all the checks are successful, a "Proceed" button will be enabled below the main text area. Clicking the "Proceed" button you will access the tab of the POG application that enable you to inspect and edit the content of the database used by the Clipperz application.
+
+Once the application is successfully installed, it is probably a good idea to remove, disable or protect the whole "/php/setup/" folder, in order to avoid anyone from deleting random records from the database. Your data will not be leaked, but it would be possible to delete them anyway.
+
+At this point the database should be ready to run.
+
+The PHP code is quite simple, but there are a few dependency on external library that you may have to include, depending of the version of PHP you are using.
+
+- PDO:    http://ca.php.net/pdo
+- JSON:   http://aurore.net/projects/php-json/
+- BCMath: http://it.php.net/bc
+
+The code has been compiled using PHP 5.1.6
+The POG class definitions have been configure for use with PHP 5.1+
+
+For added convenience, we have added a page at /php/test.php that reports the detailed PHP configuration available on your computer.

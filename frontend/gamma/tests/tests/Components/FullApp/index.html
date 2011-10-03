@@ -1,0 +1,243 @@
+<!--
+
+Copyright 2008-2011 Clipperz Srl
+
+This file is part of Clipperz's Javascript Crypto Library.
+Javascript Crypto Library provides web developers with an extensive
+and efficient set of cryptographic functions. The library aims to
+obtain maximum execution speed while preserving modularity and
+reusability.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com
+
+* Javascript Crypto Library is free software: you can redistribute
+  it and/or modify it under the terms of the GNU Affero General Public
+  License as published by the Free Software Foundation, either version
+  3 of the License, or (at your option) any later version.
+
+* Javascript Crypto Library is distributed in the hope that it will
+  be useful, but WITHOUT ANY WARRANTY; without even the implied
+  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Javascript Crypto Library.  If not, see
+  <http://www.gnu.org/licenses/>.
+
+-->
+
+<html>
+<head>
+	<title>Clipperz - online password manager - debug</title>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	
+	
+	<link rel="stylesheet" type="text/css" href="../../../../css/clipperz/clipperz.css" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/clipperz/compact.css" />
+	<link rel="stylesheet" type="text/css" href="../../../../css/clipperz/ytheme-clipperz.css" />
+
+	<link rel="shortcut icon" href="./clipperz.ico" />
+
+	<meta name="description" content="Login to your web accounts with just one click. Never type a password again! Use multiple complex passwords and forget them. A password manager that enhances your online security." />
+	<meta name="keywords" content="password manager,gestor de contraseñas,gerenciador de senhas,Kennwortmanager,passwords,security,privacy,cryptography" />
+
+<script>
+	Clipperz_IEisBroken = false;
+	Clipperz_normalizedNewLine = '\n';
+	Clipperz_dumpUrl = "/dump/";
+</script>
+
+<!--[if IE]><script>
+Clipperz_IEisBroken = true;
+Clipperz_normalizedNewLine = '\x0d\x0a';
+</script><![endif]-->
+
+
+	<script type='text/javascript' src='../../../../js/bookmarklet.js'></script>
+	<script type='text/javascript' src='../../../../js/bookmarklet_ie.js'></script>
+
+	<script type='text/javascript' src='../../../../js/MochiKit/Base.js'></script>
+	<script type='text/javascript' src='../../../../js/MochiKit/Iter.js'></script>
+	<script type='text/javascript' src='../../../../js/MochiKit/Logging.js'></script>
+	<script type='text/javascript' src='../../../../js/MochiKit/Format.js'></script>
+	<script type='text/javascript' src='../../../../js/MochiKit/Async.js'></script>
+	<script type='text/javascript' src='../../../../js/MochiKit/DOM.js'></script>
+	<script type='text/javascript' src='../../../../js/MochiKit/Style.js'></script>
+	<script type='text/javascript' src='../../../../js/MochiKit/LoggingPane.js'></script>
+	<script type='text/javascript' src='../../../../js/MochiKit/Color.js'></script>
+	<script type='text/javascript' src='../../../../js/MochiKit/Signal.js'></script>
+	<script type='text/javascript' src='../../../../js/MochiKit/Position.js'></script>
+	<script type='text/javascript' src='../../../../js/MochiKit/Selector.js'></script>
+	<script type='text/javascript' src='../../../../js/MochiKit/Visual.js'></script>
+	<script type='text/javascript' src='../../../../js/JSON/json2.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/YUI/Utils.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/YUI/DomHelper.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/ByteArray.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/Base.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/Async.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/CSVProcessor.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/KeePassExportProcessor.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/Date.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/DOM.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/Logging.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/Signal.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/Style.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/Visual.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/Set.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/KeyValueObjectStore.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/Crypto/SHA.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/Crypto/AES.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/Crypto/PRNG.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/Crypto/BigInt.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/Crypto/Base.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/Crypto/SRP.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/Crypto/RSA.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/Strings/Strings_defaults.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/Strings/Strings_en-US.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/Strings.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/Date.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/Toll.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/Proxy.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/Proxy/Proxy.JSON.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/Proxy/Proxy.Offline.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/Proxy/Proxy.Offline.DataStore.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/Connection.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/Crypto.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/BookmarkletProcessor.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/DataModel/EncryptedRemoteObject.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/DataModel/User.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/DataModel/User.Header.Legacy.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/DataModel/User.Header.RecordIndex.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/DataModel/User.Header.Preferences.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/DataModel/User.Header.OneTimePasswords.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/DataModel/Record.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/DataModel/Record.Version.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/DataModel/Record.Version.Field.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/DataModel/DirectLogin.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/DataModel/DirectLoginInput.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/DataModel/DirectLoginBinding.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/DataModel/DirectLoginFormValue.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/DataModel/OneTimePassword.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Common/Components/BaseComponent.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Common/Components/Button.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Common/Components/ComponentSlot.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Common/Components/FaviconComponent.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Common/Components/PasswordEntropyDisplay.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Common/Components/ProgressBar.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Common/Components/SimpleMessagePanel.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Common/Components/MessagePanelWithProgressBar.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Common/Components/TabPanelComponent.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Common/Components/Tooltip.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Common/Components/TranslatorWidget.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Common/Controllers/DirectLoginRunner.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Common/Controllers/ProgressBarController.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Common/Controllers/TabPanelController.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Common/Controllers/WizardController.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/Page.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/PageHeader.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/PageFooter.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/LoginPage.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/LoginForm.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/LoginProgress.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/AppPage.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/UserInfoBox.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/TabSidePanel.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/GridComponent.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/ColumnManager.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/TextColumnManager.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/FaviconColumnManager.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/ImageColumnManager.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/DateColumnManager.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/LinkColumnManager.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/DirectLoginColumnManager.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/DirectLoginsColumnManager.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/DeleteObjectColumnManager.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/CreateNewCardSplashComponent.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/AccountPanel.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/DataPanel.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/ToolsPanel.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/RulerComponent.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/CardDialogComponent.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/CardDialogRecordFieldComponent.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/CardDialogRecordDirectLoginComponent.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/DirectLoginEditingComponent.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/DirectLoginEditingBindingComponent.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/DirectLoginEditingFormValueComponent.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/BookmarkletComponent.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/UnlockPasswordComponent.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/NewUserCreationComponent.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Components/PasswordTooltip.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Controllers/MainController.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Controllers/LoginController.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Controllers/AppController.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Controllers/FilterController.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Controllers/GridController.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Controllers/CardsController.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Controllers/DirectLoginsController.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Controllers/CardDialogController.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Controllers/DirectLoginWizardController.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Web/Controllers/NewUserWizardController.js'></script>
+
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Canvas/Marks/exclamationMark.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Canvas/Marks/questionMark.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Canvas/Marks/info.js'></script>
+
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Canvas/Features/store.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Canvas/Features/protect.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Canvas/Features/directLogin.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Canvas/Features/share.js'></script>
+
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Canvas/Star/normal.js'></script>
+
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Canvas/CoverActions/look.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Canvas/CoverActions/download.js'></script>
+
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Canvas/Tips/open.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Canvas/Tips/close.js'></script>
+
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Canvas/RegisterButton/normal.js'></script>
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Canvas/Logo/normal.js'></script>
+
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/UI/Canvas/GraphicFunctions.js'></script>
+	<!-- script type='text/javascript' src='../../../../js/main.js'></script -->
+
+	<script type='text/javascript' src='../../../../js/Clipperz/PM/Proxy/Proxy.Test.js'></script>
+	<script type='text/javascript' src='./User.data.js'></script>
+	<script type='text/javascript' src='./main_test.js'></script>
+
+
+</head>
+<body>
+<div id="mainDiv">
+	<div id="loading">
+		<a href="http://www.clipperz.com" target="_blank"><div id="logo"></div></a>
+		<h5 class="clipperzPayoff">keep it to yourself!</h5>
+		<h2>loading ...</h2>
+	</div>
+
+
+	
+</div>
+<div id="applicationVersionType" class="LIVE"></div>
+
+<!-- -->
+<div id="javaScriptAlert">
+	<div class="mask"></div>
+	<div class="message">
+		<div class="header"></div>
+		<div class="body">
+			<div class="alertLogo"></div>
+			<div class="alert">
+				<h1>Attention!</h1>
+				<p>If you can read this message, the chances are that your browser does not properly support JavaScript? or you have disabled this functionality yourself.</p>
+				<h3>Javascript is required to access Clipperz.</h3>
+				<h5>Please enable scripting or upgrade your browser.</h5>
+			</div>
+		</div>
+		<div class="footer"></div>
+	</div>
+</div>
+<!-- -->
+
+</body>
+</html>
