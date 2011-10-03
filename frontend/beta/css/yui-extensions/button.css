@@ -1,0 +1,86 @@
+/*
+
+Copyright 2008-2011 Clipperz Srl
+
+This file is part of Clipperz's Javascript Crypto Library.
+Javascript Crypto Library provides web developers with an extensive
+and efficient set of cryptographic functions. The library aims to
+obtain maximum execution speed while preserving modularity and
+reusability.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com
+
+* Javascript Crypto Library is free software: you can redistribute
+  it and/or modify it under the terms of the GNU Affero General Public
+  License as published by the Free Software Foundation, either version
+  3 of the License, or (at your option) any later version.
+
+* Javascript Crypto Library is distributed in the hope that it will
+  be useful, but WITHOUT ANY WARRANTY; without even the implied
+  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Javascript Crypto Library.  If not, see
+  <http://www.gnu.org/licenses/>.
+
+*/
+
+.ybtn{
+	font:normal 11px arial, tahoma, verdana, helvetica;
+	cursor:pointer;
+	white-space: nowrap;
+}
+.ybtn-left, .ybtn-right{
+	font-size:1px;
+	line-height:1px;
+}
+.ybtn-left{
+	width:3px;
+	height:21px;
+	background:url(../images/default/basic-dialog/btn-sprite.gif) no-repeat 0 0;
+}
+.ybtn-right{
+	width:3px;
+	height:21px;
+	background:url(../images/default/basic-dialog/btn-sprite.gif) no-repeat 0 -21px;
+}
+.ybtn-focus{
+	text-decoration:none !important;
+	color:black !important;
+	display: -moz-inline-block;
+	display:inline-block;
+	width:auto;
+	position:relative;
+	white-space: nowrap;
+}
+.ybtn-center{
+	background:url(../images/default/basic-dialog/btn-sprite.gif) repeat-x 0 -42px;
+	font:normal 11px "san serif",tahoma,verdana,helvetica;
+	vertical-align: middle;
+	text-align:center;
+	padding:0 5px;
+	cursor:pointer;
+	white-space:nowrap;
+	-moz-user-select: none;
+	-khtml-user-select: none;
+}
+.ybtn-over .ybtn-left{
+	background-position:0 -63px;
+}
+.ybtn-over .ybtn-right{
+	background-position:0 -84px;
+}
+.ybtn-over .ybtn-center{
+	background-position:0 -105px;
+}
+.ybtn-click .ybtn-center{
+	background-position:0 -126px;
+}
+.ybtn-disabled{
+	cursor:default;
+}
+.ybtn-disabled .ybtn-center{
+	color:gray;
+	cursor:default;
+}
