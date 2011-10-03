@@ -27,7 +27,7 @@ Whatever is your motivation, we would love to hear from you about how and where 
 
 Please note that Clipperz Community Edition may not be suitable for mass deployments, depending on how robust is the backend you select. 
 
-As an example, the current PHP backend lacks several critical capabilities such as bot protection and cuncurrent sessions management.
+As an example, the current PHP backend lacks several critical capabilities such as bot protection and concurrent sessions management.
 
 
 ## Community Edition vs Workgroup Edition
