@@ -94,7 +94,7 @@ Clipperz.PM.Strings.standardStrings = {
 		{tag:'option', html:"Persian (فارسی)", value:"fa-IR", disabled:true, cls:'disabledOption'},
 		{tag:'option', html:"Polish (Polski)", value:"pl-PL", disabled:true, cls:'disabledOption'},
 		{tag:'option', html:"Portuguese (Português)", value:"pt-BR"},
-		{tag:'option', html:"Russian (Русский)", value:"ru-RU"/* -- */, disabled:true, cls:'disabledOption' /* */},
+		{tag:'option', html:"Russian (Русский)", value:"ru-RU"},
 		{tag:'option', html:"Spanish (Español)", value:"es-ES"},
 		{tag:'option', html:"Swedish (Svenska)", value:"sv-SE", disabled:true, cls:'disabledOption'},
 		{tag:'option', html:"Turkish (Türkçe)", value:"tr-TR", disabled:true, cls:'disabledOption'},

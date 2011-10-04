@@ -1,53 +1,52 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008 Clipperz Srl
 
-This file is part of Clipperz's Javascript Crypto Library.
-Javascript Crypto Library provides web developers with an extensive
-and efficient set of cryptographic functions. The library aims to
-obtain maximum execution speed while preserving modularity and
-reusability.
+This file is part of Clipperz Community Edition.
+Clipperz Community Edition is a web-based password manager and a
+digital vault for confidential data.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com
 
-* Javascript Crypto Library is free software: you can redistribute
+* Clipperz Community Edition is free software: you can redistribute
   it and/or modify it under the terms of the GNU Affero General Public
   License as published by the Free Software Foundation, either version
   3 of the License, or (at your option) any later version.
 
-* Javascript Crypto Library is distributed in the hope that it will
+* Clipperz Community Edition is distributed in the hope that it will
   be useful, but WITHOUT ANY WARRANTY; without even the implied
   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Javascript Crypto Library.  If not, see
+  License along with Clipperz Community Edition.  If not, see
   <http://www.gnu.org/licenses/>.
+
 
 */
 
 Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipperz.PM.Strings.Languages['en-us'], {
-'clipperzServiceDescription':	"<h2>Держи при себе!</h2> <ul> <li> <h3>Clipperz - это:</h3> <ul> <li> <p>безопасный и простой менеджер паролей</p> </li> <li> <p>эффективное решение для единой регистрации</p> </li> <li> <p>цифровое хранилище Ваших конфидециальных данных</p> </li> </ul> </li> <li>
-			<h3>C помошью Clipperz Вы можете:</h3> <ul>
-				<li> <p>хранить и управлять Вашими паролями</p> </li> <li> <p>входить в любые веб-сервисы без ввода логина и пароля</p> </li> <li> <p>защитить все  важные данные: коды охранной сигнализации, ПИНы, номера кредитных кард, ...</p> </li> <li> <p>открыть доступ Вашим членам семьи, друзьям, коллегам</p> </li> </ul> </li> <li>
-			<h3>Преимущества Clipperz:</h3> <ul>
-				<li> <p>бесплатный и абсолютно анонимный</p> </li> <li> <p>доступен в любое время и с любого компьютера</p> </li> <li> <p>не нужно ничего устанавливать</p> </li> <li> <p>не надо хранить секреты на компьютере или бумаге</p> </li> </ul> </li> <li>
-			<h3>Безопасность Clipperz:</h3> <ul>
-				<li> <p>все данные перед отправкой в Clipperz шифруются в браузере</p> </li> <li> <p>секретный ключ - это фраза, которую знаете только Вы</p> </li> <li> <p>Clipperz управляет важными данными в зашифрованном виде и никогда не получит доступ к ним в открытом виде</p> </li> <li> <p>Clipperz основан на стандартных криптографических протоколах: без каких-либо самоделок</p> </li> <li> <p>Вы можете просмотреть исходный код, но Вам ничего не надо знать о криптографии, чтобы быть просто пользоваться</p> </li> </ul> </li> <li>
+'clipperzServiceDescription':	"<h2>Держи всегда при себе!</h2> <ul> <li> <h3>Clipperz - это:</h3> <ul> <li> <p>безопасный и простой менеджер паролей</p> </li> <li> <p>эффективное решение для единой регистрации</p> </li> <li> <p>цифровое хранилище ваших конфиденциальных данных</p> </li> </ul> </li> <li>\
+			<h3>C помощью Clipperz вы можете:</h3> <ul>\
+				<li> <p>хранить и управлять вашими паролями</p> </li> <li> <p>входить в любые веб-сервисы без ввода логина и пароля</p> </li> <li> <p>защитить все важные данные: коды охранной сигнализации, PINы, номера кредитных карт, и пр.</p> </li> <li> <p>открыть доступ к паролям вашим членам семьи, друзьям, коллегам</p> </li> </ul> </li> <li>\
+			<h3>Преимущества Clipperz:</h3> <ul>\
+				<li> <p>бесплатный и абсолютно анонимный</p> </li> <li> <p>доступен в любое время и с любого компьютера</p> </li> <li> <p>не нужно ничего устанавливать</p> </li> <li> <p>не надо хранить секреты на компьютере или бумаге</p> </li> </ul> </li> <li>\
+			<h3>Безопасность Clipperz:</h3> <ul>\
+				<li> <p>все данные перед отправкой в Clipperz шифруются в браузере</p> </li> <li> <p>пароль знаете только вы</p> </li> <li> <p>Clipperz управляет важными данными в зашифрованном виде и никогда не получит доступ к ним в открытом виде</p> </li> <li> <p>Clipperz основан на стандартных криптографических протоколах: без каких-либо самоделок</p> </li> <li> <p>вы можете просмотреть исходный код, но вам ничего не надо знать о криптографии, чтобы просто использовать его!</p> </li> </ul> </li> <li>\
 			<a href=\"http://www.clipperz.com\" target=\"_blank\">Подробнее</a> </li> </ul> ",
-'loginFormTitle':	"войти под Вашим аккаунтом Clipperz",
-'loginFormUsernameLabel':	"имя пользователя",
-'loginFormPassphraseLabel':	"ключевая фраза",
+'loginFormTitle':	"войти в аккаунт Clipperz",
+'loginFormUsernameLabel':	"логин",
+'loginFormPassphraseLabel':	"пароль",
 'loginFormDontHaveAnAccountLabel':	"у вас еще нет аккаунта?",
-'loginFormCreateOneLabel':	"создать",
+'loginFormCreateOneLabel':	"создать сейчас",
 'loginFormForgotYourCredentialsLabel':	"забыли пароль?",
-'loginFormAarghThatsBadLabel':	"о! это плохо!",
+'loginFormAarghThatsBadLabel':	"это плохо!",
 'loginFormAfraidOfMaliciousScriptsLabel':	"опасаетесь вредоносных скриптов?",
-'loginFormVerifyTheCodeLabel':	"проверить код",
+'loginFormVerifyTheCodeLabel':	"проверить",
 'loginFormButtonLabel':	"Войти",
-'loginFormOneTimePasswordCheckboxLabel':	"использовать одноразовую ключевую фразу",
-'loginPanelSwithLanguageDescription':	"<h5>Переключиться на Ваш язык</h5> ",
-'browserCompatibilityDescription':	"<p>Лучше работать с Clipperz в Firefox. Однако Clipperz хорошо совместим с Opera и MS Internet Explorer!</p> ",
+'loginFormOneTimePasswordCheckboxLabel':	"использовать одноразовый пароль",
+'loginPanelSwithLanguageDescription':	"<h5>Переключить язык</h5> ",
+'browserCompatibilityDescription':	"<p>Clipperz адаптирован для Firefox. Но также совместим с Opera и MS Internet Explorer!</p> ",
 'OTPloginMessagePanelInitialTitle':	"Вход",
 'OTPloginMessagePanelInitialText':	"Передача данных учетной записи ...",
 'OTPloginMessagePanelLoadingTitle':	"Вход",
@@ -80,18 +79,18 @@ Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipp
 'userLoginPanelDecryptingUserStatisticsMessageTitle':	"Пользователь аутентифицирован",
 'userLoginPanelDecryptingUserStatisticsMessageText':	"Расшифровка статистики",
 'splashAlertTitle':	"Добро пожаловать в Clipperz!",
-'splashAlertText':	"<p>Несколько советов по безопасности:</p> <ul> <li> <p>Хранение данных в Clipperz зависит от того, насколько безопасна выбранная Вами ключевая фраза</p> </li> <li> <p>Если собираетесь использовать Clipperz для защиты важных или критических данных, то убедитесь, что выбрали сложный пароль</p> </li> <li> <p>Clipperz не может восстановить забытую ключевую фразу</p> </li> </ul> <p>За дополнительной информацией обратитесь на <a href=\"http://www.clipperz.com\" target=\"_blank\">сайт</a> Clipperz.</p> ",
+'splashAlertText':	"<p>Несколько советов по безопасности:</p> <ul> <li> <p>Хранение данных в Clipperz зависит от того, насколько безопасен выбранный вами пароль</p> </li> <li> <p>Если собираетесь использовать Clipperz для защиты важных или критических данных, то убедитесь, что выбрали сложный пароль</p> </li> <li> <p>Clipperz не сможет восстановить забытый пароль</p> </li> </ul> <p>За дополнительной информацией обратитесь на <a href=\"http://www.clipperz.com\" target=\"_blank\">сайт</a> Clipperz.</p> ",
 'splashAlertCloseButtonLabel':	"OK",
 'registrationFormTitle':	"создать аккаунт",
 'registrationFormUsernameLabel':	"имя пользователя",
-'registrationFormPassphraseLabel':	"ключевая фраза",
-'registrationFormRetypePassphraseLabel':	"повторите ключевую фразу",
-'registrationFormSafetyCheckLabel':	"Я понимаю, что Clipperz не может восстановить забытую ключевую фразу",
+'registrationFormPassphraseLabel':	"пароль",
+'registrationFormRetypePassphraseLabel':	"повторите пароль",
+'registrationFormSafetyCheckLabel':	"Я понимаю, что Clipperz не сможет восстановить забытый пароль",
 'registrationFormTermsOfServiceCheckLabel':	"Я прочитал и согласен с <a href='http://www.clipperz.com/terms_of_service' target='_blank'>Условиями предоставления услуг</a>.",
 'registrationFormDoYouAlreadyHaveAnAccountLabel':	"у вас уже есть аккаунт?",
-'registrationFormSimplyLoginLabel':	"просто ввойдите",
+'registrationFormSimplyLoginLabel':	"просто авторизируйтесь",
 'registrationFormButtonLabel':	"Зарегистрировать",
-'registrationFormWarningMessageNotMatchingPassphrases':	"Ключевые фразы не совпадают, пожайлуста, повторите ввод",
+'registrationFormWarningMessageNotMatchingPassphrases':	"Пароли не совпадают, пожайлуста, повторите ввод",
 'registrationFormWarningMessageSafetyCheckNotSelected':	"Прочитайте и проверьте все поля ниже",
 'registrationFormWarningMessageTermsOfServiceCheckNotSelected':	"Вы должны принять Условия предоставления услуг",
 'registrationMessagePanelInitialTitle':	"Создание аккаунта",
@@ -103,12 +102,12 @@ Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipp
 'connectionRegistrationSendingRequestMessageText':	"Проверка учетной записи",
 'connectionRegistrationSendingCredentialsMessageText':	"Передача данных",
 'registrationSplashPanelTitle':	"Совет",
-'registrationSplashPanelDescription':	"<p>Это Ваши данные учетной записи, позаботесь об их безопасности. Clipperz никогда больше не покажет Ваше имя пользователя и ключевую фразу!</p> ",
+'registrationSplashPanelDescription':	"<p>Это ваши данные учетной записи, позаботесь об их безопасности. Clipperz никогда больше не покажет ваш логин и пароль!</p> ",
 'registrationSplashPanelUsernameLabel':	"имя пользователя",
-'registrationSplashPanelPassphraseLabel':	"ключевая фраза",
-'registrationSplashPanelShowPassphraseButtonLabel':	"показать ключевую фразу",
-'donateHeaderLinkLabel':	"пожертвования",
-'creditsHeaderLinkLabel':	"список разработчиков",
+'registrationSplashPanelPassphraseLabel':	"пароль",
+'registrationSplashPanelShowPassphraseButtonLabel':	"показать пароль",
+'donateHeaderLinkLabel':	"помочь проекту",
+'creditsHeaderLinkLabel':	"авторы",
 'feedbackHeaderLinkLabel':	"обратная связь",
 'helpHeaderLinkLabel':	"помощь",
 'forumHeaderLinkLabel':	"форум",
@@ -117,43 +116,43 @@ Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipp
 'dataMenuLabel':	"данные",
 'contactsMenuLabel':	"контакты",
 'toolsMenuLabel':	"инструменты",
-'logoutMenuLabel':	"выйти",
+'logoutMenuLabel':	"выход",
 'lockMenuLabel':	"заблокировать",
 'lockTitle':	"Аккаунт заблокирован",
-'lockDescription':	"<p>Введите ключевую фразу для разблокировки</p> ",
+'lockDescription':	"<p>Введите пароль для разблокировки</p> ",
 'unlockButtonLabel':	"разблокировать",
-'changePasswordTabLabel':	"Изменить ключевую фразу",
-'changePasswordTabTitle':	"Изменить ключевую фразу",
-'changePasswordFormUsernameLabel':	"имя пользователя",
-'changePasswordFormOldPassphraseLabel':	"старая ключевая фраза",
-'changePasswordFormNewPassphraseLabel':	"новая ключевая фраза",
-'changePasswordFormRetypePassphraseLabel':	"повторить ключевую фразу",
-'changePasswordFormSafetyCheckboxLabel':	"Я понимаю, что Clipperz не может восстановить забытую ключевую фразу.",
+'changePasswordTabLabel':	"Изменить пароль",
+'changePasswordTabTitle':	"Изменить пароль",
+'changePasswordFormUsernameLabel':	"логин",
+'changePasswordFormOldPassphraseLabel':	"старый пароль",
+'changePasswordFormNewPassphraseLabel':	"новый пароль",
+'changePasswordFormRetypePassphraseLabel':	"повторите пароль",
+'changePasswordFormSafetyCheckboxLabel':	"Я понимаю, что Clipperz не сможет восстановить забытый пароль.",
 'changePasswordFormSubmitLabel':	"Изменить",
-'changePasswordFormWrongUsernameWarning':	"Неправильное имя пользователя",
-'changePasswordFormWrongPassphraseWarning':	"Неверная ключевая фраза",
-'changePasswordFormWrongRetypePassphraseWarning':	"Ключевые фразы не совпадают, пожайлуста, повторите ввод.",
+'changePasswordFormWrongUsernameWarning':	"Неправильный логин",
+'changePasswordFormWrongPassphraseWarning':	"Неверный пароль",
+'changePasswordFormWrongRetypePassphraseWarning':	"Пароли не совпадают, пожайлуста, повторите ввод.",
 'changePasswordFormSafetyCheckWarning':	"Прочитайте и проверьте все поля ниже.",
 'changePasswordFormProgressDialogTitle':	"Изменение учетной записи",
 'changePasswordFormProgressDialogConnectedMessageTitle':	"Соединено",
 'changePasswordFormProgressDialogConnectedMessageText':	"Выполнено",
 'changePasswordFormProgressDialogErrorMessageTitle':	"Ошибка",
 'changePasswordFormProgressDialogErrorMessageText':	"Ошибка изменения учетной записи!",
-'changeCredentialsPanelEncryptingDataMessageTitle':	"Изменение ключевой фразы",
+'changeCredentialsPanelEncryptingDataMessageTitle':	"Изменение пароля",
 'changeCredentialsPanelEncryptingDataMessageText':	"Шифрование заголовков карточек",
-'changeCredentialsPanelCreatingNewCredentialsMessageTitle':	"Изменение ключевой фразы",
+'changeCredentialsPanelCreatingNewCredentialsMessageTitle':	"Изменение пароля",
 'changeCredentialsPanelCreatingNewCredentialsMessageText':	"Обновление учетной записи",
-'changeCredentialsPanelSendingNewCredentialsToTheServerMessageTitle':	"Изменение ключевой фразы",
+'changeCredentialsPanelSendingNewCredentialsToTheServerMessageTitle':	"Изменение пароля",
 'changeCredentialsPanelSendingNewCredentialsToTheServerMessageText':	"Загрузка данных учетной записи в Clipperz",
-'changeCredentialsPanelDoneMessageTitle':	"Изменение ключевой фразы",
+'changeCredentialsPanelDoneMessageTitle':	"Изменение пароля",
 'changeCredentialsPanelDoneMessageText':	"Выполнено",
-'manageOTPTabLabel':	"Управление одноразовыми ключевыми фразами",
-'manageOTPTabTitle':	"Управление одноразовыми ключевыми фразами",
-'manageOTPTabDescription':	"<p>Одноразовый пароль работает, как Ваша обычная ключевая фраза, но может быть использована только один раз.</p> <p>Если один и тот же пароль будет использоваться снова на следующих этапах, она будет отклонен и процедура входа завершится неудачно.</p> <p>Сразу после входа одноразовый пароль будет удален, чтобы предовратить любую несанкционированную попытку доступа.</p> <p>Одноразовые пароли - удачный выбор для тех, кто обеспокоен кейлоггерами или spyware, которые могут собирать информ.</p> <p> <b>Строго рекомендуется использовать одноразовые пароли для доступа к Clipperz с чужих компьютеров, из интернет-кафе и библиотек.</b> </p> ",
-'oneTimePasswordReadOnlyMessage':	"<h6>Извините!</h6> <p>Вы не можете управлять одноразовыми ключевыми фразами в оффлайновой версии Clipperz.</p> ",
+'manageOTPTabLabel':	"Управление одноразовыми паролями",
+'manageOTPTabTitle':	"Управление одноразовыми паролями",
+'manageOTPTabDescription':	"<p>Одноразовый пароль работает так же, как ваш обычный пароль, но может быть использован только один раз.</p> <p>Если один и тот же пароль будет использоваться снова, он будет отклонен при попытке войти.</p> <p>Сразу после входа одноразовый пароль будет удален, чтобы предотвратить любую несанкционированную попытку доступа.</p> <p>Одноразовые пароли - удачный выбор для тех, кто обеспокоен кейлоггерами или spyware, которые могут украсть пароль.</p> <p> <b>Строго рекомендуется использовать одноразовые пароли для доступа к Clipperz с чужих компьютеров, интернет-кафе и компьютеров общего пользования.</b> </p> ",
+'oneTimePasswordReadOnlyMessage':	"<h6>Извините!</h6> <p>Вы не можете управлять одноразовыми паролями в автономной версии Clipperz.</p> ",
 'oneTimePasswordLoadingMessage':	"<h6>Загрузка данных</h6> <p>Подождите, пожайлуста ...</p> ",
-'oneTimePasswordNoPasswordAvailable':	"<h6>Нет свободных для использования одноразовых ключевых фраз.</h6> <p>Нажмите кнопку “Новая”, чтобы добавить еще одноразовые ключевые фразы в аккаунт.</p> ",
-'createNewOTPButtonLabel':	"новая",
+'oneTimePasswordNoPasswordAvailable':	"<h6>Нет доступных одноразовых паролей.</h6> <p>Нажмите кнопку “Создать”, чтобы создать одноразовый пароль.</p> ",
+'createNewOTPButtonLabel':	"создать",
 'deleteOTPButtonLabel':	"удалить",
 'printOTPButtonLabel':	"печать",
 'disabledOneTimePassword_warning':	"запрещено",
@@ -162,20 +161,20 @@ Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipp
 'oneTimePasswordSelectionLink_none':	"ни одного",
 'oneTimePasswordSelectionLink_used':	"использованные",
 'oneTimePasswordSelectionLink_unused':	"неиспользованные",
-'saveOTP_encryptUserDataTitle':	"Сохранение одноразовых ключевых фраз",
+'saveOTP_encryptUserDataTitle':	"Сохранение одноразовых паролей",
 'saveOTP_encryptUserDataText':	"Обработка новых данных учетной записи ...",
-'saveOTP_encryptOTPDataTitle':	"одноразовыми ключевыми фразами",
+'saveOTP_encryptOTPDataTitle':	"одноразовыми паролями",
 'saveOTP_encryptOTPDataText':	"Шифрование аутентификационных данных ...",
-'saveOTP_sendingDataTitle':	"одноразовыми ключевыми фразами",
+'saveOTP_sendingDataTitle':	"одноразовыми паролями",
 'saveOTP_sendingDataText':	"Передача аутентификационных данных на сервер ...",
-'saveOTP_updatingInterfaceTitle':	"одноразовыми ключевыми фразами",
+'saveOTP_updatingInterfaceTitle':	"одноразовыми паролями",
 'saveOTP_updatingInterfaceText':	"Обновление интерфейса ...",
 'accountPreferencesLabel':	"Настройки",
 'accountPreferencesTabTitle':	"Настройки",
 'accountPreferencesLanguageTitle':	"Выбор языка",
-'accountPreferencesLanguageDescription':	"<p>Выберите Ваш язык из списка.</p> ",
+'accountPreferencesLanguageDescription':	"<p>Выберите ваш язык из списка.</p> ",
 'showDonationReminderPanelTitle':	"Напоминания о пожертвованиях",
-'showDonationReminderPanelDescription':	"<p>Показать напоминания о пожертвованиях</p> ",
+'showDonationReminderPanelDescription':	"<p>Показывать напоминания о пожертвованиях</p> ",
 'saveUserPreferencesFormSubmitLabel':	"Сохранить",
 'cancelUserPreferencesFormSubmitLabel':	"Отмена",
 'accountPreferencesSavingPanelTitle_Step1':	"Сохранение настроек",
@@ -184,54 +183,54 @@ Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipp
 'accountPreferencesSavingPanelText_Step2':	"Передача зашифрованных настроек в Clipperz",
 'accountLoginHistoryLabel':	"История входов",
 'loginHistoryTabTitle':	"История входов",
-'loginHistoryReadOnlyMessage':	"<h6>Извините!</h6> <p>История входов не доступна в оффлайновой версии Clipperz.</p> ",
+'loginHistoryReadOnlyMessage':	"<h6>Извините!</h6> <p>История входов не доступна в автономной версии Clipperz.</p> ",
 'loginHistoryLoadingMessage':	"<h6>Загрузка данных</h6> <p>Подождите, пожайлуста ...</p> ",
-'loginHistoryLoadedMessage':	"<h6>Десять Ваших последних входов</h6> <p> </p> ",
+'loginHistoryLoadedMessage':	"<h6>Здесь можно посмотреть информацию о последних авторизациях в Clipperz</h6> <p> </p> ",
 'loginHistoryIPLabel':	"IP",
 'loginHistoryTimeLabel':	"дата",
 'loginHistoryCurrentSessionText':	"текущая сессия",
 'loginHistoryReloadButtonLabel':	"Обновить историю",
 'deleteAccountTabLabel':	"Удалить аккаунт",
 'deleteAccountTabTitle':	"Удалить аккаунт",
-'deleteAccountFormUsernameLabel':	"имя пользователя",
-'deleteAccountFormPassphraseLabel':	"ключевая фраза",
-'deleteAccountFormSafetyCheckboxLabel':	"Я понимаю, что все мои данные будут удалены и это действие необратимо.",
-'deleteAccountFormSubmitLabel':	"Удалить мой аккаунт",
-'deleteAccountFormWrongUsernameWarning':	"Неверное имя пользователя",
-'deleteAccountFormWrongPassphraseWarning':	"Неверная ключевая фраза",
+'deleteAccountFormUsernameLabel':	"логин",
+'deleteAccountFormPassphraseLabel':	"пароль",
+'deleteAccountFormSafetyCheckboxLabel':	"Я понимаю, что все данные этого аккаунта будут безвозвратно удалены.",
+'deleteAccountFormSubmitLabel':	"Удалить аккаунт",
+'deleteAccountFormWrongUsernameWarning':	"Неверный логин",
+'deleteAccountFormWrongPassphraseWarning':	"Неверный пароль",
 'deleteAccountFormSafetyCheckWarning':	"Прочтите и отметьте все поля ниже.",
 'accountPanelDeletingAccountPanelConfirmationTitle':	"ВНИМАНИЕ",
-'accountPanelDeleteAccountPanelConfirmationText':	"Вы уверены, что хотите удалить аккаунт?",
+'accountPanelDeleteAccountPanelConfirmationText':	"Вы уверены, что хотите удалить аккаунт? Операция необратима.",
 'accountPanelDeleteAccountPanelConfirmButtonLabel':	"Да",
 'accountPanelDeleteAccountPanelDenyButtonLabel':	"Нет",
-'offlineCopyTabLabel':	"Оффлайновая копия",
-'offlineCopyTabTitle':	"Оффлайновая копия",
-'offlineCopyTabDescription':	"<p>Одним кликом Вы можете сохранить все зашифрованные данные с серверов Clipperz на жесткий диск и создать оффлайновую версию, которую будете использовать при отсутствии подключения к Интернету.</p> <p>Версия только для чтения безопасна также, как и полная, и не подвергает Ваши данные большим рискам, так как использует тот же код и архитектуру.</p> <ol> <li> <p>Нажмите на ссылку, чтобы начать скачивание.</p> </li> <li> <p>Браузер спросит, что сделать с файлом “Clipperz_YYYYMMDD.html”. Сохраните его на Ваш жесткий диск.</p> </li> <li> <p>Double click on the downloaded file to launch the offline version in your browser.</p> </li> <li> <p>Как обычно, введите имя пользователя и ключевую фразу.</p> </li> </ol> ",
+'offlineCopyTabLabel':	"Автономная копия",
+'offlineCopyTabTitle':	"Автономная копия",
+'offlineCopyTabDescription':	"<p>Одним кликом вы можете сохранить все зашифрованные данные с серверов Clipperz на жесткий диск и создать автономную версию, которую будете использовать при отсутствии подключения к Интернету.</p> <p>Версия доступна только для чтения. Она так же безопасна, как и онлайн версия, и не подвергает ваши данные риску, так как использует тот же код и архитектуру.</p> <ol> <li> <p>Нажмите на ссылку ниже, чтобы загрузить ее.</p> </li> <li> <p>Браузер спросит вас, что сделать с файлом “Clipperz_YYYYMMDD.html”. Сохраните его на ваш жесткий диск.</p> </li> <li> <p>Запустите загруженную автономную версию в вашем браузере.</p> </li> <li> <p>Введите, как обычно, свой логин и пароль.</p> </li> </ol> ",
 'offlineCopyDownloadLinkLabel':	"Скачать",
-'offlineCopyDownloadWarning':	"<h4> <a href=\"#\" id=\"offlineCopyDownloadWarningLink\">Обновите Вашу “оффлайновую копию”!</a> </h4> <p>Вы недавно создали или изменили одну или более карточек: было бы разумным скачать новую оффлайновую копию.</p> ",
+'offlineCopyDownloadWarning':	"<h4> <a href=\"#\" id=\"offlineCopyDownloadWarningLink\">Обновите вашу автономную копию!</a> </h4> <p>Вы недавно создали или изменили одну или более карточек: рекомендуется скачать новую автономную копию.</p> ",
 'sharingTabLabel':	"Совместное использование",
 'sharingTabTitle':	"Совместное использование",
-'sharingTabDescription':	"<p>Достаточно часто конфидециальную информацию нужно открыть одному или нескольким людям.</p> <p>Это может быть просто, как дать коллеге ключ доступа к Вашей голосовой почте, когда Вас нет в офисе, или сложно, как открыть доступ наследникам к Вашему счету в местном банке, когда Вы скончаетесь.</p> <p>Clipperz поможет сделать совместное использование Ваших секретов безопасным и простым процессом.</p> <p> </p> <p> <b>Скоро ...</b> </p> ",
+'sharingTabDescription':	"<p>Достаточно часто конфиденциальную информацию нужно предоставить другим людям.</p> <p>Может быть, просто дать коллеге ключ доступа к вашей почте, когда вас нету в офисе, или даже открыть доступ наследникам к вашему счету в местном банке, на случай, если с вами что-нибудь случится.</p> <p>Clipperz поможет сделать совместное использование ваших секретов безопасной и простой процедурой.</p> <p> </p> <p> <b>Раздел в разработке...</b> </p> ",
 'importTabLabel':	"Импорт",
 'importTabTitle':	"Импорт",
-'importTabDescription':	"<p> <b>Скоро ...</b> </p> ",
+'importTabDescription':	"<p>Вы можете импортировать данные целиком, в ваш аккаунт Clipperz, из файлов различных форматов.</p>",
 'printingTabLabel':	"Экспорт",
 'printingTabTitle':	"Экспорт",
-'printingTabDescription':	"<p> <b>Печать Ваших данных</b> </p> <p>Нажмите по ссылке, чтобы открыть новое окно со всеми Вашими карточками для печати.</p> <p>Если вы собираетесь распечатать в резервных целях, пожайлуста, рассмотрите более безопасный вариант, как создание “оффлайновой копии”.</p> ",
+'printingTabDescription':	"<p> <b>Печать ваших данных</b> </p> <p>Нажмите по ссылке, чтобы открыть новое окно со всеми вашими карточками для печати.</p> <p>Если вы собираетесь распечатать в резервных целях, пожалуйста, рассмотрите более безопасный вариант, как создание “автономной копии”.</p> ",
 'printingLinkLabel':	"Версия для печати",
 'contactsTabLabel':	"Контакты",
 'contactsTabTitle':	"Контакты",
 'passwordGeneratorTabLabel':	"Генератор паролей",
 'passwordGeneratorTabTitle':	"Генератор паролей",
-'passwordGeneratorTabButtonLabel':	"Генератор паролей",
-'bookmarkletTabLabel':	"Закладка",
-'bookmarkletTabTitle':	"Закладка",
-'bookmarkletTabDescription':	"<p>Закладка - это простой инструмент, который может решать очень полезные задачи. Ее можно сохранить и использовать как обычную веб-страницу.</p> <p>Закладки помогут Вам быстро создать новые карточки и новые логины внутри существующих карточек.</p> <p> <b>Пожайлуста, учтите, что закладки действительно не включают какой-либо информации, связанной с аккаунтом (например, имя или ключевая фраза), закладки содержат один и тот же код для каждого пользователя.</b> </p> <h3>Как установить закладку</h3> <h5>Firefox, Camino, Opera, Safari</h5> <ol> <li> <p>Убедитесь, что панель закладок отображается выбором “View > Toolbars > Bookmarks” или похожими пунктами из меню браузера.</p> </li> <li> <p>Нажмите и перетащите ссылку “Добавить в Clipperz” на панель закладок.</p> </li> </ol> <h5>Internet Explorer</h5> <ol> <li> <p>Убедитесь, что отображается панель “Ссылки” выбором “View > Toolbars > Links” из меню браузера.</p> </li> <li> <p>Нажмите правой кнопкой на ссылку “Добавить в Clipperz”.</p> </li> <li> <p>Выберите “Add to favorites” из контекстного меню.</p> </li> <li> <p>Нажмите “Yes” для любых сообщений, которые появятся.</p> </li> <li> <p>Откройте папку “Links” и нажмите “OK”.</p> </li> </ol> ",
+'passwordGeneratorTabButtonLabel':	"сгенерировать",
+'bookmarkletTabLabel':	"Букмарклет",
+'bookmarkletTabTitle':	"Букмарклет",
+'bookmarkletTabDescription':	"<p>Букмарклет - это простой инструмент, который помещается в браузер, как обычная закладка, и может выполнять различные действия на текущей странице.</p> <p>Букмарклет от Clipperz поможет вам быстро создать новые карточки и быстрый вход внутри существующих карточек, на основе страницы с формой авторизации вашего ресурса.</p> <p> <b>Учтите, что закладка букмарклета не содержит какой-либо информации, связанной с аккаунтом (например, имя или пароль), букмарклет содержит один и тот же код для каждого пользователя.</b> </p> <h3>Как установить букмарклет</h3> <h5>Firefox, Camino, Opera, Safari</h5> <ol> <li> <p>Убедитесь, что панель закладок отображается в вашем браузере.</p> </li> <li> <p>Перетащите ссылку “Добавить в Clipperz” на панель закладок.</p> </li> </ol> <h5>Internet Explorer</h5> <ol> <li> <p>Убедитесь, что отображается панель избранного.</p> </li> <li> <p>Нажмите правой кнопкой на ссылку “Добавить в Clipperz”.</p> </li> <li> <p>Выберите “Добавить в избранное...” из контекстного меню.</p> </li> <li> <p>Нажмите “Да”, для любых сообщений, которые появятся.</p> </li> <li> <p>Выберите папку “Панель избранного” и нажмите “Добавить”.</p> </li> </ol> ",
 'bookmarkletTabBookmarkletTitle':	"Добавить в Clipperz",
-'bookmarkletTabInstructions':	"<h3>Как создать новую карточку с ссылками “прямого подключения” в онлайновый сервис</h3> <ol> <li> <p>Откройте веб-страницу с формой входа. (обычно на этой страницы Вы вводите данные вашей учетной записи)</p> </li> <li> <p>Запустите закладку, нажав на нее: появится всплывающее окно.</p> </li> <li> <p>Скопируйте в буфер обмена содержимое текстового поля из всплывающего окна. (ctrl-C)</p> </li> <li> <p>Ввойдите в Ваш аккаунт и нажмите “Добавить новую карточку”.</p> </li> <li> <p>Выберите шаблон “Прямого подключения” и вставьте в текстовое поле содержимое буфера обмена. (ctrl-V)</p> </li> <li> <p>Нажмите кнопку “Создать”, проверьте правильность и нажмите “Сохранить”.</p> </li> </ol> <h3>Как создать ссылку “Прямого подключения” в существующей карточке</h3> <ol> <li> <p>Тоже самое, как и выше.</p> </li> <li> <p>Тоже самое, как и выше.</p> </li> <li> <p>Тоже самое, как и выше.</p> </li> <li> <p>Ввойдите в Ваш аккаунт и выберите карточку с данными учетной записи для только что посещенного веб-сервиса и нажмите “Редактировать”.</p> </li> <li> <p>Вставьте содержимое буфера обмена в текстовое поле в разделе “Прямого подключения”. (ctrl-V)</p> </li> <li> <p>Нажмите “Добавить новое прямое подключение”, проверьте правильность и нажмите “Сохранить”.</p> </li> </ol> <p> </p> <p>Подробнее о закладках <a href=\"http://www.clipperz.com/support/user_guide/bookmarklet\" target=\"_blank\">здесь</a>.</p> ",
-'mainPanelDirectLoginBlockLabel':	"Прямые подключения",
+'bookmarkletTabInstructions':	"<h3>Как создать новую карточку с ссылками “прямого подключения” в онлайновый сервис</h3> <ol> <li> <p>Откройте веб-страницу с формой входа. (обычно на этой страницы вы вводите данные вашей учетной записи)</p> </li> <li> <p>Запустите закладку, нажав на нее: появится всплывающее окно.</p> </li> <li> <p>Скопируйте в буфер обмена содержимое текстового поля из всплывающего окна. (ctrl-C)</p> </li> <li> <p>Войдите в ваш аккаунт и нажмите “Добавить новую карточку”.</p> </li> <li> <p>Выберите шаблон “Прямого подключения” и вставьте в текстовое поле содержимое буфера обмена. (ctrl-V)</p> </li> <li> <p>Нажмите кнопку “Создать”, проверьте правильность и нажмите “Сохранить”.</p> </li> </ol> <h3>Как создать ссылку “Быстрого входа” в существующей карточке</h3> <ol> <li> <p>Тоже самое, как и выше.</p> </li> <li> <p>Тоже самое, как и выше.</p> </li> <li> <p>Тоже самое, как и выше.</p> </li> <li> <p>Войдите в ваш аккаунт и выберите карточку с данными учетной записи для только что посещенного веб-сервиса и нажмите “Редактировать”.</p> </li> <li> <p>Вставьте содержимое буфера обмена в текстовое поле в разделе “Быстрого входа”. (ctrl-V)</p> </li> <li> <p>Нажмите «Добавить новый Быстрый вход», проверьте правильность и нажмите “Сохранить”.</p> </li> </ol> <p> </p> <p>Подробнее о букмарклете <a href=\"http://www.clipperz.com/support/user_guide/bookmarklet\" target=\"_blank\">здесь</a>.</p> ",
+'mainPanelDirectLoginBlockLabel':	"Быстрый вход",
 'directLinkReferenceShowButtonLabel':	"показать",
-'mainPanelDirectLoginBlockDescription':	"<p>Добавьте “Прямые подключения”, чтобы срау входить в веб-сервисы без ввода имени и пароля!</p> <p>“Прямые подключения” значительно усиливают безопасность, так как:</p> <ul> <li> <p>удобно принимать и вводить сложные пароли;</p> </li> <li> <p>никогда не надо использовать простой и один и тот же пароль.</p> </li> </ul> <p>Простая и быстрая конфигурация с помощью закладок.</p> <a href=\"http://www.clipperz.com/support/user_guide/direct_logins\" target=\"_blank\">Подробнее о прямых подключениях</a> ",
+'mainPanelDirectLoginBlockDescription':	"<p>Добавьте «Быстрый вход», чтобы срау заходить на веб-сервисы без ввода имени и пароля!</p> <p>«Быстрый вход» значительно усиливает безопасность, так как:</p> <ul> <li> <p>можно удобно использовать большие и сложные пароли.</p> </li> <li> <p>легко пользоваться уникальными паролями на разных ресурсах.</p> </li> </ul> <p>Легко и быстро их можно создать с помощью букмарклета Clipperz.</p> <a href=\"http://www.clipperz.com/support/user_guide/direct_logins\" target=\"_blank\">Подробнее о быстром входе</a> ",
 'mainPanelRecordsBlockLabel':	"Карточки",
 'mainPanelAddRecordButtonLabel':	"Добавить новую карточку",
 'mainPanelRemoveRecordButtonLabel':	"Удалить карточку",
@@ -239,10 +238,10 @@ Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipp
 'mainPanelRecordFilterBlockTagsLabel':	"теги",
 'mainPanelRecordFilterBlockSearchLabel':	"поиск",
 'recordDetailNoRecordAtAllTitle':	"Добро пожаловать в Clipperz!",
-'recordDetailNoRecordAtAllDescription':	"<h5>Начните, добавив карточку.</h5> <p>Карточки - это простой и гибкий инструмент, с помощью которого Вы можете хранить пароли и любую другую информацию.</p> <p>Карточки могут содержать учетные записи для доступа к веб-сайтам, код для замка от велосипеда, данные кредитной карточки, ...</p> <h5>Не забывай о закладках!</h5> <p>Перед началом работы установите закладку “Добавить в Clipperz”: создание карточек будет простым и забавным.</p> <p>Перейдите на панель закладок, чтобы изучить, как установить и использовать их.</p> <p> </p> <a href=\"http://www.clipperz.com/support/user_guide/managing_cards\" target=\"_blank\">Подробнее об создании и управлениями закладками</a> ",
-'newRecordWizardTitleBox':	"<h5>Пожайлуста, выберите шаблон</h5> <p>Карточки - это простой и гибкий инструмент, с помощью которого Вы можете хранить пароли и любую другую информацию.</p> <p>Выберите один из шаблонов. Вы всегда сможете настроить ваши карточки, добавляя или удаляя поля.</p> ",
-'newRecordWizardBookmarkletConfigurationTitle':	"Прямое подключение",
-'newRecordWizardBookmarkletConfigurationDescription':	"<p>Вставьте конфигурационный код, сгенерированный с помощью закладки</p> <p>Будет создана новая карточка с поддержкой прямого подключения.</p> ",
+'recordDetailNoRecordAtAllDescription':	"<h5>Начните работать, добавив карточку.</h5> <p>Карточки - это простой и гибкий инструмент, с помощью которого вы можете хранить пароли и любую другую информацию.</p> <p>Карточки могут содержать учетные записи для доступа к веб-сайтам, код для замка от велосипеда, данные кредитной карточки и т.д.</p> <h5>Не забывайте о букмарклете!</h5> <p>Перед началом работы установите букмарклет от Clipperz: создание карточек станет простым и быстрым.</p> <p>Откройте раздел \"Инструменты\"->\"Букмарклет\", чтобы узнать, как установить и использовать его.</p> <p> </p> <a href=\"http://www.clipperz.com/support/user_guide/managing_cards\" target=\"_blank\">Подробнее о создании и управлении закладками</a> ",
+'newRecordWizardTitleBox':	"<h5>Пожайлуста, выберите шаблон</h5> <p>Карточки - это простой и гибкий инструмент, с помощью которого вы можете хранить пароли и любую другую информацию.</p> <p>Выберите один из шаблонов. Вы всегда сможете настроить ваши карточки, добавляя или удаляя поля.</p> ",
+'newRecordWizardBookmarkletConfigurationTitle':	"Быстрый вход",
+'newRecordWizardBookmarkletConfigurationDescription':	"<p>Вставьте конфигурационный код, сгенерированный с помощью букмарклета</p> <p>Будет создана новая карточка с поддержкой быстрого входа.</p> ",
 'newRecordWizardCreateButtonLabel':	"Создать",
 'newRecordWizardCancelButtonLabel':	"Отмена",
 'donateSplashPanelTitle':	"Поддержите Clipperz, сделайте пожертвование сегодня!",
@@ -251,20 +250,20 @@ Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipp
 'donateDonateButtonLabel':	"Да",
 	'recordTemplates':	{
 		'WebAccount':	{
-			'title':	"Интернет Пароль",
-			'description':	"Простая форма для хранения учетной записи в онлайновый сервис."
+			'title':	"Интернет аккаунт",
+			'description':	"Простая форма для хранения учетной записи в онлайн сервисе."
 		},
 		'BankAccount':	{
-			'title':	"Банковский аккаунт",
-			'description':	"Безопасное хранение номера Вашей банковской карты и учетной записи для онлайнового банкинга."
+			'title':	"Счет банка",
+			'description':	"Безопасное хранение номера вашего счета и учетной записи для онлайн доступа."
 		},
 		'CreditCard':	{
 			'title':	"Кредитная карта",
-			'description':	"Номер карты, срок действия, CCV2 и ПИН всегда в Ваших руках."
+			'description':	"Номер карты, срок действия, CCV2 и PIN будут всегда при вас."
 		},
 		'AddressBookEntry':	{
 			'title':	"Запись адресной книги",
-			'description':	"Clipperz может также работать, как новая частная адресная книга. Используйте этот шаблон, чтобы легко добавить новую запись."
+			'description':	"Clipperz может также работать, как записная книга. Используйте этот шаблон, чтобы легко добавить новую запись."
 		},
 		'Custom':	{
 			'title':	"Пользовательская карточка",
@@ -282,7 +281,7 @@ Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipp
 		},
 		'URL':	{
 			'description':	"simple text field in edit mode, that became an active url in view mode",
-			'shortDescription':	"веб-адрес"
+			'shortDescription':	"URL"
 		},
 		'DATE':	{
 			'description':	"a value set with a calendar helper",
@@ -290,7 +289,7 @@ Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipp
 		},
 		'ADDR':	{
 			'description':	"just like the URL, but the active link points to Google Maps (or similar service) passing the address value as argument",
-			'shortDescription':	"почтовый адрес"
+			'shortDescription':	"адрес"
 		},
 		'CHECK':	{
 			'description':	"check description",
@@ -306,14 +305,14 @@ Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipp
 		}
 	},
 'newRecordPanelGeneralExceptionTitle':	"Ошибка",
-'newRecordPanelGeneralExceptionMessage':	"Конфигурационный текст неверен. Убедитесь, что Вы взяли его из окна закладки и попробуйте снова.",
+'newRecordPanelGeneralExceptionMessage':	"Конфигурационный текст неверен. Убедитесь, что вы взяли его из окна закладки и попробуйте снова.",
 'newRecordPanelWrongBookmarkletVersionExceptionTitle':	"Ошибка",
-'newRecordPanelWrongBookmarkletVersionExceptionMessage':	"Конфигурационный текст был сгенерирован с помощью старой весии закладок. Пожайлуста, обновите Вашу закладку и попробуйте снова.",
+'newRecordPanelWrongBookmarkletVersionExceptionMessage':	"Конфигурационный текст был сгенерирован с помощью старой весии закладок. Пожайлуста, обновите вашу закладку и попробуйте снова.",
 'newRecordPanelExceptionPanelCloseButtonLabel':	"Отмена",
 'mainPanelDeletingRecordPanelConfirmationTitle':	"Удаление выбранной карточки",
 'mainPanelDeleteRecordPanelConfirmationText':	"Вы действительно хотите удалить эту карточку?",
-'mainPanelDeleteRecordPanelConfirmButtonLabel':	"Ага",
-'mainPanelDeleteRecordPanelDenyButtonLabel':	"Не-а",
+'mainPanelDeleteRecordPanelConfirmButtonLabel':	"Да",
+'mainPanelDeleteRecordPanelDenyButtonLabel':	"Нет",
 'mainPanelDeletingRecordPanelInitialTitle':	"Удаление выбранной карточки",
 'mainPanelDeletingRecordPanelCompletedText':	"Выполнено",
 'deleteRecordPanelCollectRecordDataMessageTitle':	"Удаление карточки",
@@ -332,19 +331,19 @@ Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipp
 'recordDetailDecryptingRecordVersionMessage':	"Расшифровка",
 'recordDetailLoadingErrorMessageTitle':	"Ошибка при загрузку",
 'recordDetailNotesLabel':	"Примечания",
-'recordDetailLabelFieldColumnLabel':	"Метка поля",
-'recordDetailDataFieldColumnLabel':	"Данные поля",
+'recordDetailLabelFieldColumnLabel':	"Название поля",
+'recordDetailDataFieldColumnLabel':	"Значение поля",
 'recordDetailTypeFieldColumnLabel':	"Тип",
 'recordDetailSavingChangesMessagePanelInitialTitle':	"Сохранение карточки",
 'recordDetailAddFieldButtonLabel':	"Добавить новое поле",
 'recordDetailPasswordFieldHelpLabel':	"чтобы скопировать пароль в буфер обмена, нажмите на звездочку, затем Ctrl-C",
 'recordDetailPasswordFieldScrambleLabel':	"спрятать",
 'recordDetailPasswordFieldUnscrambleLabel':	"показать",
-'recordDetailDirectLoginBlockTitle':	"Прямые подключения",
-'recordDetailNewDirectLoginDescription':	"<p>Настройка прямых подключений</p> ",
-'recordDetailDirectLoginBlockNoDirectLoginConfiguredDescription':	"<p>В этой карточке есть данные для доступа в онлайновый сервис?</p> <p>Используйте закладки, чтобы настроить “прямые подключения”!</p> ",
-'recordDetailAddNewDirectLoginButtonLabel':	"Добавить новое прямое подключение",
-'recordDetailEditButtonLabel':	"Редактировать",
+'recordDetailDirectLoginBlockTitle':	"Быстрый вход",
+'recordDetailNewDirectLoginDescription':	"<p>Настройка быстрого входа</p> ",
+'recordDetailDirectLoginBlockNoDirectLoginConfiguredDescription':	"<p>В этой карточке есть данные для доступа в онлайн сервис?</p> <p>Используйте букмарклет, чтобы добавить «Быстрый вход»!</p> ",
+'recordDetailAddNewDirectLoginButtonLabel':	"Добавить новый «Быстрый вход»",
+'recordDetailEditButtonLabel':	"Изменить",
 'recordDetailSaveButtonLabel':	"Сохранить",
 'recordDetailCancelButtonLabel':	"Отмена",
 'newRecordTitleLabel':	"_новую карточку_",
@@ -364,7 +363,7 @@ Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipp
 'passwordGeneratorPanelOkLabel':	"OK",
 'passwordGeneratorPanelCancelLabel':	"Отмена",
 'passwordGeneratorLengthLabel':	"длина:",
-//'DWRUtilLoadingMessage':	"Загрузка данных ...",
+'DWRUtilLoadingMessage':	"Загрузка данных ...",
 'comingSoon':	"вскоре ...",
 'panelCollectingEntryopyMessageText':	"Определение энтропии",
 'directLoginConfigurationCheckBoxFieldSelectedValue':	"Да",
@@ -373,6 +372,22 @@ Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipp
 'currentConnectionText':	"Сейчас вы подключились с ip&nbsp;__ip__, очевидно __country__, используя __browser__ на __operatingSystem__.",
 'latestConnectionText':	"Последнее соединение было __elapsedTimeDescription__ (__time__) с ip&nbsp;__ip__, очевидно __country__, используя __browser__ на __operatingSystem__.",
 'fullLoginHistoryLinkLabel':	"показать полную историю входов",
+
+'exportTabDescription':
+	"<h5>JSON экспорт</h5>\
+	<p>JSON включает в себя полную информацию про ваши карты, в том числе и конфигурации быстрого входа.</p>\
+	<p>Это формат, разработанный для Clipperz, и наиболее удобен для работы с ним. Например, если вам нужно переместить все свои карты на другую учетную запись Clipperz, или если вы хотите восстановить карточку, которая была случайно удалена.</p>\
+	<p>Нажмите на ссылку ниже, чтобы начать экспорт.</p>",
+
+'exportLinkLabel':					"JSON экспорт",
+
+'exportDataInProgressDescription':	"<h4>Экспорт, пожалуста, подождите, пока обрабатываются ваши данные…</h4>",
+
+'exportDataDescription':			
+	"<h4>Инструкция</h4>\
+	<p>Скопируйте текст ниже в любой текстовый редактор и сохраните его. (напр. “clipperz_export_20071217.json”)</p>",
+	
+
 'elapsedTimeDescriptions':	{
 	'MORE_THAN_A_MONTH_AGO':	"за месяц",
 	'MORE_THAN_A_WEEK_AGO':	"за неделю",
@@ -385,6 +400,75 @@ Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipp
 	'ABOUT_*_MINUTES_AGO':	"около __elapsed__ минут"
 },
 'unknown_ip':	"неизвестный",
+
+// NEW - Import panel
+'importFormats':	{
+	'CSV': {
+		'label':		"CSV",
+		'description':	"<p>Распространенный формат для хранения табличных данных. Большинство менеджеров паролей поддерживают экспорт в этот формат.</p>"
+	},
+	'Excel': {
+		'label':		"Excel",
+		'description':	"<p>Популярный формат таблиц от Microsoft. Хранение паролей в Excel очень распространено, но это не рекомендуется.</p>"
+	},
+	'KeePass': {
+		'label':		"KeePass",
+		'description':	"<p>TXT файл, созданный менеджером паролей KeePass.</p>"
+	},
+	'PasswordPlus': {
+		'label':		"Password Plus",
+		'description':	"<p>CSV файл из Password Plus, менеджер паролей, который часто используется на мобильных устройствах.</p>"
+	},
+	'Roboform': {
+		'label':		"RoboForm",
+		'description':	"<p>Специальный HTML файл созданный менеджером Roboform когда он показывает Passcard и Safenotes для печати.</p>"
+	},
+	'ClipperzExport': {
+		'label':		"JSON",
+		'description':	"<p>Файл, созданный самим Clipperz в формате JSON. Он содержит всю информацию, содержащуюся в вашей карте, в том числе информацию о быстром входе.</p>"
+	}
+},
+
+'compactTabLabel': "Компактная версия",
+'httpAuthTabLabel': "HTTP авторизация",
+'compactTabTitle': "Компактная версия",
+'httpAuthTabTitle': "HTTP авторизация",
+
+//	Tools panel - Compact - instructions
+'compactTabDescription':				"\
+	<!-- 	FIX CSS		DONE!	-->	\
+	<p>Clipperz Compact - это специальная версия Clipperz предназначенная, чтобы открываться в боковой панели Firefox.</p>\
+	<p>Она создана, чтобы держать быстрый вход всегда рядом. <a href=\"http://www.clipperz.com/support/user_guide/clipperz_compact\", target=\"blank\">Подробнее</a></p>\
+	\
+	<h3>Как запустить Clipperz Compact в боковой панели</h3>\
+	<ol>\
+		<li><p>Используйте Firefox! Боковые панели доступны только в Firefox, поэтому вы должны использовать именно его, если вы хотите воспользоваться Clipperz Compact.</p></li>\
+		<li>\
+			<p>Добавьте следующий URL в закладки Firefox, или просто перетащите на панель закладок.</p>\
+			<div id=\"compactLinkBox\"><a href=\"https://www.clipperz.com/beta/index.html?compact\" target=\"_search\">Clipperz Compact</a></div>\
+		</li>\
+		<li><p>Измените свойства этой закладки, включив опцию “Загружать закладку в боковой панели”.</p></li>\
+	</ol>\
+	\
+	<h5>Clipperz Compact теперь работает и в Opera.</h5>",
+
+//	Tools panel - HTTP authentication - instructions
+'httpAuthTabDescription':					"\
+	<!-- 	FIX CSS		DONE!	-->	\
+	<p>HTTP авторизация - метод, который позволяет браузеру предоставлять имя пользователя и пароль веб-сайту, включая их в адрес сайта (HTTP или HTTPS URL).</p>\
+	<p>В настоящее время он редко используется, но она все еще можно встретить на небольших, частных веб-сайтов. Можно определить, что сайт использует HTTP авторизацию, когда браузер отображает всплывающее окно для ввода имени пользователя и пароля.</p>\
+	<p>К сожалению, букмарклет Clipperz не работает в веб-сайтах, которые используют HTTP авторизацию. Но вы все равно можете создать быстрый вход</p>\
+	\
+	<h3>Как создать быстрый вход для сайта, использующего HTTP авторизацию</h3>\
+	<ol>\
+		<li><p>Сохраните URL сайта, имя пользователя и пароль в новой карточке.</p></li>\
+		<li><p>Скопируйте конфигурацию, написанную ниже, и вставьте ее в текстовое поле для конфигурации быстрого входа в созданной карте.</p></li>\
+		<li><p>Нажмите <b>Добавить «быстрый вход»</b>, указав URL, имя пользователя и пароль в появившихся полях и нажмите <b>Сохранить</b>.</p></li>\
+	</ol>\
+	\
+	<h5><a href=\"http://support.microsoft.com/kb/834489\" target=\"_blank\">Внимание: Internet Explorer не поддерживает HTTP авторизацию.</a></h5>",
+
+
 'calendarStrings':	{
 	'months':	{
 		'0':	"Январь",
@@ -424,13 +508,13 @@ Clipperz.PM.Strings.Languages['ru-RU'.toLowerCase()] = MochiKit.Base.merge(Clipp
 		'6':	"Суббота"
 	},
 	'shortDays':	{
-		'0':	"Вск",
-		'1':	"Пон",
-		'2':	"Втр",
-		'3':	"Сре",
-		'4':	"Чет",
-		'5':	"Пят",
-		'6':	"Суб"
+		'0':	"Вс",
+		'1':	"Пн",
+		'2':	"Вт",
+		'3':	"Ср",
+		'4':	"Чт",
+		'5':	"Пт",
+		'6':	"Сб"
 	},
 	'amDesignation':	"am",
 	'pmDesignation':	"pm"
