@@ -379,6 +379,13 @@ error_log("message");
 					$user = $user->Get($_SESSION["userId"]);
 					
 					$result["header"] =		$user->header;
+					$records = $user->GetRecordList();
+					foreach ($records as $record)
+					{
+						$recordStats["updateDate"] = $record->update_date;
+						$recordsStats[$record->reference] = $recordStats;
+					}
+					$result["recordsStats"] = $recordsStats;
 					$result["statistics"] =	$user->statistics;
 					$result["version"] =	$user->version;
 
