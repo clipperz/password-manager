@@ -721,8 +721,11 @@ error_log("message");
 				}
 				
 				//=============================================================
-			} else {
+			} else if (isset($_SESSION['K'])) {
 				$result["error"] = "Wrong shared secret!";
+                        } else {
+                            $result["result"] = "EXCEPTION";
+                            $result["message"] = "Trying to communicate without an active connection";
 			}
 			break;
 
