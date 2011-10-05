@@ -1,13 +1,11 @@
-# ![Clipperz icon][icon] Clipperz Password Manager - COMMUNITY EDITION
+# ![Clipperz icon][icon] CLIPPERZ COMMUNITY EDITION - Online Password Manager
 
 
 [Clipperz Community Edition][CE] allows you to host on your own server a web service identical to [Clipperz online password manager][clipperz]. It supports multiple backends (PHP/MySQL, Python/AppEngine, …) and you can contribute your own.
 
-Please note that Clipperz Community Edition is not suitable for mass deployments since it lacks several critical capabilities such as bot protection. If you want to offer Clipperz password manager to a wide audience, please wait for the upcoming Provider Edition.
-
-In any case if you want to use Clipperz’s software in a commercial, for-profit environment, please contact us to inquire about licensing options for commercial applications.
-
 ALL the code included in this project, if not otherwise stated, is released with the **AGPL v.3 license**  (see `LICENSE.txt`), and all rights are reserved to Clipperz Srl.
+
+For any use not allowed by the AGPL license, please [contact us][contact] to inquire about licensing options for commercial applications.
 
 
 ## Why a Community Edition
@@ -27,7 +25,7 @@ Whatever is your motivation, we would love to hear from you about how and where 
 
 Please note that Clipperz Community Edition may not be suitable for mass deployments, depending on how robust is the backend you select. 
 
-As an example, the current PHP backend lacks several critical capabilities such as bot protection and concurrent sessions management.
+As an example, the current PHP backend lacks several critical capabilities such as bot protection and cuncurrent sessions management.
 
 
 ## Community Edition vs Workgroup Edition
