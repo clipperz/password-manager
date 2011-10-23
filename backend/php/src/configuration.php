@@ -16,10 +16,10 @@ $configuration['db_encoding'] = 0;
 
 // edit the information below to match your database settings
 
-$configuration['db']	= 'clipperz'; 		//	database name
+$configuration['db']	= 'clipperz'; 	//	database name
 $configuration['host']	= 'localhost';	//	database host
-$configuration['user']	= 'root';		//	database user
-$configuration['pass']	= 'pass';		//	database password
+$configuration['user']	= 'clipperz';	//	database user
+$configuration['pass']	= 'clipperz';	//	database password
 $configuration['port'] 	= '3306';		//	database port
 
 

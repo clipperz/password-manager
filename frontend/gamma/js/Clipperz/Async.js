@@ -62,7 +62,8 @@ Clipperz.Base.extend(Clipperz.Async.Deferred, MochiKit.Async.Deferred, {
 
 	'callback': function (aValue) {
 		if (this._shouldTrace) {
-			Clipperz.log("CALLBACK " + this._name, aValue);
+		//	Clipperz.log("CALLBACK " + this._name, aValue);
+			console.log("CALLBACK " + this._name, aValue);
 		}
 
 		if (this.chained == false) {
@@ -82,7 +83,8 @@ Clipperz.Base.extend(Clipperz.Async.Deferred, MochiKit.Async.Deferred, {
 				resultMessage = "RESULT   " + this._name + " <==";
 //				this.addCallback(function(aResult) {
 				Clipperz.Async.Deferred.superclass.addCallback.call(this, function(aResult) {
-					Clipperz.log(resultMessage, aResult);
+				//	Clipperz.log(resultMessage, aResult);
+					console.log(resultMessage, aResult);
 
 					return aResult;
 				});
@@ -106,8 +108,10 @@ Clipperz.Base.extend(Clipperz.Async.Deferred, MochiKit.Async.Deferred, {
 			message = "[" + this._count + "] " + this._name + " ";
 //			this.addBoth(function(aResult) {Clipperz.log(message + "-->", aResult); return aResult;});
 			this.addCallbacks(
-				function(aResult) {Clipperz.log("-OK- " + message + "-->"/*, aResult*/); return aResult;},
-				function(aResult) {Clipperz.log("FAIL " + message + "-->"/*, aResult*/); return aResult;}
+			//	function(aResult) {Clipperz.log("-OK- " + message + "-->"/*, aResult*/); return aResult;},
+				function(aResult) {console.log("-OK- " + message + "-->"/*, aResult*/); return aResult;},
+			//	function(aResult) {Clipperz.log("FAIL " + message + "-->"/*, aResult*/); return aResult;}
+				function(aResult) {console.log("FAIL " + message + "-->"/*, aResult*/); return aResult;}
 			);
 		}
 
@@ -116,8 +120,10 @@ Clipperz.Base.extend(Clipperz.Async.Deferred, MochiKit.Async.Deferred, {
 		if (this._shouldTrace) {
 //			this.addBoth(function(aResult) {Clipperz.log(message + "<--", aResult); return aResult;});
 			this.addCallbacks(
-				function(aResult) {Clipperz.log("-OK- " + message + "<--", aResult); return aResult;},
-				function(aResult) {Clipperz.log("FAIL " + message + "<--", aResult); return aResult;}
+			//	function(aResult) {Clipperz.log("-OK- " + message + "<--", aResult); return aResult;},
+				function(aResult) {console.log("-OK- " + message + "<--", aResult); return aResult;},
+			//	function(aResult) {Clipperz.log("FAIL " + message + "<--", aResult); return aResult;}
+				function(aResult) {console.log("FAIL " + message + "<--", aResult); return aResult;}
 			);
 		}
 	},
@@ -406,6 +412,7 @@ MochiKit.Base.update(Clipperz.Async.DeferredSynchronizer.prototype, {
 		} else if (this.numberOfMethodsDone() == this.methods().length) {
 			this.result().callback();
 		} else if (this.numberOfMethodsDone() > this.methods().length) {
+			alert("Clipperz.Async.Deferred.handleMethodCallDone -> WTF!");
 			//	WTF!!! :(
 		}
 		

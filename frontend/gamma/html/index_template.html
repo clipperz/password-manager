@@ -39,6 +39,11 @@ Clipperz_normalizedNewLine = '\x0d\x0a';
 </div>
 <div id="applicationVersionType" class="@application.version.type@"></div>
 
+<script>
+	Clipperz.PM.Proxy.defaultProxy = new Clipperz.PM.Proxy.JSON({'url':'@request.path@', 'shouldPayTolls':@should.pay.toll@});
+	/*offline_data_placeholder*/
+</script>
+
 <!-- -->
 <div id="javaScriptAlert">
 	<div class="mask"></div>
