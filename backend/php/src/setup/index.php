@@ -164,7 +164,7 @@ if(count($_POST) > 0 && $_SESSION['diagnosticsSuccessful']==false)
 		if ($errors == 0)
 		{
 			AddTrace('File Structure....OK!');
-			if (!@mysql_connect ($GLOBALS['configuration']['host'].":".$GLOBALS['configuration']['port'], $GLOBALS['configuration']['user'], $GLOBALS['configuration']['pass']))
+			if (!mysql_connect ($GLOBALS['configuration']['host'].":".$GLOBALS['configuration']['port'], $GLOBALS['configuration']['user'], $GLOBALS['configuration']['pass']))
 			{
 				$errors++;
 				AddError('Cannot connect to the specified database server. Edit configuration.php');
