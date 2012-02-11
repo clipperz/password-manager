@@ -183,7 +183,7 @@
 	],
 
 	"css": [
-		"clipperz/clipperz.css",
-		"clipperz/compact.css"
+		"clipperz.css",
+		"compact.css"
 	]
 }
