@@ -1,0 +1,8 @@
+{
+	"request.path": "clipperz.py",
+	"should.pay.toll": "false"
+
+	"development.settings": {
+		"url": "http://localhost/python/clipperz"
+	}
+}

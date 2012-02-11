@@ -9,17 +9,11 @@ import shutil
 import StringIO
 import urllib
 
-#from mercurial import ui, hg
-#from mercurial.node import hex
-from dulwich.repo import Repo
-
 import main
 
+class FrontendBuilder(object):
 
-
-class FrontendBuilder:
-
-	def __init__ (self, frontend, settings):
+	def __init__ (self, frontend, settings, repositoryVersion):
 		if '.' in frontend:
 			moduleComponents = frontend.split('.')
 			self.module = moduleComponents[0]
@@ -30,53 +24,26 @@ class FrontendBuilder:
 
 		self.settings = settings
 		self.projectDir = main.projectBaseDir()
+		# self.repository = repository.repositoryWithPath(self.projectDir)
+		self.repositoryVersion = repositoryVersion
 		self.processedFiles = {}
 		
-
-	def mercurialRepositoryVersion (self):
-		repo = hg.repository(ui.ui(), self.projectDir)
-		context = repo['tip']
-		result = str(context)
-		
-		return result
-	
-
-	def gitRepositoryVersion (self):
-		repo = Repo(self.projectDir)
-		#if repo.is_dirty():
-		#	print "WARNING: build run with dirty repository"
-		result = repo.refs['HEAD']
-		
-		return result
-	
-
-		
-	def repositoryVersion (self): 
-		cacheKey = 'repositoryVersion'
-		if not self.processedFiles.has_key(cacheKey):
-			#result = self.mercurialRepositoryVersion()
-			result = self.gitRepositoryVersion()
-			self.processedFiles[cacheKey] = result
-		else:
-			result = self.processedFiles[cacheKey]
-		
-		return result
-	
-
-	#def relativePath (self):
-	#	return self.module
-	#
 
 	def log (self, message):
 		print "frontend [" + self.module + "]: " + message
 	
 
-	def absolutePathForSourceFile (self, folder, basePath, file):
-		return folder + '/frontend/' + self.module + '/' + basePath + '/' + file
+	def absolutePathForSources (self):
+		return os.path.join(self.projectDir, 'frontend', self.module)
+
+	
+	def absolutePathForSourceFile (self, basePath, file):
+		return os.path.join(self.absolutePathForSources(), basePath, file)
 	
 
 	def absolutePathForTargetFile (self, folder, basePath, file):
-		return folder + '/' + self.module + '/' + basePath + '/' + file
+		return os.path.join(folder, self.module, basePath, file)
+
 
 	def filterFiles (self, files):
 		result = []
@@ -92,13 +59,13 @@ class FrontendBuilder:
 
 	def copyResources (self, sourceFolder, destinationFolder, fileType):
 		for file in self.filterFiles(self.settings[fileType]):
-			src = self.absolutePathForSourceFile(sourceFolder,      fileType, file)
+			src = self.absolutePathForSourceFile(fileType, file)
 			dst = self.absolutePathForTargetFile(destinationFolder, fileType, file)
 			main.createFolder(os.path.dirname(dst))
 			shutil.copy2(src, dst)
 		
 
-	def copyResourcesToTargetFolder (self, targetFolder):
+	def copyResourcesToFolder (self, targetFolder):
 		self.copyResources(self.projectDir, targetFolder, 'css')
 		self.copyResources(self.projectDir, targetFolder, 'js')
 	
@@ -108,7 +75,7 @@ class FrontendBuilder:
 		
 		for file in self.filterFiles(files):
 			try:
-				fileHandler = codecs.open(self.absolutePathForSourceFile(self.projectDir, basePath, file), 'r', 'utf-8')
+				fileHandler = codecs.open(self.absolutePathForSourceFile(basePath, file), 'r', 'utf-8')
 			except:
 				print "FILE: " + file
 
@@ -181,8 +148,8 @@ class FrontendBuilder:
 
 	#==========================================================================
 
-	def compressJS_jsmin (self, js):
-		self.log("compressing JS code")
+	def compressJS_jsmin (self, js, description):
+		self.log("compressing " + description + " code")
 		original = StringIO.StringIO(js)
 		output = StringIO.StringIO()
 		
@@ -196,7 +163,7 @@ class FrontendBuilder:
 		
 		return result
 
-	def compressJS_closureCompiler (self, js):
+	def compressJS_closureCompiler (self, js, description):
 		#	Googles Closure compiler
 		#	java -jar compiler.jar --js=in1.js --js=in2.js ... --js_output_file=out.js
 		
@@ -205,14 +172,14 @@ class FrontendBuilder:
 		return result
 	
 
-	def compressJS (self, js):
-		return self.compressJS_jsmin(js)
-		#return self.compressJS_closureCompiler(js)
+	def compressJS (self, js, description):
+		return self.compressJS_jsmin(js, description)
+		#return self.compressJS_closureCompiler(js, description)
 	
 
 	#==========================================================================
 
-	def packBookmarklet (self, bookmakeletCode):
+	def packBookmarklet (self, bookmakeletCode, version):
 		replacers = [
 			('isLoginForm',				'ilf'),
 			('findLoginForm',			'flf'),
@@ -227,7 +194,7 @@ class FrontendBuilder:
 			('parameters',				'p'  ),
 			('inputElementValues',		'iev'),
 		]
-		result = self.compressJS(bookmakeletCode)
+		result = self.compressJS(bookmakeletCode, version + " bookmarklet")
 		
 		result = re.sub('\n', ' ', result)	#	Fit all in a single line
 		# result = re.sub('\s+', ' ', result)	#	Collapse "redundant" spaces. WARNING: this could have some evil side effects on constant strings used inside to code!!
@@ -300,7 +267,7 @@ class FrontendBuilder:
 	def bookmarklet (self):
 		cacheKey = 'bookmarklet'
 		if not self.processedFiles.has_key(cacheKey):
-			result = 'bookmarklet="' + self.packBookmarklet(self.loadFilesContent('js', ['Bookmarklet.js'])) + '";bookmarklet_ie="' + self.packBookmarklet(self.loadFilesContent('js', ['Bookmarklet_IE.js'])) + '";'
+			result = 'bookmarklet="' + self.packBookmarklet(self.loadFilesContent('js', ['Bookmarklet.js']), "regular") + '";bookmarklet_ie="' + self.packBookmarklet(self.loadFilesContent('js', ['Bookmarklet_IE.js']), "IE") + '";'
 			self.processedFiles[cacheKey] = result
 		else:
 			result = self.processedFiles[cacheKey]
@@ -308,7 +275,7 @@ class FrontendBuilder:
 		return result
 	
 
-	def replaceTemplatePlaceholders (self, assemblyMode, pageTitle, copyright, css, code, version, versionType):
+	def replaceTemplatePlaceholders (self, pageTitle, copyright, css, code, jsLoadMode, version, versionType):
 		result = self.template()
 		
 		result = result.replace('@page.title@',					pageTitle,		1)
@@ -317,7 +284,7 @@ class FrontendBuilder:
 		#result = result.replace('@bookmarklet@',				bookmarklet,	1)
 		result = result.replace('@application.version@',		version,		1)
 		result = result.replace('@application.version.type@',	versionType,	1)
-		result = result.replace('@js_' + assemblyMode + '@',	code,			1)
+		result = result.replace('@js_' + jsLoadMode + '@',		code,			1)
 
 		result = re.sub('@js_[^@]+@', '', result)
 
@@ -343,7 +310,7 @@ class FrontendBuilder:
 
 	def cssTagsForFiles (self, basePath, files):
 		#<link rel="stylesheet" type="text/css" href="./css/reset-min.css" />
-		return '\n'.join(map(lambda file: '<link rel="stylesheet" type="text/css" href="./' + basePath + '/' + file + '" />', files))
+		return '\n'.join(map(lambda file: '<link rel="stylesheet" type="text/css" href="' + basePath + '/' + file + '" />', files))
 	
 
 	def cssTagForContent (self, content):
@@ -352,17 +319,17 @@ class FrontendBuilder:
 
 	def scriptTagsForFiles (self, basePath, files):
 		#<script type='text/javascript' src='./js/src/bookmarklet.js'></script>
-		return '\n'.join(map(lambda file: '<script type="text/javascript" src="./' + basePath + '/' + file + '"></script>', files))
+		return '\n'.join(map(lambda file: '<script type="text/javascript" src="' + basePath + '/' + file + '"></script>', files))
 	
 
 	def scriptTagForContent (self, content):
 		return '<script>' + content + '</script>'
 	
 
-	def assembleVersion (self, assemblyMode, pageTitle, copyright, css, js, version, versionType):
+	def assembleVersion (self, pageTitle, copyright, css, js, jsLoadMode, version, versionType):
 		cacheKey = version + "-" + versionType
 		if not self.processedFiles.has_key(cacheKey):
-			result = self.replaceTemplatePlaceholders(assemblyMode, pageTitle, copyright, css, js, version, versionType)
+			result = self.replaceTemplatePlaceholders(pageTitle, copyright, css, js, jsLoadMode, version, versionType)
 			self.processedFiles[cacheKey] = result
 		else:
 			result = self.processedFiles[cacheKey]
@@ -372,24 +339,48 @@ class FrontendBuilder:
 	
 
 	def assemble (self, assemblyMode='INSTALL', versionType='LIVE'):
-		pageTitle = "Clipperz - " + self.module
-		if versionType != 'LIVE':
-			pageTitle += " [" + versionType + " - " + assemblyMode +"]"
-		
-		if assemblyMode == 'INSTALL':
-			css	= self.cssTagForContent(self.compressCSS(self.loadFilesContent('css', self.settings['css'])))
-			js	= self.scriptTagForContent(self.bookmarklet() + '\n' + self.compressJS(self.loadFilesContent('js', self.settings['js'])))
+
+		if versionType == 'LIVE':
+			pageTitle = "Clipperz - " + self.module
 		else:
-			css	= self.cssTagsForFiles('css', self.filterFiles(self.settings['css']))
-			js	= self.scriptTagForContent(self.bookmarklet()) + '\n' + self.scriptTagsForFiles('js', self.filterFiles(self.settings['js']))
-		
+			pageTitle = "Clipperz - " + self.module + " [" + versionType + " - " + assemblyMode +"]"
+
+		if assemblyMode == 'INSTALL':
+			copyright = self.assembleCopyrightHeader()
+			css	=	self.cssTagForContent(self.compressCSS(self.loadFilesContent('css', self.settings['css'])))
+			js	=	self.scriptTagForContent(
+						self.bookmarklet() +
+						'\n' +
+						self.compressJS(self.loadFilesContent('js', self.settings['js']), "application")
+					)
+			jsLoadMode = 'EMBEDDED'
+
+		elif assemblyMode == 'DEBUG':
+			copyright = self.assembleCopyrightHeader()
+			css	=	self.cssTagsForFiles('./css', self.filterFiles(self.settings['css']))
+			js	=	self.scriptTagForContent(self.bookmarklet()) + \
+				 	'\n' + \
+					self.scriptTagsForFiles('./js', self.filterFiles(self.settings['js']))
+			jsLoadMode = 'LINKED'
+
+		elif assemblyMode == 'DEVELOPMENT':
+			copyright = ""
+			css	=	self.cssTagsForFiles('file://' + str(os.path.join(self.absolutePathForSources(), 'css')), self.filterFiles(self.settings['css']))
+			js	=	self.scriptTagForContent(self.bookmarklet()) + \
+				 	'\n' + \
+					self.scriptTagsForFiles('file://' + str(os.path.join(self.absolutePathForSources(), 'js')), self.filterFiles(self.settings['js']))
+			jsLoadMode = 'LINKED'
+
+		else:
+			raise NotImplementedError()
+
 		return self.assembleVersion(
-			assemblyMode	= assemblyMode,
 			pageTitle		= pageTitle,
-			copyright		= self.assembleCopyrightHeader(),
+			copyright		= copyright,
 			css				= css,
 			js				= js,
-			version			= self.repositoryVersion(),
+			jsLoadMode		= jsLoadMode,
+			version			= self.repositoryVersion,
 			versionType		= versionType
 		)
 
