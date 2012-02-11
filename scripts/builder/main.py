@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-import sys, os, json
+import sys
+import os
+import json
 import shutil
 import pprint
-import frontendBuilder
 import codecs
 import itertools
-
 from collections   import deque
-from phpBuilder    import PhpBuilder
-from pythonBuilder import PythonBuilder
+
+import frontendBuilder
+import repository
 
 pp = pprint.PrettyPrinter(indent=4, depth=4)
 
@@ -34,7 +35,7 @@ def createFolder (path):
 #--------------------------------------------------------------------
 
 def loadSettings (component, module):
-	print "MODULE: " + module
+	# print "MODULE: " + module
 
 	if '.' in module:
 		moduleComponents = module.split('.')
@@ -43,7 +44,8 @@ def loadSettings (component, module):
 	else:
 		submodule = module
 
-	settings = codecs.open(projectBaseDir() + '/' + component + '/' + module + '/properties/' + submodule + '.properties.json', 'r', 'utf-8')
+	#settings = codecs.open(projectBaseDir() + os.sep + component + os.sep + module + os.sep + 'properties' + os.sep + submodule + '.properties.json', 'r', 'utf-8')
+	settings = codecs.open(os.path.join(projectBaseDir(), component, module, 'properties', submodule + '.properties.json'), 'r', 'utf-8')
 	result = json.load(settings)
 	settings.close
 
@@ -71,24 +73,25 @@ def loadSettings (component, module):
 def assembleBackend (backend, frontends, versions):
 	settings = loadSettings('backend', backend)
 	
-	if backend == 'php':
-		backendBuilder = PhpBuilder(projectTargetDir(), frontends, versions, settings)
-	elif backend == 'python':
-		backendBuilder = PythonBuilder(projectTargetDir(), frontends, versions, settings)
-	#elif backend == 'java':
-	#	buildJavaBackend (frontends, versions, settings)
-	else:
-		raise Exception('unrecognized backend: ' + backend)
-		
+	builderModuleName = backend + 'Builder'
+	builderClassName  = backend.capitalize() + 'Builder'
+
+	builderModule  = __import__(builderModuleName)
+	builderClass   = getattr(builderModule, builderClassName)
+	
+	backendBuilder = builderClass(projectTargetDir(), frontends, versions, settings)
 	backendBuilder.run()	
 
 #====================================================================
 
-def build (settings):
+def build (settings, repository):
 	frontends = []
 	
+	if repository.areTherePendingChanges():
+		print "\nWARNING: repository has pending changes\n"
+
 	for frontend in settings['frontends']:
-		frontends.append(frontendBuilder.FrontendBuilder(frontend, loadSettings('frontend', frontend)))
+		frontends.append(frontendBuilder.FrontendBuilder(frontend, loadSettings('frontend', frontend), repository.version()))
 
 	for backend in settings['backends']:
 		assembleBackend(backend, frontends, settings['versions'])
@@ -96,7 +99,7 @@ def build (settings):
 #--------------------------------------------------------------------
 
 def clean ():
-	print "cleaning up …"
+	# print "cleaning up …"
 	if os.path.exists(projectTargetDir()):
 		shutil.rmtree(projectTargetDir())
 
@@ -107,35 +110,42 @@ def usage (message):
 		print "ERROR: " + message
 	
 	print
-	print "build.py clean"
-	print "build.py clean install"
-	print "build.py install --ALL"
-	print "build.py install debug --ALL"
-	print "build.py clean install debug --ALL"
-	print "build.ph install, debug --backends php java --frontends beta gamma"
-	print "build.ph install, debug --backends php java --frontends beta gamma gamma.mobile"
+	# print "build clean"
+	# print "build clean install"
+	print "build install --ALL"
+	print "build install debug --ALL"
+	# print "build clean install debug --ALL"
+	print "build install debug --backends php python --frontends beta gamma"
+	print "build install debug development --backends php python --frontends beta gamma gamma.mobile"
 	exit(1)
+
+#--------------------------------------------------------------------
+
+def allFrontends ():
+	return ['beta', 'gamma',  'mobile']
+
+def allBackends ():
+	return ['php',  'python']
 
 #--------------------------------------------------------------------
 
 def main ():
 	settings = {}
 	parameters = list(itertools.islice(sys.argv, 1, None))
-	
-	shouldClean = len(filter(lambda x: x == 'clean', parameters)) > 0
-	if (shouldClean):
-		clean ()
-	
-	parameters = filter(lambda x: x != 'clean', parameters)
+
+	sys.path.append(os.path.join(scriptDir(), 'backends'))
+	currentRepository = repository.repositoryWithPath(projectBaseDir())
+
+	clean()
 	versions = list(itertools.takewhile(lambda x: not x.startswith('--'), parameters))
-	settings['versions']  = versions;		#['debug',  'install']
+	settings['versions']  = versions;		#['debug', 'install', 'development']
 	parameters = deque(itertools.dropwhile(lambda x: not x.startswith('--'), parameters))
 	
 	if len(parameters) > 0:
 		parameter = parameters.popleft()
 		if parameter == "--ALL":
-			settings['frontends'] = ['beta', 'gamma',  'mobile']
-			settings['backends']  = ['php',  'python', 'java']
+			settings['frontends'] = allFrontends()
+			settings['backends']  = allBackends()
 		else:
 			while parameter != None:
 				values = list(itertools.takewhile(lambda x: not x.startswith('--'), parameters))
@@ -158,8 +168,9 @@ def main ():
 		if (not settings.has_key('backends')):
 			usage("missing 'backends'")
 		
-		build (settings)
-	
+		build(settings, currentRepository)
+	else:
+		usage("Suggestions on how to call the 'build' script:")
 
 
 if __name__ == "__main__":

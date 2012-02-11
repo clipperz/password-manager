@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-from backendBuilder import BackendBuilder
+from scriptLanguageBuilder import ScriptLanguageBuilder
 
-class PhpBuilder(BackendBuilder):
+class PhpBuilder(ScriptLanguageBuilder):
 	
 	def name(self):
 		return "PHP builder"
+
 	
 	def relativePath(self):
 		return 'php'
-	
-

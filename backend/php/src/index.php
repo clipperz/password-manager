@@ -140,7 +140,9 @@ function updateUserData($parameters, &$user) {
 	$user->header =		$parameters["header"];
 	$user->statistics =	$parameters["statistics"];
 	$user->version =	$parameters["version"];
-	$user->lock =		$parameters["lock"];
+	if (array_key_exists("lock", $parameters)) {
+		$user->lock =		$parameters["lock"];
+	}
 }
 
 function updateRecordData($parameters, &$record, &$recordVersion) {
@@ -153,7 +155,9 @@ function updateRecordData($parameters, &$record, &$recordVersion) {
 	$recordVersion->reference =				$recordVersionData ["reference"];
 	$recordVersion->data =					$recordVersionData ["data"];
 	$recordVersion->version =				$recordVersionData ["version"];
-	$recordVersion->previous_version_id =	$recordVersionData ["previousVersion"];
+	if (array_key_exists("previousVersion", $recordVersionData)) {
+		$recordVersion->previous_version_id =	$recordVersionData ["previousVersion"];
+	}
 	$recordVersion->previous_version_key =	$recordVersionData ["previousVersionKey"];
 }
 
@@ -365,6 +369,7 @@ error_log("oneTimePassword");
 
 		case "message":
 error_log("message");
+//error_log("message: ".json_encode($parameters));
 			if ($parameters["srpSharedSecret"] == $_SESSION["K"]) {
 				$message = $parameters["message"];
 				
@@ -447,6 +452,88 @@ error_log("message");
 					$result["result"] = "done";
 
 				//=============================================================
+				} else if ($message == "saveChanges") {
+
+//{
+//   "message":"saveChanges",
+//   "srpSharedSecret":"edc78508907c942173818f7247fa64869ba80672a7aa8d27b8fa6bfe524fb9c8",
+//   "parameters":{
+//      "records":{
+//         "updated":[
+//            {
+//               "currentRecordVersion":{
+//                  "previousVersionKey":"####",
+//                  "reference":"08c8eb7ec528fbf987bbfb84fe2e960cf9ae937b19fbb5f05d8d90a7039fac6a",
+//                  "data":"WYQ16AjodjsmyZDXa4MKxOju0F…beD/zXlbVb0Zj0ZI/N55bZ",
+//                  "version":"0.3"
+//               },
+//               "record":{
+//                  "reference":"83de5304f60a808e48a815c6203d7d3f24874d3f40faba420bbc60b376fcc356",
+//                  "data":"B6uBuBE Aly0knvgrUppodDTGZQC…guizL9QvHCWyM bQQBGBVvHZ6LfA==",
+//                  "version":"0.3"
+//               }
+//            }
+//         ],
+//         "deleted":[
+//
+//         ]
+//      },
+//      "user":{
+//         "header":"{\"rec…sion\":\"0.1\"}",
+//         "statistics":"e6iXVEM4i8ZatPZFCCads/9F",
+//         "version":"0.3"
+//      }
+//   }
+//}
+					$user = new user();
+					$user = $user->Get($_SESSION["userId"]);
+					updateUserData($parameters["parameters"]["user"], $user);
+
+					$recordToUpdateParameterList = $parameters["parameters"]["records"]["updated"];
+					$c = count($recordToUpdateParameterList);
+					for ($i=0; $i<$c; $i++) {
+						$recordList = $user->GetRecordList(array(array("reference", "=", $recordToUpdateParameterList [$i]["record"]["reference"])));
+						if (count($recordList) == 0) {
+							$currentRecord = new record();
+							$currentVersion = new recordversion();
+							$isNewRecord = true;
+						} else {
+							$currentRecord = $recordList[0];
+							$currentRecordVersions = $currentRecord->GetRecordversionList();
+							$currentVersion = $currentRecordVersions[0];
+							$isNewRecord = false;
+						}
+
+						updateRecordData($recordToUpdateParameterList[$i], $currentRecord, $currentVersion);
+
+						if ($isNewRecord == true) {
+							$currentRecord->SaveNew();
+							$currentVersion->SaveNew();
+
+							$currentRecord->AddRecordversion($currentVersion);
+							$user->AddRecord($currentRecord);
+						}
+
+						$currentRecord->Save();
+						$currentVersion->Save();
+					}
+
+					$user->Save();
+
+					$recordToDeleteReferenceList = $parameters["parameters"]["records"]["deleted"];
+					$recordList = array();
+					$c = count($recordToDeleteReferenceList);
+					for ($i=0; $i<$c; $i++) {
+						array_push($recordList, array("reference", "=", $recordToDeleteReferenceList[$i]));
+					}
+
+					$record = new record();
+					$record->DeleteList($recordList, true);
+
+					$result["lock"] = $user->lock;
+					$result["result"] = "done";
+
+				//=============================================================
 				} else if ($message == "getRecordDetail") {
 //{
 //	"message":"getRecordDetail",
@@ -474,21 +561,94 @@ error_log("message");
 //		updatedDate:"Tue, 17 April 2007 17:17:52 UTC",
 //		data:"0/BjzyY6jeh71h...pAw2++NEyylGhMC5C5f5m8pBApYziN84s4O3JQ3khW/1UttQl4="
 //	}
+	
+
+//	#	Actual result (causing error in /gamma)
+//	{
+//		"result" : {
+//			"currentVersion" : {
+//				"reference" : "cb05177f96a832062c6b936d24323cb74a64e2ef1d97ee026cd1003755af7495",
+//				"data" : "RAnoHmikp7RmiZ2WVyEMW+Ia",
+//				"header" : "",
+//				"version" : "0.3",
+//				"creationDate" : "0000-00-00 00:00:00",
+//				"updateDate" : "2011-10-09 19:49:11",
+//				"accessDate" : "2011-10-09 19:49:11"
+//			},
+//			"reference" : "b07e2afa2ba782b9f379649b36ded6de0452b43c27e6b887c7ce4f2a93f44346",
+//			"data" : "NtK1nkLUabbJQx5uO8ept...ZJ5dkJYYkyh3VQ==",
+//			"version" : "0.3",
+//			"creationDate" : "2011-10-09 19:49:11",
+//			"updateDate" : "Tue, 30 Nov 1999 00:00:00 +0000",
+//			"accessDate" : "0000-00-00 00:00:00",
+//			"oldestUsedEncryptedVersion" : "---"
+//		}
+//	}
+
+
+//	#	Response from the online /gamma version
+//	{
+//		"result" : {
+//			"versions" : {
+//				"e2c193f017ad4f6babf51de59f7550a40596afc0c27373b6a360e426b5bc06de" : {
+//					"reference" : "e2c193f017ad4f6babf51de59f7550a40596afc0c27373b6a360e426b5bc06de",
+//					"data" : "s\/3ClggH4uCcf+BkIMqQ...+W0PVt\/MJ3t7s1g0g",
+//					"creationDate" : "Mon, 10 October 2011 14:42:42 UTC",
+//					"header" : "####",
+//					"updateDate" : "Mon, 10 October 2011 14:42:42 UTC",
+//					"previousVersion" : "a96a6d8b9ac73fcdf874d8a8534ffb2d43da8f5222e96a4a29bd2ae437619463",
+//					"version" : "0.3",
+//					"accessDate" : "Mon, 10 October 2011 14:42:42 UTC",
+//					"previousVersionKey" : "####"
+//				},
+//				[...]
+//				"a96a6d8b9ac73fcdf874d8a8534ffb2d43da8f5222e96a4a29bd2ae437619463" : {
+//					"reference" : "a96a6d8b9ac73fcdf874d8a8534ffb2d43da8f5222e96a4a29bd2ae437619463",
+//					"accessDate" : "Mon, 10 October 2011 14:41:17 UTC",
+//					"creationDate" : "Mon, 27 October 2008 08:16:14 UTC",
+//					"version" : "0.3",
+//					"data" : "m3yhZu81UAjCY6U2Kn...IUCb9suV0fldGOg=",
+//					"updateDate" : "Mon, 27 October 2008 08:16:14 UTC",
+//					"header" : "####"
+//				}
+//			},
+//			"oldestUsedEncryptedVersion" : "0.2",
+//			"reference" : "36ec1a41118813ced3553534fa2607d781cba687768db305beed368a8e06e113",
+//			"data" : "frlUkTbaOWD9j2ROat...ruWioCK0Mss27oHjPg==",
+//			"creationDate" : "Wed, 14 March 2007 17:39:35 UTC",
+//			"version" : "0.3",
+//			"accessDate" : "Mon, 10 October 2011 14:45:12 UTC",
+//			"currentVersion" : "e2c193f017ad4f6babf51de59f7550a40596afc0c27373b6a360e426b5bc06de",
+//			"updatedDate" : "Mon, 10 October 2011 14:45:12 UTC"
+//		},
+//		"toll" : {
+//			"requestType" : "MESSAGE",
+//			"targetValue" : "a516c942a3792cc620775a41f8870a6c7b51796d9a94da978a75da6a52eb1e10",
+//			"cost" : 2
+//		}
+//	}	
+
 					$record = new record();
 
 					$recordList = $record->GetList(array(array("reference", "=", $parameters["parameters"]["reference"])));
 					$currentRecord = $recordList[0];
 					$currentRecordVersions = $currentRecord->GetRecordversionList();
 					$currentVersion = $currentRecordVersions[0];
-				
-					$result["currentVersion"] = array();
-					$result["currentVersion"]["reference"] =	$currentVersion->reference;
-					$result["currentVersion"]["data"] =			$currentVersion->data;
-					$result["currentVersion"]["header"] =		$currentVersion->header;
-					$result["currentVersion"]["version"] =		$currentVersion->version;
-					$result["currentVersion"]["creationDate"] =	$currentVersion->creation_date;
-					$result["currentVersion"]["updateDate"] =	$currentVersion->update_date;
-					$result["currentVersion"]["accessDate"] =	$currentVersion->access_date;
+
+					$result["versions"] = array();
+//					foreach ($currentRecordVersions as $currentVersion) {
+						$result["versions"][$currentVersion->reference] = array();
+						$result["versions"][$currentVersion->reference]["reference"]	= $currentVersion->reference;
+						$result["versions"][$currentVersion->reference]["data"]			= $currentVersion->data;
+						$result["versions"][$currentVersion->reference]["header"]		= $currentVersion->header;
+						$result["versions"][$currentVersion->reference]["version"]		= $currentVersion->version;
+						$result["versions"][$currentVersion->reference]["creationDate"]	= $currentVersion->creation_date;
+						$result["versions"][$currentVersion->reference]["updateDate"]	= $currentVersion->update_date;
+						$result["versions"][$currentVersion->reference]["accessDate"]	= $currentVersion->access_date;
+
+//					}
+					$result["currentVersion"] = $currentVersion->reference; 
+//					$result["currentVersion"] = $currentRecord->currentVersion;	//	???? 
 
 					$result["reference"] =		$currentRecord->reference;
 					$result["data"] =			$currentRecord->data;
@@ -749,7 +909,10 @@ error_log("default");
 	}
 
 	session_write_close();
+
+	$finalResult = Array();
+	$finalResult["result"] = $result;
 	
-	echo(json_encode($result));
-error_log("result: ".json_encode($result));
+	echo(json_encode($finalResult));
+error_log("result: ".json_encode($finalResult));
 ?>

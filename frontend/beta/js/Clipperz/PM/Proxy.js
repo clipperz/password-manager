@@ -116,8 +116,7 @@ Clipperz.PM.Proxy.prototype = MochiKit.Base.update(null, {
 			this.addToll(new Clipperz.PM.Toll(someParameters['toll']));
 		}
 //console.log("<<< Proxy.setTallCallback", someParameters['result']);
-		//return someParameters['result'];
-		return someParameters;
+		return someParameters['result'];
 	},
 
 	//=========================================================================

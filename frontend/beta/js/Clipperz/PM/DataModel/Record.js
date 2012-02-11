@@ -279,18 +279,23 @@ Clipperz.PM.DataModel.Record.prototype = MochiKit.Base.update(null, {
 		if (this.shouldProcessData()) {
 			var currentVersionParameters;
 
+console.log("Record.processData", someValues);
 			this.processDataToExtractLegacyValues(someValues['data']);
 
 			if (typeof(someValues['data']['notes']) != 'undefined') {
 				this.setNotes(someValues['data']['notes']);
 			}
+
 			if (someValues['data']['currentVersionKey'] != null) {
 				this.setCurrentVersionKey(someValues['data']['currentVersionKey']);
 			} else {
 				this.setCurrentVersionKey(this.key());
 			}
 
-			currentVersionParameters = someValues['currentVersion'];
+//			currentVersionParameters = someValues['currentVersion'];
+			currentVersionParameters = someValues['versions'][someValues['currentVersion']];
+console.log("Record.processData - this.currentVersionKey()", this.currentVersionKey());
+console.log("Record.processData - currentVersionParameters", currentVersionParameters);
 			currentVersionParameters['key'] = this.currentVersionKey();
 			this.setCurrentVersion(new Clipperz.PM.DataModel.RecordVersion(this, currentVersionParameters));
 			
