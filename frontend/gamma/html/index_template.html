@@ -29,15 +29,18 @@ Clipperz_normalizedNewLine = '\x0d\x0a';
 <body>
 <div id="mainDiv">
 	<div id="loading">
-		<a href="http://www.clipperz.com" target="_blank"><div id="logo"></div></a>
-		<h5 class="clipperzPayoff">keep it to yourself!</h5>
-		<h2>loading ...</h2>
+		<div>
+			<!-- a href="http://www.clipperz.com" target="_blank"><div id="logo"></div></a -->
+			<h1>clipperz</h1>
+			<h3 class="clipperzPayoff">keep it to yourself!</h3>
+			<!-- h5>loading ...</h5 -->
+		</div>
 	</div>
 
 @js_EMBEDDED@
 
 </div>
-<div id="applicationVersionType" class="@application.version.type@"></div>
+<!-- div id="applicationVersionType" class="@application.version.type@"></div -->
 
 <script>
 	Clipperz.PM.Proxy.defaultProxy = new Clipperz.PM.Proxy.JSON({'url':'@request.path@', 'shouldPayTolls':@should.pay.toll@});
@@ -45,7 +48,7 @@ Clipperz_normalizedNewLine = '\x0d\x0a';
 </script>
 
 <!-- -->
-<div id="javaScriptAlert">
+<!-- div id="javaScriptAlert">
 	<div class="mask"></div>
 	<div class="message">
 		<div class="header"></div>
@@ -60,7 +63,7 @@ Clipperz_normalizedNewLine = '\x0d\x0a';
 		</div>
 		<div class="footer"></div>
 	</div>
-</div>
+</div -->
 <!-- -->
 
 </body>

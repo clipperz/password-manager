@@ -68,8 +68,11 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.PageHeader, Clipperz.PM.UI.Co
 				]}
 			]},
 			{tag:'div', id:'logoFrame', children:[
-				{tag:'a', href:'http://www.clipperz.com', target:'_blank', children:[{tag:'div', id:'logo'}]},
-				{tag:'h5', cls:'clipperzPayoff', html:'keep it to yourself!'}
+				{tag:'a', href:'http://www.clipperz.com', target:'_blank', children:[
+//					{tag:'h1', cls:'logo', html:"clipperz"},
+					{tag:'canvas', id:this.getId('logo'), cls:'logo'},
+					{tag:'h5', cls:'clipperzPayoff', html:"keep it to yourself!"}
+				]}
 			]},
 			{tag:'div', id:'news', cls:'hidden', children:[
 //				{tag:'div', cls:'close', children:[
@@ -78,7 +81,9 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.PageHeader, Clipperz.PM.UI.Co
 				{tag:'div', id:'newsframe', children:[
 					{tag:'iframe', id:this.getId('iframe'), src:this.iframeURL()}
 				]},
-				{tag:'div', id:this.getId('newsGrip'), cls:'grip', children:[]}
+				{tag:'div', id:this.getId('newsGrip'), cls:'grip', children:[
+					{tag:'div', cls:'gripHandler', children:[]}
+				]}
 			]},
 			{tag:'div', id:'featureTabs', children:[
 				{tag:'table', children:[{tag:'tr', children:[
@@ -97,6 +102,7 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.PageHeader, Clipperz.PM.UI.Co
 
 		MochiKit.Signal.connect(this.getElement('newsGrip'), 'onclick', this, 'toggleTips');
 		MochiKit.Signal.connect(this.getElement('iframe'), 'onload', this, 'handleIframeDidLoad');
+		this.setLogoDefaultColors();
 	},
 
 	//-------------------------------------------------------------------------
@@ -163,6 +169,10 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.PageHeader, Clipperz.PM.UI.Co
 			})
 			this.toggleNewsIsOpen();
 		}
+	},
+
+	'setLogoDefaultColors': function () {
+		Clipperz.PM.UI.Canvas.logo.normal(this.getElement('logo'), "clipperz", "28.0pt", "#ffffff");
 	},
 	
 	//-------------------------------------------------------------------------

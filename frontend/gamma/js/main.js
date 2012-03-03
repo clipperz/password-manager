@@ -51,15 +51,10 @@ function run() {
 	var shouldShowRegistrationForm;
 	var useCompactDesign;
 	var controllerParameters;
-//	var iPhoneDesign;
-
-//	MochiKit.Signal.connect(document.body, 'onkeydown', _pm_logEvent);
-//	MochiKit.Signal.connect(document.body, 'onkeypress', _pm_logEvent);
-//	MochiKit.Signal.connect(document.body, 'onclick', _pm_logEvent);
 
 	controllerParameters = {};
 
-	MochiKit.DOM.removeElement('javaScriptAlert');
+//	MochiKit.DOM.removeElement('javaScriptAlert');
 	Clipperz.PM.Strings.Languages.initSetup();
 
 	if (window.location.search.indexOf('registration') != -1) {
@@ -72,12 +67,6 @@ function run() {
 		controllerParameters['autocomplete'] = 'on'
 	}
 
-//	if ((window.location.search.indexOf('iPhone') != -1) || (navigator.userAgent.match('iPhone'))) {
-//		iPhoneDesign = true;
-//	} else {
-//		iPhoneDesign = false;
-//	}
-
 	if (window.location.search.indexOf('compact') != -1) {
 		useCompactDesign = true;
 	} else {
@@ -86,8 +75,6 @@ function run() {
 	
 	if (useCompactDesign == true) {
 		Clipperz.PM.RunTime.mainController = new Clipperz.PM.UI.Compact.Controllers.MainController(controllerParameters);
-//	} else if (iPhoneDesign == true) {
-//		Clipperz.PM.RunTime.mainController = new Clipperz.PM.UI.iPhone.Controllers.MainController();
 	} else {
 		Clipperz.PM.RunTime.mainController = new Clipperz.PM.UI.Web.Controllers.MainController(controllerParameters);
 	}
