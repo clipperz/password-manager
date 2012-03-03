@@ -51,7 +51,7 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.PageFooter, Clipperz.PM.UI.Co
 				{tag:'div', cls:'footerContent', children:[
 //					{tag:'div', cls:'footerStarIcon'},
 					{tag:'canvas', id:this.getId('footerStarIcon'), cls:'footerStarIcon'},
-					{tag:'span', cls:'copyright', html:'Copyright &copy; 2009 Clipperz Srl'},
+					{tag:'span', cls:'copyright', html:'Copyright &copy; 2009-2012 Clipperz Srl'},
 					{tag:'a', href:'http://www.clipperz.com/terms_of_service',	target:'_blank', html:'terms of service'},
 					{tag:'a', href:'http://www.clipperz.com/privacy_policy',	target:'_blank', html:'privacy policy'},
 					{tag:'span', cls:'applicationVersion', html:'application version: [1992]'}

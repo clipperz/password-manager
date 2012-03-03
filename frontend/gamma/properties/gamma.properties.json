@@ -183,7 +183,6 @@
 	],
 
 	"css": [
-		"clipperz.css",
-		"compact.css"
+		"web.css"
 	]
 }
