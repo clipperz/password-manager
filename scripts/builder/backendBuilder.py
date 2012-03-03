@@ -112,7 +112,7 @@ class BackendBuilder(object):
 				main.createFolder(os.path.join(self.developmentTargetFolder(), frontend.module))
 
 				index = self.configureIndexContent(frontend.assemble(assemblyMode='DEVELOPMENT', versionType='DEBUG'), self.settings['development.settings']['url'])
-				self.writeToFolder(self.developmentTargetFolder(), os.path.join(frontend.module, 'index_development.html'), index)
+				self.writeToFolder(self.developmentTargetFolder(), os.path.join(frontend.module, 'index.html'), index)
 
 	
 #===================================================================
