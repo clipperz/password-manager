@@ -8,6 +8,8 @@ def repositoryWithPath (path):
 
 		repo = Repo(path)
 		result = GitRepository(repo, path)
+	except ImportError:
+		print "Failed to import dulwich, please install http://www.samba.org/~jelmer/dulwich/"
 	except:
 		from mercurial import ui, hg
 
