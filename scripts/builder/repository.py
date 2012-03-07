@@ -4,10 +4,12 @@
 
 def repositoryWithPath (path):
 	try:
-		from dulwich.repo import Repo
+		from git import Repo
 
 		repo = Repo(path)
 		result = GitRepository(repo, path)
+	except ImportError:
+		print "Failed to import git, please install http://gitorious.org/git-python"
 	except:
 		from mercurial import ui, hg
 
@@ -50,11 +52,11 @@ class Repository(object):
 class GitRepository(Repository):
 
 	def revision (self):
-		return repository.refs['HEAD']
-	
+		return self.repository.head.commit.hexsha
+
 
 	def areTherePendingChanges (self):
-		return repository.is_dirty()
+		return self.repository.is_dirty()
 
 
 #===================================================================
