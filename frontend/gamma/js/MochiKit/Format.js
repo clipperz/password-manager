@@ -8,7 +8,7 @@ See <http://mochikit.com/> for documentation, downloads, license, etc.
 
 ***/
 
-MochiKit.Base._module('Format', '1.5', ['Base']);
+MochiKit.Base.module(MochiKit, 'Format', '1.5', ['Base']);
 
 MochiKit.Format._numberFormatter = function (placeholder, header, footer, locale, isPercent, precision, leadingZeros, separatorAt, trailingZeros) {
     return function (num) {
@@ -104,7 +104,7 @@ MochiKit.Format.numberFormatter = function (pattern, placeholder/* = "" */, loca
             return [
                 self.NAME,
                 "(",
-                map(m.repr, args).join(", "),
+                m.map(m.repr, args).join(", "),
                 ")"
             ].join("");
         };
@@ -142,7 +142,7 @@ MochiKit.Format.twoDigitAverage = function (numerator, denominator) {
 
 /** @id MochiKit.Format.twoDigitFloat */
 MochiKit.Format.twoDigitFloat = function (aNumber) {
-    var res = roundToFixed(aNumber, 2);
+    var res = MochiKit.Format.roundToFixed(aNumber, 2);
     if (res.indexOf(".00") > 0) {
         return res.substring(0, res.length - 3);
     } else if (res.charAt(res.length - 1) == "0") {
@@ -193,7 +193,7 @@ MochiKit.Format.truncToFixed = function (aNumber, precision) {
         fixed = MochiKit.Format._shiftNumber(fixed, 0);
     }
     return fixed;
-}
+};
 
 /** @id MochiKit.Format.roundToFixed */
 MochiKit.Format.roundToFixed = function (aNumber, precision) {
@@ -205,7 +205,7 @@ MochiKit.Format.roundToFixed = function (aNumber, precision) {
         fixed = MochiKit.Format._shiftNumber(str, -precision);
     }
     return fixed;
-}
+};
 
 /**
  * Converts a number to a fixed format string. This function handles
@@ -221,7 +221,7 @@ MochiKit.Format.roundToFixed = function (aNumber, precision) {
 MochiKit.Format._numberToFixed = function (aNumber, precision) {
     var str = aNumber.toString();
     var parts = str.split(/[eE]/);
-    var exp = (parts.length === 1) ? 0 : parseInt(parts[1]) || 0;
+    var exp = (parts.length === 1) ? 0 : parseInt(parts[1], 10) || 0;
     var fixed = MochiKit.Format._shiftNumber(parts[0], exp);
     parts = fixed.split(/\./);
     var whole = parts[0];
@@ -234,7 +234,7 @@ MochiKit.Format._numberToFixed = function (aNumber, precision) {
     } else {
         return whole;
     }
-}
+};
 
 /**
  * Shifts the decimal dot location in a fixed format number string.
@@ -275,7 +275,7 @@ MochiKit.Format._shiftNumber = function (num, exp) {
         num = "-" + num.substring(2);
     }
     return num;
-}
+};
 
 /** @id MochiKit.Format.percentFormat */
 MochiKit.Format.percentFormat = function (aNumber) {

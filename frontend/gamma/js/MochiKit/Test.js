@@ -8,7 +8,7 @@ See <http://mochikit.com/> for documentation, downloads, license, etc.
 
 ***/
 
-MochiKit.Base._module('Test', '1.5', ['Base']);
+MochiKit.Base.module(MochiKit, 'Test', '1.5', ['Base']);
 
 MochiKit.Test.runTests = function (obj) {
     if (typeof(obj) == "string") {

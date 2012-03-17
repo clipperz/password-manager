@@ -3,6 +3,9 @@
 		"mochikit.repository": "http://svn.mochikit.com/mochikit/trunk/",
 		"mochikit.version": "1249"
 	},
+
+	"html.template": "index_template.html",
+
 	"js": [
 		"MochiKit/Base.js",
 		"MochiKit/Iter.js",

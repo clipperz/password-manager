@@ -8,7 +8,7 @@ See <http://mochikit.com/> for documentation, downloads, license, etc.
 
 ***/
 
-MochiKit.Base._module('Iter', '1.5', ['Base']);
+MochiKit.Base.module(MochiKit, 'Iter', '1.5', ['Base']);
 
 MochiKit.Base.update(MochiKit.Iter, {
     /** @id MochiKit.Iter.registerIteratorFactory */
@@ -222,13 +222,14 @@ MochiKit.Base.update(MochiKit.Iter, {
             },
             toString: m.forwardCall("repr"),
             next: function () {
+                if (start >= stop) {
+                    throw self.StopIteration;
+                }
+
                 var rval;
                 while (i < start) {
                     rval = seq.next();
                     i++;
-                }
-                if (start >= stop) {
-                    throw self.StopIteration;
                 }
                 start += step;
                 return rval;
@@ -280,15 +281,12 @@ MochiKit.Base.update(MochiKit.Iter, {
             next: function () {
                 while (argiter.length > 1) {
                     try {
-                        var result = argiter[0].next();
-                        return result;
+                        return argiter[0].next();
                     } catch (e) {
                         if (e != self.StopIteration) {
                             throw e;
                         }
                         argiter.shift();
-                        var result = argiter[0].next();
-                        return result;
                     }
                 }
                 if (argiter.length == 1) {
@@ -413,7 +411,7 @@ MochiKit.Base.update(MochiKit.Iter, {
 
         var self = MochiKit.Iter;
         iterable = self.iter(iterable);
-        var rval = [];
+        rval = [];
         var a_val;
         try {
             while (true) {

@@ -6,7 +6,7 @@ See scriptaculous.js for full license.
 
 ***/
 
-MochiKit.Base._module('Sortable', '1.5', ['Base', 'Iter', 'DOM', 'Position', 'DragAndDrop']);
+MochiKit.Base.module(MochiKit, 'Sortable', '1.5', ['Base', 'Iter', 'DOM', 'Position', 'DragAndDrop']);
 
 MochiKit.Base.update(MochiKit.Sortable, {
     __export__: false,
@@ -179,7 +179,7 @@ MochiKit.Base.update(MochiKit.Sortable, {
             onhover: self.onHover,
             tree: options.tree,
             accept: options.accept
-        }
+        };
 
         var options_for_tree = {
             onhover: self.onEmptyHover,
@@ -187,7 +187,7 @@ MochiKit.Base.update(MochiKit.Sortable, {
             containment: options.containment,
             hoverclass: options.hoverclass,
             accept: options.accept
-        }
+        };
 
         // fix for gecko engine
         MochiKit.DOM.removeEmptyTextNodes(element);
@@ -430,11 +430,11 @@ MochiKit.Base.update(MochiKit.Sortable, {
                 children: [],
                 position: parent.children.length,
                 container: self._findChildrenElement(children[i], options.treeTag.toUpperCase())
-            }
+            };
 
             /* Get the element containing the children and recurse over it */
             if (child.container) {
-                self._tree(child.container, options, child)
+                self._tree(child.container, options, child);
             }
 
             parent.children.push (child);
@@ -475,7 +475,7 @@ MochiKit.Base.update(MochiKit.Sortable, {
             children: new Array,
             container: element,
             position: 0
-        }
+        };
 
         return MochiKit.Sortable._tree(element, options, root);
     },
