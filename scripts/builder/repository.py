@@ -4,17 +4,20 @@
 
 def repositoryWithPath (path):
 	try:
-		from git import Repo
-
-		repo = Repo(path)
-		result = GitRepository(repo, path)
-	except ImportError:
-		print "Failed to import git, please install http://gitorious.org/git-python"
-#	except:
 		from mercurial import ui, hg
 
 		repo = hg.repository(ui.ui(), path)
 		result = HgRepository(repo, path)
+	except:
+		try:
+			from git import Repo
+
+			repo = Repo(path)
+			result = GitRepository(repo, path)
+		except ImportError, exception:
+			print "Failed to import git, please install http://gitorious.org/git-python"
+			raise exception
+
 
 	return result
 
@@ -50,6 +53,7 @@ class Repository(object):
 
 
 class GitRepository(Repository):
+	#	http://gitorious.org/git-python
 
 	def revision (self):
 		return self.repository.head.commit.hexsha
