@@ -65,24 +65,9 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.LoginForm, Clipperz.PM.UI.Com
 //						{tag:'form', cls:'loginForm', autocomplete:this.autocomplete(), children:[
 						{tag:'form', id:this.getId('form'), cls:'loginForm', children:[
 							{tag:'label', html:'username', 'for':this.getId('usernameField')},
-							{tag:'input', id:this.getId('usernameField'), type:'text', cls:'username'/*, value:'joe'*/},
-							{tag:'ul', id:this.getId('passwordOptions'), children:[
-								{tag:'li', id:this.getId('passphraseOption'), children:[
-									{tag:'label', html:'passphrase / OTP', 'for':this.getId('passphraseField')},
-									{tag:'input', id:this.getId('passphraseField'), type:'password', cls:'password'/*, value:'clipperz'*/}
-								]}	//	,
-/*
-								{tag:'li', id:this.getId('otpOption'), children:[
-									{tag:'label', html:'one-time password', 'for':this.getId('otpField_1')},
-									{tag:'input', id:this.getId('otpField_1'), type:'text', cls:'otp', value:'abcd-efgh'},
-									{tag:'input', id:this.getId('otpField_2'), type:'text', cls:'otp', value:'abcd-efgh'},
-									{tag:'input', id:this.getId('otpField_3'), type:'text', cls:'otp', value:'abcd-efgh'},
-									{tag:'input', id:this.getId('otpField_4'), type:'text', cls:'otp', value:'abcd-efgh'}
-								]}
-*/
-							]},
-//							{tag:'input', id:this.getId('otpCheckbox'), type:'checkbox', cls:'checkbox'},
-//							{tag:'label', html:'use a one-time passphrase', 'for':this.getId('otpCheckbox'), cls:'checkbox'},
+							{tag:'input', id:this.getId('usernameField'), type:'text', cls:'username'},
+							{tag:'label', html:'passphrase / OTP', 'for':this.getId('passphraseField')},
+							{tag:'input', id:this.getId('passphraseField'), type:'password', cls:'password'},
 
 							{tag:'div', cls:'translations', children:[
 								{tag:'h4', html:'choose your language'},
@@ -161,29 +146,22 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.LoginForm, Clipperz.PM.UI.Com
 	//-------------------------------------------------------------------------
 	
 	'loginEventHandler': function(anEvent) {
-		var	username;
-		var passphrase;
-//		var shouldUseOTP;
-//		var otp;
+//		var	username;
+//		var passphrase;
 		var signalArguments;
 
 		anEvent.preventDefault();
 
-		username = this.getElement('usernameField').value;
-		passphrase = this.getElement('passphraseField').value;
-//		otp =	this.getElement('otpField_1').value +
-//				this.getElement('otpField_2').value +
-//				this.getElement('otpField_3').value +
-//				this.getElement('otpField_4').value;
-//		shouldUseOTP = this.getElement('otpCheckbox').checked;
+//		username = this.getElement('usernameField').value;
+//		passphrase = this.getElement('passphraseField').value;
 
-		signalArguments = {username:username};
+//		signalArguments = {username:username};
+//		signalArguments.passphrase = passphrase;
 
-//		if (shouldUseOTP) {
-//			signalArguments.otp = otp;
-//		} else {
-			signalArguments.passphrase = passphrase;
-//		}
+		signalArguments = {
+			'username':		this.getElement('usernameField').value,
+			'passphrase':	this.getElement('passphraseField').value
+		};
 
 		MochiKit.Signal.signal(this, 'doLogin', signalArguments);
 	},
