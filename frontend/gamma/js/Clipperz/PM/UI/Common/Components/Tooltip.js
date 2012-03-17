@@ -102,8 +102,8 @@ Clipperz.Base.extend(Clipperz.PM.UI.Common.Components.Tooltip, Clipperz.PM.UI.Co
 			{tag:'div', id:this.getId('body'), cls:'tooltip_body', children:[
 				{tag:'div', cls:'tooltip_text', children:[
 					{tag:'span', html:this.text()}
-				]},
-				{tag:'div', id:this.getId('footer'), cls:'tooltip_footer'}
+				]}//,
+//				{tag:'div', id:this.getId('footer'), cls:'tooltip_footer'}
 			]},
 			{tag:'div', id:this.getId('arrow'), cls:'tooltip_arrow'}
 		]});
@@ -146,45 +146,46 @@ Clipperz.Base.extend(Clipperz.PM.UI.Common.Components.Tooltip, Clipperz.PM.UI.Co
 			switch (this.position()) {
 				case 'ABOVE':
 //console.log("ABOVE");
-					MochiKit.Style.setElementDimensions(this.getId('arrow'), {w:36, h:13}, 'px');
+//					MochiKit.Style.setElementDimensions(this.getId('arrow'), {w:36, h:13}, 'px');
 					bodyPosition.x = elementSizeAndPosition.position.x + (elementSizeAndPosition.dimensions.w/2 - this.boxDimensions().w/2);
 					bodyPosition.y = elementSizeAndPosition.position.y - this.boxDimensions().h - 13;
 				
-					arrowPosition.x = elementSizeAndPosition.position.x + (elementSizeAndPosition.dimensions.w/2 - 36/2);
-					arrowPosition.y = elementSizeAndPosition.position.y - 13;
+//					arrowPosition.x = elementSizeAndPosition.position.x + (elementSizeAndPosition.dimensions.w/2 - 36/2);
+//					arrowPosition.y = elementSizeAndPosition.position.y - 13;
 					break;
 				case 'BELOW':
 //console.log("BELOW");
-					MochiKit.Style.setElementDimensions(this.getId('arrow'), {w:36, h:13}, 'px');
+//					MochiKit.Style.setElementDimensions(this.getId('arrow'), {w:36, h:13}, 'px');
 					bodyPosition.x = elementSizeAndPosition.position.x + (elementSizeAndPosition.dimensions.w/2 - this.boxDimensions().w/2);
 					bodyPosition.y = elementSizeAndPosition.position.y + elementSizeAndPosition.dimensions.h + 13;
 				
-					arrowPosition.x = elementSizeAndPosition.position.x + (elementSizeAndPosition.dimensions.w/2 - 36/2);
-					arrowPosition.y = elementSizeAndPosition.position.y + elementSizeAndPosition.dimensions.h;
+//					arrowPosition.x = elementSizeAndPosition.position.x + (elementSizeAndPosition.dimensions.w/2 - 36/2);
+//					arrowPosition.y = elementSizeAndPosition.position.y + elementSizeAndPosition.dimensions.h;
 					break;
 				case 'LEFT':
 //console.log("LEFT");
-					MochiKit.Style.setElementDimensions(this.getId('arrow'), {w:13, h:36}, 'px');
+//					MochiKit.Style.setElementDimensions(this.getId('arrow'), {w:13, h:36}, 'px');
 					bodyPosition.x = elementSizeAndPosition.position.x - this.boxDimensions().w - 13;
 					bodyPosition.y = elementSizeAndPosition.position.y + (elementSizeAndPosition.dimensions.h/2 - this.boxDimensions().h/2);
 
-					arrowPosition.x = elementSizeAndPosition.position.x -13;
-					arrowPosition.y = elementSizeAndPosition.position.y + (elementSizeAndPosition.dimensions.h/2 - 36/2);
+//					arrowPosition.x = elementSizeAndPosition.position.x -13;
+//					arrowPosition.y = elementSizeAndPosition.position.y + (elementSizeAndPosition.dimensions.h/2 - 36/2);
 					break;
 				case 'RIGHT':
 //console.log("RIGHT");
-					MochiKit.Style.setElementDimensions(this.getId('arrow'), {w:13, h:36}, 'px');
+//					MochiKit.Style.setElementDimensions(this.getId('arrow'), {w:13, h:36}, 'px');
 					bodyPosition.x = elementSizeAndPosition.position.x + elementSizeAndPosition.dimensions.w + 13;
 					bodyPosition.y = elementSizeAndPosition.position.y + (elementSizeAndPosition.dimensions.h/2 - this.boxDimensions().h/2);
 
-					arrowPosition.x = elementSizeAndPosition.position.x + elementSizeAndPosition.dimensions.w;
-					arrowPosition.y = elementSizeAndPosition.position.y + (elementSizeAndPosition.dimensions.h/2 - 36/2);
+//					arrowPosition.x = elementSizeAndPosition.position.x + elementSizeAndPosition.dimensions.w;
+//					arrowPosition.y = elementSizeAndPosition.position.y + (elementSizeAndPosition.dimensions.h/2 - 36/2);
 					break;
 			}
 //console.log("X: " + bodyPosition.x + ", Y: " + bodyPosition.y);
 
-			MochiKit.Style.setElementPosition(this.getId('body'), bodyPosition);
-			MochiKit.Style.setElementPosition(this.getId('arrow'), arrowPosition);
+			MochiKit.Style.setElementPosition(this.getId('tooltip'), bodyPosition);
+//			MochiKit.Style.setElementPosition(this.getId('body'), bodyPosition);
+//			MochiKit.Style.setElementPosition(this.getId('arrow'), arrowPosition);
 			MochiKit.Visual.appear(this.displayElement(), {duration:0.4});
 		}
 	},

@@ -142,7 +142,7 @@ Clipperz.PM.Proxy.prototype = MochiKit.Base.update(null, {
 	'processMessage': function (aFunctionName, someParameters, aRequestType) {
 		var	deferredResult;
 
-		deferredResult = new Clipperz.Async.Deferred("Proxy.processMessage", {trace:true});
+		deferredResult = new Clipperz.Async.Deferred("Proxy.processMessage", {trace:false});
 		deferredResult.addMethod(this, 'payToll', aRequestType);
 		deferredResult.addMethod(this, 'sendMessage', aFunctionName);
 		deferredResult.addMethod(this, 'setTollCallback');

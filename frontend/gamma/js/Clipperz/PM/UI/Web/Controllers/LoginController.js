@@ -81,13 +81,11 @@ MochiKit.Base.update(Clipperz.PM.UI.Web.Controllers.LoginController.prototype, {
 	'doLogin': function(aLoginForm, anEvent) {
 		var deferredResult;
 		var	parameters;
-//		var	shouldUseOTP;
 		var loginProgress;
 		var	user;
 		var getPassphraseDelegate;
 
 		parameters = anEvent;
-//		shouldUseOTP = (typeof(parameters.passphrase) == 'undefined');
 
 		getPassphraseDelegate = MochiKit.Base.partial(MochiKit.Async.succeed, parameters.passphrase);
 		user = new Clipperz.PM.DataModel.User({'username':parameters.username, 'getPassphraseFunction':MochiKit.Base.method(Clipperz.PM.RunTime.mainController, 'getPassphrase')});
@@ -99,11 +97,7 @@ MochiKit.Base.update(Clipperz.PM.UI.Web.Controllers.LoginController.prototype, {
 		deferredResult.addMethod(Clipperz.PM.RunTime.mainController, 'setPassphraseDelegate', getPassphraseDelegate);
 		deferredResult.addMethod(loginProgress, 'deferredShowModal', {deferredObject:deferredResult, openFromElement:aLoginForm.submitButtonElement()});
 		deferredResult.addMethod(Clipperz.Crypto.PRNG.defaultRandomGenerator(), 'deferredEntropyCollection');
-//		if (shouldUseOTP == false) {
-			deferredResult.addMethod(user, 'login');
-//		} else {
-//			deferredResult.addMethod(user, 'loginUsingOTP', parameters.username, parameters.otp);
-//		}
+		deferredResult.addMethod(user, 'login');
 		deferredResult.addCallback(function(aLoginProgress, res) {
 			aLoginProgress.disableCancel();
 			return res;

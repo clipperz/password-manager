@@ -8,7 +8,7 @@ See <http://mochikit.com/> for documentation, downloads, license, etc.
 
 ***/
 
-MochiKit.Base._module('Color', '1.5', ['Base', 'DOM', 'Style']);
+MochiKit.Base.module(MochiKit, 'Color', '1.5', ['Base', 'DOM', 'Style']);
 
 /** @id MochiKit.Color.Color */
 MochiKit.Color.Color = function (red, green, blue, alpha) {
@@ -112,7 +112,7 @@ MochiKit.Color.Color.prototype = {
 
     /** @id MochiKit.Color.Color.prototype.isLight */
     isLight: function () {
-        return this.asHSL().b > 0.5;
+        return this.asHSL().l > 0.5;
     },
 
     /** @id MochiKit.Color.Color.prototype.isDark */
@@ -641,19 +641,10 @@ MochiKit.Base.update(MochiKit.Color, {
             yellow: [1, 1, 0]
         };
 
-        var makeColor = function (name, r, g, b, a) {
-            var rval = this.fromRGB(r, g, b, a);
-            this[name] = function () { return rval; };
-            return rval;
-        };
-
         for (var k in colors) {
             var name = k + "Color";
-            var bindArgs = m.concat(
-                [makeColor, this.Color, name],
-                colors[k]
-            );
-            this.Color[name] = m.bind.apply(null, bindArgs);
+            var value = this.Color.fromRGB.apply(this.Color, colors[k]);
+            this.Color[name] = m.partial(m.operator.identity, value);
         }
 
         var isColor = function () {

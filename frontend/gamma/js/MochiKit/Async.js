@@ -8,7 +8,7 @@ See <http://mochikit.com/> for documentation, downloads, license, etc.
 
 ***/
 
-MochiKit.Base._module('Async', '1.5', ['Base']);
+MochiKit.Base.module(MochiKit, 'Async', '1.5', ['Base']);
 
 /** @id MochiKit.Async.Deferred */
 MochiKit.Async.Deferred = function (/* optional */ canceller) {
@@ -20,28 +20,32 @@ MochiKit.Async.Deferred = function (/* optional */ canceller) {
     this.canceller = canceller;
     this.silentlyCancelled = false;
     this.chained = false;
+    this.finalized = false;
 };
 
 MochiKit.Async.Deferred.prototype = {
     /** @id MochiKit.Async.Deferred.prototype.repr */
     repr: function () {
-        var state;
-        if (this.fired == -1) {
-            state = 'unfired';
-        } else if (this.fired === 0) {
-            state = 'success';
-        } else {
-            state = 'error';
-        }
-        return 'Deferred(' + this.id + ', ' + state + ')';
+        return 'Deferred(' + this.id + ', ' + this.state() + ')';
     },
 
     toString: MochiKit.Base.forwardCall("repr"),
 
     _nextId: MochiKit.Base.counter(),
 
+    /** @id MochiKit.Async.Deferred.prototype.state */
+    state: function () {
+        if (this.fired == -1) {
+            return 'unfired';
+        } else if (this.fired === 0) {
+            return 'success';
+        } else {
+            return 'error';
+        }
+    },
+
     /** @id MochiKit.Async.Deferred.prototype.cancel */
-    cancel: function () {
+    cancel: function (e) {
         var self = MochiKit.Async;
         if (this.fired == -1) {
             if (this.canceller) {
@@ -50,10 +54,15 @@ MochiKit.Async.Deferred.prototype = {
                 this.silentlyCancelled = true;
             }
             if (this.fired == -1) {
-                this.errback(new self.CancelledError(this));
+                if (typeof(e) === 'string') {
+                    e = new self.GenericError(e);
+                } else if (!(e instanceof Error)) {
+                    e = new self.CancelledError(this);
+                }
+                this.errback(e);
             }
         } else if ((this.fired === 0) && (this.results[0] instanceof self.Deferred)) {
-            this.results[0].cancel();
+            this.results[0].cancel(e);
         }
     },
 
@@ -65,7 +74,9 @@ MochiKit.Async.Deferred.prototype = {
         ***/
         this.fired = ((res instanceof Error) ? 1 : 0);
         this.results[this.fired] = res;
-        this._fire();
+        if (this.paused === 0) {
+            this._fire();
+        }
     },
 
     _check: function () {
@@ -129,7 +140,28 @@ MochiKit.Async.Deferred.prototype = {
         if (this.chained) {
             throw new Error("Chained Deferreds can not be re-used");
         }
+        if (this.finalized) {
+            throw new Error("Finalized Deferreds can not be re-used");
+        }
         this.chain.push([cb, eb]);
+        if (this.fired >= 0) {
+            this._fire();
+        }
+        return this;
+    },
+
+    /** @id MochiKit.Async.Deferred.prototype.setFinalizer */
+    setFinalizer: function (fn) {
+        if (this.chained) {
+            throw new Error("Chained Deferreds can not be re-used");
+        }
+        if (this.finalized) {
+            throw new Error("Finalized Deferreds can not be re-used");
+        }
+        if (arguments.length > 1) {
+            fn = MochiKit.Base.partial.apply(null, arguments);
+        }
+        this._finalizer = fn;
         if (this.fired >= 0) {
             this._fire();
         }
@@ -160,11 +192,8 @@ MochiKit.Async.Deferred.prototype = {
                 fired = ((res instanceof Error) ? 1 : 0);
                 if (res instanceof MochiKit.Async.Deferred) {
                     cb = function (res) {
-                        self._resback(res);
                         self.paused--;
-                        if ((self.paused === 0) && (self.fired >= 0)) {
-                            self._fire();
-                        }
+                        self._resback(res);
                     };
                     this.paused++;
                 }
@@ -178,6 +207,10 @@ MochiKit.Async.Deferred.prototype = {
         }
         this.fired = fired;
         this.results[fired] = res;
+        if (this.chain.length == 0 && this.paused === 0 && this._finalizer) {
+            this.finalized = true;
+            this._finalizer(res);
+        }
         if (cb && this.paused) {
             // this is for "tail recursion" in case the dependent deferred
             // is already fired
@@ -249,7 +282,7 @@ MochiKit.Base.update(MochiKit.Async, {
             var status = null;
             try {
                 status = this.status;
-                if (!status && m.isNotEmpty(this.responseText)) {
+                if (!status && (this.response || m.isNotEmpty(this.responseText))) {
                     // 0 or undefined seems to mean cached or local
                     status = 304;
                 }
@@ -337,7 +370,8 @@ MochiKit.Base.update(MochiKit.Async, {
             username: undefined,
             password: undefined,
             headers: undefined,
-            mimeType: undefined
+            mimeType: undefined,
+            responseType: undefined
             */
         }, opts);
         var self = MochiKit.Async;
@@ -370,6 +404,9 @@ MochiKit.Base.update(MochiKit.Async, {
                 var value = header[1];
                 req.setRequestHeader(name, value);
             }
+        }
+        if ("responseType" in opts && "responseType" in req) {
+            req.responseType = opts.responseType;
         }
         return self.sendXMLHttpRequest(req, opts.sendContent);
     },
@@ -404,16 +441,44 @@ MochiKit.Base.update(MochiKit.Async, {
         return d;
     },
 
+    /** @id MochiKit.Async.loadScript */
+    loadScript: function (url) {
+        var d = new MochiKit.Async.Deferred();
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src = url;
+        script.onload = function () {
+            script.onload = null;
+            script.onerror = null;
+            script.onreadystatechange = null;
+            script = null;
+            d.callback();
+        };
+        script.onerror = function (msg) {
+            script.onload = null;
+            script.onerror = null;
+            script.onreadystatechange = null;
+            script = null;
+            msg = "Failed to load script at " + url + ": " + msg;
+            d.errback(new URIError(msg, url));
+        }
+        script.onreadystatechange = function () {
+            if (script.readyState == "loaded" || script.readyState == "complete") {
+                script.onload();
+            } else {
+                // IE doesn't bother to report errors...
+                MochiKit.Async.callLater(10, script.onerror, "Script loading timed out")
+            }
+        };
+        document.getElementsByTagName("head")[0].appendChild(script);
+        return d;
+    },
+
     /** @id MochiKit.Async.wait */
     wait: function (seconds, /* optional */value) {
         var d = new MochiKit.Async.Deferred();
-        var m = MochiKit.Base;
-        if (typeof(value) != 'undefined') {
-            d.addCallback(function () { return value; });
-        }
-        var timeout = setTimeout(
-            m.bind("callback", d),
-            Math.floor(seconds * 1000));
+        var cb = MochiKit.Base.bind("callback", d, value);
+        var timeout = setTimeout(cb, Math.floor(seconds * 1000));
         d.canceller = function () {
             try {
                 clearTimeout(timeout);
@@ -510,6 +575,7 @@ MochiKit.Async.DeferredList = function (list, /* optional */fireOnOneCallback, f
 };
 
 MochiKit.Async.DeferredList.prototype = new MochiKit.Async.Deferred();
+MochiKit.Async.DeferredList.prototype.constructor = MochiKit.Async.DeferredList;
 
 MochiKit.Async.DeferredList.prototype._cbDeferred = function (index, succeeded, result) {
     this.resultList[index] = [succeeded, result];

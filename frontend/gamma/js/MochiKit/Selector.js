@@ -8,7 +8,7 @@ See <http://mochikit.com/> for documentation, downloads, license, etc.
 
 ***/
 
-MochiKit.Base._module('Selector', '1.5', ['Base', 'DOM', 'Iter']);
+MochiKit.Base.module(MochiKit, 'Selector', '1.5', ['Base', 'DOM', 'Iter']);
 
 MochiKit.Selector.Selector = function (expression) {
     this.params = {classNames: [], pseudoClassNames: []};
@@ -127,8 +127,8 @@ MochiKit.Selector.Selector.prototype = {
                             a = 2;
                             b = 0;
                         } else {
-                            a = match[2] && parseInt(match) || null;
-                            b = parseInt(match[3]);
+                            a = match[2] && parseInt(match, 10) || null;
+                            b = parseInt(match[3], 10);
                         }
                         conditions.push('this.nthChild(element,' + a + ',' + b
                                         + ',' + !!pseudoClass.match('^nth-last')    // Reverse
@@ -167,7 +167,7 @@ MochiKit.Selector.Selector.prototype = {
                         break;
                     case 'not':
                         var subselector = new MochiKit.Selector.Selector(pseudoClassArgument);
-                        conditions.push('!( ' + subselector.buildMatchExpression() + ')')
+                        conditions.push('!( ' + subselector.buildMatchExpression() + ')');
                         break;
                 }
             }
@@ -177,7 +177,7 @@ MochiKit.Selector.Selector.prototype = {
                 var value = 'MochiKit.DOM.getNodeAttribute(element, ' + repr(attribute.name) + ')';
                 var splitValueBy = function (delimiter) {
                     return value + '.split(' + repr(delimiter) + ')';
-                }
+                };
                 conditions.push(value + ' != null');
                 switch (attribute.operator) {
                     case '=':
@@ -352,6 +352,12 @@ MochiKit.Base.update(MochiKit.Selector, {
             return res;
         };
         return MochiKit.Base.flattenArray(MochiKit.Base.map(function (expression) {
+            try {
+                var res = element.querySelectorAll(expression);
+                return Array.prototype.slice.call(res, 0);
+            } catch (ignore) {
+                // No querySelectorAll or extended expression syntax used
+            }
             var nextScope = "";
             var reducer = function (results, expr) {
                 var match = expr.match(/^[>+~]$/);
