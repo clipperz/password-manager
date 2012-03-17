@@ -91,28 +91,41 @@ class BackendBuilder(object):
 			self.compileCode()
 		
 			for frontend in self.frontends:
+				if (frontend.module == frontend.submodule):
+					submoduleExtension = ''
+				else:
+					submoduleExtension = '.' + frontend.submodule
+
 				main.createFolder(os.path.join(self.frontEndTempFolder(), frontend.module))
 
 				if 'debug' in self.versions:
 					frontend.copyResourcesToFolder(self.frontEndTempFolder())
 
 					index = self.configureIndexContent(frontend.assemble(assemblyMode='DEBUG', versionType='DEBUG'))
-					self.writeToFolder(self.frontEndTempFolder(), os.path.join(frontend.module, 'index_debug.html'), index)
+					self.writeToFolder(self.frontEndTempFolder(), os.path.join(frontend.module, 'index_debug' + submoduleExtension + '.html'), index)
 				
 				if 'install' in self.versions:
 					index = self.configureIndexContent(frontend.assemble())
-					self.writeToFolder(self.frontEndTempFolder(), os.path.join(frontend.module, 'index.html'), index)
+					self.writeToFolder(self.frontEndTempFolder(), os.path.join(frontend.module, 'index' + submoduleExtension + '.html'), index)
 
-					self.logChecksums(index, "[" + self.name() + " - " + frontend.module + "] index.html checksum")
+					self.logChecksums(index, "[" + self.name() + " - " + frontend.module + "] index" + submoduleExtension + ".html checksum")
 			
 			self.createPackage()
 
 		if 'development' in self.versions:
 			for frontend in self.frontends:
+				if (frontend.module == frontend.submodule):
+					submoduleExtension = ''
+				else:
+					submoduleExtension = '.' + frontend.submodule
+
+				print "FRONTEND module: " + frontend.module
+				print "FRONTEND submodule: " + frontend.submodule
+
 				main.createFolder(os.path.join(self.developmentTargetFolder(), frontend.module))
 
 				index = self.configureIndexContent(frontend.assemble(assemblyMode='DEVELOPMENT', versionType='DEBUG'), self.settings['development.settings']['url'])
-				self.writeToFolder(self.developmentTargetFolder(), os.path.join(frontend.module, 'index.html'), index)
+				self.writeToFolder(self.developmentTargetFolder(), os.path.join(frontend.module, 'index' + submoduleExtension + '.html'), index)
 
 	
 #===================================================================
