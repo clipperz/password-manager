@@ -88,7 +88,8 @@ class FrontendBuilder(object):
 	def template (self):
 		processedFile = 'html_template'
 		if not self.processedFiles.has_key(processedFile):
-			self.processedFiles[processedFile] = self.loadFilesContent('html', ['index_template.html'])
+		#	self.processedFiles[processedFile] = self.loadFilesContent('html', ['index_template.html'])
+			self.processedFiles[processedFile] = self.loadFilesContent('html', [self.settings['html.template']])
 			
 		return self.processedFiles[processedFile]
 	
@@ -319,7 +320,7 @@ class FrontendBuilder(object):
 
 	def scriptTagsForFiles (self, basePath, files):
 		#<script type='text/javascript' src='./js/src/bookmarklet.js'></script>
-		return '\n'.join(map(lambda file: '<script type="text/javascript" src="' + basePath + '/' + file + '"></script>', files))
+		return '\n'.join(map(lambda file: '<script type="text/javascript" src="' + basePath + '/' + file + '" charset="utf-8"></script>', files))
 	
 
 	def scriptTagForContent (self, content):

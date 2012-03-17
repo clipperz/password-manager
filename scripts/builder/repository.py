@@ -50,11 +50,11 @@ class Repository(object):
 class GitRepository(Repository):
 
 	def revision (self):
-		return repository.refs['HEAD']
+		return self.repository.refs['HEAD']
 	
 
 	def areTherePendingChanges (self):
-		return repository.is_dirty()
+		return self.repository.is_dirty()
 
 
 #===================================================================
