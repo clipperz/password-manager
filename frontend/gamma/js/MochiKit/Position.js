@@ -8,7 +8,7 @@ See <http://mochikit.com/> for documentation, downloads, license, etc.
 
 ***/
 
-MochiKit.Base._module('Position', '1.5', ['Base', 'DOM', 'Style']);
+MochiKit.Base.module(MochiKit, 'Position', '1.5', ['Base', 'DOM', 'Style']);
 
 MochiKit.Base.update(MochiKit.Position, {
     // Don't export from this module

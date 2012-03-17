@@ -81,11 +81,11 @@ function run() {
 
 	Clipperz.PM.RunTime.mainController.run(shouldShowRegistrationForm);
 
-//Clipperz.log("HASH: " + window.location.hash);
-if (window.location.hash != "") {
-	window.location.hash = ""
-}
-//Clipperz.log("HASH cleaned");
+	//Clipperz.log("HASH: " + window.location.hash);
+//	if (window.location.hash != "") {
+//		window.location.hash = ""
+//	}
+//	Clipperz.log("HASH cleaned");
 //	#credentials=base64encoded({username:'joe', passphrase:'clipperz'})
 //	MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'doLogin', {username:'joe', passphrase:'clipperz'});
 }

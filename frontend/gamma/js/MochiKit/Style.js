@@ -6,9 +6,12 @@ See <http://mochikit.com/> for documentation, downloads, license, etc.
 
 (c) 2005-2006 Bob Ippolito, Beau Hartshorne.  All rights Reserved.
 
+The MochiKit.Style.getElementPosition function is adapted from
+YAHOO.util.Dom.getXY v0.9.0. which is copyrighted by Yahoo! Inc.
+
 ***/
 
-MochiKit.Base._module('Style', '1.5', ['Base', 'DOM']);
+MochiKit.Base.module(MochiKit, 'Style', '1.5', ['Base', 'DOM']);
 
 
 /** @id MochiKit.Style.Dimensions */
@@ -179,7 +182,7 @@ MochiKit.Base.update(MochiKit.Style, {
                    o.nodeType == null &&
                    typeof(o.x) == "number" &&
                    typeof(o.y) == "number";
-        }
+        };
 
         if (typeof(elem) == "string") {
             elem = dom.getElement(elem);
@@ -197,7 +200,7 @@ MochiKit.Base.update(MochiKit.Style, {
         var de = d.documentElement;
         var b = d.body;
 
-        if (!elem.parentNode && elem.x && elem.y) {
+        if (isCoordinates(elem)) {
             /* it's just a MochiKit.Style.Coordinates object */
             c.x += elem.x || 0;
             c.y += elem.y || 0;
@@ -228,8 +231,8 @@ MochiKit.Base.update(MochiKit.Style, {
 
             if (parent != elem) {
                 while (parent) {
-                    c.x += parseInt(parent.style.borderLeftWidth) || 0;
-                    c.y += parseInt(parent.style.borderTopWidth) || 0;
+                    c.x += parseInt(parent.style.borderLeftWidth, 10) || 0;
+                    c.y += parseInt(parent.style.borderTopWidth, 10) || 0;
                     c.x += parent.offsetLeft;
                     c.y += parent.offsetTop;
                     parent = parent.offsetParent;
@@ -390,7 +393,7 @@ MochiKit.Base.update(MochiKit.Style, {
         if (contentSize) {
             var tableCell = 'colSpan' in elem && 'rowSpan' in elem;
             var collapse = (tableCell && elem.parentNode && self.getStyle(
-                    elem.parentNode, 'borderCollapse') == 'collapse')
+                    elem.parentNode, 'borderCollapse') == 'collapse');
             if (collapse) {
                 if (/MSIE/.test(navigator.userAgent)) {
                     var borderLeftQuota = elem.previousSibling? 0.5 : 1;
@@ -543,8 +546,8 @@ MochiKit.Base.update(MochiKit.Style, {
         }
 
         // Backwards compatibility aliases
-        m._deprecated(this, 'elementPosition', 'MochiKit.Style.getElementPosition', '1.3');
-        m._deprecated(this, 'elementDimensions', 'MochiKit.Style.getElementDimensions', '1.3');
+        m._deprecated(this, 'elementPosition', 'MochiKit.Style.getElementPosition', '1.3', true);
+        m._deprecated(this, 'elementDimensions', 'MochiKit.Style.getElementDimensions', '1.3', true);
 
         this.hideElement = m.partial(this.setDisplayForElement, 'none');
         // TODO: showElement could be improved by using getDefaultDisplay.

@@ -8,7 +8,7 @@ See <http://mochikit.com/> for documentation, downloads, license, etc.
 
 ***/
 
-MochiKit.Base._module('Signal', '1.5', ['Base', 'DOM', 'Style']);
+MochiKit.Base.module(MochiKit, 'Signal', '1.5', ['Base', 'DOM']);
 
 MochiKit.Signal._observers = [];
 
@@ -266,16 +266,17 @@ MochiKit.Base.update(MochiKit.Signal.Event.prototype, {
 
         if (this.type() && (
             this.type().indexOf('mouse') === 0 ||
+            this.type().indexOf('drag') === 0 ||
             this.type().indexOf('click') != -1 ||
             this.type() == 'contextmenu')) {
 
-            m.client = new MochiKit.Style.Coordinates(0, 0);
+            m.client = { x: 0, y: 0 };
             if (e.clientX || e.clientY) {
                 m.client.x = (!e.clientX || e.clientX < 0) ? 0 : e.clientX;
                 m.client.y = (!e.clientY || e.clientY < 0) ? 0 : e.clientY;
             }
 
-            m.page = new MochiKit.Style.Coordinates(0, 0);
+            m.page = { x: 0, y: 0 };
             if (e.pageX || e.pageY) {
                 m.page.x = (!e.pageX || e.pageX < 0) ? 0 : e.pageX;
                 m.page.y = (!e.pageY || e.pageY < 0) ? 0 : e.pageY;
@@ -337,7 +338,7 @@ MochiKit.Base.update(MochiKit.Signal.Event.prototype, {
                 }
             }
             if (this.type() == 'mousewheel') {
-                m.wheel = new MochiKit.Style.Coordinates(0, 0);
+                m.wheel = { x: 0, y: 0 };
                 if (e.wheelDeltaX || e.wheelDeltaY) {
                     m.wheel.x = e.wheelDeltaX / -40 || 0;
                     m.wheel.y = e.wheelDeltaY / -40 || 0;
@@ -672,6 +673,18 @@ MochiKit.Base.update(MochiKit.Signal, {
         return ident;
     },
 
+    /** @id MochiKit.Signal.connectOnce */
+    connectOnce: function (src, sig, objOrFunc/* optional */, funcOrStr) {
+        var self = MochiKit.Signal;
+        var ident1 = self.connect(src, sig, objOrFunc, funcOrStr);
+        var ident2;
+        ident2 = self.connect(src, sig, function() {
+            self.disconnect(ident1);
+            self.disconnect(ident2);
+        });
+        return ident1;
+    },
+
     _disconnect: function (ident) {
         // already disconnected
         if (!ident.connected) {
@@ -715,7 +728,7 @@ MochiKit.Base.update(MochiKit.Signal, {
                 var o = observers[i];
                 if (o.source === src && o.signal === sig && o.objOrFunc === obj && o.funcOrStr === func) {
                     self._disconnect(o);
-                    if (!self._lock) {
+                    if (self._lock === 0) {
                         observers.splice(i, 1);
                     } else {
                         self._dirty = true;
@@ -727,7 +740,7 @@ MochiKit.Base.update(MochiKit.Signal, {
             var idx = m.findIdentical(observers, ident);
             if (idx >= 0) {
                 self._disconnect(ident);
-                if (!self._lock) {
+                if (self._lock === 0) {
                     observers.splice(idx, 1);
                 } else {
                     self._dirty = true;
@@ -743,7 +756,7 @@ MochiKit.Base.update(MochiKit.Signal, {
         var self = MochiKit.Signal;
         var observers = self._observers;
         var disconnect = self._disconnect;
-        var locked = self._lock;
+        var lock = self._lock;
         var dirty = self._dirty;
         if (typeof(funcOrStr) === 'undefined') {
             funcOrStr = null;
@@ -753,10 +766,10 @@ MochiKit.Base.update(MochiKit.Signal, {
             if (ident.objOrFunc === objOrFunc &&
                     (funcOrStr === null || ident.funcOrStr === funcOrStr)) {
                 disconnect(ident);
-                if (locked) {
-                    dirty = true;
-                } else {
+                if (lock === 0) {
                     observers.splice(i, 1);
+                } else {
+                    dirty = true;
                 }
             }
         }
@@ -774,7 +787,7 @@ MochiKit.Base.update(MochiKit.Signal, {
         var disconnect = self._disconnect;
         var observers = self._observers;
         var i, ident;
-        var locked = self._lock;
+        var lock = self._lock;
         var dirty = self._dirty;
         if (signals.length === 0) {
             // disconnect all
@@ -782,7 +795,7 @@ MochiKit.Base.update(MochiKit.Signal, {
                 ident = observers[i];
                 if (ident.source === src) {
                     disconnect(ident);
-                    if (!locked) {
+                    if (lock === 0) {
                         observers.splice(i, 1);
                     } else {
                         dirty = true;
@@ -798,7 +811,7 @@ MochiKit.Base.update(MochiKit.Signal, {
                 ident = observers[i];
                 if (ident.source === src && ident.signal in sigs) {
                     disconnect(ident);
-                    if (!locked) {
+                    if (lock === 0) {
                         observers.splice(i, 1);
                     } else {
                         dirty = true;
@@ -818,7 +831,7 @@ MochiKit.Base.update(MochiKit.Signal, {
         }
         var args = MochiKit.Base.extend(null, arguments, 2);
         var errors = [];
-        self._lock = true;
+        self._lock++;
         for (var i = 0; i < observers.length; i++) {
             var ident = observers[i];
             if (ident.source === src && ident.signal === sig &&
@@ -837,8 +850,8 @@ MochiKit.Base.update(MochiKit.Signal, {
                 }
             }
         }
-        self._lock = false;
-        if (self._dirty) {
+        self._lock--;
+        if (self._lock === 0 && self._dirty) {
             self._dirty = false;
             for (var i = observers.length - 1; i >= 0; i--) {
                 if (!observers[i].connected) {
@@ -861,7 +874,7 @@ MochiKit.Signal.__new__ = function (win) {
     var m = MochiKit.Base;
     this._document = document;
     this._window = win;
-    this._lock = false;
+    this._lock = 0;
     this._dirty = false;
 
     try {

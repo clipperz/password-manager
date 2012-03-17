@@ -8,7 +8,7 @@ See <http://mochikit.com/> for documentation, downloads, license, etc.
 
 ***/
 
-MochiKit.Base._module('DateTime', '1.5', ['Base']);
+MochiKit.Base.module(MochiKit, 'DateTime', '1.5', ['Base']);
 
 /** @id MochiKit.DateTime.isoDate */
 MochiKit.DateTime.isoDate = function (str) {
@@ -20,10 +20,10 @@ MochiKit.DateTime.isoDate = function (str) {
     if (iso.length === 0) {
         return null;
     }
-	var date = new Date(iso[0], iso[1] - 1, iso[2]);
-	date.setFullYear(iso[0]);
-	date.setMonth(iso[1] - 1);
-	date.setDate(iso[2]);
+    var date = new Date(parseInt(iso[0], 10), parseInt(iso[1], 10) - 1, parseInt(iso[2], 10));
+    date.setFullYear(iso[0]);
+    date.setMonth(iso[1] - 1);
+    date.setDate(iso[2]);
     return date;
 };
 
@@ -80,15 +80,17 @@ MochiKit.DateTime.toISOTime = function (date, realISO/* = false */) {
     if (typeof(date) == "undefined" || date === null) {
         return null;
     }
-    var hh = date.getHours();
-    var mm = date.getMinutes();
-    var ss = date.getSeconds();
+    var _padTwo = MochiKit.DateTime._padTwo;
+    if (realISO) {
+        // adjust date for UTC timezone
+        date = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
+    }
     var lst = [
-        ((realISO && (hh < 10)) ? "0" + hh : hh),
-        ((mm < 10) ? "0" + mm : mm),
-        ((ss < 10) ? "0" + ss : ss)
+        (realISO ? _padTwo(date.getHours()) : date.getHours()),
+        _padTwo(date.getMinutes()),
+        _padTwo(date.getSeconds())
     ];
-    return lst.join(":");
+    return lst.join(":") + (realISO ? "Z" : "");
 };
 
 /** @id MochiKit.DateTime.toISOTimeStamp */
@@ -96,12 +98,13 @@ MochiKit.DateTime.toISOTimestamp = function (date, realISO/* = false*/) {
     if (typeof(date) == "undefined" || date === null) {
         return null;
     }
+    var time = MochiKit.DateTime.toISOTime(date, realISO);
     var sep = realISO ? "T" : " ";
-    var foot = realISO ? "Z" : "";
     if (realISO) {
+        // adjust date for UTC timezone
         date = new Date(date.getTime() + (date.getTimezoneOffset() * 60000));
     }
-    return MochiKit.DateTime.toISODate(date) + sep + MochiKit.DateTime.toISOTime(date, realISO) + foot;
+    return MochiKit.DateTime.toISODate(date) + sep + time;
 };
 
 /** @id MochiKit.DateTime.toISODate */
@@ -110,7 +113,7 @@ MochiKit.DateTime.toISODate = function (date) {
         return null;
     }
     var _padTwo = MochiKit.DateTime._padTwo;
-	var _padFour = MochiKit.DateTime._padFour;
+    var _padFour = MochiKit.DateTime._padFour;
     return [
         _padFour(date.getFullYear()),
         _padTwo(date.getMonth() + 1),
@@ -133,14 +136,14 @@ MochiKit.DateTime._padTwo = function (n) {
 };
 
 MochiKit.DateTime._padFour = function(n) {
-	switch(n.toString().length) {
-		case 1: return "000" + n; break;
-		case 2: return "00" + n; break;
-		case 3: return "0" + n; break;
-		case 4:
-		default:
-			return n;
-	}
+    switch(n.toString().length) {
+        case 1: return "000" + n; break;
+        case 2: return "00" + n; break;
+        case 3: return "0" + n; break;
+        case 4:
+        default:
+            return n;
+    }
 };
 
 /** @id MochiKit.DateTime.toPaddedAmericanDate */

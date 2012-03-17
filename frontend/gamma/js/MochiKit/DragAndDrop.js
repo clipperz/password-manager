@@ -8,7 +8,7 @@ Copyright (c) 2005 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us)
 
 ***/
 
-MochiKit.Base._module('DragAndDrop', '1.5', ['Base', 'Iter', 'DOM', 'Signal', 'Visual', 'Position']);
+MochiKit.Base.module(MochiKit, 'DragAndDrop', '1.5', ['Base', 'Iter', 'DOM', 'Signal', 'Visual', 'Position']);
 
 MochiKit.DragAndDrop.Droppables = {
     /***
@@ -306,8 +306,9 @@ MochiKit.DragAndDrop.Draggables = {
         var pointer = event.mouse();
         // Mozilla-based browsers fire successive mousemove events with
         // the same coordinates, prevent needless redrawing (moz bug?)
-        if (this._lastPointer && (MochiKit.Base.repr(this._lastPointer.page) ==
-                                  MochiKit.Base.repr(pointer.page))) {
+        if (this._lastPointer &&
+            this._lastPointer.page.x == pointer.page.x &&
+            this._lastPointer.page.y == pointer.page.y) {
             return;
         }
         this._lastPointer = pointer;
@@ -442,8 +443,8 @@ MochiKit.DragAndDrop.Draggable.prototype = {
     currentDelta: function () {
         var s = MochiKit.Style.getStyle;
         return [
-          parseInt(s(this.element, 'left') || '0'),
-          parseInt(s(this.element, 'top') || '0')];
+          parseInt(s(this.element, 'left') || '0', 10),
+          parseInt(s(this.element, 'top') || '0', 10)];
     },
 
     /** @id MochiKit.DragAndDrop.initDrag */
@@ -481,8 +482,7 @@ MochiKit.DragAndDrop.Draggable.prototype = {
                                          this.options.selectclass);
         }
         if (this.options.zindex) {
-            this.originalZ = parseInt(MochiKit.Style.getStyle(this.element,
-                                      'z-index') || '0');
+            this.originalZ = MochiKit.Style.getStyle(this.element, 'z-index');
             this.element.style.zIndex = this.options.zindex;
         }
 

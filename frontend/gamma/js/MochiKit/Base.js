@@ -8,33 +8,43 @@ See <http://mochikit.com/> for documentation, downloads, license, etc.
 
 ***/
 
-if (typeof(MochiKit) == 'undefined') {
-    MochiKit = {};
-}
+
+// MochiKit module (namespace)
+var MochiKit = MochiKit || {};
 if (typeof(MochiKit.__export__) == "undefined") {
     MochiKit.__export__ = true;
 }
-if (typeof(MochiKit.Base) == 'undefined') {
-    MochiKit.Base = {};
-}
+MochiKit.NAME = "MochiKit";
+MochiKit.VERSION = "1.5";
+MochiKit.__repr__ = function () {
+    return "[" + this.NAME + " " + this.VERSION + "]";
+};
+MochiKit.toString = function () {
+    return this.__repr__();
+};
+
+
+// MochiKit.Base module
+MochiKit.Base = MochiKit.Base || {};
 
 /**
- * Registers a new MochiKit module. This function will insert a new
- * property into the "MochiKit" object, making sure that all
- * dependency modules have already been inserted. It will also make
- * sure that the appropriate properties and default module functions
- * are defined.
+ * Creates a new module in a parent namespace. This function will
+ * create a new empty module object with "NAME", "VERSION",
+ * "toString" and "__repr__" properties. This object will be inserted into the parent object
+ * using the specified name (i.e. parent[name] = module). It will
+ * also verify that all the dependency modules are defined in the
+ * parent, or an error will be thrown.
  *
+ * @param {Object} parent the parent module (use "this" or "window" for
+ *            a global module)
  * @param {String} name the module name, e.g. "Base"
  * @param {String} version the module version, e.g. "1.5"
- * @param {Array} deps the array of module dependencies (as strings)
+ * @param {Array} [deps] the array of module dependencies (as strings)
  */
-MochiKit.Base._module = function (name, version, deps) {
-    if (!(name in MochiKit)) {
-        MochiKit[name] = {};
-    }
-    var module = MochiKit[name];
-    module.NAME = "MochiKit." + name;
+MochiKit.Base.module = function (parent, name, version, deps) {
+    var module = parent[name] = parent[name] || {};
+    var prefix = (parent.NAME ? parent.NAME + "." : "");
+    module.NAME = prefix + name;
     module.VERSION = version;
     module.__repr__ = function () {
         return "[" + this.NAME + " " + this.VERSION + "]";
@@ -42,14 +52,15 @@ MochiKit.Base._module = function (name, version, deps) {
     module.toString = function () {
         return this.__repr__();
     };
-    for (var i = 0; i < deps.length; i++) {
-        if (!(deps[i] in MochiKit)) {
-            throw 'MochiKit.' + name + ' depends on MochiKit.' + deps[i] + '!';
+    for (var i = 0; deps != null && i < deps.length; i++) {
+        if (!(deps[i] in parent)) {
+            throw module.NAME + ' depends on ' + prefix + deps[i] + '!';
         }
     }
-}
+    return module;
+};
 
-MochiKit.Base._module("Base", "1.5", []);
+MochiKit.Base.module(MochiKit, "Base", "1.5", []);
 
 /** @id MochiKit.Base.update */
 MochiKit.Base.update = function (self, obj/*, ... */) {
@@ -240,6 +251,7 @@ MochiKit.Base.update(MochiKit.Base, {
 
     _newNamedError: function (module, name, func) {
         func.prototype = new MochiKit.Base.NamedError(module.NAME + "." + name);
+        func.prototype.constructor = func;
         module[name] = func;
     },
 
@@ -351,7 +363,7 @@ MochiKit.Base.update(MochiKit.Base, {
         } else if (typeof(value) === "number" || value instanceof Number) {
             return !isNaN(value) && value != 0;
         } else if (value != null && typeof(value.length) === "number") {
-            return value.length !== 0
+            return value.length !== 0;
         } else {
             return value != null;
         }
@@ -675,6 +687,9 @@ MochiKit.Base.update(MochiKit.Base, {
         newfunc.im_self = im_self;
         newfunc.im_func = im_func;
         newfunc.im_preargs = im_preargs;
+        if (typeof(im_func.NAME) == 'string') {
+            newfunc.NAME = "bind(" + im_func.NAME + ",...)";
+        }
         return newfunc;
     },
 
@@ -788,11 +803,14 @@ MochiKit.Base.update(MochiKit.Base, {
             }
             return MochiKit.Base.reprRegistry.match(o);
         } catch (e) {
-            if (typeof(o.NAME) == 'string' && (
-                    o.toString == Function.prototype.toString ||
-                    o.toString == Object.prototype.toString
-                )) {
-                return o.NAME;
+            try {
+                if (typeof(o.NAME) == 'string' && (
+                        o.toString == Function.prototype.toString ||
+                        o.toString == Object.prototype.toString
+                    )) {
+                    return o.NAME;
+                }
+            } catch (ignore) {
             }
         }
         try {
@@ -840,16 +858,13 @@ MochiKit.Base.update(MochiKit.Base, {
 
 
     /** @id MochiKit.Base.evalJSON */
-    evalJSON: function () {
-        return eval("(" + MochiKit.Base._filterJSON(arguments[0]) + ")");
+    evalJSON: function (jsonText) {
+        return eval("(" + MochiKit.Base._filterJSON(jsonText) + ")");
     },
 
     _filterJSON: function (s) {
         var m = s.match(/^\s*\/\*(.*)\*\/\s*$/);
-        if (m) {
-            return m[1];
-        }
-        return s;
+        return (m) ? m[1] : s;
     },
 
     /** @id MochiKit.Base.serializeJSON */
@@ -894,6 +909,12 @@ MochiKit.Base.update(MochiKit.Base, {
         // short-circuit for objects that support "json" serialization
         // if they return "self" then just pass-through...
         var newObj;
+        if (typeof(o.toJSON) == "function") {
+            newObj = o.toJSON();
+            if (o !== newObj) {
+                return me(newObj);
+            }
+        }
         if (typeof(o.__json__) == "function") {
             newObj = o.__json__();
             if (o !== newObj) {
@@ -1100,7 +1121,7 @@ MochiKit.Base.update(MochiKit.Base, {
         if (data.length === 0) {
             throw new TypeError('median() requires at least one argument');
         }
-        data.sort(compare);
+        data.sort(MochiKit.Base.compare);
         if (data.length % 2 == 0) {
             var upper = data.length / 2;
             return (data[upper] + data[upper - 1]) / 2;
@@ -1290,18 +1311,44 @@ MochiKit.Base.AdapterRegistry.prototype = {
     }
 };
 
-MochiKit.Base._exportSymbols = function (globals, module) {
-    if (MochiKit.__export__ === false || module.__export__ === false) {
-        return;
-    }
-    for (var k in module) {
-        var v = module[k];
-        if (v != null) {
-            var okName = (k[0] !== "_" && k !== "toString");
-            if (v.__export__ === true || (v.__export__ !== false && okName)) {
-                globals[k] = module[k];
+/**
+ * Exports all symbols from one or more modules into the specified
+ * namespace (or scope). This is similar to MochiKit.Base.update(),
+ * except for special handling of the "__export__" flag, contained
+ * sub-modules (exported recursively), and names starting with "_".
+ *
+ * @param {Object} namespace the object or scope to modify
+ * @param {Object} module the module to export
+ */
+MochiKit.Base.moduleExport = function (namespace, module/*, ...*/) {
+    var SKIP = { toString: true, NAME: true, VERSION: true };
+    var mods = MochiKit.Base.extend([], arguments, 1);
+    while ((module = mods.shift()) != null) {
+        for (var k in module) {
+            var v = module[k];
+            if (v != null) {
+                var flagSet = (typeof(v.__export__) == 'boolean');
+                var nameValid = (k[0] !== "_" && !SKIP[k]);
+                if (flagSet ? v.__export__ : nameValid) {
+                    if (typeof(v) == 'object' && v.NAME && v.VERSION) {
+                        mods.push(v);
+                    } else {
+                        namespace[k] = module[k];
+                    }
+                }
             }
         }
+    }
+    return namespace;
+};
+
+/**
+ * Identical to moduleExport, but also considers the global and
+ * module-specific "__export__" flag.
+ */
+MochiKit.Base._exportSymbols = function (namespace, module) {
+    if (MochiKit.__export__ !== false && module.__export__ !== false) {
+        MochiKit.Base.moduleExport(namespace, module);
     }
 };
 
@@ -1321,7 +1368,7 @@ MochiKit.Base._exportSymbols = function (globals, module) {
  * @param {String} version the first version when the source function
  *            was deprecated (e.g. '1.4')
  * @param {Boolean} [exportable] the exportable function flag,
- *            defaults to true
+ *            defaults to false
  */
 MochiKit.Base._deprecated = function (module, name, target, version, exportable) {
     if (typeof(module) === 'string') {
@@ -1349,11 +1396,9 @@ MochiKit.Base._deprecated = function (module, name, target, version, exportable)
         }
         return MochiKit[targetModule][targetName].apply(this, arguments);
     };
-    if (exportable === false) {
-        func.__export__ = false;
-    }
+    func.__export__ = (exportable === true);
     module[name] = func;
-}
+};
 
 MochiKit.Base.__new__ = function () {
     var m = this;
@@ -1362,8 +1407,8 @@ MochiKit.Base.__new__ = function () {
     m.noop = m.operator.identity;
 
     // Backwards compat
-    m._deprecated(m, 'forward', 'MochiKit.Base.forwardCall', '1.3', false);
-    m._deprecated(m, 'find', 'MochiKit.Base.findValue', '1.3', false);
+    m._deprecated(m, 'forward', 'MochiKit.Base.forwardCall', '1.3');
+    m._deprecated(m, 'find', 'MochiKit.Base.findValue', '1.3');
 
     if (typeof(encodeURIComponent) != "undefined") {
         /** @id MochiKit.Base.urlEncode */
@@ -1375,7 +1420,7 @@ MochiKit.Base.__new__ = function () {
             return escape(unencoded
                 ).replace(/\+/g, '%2B'
                 ).replace(/\"/g,'%22'
-                ).rval.replace(/\'/g, '%27');
+                ).replace(/\'/g, '%27');
         };
     }
 
@@ -1385,6 +1430,7 @@ MochiKit.Base.__new__ = function () {
         this.name = name;
     };
     m.NamedError.prototype = new Error();
+    m.NamedError.prototype.constructor = m.NamedError;
     m.update(m.NamedError.prototype, {
         repr: function () {
             if (this.message && this.message != this.name) {
@@ -1409,6 +1455,8 @@ MochiKit.Base.__new__ = function () {
     m.isCallable = m.typeMatcher('function');
     /** @id MochiKit.Base.isUndefined */
     m.isUndefined = m.typeMatcher('undefined');
+    /** @id MochiKit.Base.isValue */
+    m.isValue = m.typeMatcher('boolean', 'number', 'string');
 
     /** @id MochiKit.Base.merge */
     m.merge = m.partial(m.update, null);

@@ -8,7 +8,7 @@ See <http://mochikit.com/> for documentation, downloads, license, etc.
 
 ***/
 
-MochiKit.Base._module('Logging', '1.5', ['Base']);
+MochiKit.Base.module(MochiKit, 'Logging', '1.5', ['Base']);
 
     /** @id MochiKit.Logging.LogMessage */
 MochiKit.Logging.LogMessage = function (num, level, info) {
@@ -187,7 +187,7 @@ MochiKit.Logging.Logger.prototype = {
         }
         var messages = this.getMessages(howMany);
         if (messages.length) {
-            var lst = map(function (m) {
+            var lst = MochiKit.Base.map(function (m) {
                 return '\n  [' + m.num + '] ' + m.level + ': ' + m.info.join(' ');
             }, messages);
             lst.unshift('LAST ' + messages.length + ' MESSAGES:');
