@@ -183,5 +183,8 @@
 		"clipperz/clipperz.css",
 		"clipperz/compact.css",
 		"clipperz/ytheme-clipperz.css"
-	]
+	],
+
+	"html.template": "index_template.html"
+
 }
