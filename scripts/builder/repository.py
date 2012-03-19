@@ -56,11 +56,18 @@ class GitRepository(Repository):
 	#	http://gitorious.org/git-python
 
 	def revision (self):
-		return self.repository.head.commit.hexsha
+		try:
+			return self.repository.head.commit.hexsha
+		except:
+			return self.repository.commits()[0].id
 
 
 	def areTherePendingChanges (self):
-		return self.repository.is_dirty()
+		try:
+			return self.repository.is_dirty()
+		except TypeError, te:
+			return self.repository.is_dirty
+
 
 
 #===================================================================
