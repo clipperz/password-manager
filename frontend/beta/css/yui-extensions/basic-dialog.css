@@ -24,7 +24,6 @@ refer to http://www.clipperz.com.
 */
 
 .ydlg-proxy {
-	background-image: url(../images/default/gradient-bg.gif);
 	background-color:#c3daf9;
 	border:1px solid #6593cf;
 	z-index:10001;
@@ -93,7 +92,6 @@ body.masked .ydlg select {
 	padding-right:3px;
 }
 .ydlg .ydlg-dlg-body{
-	background:url(../images/default/layout/gradient-bg.gif);
 	border:1px solid #6593cf;
 	border-top:0 none;
 	padding:10px;
