@@ -11,12 +11,14 @@ def repositoryWithPath (path):
 	except:
 		try:
 			from git import Repo
-
 			repo = Repo(path)
 			result = GitRepository(repo, path)
+
 		except ImportError, exception:
 			print "Failed to import git, please install http://gitorious.org/git-python"
 			raise exception
+		except:
+			result = SnapshotRepository('', path)
 
 
 	return result
@@ -86,3 +88,10 @@ class HgRepository(Repository):
 
 
 #===================================================================
+
+class SnapshotRepository(Repository):
+	def revision (self):
+		return 'SNAPSHOT'
+
+	def areTherePendingChanges (self):
+		return False
