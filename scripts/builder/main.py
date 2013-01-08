@@ -10,7 +10,7 @@ import codecs
 import itertools
 from collections   import deque
 
-import frontendBuilder
+#import frontendBuilder
 import repository
 
 pp = pprint.PrettyPrinter(indent=4, depth=4)
@@ -75,7 +75,7 @@ def assembleBackend (backend, frontends, versions):
 	
 	builderModuleName = backend + 'Builder'
 	builderClassName  = backend.capitalize() + 'Builder'
-
+	#print ("BUILD BACKENDS - module: " + builderModuleName + " , class: " + builderClassName)
 	builderModule  = __import__(builderModuleName)
 	builderClass   = getattr(builderModule, builderClassName)
 	
@@ -88,10 +88,22 @@ def build (settings, repository):
 	frontends = []
 	
 	if repository.areTherePendingChanges():
-		print "\nWARNING: repository has pending changes\n"
+		if 'install' in settings['versions']:
+			raise Exception("repository has pending changes, can't 'install'")
+		else:
+			print "\nWARNING: repository has pending changes\n"
 
 	for frontend in settings['frontends']:
-		frontends.append(frontendBuilder.FrontendBuilder(frontend, loadSettings('frontend', frontend), repository.version()))
+		normalizedFrontendName = frontend.replace(".", "_")
+		builderModuleName = normalizedFrontendName + 'Builder'
+		builderClassName  = normalizedFrontendName.title() + 'Builder'
+
+		#print ("BUILD FRONTEND - module: " + builderModuleName + " , class: " + builderClassName)
+		builderModule  = __import__(builderModuleName)
+		builderClass   = getattr(builderModule, builderClassName)
+		builder = builderClass(frontend, loadSettings('frontend', frontend), repository.version())
+		#builder = frontendBuilder.FrontendBuilder(frontend, loadSettings('frontend', frontend), repository.version())
+		frontends.append(builder)
 
 	for backend in settings['backends']:
 		assembleBackend(backend, frontends, settings['versions'])
@@ -114,6 +126,7 @@ def usage (message):
 	# print "build clean install"
 	print "build install --ALL"
 	print "build install debug --ALL"
+	print "build install debug development --ALL"
 	# print "build clean install debug --ALL"
 	print "build install debug --backends php python --frontends beta gamma"
 	print "build install debug development --backends php python --frontends beta gamma gamma.mobile"
@@ -122,7 +135,7 @@ def usage (message):
 #--------------------------------------------------------------------
 
 def allFrontends ():
-	return ['beta', 'gamma',  'mobile']
+	return ['beta', 'gamma',  'gamma.mobile']
 
 def allBackends ():
 	return ['php',  'python']
@@ -134,6 +147,7 @@ def main ():
 	parameters = list(itertools.islice(sys.argv, 1, None))
 
 	sys.path.append(os.path.join(scriptDir(), 'backends'))
+	sys.path.append(os.path.join(scriptDir(), 'frontends'))
 	currentRepository = repository.repositoryWithPath(projectBaseDir())
 
 	clean()
@@ -174,4 +188,4 @@ def main ():
 
 
 if __name__ == "__main__":
-    main()
+	main()

@@ -11,6 +11,8 @@ import urllib
 
 import main
 
+#===============================================================================
+
 class FrontendBuilder(object):
 
 	def __init__ (self, frontend, settings, repositoryVersion):
@@ -27,10 +29,23 @@ class FrontendBuilder(object):
 		# self.repository = repository.repositoryWithPath(self.projectDir)
 		self.repositoryVersion = repositoryVersion
 		self.processedFiles = {}
-		
+
+	#---------------------------------------------------------------------------
+
+	def name (self):
+		raise NotImplementedError()
+
+
+	def copyStaticResources (self, targetFolder):
+		raise NotImplementedError()
+
+	#---------------------------------------------------------------------------
 
 	def log (self, message):
-		print "frontend [" + self.module + "]: " + message
+		module = self.module
+		if (self.module != self.submodule):
+			module = module + "." + self.submodule
+		print "frontend [" + module + "]: " + message
 	
 
 	def absolutePathForSources (self):
@@ -58,16 +73,30 @@ class FrontendBuilder(object):
 	
 
 	def copyResources (self, sourceFolder, destinationFolder, fileType):
-		for file in self.filterFiles(self.settings[fileType]):
-			src = self.absolutePathForSourceFile(fileType, file)
-			dst = self.absolutePathForTargetFile(destinationFolder, fileType, file)
-			main.createFolder(os.path.dirname(dst))
-			shutil.copy2(src, dst)
+		if fileType in self.settings:
+			for file in self.filterFiles(self.settings[fileType]):
+				src = self.absolutePathForSourceFile(fileType, file)
+				dst = self.absolutePathForTargetFile(destinationFolder, fileType, file)
+				main.createFolder(os.path.dirname(dst))
+				shutil.copy2(src, dst)
+		else:
+			srcFolder = os.path.join(self.absolutePathForSources(), fileType)
+			dstFolder = os.path.join(destinationFolder, self.module, fileType)
+			if not(os.path.exists(dstFolder)):
+				shutil.copytree(srcFolder, dstFolder)
+
+#			try:
+#				shutil.copytree(srcFolder, dstFolder)
+#			except:
+#				pass
+
 		
 
 	def copyResourcesToFolder (self, targetFolder):
 		self.copyResources(self.projectDir, targetFolder, 'css')
 		self.copyResources(self.projectDir, targetFolder, 'js')
+		self.copyResources(self.projectDir, targetFolder, 'images')
+		self.copyStaticResources(targetFolder)
 	
 
 	def loadFilesContent (self, basePath, files):
@@ -371,6 +400,7 @@ class FrontendBuilder(object):
 				 	'\n' + \
 					self.scriptTagsForFiles('file://' + str(os.path.join(self.absolutePathForSources(), 'js')), self.filterFiles(self.settings['js']))
 			jsLoadMode = 'LINKED'
+			versionType = 'development'
 
 		else:
 			raise NotImplementedError()

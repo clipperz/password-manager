@@ -1,0 +1,7 @@
+#!/bin/bash
+
+readonly CURR_DIR=$(cd "$(dirname "$0")"; pwd -P)
+
+#${CURR_DIR}/proxy/main.py $@
+python ${CURR_DIR}/proxy/main.py $@
+#twistd -y ${CURR_DIR}/proxy/main.py --pidfile=${CURR_DIR}/../target/proxy/proxy.pid --logfile=${CURR_DIR}/../target/proxy/logs/proxy.log

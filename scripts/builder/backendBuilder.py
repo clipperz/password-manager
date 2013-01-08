@@ -9,7 +9,6 @@ import main
 
 #===================================================================
 
-
 class BackendBuilder(object):
 	
 	def __init__ (self, projectTargetDir, frontends, versions, settings):
@@ -50,10 +49,12 @@ class BackendBuilder(object):
 
 
 	def developmentTargetFolder (self):
-		return os.path.join(self.projectTargetDir, 'development', self.relativePath())
+		return os.path.join(self.projectTargetDir, 'development')
+
 
 	def targetFolder (self):
 		return os.path.join(self.projectTargetDir, self.relativePath())
+
 		
 	# --------------------------------------------------------------------------
 	
@@ -103,7 +104,7 @@ class BackendBuilder(object):
 
 					index = self.configureIndexContent(frontend.assemble(assemblyMode='DEBUG', versionType='DEBUG'))
 					self.writeToFolder(self.frontEndTempFolder(), os.path.join(frontend.module, 'index_debug' + submoduleExtension + '.html'), index)
-				
+
 				if 'install' in self.versions:
 					index = self.configureIndexContent(frontend.assemble())
 					self.writeToFolder(self.frontEndTempFolder(), os.path.join(frontend.module, 'index' + submoduleExtension + '.html'), index)
@@ -112,20 +113,22 @@ class BackendBuilder(object):
 			
 			self.createPackage()
 
-		if 'development' in self.versions:
-			for frontend in self.frontends:
-				if (frontend.module == frontend.submodule):
-					submoduleExtension = ''
-				else:
-					submoduleExtension = '.' + frontend.submodule
-
-				print "FRONTEND module: " + frontend.module
-				print "FRONTEND submodule: " + frontend.submodule
-
-				main.createFolder(os.path.join(self.developmentTargetFolder(), frontend.module))
-
-				index = self.configureIndexContent(frontend.assemble(assemblyMode='DEVELOPMENT', versionType='DEBUG'), self.settings['development.settings']['url'])
-				self.writeToFolder(self.developmentTargetFolder(), os.path.join(frontend.module, 'index' + submoduleExtension + '.html'), index)
+#		if 'development' in self.versions:
+#			for frontend in self.frontends:
+#				if (frontend.module == frontend.submodule):
+#					submoduleExtension = ''
+#				else:
+#					submoduleExtension = '.' + frontend.submodule
+#
+#				print "FRONTEND module: " + frontend.module
+#				print "FRONTEND submodule: " + frontend.submodule
+#
+##				main.createFolder(os.path.join(self.developmentTargetFolder(), frontend.module))
+#				main.createFolder(self.developmentTargetFolder())
+#
+#				index = self.configureIndexContent(frontend.assemble(assemblyMode='DEVELOPMENT', versionType='DEBUG'), self.settings['development.settings']['url'])
+##				self.writeToFolder(self.developmentTargetFolder(), os.path.join(frontend.module, 'index_development' + submoduleExtension + '.html'), index)
+#				self.writeToFolder(self.developmentTargetFolder(), os.path.join(frontend.module + submoduleExtension + '.html'), index)
 
 	
 #===================================================================
