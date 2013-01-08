@@ -185,6 +185,10 @@
 		"clipperz/ytheme-clipperz.css"
 	],
 
-	"html.template": "index_template.html"
-
+	"staticResources": [
+		"accountDeleted.html",
+		"error.html",
+		"logout.html",
+		"static.css"
+	]
 }
