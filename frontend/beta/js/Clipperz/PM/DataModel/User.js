@@ -285,14 +285,14 @@ MochiKit.Logging.logError("- User.errorHandler: " + anErrorString + " (" + anExc
 
 	//-------------------------------------------------------------------------
 
-	'saveRecords': function(someRecords, aMethodName) {
+	'saveRecords': function(someRecords /*, aMethodName*/) {
 		var deferredResult;
-		var methodName;
+//		var methodName;
 		var	result;
 		var i,c;
 
 //console.log("User.saveRecords - someRecords", someRecords);
-		methodName = aMethodName || 'addNewRecords';
+//		methodName = aMethodName || 'addNewRecords';
 		
 		Clipperz.NotificationCenter.notify(this, 'updatedSection', 'records', true);
 //MochiKit.Logging.logDebug(">>> User.saveRecords");
@@ -367,7 +367,7 @@ MochiKit.Logging.logDebug("--- User.saveRecords - 2");
 //deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("User.saveRecords - 6.7 " + res); return res;});
 
 			deferredResult.addCallback(function(aResult, res) {
-				aResult['records'].push(res);
+				aResult['records'] = { 'updated': [res] };
 				return aResult;
 			}, result);
 //deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("User.saveRecords - 6.8 " + res); return res;});
@@ -376,7 +376,8 @@ MochiKit.Logging.logDebug("--- User.saveRecords - 2");
 //deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("User.saveRecords - 7 " + res); return res;});
 		deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'updatedProgressState', 'saveCard_sendingData');
 //deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("User.saveRecords - 8 " + res); return res;});
-		deferredResult.addCallback(MochiKit.Base.method(this.connection(), 'message'), methodName);
+//		deferredResult.addCallback(MochiKit.Base.method(this.connection(), 'message'), methodName);
+		deferredResult.addCallback(MochiKit.Base.method(this.connection(), 'message'), 'saveChanges');
 //deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("User.saveRecords - 9 " + res); return res;});
 
 		for (i=0; i<c; i++) {
@@ -431,7 +432,8 @@ MochiKit.Logging.logDebug("--- User.saveRecords - 2");
 
 				return result;
 			}, someRecords);
-			someParameters.recordReferences = recordReferences;
+//			someParameters.recordReferences = recordReferences;
+			someParameters['records'] = { 'deleted': recordReferences};
 			
 			return someParameters;
 		}, parameters);
@@ -448,7 +450,8 @@ MochiKit.Logging.logDebug("--- User.saveRecords - 2");
 		deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'updatedProgressState', 'deleteRecord_sendingData');
 //deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("User.deleteRecords parameters: " + Clipperz.Base.serializeJSON(res)); return res;});
 //deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("User.deleteRecordsAction - 7 " + res); return res;});
-		deferredResult.addCallback(MochiKit.Base.method(this.connection(), 'message'), 'deleteRecords');
+//		deferredResult.addCallback(MochiKit.Base.method(this.connection(), 'message'), 'deleteRecords');
+		deferredResult.addCallback(MochiKit.Base.method(this.connection(), 'message'), 'saveChanges');
 //deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("User.deleteRecordsAction - 8 " + res); return res;});
 		deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'updatedProgressState', 'deleteRecord_updatingInterface');
 //deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("User.deleteRecordsAction - 9 " + res); return res;});

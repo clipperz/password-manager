@@ -639,11 +639,13 @@ console.log("Record.processData - currentVersionParameters", currentVersionParam
 	'saveChanges': function() {
 		var result;
 		
-		if (this.isBrandNew() == false) {
-			result = this.user().saveRecords([this], 'updateData');
-		} else {
-			result = this.user().saveRecords([this], 'addNewRecords');
-		}
+//		if (this.isBrandNew() == false) {
+//			result = this.user().saveRecords([this], 'updateData');
+//		} else {
+//			result = this.user().saveRecords([this], 'addNewRecords');
+//		}
+
+		result = this.user().saveRecords([this]);
 		
 		return result;
 	},

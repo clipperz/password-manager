@@ -296,11 +296,15 @@ deferredResult.addErrback(MochiKit.Base.bind(function(res) {MochiKit.Logging.log
 				this.setConnectionId(someParameters['connectionId']);
 				this.user().setLoginInfo(someParameters['loginInfo']);
 				this.user().setShouldDownloadOfflineCopy(someParameters['offlineCopyNeeded']);
-				this.user().setLock(someParameters['lock']);
+
+				if ((isReconnecting == true) && (this.user().lock() != someParameters['lock'])) {
+					throw Clipperz.PM.Connection.exception.StaleData;
+				}
 			
 				if (this.oneTimePassword() != null) {
 					result.addCallback(MochiKit.Base.method(this.user().oneTimePasswordManager(), 'archiveOneTimePassword', this.oneTimePassword()));
 				}
+
 				result.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'updatedProgressState', 'connection_loggedIn');
 				result.addCallback(MochiKit.Async.succeed, someParameters);
 				
@@ -577,5 +581,6 @@ Clipperz.PM.Connection.SRP['1.1'].prototype = MochiKit.Base.update(new Clipperz.
 });
 
 Clipperz.PM.Connection.exception = {
-	WrongChecksum: new MochiKit.Base.NamedError("Clipperz.ByteArray.exception.InvalidValue")
+	WrongChecksum: new MochiKit.Base.NamedError("Clipperz.ByteArray.exception.InvalidValue"),
+	StaleData: new MochiKit.Base.NamedError("Stale data")
 };
