@@ -406,6 +406,10 @@ Clipperz.Base.extend(Clipperz.PM.UI.Common.Components.BaseComponent, /*Ext.Compo
 		return result;
 	},
 
+	'getAnchor': function (aValue) {
+		return '#' + this.getId(aValue);
+	},
+
 	//-------------------------------------------------------------------------
 
 	'getElement': function(aValue) {

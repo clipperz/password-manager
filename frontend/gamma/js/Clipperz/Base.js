@@ -77,6 +77,11 @@ MochiKit.Base.update(Clipperz.Base, {
 		return MochiKit.Base.compose(function(aResult) { return -aResult; }, aComparator);
 	},
 
+	'caseInsensitiveKeyComparator': function (aKey) {
+		return function (a, b) {
+			return MochiKit.Base.compare(a[aKey].toLowerCase(), b[aKey].toLowerCase());
+		}
+	},
 	//-------------------------------------------------------------------------
 /*
 	'dependsOn': function(module, deps) {

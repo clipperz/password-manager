@@ -82,9 +82,10 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.LoginProgress, Clipperz.PM.UI
 			]},
 			{tag:'div', cls:'footer', children:[
 				{tag:'div', cls:'buttonArea', id:this.getId('buttonArea'), children:[
-					{tag:'div', cls:'button', id:this.getId('button'), children:[
-						{tag:'a', href:'#', id:this.getId('buttonLink'), html:"cancel"}
-					]}
+//					{tag:'div', cls:'button', id:this.getId('button'), children:[
+//						{tag:'a', href:'#', id:this.getId('buttonLink'), html:"cancel"}
+//					]}
+					{tag:'a', cls:'button', id:this.getId('button'), html:"cancel"}
 				]}
 			]}
 		]});
@@ -95,7 +96,8 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.LoginProgress, Clipperz.PM.UI
 		this.addComponent(new Clipperz.PM.UI.Common.Components.ProgressBar({'element':this.getElement('progressBar')}));
 		MochiKit.Style.hideElement(this.getElement('errorBox'));
 		
-		MochiKit.Signal.connect(this.getId('buttonLink'), 'onclick', this, 'cancelEventHandler');
+//		MochiKit.Signal.connect(this.getId('buttonLink'), 'onclick', this, 'cancelEventHandler');
+		MochiKit.Signal.connect(this.getId('button'), 'onclick', this, 'cancelEventHandler');
 	},
 
 	//-------------------------------------------------------------------------
@@ -121,7 +123,9 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.LoginProgress, Clipperz.PM.UI
 	//-------------------------------------------------------------------------
 
 	'showErrorMessage': function() {
-		this.getElement('buttonLink').innerHTML = "close";
+//		this.getElement('buttonLink').innerHTML = "close";
+		this.getElement('button').innerHTML = "close";
+		MochiKit.DOM.addElementClass(this.getElement('button'), 'default');
 
 		MochiKit.Style.hideElement(this.getElement('progressBar'));
 

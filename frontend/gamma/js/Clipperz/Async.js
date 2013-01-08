@@ -513,9 +513,9 @@ MochiKit.Base.update(Clipperz.Async, {
 			return MochiKit.Base.map(function (aResult) {
 				if (aResult[0]) {
 					return aResult[1];
-			} else {
+				} else {
 					throw aResult[1];
-					}
+				}
 			}, aResultList);
 		});
 		

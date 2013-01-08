@@ -44,7 +44,7 @@ Clipperz.PM.DataModel.User = function (args) {
 	this._connectionVersion = 'current';
 
 	this._serverData = null;
-	this._serverLockValue = null;
+//	this._serverLockValue = null;
 	this._transientState = null;
 
 	this._deferredLocks = {
@@ -93,7 +93,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 	},
 
 	//-------------------------------------------------------------------------
-
+/*
 	'serverLockValue': function () {
 		return this._serverLockValue;
 	},
@@ -101,7 +101,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 	'setServerLockValue': function (aValue) {
 		this._serverLockValue = aValue;
 	},
-
+*/
 	//-------------------------------------------------------------------------
 
 	'transientState': function () {
@@ -220,8 +220,8 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		deferredResult.addMethod(this, 'prepareRemoteDataWithKey');
 		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'advanceProgress');
 		deferredResult.addMethod(this.connection(), 'register');
-		deferredResult.addCallback(MochiKit.Base.itemgetter('lock'));
-		deferredResult.addMethod(this, 'setServerLockValue');
+//		deferredResult.addCallback(MochiKit.Base.itemgetter('lock'));
+//		deferredResult.addMethod(this, 'setServerLockValue');
 		deferredResult.addCallbackPass(MochiKit.Signal.signal,	Clipperz.Signal.NotificationCenter, 'userSuccessfullyRegistered');
 
 //		deferredResult.addErrback (MochiKit.Base.method(this, 'handleRegistrationFailure'));
@@ -247,7 +247,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 			MochiKit.Base.method(this.data(), 'setValue', 'passphrase')
 		], []));
 		deferredResult.addErrback(MochiKit.Base.method(this, 'getPassphrase'));
-		deferredResult.addMethod(this.connection(), 'login');
+		deferredResult.addMethod(this.connection(), 'login', false);
 		deferredResult.addCallbackPass(MochiKit.Signal.signal,	Clipperz.Signal.NotificationCenter, 'userSuccessfullyLoggedIn');
 		deferredResult.addErrback (MochiKit.Base.method(this, 'handleConnectionFallback'));
 
@@ -329,7 +329,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		var oneTimePasswords;
 
 //console.log(">>> ***************** user.unpackServerData", someServerData);
-		this.setServerLockValue(someServerData['lock']);
+//		this.setServerLockValue(someServerData['lock']);
 
 		headerVersion = this.headerFormatVersion(someServerData['header']);
 	
@@ -662,8 +662,8 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 			MochiKit.Base.method(this, 'invokeMethodNamedOnRecords', 'commitTransientState'),
 
 			MochiKit.Base.method(this, 'transientState'),
-			MochiKit.Base.itemgetter('lock'),
-			MochiKit.Base.method(this, 'setServerLockValue'),
+//			MochiKit.Base.itemgetter('lock'),
+//			MochiKit.Base.method(this, 'setServerLockValue'),
 			MochiKit.Base.method(this, 'resetTransientState', true)
 		], {trace:false});
 	},
@@ -740,7 +740,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 			return aResult;
 		}, this), result);
 		deferredResult.addCallback(Clipperz.Async.setItem, result, 'version', Clipperz.PM.Crypto.encryptingFunctions.currentVersion);
-		deferredResult.addCallback(Clipperz.Async.setItem, result, 'lock', this.serverLockValue());
+//		deferredResult.addCallback(Clipperz.Async.setItem, result, 'lock', this.serverLockValue());
 		deferredResult.callback();
 
 		return deferredResult;

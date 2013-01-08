@@ -1,23 +1,26 @@
 {
 	"copyright.values": {             
-		"mochikit.repository": "http://svn.mochikit.com/mochikit/trunk/",
-		"mochikit.version": "1506"
+		"mochikit.repository": "https://github.com/mochi/mochikit.git",
+		"mochikit.version": "fe8d17bb9ac0a4e5ad4a8d5c2c94a6fac1c92d75"
 	},
+
+	"html.template": "mobile_template.html",
+
 	"js": [
 		"MochiKit/Base.js",
 		"MochiKit/Iter.js",
 		"MochiKit/Logging.js",
-		"-- MochiKit/DateTime.js",
+		"MochiKit/DateTime.js",
 		"MochiKit/Format.js",
 		"MochiKit/Async.js",
 		"MochiKit/DOM.js",
 		"MochiKit/Style.js",
 		"MochiKit/LoggingPane.js",
-		"MochiKit/Color.js",
+		"-- MochiKit/Color.js",
 		"MochiKit/Signal.js",
-		"MochiKit/Position.js",
+		"-- MochiKit/Position.js",
 		"MochiKit/Selector.js",
-		"MochiKit/Visual.js",
+		"-- MochiKit/Visual.js",
 
 		"JSON/json2.js",
 
@@ -33,8 +36,8 @@
 		"Clipperz/DOM.js",
 		"Clipperz/Logging.js",
 		"Clipperz/Signal.js",
-		"Clipperz/Style.js",
-		"Clipperz/Visual.js",
+		"-- Clipperz/Style.js",
+		"-- Clipperz/Visual.js",
 		"Clipperz/Set.js",
 		"Clipperz/KeyValueObjectStore.js",
 
@@ -69,10 +72,13 @@
 		"Clipperz/PM/Toll.js",
 		"Clipperz/PM/Proxy.js",
 		"Clipperz/PM/Proxy/Proxy.JSON.js",
+		"-- Clipperz/PM/Proxy/Proxy.OfflineCache.js",
 		"Clipperz/PM/Proxy/Proxy.Offline.js",
+		"Clipperz/PM/Proxy/Proxy.Offline.DataStore.js",
+		
 		"Clipperz/PM/Connection.js",
 		"Clipperz/PM/Crypto.js",
-		"-- Clipperz/PM/BookmarkletProcessor.js",
+		"Clipperz/PM/PIN.js",
 
 		"Clipperz/PM/DataModel/EncryptedRemoteObject.js",
 		"Clipperz/PM/DataModel/User.js",
@@ -89,6 +95,23 @@
 		"Clipperz/PM/DataModel/DirectLoginFormValue.js",
 		"Clipperz/PM/DataModel/OneTimePassword.js",
 
+		"Zepto/zepto.js",
+		"Zepto/ajax.js",
+		"Zepto/assets.js",
+		"Zepto/data.js",
+		"Zepto/detect.js",
+		"Zepto/event.js",
+		"Zepto/form.js",
+		"Zepto/fx.js",
+		"Zepto/fx_methods.js",
+		"Zepto/gesture.js",
+		"Zepto/polyfill.js",
+		"Zepto/selector.js",
+		"Zepto/stack.js",
+		"Zepto/touch.js",
+
+		"JQTouch/jqtouch.js",
+
 		"Clipperz/PM/UI/Common/Components/BaseComponent.js",
 		"-- Clipperz/PM/UI/Common/Components/Button.js",
 		"Clipperz/PM/UI/Common/Components/ComponentSlot.js",
@@ -104,16 +127,16 @@
 		"Clipperz/PM/UI/Common/Controllers/ProgressBarController.js",
 		"-- Clipperz/PM/UI/Common/Controllers/TabPanelController.js",
 
-		"Clipperz/PM/UI/iPhone/Components/LoginForm.js",
-		"Clipperz/PM/UI/iPhone/Components/CardList.js",
-		"Clipperz/PM/UI/iPhone/Components/CardDetail.js",
+		"Clipperz/PM/UI/Mobile/Components/LoginForm.js",
+		"Clipperz/PM/UI/Mobile/Components/CardList.js",
+		"-- Clipperz/PM/UI/Mobile/Components/CardDetail.js",
 
-		"Clipperz/PM/UI/iPhone/Controllers/MainController.js",
+		"Clipperz/PM/UI/Mobile/Controllers/MainController.js",
 
-		"main_iPhone.js"
+		"main.mobile.js"
 	],
 
 	"css": [
-		"clipperz/iPhone.css"
+		"mobile.css"
 	]
 }

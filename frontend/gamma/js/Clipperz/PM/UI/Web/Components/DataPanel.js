@@ -82,16 +82,18 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.DataPanel, Clipperz.PM.UI.Com
 					{tag:'div', cls:'subPanelContent', children:[
 						{tag:'ul', children:[
 							{tag:'li', id:this.getId('offlineCopyPanel'),	children:[
-								{tag:'h3', html:"Offline copy"}
+//								{tag:'h3', html:"Offline copy"},
+								{tag:'p', html:"With just one click you can dump all your encrypted data from Clipperz servers to your hard disk and create a read-only offline version of Clipperz to be used when you are not connected to the Internet."},
+								{tag:'a', id:this.getId('offlineCopyDownloadLink'), href:'#', html:"Download", cls:'downloadOfflineCopy'}
 							]},
 							{tag:'li', id:this.getId('sharingPanel'),	children:[
-								{tag:'h3', html:"Sharing"}
+//								{tag:'h3', html:"Sharing"}
 							]},
 							{tag:'li', id:this.getId('importPanel'),		children:[
-								{tag:'h3', html:"Import"}
+//								{tag:'h3', html:"Import"}
 							]},
 							{tag:'li', id:this.getId('exportPanel'),		children:[
-								{tag:'h3', html:"Export"}
+//								{tag:'h3', html:"Export"}
 							]}
 						]}
 					]}
@@ -101,8 +103,14 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.DataPanel, Clipperz.PM.UI.Com
 		]);
 
 		this.tabPanelController().setup({selected:this.initiallySelectedTab()});
+		MochiKit.Signal.connect(this.getId('offlineCopyDownloadLink'), 'onclick', this, 'downloadOfflineCopy');
 	},
-	
+
+	'downloadOfflineCopy': function (anEvent) {
+		anEvent.preventDefault();
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'downloadOfflineCopy', anEvent.src());
+	},
+
 	//-------------------------------------------------------------------------
 	__syntaxFix__: "syntax fix"
 });

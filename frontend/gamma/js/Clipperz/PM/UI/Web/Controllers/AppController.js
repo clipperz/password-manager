@@ -231,9 +231,11 @@ MochiKit.Base.update(Clipperz.PM.UI.Web.Controllers.AppController.prototype, {
 		this.hideAllAppPageTabSlots();
 		this.appPage().showSlot(this.slotNameForTab('cards'));
 		
-		MochiKit.Signal.connect(this.tabSidePanel(),				'tabSelected',	this, 'handleTabSelected');
-		MochiKit.Signal.connect(this.tabSidePanel(),				'addCard',		this, 'handleAddCard');
-		MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, 'addCard',		this, 'handleAddCard');
+		MochiKit.Signal.connect(this.tabSidePanel(),				'tabSelected',			this, 'handleTabSelected');
+		MochiKit.Signal.connect(this.tabSidePanel(),				'addCard',				this, 'handleAddCard');
+		MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, 'addCard',				this, 'handleAddCard');
+
+		MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, 'downloadOfflineCopy',	this, 'handleDownloadOfflineCopy');
 
 		deferredResult = new Clipperz.Async.Deferred("AppController.run", {trace:false});
 
@@ -319,6 +321,29 @@ MochiKit.Base.update(Clipperz.PM.UI.Web.Controllers.AppController.prototype, {
 			MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'progressDone'),
 			MochiKit.Base.method(this.userInfoBox(), 'unlock')
 		], {trace:false});
+	},
+
+	'handleDownloadOfflineCopy': function (anEvent) {
+console.log("AppController.handleDownloadOfflineCopy");
+		var downloadHref;
+		
+		downloadHref = window.location.href.replace(/\/[^\/]*$/,'') + Clipperz_dumpUrl;
+
+		if (Clipperz_IEisBroken == true) {
+			window.open(downloadHref, "");
+		} else {
+			var	deferredResult;
+			var newWindow;
+
+			newWindow = window.open("", "");
+
+			deferredResult = new Clipperz.Async.Deferred("AppController.handleDownloadOfflineCopy", {trace:true});
+			deferredResult.addCallback(MochiKit.Base.method(this.user().connection(), 'message'), 'echo', {'echo':"echo"});
+			deferredResult.addCallback(function(aWindow) {
+				aWindow.location.href = downloadHref;
+			}, newWindow);
+			deferredResult.callback();
+		}
 	},
 
 	//=============================================================================

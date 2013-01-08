@@ -1,7 +1,7 @@
 {
 	"copyright.values": {             
-		"mochikit.repository": "https://github.com/mochi/mochikit.git",
-		"mochikit.version": "fe8d17bb9ac0a4e5ad4a8d5c2c94a6fac1c92d75"
+		"mochikit.repository":	"https://github.com/mochi/mochikit.git",
+		"mochikit.version":		"fe8d17bb9ac0a4e5ad4a8d5c2c94a6fac1c92d75"
 	},
 
 	"html.template": "index_template.html",

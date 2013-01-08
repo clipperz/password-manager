@@ -62,7 +62,8 @@ Clipperz.Base.extend(Clipperz.PM.UI.Common.Components.Button, Clipperz.PM.UI.Com
 	//-------------------------------------------------------------------------
 
 	'renderSelf': function () {
-		this.append(this.element(), {tag:'div', id:this.getId('wrapper'), cls:'button_wrapper', children:[
+/*
+		this.append(this.element(), {tag:'div', id:this.getId('button'), cls:'button_wrapper', children:[
 			{tag:'div', id:this.getId('bodyWrapper'), cls:'button_bodyWrapper', children:[
 				{tag:'div', id:this.getId('body'), cls:'button_body', children:[
 					{tag:'span', html:this.text()}
@@ -70,36 +71,43 @@ Clipperz.Base.extend(Clipperz.PM.UI.Common.Components.Button, Clipperz.PM.UI.Com
 				{tag:'div', id:this.getId('footer'), cls:'button_footer'}
 			]}
 		]});
+*/
+/*
+		this.append(this.element(), {tag:'div', id:this.getId('button'), cls:'button', children:[
+			{tag:'span', html:this.text()}
+		]});
+*/
+		this.append(this.element(), {tag:'a', id:this.getId('button'), cls:'button', html:this.text()});
 
 		if (this.isDefault()) {
-			MochiKit.DOM.addElementClass(this.getId('wrapper'), 'default');
+			MochiKit.DOM.addElementClass(this.getId('button'), 'default');
 		}
 
-		MochiKit.Signal.connect(this.getId('wrapper'), 'onmouseenter',	this, 'handleOnMouseEnter');
-		MochiKit.Signal.connect(this.getId('wrapper'), 'onmouseleave',	this, 'handleOnMouseLeave');
-		MochiKit.Signal.connect(this.getId('wrapper'), 'onmousedown',	this, 'handleOnMouseDown');
-		MochiKit.Signal.connect(this.getId('wrapper'), 'onclick',		this, 'handleOnClick');
+//		MochiKit.Signal.connect(this.getId('button'), 'onmouseenter',	this, 'handleOnMouseEnter');
+//		MochiKit.Signal.connect(this.getId('button'), 'onmouseleave',	this, 'handleOnMouseLeave');
+//		MochiKit.Signal.connect(this.getId('button'), 'onmousedown',	this, 'handleOnMouseDown');
+		MochiKit.Signal.connect(this.getId('button'), 'onclick',		this, 'handleOnClick');
 	},
 
 	//-------------------------------------------------------------------------
-
+/*
 	'handleOnMouseEnter': function (anEvent) {
-		MochiKit.DOM.addElementClass(this.getId('wrapper'), 'hover');
+		MochiKit.DOM.addElementClass(this.getId('button'), 'hover');
 	},
 	
 	'handleOnMouseLeave': function (anEvent) {
-		MochiKit.DOM.removeElementClass(this.getId('wrapper'), 'hover');
-		MochiKit.DOM.removeElementClass(this.getId('wrapper'), 'clicked');
+		MochiKit.DOM.removeElementClass(this.getId('button'), 'hover');
+		MochiKit.DOM.removeElementClass(this.getId('button'), 'clicked');
 	},
 
 	'handleOnMouseDown': function (anEvent) {
-		MochiKit.DOM.addElementClass(this.getId('wrapper'), 'clicked');
+		MochiKit.DOM.addElementClass(this.getId('button'), 'clicked');
 	},
-	
+*/	
 	'handleOnClick': function (anEvent) {
 		MochiKit.Signal.signal(this, 'onclick', anEvent);
 	},
-	
+
 	//-------------------------------------------------------------------------
 	__syntaxFix__: "syntax fix"
 });

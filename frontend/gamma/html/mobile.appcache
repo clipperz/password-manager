@@ -1,0 +1,24 @@
+CACHE MANIFEST
+# 2012-02-23-v0.0.1
+
+# Entry to add into Apache config:
+# AddType text/cache-manifest .appcache
+
+# Explicitly cached entries
+CACHE:
+index.mobile.html
+*.favico
+
+# static.html will be served if the user is offline
+FALLBACK:
+/index.mobile.html /index.mobile.html
+
+# /main.py /static.html
+# images/large/ images/offline.jpg
+# *.html /offline.html
+
+
+# Resources that require the user to be online.
+NETWORK:
+*
+# login.php, http://api.twitter.com, etc.

@@ -81,7 +81,7 @@ testData = {
 			},
 */
 			/*	tt/tt	with "fixed" direct login	*/
-/*			'afaadd70f647886043b9196c861dc04f5605baeab3812ea23707fcba08c4a54f': {
+			'afaadd70f647886043b9196c861dc04f5605baeab3812ea23707fcba08c4a54f': {
 				s: 'df781ec363a380a0bb171d7d4c226248259272a964f04fa2340c77ff84bbc594',
 				v: 'eca214d990ec971a61cd9c5082e62c2d241f8e1ec805a2c26b1d31612747bfb0',
 				version: '0.2',
@@ -120,7 +120,7 @@ testData = {
 					}
 				}
 			},
-*/
+
 
 			//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

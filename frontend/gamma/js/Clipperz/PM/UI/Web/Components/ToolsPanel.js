@@ -82,16 +82,16 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.ToolsPanel, Clipperz.PM.UI.Co
 					{tag:'div', cls:'subPanelContent', children:[
 						{tag:'ul', children:[
 							{tag:'li', id:this.getId('passwordGeneratorPanel'),	children:[
-								{tag:'h3', html:"Password generator"}
+//								{tag:'h3', html:"Password generator"}
 							]},
 							{tag:'li', id:this.getId('bookmarkletPanel'),	children:[
-								{tag:'h3', html:"Bookmarklet"}
+//								{tag:'h3', html:"Bookmarklet"}
 							]},
 							{tag:'li', id:this.getId('compactEditionPanel'),		children:[
-								{tag:'h3', html:"Compact edition"}
+//								{tag:'h3', html:"Compact edition"}
 							]},
 							{tag:'li', id:this.getId('httpAuthPanel'),		children:[
-								{tag:'h3', html:"HTTP Auth"}
+//								{tag:'h3', html:"HTTP Auth"}
 							]}
 						]}
 					]}

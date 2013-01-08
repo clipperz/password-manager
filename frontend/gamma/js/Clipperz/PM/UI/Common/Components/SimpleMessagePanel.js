@@ -98,12 +98,27 @@ Clipperz.Base.extend(Clipperz.PM.UI.Common.Components.SimpleMessagePanel, Clippe
 	},
 	
 	'setType': function (aValue) {
-		if (this.getElement('icon') != null) {
-			MochiKit.DOM.removeElementClass(this.getId('icon'), this._type);
-			MochiKit.DOM.addElementClass(this.getId('icon'), aValue);
-		}
+//		if (this.getElement('icon') != null) {
+//			MochiKit.DOM.removeElementClass(this.getId('icon'), this._type);
+//			MochiKit.DOM.addElementClass(this.getId('icon'), aValue);
+//		}
 
 		this._type = aValue;
+	},
+
+	'icon': function () {
+		var type = this.type();
+		var result;
+
+		if (type == 'ALERT') {
+			result = '!';
+		} else if (type == 'INFO') {
+			result = 'i';
+		} else if (type == 'ERROR') {
+			result = '!';
+		}
+
+		return result;
 	},
 
 	//-------------------------------------------------------------------------
@@ -132,16 +147,19 @@ Clipperz.Base.extend(Clipperz.PM.UI.Common.Components.SimpleMessagePanel, Clippe
 
 	'renderSelf': function() {
 		this.append(this.element(), {tag:'div', cls:'SimpleMessagePanel', id:this.getId('panel'), children: [
-			{tag:'div', cls:'header', children:[]},
+//			{tag:'div', cls:'header', children:[]},
 			{tag:'div', cls:'body', children:[
-				{tag:'div',	id:this.getId('icon'),	cls:'img ' + this.type(), children:[{tag:'div'}]},
+//				{tag:'div',	id:this.getId('icon'),	cls:'img ' + this.type(), children:[{tag:'div'}]},
+				{tag:'div',	/*id:this.getId('icon'),*/	cls:'img ' + this.type(), children:[{tag:'canvas', id:this.getId('icon')}]},
 				{tag:'h3',	id:this.getId('title'),	html:this.title()},
 				{tag:'p',	id:this.getId('text'),	html:this.text()},
 				{tag:'div', id:this.getId('container')},
 				{tag:'div', id:this.getId('buttonArea'), cls:'buttonArea', children:[]}
-			]},
-			{tag:'div', cls:'footer', children:[]}
+			]}
+//			{tag:'div', cls:'footer', children:[]}
 		]});
+
+		Clipperz.PM.UI.Canvas.marks[this.icon()](this.getElement('icon'), "#ffffff");
 
 		MochiKit.Signal.connect(this.getId('panel'), 'onkeydown', this, 'keyDownHandler');
 

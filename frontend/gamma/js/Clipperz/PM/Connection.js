@@ -41,6 +41,7 @@ Clipperz.PM.Connection = function (args) {
 	this._clipperz_pm_crypto_version = null;
 	this._connectionId = null;
 	this._sharedSecret = null;
+	this._serverLockValue = null;
 
 	return this;
 }
@@ -144,6 +145,16 @@ MochiKit.Logging.logError("### Connection.defaultErrorHandler: " + anErrorString
 	
 	'setConnectionId': function(aValue) {
 		this._connectionId = aValue;
+	},
+
+	//-------------------------------------------------------------------------
+
+	'serverLockValue': function () {
+		return this._serverLockValue;
+	},
+	
+	'setServerLockValue': function (aValue) {
+		this._serverLockValue = aValue;
 	},
 
 	//=========================================================================
@@ -320,13 +331,12 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 		], {trace:false})
 	},
 
-	'login': function(/*anUsername, aPassphrase*/) {
+	'login': function(isReconnecting) {
 		var	deferredResult;
 		var cryptoVersion;
 		var srpConnection;
 
 		cryptoVersion = this.clipperz_pm_crypto_version();
-
 		deferredResult = new Clipperz.Async.Deferred("Connection.login", {trace:false});
 		deferredResult.addCallback(this.getCredentialsFunction());
 		deferredResult.addMethod(this, 'normalizedCredentials');
@@ -399,6 +409,13 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 //			if (this.oneTimePassword() != null) {
 ///	??			result = this.user().oneTimePasswordManager().archiveOneTimePassword(this.oneTimePassword()));
 //			}
+
+			if ((isReconnecting == true) && (this.serverLockValue() != someParameters['lock'])) {
+				throw Clipperz.PM.Connection.exception.StaleData;
+			} else {
+				this.setServerLockValue(someParameters['lock']);
+			}
+
 			return someParameters;
 		}, this));
 //		deferredResult.addCallbackPass(MochiKit.Signal.signal, this, 'updatedProgressState', 'connection_loggedIn');
@@ -429,12 +446,19 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 
 	'message': function(aMessageName, someParameters) {
 		var args;
+		var parameters;
+
+		parameters = someParameters || {};
+		if (typeof(parameters['user']) != 'undefined') {
+			parameters['user']['lock'] = this.serverLockValue();
+		}
 
 //console.log(">>> Connection.message", aMessageName, someParameters);
 		args = {
 			message: aMessageName,
 			srpSharedSecret: this.sharedSecret(),
-			parameters: (someParameters || {})
+//			parameters: (someParameters || {})
+			parameters: parameters
 		}
 
 		return this.sendMessage(args);
@@ -449,8 +473,7 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 		deferredResult.addMethod(this.proxy(), 'message', someArguments);
 		deferredResult.addCallback(MochiKit.Base.bind(function(res) {
 			if (typeof(res['lock']) != 'undefined') {
-//	TODO: ?????
-//	??			this.user().setLock(res['lock']);
+				this.setServerLockValue(res['lock']);
 			}
 			return res;
 		}, this));
@@ -587,6 +610,7 @@ Clipperz.PM.Connection.SRP['1.1'].prototype = MochiKit.Base.update(new Clipperz.
 
 Clipperz.PM.Connection.exception = {
 	WrongChecksum:		new MochiKit.Base.NamedError("Clipperz.ByteArray.exception.InvalidValue"),
+	StaleData:			new MochiKit.Base.NamedError("Stale data"),
 	UnexpectedRequest:	new MochiKit.Base.NamedError("Clipperz.ByteArray.exception.UnexpectedRequest")
 };
 

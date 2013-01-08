@@ -41,6 +41,10 @@ Clipperz.PM.UI.Web.Components.AccountPanel = function(args) {
 			tab:	'passphraseTab',
 			panel:	'passphrasePanel'
 		},
+		'OTP': {
+			tab:	'OTPTab',
+			panel:	'OTPPanel'
+		},
 		'PREFERENCES': {
 			tab:	'preferencesTab',
 			panel:	'preferencesPanel'
@@ -74,6 +78,7 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.AccountPanel, Clipperz.PM.UI.
 					{tag:'ul', children:[
 //						{tag:'li', id:this.getId('accountTab'),			children:[{tag:'a', href:'#', html:'Account'}], cls:'first'},
 						{tag:'li', id:this.getId('passphraseTab'),		children:[{tag:'a', href:'#', html:'Passphrase'}], cls:'first'},
+						{tag:'li', id:this.getId('OTPTab'),				children:[{tag:'a', href:'#', html:'One Time Passwords'}]},
 						{tag:'li', id:this.getId('preferencesTab'),		children:[{tag:'a', href:'#', html:'Preferences'}]},
 						{tag:'li', id:this.getId('loginHistoryTab'),	children:[{tag:'a', href:'#', html:'Login history'}]}
 					]}
@@ -117,16 +122,16 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.AccountPanel, Clipperz.PM.UI.
 								{tag:'div', cls:'clear'},
 								{tag:'div', cls:'confirmButton', id:this.getId('confirmationButton'), children:[
 									{tag:'span', html:"change passphrase"}
-								]},
-
-								{tag:'h3', cls:'manageOTP', html:"Manage One-Time Passphrases"},
-								{}
+								]}
+							]},
+							{tag:'li', id:this.getId('OTPPanel'),		children:[
+//								{tag:'h3', html:"Manage One-Time Passphrases"}
 							]},
 							{tag:'li', id:this.getId('preferencesPanel'),		children:[
-								{tag:'h3', html:"-- Preferences --"}
+//								{tag:'h3', html:"-- Preferences --"}
 							]},
 							{tag:'li', id:this.getId('loginHistoryPanel'),		children:[
-								{tag:'h3', html:"-- Login History --"}
+//								{tag:'h3', html:"-- Login History --"}
 							]}
 						]}
 					]}
