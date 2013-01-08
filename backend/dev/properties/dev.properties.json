@@ -1,0 +1,9 @@
+{
+	"request.path": "json",
+	"should.pay.toll": "true",
+
+	"development.settings": {
+		"url": "http://homer.local:8084/java-backend"
+	}
+
+}
