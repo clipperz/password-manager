@@ -43,18 +43,18 @@ refer to http://www.clipperz.com.
 
 /* some default icons for leaf/folder */
 .ytree-node-collapsed .ytree-node-icon{
-	background:transparent url(../images/default/tree/folder.gif);
+	background:transparent url(./images/default/tree/folder.gif);
 }
 .ytree-node-expanded .ytree-node-icon{
-	background:transparent url(../images/default/tree/folder-open.gif);
+	background:transparent url(./images/default/tree/folder-open.gif);
 }
 .ytree-node-leaf .ytree-node-icon{
-	background:transparent url(../images/default/tree/leaf.gif);
+	background:transparent url(./images/default/tree/leaf.gif);
 }
 
 /* loading icon */
 .ytree-node-loading .ytree-node-icon{
-	background:transparent url(../images/default/tree/loading.gif) !important;
+	background:transparent url(./images/default/tree/loading.gif) !important;
 }
 .ytree-node-loading a span{
 	 font-style: italic;
@@ -63,25 +63,25 @@ refer to http://www.clipperz.com.
 
 /* Line styles */
 .ytree-lines .ytree-elbow{
-	background:transparent url(../images/default/tree/elbow.gif);
+	background:transparent url(./images/default/tree/elbow.gif);
 }
 .ytree-lines .ytree-elbow-plus{
-	background:transparent url(../images/default/tree/elbow-plus.gif);
+	background:transparent url(./images/default/tree/elbow-plus.gif);
 }
 .ytree-lines .ytree-elbow-minus{
-	background:transparent url(../images/default/tree/elbow-minus.gif);
+	background:transparent url(./images/default/tree/elbow-minus.gif);
 }
 .ytree-lines .ytree-elbow-end{
-	background:transparent url(../images/default/tree/elbow-end.gif);
+	background:transparent url(./images/default/tree/elbow-end.gif);
 }
 .ytree-lines .ytree-elbow-end-plus{
-	background:transparent url(../images/default/tree/elbow-end-plus.gif);
+	background:transparent url(./images/default/tree/elbow-end-plus.gif);
 }
 .ytree-lines .ytree-elbow-end-minus{
-	background:transparent url(../images/default/tree/elbow-end-minus.gif);
+	background:transparent url(./images/default/tree/elbow-end-minus.gif);
 }
 .ytree-lines .ytree-elbow-line{
-	background:transparent url(../images/default/tree/elbow-line.gif);
+	background:transparent url(./images/default/tree/elbow-line.gif);
 }
 
 /* No line styles */
@@ -89,19 +89,19 @@ refer to http://www.clipperz.com.
 	background:transparent;
 }
 .ytree-no-lines .ytree-elbow-plus{
-	background:transparent url(../images/default/tree/elbow-plus-nl.gif);
+	background:transparent url(./images/default/tree/elbow-plus-nl.gif);
 }
 .ytree-no-lines .ytree-elbow-minus{
-	background:transparent url(../images/default/tree/elbow-minus-nl.gif);
+	background:transparent url(./images/default/tree/elbow-minus-nl.gif);
 }
 .ytree-no-lines .ytree-elbow-end{
 	background:transparent;
 }
 .ytree-no-lines .ytree-elbow-end-plus{
-	background:transparent url(../images/default/tree/elbow-end-plus-nl.gif);
+	background:transparent url(./images/default/tree/elbow-end-plus-nl.gif);
 }
 .ytree-no-lines .ytree-elbow-end-minus{
-	background:transparent url(../images/default/tree/elbow-end-minus-nl.gif);
+	background:transparent url(./images/default/tree/elbow-end-minus-nl.gif);
 }
 .ytree-no-lines .ytree-elbow-line{
 	background:transparent;
@@ -171,16 +171,16 @@ refer to http://www.clipperz.com.
 	display:none !important;
 }
 .ytree-drop-ok-append .ydd-drop-icon{
-  background-image: url(../images/default/tree/drop-add.gif);
+  background-image: url(./images/default/tree/drop-add.gif);
 }
 .ytree-drop-ok-above .ydd-drop-icon{
-  background-image: url(../images/default/tree/drop-over.gif);
+  background-image: url(./images/default/tree/drop-over.gif);
 }
 .ytree-drop-ok-below .ydd-drop-icon{
-  background-image: url(../images/default/tree/drop-under.gif);
+  background-image: url(./images/default/tree/drop-under.gif);
 }
 .ytree-drop-ok-between .ydd-drop-icon{
-  background-image: url(../images/default/tree/drop-between.gif);
+  background-image: url(./images/default/tree/drop-between.gif);
 }
 .ylayer-shadow{
 	background:#cccccc;

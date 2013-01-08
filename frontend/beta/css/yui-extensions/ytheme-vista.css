@@ -39,16 +39,16 @@ refer to http://www.clipperz.com.
 	color:#333333;
 }
 .ytabs-top .ytab-strip a:hover {
-	background:transparent url(../images/vista/tabs/tab-sprite.gif) no-repeat right -50px;
+	background:transparent url(./images/vista/tabs/tab-sprite.gif) no-repeat right -50px;
 }
 .ytabs-top .ytab-strip a:hover .ytab-left {
-	background:transparent url(../images/vista/tabs/tab-sprite.gif) no-repeat 0 -150px;
+	background:transparent url(./images/vista/tabs/tab-sprite.gif) no-repeat 0 -150px;
 }
 .ytabs-top .ytab-strip .on .ytab-right, .ytabs-top .ytab-strip .on a:hover {
-	 background: url(../images/vista/tabs/tab-sprite.gif) no-repeat right 0;
+	 background: url(./images/vista/tabs/tab-sprite.gif) no-repeat right 0;
 }
 .ytabs-top .ytab-strip .on .ytab-left, .ytabs-top .ytab-strip .on a:hover .ytab-left {
-	 background: url(../images/vista/tabs/tab-sprite.gif) no-repeat 0 -100px;
+	 background: url(./images/vista/tabs/tab-sprite.gif) no-repeat 0 -100px;
 }
 .ytabs-top .ytab-strip .ytab-right {
 	 background:transparent;
@@ -57,15 +57,15 @@ refer to http://www.clipperz.com.
 	 background:transparent;
 }
 .ytab-strip .ytab-closable .close-icon{
-	background-image:url(../images/vista/layout/layout-sprite.gif);
+	background-image:url(./images/vista/layout/layout-sprite.gif);
   background-position: 50% -60px;
 }
 .ytab-strip .on .close-icon{
-	background-image:url(../images/vista/layout/layout-sprite.gif);
+	background-image:url(./images/vista/layout/layout-sprite.gif);
   background-position: 50% -72px;
 }
 .ytab-strip .ytab-closable .close-over{
-	background-image:url(../images/vista/layout/layout-sprite.gif);
+	background-image:url(./images/vista/layout/layout-sprite.gif);
   background-position: 50% -72px;
 }
 
@@ -73,10 +73,10 @@ refer to http://www.clipperz.com.
 	background:#4f4f4f;
 }
 .ytabs-bottom .ytab-strip a:hover {
-	background:transparent url(../images/vista/tabs/tab-btm-inactive-right-bg.gif) no-repeat bottom right;
+	background:transparent url(./images/vista/tabs/tab-btm-inactive-right-bg.gif) no-repeat bottom right;
 }
 .ytabs-bottom .ytab-strip a:hover .ytab-left{
-	background:transparent url(../images/vista/tabs/tab-btm-inactive-left-bg.gif) no-repeat bottom left;
+	background:transparent url(./images/vista/tabs/tab-btm-inactive-left-bg.gif) no-repeat bottom left;
 }
 .ytabs-bottom .ytab-wrap {
 	border-bottom:0px none;
@@ -90,10 +90,10 @@ refer to http://www.clipperz.com.
 	 background:transparent;
 }
 .ytabs-bottom .ytab-strip .on .ytab-right,.ytabs-bottom .ytab-strip .on a:hover {
-	 background: url(../images/vista/tabs/tab-btm-right-bg.gif) no-repeat bottom left;
+	 background: url(./images/vista/tabs/tab-btm-right-bg.gif) no-repeat bottom left;
 }
 .ytabs-bottom .ytab-strip .on .ytab-left,.ytabs-bottom .ytab-strip .on a:hover .ytab-left {
-	 background: url(../images/vista/tabs/tab-btm-left-bg.gif) no-repeat bottom right;
+	 background: url(./images/vista/tabs/tab-btm-left-bg.gif) no-repeat bottom right;
 }
 /** 
 * Basic-Dialog 
@@ -109,17 +109,17 @@ refer to http://www.clipperz.com.
    filter: alpha(opacity=30);
 }
 .ydlg .ydlg-hd {
-	background: url(../images/vista/basic-dialog/hd-sprite.gif) repeat-x 0px -82px;
+	background: url(./images/vista/basic-dialog/hd-sprite.gif) repeat-x 0px -82px;
 	background-color:#333333;
 	zoom:1;
 }
 .ydlg .ydlg-hd-left {
 	opacity:.95;-moz-opacity:.95;filter:alpha(opacity=90);
-	background: url(../images/vista/basic-dialog/hd-sprite.gif) no-repeat 0px -41px;
+	background: url(./images/vista/basic-dialog/hd-sprite.gif) no-repeat 0px -41px;
 	zoom:1;
 }
 .ydlg .ydlg-hd-right {
-	background: url(../images/vista/basic-dialog/hd-sprite.gif) no-repeat right 0px;
+	background: url(./images/vista/basic-dialog/hd-sprite.gif) no-repeat right 0px;
 	zoom:1;
 }
 .ydlg .ydlg-dlg-body{
@@ -150,17 +150,17 @@ refer to http://www.clipperz.com.
 }
 .ydlg .ydlg-bg-center {
 	padding: 0px 4px 4px 4px;
-	background:transparent url(../images/vista/basic-dialog/bg-center.gif) repeat-x bottom;
+	background:transparent url(./images/vista/basic-dialog/bg-center.gif) repeat-x bottom;
 	zoom:1;
 }
 .ydlg .ydlg-bg-left{
 	padding-left:4px;
-	background:transparent url(../images/vista/basic-dialog/bg-left.gif) no-repeat bottom left;
+	background:transparent url(./images/vista/basic-dialog/bg-left.gif) no-repeat bottom left;
 	zoom:1;
 }
 .ydlg .ydlg-bg-right{
 	padding-right:4px;
-	background:transparent url(../images/vista/basic-dialog/bg-right.gif) no-repeat bottom right;
+	background:transparent url(./images/vista/basic-dialog/bg-right.gif) no-repeat bottom right;
 	zoom:1;
 }
 .ydlg .ytabs-top .yui-ext-tabbody{
@@ -174,55 +174,55 @@ refer to http://www.clipperz.com.
 	border:0px none;
 }
 .ydlg .ydlg-close {
-	background-image:url(../images/vista/basic-dialog/close.gif);
+	background-image:url(./images/vista/basic-dialog/close.gif);
 }
 .ydlg div.yresizable-handle-east{
-	background-image:url(../images/vista/s.gif);
+	background-image:url(./images/vista/s.gif);
 	border:0px none;
 }
 .ydlg div.yresizable-handle-south{
-	background-image:url(../images/vista/s.gif);
+	background-image:url(./images/vista/s.gif);
 	border:0px none;
 }
 .ydlg div.yresizable-handle-west{
-	background-image:url(../images/vista/s.gif);
+	background-image:url(./images/vista/s.gif);
 	border:0px none;
 }
 .ydlg div.yresizable-handle-southeast{
-	background-image:url(../images/vista/s.gif);
+	background-image:url(./images/vista/s.gif);
 	background-position: bottom right;
 	width:8px;
 	height:8px;
 	border:0px;
 }
 .ydlg div.yresizable-handle-southwest{
-	background-image:url(../images/vista/s.gif);
+	background-image:url(./images/vista/s.gif);
 	background-position: top right;
 	margin-left:1px;
 	margin-bottom:1px;
 	border:0px;
 }
 .ydlg div.yresizable-handle-north{
-	background-image:url(../images/vista/s.gif);
+	background-image:url(./images/vista/s.gif);
 	border:0px none;
 }
 
 /* QuickTips */
 
 .ytip .ytip-hd-right{
-	background: url(../images/vista/basic-dialog/hd-sprite.gif) no-repeat right 0px;
+	background: url(./images/vista/basic-dialog/hd-sprite.gif) no-repeat right 0px;
 }
 .ytip .ytip-hd-left{
-	background: url(../images/vista/basic-dialog/hd-sprite.gif) no-repeat 0px -41px;
+	background: url(./images/vista/basic-dialog/hd-sprite.gif) no-repeat 0px -41px;
 }
 .ytip .ytip-hd{
-	background: url(../images/vista/basic-dialog/hd-sprite.gif) repeat-x 0px -82px;
+	background: url(./images/vista/basic-dialog/hd-sprite.gif) repeat-x 0px -82px;
 }
 .ytip .ytip-close{
-	background-image: url(../images/vista/basic-dialog/close.gif);
+	background-image: url(./images/vista/basic-dialog/close.gif);
 }
 .ytip .ytip-bd{
-	background: #e7e7e7 url(../images/vista/qtip/bg.gif);
+	background: #e7e7e7 url(./images/vista/qtip/bg.gif);
 	border: 1px solid #ababab;
 }
 
@@ -247,7 +247,7 @@ refer to http://www.clipperz.com.
     background-color:#f3f2e7;
 }
 .ylayout-panel-hd{
-    background-image: url(../images/vista/layout/panel-title-bg.gif);
+    background-image: url(./images/vista/layout/panel-title-bg.gif);
     border-bottom:1px solid #b5bac1;
 }
 .ylayout-panel-hd-text{
@@ -255,30 +255,30 @@ refer to http://www.clipperz.com.
 }
 .ylayout-tools-button-over{
     border:1px solid #4c535c;
-	 background:#9f9f9f url(../images/vista/layout/panel-title-bg.gif) repeat-x;
+	 background:#9f9f9f url(./images/vista/layout/panel-title-bg.gif) repeat-x;
 }
 .ylayout-close{
-    background-image:url(../images/vista/layout/layout-sprite.gif);
+    background-image:url(./images/vista/layout/layout-sprite.gif);
     background-repeat: no-repeat;
     background-position: 50% -60px;
 }
 .ylayout-collapse-west,.ylayout-expand-east{
-    background-image:url(../images/vista/layout/layout-sprite.gif);
+    background-image:url(./images/vista/layout/layout-sprite.gif);
     background-repeat: no-repeat;
     background-position: 50% 0;
 }
 .ylayout-expand-west,.ylayout-collapse-east{
-    background-image:url(../images/vista/layout/layout-sprite.gif);
+    background-image:url(./images/vista/layout/layout-sprite.gif);
     background-repeat: no-repeat;
     background-position: 50% -12px;
 }
 .ylayout-collapse-north,.ylayout-expand-south{
-    background-image:url(../images/vista/layout/layout-sprite.gif);
+    background-image:url(./images/vista/layout/layout-sprite.gif);
     background-repeat: no-repeat;
     background-position: 50% -24px;
 }
 .ylayout-expand-north,.ylayout-collapse-south{
-    background-image:url(../images/vista/layout/layout-sprite.gif);
+    background-image:url(./images/vista/layout/layout-sprite.gif);
     background-repeat: no-repeat;
     background-position: 50% -36px;
 }
@@ -307,42 +307,42 @@ refer to http://www.clipperz.com.
 	border: 2px solid #4c535c;
 }
 .ylayout-panel-proxy {
-	background-image: url(../images/vista/layout/gradient-bg.gif);
+	background-image: url(./images/vista/layout/gradient-bg.gif);
 	background-color:#f3f2e7;
 	border:1px dashed #4c535c;
 }
 /** Resizable */
 
 .yresizable-over .yresizable-handle-east, .yresizable-pinned .yresizable-handle-east{
-    background:url(../images/vista/sizer/e-handle.gif);
+    background:url(./images/vista/sizer/e-handle.gif);
 	 background-position: left;
 }
 .yresizable-over .yresizable-handle-east, .yresizable-pinned .yresizable-handle-west{
-    background:url(../images/vista/sizer/e-handle.gif);
+    background:url(./images/vista/sizer/e-handle.gif);
 	 background-position: left;
 }
 .yresizable-over .yresizable-handle-south, .yresizable-pinned .yresizable-handle-south{
-    background:url(../images/vista/sizer/s-handle.gif);
+    background:url(./images/vista/sizer/s-handle.gif);
     background-position: top;
 }
 .yresizable-over .yresizable-handle-south, .yresizable-pinned .yresizable-handle-north{
-    background:url(../images/vista/sizer/s-handle.gif);
+    background:url(./images/vista/sizer/s-handle.gif);
     background-position: top;
 }
 .yresizable-over .yresizable-handle-southeast, .yresizable-pinned .yresizable-handle-southeast{
-    background:url(../images/vista/sizer/se-handle.gif);
+    background:url(./images/vista/sizer/se-handle.gif);
     background-position: top left;
 }
 .yresizable-over .yresizable-handle-northwest,.yresizable-pinned .yresizable-handle-northwest{
-    background:url(../images/vista/sizer/nw-handle.gif);
+    background:url(./images/vista/sizer/nw-handle.gif);
     background-position:bottom right;
 }
 .yresizable-over .yresizable-handle-northeast,.yresizable-pinned .yresizable-handle-northeast{
-    background:url(../images/vista/sizer/ne-handle.gif);
+    background:url(./images/vista/sizer/ne-handle.gif);
     background-position: bottom left;
 }
 .yresizable-over .yresizable-handle-southwest,.yresizable-pinned .yresizable-handle-southwest{
-    background:url(../images/vista/sizer/sw-handle.gif);
+    background:url(./images/vista/sizer/sw-handle.gif);
     background-position: top right;
 }
 .yresizable-proxy{
@@ -352,14 +352,14 @@ refer to http://www.clipperz.com.
 /** Toolbar */
 .ytoolbar{
 	border:0px none;
-	background: #efefe3 url(../images/vista/toolbar/gray-bg.gif) repeat-x;
+	background: #efefe3 url(./images/vista/toolbar/gray-bg.gif) repeat-x;
 	padding:3px;
 }
 .ytoolbar .ytb-button-over{
 	border:1px solid transparent;
 	border-bottom:1px solid #bbbbbb;
 	border-top:1px solid #eeeeee;
-	background:#9f9f9f url(../images/vista/grid/grid-vista-hd.gif) repeat-x;
+	background:#9f9f9f url(./images/vista/grid/grid-vista-hd.gif) repeat-x;
 }
 /* grid */
 .ygrid-hd{
@@ -377,10 +377,10 @@ refer to http://www.clipperz.com.
 	border-bottom:0px;
 }
 .ygrid-hd-split {
-	background-image: url(../images/vista/grid/grid-split.gif);
+	background-image: url(./images/vista/grid/grid-split.gif);
 }
 .ygrid-hrow{
-	background: url(../images/vista/grid/grid-vista-hd.gif);
+	background: url(./images/vista/grid/grid-vista-hd.gif);
 	height: 21px;
 }
 .ygrid-row-alt{
@@ -396,5 +396,5 @@ refer to http://www.clipperz.com.
 .ygrid-wrap-body {
 }
 .ytoolbar .ytb-sep{
-	background-image: url(../images/vista/grid/grid-split.gif);
+	background-image: url(./images/vista/grid/grid-split.gif);
 }

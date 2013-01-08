@@ -34,7 +34,7 @@ refer to http://www.clipperz.com.
 }
 .ytab-strip-wrap{
 	padding-top:1px;
-	background:#cedff5 url(../images/aero/tabs/tab-strip-bg.gif) repeat-x bottom;
+	background:#cedff5 url(./images/aero/tabs/tab-strip-bg.gif) repeat-x bottom;
 	border-bottom:1px solid #8db2e3;
 }
 .ytab-strip .ytab-text {
@@ -46,16 +46,16 @@ refer to http://www.clipperz.com.
 	color:#15428b;
 }
 .ytabs-top .ytab-strip .on .ytab-right {
-	 background: url(../images/aero/tabs/tab-sprite.gif) no-repeat right 0px;
+	 background: url(./images/aero/tabs/tab-sprite.gif) no-repeat right 0px;
 }
 .ytabs-top .ytab-strip .on .ytab-left,.ytabs-top .ytab-strip .on a:hover .ytab-left{
-	 background: url(../images/aero/tabs/tab-sprite.gif) no-repeat 0px -100px;
+	 background: url(./images/aero/tabs/tab-sprite.gif) no-repeat 0px -100px;
 }
 .ytabs-top .ytab-strip .ytab-right {
-	 background:transparent url(../images/aero/tabs/tab-sprite.gif) no-repeat right -50px;
+	 background:transparent url(./images/aero/tabs/tab-sprite.gif) no-repeat right -50px;
 }
 .ytabs-top .ytab-strip .ytab-left {
-	background:transparent url(../images/aero/tabs/tab-sprite.gif) no-repeat 0px -150px;
+	background:transparent url(./images/aero/tabs/tab-sprite.gif) no-repeat 0px -150px;
 }
 .ytabs-top .yui-ext-tabbody {
 	border:1px solid #8db2e3;
@@ -70,21 +70,21 @@ refer to http://www.clipperz.com.
 .ytabs-bottom .ytab-strip-wrap{
 	padding-top:0px;
 	padding-bottom:1px;
-	background:#cedff5 url(../images/aero/tabs/tab-strip-btm-bg.gif) repeat-x top;
+	background:#cedff5 url(./images/aero/tabs/tab-strip-btm-bg.gif) repeat-x top;
 	border-top:1px solid #8db2e3;
 	border-bottom:0px none;
 }
 .ytabs-bottom .ytab-strip .ytab-right {
-	background:transparent url(../images/aero/tabs/tab-btm-inactive-right-bg.gif) no-repeat bottom right;
+	background:transparent url(./images/aero/tabs/tab-btm-inactive-right-bg.gif) no-repeat bottom right;
 }
 .ytabs-bottom .ytab-strip .ytab-left {
-	background:transparent url(../images/aero/tabs/tab-btm-inactive-left-bg.gif) no-repeat bottom left;
+	background:transparent url(./images/aero/tabs/tab-btm-inactive-left-bg.gif) no-repeat bottom left;
 }
 .ytabs-bottom .ytab-strip .on .ytab-right,.ytabs-bottom .ytab-strip .on a:hover {
-	 background: url(../images/aero/tabs/tab-btm-right-bg.gif) no-repeat bottom left;
+	 background: url(./images/aero/tabs/tab-btm-right-bg.gif) no-repeat bottom left;
 }
 .ytabs-bottom .ytab-strip .on .ytab-left,.ytabs-bottom .ytab-strip .on a:hover .ytab-left {
-	 background: url(../images/aero/tabs/tab-btm-left-bg.gif) no-repeat bottom right;
+	 background: url(./images/aero/tabs/tab-btm-left-bg.gif) no-repeat bottom right;
 }
 .ytabs-bottom .yui-ext-tabbody {
 	border:1px solid #8db2e3;
@@ -107,7 +107,7 @@ refer to http://www.clipperz.com.
 	background:transparent;
 }
 .ydlg .ydlg-hd {
-	background: url(../images/aero/basic-dialog/hd-sprite.gif) repeat-x 0px -82px;
+	background: url(./images/aero/basic-dialog/hd-sprite.gif) repeat-x 0px -82px;
 	background-color:#aabaca;
 	color:#15428b;
 	zoom:1;
@@ -115,7 +115,7 @@ refer to http://www.clipperz.com.
 }
 .ydlg .ydlg-hd-left {
 	opacity:.85;-moz-opacity:.85;filter:alpha(opacity=80);
-	background: url(../images/aero/basic-dialog/hd-sprite.gif) no-repeat 0px -41px;
+	background: url(./images/aero/basic-dialog/hd-sprite.gif) no-repeat 0px -41px;
 	zoom:1;
 }
 .ydlg-modal .ydlg-hd-left {
@@ -123,7 +123,7 @@ refer to http://www.clipperz.com.
 }
 
 .ydlg .ydlg-hd-right {
-	background: url(../images/aero/basic-dialog/hd-sprite.gif) no-repeat right 0px;
+	background: url(./images/aero/basic-dialog/hd-sprite.gif) no-repeat right 0px;
 	zoom:1;
 }
 .ydlg .ydlg-dlg-body{
@@ -154,17 +154,17 @@ refer to http://www.clipperz.com.
 }
 .ydlg .ydlg-bg-center {
 	padding: 2px 7px 7px 7px;
-	background:transparent url(../images/aero/basic-dialog/bg-center.gif) repeat-x bottom;
+	background:transparent url(./images/aero/basic-dialog/bg-center.gif) repeat-x bottom;
 	zoom:1;
 }
 .ydlg .ydlg-bg-left{
 	padding-left:7px;
-	background:transparent url(../images/aero/basic-dialog/bg-left.gif) no-repeat bottom left;
+	background:transparent url(./images/aero/basic-dialog/bg-left.gif) no-repeat bottom left;
 	zoom:1;
 }
 .ydlg .ydlg-bg-right{
 	padding-right:7px;
-	background:transparent url(../images/aero/basic-dialog/bg-right.gif) no-repeat bottom right;
+	background:transparent url(./images/aero/basic-dialog/bg-right.gif) no-repeat bottom right;
 	zoom:1;
 }
 .ydlg-auto-tabs .ydlg-dlg-body, .ydlg-auto-layout .ydlg-dlg-body{
@@ -187,26 +187,26 @@ refer to http://www.clipperz.com.
 	top:5px;
 	right:5px;
 	opacity:.85;-moz-opacity:.85;filter:alpha(opacity=80);
-	background-image:url(../images/aero/basic-dialog/aero-close.gif);
+	background-image:url(./images/aero/basic-dialog/aero-close.gif);
 	zoom:1;
 }
 .ydlg .ydlg-close-over {
-	background-image:url(../images/aero/basic-dialog/aero-close-over.gif);
+	background-image:url(./images/aero/basic-dialog/aero-close-over.gif);
 }
 .ydlg div.yresizable-handle-east{
-	background-image:url(../images/aero/s.gif);
+	background-image:url(./images/aero/s.gif);
 	border:0px none;
 }
 .ydlg div.yresizable-handle-south{
-	background-image:url(../images/aero/s.gif);
+	background-image:url(./images/aero/s.gif);
 	border:0px none;
 }
 .ydlg div.yresizable-handle-west{
-	background-image:url(../images/aero/s.gif);
+	background-image:url(./images/aero/s.gif);
 	border:0px none;
 }
 .ydlg div.yresizable-handle-southeast{
-	background-image:url(../images/aero/basic-dialog/se-handle.gif);
+	background-image:url(./images/aero/basic-dialog/se-handle.gif);
 	background-position: bottom right;
 	width:9px;
 	height:9px;
@@ -215,14 +215,14 @@ refer to http://www.clipperz.com.
 	bottom:2px;
 }
 .ydlg div.yresizable-handle-southwest{
-	background-image:url(../images/aero/s.gif);
+	background-image:url(./images/aero/s.gif);
 	background-position: top right;
 	margin-left:1px;
 	margin-bottom:1px;
 	border:0px;
 }
 .ydlg div.yresizable-handle-north{
-	background-image:url(../images/aero/s.gif);
+	background-image:url(./images/aero/s.gif);
 	border:0px none;
 }
 
@@ -252,7 +252,7 @@ refer to http://www.clipperz.com.
     background-color:#deecfd;
 }
 .ylayout-panel-hd{
-    background-image: url(../images/aero/layout/panel-title-light-bg.gif);
+    background-image: url(./images/aero/layout/panel-title-light-bg.gif);
     border-bottom:1px solid #c0d7f4;
 }
 .ylayout-panel-hd-text {
@@ -293,7 +293,7 @@ refer to http://www.clipperz.com.
 	border: 2px solid #99bbe8;
 }
 .ylayout-panel-proxy {
-	background-image: url(../images/aero/layout/gradient-bg.gif);
+	background-image: url(./images/aero/layout/gradient-bg.gif);
 	background-color:#f3f2e7;
 	border:1px dashed #99bbe8;
 }
@@ -323,10 +323,10 @@ refer to http://www.clipperz.com.
 	border-bottom:0px;
 }
 .ygrid-hd-split {
-	background-image: url(../images/aero/grid/grid-split.gif);
+	background-image: url(./images/aero/grid/grid-split.gif);
 }
 .ygrid-hrow{
-	background: url(../images/aero/grid/grid-hrow.gif);
+	background: url(./images/aero/grid/grid-hrow.gif);
 	height: 22px;
 	border:0px none;
 }
@@ -354,5 +354,5 @@ refer to http://www.clipperz.com.
 	border:1px solid #8db2e3;
 }
 .ytoolbar .ytb-sep{
-	background-image: url(../images/aero/grid/grid-blue-split.gif);
+	background-image: url(./images/aero/grid/grid-blue-split.gif);
 }

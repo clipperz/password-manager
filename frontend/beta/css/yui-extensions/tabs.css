@@ -68,16 +68,16 @@ refer to http://www.clipperz.com.
 }
 
 .ytab-strip .on .ytab-right {
-	 background: url(../images/default/tabs/tab-sprite.gif) no-repeat right 0;
+	 background: url(./images/default/tabs/tab-sprite.gif) no-repeat right 0;
 }
 .ytab-strip .on .ytab-left {
-	 background: url(../images/default/tabs/tab-sprite.gif) no-repeat 0 -100px;
+	 background: url(./images/default/tabs/tab-sprite.gif) no-repeat 0 -100px;
 }
 .ytab-strip .ytab-right {
-	 background: url(../images/default/tabs/tab-sprite.gif) no-repeat right -50px;
+	 background: url(./images/default/tabs/tab-sprite.gif) no-repeat right -50px;
 }
 .ytab-strip .ytab-left {
-	 background: url(../images/default/tabs/tab-sprite.gif) no-repeat 0 -150px;
+	 background: url(./images/default/tabs/tab-sprite.gif) no-repeat 0 -150px;
 }
 
 .ytab-strip  a {
@@ -98,7 +98,7 @@ refer to http://www.clipperz.com.
 .ytab-strip .ytab-closable .close-icon{
 	line-height: 1px;
 	font-size:1px;
-  background-image:url(../images/default/layout/layout-sprite.gif);
+  background-image:url(./images/default/layout/layout-sprite.gif);
   background-repeat: no-repeat;
   background-position: 50% -60px;
 	display:block;
@@ -108,12 +108,12 @@ refer to http://www.clipperz.com.
 	cursor:pointer;
 }
 .ytab-strip .on .close-icon{
-    background-image:url(../images/default/layout/layout-sprite.gif);
+    background-image:url(./images/default/layout/layout-sprite.gif);
     background-repeat: no-repeat;
     background-position: 50% -60px;
 }
 .ytab-strip .ytab-closable .close-over{
-    background-image:url(../images/default/layout/layout-sprite.gif);
+    background-image:url(./images/default/layout/layout-sprite.gif);
     background-repeat: no-repeat;
     background-position: 50% -72px;
 }
@@ -125,16 +125,16 @@ refer to http://www.clipperz.com.
 	padding-bottom:2px;
 }
 .ytabs-bottom .ytab-strip .ytab-right {
-	 background: url(../images/default/tabs/tab-btm-inactive-right-bg.gif) no-repeat bottom left;
+	 background: url(./images/default/tabs/tab-btm-inactive-right-bg.gif) no-repeat bottom left;
 }
 .ytabs-bottom .ytab-strip .ytab-left {
-	 background: url(../images/default/tabs/tab-btm-inactive-left-bg.gif) no-repeat bottom right;
+	 background: url(./images/default/tabs/tab-btm-inactive-left-bg.gif) no-repeat bottom right;
 }
 .ytabs-bottom .ytab-strip .on .ytab-right {
-	 background: url(../images/default/tabs/tab-btm-right-bg.gif) no-repeat bottom left;
+	 background: url(./images/default/tabs/tab-btm-right-bg.gif) no-repeat bottom left;
 }
 .ytabs-bottom .ytab-strip .on .ytab-left {
-	 background: url(../images/default/tabs/tab-btm-left-bg.gif) no-repeat bottom right;
+	 background: url(./images/default/tabs/tab-btm-left-bg.gif) no-repeat bottom right;
 }
 .ytabs-bottom .ytab-strip  a {
 	position:relative;

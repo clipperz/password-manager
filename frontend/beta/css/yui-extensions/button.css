@@ -35,12 +35,12 @@ refer to http://www.clipperz.com.
 .ybtn-left{
 	width:3px;
 	height:21px;
-	background:url(../images/default/basic-dialog/btn-sprite.gif) no-repeat 0 0;
+	background:url(./images/default/basic-dialog/btn-sprite.gif) no-repeat 0 0;
 }
 .ybtn-right{
 	width:3px;
 	height:21px;
-	background:url(../images/default/basic-dialog/btn-sprite.gif) no-repeat 0 -21px;
+	background:url(./images/default/basic-dialog/btn-sprite.gif) no-repeat 0 -21px;
 }
 .ybtn-focus{
 	text-decoration:none !important;
@@ -52,7 +52,7 @@ refer to http://www.clipperz.com.
 	white-space: nowrap;
 }
 .ybtn-center{
-	background:url(../images/default/basic-dialog/btn-sprite.gif) repeat-x 0 -42px;
+	background:url(./images/default/basic-dialog/btn-sprite.gif) repeat-x 0 -42px;
 	font:normal 11px "san serif",tahoma,verdana,helvetica;
 	vertical-align: middle;
 	text-align:center;

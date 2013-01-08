@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 */
 
 .ydlg-proxy {
-	background-image: url(../images/default/gradient-bg.gif);
+	background-image: url(./images/default/gradient-bg.gif);
 	background-color:#c3daf9;
 	border:1px solid #6593cf;
 	z-index:10001;
@@ -76,7 +76,7 @@ body.masked .ydlg select {
 	z-index:10002;
 }
 .ydlg .ydlg-hd {
-	background: url(../images/default/basic-dialog/hd-sprite.gif) repeat-x 0 -82px;
+	background: url(./images/default/basic-dialog/hd-sprite.gif) repeat-x 0 -82px;
 	background-color:navy;
 	color:#ffffff;
 	font:bold 12px "sans serif", tahoma, verdana, helvetica;
@@ -84,16 +84,16 @@ body.masked .ydlg select {
 	padding:5px;
 }
 .ydlg .ydlg-hd-left {
-	background: url(../images/default/basic-dialog/hd-sprite.gif) no-repeat 0 -41px;
+	background: url(./images/default/basic-dialog/hd-sprite.gif) no-repeat 0 -41px;
 	padding-left:3px;
 	margin:0px;
 }
 .ydlg .ydlg-hd-right {
-	background: url(../images/default/basic-dialog/hd-sprite.gif) no-repeat right 0;
+	background: url(./images/default/basic-dialog/hd-sprite.gif) no-repeat right 0;
 	padding-right:3px;
 }
 .ydlg .ydlg-dlg-body{
-	background:url(../images/default/layout/gradient-bg.gif);
+	background:url(./images/default/layout/gradient-bg.gif);
 	border:1px solid #6593cf;
 	border-top:0 none;
 	padding:10px;
@@ -168,45 +168,45 @@ body.masked .ydlg select {
 	background-repeat:no-repeat;
 	cursor:pointer;
 	visibility:inherit;
-	background-image:url(../images/default/basic-dialog/close.gif);
+	background-image:url(./images/default/basic-dialog/close.gif);
 }
 .ydlg div.yresizable-handle-east{
-	background-image:url(../images/default/sizer/e-handle-dark.gif);
+	background-image:url(./images/default/sizer/e-handle-dark.gif);
 	border:0;
 	background-position:left;
 	margin-right:0;
 }
 .ydlg div.yresizable-handle-south{
-	background-image:url(../images/default/sizer/s-handle-dark.gif);
+	background-image:url(./images/default/sizer/s-handle-dark.gif);
 	border:0;
 	height:6px;
 }
 .ydlg div.yresizable-handle-west{
-	background-image:url(../images/default/sizer/e-handle-dark.gif);
+	background-image:url(./images/default/sizer/e-handle-dark.gif);
 	border:0;
 	background-position:1px;
 }
 .ydlg div.yresizable-handle-north{
-	background-image:url(../images/default/s.gif);
+	background-image:url(./images/default/s.gif);
 	border:0;
 }
 .ydlg div.yresizable-handle-northeast, .ytheme-gray .ydlg div.yresizable-handle-northeast{
-	background-image:url(../images/default/s.gif);
+	background-image:url(./images/default/s.gif);
 	border:0;
 }
 .ydlg div.yresizable-handle-northwest, .ytheme-gray .ydlg div.yresizable-handle-northwest{
-	background-image:url(../images/default/s.gif);
+	background-image:url(./images/default/s.gif);
 	border:0;
 }
 .ydlg div.yresizable-handle-southeast{
-	background-image:url(../images/default/sizer/corners-sprite.gif);
+	background-image:url(./images/default/sizer/corners-sprite.gif);
 	background-position: top left;
 	width:8px;
 	height:8px;
 	border:0;
 }
 .ydlg div.yresizable-handle-southwest{
-	background-image:url(../images/default/sizer/corners-sprite.gif);
+	background-image:url(./images/default/sizer/corners-sprite.gif);
 	background-position: top right;
 	margin-left:1px;
 	margin-bottom:1px;
@@ -237,7 +237,7 @@ body.masked .ydlg select {
 }
 #mb-dlg .ext-mb-progress {
 	height:18px;
-	background:transparent url(../images/default/basic-dialog/progress2.gif) repeat-x 1px 1px;
+	background:transparent url(./images/default/basic-dialog/progress2.gif) repeat-x 1px 1px;
 }
 #mb-dlg .ext-mb-progress-bar {
 	height:18px;

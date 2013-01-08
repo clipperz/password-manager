@@ -32,7 +32,7 @@ refer to http://www.clipperz.com.
 
 .mso .ytoolbar, .ygrid-mso .ytoolbar{
 	border: 0px none;
-	background: url(../images/default/grid/mso-hd.gif);
+	background: url(./images/default/grid/mso-hd.gif);
 }
 .ytoolbar td,.ytoolbar span,.ytoolbar input,.ytoolbar div{
 	white-space: nowrap;
@@ -89,12 +89,12 @@ refer to http://www.clipperz.com.
 	display:block;
 }
 .ytoolbar .ytb-button-over{
-   background:#c3d3ed url(../images/default/toolbar/btn-over-bg.gif) repeat-x;
+   background:#c3d3ed url(./images/default/toolbar/btn-over-bg.gif) repeat-x;
 	border:1px solid #6593cf;
 	padding:1px 2px;
 }
 .ytoolbar .ytb-sep {
-	background-image: url(../images/default/grid/grid-split.gif);
+	background-image: url(./images/default/grid/grid-split.gif);
 	background-position: center;
 	background-repeat: no-repeat;
 	display: block;
@@ -107,6 +107,6 @@ refer to http://www.clipperz.com.
 	border:0px;
 }
 .mso .ytoolbar .ytb-sep, .ygrid-mso .ytoolbar .ytb-sep{
-	background-image: url(../images/default/grid/grid-blue-split.gif);
+	background-image: url(./images/default/grid/grid-blue-split.gif);
 }
 

@@ -102,35 +102,35 @@ refer to http://www.clipperz.com.
 	 opacity:1;
 }
 .yresizable-over .yresizable-handle-east, .yresizable-pinned .yresizable-handle-east{
-    background:url(../images/default/sizer/e-handle.gif);
+    background:url(./images/default/sizer/e-handle.gif);
 	 background-position: left;
 }
 .yresizable-over .yresizable-handle-west, .yresizable-pinned .yresizable-handle-west{
-    background:url(../images/default/sizer/e-handle.gif);
+    background:url(./images/default/sizer/e-handle.gif);
 	 background-position: left;
 }
 .yresizable-over .yresizable-handle-south, .yresizable-pinned .yresizable-handle-south{
-    background:url(../images/default/sizer/s-handle.gif);
+    background:url(./images/default/sizer/s-handle.gif);
     background-position: top;
 }
 .yresizable-over .yresizable-handle-north, .yresizable-pinned .yresizable-handle-north{
-    background:url(../images/default/sizer/s-handle.gif);
+    background:url(./images/default/sizer/s-handle.gif);
     background-position: top;
 }
 .yresizable-over .yresizable-handle-southeast, .yresizable-pinned .yresizable-handle-southeast{
-    background:url(../images/default/sizer/corners-sprite.gif);
+    background:url(./images/default/sizer/corners-sprite.gif);
     background-position: top left;
 }
 .yresizable-over .yresizable-handle-northwest, .yresizable-pinned .yresizable-handle-northwest{
-    background:url(../images/default/sizer/corners-sprite.gif);
+    background:url(./images/default/sizer/corners-sprite.gif);
     background-position:bottom right;
 }
 .yresizable-over .yresizable-handle-northeast, .yresizable-pinned .yresizable-handle-northeast{
-    background:url(../images/default/sizer/corners-sprite.gif);
+    background:url(./images/default/sizer/corners-sprite.gif);
     background-position: bottom left;
 }
 .yresizable-over .yresizable-handle-southwest, .yresizable-pinned .yresizable-handle-southwest{
-    background:url(../images/default/sizer/corners-sprite.gif);
+    background:url(./images/default/sizer/corners-sprite.gif);
     background-position: top right;
 }
 .yresizable-proxy{

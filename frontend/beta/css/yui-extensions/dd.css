@@ -68,11 +68,11 @@ refer to http://www.clipperz.com.
 	z-index:1;
 }
 .ydd-drop-nodrop .ydd-drop-icon{
-  background-image: url(../images/default/dd/drop-no.gif);
+  background-image: url(./images/default/dd/drop-no.gif);
 }
 .ydd-drop-ok .ydd-drop-icon{
-  background-image: url(../images/default/dd/drop-yes.gif);
+  background-image: url(./images/default/dd/drop-yes.gif);
 }
 .ydd-drop-ok-add .ydd-drop-icon{
-  background-image: url(../images/default/dd/drop-add.gif);
+  background-image: url(./images/default/dd/drop-add.gif);
 }

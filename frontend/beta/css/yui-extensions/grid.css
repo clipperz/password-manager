@@ -82,11 +82,11 @@ refer to http://www.clipperz.com.
 	right:0;
 	top:0;
 	z-index:2;
-	background-image: url(../images/default/grid/pick-button.gif);
+	background-image: url(./images/default/grid/pick-button.gif);
 	background-repeat: no-repeat;
 }
 .ygrid-editor-invalid{
-	background-image: url(../images/default/grid/invalid_line.gif);
+	background-image: url(./images/default/grid/invalid_line.gif);
 	background-repeat: repeat-x;
 	background-position: bottom;
 	border: 1px solid #afbdc9;
@@ -160,13 +160,13 @@ select.ygrid-editor{
 	background-repeat: no-repeat;
 }
 .ygrid-drop-nodrop{
-   background-image: url(../images/default/grid/drop-no.gif);
+   background-image: url(./images/default/grid/drop-no.gif);
 }
 .ygrid-drop-ok{
-   background-image: url(../images/default/grid/drop-yes.gif);
+   background-image: url(./images/default/grid/drop-yes.gif);
 }
 .ygrid-hd .sort-asc {
-	background-image: url(../images/default/grid/sort_asc.gif);
+	background-image: url(./images/default/grid/sort_asc.gif);
 	background-position: right;
 	background-repeat: no-repeat;
 	display: none;
@@ -174,7 +174,7 @@ select.ygrid-editor{
 	width: 16px;
 }
 .ygrid-hd .sort-desc {
-	background-image: url(../images/default/grid/sort_desc.gif);
+	background-image: url(./images/default/grid/sort_desc.gif);
 	background-position: right;
 	background-repeat: no-repeat;
 	display: none;
@@ -204,7 +204,7 @@ select.ygrid-editor{
 	border-bottom: 1px solid #f9a900;
 }
 .ygrid-hd-split {
-	background-image: url(../images/default/grid/grid-split.gif);
+	background-image: url(./images/default/grid/grid-split.gif);
 	background-position: center;
 	background-repeat: no-repeat;
 	cursor: e-resize;
@@ -218,7 +218,7 @@ select.ygrid-editor{
 	z-index: 3;
 }
 .ygrid-hrow{
-	background: #ebeadb url(../images/default/grid/grid-hrow.gif) repeat-x;
+	background: #ebeadb url(./images/default/grid/grid-hrow.gif) repeat-x;
 	display: block;
 	height: 22px;
 	left: 0;
@@ -245,34 +245,34 @@ select.ygrid-editor{
 	height:14px;	
 }
 .ygrid-page-first{
-	background-image: url(../images/default/grid/page-first.gif);
+	background-image: url(./images/default/grid/page-first.gif);
 }
 .ygrid-loading{
-	background-image: url(../images/default/grid/done.gif);
+	background-image: url(./images/default/grid/done.gif);
 }
 .ygrid-page-last{
-	background-image: url(../images/default/grid/page-last.gif);
+	background-image: url(./images/default/grid/page-last.gif);
 }
 .ygrid-page-next{
-	background-image: url(../images/default/grid/page-next.gif);
+	background-image: url(./images/default/grid/page-next.gif);
 }
 .ygrid-page-prev{
-	background-image: url(../images/default/grid/page-prev.gif);
+	background-image: url(./images/default/grid/page-prev.gif);
 }
 .ytb-button-disabled .ygrid-loading{
-	background-image: url(../images/default/grid/loading.gif);
+	background-image: url(./images/default/grid/loading.gif);
 }
 .ytb-button-disabled .ygrid-page-first{
-	background-image: url(../images/default/grid/page-first-disabled.gif);
+	background-image: url(./images/default/grid/page-first-disabled.gif);
 }
 .ytb-button-disabled .ygrid-page-last{
-	background-image: url(../images/default/grid/page-last-disabled.gif);
+	background-image: url(./images/default/grid/page-last-disabled.gif);
 }
 .ytb-button-disabled .ygrid-page-next{
-	background-image: url(../images/default/grid/page-next-disabled.gif);
+	background-image: url(./images/default/grid/page-next-disabled.gif);
 }
 .ytb-button-disabled .ygrid-page-prev{
-	background-image: url(../images/default/grid/page-prev-disabled.gif);
+	background-image: url(./images/default/grid/page-prev-disabled.gif);
 }
 .ygrid-mso{
 }
@@ -297,13 +297,13 @@ select.ygrid-editor{
 	background-color: transparent;
 }
 .ygrid-mso .ygrid-hd-split {
-	background-image: url(../images/default/grid/grid-blue-split.gif);
+	background-image: url(./images/default/grid/grid-blue-split.gif);
 }
 .ygrid-mso .ytoolbar .ytb-sep {
-	background-image: url(../images/default/grid/grid-blue-split.gif);
+	background-image: url(./images/default/grid/grid-blue-split.gif);
 }
 .ygrid-mso .ygrid-hrow{
-	background: url(../images/default/grid/mso-hd.gif);
+	background: url(./images/default/grid/mso-hd.gif);
 	border-bottom: 1px solid #6593cf;
 	height: 21px;
 }
@@ -388,10 +388,10 @@ select.ygrid-editor{
 	border-bottom:0;
 }
 .ygrid-vista .ygrid-hd-split {
-	background-image: url(../images/default/grid/grid-split.gif);
+	background-image: url(./images/default/grid/grid-split.gif);
 }
 .ygrid-vista .ygrid-hrow{
-	background: url(../images/default/grid/grid-vista-hd.gif);
+	background: url(./images/default/grid/grid-vista-hd.gif);
 	height: 21px;
 }
 .ygrid-vista .ygrid-row-alt{
@@ -408,10 +408,10 @@ select.ygrid-editor{
 }
 .ygrid-vista .ytoolbar{
 	border: 0px none;
-	background: url(../images/default/grid/grid-vista-hd.gif);
+	background: url(./images/default/grid/grid-vista-hd.gif);
 }
 .ygrid-vista .ytoolbar .ytb-sep{
-	background-image: url(../images/default/grid/grid-split.gif);
+	background-image: url(./images/default/grid/grid-split.gif);
 }
 /* 
   To have the scrollbars overlap the header, change .ygrid-wrap top style to 0 and 
@@ -499,14 +499,14 @@ select.ygrid-editor{
 
 .ypopcal-head .next-month{
 	width:16px;
-	background-image: url(../images/default/grid/arrow-right-white.gif);
+	background-image: url(./images/default/grid/arrow-right-white.gif);
 	background-position: center;
 	background-repeat: no-repeat;
 	cursor:pointer;
 }
 .ypopcal-head .prev-month{
 	width:16px;
-	background-image: url(../images/default/grid/arrow-left-white.gif);
+	background-image: url(./images/default/grid/arrow-left-white.gif);
 	background-position: center;
 	background-repeat: no-repeat;
 	cursor:pointer;
