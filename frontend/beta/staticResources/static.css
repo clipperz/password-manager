@@ -41,7 +41,8 @@ div.header {
 }
 
 div#logo {
-	background: url(./images/old/logo.png);	
+	background: url(./images/logo.gif);	
+	background-repeat: no-repeat;
 	width: 150px;
 	height: 39px;
 	display: block;
@@ -166,39 +167,39 @@ div.languageBlock div.flags {
 }
 
 div.languageBlock.en-us div.flags {
-	background: url(./images/old/flags/en.png);	
+	background: url(./images/flags/en.png);	
 }
 
 div.languageBlock.zh-cn div.flags {
-	background: url(./images/old/flags/cn.png);	
+	background: url(./images/flags/cn.png);	
 }
 
 div.languageBlock.fr-fr div.flags {
-	background: url(./images/old/flags/fr.png);	
+	background: url(./images/flags/fr.png);	
 }
 
 div.languageBlock.it-it div.flags {
-	background: url(./images/old/flags/it.png);	
+	background: url(./images/flags/it.png);	
 }
 
 div.languageBlock.ja-jp div.flags {
-	background: url(./images/old/flags/jp.png);	
+	background: url(./images/flags/jp.png);	
 }
 
 div.languageBlock.pt-br div.flags {
-	background: url(./images/old/flags/br.png);	
+	background: url(./images/flags/br.png);	
 }
 
 div.languageBlock.es-es div.flags {
-	background: url(./images/old/flags/es.png);	
+	background: url(./images/flags/es.png);	
 }
 
 div.languageBlock.ru-ru div.flags {
-	background: url(./images/old/flags/ru.png);	
+	background: url(./images/flags/ru.png);	
 }
 
 div.languageBlock.de-de div.flags {
-	background: url(./images/old/flags/de.png);	
+	background: url(./images/flags/de.png);	
 }
 
 
