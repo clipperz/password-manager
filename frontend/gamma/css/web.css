@@ -533,13 +533,16 @@ div.pageFooter div.footerWrapper div.footerContent a {
   font-weight: bold;
   text-decoration: none;
 }
-div.pageFooter div.footerWrapper div.footerContent span.applicationVersion {
+div.pageFooter div.footerWrapper div.footerContent div.applicationVersion {
   padding: 8px;
   color: #888888;
   background-color: #d2d2d2;
   position: relative;
   top: -40px;
   float: right;
+}
+div.pageFooter div.footerWrapper div.footerContent div.applicationVersion a {
+  display: inline;
 }
 /*
 
