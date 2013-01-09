@@ -542,6 +542,7 @@ div.pageFooter div.footerWrapper div.footerContent div.applicationVersion {
   float: right;
 }
 div.pageFooter div.footerWrapper div.footerContent div.applicationVersion a {
+  padding-left: 0px;
   display: inline;
 }
 /*

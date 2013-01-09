@@ -53,7 +53,7 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.PageFooter, Clipperz.PM.UI.Co
 					{tag:'span', cls:'copyright', html:'Copyright &copy; 2009-2013 Clipperz Srl'},
 					{tag:'a', href:'http://www.clipperz.com/terms_of_service',	target:'_blank', html:'terms of service'},
 					{tag:'a', href:'http://www.clipperz.com/privacy_policy',	target:'_blank', html:'privacy policy'},
-					{tag:'div', cls:'applicationVersion', htmlString:'application version: [<a href="https://github.com/clipperz/password-manager/tree/' + Clipperz_version + '" target="github">' + Clipperz_version + '</a>]'}
+					{tag:'div', cls:'applicationVersion', htmlString:'application version: <a href="https://github.com/clipperz/password-manager/tree/' + Clipperz_version + '" target="github">' + Clipperz_version + '</a>'}
 				]}
 			]}
 		]);
