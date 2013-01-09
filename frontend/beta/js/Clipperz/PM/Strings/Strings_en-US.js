@@ -508,7 +508,7 @@ Clipperz.PM.Strings.Languages['en-us'] = {
 		<li><p>Get Firefox! Sidebars are only available in Firefox and you need to switch to Firefox in order to enjoy the convenience of Clipperz Compact.</p></li>\
 		<li>\
 			<p>Add the following URL to Firefox bookmarks, or even better, drag it to the bookmark bar.</p>\
-			<div id=\"compactLinkBox\"><a href=\"index.html?compact\" target=\"_search\">Clipperz Compact</a></div>\
+			<div id=\"compactLinkBox\"><a href=\"./index.html?compact\" target=\"_search\">Clipperz Compact</a></div>\
 		</li>\
 		<li><p>Change the properties of the bookmark so that “load this bookmark in the sidebar” is checked.</p></li>\
 	</ol>\
