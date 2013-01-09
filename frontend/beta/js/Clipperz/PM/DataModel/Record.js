@@ -292,8 +292,14 @@ console.log("Record.processData", someValues);
 				this.setCurrentVersionKey(this.key());
 			}
 
-//			currentVersionParameters = someValues['currentVersion'];
-			currentVersionParameters = someValues['versions'][someValues['currentVersion']];
+//			community edition doesn't currently pass version
+//			information
+			if (someValues['versions'] == null) {
+				currentVersionParameters = someValues['currentVersion'];
+			} else {
+				currentVersionParameters = someValues['versions'][someValues['currentVersion']];
+			}
+
 console.log("Record.processData - this.currentVersionKey()", this.currentVersionKey());
 console.log("Record.processData - currentVersionParameters", currentVersionParameters);
 			currentVersionParameters['key'] = this.currentVersionKey();
