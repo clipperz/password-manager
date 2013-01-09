@@ -308,13 +308,13 @@ class FrontendBuilder(object):
 	def replaceTemplatePlaceholders (self, pageTitle, copyright, css, code, jsLoadMode, version, versionType):
 		result = self.template()
 		
-		result = result.replace('@page.title@',					pageTitle,		1)
-		result = result.replace('@copyright@',					copyright,		1)
-		result = result.replace('@css@',						css,			1)
-		#result = result.replace('@bookmarklet@',				bookmarklet,	1)
-		result = result.replace('@application.version@',		version,		1)
-		result = result.replace('@application.version.type@',	versionType,	1)
-		result = result.replace('@js_' + jsLoadMode + '@',		code,			1)
+		result = result.replace('@page.title@',					pageTitle)
+		result = result.replace('@copyright@',					copyright)
+		result = result.replace('@css@',						css)
+		#result = result.replace('@bookmarklet@',				bookmarklet)
+		result = result.replace('@application.version@',		version)
+		result = result.replace('@application.version.type@',	versionType)
+		result = result.replace('@js_' + jsLoadMode + '@',		code)
 
 		result = re.sub('@js_[^@]+@', '', result)
 
