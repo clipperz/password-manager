@@ -8,7 +8,8 @@ class GammaBuilder(FrontendBuilder):
 
 	def copyStaticResources (self, targetFolder):
 		resourcesToCopy = [
-			{'folder': 'html',	'source': 'exit_template.html',	'target': 'exit.html'},
+#			{'folder': 'html',	'source': 'exit_template.html',	'target': 'exit.html'},
+			{'folder': 'html',	'source': 'exit_template.html',	'target': 'logout.html'},
 			{'folder': 'css',	'source': 'static.css',			'target': 'static.css'}
 		]
 
