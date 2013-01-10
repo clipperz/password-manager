@@ -179,7 +179,8 @@ Clipperz.PM.DataModel.UserPreferences.prototype = MochiKit.Base.update(null, {
 			return {user:res};
 		})
 		deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'updatedProgressState', 'account_savingPreferences_2');
-		deferredResult.addCallback(MochiKit.Base.method(this.user().connection(), 'message'), 'updateData');
+//		deferredResult.addCallback(MochiKit.Base.method(this.user().connection(), 'message'), 'updateData');
+		deferredResult.addCallback(MochiKit.Base.method(this.user().connection(), 'message'), 'saveChanges');
 		deferredResult.addCallback(Clipperz.PM.Components.MessageBox().hide, YAHOO.ext.Element.get('main'));
 		deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'updatedPreferences', null);
 
