@@ -310,7 +310,12 @@ MochiKit.Logging.logDebug("--- User.saveRecords - 1");
 MochiKit.Logging.logDebug("--- User.saveRecords - 2");
 */
 
-		result = {'records': []};
+		result = {
+			'records': {
+//				'deleted': [],
+				'updated': []
+			}
+		};
 		
 		deferredResult = new MochiKit.Async.Deferred();
 		c = someRecords.length;
@@ -367,7 +372,7 @@ MochiKit.Logging.logDebug("--- User.saveRecords - 2");
 //deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("User.saveRecords - 6.7 " + res); return res;});
 
 			deferredResult.addCallback(function(aResult, res) {
-				aResult['records'] = { 'updated': [res] };
+				aResult['records']['updated'].push(res);
 				return aResult;
 			}, result);
 //deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("User.saveRecords - 6.8 " + res); return res;});
