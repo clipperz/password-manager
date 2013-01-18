@@ -5,6 +5,10 @@ import sys, os, json
 import shutil
 import hashlib
 
+from functools import reduce
+from operator import add
+from itertools import izip
+
 import main
 
 #===================================================================
@@ -72,10 +76,15 @@ class BackendBuilder(object):
 		return result
 	
 
+	def formatMAC (self, value):
+		x = iter(value)
+		return ' '.join([reduce(add, tup) for tup in izip(x, x, x, x)])
+
+
 	def logChecksums (self, content, message):
-		md5Digest		= hashlib.md5(content.encode('utf-8')).hexdigest()
-		shaDigest		= hashlib.sha1(content.encode('utf-8')).hexdigest()
-		sha256Digest	= hashlib.sha256(content.encode('utf-8')).hexdigest()
+		md5Digest		= self.formatMAC(hashlib.md5(content.encode('utf-8')).hexdigest())
+		shaDigest		= self.formatMAC(hashlib.sha1(content.encode('utf-8')).hexdigest())
+		sha256Digest	= self.formatMAC(hashlib.sha256(content.encode('utf-8')).hexdigest())
 		print message + ": " + md5Digest + " (md5)"
 		print message + ": " + shaDigest + " (sha1)"
 		print message + ": " + sha256Digest + " (sha256)"
