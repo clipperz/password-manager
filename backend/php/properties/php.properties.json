@@ -1,9 +1,4 @@
 {
 	"request.path": "index.php",
-	"should.pay.toll": "false",
-
-	"development.settings": {
-		"url": "http://localhost/php/clipperz"
-	}
-
+	"should.pay.toll": "false"
 }
