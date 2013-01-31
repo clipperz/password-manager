@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -174,7 +172,7 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 						try {
 							result = Clipperz.Base.evalJSON(decryptedValue.asString());
 						} catch (exception) {
-							MochiKit.Logging.logError("Error while decrypting data [1]");
+							Clipperz.logError("Error while decrypting data [1]");
 							throw Clipperz.Crypto.Base.exception.CorruptedMessage;
 						}
 					} else {
@@ -206,7 +204,7 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 							try {
 								result = Clipperz.Base.evalJSON(decryptedData.asString());
 							} catch (exception) {
-								MochiKit.Logging.logError("Error while decrypting data [2]");
+								Clipperz.logError("Error while decrypting data [2]");
 								throw Clipperz.Crypto.Base.exception.CorruptedMessage;
 							}
 
@@ -291,7 +289,7 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 						try {
 							result = Clipperz.Base.evalJSON(value);
 						} catch (exception) {
-							MochiKit.Logging.logError("Error while decrypting data [3]");
+							Clipperz.logError("Error while decrypting data [3]");
 							throw Clipperz.Crypto.Base.exception.CorruptedMessage;
 						}
 					} else {
@@ -322,7 +320,7 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 						deferredResult.addCallback(MochiKit.Async.wait, 0.1);
 						deferredResult.addCallback(Clipperz.Base.evalJSON);
 						deferredResult.addErrback(function(anError) {
-							MochiKit.Logging.logError("Error while decrypting data [4]");
+							Clipperz.logError("Error while decrypting data [4]");
 							throw Clipperz.Crypto.Base.exception.CorruptedMessage;
 						})
 					} else {
@@ -359,27 +357,27 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 					var dataToEncrypt;
 					var encryptedData;
 				
-//MochiKit.Logging.logDebug(">>> [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt");
+//Clipperz.logDebug(">>> [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt");
 					key = Clipperz.Crypto.SHA.sha_d256(new Clipperz.ByteArray(aKey));
-//MochiKit.Logging.logDebug("--- [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt - 1");
+//Clipperz.logDebug("--- [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt - 1");
 					value = Clipperz.Base.serializeJSON(aValue);
-//MochiKit.Logging.logDebug("--- [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt - 2");
+//Clipperz.logDebug("--- [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt - 2");
 / *
-//MochiKit.Logging.logDebug("--> encrypt.fullSize: " + value.length);
+//Clipperz.logDebug("--> encrypt.fullSize: " + value.length);
 					value = value.replace(/":{"label":"/g,		'":{l:"');
 					value = value.replace(/":{"key":"/g,		'":{k:"');
 					value = value.replace(/":{"notes":"/g,		'":{n:"');
 					value = value.replace(/":{"record":"/g,		'":{r:"');
 					value = value.replace(/", "label":"/g,		'",l:"');
 					value = value.replace(/", "favicon":"/g,	'",f:"');
-//MochiKit.Logging.logDebug("<-- encrypt.compressed: " + value.length);
+//Clipperz.logDebug("<-- encrypt.compressed: " + value.length);
 * /
 					data = new Clipperz.ByteArray(value);
-//MochiKit.Logging.logDebug("--- [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt - 3");
+//Clipperz.logDebug("--- [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt - 3");
 					encryptedData = Clipperz.Crypto.AES.encrypt(key, data, aNonce);
-//MochiKit.Logging.logDebug("--- [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt - 4");
+//Clipperz.logDebug("--- [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt - 4");
 					result = encryptedData.toBase64String();
-//MochiKit.Logging.logDebug("<<< [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt");
+//Clipperz.logDebug("<<< [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt");
 				
 					return result;
 				},
@@ -408,7 +406,7 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 						try {
 							result = Clipperz.Base.evalJSON(value);
 						} catch (exception) {
-							MochiKit.Logging.logError("Error while decrypting data");
+							Clipperz.logError("Error while decrypting data");
 							throw Clipperz.Crypto.Base.exception.CorruptedMessage;
 						}
 						

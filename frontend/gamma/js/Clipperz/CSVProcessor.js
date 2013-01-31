@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -95,7 +93,7 @@ Clipperz.CSVProcessor.prototype = MochiKit.Base.update(null, {
 		var lines;
 		var parameter;
 		
-//MochiKit.Logging.logDebug(">>> CSVProcessor.parse");
+//Clipperz.logDebug(">>> CSVProcessor.parse");
 		result = [];
 		
 		lines = aValue.replace(/\r?\n/g, "\n").replace(/^\n*                    /g, "").replace(/\n$/g, "");;
@@ -114,10 +112,10 @@ Clipperz.CSVProcessor.prototype = MochiKit.Base.update(null, {
 			
 			parameter.line = parameter.line.replace(/^\n*                        /g, "").replace(/\n$/g, "");
 
-//MochiKit.Logging.logDebug("line: '" + parameter.line + "'");
+//Clipperz.logDebug("line: '" + parameter.line + "'");
 		} while (parameter.line != "");
-//MochiKit.Logging.logDebug("--- CSVProcessor.parse - result: " + Clipperz.Base.serializeJSON(result));
-//MochiKit.Logging.logDebug("<<< CSVProcessor.parse");
+//Clipperz.logDebug("--- CSVProcessor.parse - result: " + Clipperz.Base.serializeJSON(result));
+//Clipperz.logDebug("<<< CSVProcessor.parse");
 
 		return result;
 	},
@@ -216,7 +214,7 @@ Clipperz.CSVProcessor.prototype = MochiKit.Base.update(null, {
 
 		inQuotes = false;
 		
-//MochiKit.Logging.logDebug("#################################### '" + aParameter.line + "'");
+//Clipperz.logDebug("#################################### '" + aParameter.line + "'");
 		if (aParameter.line == "") {
 			if (aParameter.isThereAnEmptyFinalField == true) {
 				aParameter.isThereAnEmptyFinalField = false;
@@ -240,31 +238,31 @@ Clipperz.CSVProcessor.prototype = MochiKit.Base.update(null, {
 			
 				while (!done) {
 					if (aParameter.line.length < 1) {
-//MochiKit.Logging.logDebug("---> 1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("---> 1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 						if (inQuotes == true) {
-//MochiKit.Logging.logDebug("---> 1.1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("---> 1.1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 							throw new Error("CSV Parsing error; end of string, missing closing double-quote...");
 						} else {
-//MochiKit.Logging.logDebug("---> 1.2: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("---> 1.2: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 							done = true;
 						}
 					} else if (escapedQuoteBeginRegexp.test(aParameter.line)) {
-//MochiKit.Logging.logDebug("---> 2.1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("---> 2.1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 						result += this.quoteChar();
 						aParameter.line = aParameter.line.substr(2, aParameter.line.length - 1);
-//MochiKit.Logging.logDebug("<--- 2.2: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("<--- 2.2: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 					} else if (singleQuoteBeginRegexp.test(aParameter.line)) {
-//MochiKit.Logging.logDebug("---> 3: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("---> 3: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 						if (inQuotes == true) {
 							if (aParameter.line.length == 1) {
-//MochiKit.Logging.logDebug("---> 3.1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("---> 3.1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 								aParameter.line = '';
 								done = true;
 							} else if (singleQuoteCommaEndRegexp.test(aParameter.line)) {
-//MochiKit.Logging.logDebug("---> 3.3: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("---> 3.3: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 								aParameter.line = aParameter.line.substr(2, aParameter.line.length - 1);
 								done = true;
-//MochiKit.Logging.logDebug("<--- 3.3: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("<--- 3.3: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 							} else if (singleQuoteNewLineEndRegexp.test(aParameter.line)) {
 								aParameter.line = aParameter.line.substr(1, aParameter.line.length - 1);
 								done = true;
@@ -272,38 +270,38 @@ Clipperz.CSVProcessor.prototype = MochiKit.Base.update(null, {
 								throw new Error("CSV Parsing error; double-quote, followed by undesirable character (bad character sequence)... " + aParameter.line);
 							}
 						} else {
-//MochiKit.Logging.logDebug("---> 4: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("---> 4: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 							if (result == "") {
-//MochiKit.Logging.logDebug("---> 4.1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("---> 4.1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 								inQuotes = true;
 								aParameter.line = aParameter.line.substr(1, aParameter.line.length - 1);
-//MochiKit.Logging.logDebug("<--- 4.1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("<--- 4.1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 							} else {
 								throw new Error("CSV Parsing error; double-quote, outside of double-quotes (bad character sequence)...");
 							}
 						}
 					} else if (commaBeginRegexp.test(aParameter.line)) {
-//MochiKit.Logging.logDebug("---> 5: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("---> 5: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 						if (inQuotes) {
-//MochiKit.Logging.logDebug("---> 5.1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("---> 5.1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 							result += aParameter.line.substr(0 ,1);
 							aParameter.line = aParameter.line.substr(1, aParameter.line.length - 1);
-//MochiKit.Logging.logDebug("<--- 5.1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("<--- 5.1: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 						} else {
-//MochiKit.Logging.logDebug("---> 5.2: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("---> 5.2: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 							aParameter.line = aParameter.line.substr(1, aParameter.line.length - 1);
 							if (newlineRegexp.test(aParameter.line) || aParameter.line == "") {
-//MochiKit.Logging.logDebug("######");
+//Clipperz.logDebug("######");
 								aParameter.isThereAnEmptyFinalField = true;
 							};
 							done = true;
-//MochiKit.Logging.logDebug("<--- 5.2: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("<--- 5.2: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 						}
 					} else if (validRegexp.test(aParameter.line)) {
-//MochiKit.Logging.logDebug("---> 6: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("---> 6: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 						result += aParameter.line.substr(0, 1);
 						aParameter.line = aParameter.line.substr(1, aParameter.line.length - 1);
-//MochiKit.Logging.logDebug("<--- 6: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
+//Clipperz.logDebug("<--- 6: '" + aParameter.line.replace(/\n/g, "\\n") + "'");
 					} else if (newlineRegexp.test(aParameter.line)) {
 						if (inQuotes == true) {
 							result += aParameter.line.substr(0 ,1);
@@ -324,16 +322,16 @@ Clipperz.CSVProcessor.prototype = MochiKit.Base.update(null, {
 					}
 				}
 			} catch(exception) {
-				MochiKit.Logging.logError(exception.message);
+				Clipperz.logError(exception.message);
 //				result = null;
 				throw exception;
 			}
 		}
 
 //if (result != null) {
-//	MochiKit.Logging.logDebug("<=== result: '" + result.replace(/\n/g, "\\n") + "'");
+//	Clipperz.logDebug("<=== result: '" + result.replace(/\n/g, "\\n") + "'");
 //} else {
-//	MochiKit.Logging.logDebug("<=== result: NULL");
+//	Clipperz.logDebug("<=== result: NULL");
 //}
 		
 		return result;

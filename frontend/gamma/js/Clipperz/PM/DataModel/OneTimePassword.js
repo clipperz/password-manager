@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -143,12 +141,12 @@ Clipperz.PM.DataModel.OneTimePassword.prototype = MochiKit.Base.update(null, {
 		getRandomBytes = MochiKit.Base.method(Clipperz.Crypto.PRNG.defaultRandomGenerator(), 'getRandomBytes');
 		
 		encodedPassphrase = new Clipperz.ByteArray(this.user().passphrase()).toBase64String();
-//MochiKit.Logging.logDebug("--- encodedPassphrase.length: " + encodedPassphrase.length);
+//Clipperz.logDebug("--- encodedPassphrase.length: " + encodedPassphrase.length);
 		prefixPadding = getRandomBytes(getRandomBytes(1).byteAtIndex(0)).toBase64String();
-//MochiKit.Logging.logDebug("--- prefixPadding.length: " + prefixPadding.length);
+//Clipperz.logDebug("--- prefixPadding.length: " + prefixPadding.length);
 		suffixPadding = getRandomBytes((500 - prefixPadding.length - encodedPassphrase.length) * 6 / 8).toBase64String();
-//MochiKit.Logging.logDebug("--- suffixPadding.length: " + suffixPadding.length);
-//MochiKit.Logging.logDebug("--- total.length: " + (prefixPadding.length + encodedPassphrase.length + suffixPadding.length));
+//Clipperz.logDebug("--- suffixPadding.length: " + suffixPadding.length);
+//Clipperz.logDebug("--- total.length: " + (prefixPadding.length + encodedPassphrase.length + suffixPadding.length));
 	
 		packedPassphrase = {
 			'prefix': prefixPadding,
@@ -158,8 +156,8 @@ Clipperz.PM.DataModel.OneTimePassword.prototype = MochiKit.Base.update(null, {
 		
 //		result = Clipperz.Base.serializeJSON(packedPassphrase);
 		result = packedPassphrase;
-//MochiKit.Logging.logDebug("===== OTP packedPassprase: [" + result.length + "]" + result);
-//MochiKit.Logging.logDebug("<<< OneTimePassword.packedPassphrase");
+//Clipperz.logDebug("===== OTP packedPassprase: [" + result.length + "]" + result);
+//Clipperz.logDebug("<<< OneTimePassword.packedPassphrase");
 
 		return result;
 	},
@@ -176,8 +174,8 @@ Clipperz.PM.DataModel.OneTimePassword.prototype = MochiKit.Base.update(null, {
 		var deferredResult;
 		var	result;
 
-//MochiKit.Logging.logDebug(">>> OneTimePassword.encryptedData");
-//MochiKit.Logging.logDebug("--- OneTimePassword.encryptedData - id: " + this.reference());
+//Clipperz.logDebug(">>> OneTimePassword.encryptedData");
+//Clipperz.logDebug("--- OneTimePassword.encryptedData - id: " + this.reference());
 		result = {
 			'reference': this.reference(),
 			'key': this.key(),
@@ -185,22 +183,22 @@ Clipperz.PM.DataModel.OneTimePassword.prototype = MochiKit.Base.update(null, {
 			'data': "",
 			'version': Clipperz.PM.Crypto.encryptingFunctions.currentVersion
 		}
-//MochiKit.Logging.logDebug("--- OneTimePassword.encryptedData - 2: " + Clipperz.Base.serializeJSON(result));
+//Clipperz.logDebug("--- OneTimePassword.encryptedData - 2: " + Clipperz.Base.serializeJSON(result));
 		deferredResult = new MochiKit.Async.Deferred();
-//MochiKit.Logging.logDebug("--- OneTimePassword.encryptedData - 3");
-//deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("OneTimePassword.encryptedData - 1: " + res); return res;});
+//Clipperz.logDebug("--- OneTimePassword.encryptedData - 3");
+//deferredResult.addBoth(function(res) {Clipperz.logDebug("OneTimePassword.encryptedData - 1: " + res); return res;});
 //#		deferredResult.addCallback(Clipperz.PM.Crypto.deferredEncryptWithCurrentVersion, this.passwordValue(), this.packedPassphrase());
 		deferredResult.addCallback(MochiKit.Base.method(this, 'encryptedPackedPassphrase'));
-//MochiKit.Logging.logDebug("--- OneTimePassword.encryptedData - 4");
-//deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("OneTimePassword.encryptedData - 2: [" + res.length + "]" + res); return res;});
+//Clipperz.logDebug("--- OneTimePassword.encryptedData - 4");
+//deferredResult.addBoth(function(res) {Clipperz.logDebug("OneTimePassword.encryptedData - 2: [" + res.length + "]" + res); return res;});
 		deferredResult.addCallback(function(aResult, res) {
 			aResult['data'] = res;
 			return aResult;
 		}, result);
-//MochiKit.Logging.logDebug("--- OneTimePassword.encryptedData - 5");
-//deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("OneTimePassword.encryptedData - 3: " + Clipperz.Base.serializeJSON(res)); return res;});
+//Clipperz.logDebug("--- OneTimePassword.encryptedData - 5");
+//deferredResult.addBoth(function(res) {Clipperz.logDebug("OneTimePassword.encryptedData - 3: " + Clipperz.Base.serializeJSON(res)); return res;});
 		deferredResult.callback();
-//MochiKit.Logging.logDebug("--- OneTimePassword.encryptedData - 6");
+//Clipperz.logDebug("--- OneTimePassword.encryptedData - 6");
 		
 		return deferredResult;
 	},
@@ -211,7 +209,7 @@ Clipperz.PM.DataModel.OneTimePassword.prototype = MochiKit.Base.update(null, {
 		var deferredResult;
 		var	result;
 
-//MochiKit.Logging.logDebug(">>> OneTimePassword.saveChanges");
+//Clipperz.logDebug(">>> OneTimePassword.saveChanges");
 		result = {};
 		deferredResult = new MochiKit.Async.Deferred();
 
@@ -230,16 +228,16 @@ Clipperz.PM.DataModel.OneTimePassword.prototype = MochiKit.Base.update(null, {
 		}, result);
 
 		deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'updatedProgressState', 'saveOTP_sendingData');
-//deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("OneTimePassword.saveChanges - 1: " + Clipperz.Base.serializeJSON(res)); return res;});
+//deferredResult.addBoth(function(res) {Clipperz.logDebug("OneTimePassword.saveChanges - 1: " + Clipperz.Base.serializeJSON(res)); return res;});
 		deferredResult.addCallback(MochiKit.Base.method(this.user().connection(), 'message'), 'addNewOneTimePassword');
 
 		deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'updatedProgressState', 'saveOTP_updatingInterface');
-//deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("OneTimePassword.saveChanges - 2: " + res); return res;});
+//deferredResult.addBoth(function(res) {Clipperz.logDebug("OneTimePassword.saveChanges - 2: " + res); return res;});
 		deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'notify', 'OTPUpdated');
 		deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'oneTimePassword_saveChanges_done', null);
-//deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("OneTimePassword.saveChanges - 2: " + res); return res;});
+//deferredResult.addBoth(function(res) {Clipperz.logDebug("OneTimePassword.saveChanges - 2: " + res); return res;});
 		deferredResult.callback();
-//MochiKit.Logging.logDebug("<<< OneTimePassword.saveChanges");
+//Clipperz.logDebug("<<< OneTimePassword.saveChanges");
 		
 		return deferredResult;
 	},
@@ -308,7 +306,6 @@ Clipperz.PM.DataModel.OneTimePassword.isValidOneTimePasswordValue = function(aPa
 	var result;
 	
 //	"yaxx k7ww - f8y6 tqz5 - 58b6 th44 - 9cwv q0fg"
-//console.log("Clipperz.PM.DataModel.OneTimePassword.isValidOneTimePasswordValue", aPassword);
 	if (aPassword.replace(/[\s\-]/g, '').length == 32) {
 		try {
 			var passwordByteArray;
@@ -347,7 +344,6 @@ Clipperz.PM.DataModel.OneTimePassword.normalizedOneTimePassword = function(aPass
 		result = aPassword;
 	}
 
-//console.log("Clipperz.PM.DataModel.OneTimePassword.normalizedOneTimePassword", aPassword, result);
 	return result;
 }
 

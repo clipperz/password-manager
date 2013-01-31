@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -55,7 +53,6 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.CardDialogRecordDirectLoginCo
 	//-------------------------------------------------------------------------
 
 	'renderSelf': function() {
-//console.log(">>> CardDialogRecordDirectLoginComponent.renderSelf");
 		this.append(this.element(), [
 			{tag:'div', cls:'cardDialogRecordDirectLoginComponent_favicon', children:[
 				{tag:'img', cls:'favicon', id:this.getId('favicon')}
@@ -117,7 +114,6 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.CardDialogRecordDirectLoginCo
 	
 	'faviconComponent': function () {
 		if (this._faviconComponent == null) {
-//console.log("created the FAVICON component");
 			this._faviconComponent = new Clipperz.PM.UI.Common.Components.FaviconComponent({element:this.getId('favicon')});
 		}
 		
@@ -160,7 +156,6 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.CardDialogRecordDirectLoginCo
 		anEvent.preventDefault();
 		
 		MochiKit.Signal.signal(this, 'editDirectLogin', this.reference());
-//console.log("EDIT DIRECT LOGIN");
 	},
 
 	//-------------------------------------------------------------------------
@@ -169,7 +164,6 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.CardDialogRecordDirectLoginCo
 		anEvent.preventDefault();
 		
 		MochiKit.Signal.signal(this, 'deleteDirectLogin', this.reference());
-//console.log("DELETE DIRECT LOGIN");
 	},
 
 

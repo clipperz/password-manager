@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -131,7 +129,6 @@ Clipperz.Crypto.SRP.Connection.prototype = MochiKit.Base.update(null, {
 		if (this._a == null) {
 			this._a = new Clipperz.Crypto.BigInt(Clipperz.Crypto.PRNG.defaultRandomGenerator().getRandomBytes(32).toHexString().substring(2), 16);
 //			this._a = new Clipperz.Crypto.BigInt("37532428169486597638072888476611365392249575518156687476805936694442691012367", 10);
-//MochiKit.Logging.logDebug("SRP a: " + this._a);
 		}
 		
 		return this._a;
@@ -145,10 +142,9 @@ Clipperz.Crypto.SRP.Connection.prototype = MochiKit.Base.update(null, {
 			this._A = Clipperz.Crypto.SRP.g().powerModule(this.a(), Clipperz.Crypto.SRP.n());
 			
 			if (this._A.equals(0)) {
-MochiKit.Logging.logError("Clipperz.Crypto.SRP.Connection: trying to set 'A' to 0.");
+				Clipperz.logError("Clipperz.Crypto.SRP.Connection: trying to set 'A' to 0.");
 				throw Clipperz.Crypto.SRP.exception.InvalidValue;
 			}
-//MochiKit.Logging.logDebug("SRP A: " + this._A);
 		}
 		
 		return this._A;
@@ -158,7 +154,6 @@ MochiKit.Logging.logError("Clipperz.Crypto.SRP.Connection: trying to set 'A' to 
 
 	's': function () {
 		return this._s;
-//MochiKit.Logging.logDebug("SRP s: " + this._S);
 	},
 
 	'set_s': function(aValue) {
@@ -175,9 +170,8 @@ MochiKit.Logging.logError("Clipperz.Crypto.SRP.Connection: trying to set 'A' to 
 		//	Warning: this value should be strictly greater than zero: how should we perform this check?
 		if (! aValue.equals(0)) {
 			this._B = aValue;
-//MochiKit.Logging.logDebug("SRP B: " + this._B);
 		} else {
-MochiKit.Logging.logError("Clipperz.Crypto.SRP.Connection: trying to set 'B' to 0.");
+			Clipperz.logError("Clipperz.Crypto.SRP.Connection: trying to set 'B' to 0.");
 			throw Clipperz.Crypto.SRP.exception.InvalidValue;
 		}
 	},
@@ -187,7 +181,6 @@ MochiKit.Logging.logError("Clipperz.Crypto.SRP.Connection: trying to set 'B' to 
 	'x': function () {
 		if (this._x == null) {
 			this._x = new Clipperz.Crypto.BigInt(this.stringHash(this.s().asString(16, 64) + this.P()), 16);
-//MochiKit.Logging.logDebug("SRP x: " + this._x);
 		}
 		
 		return this._x;
@@ -198,7 +191,6 @@ MochiKit.Logging.logError("Clipperz.Crypto.SRP.Connection: trying to set 'B' to 
 	'u': function () {
 		if (this._u == null) {
 			this._u = new Clipperz.Crypto.BigInt(this.stringHash(this.B().asString()), 16);
-//MochiKit.Logging.logDebug("SRP u: " + this._u);
 		}
 		
 		return this._u;
@@ -219,7 +211,6 @@ MochiKit.Logging.logError("Clipperz.Crypto.SRP.Connection: trying to set 'B' to 
 								bigint.add(this.a(), bigint.multiply(this.u(), this.x())),
 								srp.n()
 						)
-//MochiKit.Logging.logDebug("SRP S: " + this._S);
 		}
 		
 		return this._S;
@@ -230,7 +221,6 @@ MochiKit.Logging.logError("Clipperz.Crypto.SRP.Connection: trying to set 'B' to 
 	'K': function () {
 		if (this._K == null) {
 			this._K = this.stringHash(this.S().asString());
-//MochiKit.Logging.logDebug("SRP K: " + this._K);
 		}
 		
 		return this._K;
@@ -241,7 +231,6 @@ MochiKit.Logging.logError("Clipperz.Crypto.SRP.Connection: trying to set 'B' to 
 	'M1': function () {
 		if (this._M1 == null) {
 			this._M1 = this.stringHash(this.A().asString(10) + this.B().asString(10) + this.K());
-//MochiKit.Logging.logDebug("SRP M1: " + this._M1);
 		}
 		
 		return this._M1;
@@ -252,7 +241,6 @@ MochiKit.Logging.logError("Clipperz.Crypto.SRP.Connection: trying to set 'B' to 
 	'M2': function () {
 		if (this._M2 == null) {
 			this._M2 = this.stringHash(this.A().asString(10) + this.M1() + this.K());
-//MochiKit.Logging.logDebug("SRP M2: " + this._M2);
 		}
 		
 		return this._M2;

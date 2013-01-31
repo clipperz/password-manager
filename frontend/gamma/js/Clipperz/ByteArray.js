@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -89,11 +87,8 @@ Clipperz.ByteArray_abstract.prototype = MochiKit.Base.update(null, {
 	//-------------------------------------------------------------------------
 
 	'checkByteValue': function(aValue) {
-//Clipperz.log("aValue", aValue.toString(16));
-//Clipperz.log("(aValue & 0xff)", (aValue & 0xff).toString(16));
-
 		if ((aValue & 0xff) != aValue) {
-			MochiKit.Logging.logError("Clipperz.ByteArray.appendByte: the provided value (0x" + aValue.toString(16) + ") is not a byte value.");
+			Clipperz.logError("Clipperz.ByteArray.appendByte: the provided value (0x" + aValue.toString(16) + ") is not a byte value.");
 			throw Clipperz.ByteArray.exception.InvalidValue;
 		}
 	},
@@ -144,8 +139,6 @@ Clipperz.ByteArray_abstract.prototype = MochiKit.Base.update(null, {
 			}
 		}
 
-
-//		result = new Clipperz.ByteArray();
 		result = this.newInstance();
 		c = a.length();
 		for (i=0; i<c; i++) {
@@ -155,16 +148,6 @@ Clipperz.ByteArray_abstract.prototype = MochiKit.Base.update(null, {
 		return result;
 	},
 
-	//-------------------------------------------------------------------------
-/*
-	'shiftLeft': function(aNumberOfBitsToShift) {
-		var result;
-
-		result = this.clone();	//	???????????
-		
-		return result;
-	},
-*/	
 	//-------------------------------------------------------------------------
 
 	'appendBlock': function(aBlock) {
@@ -292,7 +275,6 @@ Clipperz.ByteArray_abstract.prototype = MochiKit.Base.update(null, {
 			selectedByteMask = 1;
 		}
 		result = selectedByte & selectedByteMask ? 1 : 0;
-//console.log("aBitPosition: " + aBitPosition + ", length: " + this.length() + ", bytePosition: " + bytePosition + ", bitPositionInSelectedByte: " + bitPositionInSelectedByte + ", selectedByteMask: " + selectedByteMask);
 		
 		return result;
 	},
@@ -321,9 +303,6 @@ Clipperz.ByteArray_abstract.prototype = MochiKit.Base.update(null, {
 		var	length;
 		var	i;
 
-//var startTime = new Date();
-
-//#		result = "";
 		result = [];
 		
 		i = 0;
@@ -365,14 +344,10 @@ Clipperz.ByteArray_abstract.prototype = MochiKit.Base.update(null, {
 				currentCharacter = String.fromCharCode(unicode);
 			}
 			
-//			result += currentCharacter;
 			result.push(currentCharacter);
 			i++;
 		}
 
-//MochiKit.Logging.logDebug("[" + (new Date() - startTime) + "] ByteArray.asString");
-
-//		return result;
 		return result.join("");
 	},
 
@@ -386,15 +361,6 @@ Clipperz.ByteArray_abstract.prototype = MochiKit.Base.update(null, {
 	
 	'base64map': "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
 	'base64mapIndex': "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".split(''),
-//	'base64mapInvertedIndex': {
-//		'A':  0, 'B':  1, 'C':  2, 'D':  3, 'E':  4, 'F':  5, 'G':  6, 'H':  7, 'I':  8, 'J':  9,
-//		'K': 10, 'L': 11, 'M': 12, 'N': 13, 'O': 14, 'P': 15, 'Q': 16, 'R': 17, 'S': 18, 'T': 19,
-//		'U': 20, 'V': 21, 'W': 22, 'X': 23, 'Y': 24, 'Z': 25, 'a': 26, 'b': 27, 'c': 28, 'd': 29,
-//		'e': 30, 'f': 31, 'g': 32, 'h': 33, 'i': 34, 'j': 35, 'k': 36, 'l': 37, 'm': 38, 'n': 39,
-//		'o': 40, 'p': 41, 'q': 42, 'r': 43, 's': 44, 't': 45, 'u': 46, 'v': 47, 'w': 48, 'x': 49,
-//		'y': 50, 'z': 51, '0': 52, '1': 53, '2': 54, '3': 55, '4': 56, '5': 57, '6': 58, '7': 59,
-//		'8': 60, '9': 61, '+': 62, '/': 63,
-//		"=": -1},
 
 	//-------------------------------------------------------------------------
 	
@@ -405,7 +371,7 @@ Clipperz.ByteArray_abstract.prototype = MochiKit.Base.update(null, {
 		length = aValue.length;
 		
 		if ((length % 4) != 0) {
-			MochiKit.Logging.logError("the value passed to the 'ByteArray.setBase64Value' is not correct");
+			Clipperz.logError("the value passed to the 'ByteArray.setBase64Value' is not correct");
 			throw Clipperz.ByteArray.exception.InvalidValue;
 		}
 
@@ -418,11 +384,6 @@ Clipperz.ByteArray_abstract.prototype = MochiKit.Base.update(null, {
 			value2 = this.base64map.indexOf(aValue.charAt(i+1));
 			value3 = this.base64map.indexOf(aValue.charAt(i+2));
 			value4 = this.base64map.indexOf(aValue.charAt(i+3));
-
-//			value1 = this.base64mapInvertedIndex[aValue.charAt(i)];
-//			value2 = this.base64mapInvertedIndex[aValue.charAt(i+1)];
-//			value3 = this.base64mapInvertedIndex[aValue.charAt(i+2)];
-//			value4 = this.base64mapInvertedIndex[aValue.charAt(i+3)];
 
 			byte1 = (value1 << 2) | ((value2 & 0x30) >> 4);
 			if (value3 != -1) {
@@ -520,7 +481,7 @@ Clipperz.ByteArray_abstract.prototype = MochiKit.Base.update(null, {
 		length = value.length;
 		
 		if ((length % 8) != 0) {
-			MochiKit.Logging.logError("the value passed to the 'ByteArray.setBase32Value' is not correct");
+			Clipperz.logError("the value passed to the 'ByteArray.setBase32Value' is not correct");
 			throw Clipperz.ByteArray.exception.InvalidValue;
 		}
 
@@ -728,7 +689,7 @@ Clipperz.ByteArray_hex = function (args) {
 						this._value = "0" + value;
 					}
 				} else {
-MochiKit.Logging.logError("Clipperz.ByteArray should be inizialized with an hex string.");
+Clipperz.logError("Clipperz.ByteArray should be inizialized with an hex string.");
 					throw Clipperz.ByteArray.exception.InvalidValue;
 				}
 			} else {
@@ -914,7 +875,7 @@ Clipperz.ByteArray_array = function (args) {
 						value = "0" + value;
 					}
 				} else {
-MochiKit.Logging.logError("Clipperz.ByteArray should be inizialized with an hex string.");
+					Clipperz.logError("Clipperz.ByteArray should be inizialized with an hex string.");
 					throw Clipperz.ByteArray.exception.InvalidValue;
 				}
 
@@ -1115,7 +1076,7 @@ Clipperz.ByteArray_string = function (args) {
 						value = "0" + value;
 					}
 				} else {
-MochiKit.Logging.logError("Clipperz.ByteArray should be inizialized with an hex string.");
+Clipperz.logError("Clipperz.ByteArray should be inizialized with an hex string.");
 					throw Clipperz.ByteArray.exception.InvalidValue;
 				}
 			} else {

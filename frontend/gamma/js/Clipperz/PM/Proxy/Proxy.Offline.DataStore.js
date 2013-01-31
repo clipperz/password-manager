@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -107,7 +105,6 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 
 			deferredResult.addMethod(this, 'userSerializedEncryptedData', someData['users'][i]);
 			deferredResult.addCallback(MochiKit.Base.bind(function(aUserSerializationContext) {
-//console.log("SERIALIZED USER", aUserSerializationContext);
 				resultData['users'][aUserSerializationContext['credentials']['C']] = {
 					's':		aUserSerializationContext['credentials']['s'],
 					'v':		aUserSerializationContext['credentials']['v'],
@@ -122,7 +119,6 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 		}
 		
 		deferredResult.addCallback(MochiKit.Base.bind(function() {
-//console.log("this._data", resultData);
 			this._data = resultData;
 		}, this));
 		
@@ -395,7 +391,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 			}
 			nextTollRequestType = 'CONNECT';
 		} else {
-			MochiKit.Logging.logError("Clipperz.PM.Proxy.Test.handshake - unhandled message: " + someParameters.message);
+			Clipperz.logError("Clipperz.PM.Proxy.Test.handshake - unhandled message: " + someParameters.message);
 		}
 
 		result = {
@@ -525,9 +521,6 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 			if (this.isReadOnly() == false) {
 				var i, c;
 
-//console.log("###===============================================================");
-//console.log("###>>>", Clipperz.Base.serializeJSON(someParameters));
-//console.log("###--- userData", Clipperz.Base.serializeJSON(this.userData()));
 				if (this.userData()['lock']	!= someParameters['parameters']['user']['lock']) {
 					throw "the lock attribute is not processed correctly"
 				}
@@ -562,7 +555,6 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 				this.userData()['lock'] = Clipperz.PM.Crypto.randomKey();
 				result['lock'] = this.userData()['lock'];
 				result['result'] = 'done';
-//console.log("###<<< userData", Clipperz.Base.serializeJSON(this.userData()));
 			} else {
 				throw Clipperz.PM.Proxy.Offline.DataStore.exception.ReadOnly;
 			}
@@ -571,13 +563,6 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 			if (this.isReadOnly() == false) {
 				var i, c;
 
-//console.log("###===============================================================");
-//console.log("###>>>", someParameters);
-//console.log("###>>>", Clipperz.Base.serializeJSON(someParameters));
-//console.log("###--- userData", Clipperz.Base.serializeJSON(this.userData()));
-//console.log("###===============================================================");
-//console.log("--- userData.lock  ", this.userData()['lock']);
-//console.log("--- parameters.lock", someParameters['parameters']['user']['lock']);
 				if (aConnection['userData']['lock']	!= someParameters['parameters']['user']['lock']) {
 					throw "the lock attribute is not processed correctly"
 				}
@@ -599,7 +584,6 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 						&&
 						(typeof(currentRecordData['currentRecordVersion']) == 'undefined')
 					) {
-//console.log("######## SHIT HAPPENS");
 						throw "Record added without a recordVersion";
 					}
 
@@ -635,14 +619,12 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 					var currentRecordReference;
 
 					currentRecordReference = someParameters['parameters']['records']['deleted'][i];
-//console.log("DELETING records", currentRecordReference);
 					delete aConnection['userData']['records'][currentRecordReference];
 				}
 
 				aConnection['userData']['lock'] = Clipperz.PM.Crypto.randomKey();
 				result['lock'] = aConnection['userData']['lock'];
 				result['result'] = 'done';
-//console.log("###<<< userData", Clipperz.Base.serializeJSON(this.userData()));
 			} else {
 				throw Clipperz.PM.Proxy.Offline.DataStore.exception.ReadOnly;
 			}
@@ -653,7 +635,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 		//
 		//=====================================================================
 		} else {
-			MochiKit.Logging.logError("Clipperz.PM.Proxy.Test.message - unhandled message: " + someParameters.message);
+			Clipperz.logError("Clipperz.PM.Proxy.Test.message - unhandled message: " + someParameters.message);
 		}
 	
 		result = {
@@ -686,12 +668,12 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 			var serializedHeader;
 			var version;
 
-//MochiKit.Logging.logDebug("### test data");
+//Clipperz.logDebug("### test data");
 			version = aConnection['userData']['userDetailsVersion'];
 			serializedHeader = Clipperz.Base.serializeJSON(aConnection['userData']['userDetails']);
 			result = Clipperz.PM.Crypto.encryptingFunctions.versions[version].encrypt(aConnection['userData']['__masterkey_test_value__'], serializedHeader);
 		} else {
-//MochiKit.Logging.logDebug("### NOT test data");
+//Clipperz.logDebug("### NOT test data");
  			result = aConnection['userData']['userDetails'];
 		}
 		
@@ -749,11 +731,9 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 		});
 
 //		deferredResult.addCallback(function(aDeferredContext) {
-//console.log("#-#-#-#-#", aDeferredContext);
 //			return aDeferredContext['user'].serializedDataUsingVersion(MochiKit.Base.values(aDeferredContext['user'].records()), aDeferredContext['data']['version']);
 //		}, deferredContext);
 //		deferredResult.addCallback(function(aUserSerializedData) {
-//console.log("USER SERIALIZED DATA", aUserSerializedData);
 //		});
 //
 //		deferredResult.addCallback(MochiKit.Async.succeed, deferredContext);

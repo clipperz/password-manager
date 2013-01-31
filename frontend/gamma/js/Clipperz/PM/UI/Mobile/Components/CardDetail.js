@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -58,7 +56,6 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.CardDetail, Clipperz.PM.UI
 	//-------------------------------------------------------------------------
 
 	'renderSelf': function () {
-console.log("CardDetail.renderSelf");
 		this.append(this.element(), {tag:'div', cls:'cardDetail', children:[
 			{tag:'div', cls:'toolbar', children:[
 				{tag:'a', href:'#', cls:'back', html:"List"},
@@ -155,7 +152,6 @@ console.log("CardDetail.renderSelf");
 			]}
 		]})
 
-console.log("ADD DIRECT LOGIN", aDirectLogin);
 	},
 
 	//=========================================================================
@@ -165,7 +161,6 @@ console.log("ADD DIRECT LOGIN", aDirectLogin);
 
 //		this.render();
 
-console.log("CardDetail.showCard", aCard);
 		deferredResult = new Clipperz.Async.Deferred("CardDetail.showCard", {trace:false});
 		deferredResult.addMethod(aCard, 'label');
 		deferredResult.addMethod(this, 'setTitle');
@@ -266,7 +261,6 @@ console.log("CardDetail.showCard", aCard);
 		var	nextState;
 		var	fieldValue;
 		
-//console.log("TOGGLE");
 		anEvent.preventDefault;
 		fieldValue = MochiKit.Selector.findChildElements(anEvent.src().parentNode.parentNode, ['span.password'])[0];
 

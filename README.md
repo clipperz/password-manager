@@ -1,46 +1,34 @@
-# ![Clipperz icon][icon] CLIPPERZ COMMUNITY EDITION - Online Password Manager
+# ![Clipperz icon][icon] CLIPPERZ - Online Password Manager
 
 
-[Clipperz Community Edition][CE] allows you to host on your own server a web service identical to [Clipperz online password manager][clipperz]. It supports multiple backends (PHP/MySQL, Python/AppEngine, …) and you can contribute your own.
+##What does Clipperz do?
 
-ALL the code included in this project, if not otherwise stated, is released with the **AGPL v.3 license**  (see `LICENSE.txt`), and all rights are reserved to Clipperz Srl.
+You can think of Clipperz as an online vault where you can store any sort of confidential data without worrying about security. It can be used to save and manage passwords, private notes, burglar alarm codes, credit and debit card details, PINs, software keys, …
+Since passwords are the most common type of private information that you need to protect, we have added a great deal of functionality to make Clipperz the best online password manager available thus solving the “password fatigue” problem.
 
-For any use not allowed by the AGPL license, please [contact us][contact] to inquire about licensing options for commercial applications.
+**Clipperz makes the Internet the most convenient and safe place to keep you most precious and sensitive data.**
 
+Read more on the [Clipperz website][clipperz].
 
-## Why a Community Edition
+## Why an open source version
 
-But why would you prefer running Clipperz Community Edition from your own server instead of using the free and anonymous online service provided by its developers?
+Because we want to enable as many people as possible to play with our code. So that you can start trusting it, the code not the developers.
 
-* “Clipperz security architecture is great, but I prefer to store my data on my hardware. I just feel better this way!”
-* “Clipperz is cool, but it would be even cooler it it had a Scala backend. I'm going to write it!"
-* “I would like to modify the look & feel of Clipperz and embed this powerful password manager within my family intranet.”
-* “Clipperz works nicely, but I would love to play with the source code in order to improve feature X and add new features Y and Z.”
-* …
+In order to allow you to inspect the code and analyze the traffic it generates between client and server, we had to provide an easy way to locally deploy the whole service.
 
-Whatever is your motivation, we would love to hear from you about how and where you use Clipperz Community Edition. [Get in contact!][contact]
+So, feel free to host on your own server a web service identical to [Clipperz online password manager][clipperz]. You can choose among multiple backends (PHP/MySQL, Python/AppEngine, …) and you can contribute your own.
 
+Whatever is your motivation, we would love to hear from you: [get in contact!][contact]
+
+## License
+ALL the code included in this project, if not otherwise stated, is released with the **AGPL v.3 license**  (see `LICENSE.txt`), and all rights are reserved to Clipperz Srl. For any use not allowed by the AGPL license, please [contact us][contact] to inquire about licensing options for commercial applications.
 
 ## Warnings
-
-Please note that Clipperz Community Edition may not be suitable for mass deployments, depending on how robust is the backend you select. 
-
-As an example, the current PHP backend lacks several critical capabilities such as bot protection and cuncurrent sessions management.
-
-
-## Community Edition vs Workgroup Edition
-
-This Community Edition is aimed to **individual users**, but you may be interested to know that we are working on a **Workgroup Edition** targeting organizations that need a
-password manager for their workforce (creating and managing employees accounts, defining groups and sharing policies, ...).
-
-The Workgroup Edition development is quite challenging and, while the overall design is already in place, it will still require a fairly large amount of resources for analysis and implementation.
-
-If your organization is interested in such edition, you can subscribe a "pledge" to sustain its development in exchange for a very generous user license with unlimited upgrades and other benefits. Again, [get in contact][contact]!
-
+Please note that the open source version of Clipperz may not be suitable for mass deployments, depending on how robust is the backend you select. As an example, the current PHP backend lacks several critical capabilities such as bot protection and cuncurrent sessions management.
 
 ## Contributions
 
-Your contributions to Clipperz Community Edition are very welcome! In order to avoid jeopardizing the ownership of the code base, we will require every developer to sign the Clipperz [Contributor Agreement][CA]
+Your contributions to Clipperz are very welcome! In order to avoid jeopardizing the ownership of the code base, we will require every developer to sign the Clipperz [Contributor Agreement][CA]
 
 This enables a single entity to represent the aggregated code base and gives the community flexibility to act as a whole to changing situations.
 
@@ -84,7 +72,6 @@ More information about building the PHP backend may be found in the `doc/install
 The resulting application has not been fully tested, so there may be still problems due to the new build script or some other changes that were done due to the new repository structure. So, for the moment, **use it at your own risk!**
 
 [icon]: http://0.gravatar.com/avatar/2a9fae49ced80a42830a206f88ea1022?size=100
-[CE]: http://clipperz.com/open_source/clipperz_community_edition
 [clipperz]: http://www.clipperz.com 
 [contact]: http://clipperz.com/contact
 [CA]: http://www.clipperz.com/open_source/contributor_agreement

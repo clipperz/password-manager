@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -62,8 +60,7 @@ Clipperz.Base.extend(Clipperz.Async.Deferred, MochiKit.Async.Deferred, {
 
 	'callback': function (aValue) {
 		if (this._shouldTrace) {
-		//	Clipperz.log("CALLBACK " + this._name, aValue);
-			console.log("CALLBACK " + this._name, aValue);
+			Clipperz.log("CALLBACK " + this._name, aValue);
 		}
 
 		if (this.chained == false) {
@@ -83,9 +80,7 @@ Clipperz.Base.extend(Clipperz.Async.Deferred, MochiKit.Async.Deferred, {
 				resultMessage = "RESULT   " + this._name + " <==";
 //				this.addCallback(function(aResult) {
 				Clipperz.Async.Deferred.superclass.addCallback.call(this, function(aResult) {
-				//	Clipperz.log(resultMessage, aResult);
-					console.log(resultMessage, aResult);
-
+					Clipperz.log(resultMessage, aResult);
 					return aResult;
 				});
 			}
@@ -108,10 +103,8 @@ Clipperz.Base.extend(Clipperz.Async.Deferred, MochiKit.Async.Deferred, {
 			message = "[" + this._count + "] " + this._name + " ";
 //			this.addBoth(function(aResult) {Clipperz.log(message + "-->", aResult); return aResult;});
 			this.addCallbacks(
-			//	function(aResult) {Clipperz.log("-OK- " + message + "-->"/*, aResult*/); return aResult;},
-				function(aResult) {console.log("-OK- " + message + "-->"/*, aResult*/); return aResult;},
-			//	function(aResult) {Clipperz.log("FAIL " + message + "-->"/*, aResult*/); return aResult;}
-				function(aResult) {console.log("FAIL " + message + "-->"/*, aResult*/); return aResult;}
+				function(aResult) {Clipperz.log("-OK- " + message + "-->"/*, aResult*/); return aResult;},
+				function(aResult) {Clipperz.log("FAIL " + message + "-->"/*, aResult*/); return aResult;}
 			);
 		}
 
@@ -120,10 +113,8 @@ Clipperz.Base.extend(Clipperz.Async.Deferred, MochiKit.Async.Deferred, {
 		if (this._shouldTrace) {
 //			this.addBoth(function(aResult) {Clipperz.log(message + "<--", aResult); return aResult;});
 			this.addCallbacks(
-			//	function(aResult) {Clipperz.log("-OK- " + message + "<--", aResult); return aResult;},
-				function(aResult) {console.log("-OK- " + message + "<--", aResult); return aResult;},
-			//	function(aResult) {Clipperz.log("FAIL " + message + "<--", aResult); return aResult;}
-				function(aResult) {console.log("FAIL " + message + "<--", aResult); return aResult;}
+				function(aResult) {Clipperz.log("-OK- " + message + "<--", aResult); return aResult;},
+				function(aResult) {Clipperz.log("FAIL " + message + "<--", aResult); return aResult;}
 			);
 		}
 	},
@@ -212,7 +203,6 @@ Clipperz.Base.extend(Clipperz.Async.Deferred, MochiKit.Async.Deferred, {
 	'addLog': function (aLog) {
 		if (CLIPPERZ_DEFERRED_LOGGING_ENABLED) {
 			this.addBothPass(function(res) {Clipperz.log(aLog + " ", res);});
-//			this.addBothPass(function(res) {console.log(aLog + " ", res);});
 		}
 	},
 
@@ -237,7 +227,7 @@ Clipperz.Base.extend(Clipperz.Async.Deferred, MochiKit.Async.Deferred, {
 //			], {trace:false});
 //		});
 //		this.addErrback(function (aResult) {
-///console.log("releaseLock.addErrback:", aResult);
+///Clipperz.log("releaseLock.addErrback:", aResult);
 //			return Clipperz.Async.callbacks("Clipperz.Async.release <fail>", [
 //				MochiKit.Base.method(aLock, 'release'),
 //				MochiKit.Base.partial(MochiKit.Async.fail, aResult)
@@ -377,7 +367,7 @@ MochiKit.Base.update(Clipperz.Async.DeferredSynchronizer.prototype, {
 			var	methodCalls;
 			var ii, cc;
 
-//console.log("TYPEOF", typeof(this.methods()[i]));
+//Clipperz.log("TYPEOF", typeof(this.methods()[i]));
 			if (typeof(this.methods()[i]) == 'function') {
 				methodCalls = [ this.methods()[i] ];
 			} else {
@@ -637,7 +627,7 @@ MochiKit.Base.update(Clipperz.Async, {
 		for (i=0; i<c; i++) {
 			deferredResult.addCallback(Clipperz.Async.insertIntoSortedArray, someObjects[i], aDeferredComparator);
 			if ((i % 50) == 0) {
-//	console.log("######### sort wait ##########");
+//	Clipperz.log("######### sort wait ##########");
 				deferredResult.addCallback(MochiKit.Async.wait, 0.5);
 			}
 		}		
@@ -688,7 +678,7 @@ MochiKit.Base.update(Clipperz.Async, {
 		return Clipperz.Async.callbacks("Clipperz.Async.or", [
 			MochiKit.Base.values,
 			MochiKit.Base.flattenArguments,
-//function (aValue) { console.log("Record.hasAnyCleanTextData - flatten", aValue); return aValue; },
+//function (aValue) { Clipperz.log("Record.hasAnyCleanTextData - flatten", aValue); return aValue; },
 			function(someInnerValues) {
 				return MochiKit.Iter.some(someInnerValues, MochiKit.Base.operator.identity);
 			}

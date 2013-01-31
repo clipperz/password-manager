@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -72,7 +70,6 @@ MochiKit.Base.update(Clipperz.PM.UI.Web.Controllers.NewUserWizardController.prot
 	},
 	
 	'setUserCreationState': function (aValue) {
-//console.log("+++ NewUserWizardController.setUserCreationState", aValue);
 		this._userCreationState = aValue;
 		this.checkState();
 	},
@@ -222,8 +219,6 @@ MochiKit.Base.update(Clipperz.PM.UI.Web.Controllers.NewUserWizardController.prot
 			case 'TERMS_OF_SERVICE':
 				this.newUserCreationComponent().enableTermsOfServicePanel();
 
-//console.log("awareOfUnrecoverablePassphrase", this.newUserCreationComponent().awareOfUnrecoverablePassphrase());
-//console.log("readTermsOfService", this.newUserCreationComponent().readTermsOfService());
 				enableNext = (
 					(this.newUserCreationComponent().awareOfUnrecoverablePassphrase() == 'on')
 					&&
@@ -231,7 +226,6 @@ MochiKit.Base.update(Clipperz.PM.UI.Web.Controllers.NewUserWizardController.prot
 				)
 				break;
 			case 'CREATE_USER':
-//console.log(">>> CREATE_USER", this.userCreationState());
 				this.newUserCreationComponent().enableCreateUserPanel();
 
 				switch (this.userCreationState()) {
@@ -337,7 +331,6 @@ MochiKit.Base.update(Clipperz.PM.UI.Web.Controllers.NewUserWizardController.prot
 
 			afterMoveAction = MochiKit.Base.noop;
 
-//console.log("<-- backward", this.currentStep());
 			switch(this.currentStep()) {
 				case 'CREDENTIALS':
 				case 'CHECK_CREDENTIALS':
@@ -406,7 +399,6 @@ MochiKit.Base.update(Clipperz.PM.UI.Web.Controllers.NewUserWizardController.prot
 	//-------------------------------------------------------------------------
 
 	'handleNewUserCreationComponentKeyPressed': function (anEvent) {
-//console.log(">>> handleNewUserCreationComponentKeyPressed", anEvent.key().string);
 		if (anEvent.key().string == 'KEY_ENTER') {
 			if (anEvent.target().nodeName != 'TEXTAREA') {
 				anEvent.preventDefault();

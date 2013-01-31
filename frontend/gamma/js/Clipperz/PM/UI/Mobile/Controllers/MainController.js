@@ -1,32 +1,30 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
 Clipperz.Base.module('Clipperz.PM.UI.Mobile.Controllers');
 
 Clipperz.PM.UI.Mobile.Controllers.MainController = function() {
-	this._jQTouch		= null;
+//	this._jQTouch		= null;
 	this._user			= null;
 	this._proxy			= null;
 	this._loginForm 	= null;
@@ -53,7 +51,7 @@ MochiKit.Base.update(Clipperz.PM.UI.Mobile.Controllers.MainController.prototype,
 	},
 
 	//-------------------------------------------------------------------------
-
+/*
 	'jQTouch': function () {
 		return this._jQTouch;
 	},
@@ -61,12 +59,10 @@ MochiKit.Base.update(Clipperz.PM.UI.Mobile.Controllers.MainController.prototype,
 	'setJQTouch': function (aValue) {
 		this._jQTouch = aValue;
 	},
-
+*/
 	//=========================================================================
 
 	'run': function () {
-		console.log("MainController.run");
-
 		MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, 'doLogin', MochiKit.Base.method(this, 'doLogin'));
 		Clipperz.DOM.Helper.overwrite(MochiKit.DOM.currentDocument().body, {tag:'div', id:'jqt', children:[
 			{tag:'div', id:'loginForm'},
@@ -77,13 +73,13 @@ MochiKit.Base.update(Clipperz.PM.UI.Mobile.Controllers.MainController.prototype,
 
 		this.showLoginForm();
 
-		this.initjQTouch();
+//		this.initjQTouch();
 
 
 //		this.showAddToHomeScreenBaloon();
 //		this.selectInitialProxy();
 	},
-
+/*
 	'initjQTouch': function () {
 		var jqt;
 
@@ -124,23 +120,19 @@ MochiKit.Base.update(Clipperz.PM.UI.Mobile.Controllers.MainController.prototype,
 
 		this.setJQTouch(jqt);
 	},
-
+*/
 	//=========================================================================
 
 	'showAddToHomeScreenBaloon': function () {
-console.log(">>> showAddToHomeScreenBaloon");
 	},
 
 	//-------------------------------------------------------------------------
 
 	'selectInitialProxy': function () {
-//console.log(">>> selectInitialProxy");
 		if (this.isOnline()) {
-//console.log("--- selectInitialProxy: using default proxy");
 			this._proxy = Clipperz.PM.Proxy.defaultProxy;
 		} else {
 			if (this.hasLocalData()) {
-//console.log("--- selectInitialProxy: using local cache proxy");
 				this._proxy = new Clipperz.PM.Proxy.OfflineCache({'shouldPayTolls':false});
 			} else {
 				this.showOfflineError();
@@ -167,7 +159,6 @@ console.log(">>> showAddToHomeScreenBaloon");
 	//.........................................................................
 
 	'handleFailedCredentialsLogin': function () {
-console.log("LOGIN FAILED");
 		this.showLoginForm({'previousFailedAttempt':'LOGIN'});
 	},
 
@@ -190,7 +181,6 @@ console.log("LOGIN FAILED");
 		var user;
 		var getPassphraseDelegate;
 
-//console.log(">>> MainController.doLogin", someArgs);
 		credentials = someArgs['credentials'];
 		errorCallback = someArgs['errorCallback'] || MochiKit.Base.noop;
 
@@ -232,7 +222,6 @@ console.log("LOGIN FAILED");
 	'setupApplication': function () {
 		var	deferredResult;
 
-console.log(">>> setupApplication");
 		deferredResult = new Clipperz.Async.Deferred("MainController.setupApplication", {trace:false});
 		deferredResult.addMethod(this, 'welcomeFirstTimeUser');
 		deferredResult.addMethod(this, 'showPaymentReminder');
@@ -255,7 +244,7 @@ console.log(">>> setupApplication");
 		deferredResult = new Clipperz.Async.Deferred('MainController.welcomeFirstTimeUser', {trace:false});
 
 		if (this.isFirstTimeUser()) {
-			deferredResult.addCallback(function () { console.log("--> welcome"); });
+			deferredResult.addCallback(function () { Clipperz.log("--> welcome"); });
 		}
 		deferredResult.callback();
 
@@ -274,7 +263,7 @@ console.log(">>> setupApplication");
 		deferredResult = new Clipperz.Async.Deferred('MainController.showPaymentReminder', {trace:false});
 
 		if (this.shouldShowPaymentReminder()) {
-			deferredResult.addCallback(function () { console.log("--> payment reminder"); });
+			deferredResult.addCallback(function () { Clipperz.log("--> payment reminder"); });
 		}
 		deferredResult.callback();
 
@@ -293,7 +282,7 @@ console.log(">>> setupApplication");
 		deferredResult = new Clipperz.Async.Deferred('MainController.copyDataLocally', {trace:false});
 
 		if (this.canCopyDataLocally()) {
-			deferredResult.addCallback(function () { console.log("--> copy data locally"); });
+			deferredResult.addCallback(function () { Clipperz.log("--> copy data locally"); });
 		}
 		deferredResult.callback();
 
@@ -306,7 +295,6 @@ console.log(">>> setupApplication");
 	'runApplication': function () {
 		var deferredResult;
 
-//console.log(">>> runApplication");
 		deferredResult = new Clipperz.Async.Deferred('MainController.runApplication', {trace:true});
 		deferredResult.addMethod(this.user(), 'getRecords');
 		deferredResult.addMethod(this, 'showCards');
@@ -362,7 +350,7 @@ console.log(">>> setupApplication");
 
 	'showCards': function (someCards) {
 		this.cardList().showCards(someCards);
-		this.jQTouch().goTo('#cardList', 'slideleft');
+//		this.jQTouch().goTo('#cardList', 'slideleft');
 	},
 
 	//-------------------------------------------------------------------------
@@ -380,7 +368,7 @@ console.log(">>> setupApplication");
 
 		deferredResult = new Clipperz.Async.Deferred("MainController.selectCardHandler", {trace:true});
 		deferredResult.addMethod(this.cardDetail(), 'render');
-		deferredResult.addMethod(this.jQTouch(), 'goTo', '#cardDetail', 'slideleft');
+//		deferredResult.addMethod(this.jQTouch(), 'goTo', '#cardDetail', 'slideleft');
 		deferredResult.addMethod(this.user(), 'getRecord', aCardReference);
 		deferredResult.addMethod(this.cardDetail(), 'showCard');
 		deferredResult.callback();

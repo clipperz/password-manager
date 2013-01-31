@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -214,6 +212,7 @@ div.tooltip div.tooltip_body {
   -webkit-border-radius: 8px;
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#bbbbbb), to(#555555));
   background: -moz-linear-gradient(0% 100% 90deg, #555555, #bbbbbb);
+  background: linear-gradient(0deg, #555555, #bbbbbb);
   -webkit-box-shadow: 4px 4px 10px #333333;
   -moz-box-shadow: 4px 4px 10px #333333;
   box-shadow: 4px 4px 10px #333333;
@@ -269,6 +268,7 @@ div.tooltip.RIGHT div.tooltip_body div.tooltip_text {
   cursor: pointer;
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ffa76f), to(#ff6622));
   background: -moz-linear-gradient(0% 100% 90deg, #ff6622, #ffa76f);
+  background: linear-gradient(0deg, #ff6622, #ffa76f);
   border-radius: 5;
   -moz-border-radius: 5;
   -webkit-border-radius: 5;
@@ -286,6 +286,7 @@ div.tooltip.RIGHT div.tooltip_body div.tooltip_text {
 .button.default:hover {
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ff8e46), to(#ff6622));
   background: -moz-linear-gradient(0% 100% 90deg, #ff6622, #ff8e46);
+  background: linear-gradient(0deg, #ff6622, #ff8e46);
 }
 .button {
   display: inline-block;
@@ -293,6 +294,7 @@ div.tooltip.RIGHT div.tooltip_body div.tooltip_text {
   cursor: pointer;
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#bfbfbf), to(#999999));
   background: -moz-linear-gradient(0% 100% 90deg, #999999, #bfbfbf);
+  background: linear-gradient(0deg, #999999, #bfbfbf);
   border-radius: 5;
   -moz-border-radius: 5;
   -webkit-border-radius: 5;
@@ -309,6 +311,7 @@ div.tooltip.RIGHT div.tooltip_body div.tooltip_text {
 .button:hover {
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ababab), to(#999999));
   background: -moz-linear-gradient(0% 100% 90deg, #999999, #ababab);
+  background: linear-gradient(0deg, #999999, #ababab);
 }
 /*
 
@@ -449,6 +452,7 @@ div.pageHeaderAndBody div.pageHeader div#featureTabs canvas.featureIcon {
   float: left;
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ffad79), to(#ff6622));
   background: -moz-linear-gradient(0% 100% 90deg, #ff6622, #ffad79);
+  background: linear-gradient(0deg, #ff6622, #ffad79);
   border-radius: 38px;
   -moz-border-radius: 38px;
   -webkit-border-radius: 38px;
@@ -615,6 +619,7 @@ div#loginBox div.header {
 div#loginBox div.body {
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ff9b5a), to(#ff6622));
   background: -moz-linear-gradient(0% 100% 90deg, #ff6622, #ff9b5a);
+  background: linear-gradient(0deg, #ff6622, #ff9b5a);
 }
 div#loginBox div.body h4 {
   color: #ffffff;
@@ -892,6 +897,7 @@ div.userInfoBox {
   background-color: #ff9955;
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ff9a56), to(#ff6723));
   background: -moz-linear-gradient(0% 100% 90deg, #ff6723, #ff9a56);
+  background: linear-gradient(0deg, #ff6723, #ff9a56);
   border-radius: 10px;
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
@@ -1273,6 +1279,7 @@ div.subPanelContent ul li.selected {
   cursor: pointer;
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#59bc4c), to(#448833));
   background: -moz-linear-gradient(0% 100% 90deg, #448833, #59bc4c);
+  background: linear-gradient(0deg, #448833, #59bc4c);
   border-radius: 5;
   -moz-border-radius: 5;
   -webkit-border-radius: 5;
@@ -1289,6 +1296,7 @@ div.subPanelContent ul li.selected {
 .downloadOfflineCopy:hover {
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#49a23d), to(#448833));
   background: -moz-linear-gradient(0% 100% 90deg, #448833, #49a23d);
+  background: linear-gradient(0deg, #448833, #49a23d);
 }
 div.SimpleMessagePanel {
   position: relative;
@@ -1322,6 +1330,7 @@ div.SimpleMessagePanel div.body div.img {
   margin-right: 15px;
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ff9b5a), to(#ff6622));
   background: -moz-linear-gradient(0% 100% 90deg, #ff6622, #ff9b5a);
+  background: linear-gradient(0deg, #ff6622, #ff9b5a);
   border-radius: 25px;
   -moz-border-radius: 25px;
   -webkit-border-radius: 25px;

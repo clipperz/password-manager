@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -102,22 +100,13 @@ Clipperz.Crypto.ECC.BinaryField.Curve.prototype = MochiKit.Base.update(null, {
 	'add': function(aPointA, aPointB) {
 		var result;
 
-//console.log(">>> ECC.BinaryField.Curve.add");
 		if (aPointA.isZero()) {
-//console.log("--- pointA == zero");
 			result = aPointB;
 		} else if (aPointB.isZero()) {
-//console.log("--- pointB == zero");
 			result = aPointA;
 		} else if (	(aPointA.x().compare(aPointB.x()) == 0) && ((aPointA.y().compare(aPointB.y()) != 0) || aPointB.x().isZero())) {
-//console.log("compare A.x - B.x: ", aPointA.x().compare(aPointB.x()));
-//console.log("compare A.y - B.y: ", (aPointA.y().compare(aPointB.y()) != 0));
-//console.log("compare B.x.isZero(): ", aPointB.x().isZero());
-
-//console.log("--- result = zero");
 			result = new Clipperz.Crypto.ECC.BinaryField.Point({x:Clipperz.Crypto.ECC.BinaryField.Value.O, y:Clipperz.Crypto.ECC.BinaryField.Value.O});
 		} else {
-//console.log("--- result = ELSE");
 			var	f2m;
 			var x, y;
 			var lambda;
@@ -131,7 +120,6 @@ Clipperz.Crypto.ECC.BinaryField.Curve.prototype = MochiKit.Base.update(null, {
 			f2m = this.finiteField();
 			
 			if (aPointA.x().compare(aPointB.x()) != 0) {
-//console.log(" a.x != b.x");
 				lambda =	f2m._fastMultiply(
 								f2m._add(aY, bY),
 								f2m._inverse(f2m._add(aX, bX))
@@ -141,25 +129,17 @@ Clipperz.Crypto.ECC.BinaryField.Curve.prototype = MochiKit.Base.update(null, {
 				f2m._overwriteAdd(x, aX);
 				f2m._overwriteAdd(x, bX);
 			} else {
-//console.log(" a.x == b.x");
 				lambda = f2m._add(bX, f2m._fastMultiply(bY, f2m._inverse(bX)));
-//console.log(" lambda: " + lambda.asString(16));
 				x = f2m._add(this.a()._value, f2m._square(lambda));
-//console.log(" x (step 1): " + x.asString(16));
 				f2m._overwriteAdd(x, lambda);
-//console.log(" x (step 2): " + x.asString(16));
 			}
 			
 			y = f2m._fastMultiply(f2m._add(bX, x), lambda);
-//console.log(" y (step 1): " + y.asString(16));
 			f2m._overwriteAdd(y, x);
-//console.log(" y (step 2): " + y.asString(16));
 			f2m._overwriteAdd(y, bY);
-//console.log(" y (step 3): " + y.asString(16));
 
 			result = new Clipperz.Crypto.ECC.BinaryField.Point({x:new Clipperz.Crypto.ECC.BinaryField.Value(x), y:new Clipperz.Crypto.ECC.BinaryField.Value(y)})
 		}
-//console.log("<<< ECC.BinaryField.Curve.add");
 		
 		return result;
 	},
@@ -197,7 +177,6 @@ Clipperz.Crypto.ECC.BinaryField.Curve.prototype = MochiKit.Base.update(null, {
 			f2m = this.finiteField();
 			
 			if (aPointA.x().compare(aPointB.x()) != 0) {
-//console.log(" a.x != b.x");
 				lambda =	f2m._fastMultiply(
 								f2m._add(aY, bY),
 								f2m._inverse(f2m._add(aX, bX))
@@ -207,28 +186,20 @@ Clipperz.Crypto.ECC.BinaryField.Curve.prototype = MochiKit.Base.update(null, {
 				f2m._overwriteAdd(x, aX);
 				f2m._overwriteAdd(x, bX);
 			} else {
-//console.log(" a.x == b.x");
 				lambda = f2m._add(bX, f2m._fastMultiply(bY, f2m._inverse(bX)));
-//console.log(" lambda: " + lambda.asString(16));
 				x = f2m._add(this.a()._value, f2m._square(lambda));
-//console.log(" x (step 1): " + x.asString(16));
 				f2m._overwriteAdd(x, lambda);
-//console.log(" x (step 2): " + x.asString(16));
 			}
 			
 			y = f2m._fastMultiply(f2m._add(bX, x), lambda);
-//console.log(" y (step 1): " + y.asString(16));
 			f2m._overwriteAdd(y, x);
-//console.log(" y (step 2): " + y.asString(16));
 			f2m._overwriteAdd(y, bY);
-//console.log(" y (step 3): " + y.asString(16));
 
 //			result = new Clipperz.Crypto.ECC.BinaryField.Point({x:new Clipperz.Crypto.ECC.BinaryField.Value(x), y:new Clipperz.Crypto.ECC.BinaryField.Value(y)})
 			aPointA._x._value = x;
 			aPointA._y._value = y;
 
 		}
-//console.log("<<< ECC.BinaryField.Curve.add");
 		
 		return result;
 	},
@@ -250,13 +221,11 @@ Clipperz.Crypto.ECC.BinaryField.Curve.prototype = MochiKit.Base.update(null, {
 				k = aValue;
 				Q = aPoint;
 			} else {
-MochiKit.Logging.logError("The Clipperz.Crypto.ECC.BinaryFields.Value does not work with negative values!!!!");
+				Clipperz.logError("The Clipperz.Crypto.ECC.BinaryFields.Value does not work with negative values!!!!");
 				k = aValue.negate();
 				Q = this.negate(aPoint);
 			}
 
-//console.log("k: " + k.toString(16));
-//console.log("k.bitSize: " + k.bitSize());
 			for (i=k.bitSize()-1; i>=0; i--) {
 				result = this.add(result, result);
 //				this.overwriteAdd(result, result);
@@ -265,7 +234,7 @@ MochiKit.Logging.logError("The Clipperz.Crypto.ECC.BinaryFields.Value does not w
 //					this.overwriteAdd(result, Q);
 				}
 				
-//				if (countIndex==100) {console.log("multiply.break"); break;} else countIndex++;
+//				if (countIndex==100) {Clipperz.log("multiply.break"); break;} else countIndex++;
 			}
 		}
 //console.profileEnd();
@@ -279,14 +248,14 @@ MochiKit.Logging.logError("The Clipperz.Crypto.ECC.BinaryFields.Value does not w
 		var deferredResult;
 		var result;
 
-MochiKit.Logging.logDebug(">>> deferredMultiply - value: " + aValue + ", point: " + aPoint);
+Clipperz.log(">>> deferredMultiply - value: " + aValue + ", point: " + aPoint);
 //console.profile("ECC.Curve.multiply");
 		deferredResult = new MochiKit.Async.Deferred();
 //deferredResult.addCallback(function(res) {console.profile("ECC.Curve.deferredMultiply"); return res;} );
-//deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("# 1: " + res); return res;});
+//deferredResult.addBoth(function(res) {Clipperz.logDebug("# 1: " + res); return res;});
 		
 		result = new Clipperz.Crypto.ECC.BinaryField.Point({x:Clipperz.Crypto.ECC.BinaryField.Value.O, y:Clipperz.Crypto.ECC.BinaryField.Value.O});
-//deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("# 2: " + res); return res;});
+//deferredResult.addBoth(function(res) {Clipperz.logDebug("# 2: " + res); return res;});
 
 		if (aValue.isZero() == false) {
 			var k, Q;
@@ -297,18 +266,13 @@ MochiKit.Logging.logDebug(">>> deferredMultiply - value: " + aValue + ", point: 
 				k = aValue;
 				Q = aPoint;
 			} else {
-MochiKit.Logging.logError("The Clipperz.Crypto.ECC.BinaryFields.Value does not work with negative values!!!!");
+				Clipperz.logError("The Clipperz.Crypto.ECC.BinaryFields.Value does not work with negative values!!!!");
 				k = aValue.negate();
 				Q = this.negate(aPoint);
 			}
 
-//console.log("k: " + k.toString(16));
-//console.log("k.bitSize: " + k.bitSize());
 
-//deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("# 3: " + res); return res;});
 			for (i=k.bitSize()-1; i>=0; i--) {
-//MochiKit.Logging.logDebug("====> " + i);
-//deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("# 4 > i = " + i + ": " + res); return res;});
 				deferredResult.addMethod(this, "addTwice");
 //#				result = this.add(result, result);
 //				this.overwriteAdd(result, result);
@@ -318,16 +282,10 @@ MochiKit.Logging.logError("The Clipperz.Crypto.ECC.BinaryFields.Value does not w
 //					this.overwriteAdd(result, Q);
 				}
 				if (i%20 == 0) {deferredResult.addCallback(MochiKit.Async.wait, 0.1);}
-				
-//				if (countIndex==100) {console.log("multiply.break"); break;} else countIndex++;
-//deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("# 4 < i = " + i + ": " + res); return res;});
 			}
-//deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("# 4: " + res); return res;});
 		}
 //#console.profileEnd();
-//deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("# 5: " + res); return res;});
 //deferredResult.addBoth(function(res) {console.profileEnd(); return res;});
-//deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("# 6: " + res); return res;});
 		deferredResult.callback(result);
 		
 //#		return result;
@@ -441,14 +399,12 @@ MochiKit.Base.update(Clipperz.Crypto.ECC.StandardCurves, {
 				var	result;
 				
 				if (aValue.bitSize() > 1140) {
-					MochiKit.Logging.logWarning("ECC.StandarCurves.B571.finiteField().module: falling back to default implementation");
+					Clipperz.logWarning("ECC.StandarCurves.B571.finiteField().module: falling back to default implementation");
 					result = Clipperz.Crypto.ECC.StandardCurves._B571.finiteField().slowModule(aValue);
 				} else {
 					var	C, T;
 					var i;
 		
-//console.log(">>> binaryField.finiteField.(improved)module");
-//					C = aValue.value().slice(0);
 					C = aValue._value.slice(0);
 					for (i=35; i>=18; i--) {
 						T = C[i];
@@ -464,7 +420,6 @@ MochiKit.Base.update(Clipperz.Crypto.ECC.StandardCurves, {
 					}
 				
 					result = new Clipperz.Crypto.ECC.BinaryField.Value(C);
-//console.log("<<< binaryField.finiteField.(improved)module");
 				}
 			
 				return result;
@@ -507,13 +462,12 @@ MochiKit.Base.update(Clipperz.Crypto.ECC.StandardCurves, {
 				var	result;
 
 				if (aValue.bitSize() > 564) {
-					MochiKit.Logging.logWarning("ECC.StandarCurves.B283.finiteField().module: falling back to default implementation");
+					Clipperz.logWarning("ECC.StandarCurves.B283.finiteField().module: falling back to default implementation");
 					result = Clipperz.Crypto.ECC.StandardCurves._B283.finiteField().slowModule(aValue);
 				} else {
 					var	C, T;
 					var i;
 					
-//console.log(">>> binaryField.finiteField.(improved)module");
 					C = aValue._value.slice(0);
 					for (i=17; i>=9; i--) {
 						T = C[i];
@@ -529,7 +483,6 @@ MochiKit.Base.update(Clipperz.Crypto.ECC.StandardCurves, {
 					}
 				
 					result = new Clipperz.Crypto.ECC.BinaryField.Value(C);
-//console.log("<<< binaryField.finiteField.(improved)module");
 				}
 				
 				return result;

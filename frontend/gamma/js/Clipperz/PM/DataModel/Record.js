@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -29,7 +27,6 @@ if (typeof(Clipperz.PM.DataModel) == 'undefined') { Clipperz.PM.DataModel = {}; 
 
 
 Clipperz.PM.DataModel.Record = function(args) {
-//console.log(">>> new Clipperz.PM.DataModel.Record", args);
 	Clipperz.PM.DataModel.Record.superclass.constructor.apply(this, arguments);
 
 	this._updateDate				= (args.updateDate ? Clipperz.PM.Date.parse(args.updateDate) : Clipperz.Base.exception.raise('MandatoryParameter'));
@@ -61,8 +58,6 @@ Clipperz.PM.DataModel.Record = function(args) {
 		this._currentVersionReference = newVersion.reference();
 //		this.setLabel('');
 	}
-
-//console.log("<<< new Clipperz.PM.DataModel.Record", args);
 
 	return this;
 }
@@ -210,7 +205,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	'searchableContent': function () {
 		var deferredResult;
 
-//console.log(">>> searchableContent");
 		deferredResult = new Clipperz.Async.Deferred("Record.searchableContent", {trace:false});
 		
 		deferredResult.collectResults({
@@ -224,7 +218,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 			return someValues['recordLabel'] + ' ' + someValues['directLoginLabels'].join(' ');
 		});
 		deferredResult.callback();
-//console.log("<<< searchableContent");
 
 		return deferredResult;
 	},
@@ -270,7 +263,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	'saveOriginalDirectLoginStatusToTransientState': function () {
 		if (this.transientState().getValue('directLogins') == null) {
 //			this.transientState().setValue('directLogins', this._directLogins)
-//console.log("SET TRANSIENT STATE", Clipperz.Base.serializeJSON(MochiKit.Base.keys(this.transientState().getValue('directLogins'))))
 			MochiKit.Iter.forEach(MochiKit.Base.keys(this._directLogins), MochiKit.Base.bind(function(aKey) {
 				this.transientState().setValue('directLogins' + '.' + aKey, this._directLogins[aKey])
 			}, this))
@@ -329,7 +321,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	'unpackRemoteData': function (someData) {
 		var result;
 
-//console.log("new Clipperz.PM.DataModel.Record.Version [2]");
 /*
 		this._currentRecordVersion = new Clipperz.PM.DataModel.Record.Version({
 			'reference':				someData['currentVersion']['reference'],
@@ -340,7 +331,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		var versionKey;
 
 		for (versionKey in someData['versions']) {
-//console.log("### versionKey", versionKey);
 			this._versions[versionKey] = new Clipperz.PM.DataModel.Record.Version({
 				'reference':			versionKey,
 				'retrieveKeyFunction':	MochiKit.Base.method(this, 'getVersionKey'),
@@ -351,7 +341,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		
 //		this._currentVersionReference = someData['currentVersion']['reference'];
 		this._currentVersionReference = someData['currentVersion'];
-//console.log("=== currentVersionReference", this._currentVersionReference, someData);
 
 		result = Clipperz.PM.DataModel.Record.superclass.unpackRemoteData.apply(this, arguments);
 
@@ -536,7 +525,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	//.........................................................................
 
 	'currentVersionReference': function () {
-//console.log("currentVersionReference");
 		return this._currentVersionReference;
 	},
 
@@ -585,7 +573,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	//-------------------------------------------------------------------------
 
 	'getCurrentRecordVersionKey': function () {
-//console.log("getCurrentRecordVersionKey");
 		return Clipperz.Async.callbacks("Record.getCurrentRecordVersionKey", [
 			MochiKit.Base.method(this, 'getValue', 'currentVersionKey'),
 			Clipperz.Async.deferredIf("currentVersionKey is NOT null", [
@@ -606,10 +593,8 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	//-------------------------------------------------------------------------
 
 	'invokeCurrentRecordVersionMethod': function (aMethodName, someValues) {
-//console.log(">>> invokeCurrentRecordVersionMethod", aMethodName);
 		return Clipperz.Async.callbacks("Record.invokeCurrentRecordVersionMethod", [
 			MochiKit.Base.method(this, 'getCurrentRecordVersion'),
-//function (aValue) { console.log("=== getCurrentRecordVersion", aValue); return aValue},
 			MochiKit.Base.methodcaller(aMethodName, someValues)
 		], {trace:false});
 	},
@@ -618,16 +603,11 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	'lazilyinvokeCurrentRecordVersionMethod': function (aMethodName, someValues, defaultResult) {
 		return Clipperz.Async.callbacks("Record.lazilyinvokeCurrentRecordVersionMethod", [
 			MochiKit.Base.method(this, 'currentVersionReference'),
-//function (aValue) { console.log("LAZY -> versions", aValue); return aValue; },
 			Clipperz.Async.deferredIf("versions has been loaded", [
-//function (aValue) { console.log("LAZY -> then"); return aValue; },
 				MochiKit.Base.method(this, 'getCurrentRecordVersion'),
 				MochiKit.Base.methodcaller(aMethodName, someValues),
-//function (aValue) { console.log("LAZY <- then"); return aValue; }
 			], [
-//function (aValue) { console.log("LAZY -> else"); return aValue; },
 				MochiKit.Base.partial(MochiKit.Async.succeed, defaultResult),
-//function (aValue) { console.log("LAZY <- else"); return aValue; }
 			])
 		], {trace:false});
 	},
@@ -648,7 +628,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 				],
 				'directLogins': [
 					MochiKit.Base.method(this, 'directLogins'),
-//function (aValue) { console.log("Record.directLogins", aValue); return aValue; },
 					MochiKit.Base.values,
 					MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('hasPendingChanges')),
 					Clipperz.Async.collectAll,
@@ -658,7 +637,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 //					}
 				]
 			});
-//deferredResult.addCallback(function (aValue) { console.log("Record.hasPendingResults", aValue); return aValue; });
 			deferredResult.addCallback(MochiKit.Base.values);
 			deferredResult.addCallback(MochiKit.Base.bind(function(someValues) {
 				var result;
@@ -776,7 +754,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 			MochiKit.Base.method(this, 'lazilyinvokeCurrentRecordVersionMethod', 'resetTransientState'),
 
 			MochiKit.Base.method(this, 'directLogins'),
-//function (aValue) { console.log("resetTransientState - directLogins", aValue); return aValue; },
 			MochiKit.Base.values,
 			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('resetTransientState')),
 
@@ -816,7 +793,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	//=========================================================================
 
 	'retrieveDirectLoginIndexDataFunction': function () {
-//console.log("Record.retrieveDirectLoginIndexDataFunction", this._retrieveDirectLoginIndexDataFunction);
 		return this._retrieveDirectLoginIndexDataFunction;
 	},
 	

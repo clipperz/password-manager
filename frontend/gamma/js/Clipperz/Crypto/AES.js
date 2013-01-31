@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -120,7 +118,6 @@ Clipperz.Crypto.AES.DeferredExecutionContext.prototype = MochiKit.Base.update(nu
 	},
 	
 	'isDone': function () {
-//console.log("isDone", this.executionStep(), this.messageLength());
 		return (this._executionStep >= this._messageLength);
 	},
 
@@ -144,7 +141,7 @@ Clipperz.Crypto.AES.Key = function(args) {
 		this._b = 240;
 		this._numberOfRounds = 14;
 	} else {
-		MochiKit.Logging.logError("AES unsupported key size: " + (this.keySize() * 8) + " bits");
+		Clipperz.logError("AES unsupported key size: " + (this.keySize() * 8) + " bits");
 		throw Clipperz.Crypto.AES.exception.UnsupportedKeySize;
 	}
 	
@@ -808,7 +805,6 @@ MochiKit.Base.update(Clipperz.Crypto.AES, {
 		executionContext = new Clipperz.Crypto.AES.DeferredExecutionContext({key:key, message:someData, nonce:nonce});
 
 		deferredResult = new Clipperz.Async.Deferred("AES.deferredEncrypt");
-//deferredResult.addCallback(function (aValue) { console.log(">>> deferredEncrypt"); return aValue; });
 		deferredResult.addCallback(Clipperz.Crypto.AES.deferredEncryptBlocks);
 		deferredResult.addCallback(function(anExecutionContext) {
 			var result;
@@ -818,7 +814,6 @@ MochiKit.Base.update(Clipperz.Crypto.AES, {
 
 			return result;
 		});
-//deferredResult.addCallback(function (aValue) { console.log("<<< deferredEncrypt"); return aValue; });
 		deferredResult.callback(executionContext)
 
 		return deferredResult;
@@ -838,12 +833,10 @@ MochiKit.Base.update(Clipperz.Crypto.AES, {
 		executionContext = new Clipperz.Crypto.AES.DeferredExecutionContext({key:key, message:message, nonce:nonce});
 
 		deferredResult = new Clipperz.Async.Deferred("AES.deferredDecrypt");
-//deferredResult.addCallback(function (aValue) { console.log(">>> deferredDecrypt"); return aValue; });
 		deferredResult.addCallback(Clipperz.Crypto.AES.deferredEncryptBlocks);
 		deferredResult.addCallback(function(anExecutionContext) {
 			return anExecutionContext.result();
 		});
-//deferredResult.addCallback(function (aValue) { console.log("<<< deferredDecrypt"); return aValue; });
 		deferredResult.callback(executionContext);
 
 		return deferredResult;

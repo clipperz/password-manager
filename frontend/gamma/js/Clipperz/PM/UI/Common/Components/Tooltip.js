@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -141,11 +139,8 @@ Clipperz.Base.extend(Clipperz.PM.UI.Common.Components.Tooltip, Clipperz.PM.UI.Co
 
 			this.setIsVisible(true);
 			elementSizeAndPosition = Clipperz.Style.getSizeAndPosition(this.element());
-//console.log("ELEMENT SIZE AND POSITION", Clipperz.Base.serializeJSON(elementSizeAndPosition));
-//console.log("BOX DIMENSIONS", Clipperz.Base.serializeJSON(this.boxDimensions()));
 			switch (this.position()) {
 				case 'ABOVE':
-//console.log("ABOVE");
 //					MochiKit.Style.setElementDimensions(this.getId('arrow'), {w:36, h:13}, 'px');
 					bodyPosition.x = elementSizeAndPosition.position.x + (elementSizeAndPosition.dimensions.w/2 - this.boxDimensions().w/2);
 					bodyPosition.y = elementSizeAndPosition.position.y - this.boxDimensions().h - 13;
@@ -154,7 +149,6 @@ Clipperz.Base.extend(Clipperz.PM.UI.Common.Components.Tooltip, Clipperz.PM.UI.Co
 //					arrowPosition.y = elementSizeAndPosition.position.y - 13;
 					break;
 				case 'BELOW':
-//console.log("BELOW");
 //					MochiKit.Style.setElementDimensions(this.getId('arrow'), {w:36, h:13}, 'px');
 					bodyPosition.x = elementSizeAndPosition.position.x + (elementSizeAndPosition.dimensions.w/2 - this.boxDimensions().w/2);
 					bodyPosition.y = elementSizeAndPosition.position.y + elementSizeAndPosition.dimensions.h + 13;
@@ -163,7 +157,6 @@ Clipperz.Base.extend(Clipperz.PM.UI.Common.Components.Tooltip, Clipperz.PM.UI.Co
 //					arrowPosition.y = elementSizeAndPosition.position.y + elementSizeAndPosition.dimensions.h;
 					break;
 				case 'LEFT':
-//console.log("LEFT");
 //					MochiKit.Style.setElementDimensions(this.getId('arrow'), {w:13, h:36}, 'px');
 					bodyPosition.x = elementSizeAndPosition.position.x - this.boxDimensions().w - 13;
 					bodyPosition.y = elementSizeAndPosition.position.y + (elementSizeAndPosition.dimensions.h/2 - this.boxDimensions().h/2);
@@ -172,7 +165,6 @@ Clipperz.Base.extend(Clipperz.PM.UI.Common.Components.Tooltip, Clipperz.PM.UI.Co
 //					arrowPosition.y = elementSizeAndPosition.position.y + (elementSizeAndPosition.dimensions.h/2 - 36/2);
 					break;
 				case 'RIGHT':
-//console.log("RIGHT");
 //					MochiKit.Style.setElementDimensions(this.getId('arrow'), {w:13, h:36}, 'px');
 					bodyPosition.x = elementSizeAndPosition.position.x + elementSizeAndPosition.dimensions.w + 13;
 					bodyPosition.y = elementSizeAndPosition.position.y + (elementSizeAndPosition.dimensions.h/2 - this.boxDimensions().h/2);
@@ -181,7 +173,6 @@ Clipperz.Base.extend(Clipperz.PM.UI.Common.Components.Tooltip, Clipperz.PM.UI.Co
 //					arrowPosition.y = elementSizeAndPosition.position.y + (elementSizeAndPosition.dimensions.h/2 - 36/2);
 					break;
 			}
-//console.log("X: " + bodyPosition.x + ", Y: " + bodyPosition.y);
 
 			MochiKit.Style.setElementPosition(this.getId('tooltip'), bodyPosition);
 //			MochiKit.Style.setElementPosition(this.getId('body'), bodyPosition);

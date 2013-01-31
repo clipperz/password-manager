@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -32,7 +30,6 @@ if (typeof(Clipperz.PM.DataModel.User.Header) == 'undefined') { Clipperz.PM.Data
 Clipperz.PM.DataModel.User.Header.RecordIndex = function(args) {
 	Clipperz.PM.DataModel.User.Header.RecordIndex.superclass.constructor.apply(this, arguments);
 
-//console.log("NEW Clipperz.PM.DataModel.User.Header.RecordIndex", args);
 	this._recordsData = new Clipperz.PM.DataModel.EncryptedRemoteObject({
 		'name':	'recordsData',
 		'retrieveKeyFunction': args.retrieveKeyFunction,
@@ -118,7 +115,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 	},
 
 	'resetTransientState': function (isCommitting) {
-//console.log("######## UserHeaderRecordIndex - resetTransientState", Clipperz.Base.deepClone(this._transientState));
 		if (this._transientState != null) {
 			this._transientState.removeAllData();
 		}
@@ -158,7 +154,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 	},
 
 	'setDirectLoginIndexData': function (aDirectLoginReference, aKey, aValue) {
-//console.log("UserHeaderRecordIndex.setDirectLoginIndexData", aDirectLoginReference, this.directLoginsIndex()[aDirectLoginReference], aKey);
 //if (MochiKit.Base.isUndefinedOrNull(this.directLoginsIndex()[aDirectLoginReference])) {
 //	throw "PIPPO";
 //}
@@ -166,7 +161,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 	},
 
 	'addDirectLoginIndexData': function (aDirectLoginReference) {
-//console.log("UserHeaderRecordIndex.addDirectLoginIndexData", aDirectLoginReference, this.directLoginsIndex()[aDirectLoginReference]);
 		return this.directLoginsData().setValue(this.directLoginsIndex()[aDirectLoginReference], {});
 	},
 	
@@ -261,12 +255,7 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stas associated 
 								'record':						record
 							});
 						} else {
-Clipperz.log("WARNING: DIRECT LOGIN without a matching RECORD!!");
-//console.log("direct login data", someData['directLogins']);
-//console.log("current direct login data", someData['directLogins'][indexReference])
-//console.log("reference", reference);
-//console.log("record index", this.recordsIndex());
-//console.log("record inverted index", recordsInvertedIndex);
+							Clipperz.logWarning("WARNING: DIRECT LOGIN without a matching RECORD!!");
 						}
 					}
 
@@ -305,7 +294,6 @@ Clipperz.log("WARNING: DIRECT LOGIN without a matching RECORD!!");
 		var deferredResult;
 		var newRecord;
 
-//console.log("#### new Clipperz.PM.DataModel.Record [4]");
 		newRecord = new Clipperz.PM.DataModel.Record({
 			'retrieveKeyFunction':			MochiKit.Base.method(this, 'getRecordKey'),
 			'retrieveRemoteDataFunction':	this.retrieveRecordDetailFunction(),
@@ -386,9 +374,7 @@ Clipperz.log("WARNING: DIRECT LOGIN without a matching RECORD!!");
 
 		this.transientState().setValue('newDirectLoginReferences' + '.' + newDirectLogin.reference(), newDirectLogin);
 
-//console.log("UserHeaderRecordIndex.createNewDirectLogin [1]", newDirectLogin.reference(), newDirectLoginIndexValue);
 		this.directLoginsIndex()[newDirectLogin.reference()] = newDirectLoginIndexValue;
-//console.log("UserHeaderRecordIndex.createNewDirectLogin [2]", newDirectLogin.reference(), this.directLoginsIndex()[newDirectLogin.reference()]);
 		this.directLoginsData().setValue(this.directLoginsIndex()[newDirectLogin.reference()], {'record': this.recordsIndex()[aRecord.reference()]});
 	
 		return newDirectLogin;
@@ -431,7 +417,6 @@ Clipperz.log("WARNING: DIRECT LOGIN without a matching RECORD!!");
 //				Clipperz.Async.collectAll
 //			]
 		});
-//deferredResult.addCallback(function (aValue) { console.log("USER.Header.RecordIndex.hasAnyCleanTextData", aValue); return aValue});
 
 //		deferredResult.addCallback(MochiKit.Base.values);
 //		deferredResult.addCallback(MochiKit.Base.flattenArguments);
@@ -461,7 +446,6 @@ Clipperz.log("WARNING: DIRECT LOGIN without a matching RECORD!!");
 				MochiKit.Base.methodcaller('hasPendingChanges')
 			]
 		});
-//deferredResult.addCallback(function (aValue) { console.log("UserHeaderIndex.hasPendingResults", aValue); return aValue; });
 		deferredResult.addCallback(Clipperz.Async.or);
 //		deferredResult.addCallback(MochiKit.Base.values);
 //		deferredResult.addCallback(MochiKit.Base.flattenArguments);
@@ -570,7 +554,6 @@ Clipperz.log("WARNING: DIRECT LOGIN without a matching RECORD!!");
 		var deferredResult;
 		var result;
 
-//console.log("recordsIndex", this.recordsIndex());
 		result = {};
 
 		deferredResult = new Clipperz.Async.Deferred("User.Header.RecordIndex.prepareRemoteDataWithKey", {trace:false});

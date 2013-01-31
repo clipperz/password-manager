@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -139,7 +137,6 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.
 	},
 
 	'showErrors': function (args) {
-//console.log("LoginForm.showErrors", args);
 		if (args['previousFailedAttempt'] == 'LOGIN') {
 			this.setErrorMessage("Wrong credentials");
 		} else if (args['previousFailedAttempt'] == 'PIN') {
@@ -299,7 +296,6 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.
 	},
 
 	'submitCredentialsHandler': function (anEvent) {
-//console.log("submitCredentialsHandler");
 		var	credentials;
 
 		this.setMessage(null);
@@ -331,24 +327,19 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.
 	//-------------------------------------------------------------------------
 
 	'initProgressHandle': function (anEvent) {
-//console.log("** initProgressHandle", anEvent);
 		this._steps = anEvent['steps'];
 		this._actualSteps = 0;
 	},
 
 	'updateProgressHandle': function (anEvent) {
-//console.log("** updateProgressHandle", anEvent);
 		this._steps += anEvent['extraSteps'];
 	},
 
 	'advanceProgressHandle': function (anEvent) {
-//console.log("** advanceProgressHandle", anEvent);
 		this._actualSteps ++;
-//console.log("STEPS: " + this._actualSteps + "/" + this._steps);
 	},
 
 	'progressDoneHandle': function (anEvent) {
-//console.log("** progressDoneHandle", anEvent);
 	},
 
 	//-------------------------------------------------------------------------

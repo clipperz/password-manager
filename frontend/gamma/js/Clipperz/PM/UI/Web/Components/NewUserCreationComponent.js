@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -123,8 +121,6 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.NewUserCreationComponent, Cli
 	//-------------------------------------------------------------------------
 
 	'renderSelf': function() {
-//console.log('** Clipperz.targetModalDimensionsAndPosition', Clipperz.Base.serializeJSON(Clipperz.PM.UI.Common.Components.BaseComponent.targetModalDimensionsAndPosition));
-
 		this.append(this.element(), {tag:'div', cls:'NewUserCreation mainDialog', id:this.getId('panel'), children: [
 			{tag:'form', id:this.getId('form'), cls:'newUserCreationForm', children:[
 				{tag:'div', cls:'header', children:[
@@ -333,10 +329,6 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.NewUserCreationComponent, Cli
 //					MochiKit.Style.getElementDimensions(this.element())['h'];
 
 //		result =	MochiKit.Style.getElementPosition(this.getElement('footer'))['y'];
-//console.log("### bottomMargin");
-//console.log('displayElement', this.displayElement());
-//console.log('-- Clipperz.targetModalDimensionsAndPosition', Clipperz.Base.serializeJSON(Clipperz.PM.UI.Common.Components.BaseComponent.targetModalDimensionsAndPosition));
-//console.log('element', MochiKit.Style.getElementPosition('modalDialog') ['y'], MochiKit.Style.getElementDimensions('modalDialog')['h']);
 //		result = 450;
 
 		result =	Clipperz.PM.UI.Common.Components.BaseComponent.targetModalDimensionsAndPosition['position']['y'] +

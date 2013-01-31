@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -154,7 +152,6 @@ MochiKit.Base.update(Clipperz.PM.UI.Common.Controllers.DirectLoginRunner.prototy
 		var completeUrl;
 		var url;
 
-//console.log("runHttpAuthDirectLogin", someAttributes);
 		url = someAttributes['inputValues']['url'];
 
 		if (/^https?\:\/\//.test(url) == false) {
@@ -182,7 +179,6 @@ MochiKit.Base.update(Clipperz.PM.UI.Common.Controllers.DirectLoginRunner.prototy
 	'runDirectLogin': function (aWindow) {
 		var deferredResult;
 
-//console.log(">>> runDirectLogin");
 		deferredResult = new Clipperz.Async.Deferred("DirectLoginRunner.openDirectLogin", {trace:false});
 		deferredResult.addMethod(this, 'initialWindowSetup', aWindow);
 		deferredResult.addMethod(this.directLogin(), 'label');
@@ -193,9 +189,7 @@ MochiKit.Base.update(Clipperz.PM.UI.Common.Controllers.DirectLoginRunner.prototy
 			'formAttributes':	MochiKit.Base.method(this.directLogin(), 'formAttributes'),
 			'inputValues':		MochiKit.Base.method(this.directLogin(), 'inputValues')
 		});
-//deferredResult.addCallback(function (aValue) { console.log("SOME ATTRIBUTES", aValue); return aValue; });
 		deferredResult.addCallback(MochiKit.Base.bind(function (someAttributes) {
-//console.log("SOME ATTRIBUTES", someAttributes);
 			switch (someAttributes['type']) {
 				case 'http_auth':
 					this.runHttpAuthDirectLogin(aWindow, someAttributes);
@@ -209,7 +203,6 @@ MochiKit.Base.update(Clipperz.PM.UI.Common.Controllers.DirectLoginRunner.prototy
 			}
 		}, this));
 		deferredResult.callback();
-//console.log("<<< runDirectLogin");
 
 		return deferredResult;
 	},
@@ -256,7 +249,6 @@ Clipperz.PM.UI.Common.Controllers.DirectLoginRunner.openDirectLogin = function (
 Clipperz.PM.UI.Common.Controllers.DirectLoginRunner.testDirectLogin = function (aDirectLogin) {
 	var	runner;
 
-//console.log(">>>>>> TESTING DIRECT LOGIN");
 	runner = new Clipperz.PM.UI.Common.Controllers.DirectLoginRunner({directLogin:aDirectLogin});
 	return runner.test();
 };

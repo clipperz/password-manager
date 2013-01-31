@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -86,7 +84,8 @@ Clipperz.PM.Connection.prototype = MochiKit.Base.update(null, {
 	//-------------------------------------------------------------------------
 
 	'defaultErrorHandler': function(anErrorString, anException) {
-MochiKit.Logging.logError("### Connection.defaultErrorHandler: " + anErrorString + " (" + anException + ")");
+//		Clipperz.logError("### Connection.defaultErrorHandler: " + anErrorString, anException);
+		Clipperz.logError("### Connection.defaultErrorHandler: " + anErrorString + " (" + anException + ")");
 	},
 	
 	//-------------------------------------------------------------------------
@@ -273,7 +272,6 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 	//=========================================================================
 
 	'redeemOneTimePassword': function (someParameters) {
-//console.log("Connections.redeemOneTimePassword", someParameters['username'], someParameters['password']);
 /*
 	//=========================================================================
 		//	LOGIN WITH PASSPHRASE, extracted from the TRUNK version (LoginPanel.js)
@@ -453,7 +451,6 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 			parameters['user']['lock'] = this.serverLockValue();
 		}
 
-//console.log(">>> Connection.message", aMessageName, someParameters);
 		args = {
 			message: aMessageName,
 			srpSharedSecret: this.sharedSecret(),
@@ -489,7 +486,7 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 	'messageExceptionHandler': function(anOriginalMessageArguments, anError) {
 		var result;
 
-console.log(">>> Connection.messageExceptionHandler", anError, anError.message);
+Clipperz.log(">>> Connection.messageExceptionHandler:  " + anError.message, anError);
 		if (anError instanceof MochiKit.Async.CancelledError) {
 			result = anError;
 		} else {
@@ -503,8 +500,8 @@ console.log(">>> Connection.messageExceptionHandler", anError, anError.message);
 				result = anError;
 			}
 		}
-console.log("<<< Connection.messageExceptionHandler", anError)
-		
+Clipperz.log("<<< Connection.messageExceptionHandler")
+
 		return result;;
 	},
 	

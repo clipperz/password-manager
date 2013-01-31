@@ -1,25 +1,23 @@
 /*
 
-Copyright 2008-2011 Clipperz Srl
+Copyright 2008-2013 Clipperz Srl
 
-This file is part of Clipperz Community Edition.
-Clipperz Community Edition is an online password manager.
+This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
 refer to http://www.clipperz.com.
 
-* Clipperz Community Edition is free software: you can redistribute
-  it and/or modify it under the terms of the GNU Affero General Public
-  License as published by the Free Software Foundation, either version
-  3 of the License, or (at your option) any later version.
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
 
-* Clipperz Community Edition is distributed in the hope that it will
-  be useful, but WITHOUT ANY WARRANTY; without even the implied
-  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU Affero General Public License for more details.
 
 * You should have received a copy of the GNU Affero General Public
-  License along with Clipperz Community Edition.  If not, see
-  <http://www.gnu.org/licenses/>.
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 
@@ -69,7 +67,6 @@ Clipperz.PM.Proxy.prototype = MochiKit.Base.update(null, {
 	'payToll': function(aRequestType, someParameters) {
 		var	deferredResult;
 
-//console.log(">>> Proxy.payToll", aRequestType, someParameters);
 		if (this.shouldPayTolls()) {
 			deferredResult = new Clipperz.Async.Deferred("Proxy.payToll", {trace:false});
 
@@ -94,7 +91,6 @@ Clipperz.PM.Proxy.prototype = MochiKit.Base.update(null, {
 		} else {
 			deferredResult = MochiKit.Async.succeed({parameters:someParameters});
 		}
-//console.log("<<< Proxy.payToll");
 
 		return deferredResult;
 	},
@@ -102,20 +98,16 @@ Clipperz.PM.Proxy.prototype = MochiKit.Base.update(null, {
 	//-------------------------------------------------------------------------
 
 	'addToll': function(aToll) {
-//console.log(">>> Proxy.addToll", aToll);
 		this.tolls()[aToll.requestType()].push(aToll);
-//console.log("<<< Proxy.addToll");
 	},
 
 	//=========================================================================
 
 	'setTollCallback': function(someParameters) {
-//console.log(">>> Proxy.setTollCallback", someParameters);
 		if (typeof(someParameters['toll']) != 'undefined') {
-//console.log("added a new toll", someParameters['toll']);
 			this.addToll(new Clipperz.PM.Toll(someParameters['toll']));
 		}
-//console.log("<<< Proxy.setTallCallback", someParameters['result']);
+
 		return someParameters['result'];
 	},
 
