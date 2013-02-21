@@ -15,7 +15,8 @@ def repositoryWithPath (path):
 			result = GitRepository(repo, path)
 		except ImportError, exception:
 			print "Failed to import git, please install http://gitorious.org/git-python"
-			raise exception
+			print "Use sudo apt-get install python-git for Ubuntu/Debian"
+			print "Use sudo yum install GitPython for Fedora/RHEL/CentOS"
 		except:
 			result = SnapshotRepository('', path)
 
