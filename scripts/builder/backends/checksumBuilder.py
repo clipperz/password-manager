@@ -8,14 +8,14 @@ import main
 
 from backendBuilder import BackendBuilder
 
-class DevBuilder(BackendBuilder):
+class ChecksumBuilder(BackendBuilder):
 	
 	def name(self):
-		return "Dev builder"
+		return "Checksum builder"
 
 	
 	def relativePath(self):
-		return 'dev'
+		return 'checksum'
 
 
 	def compileCode (self):
@@ -30,7 +30,7 @@ class DevBuilder(BackendBuilder):
 
 
 	def run (self):
-		print self.name() + " - RUN (dev)"
+		print self.name() + " - RUN (checksum)"
 
 		for frontend in self.frontends:
 			if (frontend.module == frontend.submodule):
@@ -40,9 +40,11 @@ class DevBuilder(BackendBuilder):
 
 			main.createFolder(os.path.join(self.frontEndTempFolder(), frontend.module))
 
-			index = self.configureIndexContent(frontend.assemble(assemblyMode='DEBUG', versionType='DEBUG'))
+			index = self.configureIndexContent(frontend.assemble())
 			self.writeToFolder(self.frontEndTempFolder(), os.path.join(frontend.module, 'index' + submoduleExtension + '.html'), index)
-		
+			self.logChecksums(index, "[" + self.name() + " - " + frontend.module + "] index" + submoduleExtension + ".html checksum")
+			print ""
+
 		self.createPackage()
 
 

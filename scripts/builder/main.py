@@ -152,7 +152,7 @@ def main ():
 
 	clean()
 	versions = list(itertools.takewhile(lambda x: not x.startswith('--'), parameters))
-	settings['versions']  = versions;		#['debug', 'install', 'development']
+	settings['versions']  = versions;		#['debug', 'install', 'development', 'checksum']
 	parameters = deque(itertools.dropwhile(lambda x: not x.startswith('--'), parameters))
 	
 	if len(parameters) > 0:
@@ -175,6 +175,11 @@ def main ():
 				else:
 					parameter = None
 	
+		if 'checksum' in settings['versions']:
+			if not 'backends' in settings:
+				settings['backends'] = []
+			settings['backends'].append('checksum')
+		
 		if (not settings.has_key('versions')):
 			usage("missing 'versions'")
 		if (not settings.has_key('frontends')):

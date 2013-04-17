@@ -85,9 +85,11 @@ class BackendBuilder(object):
 		md5Digest		= self.formatMAC(hashlib.md5(content.encode('utf-8')).hexdigest())
 		shaDigest		= self.formatMAC(hashlib.sha1(content.encode('utf-8')).hexdigest())
 		sha256Digest	= self.formatMAC(hashlib.sha256(content.encode('utf-8')).hexdigest())
+		print "-----"
 		print message + ": " + md5Digest + " (md5)"
 		print message + ": " + shaDigest + " (sha1)"
 		print message + ": " + sha256Digest + " (sha256)"
+		print "====="
 		
 	
 	def shouldCompileCode (self):
