@@ -143,6 +143,11 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Test, Clipperz.PM.Proxy.Offline, {
 Clipperz.log("UNEXPECTED REQUEST " + aFunctionName /* + ": " + Clipperz.Base.serializeJSON(someParameters) */);
 			this.unexpectedRequests().push({'functionName':aFunctionName, 'someParameters': someParameters});
 		};
+//if (aFunctionName == 'knock') {
+//	console.log(">>> send message - " + aFunctionName, someParameters);
+//} else {
+//	console.log(">>> SEND MESSAGE - " + aFunctionName + " [" + someParameters['parameters']['message'] + "]", someParameters['parameters']['parameters']);
+//}
 		this.checkRequest(aFunctionName, someParameters);
 		result = Clipperz.PM.Proxy.Test.superclass.sendMessage.call(this, aFunctionName, someParameters);
 

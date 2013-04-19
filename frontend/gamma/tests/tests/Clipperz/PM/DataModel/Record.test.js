@@ -177,6 +177,13 @@ var tests = {
 		deferredResult = new Clipperz.Async.Deferred("Record.test.removeDirectLogin", someTestArgs);
 		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['joe_clipperz_offline_copy_data']);
 		deferredResult.addMethod(user, 'login');
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('directLogins');
+		deferredResult.addCallback(MochiKit.Base.keys);
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(4, "The record initially has 4 direct logins");
+
 		deferredResult.addMethod(user, 'getRecord', recordID);
 		deferredResult.addMethodcaller('directLogins');
 		deferredResult.addCallback(MochiKit.Base.itemgetter(directLoginID));
@@ -187,6 +194,7 @@ var tests = {
 		deferredResult.addTest(true, "removing a direct login to a record should result in pending changes on the record");
 
 		deferredResult.addMethod(user, 'saveChanges');
+
 		deferredResult.addMethod(user, 'hasPendingChanges');
 		deferredResult.addTest(false, "after saving there should be not any pending changes");
 

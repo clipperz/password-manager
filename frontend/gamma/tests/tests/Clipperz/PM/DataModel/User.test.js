@@ -1922,7 +1922,7 @@ var tests = {
 
 		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:true, isDefault:true, readOnly:false});
 		user2 = new Clipperz.PM.DataModel.User({username:username, getPassphraseFunction:function () { return passphrase;}});
-
+console.log("PROXY", proxy);
 		deferredResult = new Clipperz.Async.Deferred("registerNewUserAndAddARecord_test", someTestArgs);
 		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['joe_clipperz_offline_copy_with_preferences_and_OTPs_data']);
 

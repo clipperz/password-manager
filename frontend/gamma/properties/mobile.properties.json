@@ -9,20 +9,20 @@
 	"js": [
 		"MochiKit/Base.js",
 		"MochiKit/Iter.js",
-		"MochiKit/Logging.js",
+		"-- MochiKit/Logging.js",
 		"MochiKit/DateTime.js",
 		"MochiKit/Format.js",
 		"MochiKit/Async.js",
 		"MochiKit/DOM.js",
 		"MochiKit/Style.js",
-		"MochiKit/LoggingPane.js",
+		"-- MochiKit/LoggingPane.js",
 		"-- MochiKit/Color.js",
 		"MochiKit/Signal.js",
 		"-- MochiKit/Position.js",
 		"MochiKit/Selector.js",
 		"-- MochiKit/Visual.js",
 
-		"JSON/json2.js",
+		"-- JSON/json2.js",
 
 		"Clipperz/YUI/Utils.js",
 		"Clipperz/YUI/DomHelper.js",
@@ -43,6 +43,7 @@
 
 		"Clipperz/Crypto/SHA.js",
 		"Clipperz/Crypto/AES.js",
+		"Clipperz/Crypto/AES_2.js",
 		"Clipperz/Crypto/PRNG.js",
 		"Clipperz/Crypto/BigInt.js",
 		"Clipperz/Crypto/Base.js",
@@ -95,6 +96,10 @@
 		"Clipperz/PM/DataModel/DirectLoginFormValue.js",
 		"Clipperz/PM/DataModel/OneTimePassword.js",
 
+		"JQuery/1.9.1/jquery.js",
+		"Clipperz/PM/UI/Mobile/CustomizeJQueryMobile.js",
+		"JQuery/Mobile/1.3.0-rc.1/jquery.mobile.js",
+
 		"-- Zepto/zepto.js",
 		"-- Zepto/ajax.js",
 		"-- Zepto/assets.js",
@@ -126,23 +131,26 @@
 		"-- Bootstrap/bootstrap-transition.js",
 		"-- Bootstrap/bootstrap-typeahead.js",
 
-		"Clipperz/PM/UI/Common/Components/BaseComponent.js",
+		"-- Clipperz/PM/UI/Common/Components/BaseComponent.js",
 		"-- Clipperz/PM/UI/Common/Components/Button.js",
-		"Clipperz/PM/UI/Common/Components/ComponentSlot.js",
+		"-- Clipperz/PM/UI/Common/Components/ComponentSlot.js",
 		"-- Clipperz/PM/UI/Common/Components/PasswordEntropyDisplay.js",
-		"Clipperz/PM/UI/Common/Components/ProgressBar.js",
+		"-- Clipperz/PM/UI/Common/Components/ProgressBar.js",
 		"-- Clipperz/PM/UI/Common/Components/SimpleMessagePanel.js",
 		"-- Clipperz/PM/UI/Common/Components/MessagePanelWithProgressBar.js",
 		"-- Clipperz/PM/UI/Common/Components/TabPanelComponent.js",
 		"-- Clipperz/PM/UI/Common/Components/Tooltip.js",
 		"-- Clipperz/PM/UI/Common/Components/TranslatorWidget.js",
 
-		"Clipperz/PM/UI/Common/Controllers/DirectLoginRunner.js",
-		"Clipperz/PM/UI/Common/Controllers/ProgressBarController.js",
+		"-- Clipperz/PM/UI/Common/Controllers/DirectLoginRunner.js",
+		"-- Clipperz/PM/UI/Common/Controllers/ProgressBarController.js",
 		"-- Clipperz/PM/UI/Common/Controllers/TabPanelController.js",
 
+		"Clipperz/PM/UI/Mobile/Components/BaseComponent.js",
+		"Clipperz/PM/UI/Mobile/Components/Overlay.js",
 		"Clipperz/PM/UI/Mobile/Components/LoginForm.js",
 		"Clipperz/PM/UI/Mobile/Components/CardList.js",
+		"Clipperz/PM/UI/Mobile/Components/Preferences.js",
 		"-- Clipperz/PM/UI/Mobile/Components/CardDetail.js",
 
 		"Clipperz/PM/UI/Mobile/Controllers/MainController.js",
@@ -151,6 +159,7 @@
 	],
 
 	"css": [
+		"jquery.mobile-1.3.0-rc.1.css",
 		"mobile.css"
 	]
 }

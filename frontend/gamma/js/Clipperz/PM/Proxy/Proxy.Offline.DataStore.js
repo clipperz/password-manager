@@ -281,7 +281,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 					's':		someParameters['credentials']['s'],
 					'v':		someParameters['credentials']['v'],
 					'version':	someParameters['credentials']['version'],
-					'lock':		Clipperz.Crypto.Base.generateRandomSeed(),
+//					'lock':		Clipperz.Crypto.Base.generateRandomSeed(),
 					'userDetails':			someParameters['user']['header'],
 					'statistics':			someParameters['user']['statistics'],
 					'userDetailsVersion':	someParameters['user']['version'],
@@ -569,7 +569,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 
 				aConnection['userData']['userDetails']			= someParameters['parameters']['user']['header'];
 				aConnection['userData']['statistics']			= someParameters['parameters']['user']['statistics'];
-				aConnection['userData']['userDetailsVersions']	= someParameters['parameters']['user']['version'];
+				aConnection['userData']['userDetailsVersion']	= someParameters['parameters']['user']['version'];
 
 				c = someParameters['parameters']['records']['updated'].length;
 				for (i=0; i<c; i++) {

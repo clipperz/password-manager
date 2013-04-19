@@ -44,6 +44,7 @@
 
 		"Clipperz/Crypto/SHA.js",
 		"Clipperz/Crypto/AES.js",
+		"Clipperz/Crypto/AES_2.js",
 		"Clipperz/Crypto/PRNG.js",
 		"Clipperz/Crypto/BigInt.js",
 		"Clipperz/Crypto/Base.js",

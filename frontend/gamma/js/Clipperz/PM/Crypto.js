@@ -60,7 +60,7 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 	//-------------------------------------------------------------------------
 
 	'encryptingFunctions': {
-		'currentVersion': '0.3',
+		'currentVersion': '0.4',
 		'versions': {
 
 		//#####################################################################
@@ -320,6 +320,7 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 						deferredResult.addCallback(MochiKit.Async.wait, 0.1);
 						deferredResult.addCallback(Clipperz.Base.evalJSON);
 						deferredResult.addErrback(function(anError) {
+console.log("PIPPO_1", anError)
 							Clipperz.logError("Error while decrypting data [4]");
 							throw Clipperz.Crypto.Base.exception.CorruptedMessage;
 						})
@@ -344,11 +345,10 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 					
 					return result;
 				}
-
 			},
 
 		//#####################################################################
-/*
+
 			'0.4': {
 				'encrypt': function(aKey, aValue, aNonce) {
 					var result;
@@ -357,29 +357,34 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 					var dataToEncrypt;
 					var encryptedData;
 				
-//Clipperz.logDebug(">>> [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt");
 					key = Clipperz.Crypto.SHA.sha_d256(new Clipperz.ByteArray(aKey));
-//Clipperz.logDebug("--- [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt - 1");
 					value = Clipperz.Base.serializeJSON(aValue);
-//Clipperz.logDebug("--- [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt - 2");
-/ *
-//Clipperz.logDebug("--> encrypt.fullSize: " + value.length);
-					value = value.replace(/":{"label":"/g,		'":{l:"');
-					value = value.replace(/":{"key":"/g,		'":{k:"');
-					value = value.replace(/":{"notes":"/g,		'":{n:"');
-					value = value.replace(/":{"record":"/g,		'":{r:"');
-					value = value.replace(/", "label":"/g,		'",l:"');
-					value = value.replace(/", "favicon":"/g,	'",f:"');
-//Clipperz.logDebug("<-- encrypt.compressed: " + value.length);
-* /
 					data = new Clipperz.ByteArray(value);
-//Clipperz.logDebug("--- [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt - 3");
-					encryptedData = Clipperz.Crypto.AES.encrypt(key, data, aNonce);
-//Clipperz.logDebug("--- [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt - 4");
+					encryptedData = Clipperz.Crypto.AES_2.encrypt(key, data, aNonce);
 					result = encryptedData.toBase64String();
-//Clipperz.logDebug("<<< [" + (new Date()).valueOf() + "] Clipperz.PM.Crypto.versions[0.3].encrypt");
 				
 					return result;
+				},
+				
+				'deferredEncrypt': function(aKey, aValue, aNonce) {
+					var deferredResult;
+					var	key, value;
+					var data;
+					var dataToEncrypt;
+					var encryptedData;
+				
+					key = Clipperz.Crypto.SHA.sha_d256(new Clipperz.ByteArray(aKey));
+					value = Clipperz.Base.serializeJSON(aValue);
+					data = new Clipperz.ByteArray(value);
+					
+					deferredResult = new Clipperz.Async.Deferred("Crypto[0.4].deferredEncrypt")
+					deferredResult.addCallback(Clipperz.Crypto.AES_2.deferredEncrypt, key, data, aNonce);
+					deferredResult.addCallback(function(aResult) {
+						return aResult.toBase64String();
+					})
+					deferredResult.callback();
+					
+					return deferredResult;
 				},
 			
 				'decrypt': function(aKey, aValue) {
@@ -392,25 +397,16 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 						key = Clipperz.Crypto.SHA.sha_d256(new Clipperz.ByteArray(aKey));
 						value = new Clipperz.ByteArray().appendBase64String(aValue);
 				
-						decryptedData = Clipperz.Crypto.AES.decrypt(key, value);
+						decryptedData = Clipperz.Crypto.AES_2.decrypt(key, value);
 
 						value = decryptedData.asString();
-/ *
-						value = value.replace(/":{l:"/g,	'":{"label":"');
-						value = value.replace(/":{k:"/g,	'":{"key":"');
-						value = value.replace(/":{n:"/g,	'":{"notes":"');
-						value = value.replace(/":{r:"/g,	'":{"record":"');
-						value = value.replace(/",l:"/g,		'", "label":"');
-						value = value.replace(/",f:"/g,		'", "favicon":"');
-* /
 						try {
 							result = Clipperz.Base.evalJSON(value);
 						} catch (exception) {
-							Clipperz.logError("Error while decrypting data");
+							console.log("PIPPO_2", anError)
+							Clipperz.logError("Error while decrypting data [4]");
 							throw Clipperz.Crypto.Base.exception.CorruptedMessage;
 						}
-						
-						
 					} else {
 						result = null;
 					}
@@ -418,9 +414,51 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 					return result;
 				},
 			
-				'hash': Clipperz.Crypto.SHA.sha_d256
+				'deferredDecrypt': function(aKey, aValue) {
+					var deferredResult;
+					
+					deferredResult = new Clipperz.Async.Deferred("Crypto[0.4].deferredDecrypt", {trace: false});
+					
+					if (aValue != null) {
+						var key, value;
+
+						key = Clipperz.Crypto.SHA.sha_d256(new Clipperz.ByteArray(aKey));
+						value = new Clipperz.ByteArray().appendBase64String(aValue);
+
+						deferredResult.addCallback(Clipperz.Crypto.AES_2.deferredDecrypt, key, value);
+						deferredResult.addCallback(MochiKit.Async.wait, 0.1);
+						deferredResult.addCallback(function(aResult) {
+							return aResult.asString();
+						});
+						deferredResult.addCallback(MochiKit.Async.wait, 0.1);
+						deferredResult.addCallback(Clipperz.Base.evalJSON);
+						deferredResult.addErrback(function(anError) {
+							Clipperz.logError("Error while decrypting data [4]");
+							throw Clipperz.Crypto.Base.exception.CorruptedMessage;
+						})
+					} else {
+						deferredResult.addCallback(function() {
+							return null;
+						});
+					}
+					deferredResult.callback();
+					
+					return deferredResult;
+				},
+				
+				'hash': Clipperz.Crypto.SHA.sha_d256,
+
+				'deriveKey': function(aStringValue) {
+					var	byteData;
+					var result;
+					
+					byteData = new Clipperz.ByteArray(aStringValue);
+					result = Clipperz.Crypto.SHA.sha_d256(byteData);
+					
+					return result;
+				}
 			},
-*/
+
 		//#####################################################################
 			__syntaxFix__: "syntax fix"
 		}

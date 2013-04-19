@@ -726,8 +726,8 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 			header = {};
 			header['records']			= someHeaderPackedData['recordIndex']['records'];
 			header['directLogins']		= someHeaderPackedData['recordIndex']['directLogins'];
-			header['preferences']		= {'data': someHeaderPackedData['preferences']['data']};		//	this._serverData['header']['preferences'];		//	Clipperz.Base.evalJSON(this._serverData['header']['data'])['preferences'];		//	???????????
-			header['oneTimePasswords']	= {'data': someHeaderPackedData['oneTimePasswords']['data']};	//	this._serverData['header']['oneTimePasswords'];	//	Clipperz.Base.evalJSON(this._serverData['header']['data'])['oneTimePasswords'];	//	???????????
+			header['preferences']		= {'data': someHeaderPackedData['preferences']['data']};
+			header['oneTimePasswords']	= {'data': someHeaderPackedData['oneTimePasswords']['data']};
 			header['version']			= '0.1';
 
 			aResult['header']		= Clipperz.Base.serializeJSON(header);
