@@ -44,7 +44,8 @@ Clipperz.PM.UI.Mobile.Components.LoginForm = function(args) {
 
 //=============================================================================
 
-Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.Common.Components.BaseComponent, {
+//Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.Common.Components.BaseComponent, {
+Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.Mobile.Components.BaseComponent, {
 
 	//-------------------------------------------------------------------------
 
@@ -111,22 +112,22 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.
 	'_setMessage': function (aValue) {
 		this._message = aValue;
 
-		if (aValue == null) {
-			MochiKit.Style.hideElement(this.getElement('credentialsMessage'));
-		} else {
-			this.getElement('message').innerHTML = aValue;
-			MochiKit.Style.showElement(this.getElement('credentialsMessage'));
-		}
+//		if (aValue == null) {
+//			MochiKit.Style.hideElement(this.getElement('credentialsMessage'));
+//		} else {
+//			this.getElement('message').innerHTML = aValue;
+//			MochiKit.Style.showElement(this.getElement('credentialsMessage'));
+//		}
 	},
 
 	'setMessage': function (aValue) {
 		this._setMessage(aValue);
-		MochiKit.DOM.removeElementClass(this.getElement('credentialsMessage'), 'error');
+//		MochiKit.DOM.removeElementClass(this.getElement('credentialsMessage'), 'error');
 	},
 
 	'setErrorMessage': function (aValue) {
 		this._setMessage(aValue);
-		MochiKit.DOM.addElementClass(this.getElement('credentialsMessage'), 'error');
+//		MochiKit.DOM.addElementClass(this.getElement('credentialsMessage'), 'error');
 	},
 
 	//-------------------------------------------------------------------------
@@ -136,8 +137,25 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.
 		this._errorCallback = args['errorCallback'];
 	},
 
+	'show': function (args) {
+		this.updateWithArgs(args);
+
+		if (this.mode() == 'PIN') {
+			this.setPin('');
+			this.getElement('PIN').focus();
+		} else if (this.mode() == 'CREDENTIALS') {
+			if (this.getElement('usernameField').value.length == 0) {
+				this.getElement('usernameField').focus();
+			} else {
+				this.getElement('passphraseField').focus();
+				this.getElement('passphraseField').select();
+			}
+		}
+	},
+
 	'showErrors': function (args) {
 		if (args['previousFailedAttempt'] == 'LOGIN') {
+			$(this.getAnchor('credentialsSubmitButton')).button('enable');
 			this.setErrorMessage("Wrong credentials");
 		} else if (args['previousFailedAttempt'] == 'PIN') {
 			if (args['failedAttempts'] == -1) {
@@ -151,44 +169,21 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.
 	},
 
 	'updateWithArgs': function (args) {
-		this.renderIfNeeded();
+		this.renderOnlyOnce();
 		this.setCallbacks(args);
 		this.showErrors(args);
-		this.updateRendering();
-	},
-
-	'showPinLogin': function (args) {
-		this.setPin('');
-		this.setMode('PIN');
-		this.updateWithArgs(args);
-
-//		$(this.getAnchor('PIN')).focus();
-		this.getElement('PIN').focus();
-	},
-
-	'showCredentialsLogin': function (args) {
-		this.setMode('CREDENTIALS');
-		this.updateWithArgs(args);
-
-		if (this.getElement('usernameField').value.length == 0) {
-//			$(this.getAnchor('usernameField')).focus();
-			this.getElement('usernameField').focus();
-		} else {
-//			$(this.getAnchor('passphraseField')).focus();
-			this.getElement('passphraseField').focus();
-			this.getElement('passphraseField').select();
-		}
+//		this.updateRendering();
 	},
 
 	//-------------------------------------------------------------------------
 
-	'renderIfNeeded': function () {
+	'renderOnlyOnce': function () {
 		if (this.isFullyRendered() == false) {
 			this.render();
 		};
-		this.updateRendering();
+//		this.updateRendering();
 	},
-
+/*
 	'updateRendering': function () {
 		MochiKit.Style.showElement(this.getElement('credentialsBody'));
 		MochiKit.Style.hideElement(this.getElement('validating'));
@@ -196,25 +191,27 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.
 //		this.hideAllPanes();
 		MochiKit.Base.map(function (aNode) { MochiKit.Style.hideElement(aNode); },  MochiKit.Selector.findDocElements('div.credentialsBody > div'));
 		if (this.mode() == 'CREDENTIALS') {
-			selectedPanel = this.getElement('credentials')
+			selectedPanel = this.getElement('credentials');
+			$(this.getAnchor('credentialsSubmitButton')).button('enable');
 		} else if (this.mode() == 'PIN') {
 			selectedPanel = this.getElement('pin')
 //			this.updatePinDisplay();
 		} else {
 			throw 'Unhandled login form mode';
 		}
-		MochiKit.Style.showElement(selectedPanel);
 
+		MochiKit.Style.showElement(selectedPanel);
 		MochiKit.Style.hideElement(this.getElement('validating'));
 	},
-
-	'renderSelf': function() {
+*/
+/*
+	'_renderSelf': function() {
 		var selectedPanel;
 		this.append(this.element(), {tag:'div', id:'login', children:[
-			{tag:'div', cls:'toolbar', children:[
-				{tag:'h1', html:"clipperz"}
+			{tag:'div', cls:'toolbar text-center', children:[
+				{tag:'h1', cls:'clipperz', html:"clipperz"}
 			]},
-			{tag:'div', cls:'scroll', children:[
+			{tag:'div', cls:'', children:[
 				//==================================================================
 				{tag:'div', cls:'credentialsMessage', id:this.getId('credentialsMessage'), children:[
 					{tag:'h1', cls:'message', id:this.getId('message'), html:"Message"}
@@ -223,7 +220,7 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.
 				{tag:'div', cls:'credentialsBody', id:this.getId('credentialsBody'), children:[
 					//--------------------------------------------------------------
 					{tag:'div', cls:'pin', id:this.getId('pin'), children:[
-						{tag:'form', cls:'scroll', id:this.getId('pinForm'), children:[
+						{tag:'form', cls:'', id:this.getId('pinForm'), children:[
 							{tag:'ul', cls:'edit rounded', children:[
 								{tag:'li', children:[{tag:'input', type:'number',	name:'PIN',	placeholder:"PIN",	  id:this.getId('PIN')   }]},
 							]},
@@ -232,14 +229,15 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.
 					]},
 					//--------------------------------------------------------------
 					{tag:'div', cls:'credentials', id:this.getId('credentials'), children:[
-						{tag:'form', cls:'scroll', id:this.getId('credentialsForm'), children:[
-							{tag:'ul', cls:'edit rounded', children:[
-								{tag:'li', children:[{tag:'input', type:'email',	name:'name',		/*value:'joe',*/		placeholder:"username",	  id:this.getId('usernameField')   }]},
-								{tag:'li', children:[{tag:'input', type:'password',	name:'passphrase',	/*value:'clipperz',*/	placeholder:"passphrase", id:this.getId('passphraseField') }]}
+						{tag:'form', cls:'text-center', id:this.getId('credentialsForm'), children:[
+							{tag:'fieldset', children:[
+//								{tag:'legend', html:"Legend"},
+								{tag:'input', type:'email',		name:'name',		/*value:'joe',* /		placeholder:"username",	  id:this.getId('usernameField')   },
+//								{tag:'span', cls:'help-block', html:"Example of help text here"},
+								{tag:'input', type:'password',	name:'passphrase',	/*value:'clipperz',* /	placeholder:"passphrase", id:this.getId('passphraseField') },
 							]},
-							{tag:'a',  href:'#', cls:'greenButton', id:this.getId('credentialsSubmitButton'), html:"Login"}
-//							{tag:'input', type:'submit', cls:'greenButton', id:this.getId('credentialsSubmitButton'), value:"Login"}
 
+							{tag:'button', cls:'btn btn-primary btn-large', type:'submit', id:this.getId('credentialsSubmitButton'), html:"Login"}
 						]}
 					]},
 					//--------------------------------------------------------------
@@ -280,6 +278,31 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.
 		MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, 'advanceProgress',	this, 'advanceProgressHandle');
 		MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, 'progressDone',		this, 'progressDoneHandle');
 	},
+*/
+	'renderSelf': function() {
+		if (this.isFullyRendered() == false) {
+			this.append(this.element(), //	[
+//				{tag:'div', 'data-role':'header', children:[
+//					{tag:'h1', html:'clipperz'}
+//				]},
+//				{tag:'div', 'data-role':'content', children:[
+					{tag:'form', id:this.getId('credentialsForm'), children:[
+						{tag:'div', 'data-role':'fieldcontain', cls:'ui-hide-label', children:[
+							{tag:'label', 'for':'name', cls:'ui-input-text', html:"username"},
+							{tag:'input', type:'email',	name:'name',		/*value:'joe',*/		placeholder:"username",	  id:this.getId('usernameField')   },
+							{tag:'label', 'for':'passphrase', cls:'ui-input-text', html:"passphrase"},
+							{tag:'input', type:'password',	name:'passphrase',	/*value:'clipperz',*/	placeholder:"passphrase", id:this.getId('passphraseField') }
+						]},
+						{tag:'button', type:'submit', id:this.getId('credentialsSubmitButton'), html:"login"}
+					]}
+//				]}
+//			]
+			);
+
+			MochiKit.Signal.connect(this.getElement('credentialsForm'),			'onsubmit',		this, 'submitCredentialsHandler');
+			MochiKit.Signal.connect(this.getElement('credentialsSubmitButton'),	'onclick',		this, 'submitCredentialsHandler');
+		}
+	}, 
 
 	//-------------------------------------------------------------------------
 
@@ -288,8 +311,8 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.
 
 		this.setMessage(null);
 		pin = this.getElement('PIN').value;
-//		$(this.getAnchor('PIN')).blur();
-		this.getElement('PIN').blur();
+		$(this.getAnchor('PIN')).blur();
+//		this.getElement('PIN').blur();
 
 		credentials = Clipperz.PM.PIN.credentialsWithPIN(pin);
 		this.loginWithCredentials(credentials);
@@ -298,13 +321,16 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.
 	'submitCredentialsHandler': function (anEvent) {
 		var	credentials;
 
-		this.setMessage(null);
+		anEvent.preventDefault();
+
+//		this.setMessage(null);
+		$(this.getAnchor('usernameField')).blur();
+		$(this.getAnchor('passphraseField')).blur();
+		$(this.getAnchor('credentialsSubmitButton')).button('disable');
 
 		credentials = {};
 		credentials['username'] = this.getElement('usernameField').value;
 		credentials['passphrase'] = this.getElement('passphraseField').value;
-//		$(this.getAnchor('passphraseField')).blur();
-		this.getElement('passphraseField').blur();
 
 		this.loginWithCredentials(credentials);
 	},
@@ -318,8 +344,8 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.LoginForm, Clipperz.PM.UI.
 		args['credentials'] = someCredentials;
 		args['errorCallback'] = this.errorCallback();
 
-		MochiKit.Style.hideElement(this.getElement('credentialsBody'));
-		MochiKit.Style.showElement(this.getElement('validating'));
+//		MochiKit.Style.hideElement(this.getElement('credentialsBody'));
+//		MochiKit.Style.showElement(this.getElement('validating'));
 
 		MochiKit.Async.callLater(0.1, this.callback(), args);
 	},

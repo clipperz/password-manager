@@ -40,23 +40,42 @@ MochiKit.Logging.logError("## MainController - GENERIC ERROR" + "\n" + "==>> " +
 	return result;
 }
 
-
 Clipperz.PM.RunTime = {};
 
+//==============================================================================
 
-function run() {
+function registerJQMLogEvents () {
+	var interestingEvents = [
+		'pagebeforeload',	'pageload',		'pageloadfailed',
+		'pagebeforechange',	'pagechange',	'pagechangefailed',
+		'pagebeforeshow',	'pagebeforehide',
+		'pageshow',			'pagehide',
+		'pagebeforecreate',	'pagecreate',
+		'pageinit',
+		'pageremove'
+	]
+
+	interestingEvents.map(function (anEvent) {
+		$(document).on(anEvent,	MochiKit.Base.partial(logJQMEvent, anEvent));
+	})
+}
+
+function logJQMEvent (anEventName, anEvent, someData) {
+//	console.log(anEventName);
+	console.log(anEventName, someData);
+//	console.log(anEventName, anEvent, someData);
+}
+
+//==============================================================================
+
+function run () {
 	Clipperz.PM.Strings.Languages.initSetup();
 
 	Clipperz.PM.RunTime.mainController = new Clipperz.PM.UI.Mobile.Controllers.MainController();
 	Clipperz.PM.RunTime.mainController.run();
 }
 
-// if (navigator.standalone == false) {
-// 	window.localStorage.setItem('PIN', '1234');
-// 	alert("Saved PIN");
-// } else {
-// 	alert (window.localStorage.getItem('PIN'));
-// }
+//==============================================================================
 
-
+//registerJQMLogEvents();
 MochiKit.DOM.addLoadEvent(run);

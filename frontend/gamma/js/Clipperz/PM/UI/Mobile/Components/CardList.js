@@ -29,13 +29,14 @@ Clipperz.PM.UI.Mobile.Components.CardList = function(args) {
 	Clipperz.PM.UI.Mobile.Components.CardList.superclass.constructor.apply(this, arguments);
 
 	this._cardDetail = null;
-
+	this.render();
+	
 	return this;
 }
 
 //=============================================================================
 
-Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.CardList, Clipperz.PM.UI.Common.Components.BaseComponent, {
+Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.CardList, Clipperz.PM.UI.Mobile.Components.BaseComponent, {
 
 	//-------------------------------------------------------------------------
 
@@ -46,6 +47,25 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.CardList, Clipperz.PM.UI.C
 	//-------------------------------------------------------------------------
 
 	'renderSelf': function () {
+		var	headerElement;
+
+		headerElement = MochiKit.Selector.findChildElements(this.element().parentNode, ['div[data-role=header]'])[0];
+		this.append(this.element(),
+			{tag:'div', /*cls:'scroll',*/ id:this.getId('listBox'), children:[
+				{tag:'ul', /*cls:'rounded',*/ id:this.getId('list'), children:[
+					{tag:'li', html:'loading'}
+				]}
+			]}
+		);
+
+		this.append(headerElement, 
+//			{tag:'a', href:"#", 'data-icon':'gear', cls:'ui-btn-right', html:"Options" }
+			{tag:'a', href:"#", id:this.getId('preferences'), cls:'ui-btn-right', html:"options" }
+		);
+
+		MochiKit.Signal.connect(this.getElement('preferences'), 'onclick', MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'showPreferences'));
+
+/*
 		this.append(this.element(), {tag:'div', cls:'cardList', children:[
 			{tag:'div', cls:'toolbar', children:[
 				{tag:'h1', html:"clipperz"},
@@ -70,6 +90,7 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.CardList, Clipperz.PM.UI.C
 
 //		MochiKit.Style.hideElement('backButton');
 //		MochiKit.Style.hideElement(this.getElement('cardDetail'));
+*/
 	},
 
 	'showCards': function (someCards) {
@@ -101,7 +122,7 @@ Clipperz.Base.extend(Clipperz.PM.UI.Mobile.Components.CardList, Clipperz.PM.UI.C
 	'appendCardToList': function (aCardListElement, aCardInfo) {
 		this.append(aCardListElement, {tag:'li', cls:'cardListItem arrow', cardreference:aCardInfo['_reference'], children:[
 			{tag:'a', href:'#', html:aCardInfo['label'], children:[
-				{tag:'small', cls:'favicon', children:[{tag:'img', cls:'favicon', src:aCardInfo['favicon']}]}
+//				{tag:'small', cls:'favicon', children:[{tag:'img', cls:'favicon', src:aCardInfo['favicon']}]}
 			]}
 		]});
 	},
