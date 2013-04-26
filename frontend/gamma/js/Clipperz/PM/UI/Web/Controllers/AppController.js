@@ -334,7 +334,7 @@ MochiKit.Base.update(Clipperz.PM.UI.Web.Controllers.AppController.prototype, {
 
 			newWindow = window.open("", "");
 
-			deferredResult = new Clipperz.Async.Deferred("AppController.handleDownloadOfflineCopy", {trace:true});
+			deferredResult = new Clipperz.Async.Deferred("AppController.handleDownloadOfflineCopy", {trace:false});
 			deferredResult.addCallback(MochiKit.Base.method(this.user().connection(), 'message'), 'echo', {'echo':"echo"});
 			deferredResult.addCallback(function(aWindow) {
 				aWindow.location.href = downloadHref;
