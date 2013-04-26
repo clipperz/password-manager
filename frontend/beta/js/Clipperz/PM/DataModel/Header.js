@@ -81,7 +81,8 @@ Clipperz.PM.DataModel.Header.prototype = MochiKit.Base.update(null, {
 	},
 	
 	'hasSectionBeenUpdated': function(aSectionName) {
-		return (this.updatedSections().join().indexOf(aSectionName) != -1);
+		return	(this.updatedSections().join().indexOf(aSectionName) != -1)
+			||	(this.serverDataVersion() != Clipperz.PM.Crypto.encryptingFunctions.currentVersion);
 	},
 	
 	'cachedServerDataSection': function(aSectionName) {
@@ -412,6 +413,7 @@ Clipperz.PM.DataModel.Header.prototype = MochiKit.Base.update(null, {
 //deferredResult.addErrback(function(res) {MochiKit.Logging.logDebug("ERROR: " + res); return res;});
 					deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'updatedProgressState', 'connection_decryptingUserData');
 //deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("Header.extractDataWithKey 5: "/* + res*/); return res;});
+//deferredResult.addBoth(function(res) {console.log("aKey: " + aKey); return res;});
 //deferredResult.addErrback(function(res) {MochiKit.Logging.logDebug("ERROR: " + res); return res;});
 					deferredResult.addCallback(Clipperz.PM.Crypto.deferredDecrypt, this.user().passphrase(), data[aKey]['data'], this.serverDataVersion());
 //deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("Header.extractDataWithKey 6: "/* + res*/); return res;});
