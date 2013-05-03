@@ -70,6 +70,30 @@ The script, invoked with these parameters, will build both the full version (`in
 Besides PHP and Python, more backends are in the works, most notably a node.js version.
 
 
+### Developing
+To support the development of the application, a few extra tools have been built, the most useful one being `dev-proxy`.
+This script, located in `scripts/dev-proxy`, is invoked without any parameters (to simplify daily usage) and all its configurations are hard coded into the actual code it executes: `scripts/proxy/main.py`.
+
+The aim of this proxy is to mask the actual location of frontend JS files from the actual backend handling requests.
+
+When executed, this script will start listening on localhost:8888.
+
+All 'backend' requests (whose path starts with either `/json` or `/dump`) will be forwarded to the actual backend, that is configured as a `ReverseProxyResource` (in the current code: `proxy.ReverseProxyResource('localhost', 8084, '/java-backend')`).
+All other requests (html files, Javascript code, CSS stylesheets and other resources) will be handled by reading the resource from the filesystem; the proxy is aware of the layout of the project, so it will be able to locate the right resource in the right place.
+
+The only file that needs to be `build`, and not read directly from the file system, is the `index.html` file.
+
+In order to build this file, the following command should be executed:
+
+	./scripts/build --frontends beta gamma gamma.mobile --backends dev
+
+
+Once the index.html files have been built (one for each frontend) and a backend is running and has been correctly configured in the proxy script, it is possible to access the different versions of the application at the following URLs:
+	- `http://localhost:8888/beta/index.html`
+	- `http://localhost:8888/gamma/index.html`
+	- `http://localhost:8888/gamma/index.mobile.html`
+
+
 ## Installing
 
 ### PHP + MySQL backend
@@ -87,7 +111,7 @@ Besides PHP and Python, more backends are in the works, most notably a node.js v
 
 ## Disclaimer
 
-The resulting application has not been fully tested, so there may be still problems due to the new build script or some other changes that were done due to the new repository structure. So, for the moment, **use it at your own risk!**
+This application has not been fully tested, so there may be still problems due to the new build script or to the new repository structure. So, for the moment, **use it at your own risk!**
 
 
 [pog]: http://www.phpobjectgenerator.com/
