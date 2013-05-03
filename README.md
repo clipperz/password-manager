@@ -89,9 +89,10 @@ In order to build this file, the following command should be executed:
 
 
 Once the index.html files have been built (one for each frontend) and a backend is running and has been correctly configured in the proxy script, it is possible to access the different versions of the application at the following URLs:
-	- `http://localhost:8888/beta/index.html`
-	- `http://localhost:8888/gamma/index.html`
-	- `http://localhost:8888/gamma/index.mobile.html`
+
+- `http://localhost:8888/beta/index.html`
+- `http://localhost:8888/gamma/index.html`
+- `http://localhost:8888/gamma/index.mobile.html`
 
 
 ## Installing
