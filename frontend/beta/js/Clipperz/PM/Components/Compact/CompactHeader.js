@@ -62,7 +62,7 @@ YAHOO.extendX(Clipperz.PM.Components.Compact.CompactHeader, Clipperz.PM.Componen
 				]},
 				{tag:'ul', children:[
 					{tag:'li', children:[{tag:'a', id:'donateHeaderLink', html:'donate', target:'_blank'}]},
-					{tag:'li', children:[{tag:'a', id:'creditsHeaderLink', html:'credits', target:'_blank'}]},
+//					{tag:'li', children:[{tag:'a', id:'creditsHeaderLink', html:'credits', target:'_blank'}]},
 					{tag:'li', children:[{tag:'a', id:'feedbackHeaderLink', html:'feedback', target:'_blank'}]},
 					{tag:'li', children:[{tag:'a', id:'helpHeaderLink', html:'help', target:'_blank'}]},
 					{tag:'li', children:[{tag:'a', id:'forumHeaderLink', html:'forum', target:'_blank'}]}

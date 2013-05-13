@@ -149,7 +149,7 @@ Clipperz.PM.Strings.Languages['el-gr'] = MochiKit.Base.merge(Clipperz.PM.Strings
 	'registrationFormPassphraseLabel':						"Κωδική φράση",
 	'registrationFormRetypePassphraseLabel':				"Εισάγετε ξανά την κωδική φράση",
 	'registrationFormSafetyCheckLabel':						"Κατανοώ πως το Clipperz δεν θα μπορεί να ανακτήσει μία χαμένη κωδική φράση.",
-	'registrationFormTermsOfServiceCheckLabel':				"Έχω διαβάσει και αποδέχομαι τους Όρους Χρήσης <a href='http://www.clipperz.com/terms_of_service' target='_blank'>Όρους Χρήσης</a>.",
+	'registrationFormTermsOfServiceCheckLabel':				"Έχω διαβάσει και αποδέχομαι τους Όρους Χρήσης <a href='https://www.clipperz.com/terms_service' target='_blank'>Όρους Χρήσης</a>.",
 	'registrationFormDoYouAlreadyHaveAnAccountLabel':		"Έχετε ήδη έναν λογαριασμό?",
 	'registrationFormSimplyLoginLabel':						"απλώς συνδεθείτε",
 	'registrationFormButtonLabel':							"Εγγραφείτε",

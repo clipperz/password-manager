@@ -53,7 +53,7 @@ MochiKit.Base.update(Clipperz.PM.Main.prototype, {
 //MochiKit.Logging.logDebug(">>> main.switchLanguageHandler");
 		YAHOO.ext.Element.get('donateHeaderIconLink').dom.href = Clipperz.PM.Strings['donateHeaderLinkUrl'];
 		YAHOO.ext.Element.get('donateHeaderLink').update(Clipperz.PM.Strings['donateHeaderLinkLabel']).dom.href = Clipperz.PM.Strings['donateHeaderLinkUrl'];
-		YAHOO.ext.Element.get('creditsHeaderLink').update(Clipperz.PM.Strings['creditsHeaderLinkLabel']).dom.href = Clipperz.PM.Strings['creditsHeaderLinkUrl'];
+//		YAHOO.ext.Element.get('creditsHeaderLink').update(Clipperz.PM.Strings['creditsHeaderLinkLabel']).dom.href = Clipperz.PM.Strings['creditsHeaderLinkUrl'];
 		YAHOO.ext.Element.get('feedbackHeaderLink').update(Clipperz.PM.Strings['feedbackHeaderLinkLabel']).dom.href = Clipperz.PM.Strings['feedbackHeaderLinkUrl'];
 		YAHOO.ext.Element.get('helpHeaderLink').update(Clipperz.PM.Strings['helpHeaderLinkLabel']).dom.href = Clipperz.PM.Strings['helpHeaderLinkUrl'];
 		YAHOO.ext.Element.get('forumHeaderLink').update(Clipperz.PM.Strings['forumHeaderLinkLabel']).dom.href = Clipperz.PM.Strings['forumHeaderLinkUrl'];

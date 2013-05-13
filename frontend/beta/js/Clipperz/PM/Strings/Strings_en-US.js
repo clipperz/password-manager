@@ -159,7 +159,7 @@ Clipperz.PM.Strings.Languages['en-us'] = {
 'registrationFormPassphraseLabel':						"passphrase",
 'registrationFormRetypePassphraseLabel':				"re-enter passphrase",
 'registrationFormSafetyCheckLabel':						"I understand that Clipperz will not be able to recover a lost passphrase.",
-'registrationFormTermsOfServiceCheckLabel':				"I have read and agreed to the <a href='http://www.clipperz.com/terms_of_service' target='_blank'>Terms of Service</a>.",
+'registrationFormTermsOfServiceCheckLabel':				"I have read and agreed to the <a href='https://www.clipperz.com/terms_service' target='_blank'>Terms of Service</a>.",
 'registrationFormDoYouAlreadyHaveAnAccountLabel':		"do you already have an account?",
 'registrationFormSimplyLoginLabel':						"simply login",
 'registrationFormButtonLabel':							"Register",

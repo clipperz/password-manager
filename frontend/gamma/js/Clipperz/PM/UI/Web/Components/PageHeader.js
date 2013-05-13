@@ -49,7 +49,7 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.PageHeader, Clipperz.PM.UI.Co
 
 	'iframeURL': function () {
 //		return './rss_view.html';
-		return 'http://www.clipperz.com/files/clipperz.com/appTips/index.html';
+		return 'https://www.clipperz.com/tips/index.html';
 	},
 
 	//-------------------------------------------------------------------------
@@ -60,7 +60,7 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.PageHeader, Clipperz.PM.UI.Co
 				{tag:'ul', children:[
 					{tag:'li', children:[{tag:'a', id:'donateHeaderLink',	stringID:'pageHeader.donation',	href:'http://www.clipperz.com/donations',			target:'_blank', html:Clipperz.PM.Strings.getValue('pageHeader.donation')}]},
 					{tag:'li', children:[{tag:'a', id:'forumHeaderLink',	stringID:'pageHeader.forum',	href:'http://www.clipperz.com/forum',				target:'_blank', html:Clipperz.PM.Strings.getValue('pageHeader.forum')}]},
-					{tag:'li', children:[{tag:'a', id:'creditsHeaderLink',	stringID:'pageHeader.credits',	href:'http://www.clipperz.com/credits',				target:'_blank', html:Clipperz.PM.Strings.getValue('pageHeader.credits')}]},
+//					{tag:'li', children:[{tag:'a', id:'creditsHeaderLink',	stringID:'pageHeader.credits',	href:'http://www.clipperz.com/credits',				target:'_blank', html:Clipperz.PM.Strings.getValue('pageHeader.credits')}]},
 					{tag:'li', children:[{tag:'a', id:'feedbackHeaderLink',	stringID:'pageHeader.feedback',	href:'http://www.clipperz.com/contact',				target:'_blank', html:Clipperz.PM.Strings.getValue('pageHeader.feedback')}]},
 					{tag:'li', children:[{tag:'a', id:'helpHeaderLink',		stringID:'pageHeader.help',		href:'http://www.clipperz.com/support/user_guide',	target:'_blank', html:Clipperz.PM.Strings.getValue('pageHeader.help')}]}
 				]}

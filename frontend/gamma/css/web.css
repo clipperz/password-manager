@@ -890,7 +890,7 @@ div.modalDialogMask.userInfoBoxMask {
 div.userInfoBox {
   position: absolute;
   width: 160px;
-  height: 120px;
+  height: 200px;
   top: 100px;
   left: 15px;
   color: white;
@@ -958,9 +958,59 @@ div.userInfoBox div.body ul li span.number {
   font-weight: bold;
   padding-right: 3px;
 }
+div.userInfoBox div.body div.accountInfo {
+  margin-top: 6px;
+  border-top: 1px solid white;
+  border-color: #f4aa84;
+}
+div.userInfoBox div.body div.accountInfo h5 {
+  margin: 0px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  font-size: 8pt;
+  font-weight: normal;
+}
+div.userInfoBox div.body div.accountInfo span.label {
+  font-size: 9pt;
+  font-weight: normal;
+  padding-right: 4px;
+  display: inline-block;
+  width: 45px;
+}
+div.userInfoBox div.body div.accountInfo span.label:after {
+  content: ":";
+}
+div.userInfoBox div.body div.accountInfo span.status {
+  font-size: 10pt;
+}
+div.userInfoBox div.body div.accountInfo span.expriation {
+  font-size: 9pt;
+}
+div.userInfoBox div.body div.accountInfo div.payButton {
+  float: right;
+  padding-top: 6px;
+  text-align: right;
+}
+div.userInfoBox div.body div.accountInfo div.payButton a {
+  border: 0px;
+  margin-top: 0px;
+  padding: 0px;
+  color: white;
+  display: inline-block;
+  padding: 2px 5px 2px 5px;
+  border-radius: 4px;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  font-size: 9pt;
+  font-weight: normal;
+  background-color: #d15a22;
+}
+div.userInfoBox div.body div.accountInfo div.payButton a:hover {
+  background-color: #8c3b15;
+}
 div.userInfoBox div.body a {
   display: block;
-  margin-top: 8px;
+  margin-top: 4px;
   border-top: 1px solid white;
   padding-top: 6px;
   font-size: 10pt;
@@ -974,7 +1024,7 @@ div.userInfoBox div.body a:hover {
 }
 div.sidePanels {
   float: left;
-  margin-top: 106px;
+  margin-top: 186px;
   margin-left: 20px;
   width: 160px;
 }

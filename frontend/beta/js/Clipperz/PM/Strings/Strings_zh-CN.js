@@ -75,7 +75,7 @@ Clipperz.PM.Strings.Languages['zh-CN'.toLowerCase()] = MochiKit.Base.merge(Clipp
 'registrationFormPassphraseLabel':	"密码短语",
 'registrationFormRetypePassphraseLabel':	"确认密码短语",
 'registrationFormSafetyCheckLabel':	"我明白 Clipperz 无法找回忘记的密码短语.",
-'registrationFormTermsOfServiceCheckLabel':	"我同意接受 <a href='http://www.clipperz.com/terms_of_service' target='_blank'>服务条款</a> 款.",
+'registrationFormTermsOfServiceCheckLabel':	"我同意接受 <a href='https://www.clipperz.com/terms_service' target='_blank'>服务条款</a> 款.",
 'registrationFormDoYouAlreadyHaveAnAccountLabel':	"如果已有一个 Clipperz 帐户",
 'registrationFormSimplyLoginLabel':	"在此登录",
 'registrationFormButtonLabel':	"注册",

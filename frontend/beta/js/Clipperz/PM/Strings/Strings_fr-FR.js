@@ -68,7 +68,7 @@ Clipperz.PM.Strings.Languages['fr-FR'.toLowerCase()] = MochiKit.Base.merge(Clipp
 'registrationFormPassphraseLabel':	"phrase secrète",
 'registrationFormRetypePassphraseLabel':	"re-saisissez votre phrase secrète",
 'registrationFormSafetyCheckLabel':	"J’accepte que Clipperz ne pourra pas récupérer ma phrase secrète.",
-'registrationFormTermsOfServiceCheckLabel':	"J’ai lu et j’accepte les <a href='http://www.clipperz.com/terms_of_service' target='_blank'>Conditions d’Utilisation du Service</a>.",
+'registrationFormTermsOfServiceCheckLabel':	"J’ai lu et j’accepte les <a href='https://www.clipperz.com/terms_service' target='_blank'>Conditions d’Utilisation du Service</a>.",
 'registrationFormDoYouAlreadyHaveAnAccountLabel':	"avez-vous déjà un compte?",
 'registrationFormSimplyLoginLabel':	"identifiez-vous",
 'registrationFormButtonLabel':	"S’inscrire",

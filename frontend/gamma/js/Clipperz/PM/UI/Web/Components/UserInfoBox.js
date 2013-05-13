@@ -166,13 +166,34 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.UserInfoBox, Clipperz.PM.UI.C
 						{tag:'span', id:this.getId('directLoginsLabel'), html:"direct logins"}
 					]}
 				]},
+				{tag:'div', cls:'accountInfo', children:[
+					{tag:'div', cls:'payButton', children:[
+						{tag:'a', href:'#', id:this.getId('payButton'), cls:'info', html:"info"}
+					]},
+					{tag:'h5', html:"Account info"},
+					{tag:'div', cls:'accountStatus', children:[
+						{tag:'span', cls:'label', html:"status"},
+						{tag:'span', cls:'status', html:"early adopter"}
+					]},
+					{tag:'div', cls:'accountLevel', children:[
+						{tag:'span', cls:'label', html:"level"},
+//						{tag:'span', cls:'level', html:"★☆☆☆"}
+						{tag:'span', cls:'level', html:"☆☆☆☆"}
+					]},
+					{tag:'div', cls:'accountExpiration', children:[
+						{tag:'span', cls:'label', html:"expires"},
+//						{tag:'span', cls:'expriation', html:"on 26 April 2014"}
+						{tag:'span', cls:'expriation', html:"never"}
+					]}
+				]},
 				{tag:'a', href:'#', id:this.getId('logout'), html:"logout >"}
 			]},
 			{tag:'div', cls:'footer'}
 		]);
 
-		MochiKit.Signal.connect(this.getElement('logout'), 'onclick', this, 'handleLogout');
-		MochiKit.Signal.connect(this.getElement('lock'), 'onclick', this, 'toggleLock');
+		MochiKit.Signal.connect(this.getElement('logout'),		'onclick', this, 'handleLogout');
+		MochiKit.Signal.connect(this.getElement('lock'),		'onclick', this, 'toggleLock');
+		MochiKit.Signal.connect(this.getElement('payButton'),	'onclick', this, 'handlePayButton');
 
 		this._lockTooltip = new Clipperz.PM.UI.Common.Components.Tooltip({
 			element:	this.getElement('lock'),
@@ -188,6 +209,13 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.UserInfoBox, Clipperz.PM.UI.C
 		MochiKit.Style.hideElement(this.getId('modalDialogMask'));
 		
 //		this.drawUserInfoBackground(this.getElement('canvas'));
+	},
+
+	//-------------------------------------------------------------------------
+
+	'handlePayButton': function (anEvent) {
+		anEvent.preventDefault();
+		window.open('https://www.clipperz.com/pricing/', '_blank');
 	},
 
 	//-------------------------------------------------------------------------

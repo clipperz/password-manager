@@ -83,6 +83,28 @@ YAHOO.extendX(Clipperz.PM.Components.Panels.MainPanel, Clipperz.PM.Components.Pa
 						{tag:'div', cls:'mainPanelMinHeightDiv'}
 					]},
 					{tag:'td', valign:'top', id:'directLoginsTD', width:'200', children:[
+						{tag:'div', id:'accountStatus', children:[
+							{tag:'div', cls:'header', children:[{tag:'h5', cls:'title', htmlString:"Account info"}]},
+//							{tag:'div', cls:'accountStatus', html:"early adopter"},
+							{tag:'div', cls:'accountLevel', children:[
+								{tag:'span', cls:'label', html:"status"},
+								{tag:'span', cls:'status', html:"early adopter"}
+							]},
+							{tag:'div', cls:'accountLevel', children:[
+								{tag:'span', cls:'label', html:"level"},
+//								{tag:'span', cls:'level', html:"★☆☆☆"}
+								{tag:'span', cls:'level', html:"☆☆☆☆"}
+							]},
+							{tag:'div', cls:'accountExpiration', children:[
+								{tag:'span', cls:'label', html:"expires"},
+//								{tag:'span', cls:'expriation', html:"on 26 April 2014"}
+								{tag:'span', cls:'expriation', html:"never"}
+							]},
+//							{tag:'div', cls:'payButton', children:[
+//								{tag:'a', href:'#', cls:'info', html:"info"}
+//							]}
+							{tag:'div', id:'payButton', cls:'payButton'}
+						]},
 						{tag:'div', id:'directLoginsBlock', children:[
 							{tag:'div', cls:'directLoginsBlockHeaderBox', children:[{tag:'h3', id:'directLoginTitle', htmlString:Clipperz.PM.Strings['mainPanelDirectLoginBlockLabel']}]},
 							{tag:'div', id:'directLoginsDescription', htmlString:Clipperz.PM.Strings['mainPanelDirectLoginBlockDescription']},
@@ -136,11 +158,19 @@ YAHOO.extendX(Clipperz.PM.Components.Panels.MainPanel, Clipperz.PM.Components.Pa
 //		this.renderRecordListFilterHeader();
 
 		YAHOO.ext.Element.get('directLogins').setVisibilityMode(YAHOO.ext.Element.DISPLAY).hide();
-
+		//	TODO
+		new YAHOO.ext.Button('payButton', {text:"Info", handler:this.payButtonHandler, scope:this});
+		
 		this.recordDetailComponent();
 
 		YAHOO.ext.Element.get('recordDetailMainBlock').setVisibilityMode(YAHOO.ext.Element.DISPLAY).show();
 		YAHOO.ext.Element.get('recordCreationWizardMainBlock').setVisibilityMode(YAHOO.ext.Element.DISPLAY).hide();
+	},
+
+	//-------------------------------------------------------------------------
+
+	'payButtonHandler': function(anEvent) {
+		window.open('https://www.clipperz.com/pricing/', '_blank');
 	},
 	
 	//-------------------------------------------------------------------------
