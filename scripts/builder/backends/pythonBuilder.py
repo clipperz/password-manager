@@ -11,17 +11,3 @@ class PythonBuilder(ScriptLanguageBuilder):
 	
 	def relativePath(self):
 		return 'python'
-
-
-	def compileCode (self):
-		src = self.sourceFolder()
-		dst = self.targetFolder()
-
-		shutil.copytree(src, dst)
-
-
-#	def copyCompiledCodeToTargetDir (self):
-#		src = self.sourceFolder()
-#		dst = self.targetFolder()
-#
-#		shutil.copytree(src, dst)
