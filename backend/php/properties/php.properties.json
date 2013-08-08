@@ -1,4 +1,5 @@
 {
-	"request.path": "index.php",
+	"request.path": "../index.php",
+	"dump.path": "../dump.php",
 	"should.pay.toll": "false"
 }

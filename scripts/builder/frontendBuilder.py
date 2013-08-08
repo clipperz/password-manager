@@ -35,6 +35,8 @@ class FrontendBuilder(object):
 	def name (self):
 		raise NotImplementedError()
 
+	def projectResourceTypes (self):
+		raise NotImplementedError()
 
 	def copyStaticResources (self, targetFolder):
 		raise NotImplementedError()
@@ -93,9 +95,11 @@ class FrontendBuilder(object):
 		
 
 	def copyResourcesToFolder (self, targetFolder):
-		self.copyResources(self.projectDir, targetFolder, 'css')
-		self.copyResources(self.projectDir, targetFolder, 'js')
-		self.copyResources(self.projectDir, targetFolder, 'images')
+#		self.copyResources(self.projectDir, targetFolder, 'css')
+#		self.copyResources(self.projectDir, targetFolder, 'js')
+#		self.copyResources(self.projectDir, targetFolder, 'images')
+		for resoureceType in self.projectResourceTypes():
+			self.copyResources(self.projectDir, targetFolder, resoureceType)
 		self.copyStaticResources(targetFolder)
 	
 
@@ -388,17 +392,21 @@ class FrontendBuilder(object):
 		elif assemblyMode == 'DEBUG':
 			copyright = self.assembleCopyrightHeader()
 			css	=	self.cssTagsForFiles('./css', self.filterFiles(self.settings['css']))
-			js	=	self.scriptTagForContent(self.bookmarklet()) + \
-				 	'\n' + \
-					self.scriptTagsForFiles('./js', self.filterFiles(self.settings['js']))
+			js	=	self.scriptTagForContent(
+						self.bookmarklet()) + \
+				 		'\n' + \
+						self.scriptTagsForFiles('./js', self.filterFiles(self.settings['js'])
+					)
 			jsLoadMode = 'LINKED'
 
 		elif assemblyMode == 'DEVELOPMENT':
 			copyright = ""
 			css	=	self.cssTagsForFiles('file://' + str(os.path.join(self.absolutePathForSources(), 'css')), self.filterFiles(self.settings['css']))
-			js	=	self.scriptTagForContent(self.bookmarklet()) + \
-				 	'\n' + \
-					self.scriptTagsForFiles('file://' + str(os.path.join(self.absolutePathForSources(), 'js')), self.filterFiles(self.settings['js']))
+			js	=	self.scriptTagForContent(
+						self.bookmarklet()) + \
+					 	'\n' + \
+						self.scriptTagsForFiles('file://' + str(os.path.join(self.absolutePathForSources(), 'js')), self.filterFiles(self.settings['js'])
+					)
 			jsLoadMode = 'LINKED'
 			versionType = 'development'
 
