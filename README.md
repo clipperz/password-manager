@@ -109,6 +109,8 @@ Once the index.html files have been built (one for each frontend) and a backend 
   The POG interface will allow also a very basic access to the DB data that may be useful to check that the application is actually writing something on the DB (even if you will not be able to make much sense out of the data you will see, as they are all encrypted!)  
   More information about building the PHP backend may be found in the `doc/install.php.txt` file.
 
+  But if you have setup a $configuration['setup_password'] in target/php/configuration.php then a page with a textfield and a "Submit" link will appear.
+  Just input your $configuration['setup_password'] value and click on "Submit" so [POG][pog] setup page will appear.
 
 ## Disclaimer
 
