@@ -35,6 +35,8 @@ class FrontendBuilder(object):
 	def name (self):
 		raise NotImplementedError()
 
+	def projectResourceTypes (self):
+		raise NotImplementedError()
 
 	def copyStaticResources (self, targetFolder):
 		raise NotImplementedError()
@@ -93,9 +95,11 @@ class FrontendBuilder(object):
 		
 
 	def copyResourcesToFolder (self, targetFolder):
-		self.copyResources(self.projectDir, targetFolder, 'css')
-		self.copyResources(self.projectDir, targetFolder, 'js')
-		self.copyResources(self.projectDir, targetFolder, 'images')
+#		self.copyResources(self.projectDir, targetFolder, 'css')
+#		self.copyResources(self.projectDir, targetFolder, 'js')
+#		self.copyResources(self.projectDir, targetFolder, 'images')
+		for resoureceType in self.projectResourceTypes():
+			self.copyResources(self.projectDir, targetFolder, resoureceType)
 		self.copyStaticResources(targetFolder)
 	
 
@@ -243,55 +247,8 @@ class FrontendBuilder(object):
 		result = re.sub('\\\\',		'%5c',			result)
 		result = result.strip()
 		result = 'javascript:' + result
-
-#		replacers = [
-#			('aForm',				'_1' ),
-#			('inputFields',			'_2' ),
-#			('passwordFieldsFound',	'_3' ),
-#			('aDocument',			'_6' ),
-#			('aLevel',				'_7' ),
-#		#	('result',				'_8' ),
-#			('documentForms',		'_9' ),
-#			('iFrames',				'_c' ),
-#			('anInputElement',		'_d' ),
-#			('options',				'_f' ),
-#			('option',				'_12'),
-#			('aLoginForm',			'_13'),
-#		#	('action',				'_17'),
-#			('radioValues',			'_18'),
-#			('radioValueName',		'_19'),
-#			('inputElement',		'_1a'),
-#			('elementValues',		'_1b'),
-#			('radioValue',			'_1c'),
-#			('values',				'_1d'),
-#			('objtype',				'_21'),
-#			('useKey',				'_27'),
-#			('bookmarkletDiv',		'_28'),
-#			('someParameters',		'_29'),
-#			('anException',			'_2a'),
-#			('newDiv',				'_2b'),
-#			('base_url',			'_2c'),
-#			('help_url',			'_2d'),
-#			('logo_image_url',		'_2e'),
-#			('background_image_url','_2f'),
-#			('close_image_url',		'_30'),
-#		#	('bookmarklet_textarea','_31'),
-#			('innerHTML',			'_32'),
-#		]
-#		for replacer in replacers:
-#			result = re.sub('([^\.])' + replacer[0], '\\1' + replacer[1], result)
-
-#		replacers = [
-#			('headNode',			'_1' ),
-#			('clipperzScriptNode',	'_2' ),
-#		]
-#		for replacer in replacers:
-#			result = re.sub('([^\.])' + replacer[0], '\\1' + replacer[1], result)
-
-#		result = re.sub(';', ';\n', result)
 		
 		return result
-		
 	
 
 	def bookmarklet (self):
@@ -388,17 +345,21 @@ class FrontendBuilder(object):
 		elif assemblyMode == 'DEBUG':
 			copyright = self.assembleCopyrightHeader()
 			css	=	self.cssTagsForFiles('./css', self.filterFiles(self.settings['css']))
-			js	=	self.scriptTagForContent(self.bookmarklet()) + \
-				 	'\n' + \
-					self.scriptTagsForFiles('./js', self.filterFiles(self.settings['js']))
+			js	=	self.scriptTagForContent(
+						self.bookmarklet()) + \
+				 		'\n' + \
+						self.scriptTagsForFiles('./js', self.filterFiles(self.settings['js'])
+					)
 			jsLoadMode = 'LINKED'
 
 		elif assemblyMode == 'DEVELOPMENT':
 			copyright = ""
 			css	=	self.cssTagsForFiles('file://' + str(os.path.join(self.absolutePathForSources(), 'css')), self.filterFiles(self.settings['css']))
-			js	=	self.scriptTagForContent(self.bookmarklet()) + \
-				 	'\n' + \
-					self.scriptTagsForFiles('file://' + str(os.path.join(self.absolutePathForSources(), 'js')), self.filterFiles(self.settings['js']))
+			js	=	self.scriptTagForContent(
+						self.bookmarklet()) + \
+					 	'\n' + \
+						self.scriptTagsForFiles('file://' + str(os.path.join(self.absolutePathForSources(), 'js')), self.filterFiles(self.settings['js'])
+					)
 			jsLoadMode = 'LINKED'
 			versionType = 'development'
 

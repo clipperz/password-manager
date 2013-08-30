@@ -68,9 +68,12 @@ class BackendBuilder(object):
 		file.close()
 		
 
-	def configureIndexContent (self, indexContent, requestPathPrefix = ".."):
+#	def configureIndexContent (self, indexContent, requestPathPrefix = ".."):
+	def configureIndexContent (self, indexContent):
 		result = indexContent
-		result = result.replace( '@request.path@',    requestPathPrefix + '/' + self.settings['request.path']    )
+#		result = result.replace( '@request.path@',    requestPathPrefix + '/' + self.settings['request.path']    )
+		result = result.replace( '@request.path@',    self.settings['request.path']    )
+		result = result.replace( '@dump.path@',       self.settings['dump.path']       )
 		result = result.replace( '@should.pay.toll@', self.settings['should.pay.toll'] )
 
 		return result

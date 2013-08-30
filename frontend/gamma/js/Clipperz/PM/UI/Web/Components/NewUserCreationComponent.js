@@ -155,7 +155,7 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.NewUserCreationComponent, Cli
 								{tag:'div', cls:'wizardStepDescription', children:[{tag:'span', html:Clipperz.PM.Strings.getValue('Wizards.NewUserWizard.TERMS_OF_SERVICE.description')}]},
 								{tag:'ul', cls:'termsOfService', children:[
 									{tag:'li', children:[{tag:'input', type:'checkbox', id:this.getId('awareOfUnrecoverablePassphrase')/*, checked:true*/}, {tag:'label', cls:'label', 'for':this.getId('awareOfUnrecoverablePassphrase'), html:"I understand that Clipperz will not be able to recover a lost passphrase."}]},
-									{tag:'li', children:[{tag:'input', type:'checkbox', id:this.getId('readTermsOfService')/*, checked:true*/}, {tag:'label', cls:'label', 'for':this.getId('readTermsOfService'), htmlString:"I have read and agreed to the <a href='http://www.clipperz.com/terms_of_service' target='_blank'>Terms of Service</a>."}]}
+									{tag:'li', children:[{tag:'input', type:'checkbox', id:this.getId('readTermsOfService')/*, checked:true*/}, {tag:'label', cls:'label', 'for':this.getId('readTermsOfService'), htmlString:"I have read and agreed to the <a href='https://www.clipperz.com/terms_service' target='_blank'>Terms of Service</a>."}]}
 								]}
 							]},
 							{tag:'li', id:this.getId('createUserTabpanel'), cls:'tabPanel createUser', children:[

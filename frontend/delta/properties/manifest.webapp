@@ -1,0 +1,17 @@
+{
+	"name": "Clipperz",
+	"description": "Keep it to yourself: store and manage your password and online credentials",
+	"launch_path": "/delta/index.html",
+	"icons": {
+		"16":  "https://www.clipperz.com/manifests/logo/16.png",
+		"32":  "https://www.clipperz.com/manifests/logo/32.png",
+		"30":  "https://www.clipperz.com/manifests/logo/30.png",
+		"60":  "https://www.clipperz.com/manifests/logo/60.png",
+		"128": "https://www.clipperz.com/manifests/logo/128.png"
+	},
+	"developer": {
+		"name": "Clipperz",
+		"url": "https://www.clipperz.com"
+	},
+	"default_locale": "en"
+}

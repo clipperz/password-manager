@@ -1,4 +1,5 @@
 {
-	"request.path": "json",
+	"request.path": "../json",
+	"dump.path": "/../dump",
 	"should.pay.toll": "true"
 }

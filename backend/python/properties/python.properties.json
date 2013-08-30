@@ -1,4 +1,5 @@
 {
-	"request.path": "clipperz.py",
+	"request.path": "../clipperz.py",
+	"dump.path": "/../clipperz.py",
 	"should.pay.toll": "false"
 }

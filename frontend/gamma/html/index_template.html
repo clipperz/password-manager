@@ -15,7 +15,7 @@
 <script>
 	Clipperz_IEisBroken = false;
 	Clipperz_normalizedNewLine = '\n';
-	Clipperz_dumpUrl = "/../dump/";
+	Clipperz_dumpUrl = "@dump.path@";
 	Clipperz_version = "@application.version@";
 	"use strict";
 </script>
@@ -51,7 +51,7 @@ Clipperz_normalizedNewLine = '\x0d\x0a';
 /* * /
 	MochiKit.DOM.addLoadEvent(function () {
 		Clipperz.Crypto.PRNG.defaultRandomGenerator().fastEntropyAccumulationForTestingPurpose();
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'doLogin', {username:'j', passphrase:'j'});
+//		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'doLogin', {username:'joe', passphrase:'clipperz'});
 	});
 / * */
 </script>

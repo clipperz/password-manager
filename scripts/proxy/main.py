@@ -27,20 +27,27 @@ class ClipperzTestSite(server.Site):
 
 
 	def getResourceFor(self, request):
-		if request.uri.startswith('/json') or request.uri.startswith('/dump'):
+		uri = request.uri
+		uri = uri.split("?", 1)[0]
+		uri = uri.split("#", 1)[0]
+		if uri.startswith('/json') or uri.startswith('/dump'):
 			request.site = self
 			request.sitepath = copy.copy(request.prepath)
 			result = resource.getChildForRequest(self.resource, request)
 
 		else:
-			pathParts = request.uri.split('/')
+			pathParts = uri.split('/')
 			version = pathParts[1]
 
 			if pathParts[2].startswith('index.'):
 				contentType = 'text/html'
 				absoluteFilePath = os.path.join(projectTargetDir(), 'dev', version, pathParts[2])
 				result = static.File(absoluteFilePath, contentType)
-
+			elif pathParts[2].endswith('.webapp'):
+				contentType = 'application/x-web-app-manifest+json'
+#				absoluteFilePath = os.path.join(projectTargetDir(), 'dev', version, pathParts[2])
+				absoluteFilePath = os.path.join(projectBaseDir(), 'frontend', version, 'properties', pathParts[2])
+				result = static.File(absoluteFilePath, contentType)
 			else: 
 #	http://homer.local:8888/beta/css/clipperz/images/loginInfoBackground.png
 #	pathParts: ['', 'beta', 'css', 'clipperz', 'images', 'loginInfoBackground.png']
@@ -54,7 +61,7 @@ class ClipperzTestSite(server.Site):
 
 				basePath = projectBaseDir() + '/frontend'
 				if resourceType == 'images':
-					fileExtension = os.path.splitext(request.uri)[1]
+					fileExtension = os.path.splitext(uri)[1]
 					if fileExtension == '.png':
 						contentType = 'image/png'
 					elif fileExtension == '.jpg':
@@ -75,7 +82,7 @@ class ClipperzTestSite(server.Site):
 					else:
 						contentType = 'text/html'
 					
-					absoluteFilePath = basePath + request.uri
+					absoluteFilePath = basePath + uri
 
 				result = static.File(absoluteFilePath, contentType)
 
@@ -85,7 +92,7 @@ class ClipperzTestSite(server.Site):
 
 
 def main ():
-	site = ClipperzTestSite(proxy.ReverseProxyResource('localhost', 8084, '/java-backend'))
+	site = ClipperzTestSite(proxy.ReverseProxyResource('localhost', 8080, '/java-backend'))
 	reactor.listenTCP(8888, site)
 	reactor.run()
 

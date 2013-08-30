@@ -15,7 +15,7 @@
 <script>
 	Clipperz_IEisBroken = false;
 	Clipperz_normalizedNewLine = '\n';
-	Clipperz_dumpUrl = "/../dump/";
+	Clipperz_dumpUrl = "@dump.path@";
 </script>
 
 <!--[if IE]><script>
@@ -67,12 +67,22 @@ Clipperz_normalizedNewLine = '\x0d\x0a';
 
 	<div id="main">
 		<h3 class="loading">loading ...</h3>
+<!-- script>
+	_clipperz_pm_test_user = 'joe'
+	_clipperz_pm_test_passphrase = 'clipperz'
+</script -->
 
 @js_EMBEDDED@
 
 <script>
 	Clipperz.PM.Proxy.defaultProxy = new Clipperz.PM.Proxy.JSON({'url':'@request.path@', 'shouldPayTolls':@should.pay.toll@});
 	/*offline_data_placeholder*/
+
+	/* * /
+		MochiKit.DOM.addLoadEvent(function () {
+			Clipperz.Crypto.PRNG.defaultRandomGenerator().fastEntropyAccumulationForTestingPurpose();
+		});
+	/ * */
 </script>
 
 		<div id="javaScriptAlert">
@@ -84,8 +94,8 @@ Clipperz_normalizedNewLine = '\x0d\x0a';
 	</div>
 	<div id="footer">
 		Copyright &copy; 2008-2013 Clipperz Srl -
-		<a href="http://www.clipperz.com/terms_of_service" target="black">Terms of service</a> -
-		<a href="http://www.clipperz.com/privacy_policy" target="black">Privacy policy</a>
+		<a href="https://www.clipperz.com/terms_service/" target="black">Terms of service</a> -
+		<a href="https://www.clipperz.com/privacy_policy/" target="black">Privacy policy</a>
 		&nbsp;-&nbsp;
 		Application version: <a href="https://github.com/clipperz/password-manager/tree/@application.version@" target="github">@application.version@</a>
 	</div>

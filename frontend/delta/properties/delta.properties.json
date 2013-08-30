@@ -1,0 +1,136 @@
+{
+	"copyright.values": {             
+		"mochikit.repository":			"https://github.com/mochi/mochikit.git",
+		"mochikit.version":				"master",
+		"mochikit.commit":				"6f26f745d5d915540aa0fc6c34fda24952891a9d",
+
+		"reactjs.repository":			"https://github.com/facebook/react.git",
+		"reactjs.version":				"0.4.1",
+		"reactjs.commit":				"0cac12d375264a8a232a426d6d6cc8074a94000a",
+
+		"addtohomescreen.repository":	"https://github.com/cubiq/add-to-homescreen.git",
+		"addtohomescreen.version":		"2.0.8",
+		"addtohomescreen.commit":		"4d375840079bcea994cc5795a568802400c7a793"
+	},
+
+	"html.template": "index_template.html",
+
+	"js": [
+		"MochiKit/Base.js",
+		"MochiKit/Iter.js",
+		"-- MochiKit/Logging.js",
+		"-- MochiKit/DateTime.js",
+		"-- MochiKit/Format.js",
+		"MochiKit/Async.js",
+		"MochiKit/DOM.js",
+		"MochiKit/Style.js",
+		"-- MochiKit/LoggingPane.js",
+		"-- MochiKit/Color.js",
+		"MochiKit/Signal.js",
+		"-- MochiKit/Position.js",
+		"MochiKit/Selector.js",
+		"-- MochiKit/Visual.js",
+
+		"React/react-0.4.1.js",
+		"Cubiq/add2home.js",
+
+		"Clipperz/YUI/Utils.js",
+		"Clipperz/YUI/DomHelper.js",
+
+		"Clipperz/ByteArray.js",
+		"Clipperz/Base.js",
+		"Clipperz/Async.js",
+		"Clipperz/CSVProcessor.js",
+		"Clipperz/KeePassExportProcessor.js",
+		"Clipperz/Date.js",
+		"Clipperz/DOM.js",
+		"Clipperz/Logging.js",
+		"Clipperz/Signal.js",
+		"-- Clipperz/Style.js",
+		"-- Clipperz/Visual.js",
+		"Clipperz/Set.js",
+		"-- Clipperz/Profile.js",
+		"Clipperz/KeyValueObjectStore.js",
+
+		"Clipperz/Crypto/SHA.js",
+		"Clipperz/Crypto/AES.js",
+		"Clipperz/Crypto/AES_2.js",
+		"Clipperz/Crypto/PRNG.js",
+		"Clipperz/Crypto/BigInt.js",
+		"Clipperz/Crypto/Base.js",
+		"Clipperz/Crypto/SRP.js",
+		"Clipperz/Crypto/RSA.js",
+
+		"Clipperz/PM/Strings/Strings_defaults.js",
+		"Clipperz/PM/Strings/Strings_en-US.js",
+		"-- # Clipperz/PM/Strings/Strings_en-GB.js",
+		"-- # Clipperz/PM/Strings/Strings_en-CA.js",
+		"-- Clipperz/PM/Strings/Strings_it-IT.js",
+		"-- Clipperz/PM/Strings/Strings_pt-BR.js",
+		"-- # Clipperz/PM/Strings/Strings_pt-PT.js",
+		"-- Clipperz/PM/Strings/Strings_ja-JP.js",
+		"-- Clipperz/PM/Strings/Strings_zh-CN.js",
+		"-- Clipperz/PM/Strings/Strings_es-ES.js",
+		"-- Clipperz/PM/Strings/Strings_fr-FR.js",
+		"-- # Clipperz/PM/Strings/Strings_de-DE.js",
+		"-- # Clipperz/PM/Strings/Strings_el-GR.js",
+		"-- # Clipperz/PM/Strings/Strings_ru-RU.js",
+		"-- # Clipperz/PM/Strings/Strings_he-IL.js",
+		"Clipperz/PM/Strings.js",
+		"-- Clipperz/PM/Strings/MessagePanelConfigurations.js",
+
+		"Clipperz/PM/Date.js",
+
+		"Clipperz/PM/Toll.js",
+		"Clipperz/PM/Proxy.js",
+		"Clipperz/PM/Proxy/Proxy.JSON.js",
+		"Clipperz/PM/Proxy/Proxy.Offline.js",
+		"Clipperz/PM/Proxy/Proxy.Offline.DataStore.js",
+		"Clipperz/PM/Proxy/Proxy.Offline.MemoryDataStore.js",
+		"Clipperz/PM/Proxy/Proxy.Offline.LocalStorageDataStore.js",
+
+		"Clipperz/PM/Connection.js",
+		"Clipperz/PM/Crypto.js",
+		"Clipperz/PM/PIN.js",
+		"-- Clipperz/PM/BookmarkletProcessor.js",
+
+		"Clipperz/PM/DataModel/EncryptedRemoteObject.js",
+		"Clipperz/PM/DataModel/User.js",
+		"Clipperz/PM/DataModel/User.Header.Legacy.js",
+		"Clipperz/PM/DataModel/User.Header.RecordIndex.js",
+		"Clipperz/PM/DataModel/User.Header.Preferences.js",
+		"Clipperz/PM/DataModel/User.Header.OneTimePasswords.js",
+		"Clipperz/PM/DataModel/User.Subscription.js",
+		"Clipperz/PM/DataModel/Record.js",
+		"Clipperz/PM/DataModel/Record.Version.js",
+		"Clipperz/PM/DataModel/Record.Version.Field.js",
+		"Clipperz/PM/DataModel/DirectLogin.js",
+		"Clipperz/PM/DataModel/DirectLoginInput.js",
+		"Clipperz/PM/DataModel/DirectLoginBinding.js",
+		"Clipperz/PM/DataModel/DirectLoginFormValue.js",
+		"Clipperz/PM/DataModel/OneTimePassword.js",
+
+		"-- Clipperz/PM/UI/Web/Components/BaseComponent.js",
+		"-- Clipperz/PM/UI/Web/Components/Overlay.js",
+		"-- Clipperz/PM/UI/Web/Components/LoginForm.js",
+		"-- Clipperz/PM/UI/Web/Components/RegistrationWizard.js",
+
+		"-- Clipperz/PM/UI/Web/Controllers/MainController.js",
+
+		"Clipperz/PM/UI/Components/Overlay.js",
+		"Clipperz/PM/UI/Components/PageTemplate.js",
+		"Clipperz/PM/UI/Components/LoginForm.js",
+		"Clipperz/PM/UI/Components/RegistrationWizard.js",
+		"Clipperz/PM/UI/Components/CardList.js",
+		"Clipperz/PM/UI/Components/CardDetail.js",
+		"Clipperz/PM/UI/Components/ErrorPage.js",
+
+		"Clipperz/PM/UI/MainController.js",
+		"Clipperz/PM/UI/DirectLoginController.js",
+		"main.js"
+	],
+
+	"css": [
+		"web.css"
+	]
+}
