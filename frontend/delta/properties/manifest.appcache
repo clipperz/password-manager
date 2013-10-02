@@ -1,0 +1,20 @@
+CACHE MANIFEST
+# 2013-10-01:v0.0.1
+
+CACHE:
+# - Explicitly cached 'master entries'.
+index.html
+
+NETWORK:
+# - Resources that require the user to be online.
+#login.php
+#/myapi
+#http://api.twitter.com
+
+FALLBACK:
+# - static.html will be served if main.py is inaccessible
+# - offline.jpg will be served in place of all images in images/large/
+# - offline.html will be served in place of all other .html files
+# /main.py /static.html
+# images/large/ images/offline.jpg
+# *.html /offline.html

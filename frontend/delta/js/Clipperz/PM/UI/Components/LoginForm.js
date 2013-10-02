@@ -92,14 +92,14 @@ Clipperz.PM.UI.Components.LoginForm = React.createClass({
 
 	loginForm: function () {
 		registrationLink =	React.DOM.div({'className':'registrationLink'}, [
-								React.DOM.a({'onClick':this.handleRegistrationLinkClick}, "Need an account")
+								React.DOM.a({'onClick':this.handleRegistrationLinkClick}, "Sign up")
 							]);
 		return	React.DOM.div({'className':'loginForm credentials'},[
 					React.DOM.form({onChange: this.handleChange, onSubmit:this.handleCredentialSubmit}, [
 						React.DOM.div(null,[
-							React.DOM.label({'for':'name'}, "username"),
+							React.DOM.label({'for' :'name'}, "username"),
 							React.DOM.input({'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'key':'username', 'autoCapitalize':'none'}),
-							React.DOM.label({'for':'passphrase'}, "passphrase"),
+							React.DOM.label({'for' :'passphrase'}, "passphrase"),
 							React.DOM.input({'type':'password', 'name':'passphrase', 'ref':'passphrase', 'placeholder':"passphrase", 'key':'passphrase'})
 						]),
 						React.DOM.button({'type':'submit', 'disabled':!this.shouldEnableLoginButton(), 'className':'button'}, "login")

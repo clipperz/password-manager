@@ -37,12 +37,39 @@ Clipperz.PM.UI.Components.CardDetail = React.createClass({
 		return {
 //			showSearch: false,
 //			searchTimer: null,
+			unmaskedFields: new Clipperz.Set(),
 			starred: false
 		};
 	},
 
 	handleDirectLoginClick: function (aDirectLoginReference, anEvent) {
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'runDirectLogin', {record:this.props.card['reference'], directLogin:aDirectLoginReference});
+	},
+
+	toggleFieldVisibility: function (aField, anEvent) {
+		var unmaskedFields;
+		var fieldReference;
+
+		unmaskedFields = this.state['unmaskedFields'];
+		fieldReference = aField['reference']
+		if (unmaskedFields.contains(fieldReference)) {
+			unmaskedFields.remove(fieldReference)
+		} else {
+			unmaskedFields.add(fieldReference)
+		}
+
+		this.setState({'unmaskedFields': unmaskedFields});
+	},
+
+	handleGoAction: function (aField, anEvent) {
+		var newWindow;
+
+		newWindow = MochiKit.DOM.currentWindow().open(aField['value'], '_blank');
+		newWindow.focus();
+	},
+
+	handleEmailAction: function (aField, anEvent) {
+		MochiKit.DOM.currentWindow().location = 'mailto:' + aField['value'];
 	},
 
 	//=========================================================================
@@ -61,30 +88,56 @@ Clipperz.PM.UI.Components.CardDetail = React.createClass({
 		return result;
 	},
 
-	renderField: function (aField) {
-//console.log("FIELD", aField);
-		var	actionLabel;
+	renderFieldActionButton: function (aField) {
+//		var	actionLabel;
+		var result;
 
 		if (aField['actionType'] == 'URL') {
-			actionLabel = "go";
+			result = 	React.DOM.div({className:'actionWrapper', onClick:MochiKit.Base.method(this, 'handleGoAction', aField)}, [
+							React.DOM.a({className:aField['actionType']}, "go")
+						]);
 		} else if (aField['actionType'] == 'PASSWORD') {
-			actionLabel = "locked";
+			var icon;
+
+			if (this.state['unmaskedFields'].contains(aField['reference'])) {
+				icon = "unlocked";
+			} else {
+				icon = "locked";
+			}
+			result =	React.DOM.div({className:'actionWrapper', onClick:MochiKit.Base.method(this, 'toggleFieldVisibility', aField)}, [
+							React.DOM.a({className:aField['actionType']}, icon)
+						]);
 		} else if (aField['actionType'] == 'EMAIL') {
-			actionLabel = "email";
+			result =	React.DOM.div({className:'actionWrapper', onClick:MochiKit.Base.method(this, 'handleEmailAction', aField)}, [
+							React.DOM.a({className:aField['actionType']}, "email")
+						]);
 		} else {
-			actionLabel = "";
+			result = null;
 		}
 
-		return	React.DOM.div({className:'listItem ' + aField['actionType']}, [
+		return result;
+	},
+
+	renderField: function (aField) {
+//console.log("FIELD", aField);
+		var fieldExtraClass;
+
+		fieldExtraClass = aField['actionType'];
+		if (this.state['unmaskedFields'].contains(aField['reference'])) {
+			fieldExtraClass = fieldExtraClass + ' unlocked';
+		}
+
+		return	React.DOM.div({className:'listItem ' + fieldExtraClass, key:aField['reference']}, [
 					React.DOM.div({className:'fieldWrapper'}, [
 						React.DOM.div({className:'fieldInnerWrapper'}, [
 							React.DOM.div({className:'labelWrapper'}, React.DOM.span({className:'label'}, aField['label'])),
-							React.DOM.div({className:'valueWrapper'}, React.DOM.span({className:'value ' + aField['actionType']}, this.normalizeFieldValue(aField['value'])))
+							React.DOM.div({className:'valueWrapper'}, React.DOM.span({className:'value ' + fieldExtraClass}, this.normalizeFieldValue(aField['value'])))
 						])
 					]),
-					React.DOM.div({className:'actionWrapper'}, [
-						React.DOM.div({className:aField['actionType']}, actionLabel)
-					])
+					this.renderFieldActionButton(aField)
+//					React.DOM.div({className:'actionWrapper'}, [
+//						React.DOM.div({className:aField['actionType']}, actionLabel)
+//					])
 				]);
 	},
 
@@ -98,7 +151,8 @@ Clipperz.PM.UI.Components.CardDetail = React.createClass({
 	},
 
 	handleBackClick: function (anEvent) {
-		window.history.back();
+//		window.history.back();
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'goBack');
 	},
 
 	handleStarClick: function (anEvent) {
@@ -109,7 +163,7 @@ Clipperz.PM.UI.Components.CardDetail = React.createClass({
 
 	render: function () {
 		var card = this.props.card;
-		var starredStatus = (this.state['starred'] ? "starred" : "unstarred");
+//		var starredStatus = (this.state['starred'] ? "starred" : "unstarred");
 
 		if ((typeof(card['fields']) != 'undefined') && (card['notes'] != '')) {
 			card['fields'].push({ 'actionType': 'NOTES', 'isHidden': false, 'label': "notes", 'reference': "notes", 'value': card['notes'] })
@@ -118,9 +172,8 @@ Clipperz.PM.UI.Components.CardDetail = React.createClass({
 		return	React.DOM.div({className:'cardDetail'}, [
 			React.DOM.div({className:'header'}, [
 				React.DOM.div({className:'titleWrapper'}, React.DOM.div({className:'title'}, card.title)),
-//				React.DOM.div({className:'titleWrapper'}, React.DOM.div({className:'title'}, card.title + ' ' + card.title + ' ' + card.title + ' ' + card.title)),
 				React.DOM.div({className:'backWrapper'},  React.DOM.a({className:'button back', onClick:this.handleBackClick}, "back")),
-				React.DOM.div({className:'starWrapper'},  React.DOM.a({className:'star', onClick:this.handleStarClick}, starredStatus))
+//				React.DOM.div({className:'starWrapper'},  React.DOM.a({className:'star', onClick:this.handleStarClick}, starredStatus))
 			]),
 			React.DOM.div({className:'content'}, [
 				card.fields			? React.DOM.div({className:'fields'},		MochiKit.Base.map(this.renderField,			card.fields)) : null,

@@ -21,7 +21,7 @@ refer to http://www.clipperz.com.
 
 -->
 
-<html>
+<html manifest="manifest.appcache">
 <head>
 	<title>@page.title@</title>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
@@ -84,7 +84,7 @@ Clipperz_normalizedNewLine = '\x0d\x0a';
 	<div class="page right" id="cardListPage"></div>
 	<div class="page right" id="cardDetailPage"></div>
 	<div class="page right" id="accountPage"></div>
-	<div class="page right" id="preferencesPage"></div>
+	<div class="page right" id="preferencePage"></div>
 	<div class="page right" id="errorPage"></div>
 </div>
 <div class="overlay" id="overlay">
@@ -120,6 +120,7 @@ Clipperz_normalizedNewLine = '\x0d\x0a';
 	MochiKit.DOM.addLoadEvent(function () {
 		Clipperz.Crypto.PRNG.defaultRandomGenerator().fastEntropyAccumulationForTestingPurpose();
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'doLogin', {username:'joe', passphrase:'clipperz'});
+//		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'doLogin', {username:'jj', passphrase:'jj'});
 	});
 
 	//	Live Reload hoock

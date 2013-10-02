@@ -1,0 +1,107 @@
+@mixin border-radius ($radius) {
+	border-radius: $radius;
+	-moz-border-radius: $radius;
+	-webkit-border-radius: $radius;
+}
+
+@mixin font-feature-settings($foo, $bar) {
+	-webkit-font-feature-settings:"$foo","$bar";
+	-moz-font-feature-settings:"$foo=1, $bar=1";
+	-moz-font-feature-settings:"$foo","$bar";
+	-ms-font-feature-settings:"$foo","$bar";
+	-o-font-feature-settings:"$foo","$bar";
+	font-feature-settings:"$foo","$bar";
+}
+
+@mixin icon-font() {
+	font-family: 'clipperz-icons';
+	@include font-feature-settings("liga", "dlig");
+	-webkit-font-smoothing: antialiased;
+	text-rendering:optimizeLegibility;
+}
+
+@mixin password-font() {
+	font-family: 'clipperz-password';
+	-webkit-font-smoothing: antialiased;
+	text-rendering:optimizeLegibility;
+}
+
+@mixin animation ($animation, $duration, $timing-function:linear, $iteration-count:1, $fill-mode:none) {
+	-webkit-animation-name: $animation;
+	-webkit-animation-duration: $duration;
+	-webkit-animation-timing-function: $timing-function;
+	-webkit-animation-iteration-count: $iteration-count;
+	-webkit-animation-fill-mode: $fill-mode;
+
+	-moz-animation-name: $animation;
+	-moz-animation-duration: $duration;
+	-moz-animation-timing-function: $timing-function;
+	-moz-animation-iteration-count: $iteration-count;
+	-moz-animation-fill-mode: $fill-mode;
+
+	-ms-animation-name: $animation;
+	-ms-animation-duration: $duration;
+	-ms-animation-timing-function: $timing-function;
+	-ms-animation-iteration-count: $iteration-count;
+	-ms-animation-fill-mode: $fill-mode;
+
+	-o-animation-name: $animation;
+	-o-animation-duration: $duration;
+	-o-animation-timing-function: $timing-function;
+	-o-animation-iteration-count: $iteration-count;
+	-o-animation-fill-mode: $fill-mode;
+
+	animation-name: $animation;
+	animation-duration: $duration;
+	animation-timing-function: $timing-function;
+	animation-iteration-count: $iteration-count;
+	animation-fill-mode: $fill-mode;
+}
+
+@mixin transition ($item, $time, $function) {
+	-webkit-transition: $item $time $function;
+	-moz-transition: $item $time $function;
+	-o-transition: $item $time $function;
+	-ms-transition: $item $time $function;
+	transition: $item $time $function;
+}
+
+@mixin transform ($rotateAngle, $translateX, $translateY) {
+	-webkit-transform: rotate(  $rotateAngle) translate($translateX, $translateY);
+	   -moz-transform: rotate(  $rotateAngle) translate($translateX, $translateY);
+	    -ms-transform: rotate(  $rotateAngle) translate($translateX, $translateY);
+	     -o-transform: rotate(  $rotateAngle) translate($translateX, $translateY);
+	        transform: rotate(  $rotateAngle) translate($translateX, $translateY);
+}
+
+
+@mixin animation-delay ($delay) {
+	-webkit-animation-delay: $delay;
+	   -moz-animation-delay: $delay;
+	    -ms-animation-delay: $delay;
+	     -o-animation-delay: $delay;
+	        animation-delay: $delay;
+}
+
+@mixin box-shadow ($xOffset, $yOffset, $size, $color) {
+	-webkit-box-shadow: $xOffset $yOffset $size $color;	
+	   -moz-box-shadow: $xOffset $yOffset $size $color;	
+	    -ms-box-shadow: $xOffset $yOffset $size $color;	
+	     -o-box-shadow: $xOffset $yOffset $size $color;	
+	        box-shadow: $xOffset $yOffset $size $color;	
+}
+
+@mixin keyframes($name) {
+	@-webkit-keyframes #{$name} {
+		@content; 
+	}
+	@-moz-keyframes #{$name} {
+		@content;
+	}
+	@-ms-keyframes #{$name} {
+		@content;
+	}
+	@keyframes #{$name} {
+		@content;
+	} 
+}

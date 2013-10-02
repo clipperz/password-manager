@@ -30,7 +30,9 @@ try { if (typeof(Clipperz.PM.Proxy.Offline.DataStore) == 'undefined') { throw ""
 Clipperz.PM.Proxy.Offline.LocalStorageDataStore = function(args) {
 	args = args || {};
 	
-	this._data = args.data || (typeof(_clipperz_dump_data_) != 'undefined' ? _clipperz_dump_data_ : null);
+//	this._data = args.data || (typeof(_clipperz_dump_data_) != 'undefined' ? _clipperz_dump_data_ : null);
+	this._data = JSON.parse(localStorage.getItem('clipperz_dump_data'));
+
 	this._isReadOnly = (typeof(args.readOnly) == 'undefined' ? true : args.readOnly);
 	this._shouldPayTolls = args.shouldPayTolls || false;
 

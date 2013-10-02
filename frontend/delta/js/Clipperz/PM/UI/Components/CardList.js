@@ -97,11 +97,18 @@ console.log("focusOnSearchField", this.refs['searchField']);
 
 	//=========================================================================
 
+	showPreferences: function (anEvent) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'showPreferences', anEvent);
+	},
+
+	//=========================================================================
+
 	cardItem: function (aRecordReference) {
 		var	reference = aRecordReference['_reference'];
 		var	selectedCard = (reference == this.props.selectedCard);
 
-		return	React.DOM.div({className:'listItem', onClick:MochiKit.Base.method(this, 'handleClickOnCardDetail', reference)}, [
+		//	TODO: verify if it is possible to put the onClick handler on the container 'div', instead of adding it to each 'div' item.
+		return	React.DOM.div({className:'listItem', key:reference, onClick:MochiKit.Base.method(this, 'handleClickOnCardDetail', reference)}, [
 					React.DOM.div({className:'labelWrapper'}, React.DOM.span({className:'label'}, aRecordReference.label)),
 //					React.DOM.div({className:'labelWrapper'}, React.DOM.span({className:'label'}, aRecordReference.label + ' ' + aRecordReference.label + ' ' + aRecordReference.label + ' ' + aRecordReference.label + ' ' + aRecordReference.label)),
 					React.DOM.div({className:'faviconWrapper'}, aRecordReference.favicon ? React.DOM.img({className:'favicon', src:aRecordReference.favicon}) : React.DOM.div({className:'favicon'}, '\u00A0')),
@@ -146,9 +153,9 @@ console.log("focusOnSearchField", this.refs['searchField']);
 					React.DOM.div({className:'header'}, [
 						React.DOM.a({className:'account'}, 'clipperz'),
 						React.DOM.div({className:'features'}, [
-							React.DOM.a({className:'addCard'}, 'add'),
+//							React.DOM.a({className:'addCard'}, 'add'),
 							React.DOM.a({className:'search ' + (this.state.showSearch ? 'selected' : ''), onClick:this.toggleSearch}, 'search'),
-							React.DOM.a({className:'settings'}, 'settings')
+							React.DOM.a({className:'settings', onClick:this.showPreferences}, 'settings')
 						]),
 //						this.searchBox()
 					]),

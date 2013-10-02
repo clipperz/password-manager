@@ -1,0 +1,115 @@
+@import "mixin";
+
+div.overlay {
+	z-index: 99999;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	width: 200px;
+	height: 200px;
+	margin-left: -100px;
+	margin-top: -100px;
+	background: rgba(0,0,0,0.8);
+	@include border-radius(20px);
+
+	.title {
+		color: #FFF;
+		font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+		font-weight: bold;
+		text-align: center;
+		display: block;
+		font-size: 26px;
+		position: absolute;
+		bottom: 30px;
+		left: 0;
+		width: 100%;
+	}
+
+	.icon {
+		position: relative;
+		display: inline-block;
+		width: 128px;
+		height: 128px;
+		top: 40%;
+		left: 50%;
+		margin-left: -64px;
+		margin-top: -64px;
+
+		text-align: center;
+		vertical-align: middle;
+
+		@include icon-font();
+		font-size: 96pt;
+		color: white;
+		text-shadow: none;
+	}
+
+	&.ios-overlay-show {
+		@include animation(ios-overlay-show, 750ms);
+	}
+
+
+	&.ios-overlay-hide {
+		@include animation(ios-overlay-hide, 750ms, linear, 1, forwards);
+	}
+
+	//	http://37signals.com/svn/posts/2577-loading-spinner-animation-using-css-and-webkit
+	div.spinner {
+		position: relative;
+		width: 100px;
+		height: 100px;
+		left: 50% !important;
+		top: 40% !important;
+
+		margin-left: -50px;
+		margin-top: -50px;
+
+//		display: inline-block;
+		display: block;
+
+		div {
+			width: 12%;
+			height: 26%;
+			background: #ffffff;
+			position: absolute;
+			left: 44.5%;
+			top: 37%;
+			opacity: 0;
+			@include animation(overlay-spin, 1s, linear, infinite);
+			@include border-radius(50px);
+			@include box-shadow(0, 0, 3px, rgba(0,0,0,0.2));
+		}
+
+		div.bar01 {@include transform(  0deg, 0, -142%); @include animation-delay(-0.00000s);}    
+		div.bar02 {@include transform( 30deg, 0, -142%); @include animation-delay(-0.91670s);}
+		div.bar03 {@include transform( 60deg, 0, -142%); @include animation-delay(-0.83300s);}
+		div.bar04 {@include transform( 90deg, 0, -142%); @include animation-delay(-0.75000s);}
+		div.bar05 {@include transform(120deg, 0, -142%); @include animation-delay(-0.66700s);}
+		div.bar06 {@include transform(150deg, 0, -142%); @include animation-delay(-0.58330s);}
+		div.bar07 {@include transform(180deg, 0, -142%); @include animation-delay(-0.50000s);}
+		div.bar08 {@include transform(210deg, 0, -142%); @include animation-delay(-0.41667s);}
+		div.bar09 {@include transform(240deg, 0, -142%); @include animation-delay(-0.33300s);}
+		div.bar10 {@include transform(270deg, 0, -142%); @include animation-delay(-0.25000s);}
+		div.bar11 {@include transform(300deg, 0, -142%); @include animation-delay(-0.16670s);}
+		div.bar12 {@include transform(330deg, 0, -142%); @include animation-delay(-0.08330s);}
+	}
+}
+
+//========================================================
+
+@include keyframes(overlay-spin) {
+	from {opacity: 1;}
+	to {opacity: 0.25;}
+}
+
+@include keyframes(ios-overlay-show) {
+	0% { opacity: 0; }
+	100% { opacity: 1; }
+}
+
+@include keyframes(ios-overlay-hide) {
+	0% { opacity: 1; }
+	100% { opacity: 0; }
+}
+
+//========================================================

@@ -48,6 +48,10 @@ class ClipperzTestSite(server.Site):
 #				absoluteFilePath = os.path.join(projectTargetDir(), 'dev', version, pathParts[2])
 				absoluteFilePath = os.path.join(projectBaseDir(), 'frontend', version, 'properties', pathParts[2])
 				result = static.File(absoluteFilePath, contentType)
+			elif pathParts[2].endswith('.appcache'):
+				contentType = 'text/cache-manifest'
+				absoluteFilePath = os.path.join(projectBaseDir(), 'frontend', version, 'properties', pathParts[2])
+				result = static.File(absoluteFilePath, contentType)
 			else: 
 #	http://homer.local:8888/beta/css/clipperz/images/loginInfoBackground.png
 #	pathParts: ['', 'beta', 'css', 'clipperz', 'images', 'loginInfoBackground.png']
@@ -93,6 +97,7 @@ class ClipperzTestSite(server.Site):
 
 def main ():
 	site = ClipperzTestSite(proxy.ReverseProxyResource('localhost', 8080, '/java-backend'))
+#	site = ClipperzTestSite(proxy.ReverseProxyResource('www.clipperz.com', 443, '/'))
 	reactor.listenTCP(8888, site)
 	reactor.run()
 

@@ -41,6 +41,7 @@ MochiKit.Logging.logError("## MainController - GENERIC ERROR" + "\n" + "==>> " +
 	return result;
 }
 
+React.initializeTouchEvents(true);
 
 Clipperz.PM.RunTime = {};
 function run() {
@@ -54,6 +55,8 @@ function run() {
 	} else {
 		parameters['shouldShowRegistrationForm'] = false;
 	}
+
+	Clipperz.PM.DataModel.devicePreferences = new Clipperz.PM.DataModel.DevicePreferences({});
 
 	Clipperz.PM.RunTime.mainController = new Clipperz.PM.UI.MainController();
 	Clipperz.PM.RunTime.mainController.run(parameters);

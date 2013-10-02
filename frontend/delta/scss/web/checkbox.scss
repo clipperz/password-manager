@@ -1,0 +1,96 @@
+div.checkbox {
+	display: block;
+	margin-bottom: 20px;
+	@include border-radius(4px);
+	border: 2px solid white;
+	background-color: white;
+	width: 80px;
+	position: relative;
+	height: 32px;
+
+	&:before {
+		content: "ON";
+		padding-left: 9px;
+		line-height: 32px;
+		color: $solarize-Accent-Cyan;
+		font-size: 14px;
+		font-weight: 600;
+
+	}
+
+	&:after {
+		content: "OFF";
+//		padding-left: 12px;
+		padding-left: 25px;
+		line-height: 32px;
+		color: $solarize-Accent-Cyan;
+		font-size: 14px;
+		font-weight: 600;
+	}
+
+
+
+	label.check { 
+		display: block;
+		width: 40px;
+		height: 30px;
+		@include border-radius(3px);
+		background-color: $solarize-Accent-Magenta;
+		border: 1px solid $solarize-Accent-Magenta;
+		position: absolute;
+		top: 0px;
+		left: 0px;
+	}
+
+
+
+	input[type=checkbox] {
+		display: none;
+	}
+
+	input[type=checkbox]:checked + label.check {
+		top: 0px;
+		left: 38px;
+		@include animation(labelON, .2s, ease-in, 1);
+	}
+
+	input[type=checkbox] + label.check {
+		top: 0px;
+		left: 0px;
+		@include animation(labelOFF, .2s, ease-in, 1);
+	}
+
+	label.info {
+		position: absolute;
+		color: white;
+		top: 0px;
+		left: 100px;
+		line-height: 32px;
+		width: 200px;
+		font-size: 16pt;
+	}
+}
+
+@include keyframes(labelON) {
+	0% {
+		top: 0px;
+		left: 0px;
+	}
+	
+	100% { 
+		top: 0px;
+		left: 38px;
+	}
+}
+
+@include keyframes(labelOFF) {
+	0% {
+		top: 0px;
+		left: 38px;
+	}
+	
+	100% { 
+		top: 0px;
+		left: 0px;
+	}
+}

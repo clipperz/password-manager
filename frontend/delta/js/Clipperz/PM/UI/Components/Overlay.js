@@ -94,9 +94,10 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 	},
 
 	'hide': function () {
-		MochiKit.DOM.removeElementClass(this.element(), 'ios-overlay-show');
-		MochiKit.DOM.addElementClass(this.element(), 'ios-overlay-hide');
-		MochiKit.Async.callLater(1, MochiKit.Style.hideElement, this.element());
+		var element = this.element();
+		MochiKit.DOM.removeElementClass(element, 'ios-overlay-show');
+		MochiKit.DOM.addElementClass(element, 'ios-overlay-hide');
+		MochiKit.Async.callLater(1, MochiKit.Style.hideElement, element);
 	},
 
 	'hideSpinner': function () {

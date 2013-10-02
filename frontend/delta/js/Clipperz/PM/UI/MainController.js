@@ -26,7 +26,7 @@ Clipperz.Base.module('Clipperz.PM.UI');
 Clipperz.PM.UI.MainController = function() {
 	var pages;
 
-	this._proxy		= null;
+//	this._proxy		= null;
 	this._user		= null;
 	this._filter	= '';
 
@@ -39,12 +39,14 @@ Clipperz.PM.UI.MainController = function() {
 		'registrationPage':	new Clipperz.PM.UI.Components.RegistrationWizard(),
 		'cardListPage':		new Clipperz.PM.UI.Components.CardList(),
 		'cardDetailPage':	new Clipperz.PM.UI.Components.CardDetail({card: {}}),
+		'preferencePage':	new Clipperz.PM.UI.Components.PreferencePage(),
 		'errorPage':		new Clipperz.PM.UI.Components.ErrorPage({message:''})
 	};
 
 	MochiKit.Base.map(function (anId) {React.renderComponent(pages[anId], MochiKit.DOM.getElement(anId))}, MochiKit.Base.keys(pages));
 	this._pages = pages;
 	this.registerForNotificationCenterEvents();
+	MochiKit.Signal.connect(MochiKit.DOM.currentDocument(), 'onselectionchange', this, 'selectionChangeHandler');
 
 	return this;
 }
@@ -73,10 +75,12 @@ MochiKit.Base.update(Clipperz.PM.UI.MainController.prototype, {
 
 	isOnline: function() {
 		return navigator.onLine;
+//		return false;
 	},
 
 	hasLocalData: function() {
-		return false;
+//		return false;
+		return (Clipperz.PM.DataModel.devicePreferences.accountData() != null);
 	},
 
 	loginMode: function () {
@@ -98,26 +102,41 @@ MochiKit.Base.update(Clipperz.PM.UI.MainController.prototype, {
 
 	//=========================================================================
 
+	showOfflineError: function () {
+console.log("THE BROWSER IS OFFLINE");
+	},
+
 	selectInitialProxy: function () {
 		if (this.isOnline()) {
-			this._proxy = Clipperz.PM.Proxy.defaultProxy;
+//			this._proxy = Clipperz.PM.Proxy.defaultProxy;
 		} else {
 			if (this.hasLocalData()) {
-				this._proxy = new Clipperz.PM.Proxy.Offline({dataStore: new Clipperz.PM.Proxy.Offline.LocalStorageDataStore(), shouldPayTolls:false});
+//				this._proxy = new Clipperz.PM.Proxy.Offline({dataStore: new Clipperz.PM.Proxy.Offline.LocalStorageDataStore(), shouldPayTolls:false});
+				Clipperz.PM.Proxy.defaultProxy = new Clipperz.PM.Proxy.Offline({dataStore: new Clipperz.PM.Proxy.Offline.LocalStorageDataStore(), shouldPayTolls:false});
 			} else {
 				this.showOfflineError();
 			}
 		}
 	},
 
-	proxy: function () {
-		return this._proxy;
-	},
+//	proxy: function () {
+//		return this._proxy;
+//	},
 
 	//=========================================================================
 
 	registerForNotificationCenterEvents: function () {
-		var	events	= ['doLogin', 'registerNewUser', 'showRegistrationForm', 'goBack', 'showRecord', 'searchCards', 'runDirectLogin'];
+		var	events	= [
+			'doLogin',
+			'registerNewUser',
+			'showRegistrationForm',
+			'goBack',
+			'showRecord',
+			'searchCards',
+			'showPreferences',
+			'runDirectLogin',
+			'synchronizeLocalData'
+		];
 		var	self	= this;
 
 		MochiKit.Base.map(function (anEvent) {
@@ -130,12 +149,53 @@ MochiKit.Base.update(Clipperz.PM.UI.MainController.prototype, {
 
 	//-------------------------------------------------------------------------
 
+	selectionChangeHandler: function (anEvent) {
+		var	selection;
+		var	selectionRange;
+		var	selectionNode;
+		var	valueElement;
+//	other hints: http://www.bearpanther.com/2013/05/27/easy-text-selection-in-mobile-safari/
+//	SELECTION:   https://developer.mozilla.org/en-US/docs/Web/API/Selection
+//	RANGE:       https://developer.mozilla.org/en-US/docs/Web/API/Range
+//	NODE TYPES:  https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeType
+
+		selection = MochiKit.DOM.currentWindow().getSelection();
+//console.log("-- selection", selection);
+		selectionRange = selection.getRangeAt(0);
+		selectionNode = selectionRange.startContainer.childNodes[selectionRange.startOffset];
+//console.log("-- selectionNode", selectionNode);
+
+		if (selectionNode != undefined) {
+			valueElement = MochiKit.DOM.getFirstElementByTagAndClassName('*', 'value', selectionNode);
+//console.log("-- valueElement", valueElement);
+		}
+
+		if ((valueElement != null) && (valueElement != selectionNode)) {
+			var range;
+			range = MochiKit.DOM.currentDocument().createRange();
+			range.selectNodeContents(valueElement);
+			selection.removeAllRanges();
+			selection.addRange(range);
+
+			anEvent.preventDefault();
+			anEvent.stopPropagation();
+
+//console.log("updated selection", MochiKit.DOM.currentWindow().getSelection());
+		}
+//console.log("-----------");
+	},
+
+	//-------------------------------------------------------------------------
+
 	run: function (parameters) {
 		var shouldShowRegistrationForm;
+		var	canRegisterNewUsers;
+
+		canRegisterNewUsers = Clipperz.PM.Proxy.defaultProxy.canRegisterNewUsers();
 
 		this.selectInitialProxy();
-		shouldShowRegistrationForm = parameters['shouldShowRegistrationForm'] && this.proxy().canRegisterNewUsers();
-		this.pages()['loginPage'].setProps({'mode':this.loginMode(), 'isNewUserRegistrationAvailable': this.proxy().canRegisterNewUsers()});
+		shouldShowRegistrationForm = parameters['shouldShowRegistrationForm'] && canRegisterNewUsers;
+		this.pages()['loginPage'].setProps({'mode':this.loginMode(), 'isNewUserRegistrationAvailable':canRegisterNewUsers});
 
 		if (shouldShowRegistrationForm) {
 			this.showRegistrationForm();
@@ -151,7 +211,7 @@ MochiKit.Base.update(Clipperz.PM.UI.MainController.prototype, {
 		var	loginFormPage;
 
 		loginFormPage = this.pages()['loginPage'];
-		loginFormPage.setProps({'mode':this.loginMode(), 'isNewUserRegistrationAvailable': this.proxy().canRegisterNewUsers()});
+		loginFormPage.setProps({'mode':this.loginMode(), 'isNewUserRegistrationAvailable':Clipperz.PM.Proxy.defaultProxy.canRegisterNewUsers()});
 		this.moveInPage(this.currentPage(), 'loginPage');
 		MochiKit.Async.callLater(0.5, MochiKit.Base.method(loginFormPage, 'setInitialFocus'));
 	},
@@ -202,9 +262,9 @@ MochiKit.Base.update(Clipperz.PM.UI.MainController.prototype, {
 		deferredResult.addErrback(MochiKit.Base.bind(function (anEvent, anError) {
 			if (anError['isPermanent'] != true) {
 				this.pages()['loginPage'].setProps({disabled:false, 'mode':this.loginMode()});
- 				this.pages()['loginPage'].setInitialFocus();
- 			}
- 			return anError;
+				this.pages()['loginPage'].setInitialFocus();
+			}
+			return anError;
 		}, this, event))
 		deferredResult.callback();
 
@@ -323,8 +383,11 @@ MochiKit.Base.update(Clipperz.PM.UI.MainController.prototype, {
 
 	runApplication: function () {
 		MochiKit.Signal.connect(window, 'onpopstate',	MochiKit.Base.method(this, 'historyGoBack'));
+///		TODO: remove this TEST HACK
 		this.moveInPage(this.currentPage(), 'cardListPage');
 		return this.showRecordList();
+
+//		this.moveInPage(this.currentPage(), 'preferencePage');
 	},
 
 	showRecord: function (aRecordReference) {
@@ -333,7 +396,6 @@ MochiKit.Base.update(Clipperz.PM.UI.MainController.prototype, {
 
 		this.pages()['cardListPage'].setProps({selectedCard:aRecordReference});
 		deferredResult = new Clipperz.Async.Deferred('MainController.runApplication', {trace:false});
-//		deferredResult.addMethod(this.user(), 'getRecord', aRecordReference['_reference']);
 		deferredResult.addMethod(this.user(), 'getRecord', aRecordReference);
 		deferredResult.addMethodcaller('content');
 		deferredResult.addCallback(MochiKit.Base.bind(function (aCard) {
@@ -348,12 +410,10 @@ MochiKit.Base.update(Clipperz.PM.UI.MainController.prototype, {
 	},
 
 	runDirectLogin: function (someParameters) {
-console.log("RUN DIRECT LOGIN", someParameters);
+//console.log("RUN DIRECT LOGIN", someParameters);
 		var	deferredResult;
 
-//		this.pages()['cardListPage'].setProps({selectedCard:aRecordReference});
 		deferredResult = new Clipperz.Async.Deferred('MainController.runDirectLogin', {trace:false});
-//		deferredResult.addMethod(this.user(), 'getRecord', aRecordReference['_reference']);
 		deferredResult.addMethod(this.user(), 'getRecord', someParameters['record']);
 		deferredResult.addMethodcaller('directLoginWithReference', someParameters['directLogin']);
 		deferredResult.addCallback(Clipperz.PM.UI.DirectLoginRunner.openDirectLogin);
@@ -363,9 +423,22 @@ console.log("RUN DIRECT LOGIN", someParameters);
 	},
 
 	shouldExitApp: function (anEvent) {
-console.log("SHOULD EXIT APP");
+//console.log("SHOULD EXIT APP");
 		anEvent.preventDefault();
 		anEvent.stopPropagation();
+	},
+
+	//=========================================================================
+
+	showPreferences: function (anEvent) {
+		var	deferredResult;
+
+		this.pages()['preferencePage'].setProps({});
+		deferredResult = new Clipperz.Async.Deferred('MainController.showPreferences', {trace:false});
+		deferredResult.addMethod(this, 'moveInPage', this.currentPage(), 'preferencePage', true);
+		deferredResult.callback();
+
+		return deferredResult;
 	},
 
 	//=========================================================================
@@ -477,6 +550,25 @@ console.log("SHOULD EXIT APP");
 	moveOutPage: function (fromPage, toPage) {
 		this.slidePage(MochiKit.DOM.getElement(fromPage), MochiKit.DOM.getElement(toPage), 'RIGHT');
 		this.setCurrentPage(toPage);
+	},
+
+	//=========================================================================
+
+	synchronizeLocalData: function (anEvent) {
+		var	deferredResult;
+
+		deferredResult = new Clipperz.Async.Deferred('MainController.synchronizeLocalData', {trace:true});
+//		deferredResult.addMethod(this.proxy(), 'message', 'downloadAccountData', {});
+		deferredResult.addMethod(this.user().connection(), 'message', 'downloadAccountData', {});
+		deferredResult.addCallback(function (aResult) {
+			Clipperz.PM.DataModel.devicePreferences.setAccountDataWityResponse(aResult);
+//			localStorage.setItem('clipperz_dump_data', aResult['data']);
+//			localStorage.setItem('clipperz_dump_version', aResult['version']);
+//			localStorage.setItem('clipperz_dump_date', new Date());
+		})
+		deferredResult.callback();
+
+		return deferredResult;
 	},
 
 	//=========================================================================
