@@ -100,7 +100,7 @@ YAHOO.extendX(Clipperz.PM.Components.RecordDetail.DirectLoginBindingComponent, C
 		result.push(option);
 		for (recordFieldKey in recordFields) {
 //	TODO: remove the value: field and replace it with element.dom.value = <some value>
-			option = {tag:'option', value:recordFieldKey, html:recordFields[recordFieldKey].label()}
+			option = {tag:'option', value:recordFieldKey, html:Clipperz.Base.sanitizeString(recordFields[recordFieldKey].label())}
 			if (recordFieldKey == this.directLoginBinding().fieldKey()) {
 				option['selected'] = true;
 			}
@@ -150,7 +150,7 @@ YAHOO.extendX(Clipperz.PM.Components.RecordDetail.DirectLoginBindingComponent, C
 		this.getElement('editModeBox').hide();
 		this.getElement('viewModeBox').show();
 
-		this.getElement('viewValue').update(this.directLoginBinding().field().label());
+		this.getElement('viewValue').update(Clipperz.Base.sanitizeString(this.directLoginBinding().field().label()));
 //MochiKit.Logging.logDebug("<<< DirectLoginBindingComponent.updateViewMode");
 	},
 

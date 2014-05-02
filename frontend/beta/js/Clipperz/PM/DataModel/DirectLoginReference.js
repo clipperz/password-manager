@@ -47,7 +47,7 @@ Clipperz.PM.DataModel.DirectLoginReference = function(args) {
 		this._reference = args.reference;
 		this._recordReference = args.record;
 		this._label = args.label;
-		this._favicon = args.favicon || null;
+		this._favicon = Clipperz.Base.sanitizeFavicon(args.favicon) || null;
 	
 		this._directLogin = null;
 		this._record = null;

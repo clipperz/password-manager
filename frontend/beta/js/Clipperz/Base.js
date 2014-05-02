@@ -246,6 +246,34 @@ MochiKit.Base.update(Clipperz.Base, {
 		return result;
 	},
 
+	'javascriptInjectionPattern': new RegExp("javascript:\/\/\"", "g"),
+	
+	'sanitizeUrl': function(aValue) {
+		var	result;
+		
+		if ((aValue != null) && this.javascriptInjectionPattern.test(aValue)) {
+			result = aValue.replace(this.javascriptInjectionPattern, '');
+			console.log("sanitized url", aValue, result);
+		} else {
+			result = aValue;
+		}
+
+		return result;
+	},
+
+	'sanitizeFavicon': function(aValue) {
+		var	result;
+		
+		if ((aValue != null) && this.javascriptInjectionPattern.test(aValue)) {
+			result = aValue.replace(this.javascriptInjectionPattern, '');
+			console.log("sanitized favicon", aValue, result);
+		} else {
+			result = aValue;
+		}
+
+		return result;
+	},
+
 	//-------------------------------------------------------------------------
 
 	'exception': {

@@ -38,7 +38,7 @@ Clipperz.PM.DataModel.DirectLogin = function(args) {
 	this._record = args.record || null;
 	this._label = args.label || "unnamed record"
 	this._reference = args.reference || Clipperz.PM.Crypto.randomKey();
-	this._favicon = args.favicon || null;
+	this._favicon = Clipperz.Base.sanitizeFavicon(args.favicon) || null;
 	this._bookmarkletVersion = args.bookmarkletVersion || "0.1";
 
 	this._directLoginInputs = null;
@@ -102,9 +102,9 @@ Clipperz.PM.DataModel.DirectLogin.prototype = MochiKit.Base.update(null, {
 			var	actionUrl;
 			var hostname;
 			
-			actionUrl = this.formData()['attributes']['action'];
+			actionUrl = this.action();
 			hostname = actionUrl.replace(/^https?:\/\/([^\/]*)\/.*/, '$1');
-			this._favicon = "http://" + hostname + "/favicon.ico";
+			this._favicon = Clipperz.Base.sanitizeFavicon("http://" + hostname + "/favicon.ico");
 		}
 
 		return this._favicon;
@@ -135,6 +135,14 @@ Clipperz.PM.DataModel.DirectLogin.prototype = MochiKit.Base.update(null, {
 
 	'setFixedFavicon': function(aValue) {
 		this._fixedFavicon = aValue;
+	},
+	
+	'action': function () {
+		var	result;
+		
+		result = Clipperz.Base.sanitizeUrl(this.formData()['attributes']['action']);
+		
+		return result;
 	},
 	
 	//-------------------------------------------------------------------------
@@ -442,7 +450,7 @@ Clipperz.PM.DataModel.DirectLogin.prototype = MochiKit.Base.update(null, {
 //MochiKit.Logging.logDebug("### runDirectLogin - 4");
 //console.log(this.formData()['attributes']);
 			formElement = MochiKit.DOM.FORM(MochiKit.Base.update({id:'directLoginForm'}, {	'method':this.formData()['attributes']['method'],
-																							'action':this.formData()['attributes']['action']}));
+																							'action': this.action()}));
 //MochiKit.Logging.logDebug("### runDirectLogin - 5");
 			formSubmitFunction = MochiKit.Base.method(formElement, 'submit');
 //MochiKit.Logging.logDebug("### runDirectLogin - 6");
@@ -487,9 +495,9 @@ Clipperz.PM.DataModel.DirectLogin.prototype = MochiKit.Base.update(null, {
 
 //console.log("formData.attributes", this.formData()['attributes']);
 //		if (/^javascript/.test(this.formData()['attributes']['action'])) {
-		if ((/^(https?|webdav|ftp)\:/.test(this.formData()['attributes']['action']) == false) &&
-			(this.formData()['attributes']['type'] != 'http_auth'))
-		{
+		if ((/^(https?|webdav|ftp)\:/.test(this.action()) == false) &&
+			(this.formData()['attributes']['type'] != 'http_auth')
+		) {
 			var messageBoxConfiguration;
 
 			if (typeof(aNewWindow) != 'undefined') {
