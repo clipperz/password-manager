@@ -11,20 +11,25 @@ Since passwords are the most common type of private information that you need to
 
 Read more on the [Clipperz website][home].
 
-[home]: http://www.clipperz.com
+[home]: https://clipperz.is
 
-## Why an open source version
+## Why an open source version of Clipperz?
 
-Because we want to enable as many people as possible to play with our code. So that you can start trusting it, the code not the developers.
+Because we want to enable as many people as possible to play with our code. So that they can start trusting it. The code, not its developers.
 
-In order to allow you to inspect the code and analyze the traffic it generates between client and server, we had to provide an easy way to locally deploy the whole service.
+In order to allow anyone not just to inspect the source code, but also to analyze the traffic it generates between client and server, we made available this open source version as an easy way to locally deploy the whole password manager web app on your machine. You can choose among the available backends (PHP/MySQL, Python/AppEngine, …) or [contribute][CA] your own. 
 
-Feel free to host on your machine a web service identical to [Clipperz online password manager][home]. You can choose among **multiple backends** (PHP/MySQL, Python/AppEngine, …) or you can [contribute][CA] your own. 
+Whatever is your motivation for playing with Clipperz code, we would love to hear from you: [get in contact][contact]!
 
-Whatever is your motivation, we would love to hear from you: [get in contact!][contact]
+## Security warning
 
-[CA]: http://www.clipperz.com/open_source/contributor_agreement
-[contact]: http://www.clipperz.com/about/contacts
+The open source version of Clipperz is suitable for **testing and educational purposes only**. Do not use it as an actual password management solution.
+
+As an example, the current PHP backend lacks several critical capabilities such as bot protection and concurrent sessions management, moreover it could be vulnerable to serious threats (SQL injections, remote code execution, ...).
+
+[CA]: https://clipperz.is/open_source/contributor_agreement
+[contact]: https://clipperz.is/about/contacts
+[clipperz]: https://clipperz.is
 
 
 ## Donations
@@ -34,18 +39,15 @@ Our favorite payment method is clearly Bitcoin ([learn why here][why]), but you 
 
 **To make your donation visit [this page][donations]. Thanks!**
 
-[why]: http://www.clipperz.com/pricing/why_bitcoin
-[donations]: http://www.clipperz.com/donations
+[why]: https://clipperz.is/pricing/why_bitcoin
+[donations]: https://clipperz.is/donations
 
 
 ## License
-ALL the code included in this project, if not otherwise stated, is released with the [AGPL v3][agpl] license  (see `LICENSE.txt`), and all rights are reserved to Clipperz Srl. For any use not allowed by the AGPL license, please [contact us][contact] to inquire about licensing options for commercial applications.
+ALL the code included in this project, if not otherwise stated, is released with the [AGPL v3][agpl] license (see `LICENSE.txt`), and all rights are reserved to Clipperz Srl. For any use not allowed by the AGPL license, please [contact us][contact] to inquire about licensing options for commercial applications.
 
 [agpl]: http://www.gnu.org/licenses/agpl.html
 
-
-## Warnings
-Please note that the open source version of Clipperz Password Manager may not be suitable for mass deployments, depending on how robust is the backend you select. As an example, the current PHP backend lacks several critical capabilities such as bot protection and concurrent sessions management.
 
 ## Contributions
 Your contributions to Clipperz are very welcome! In order to avoid jeopardizing the ownership of the code base, we will require every developer to sign the Clipperz [Contributor Agreement][CA]
