@@ -34,7 +34,7 @@ foreach ($objects as $object)
 	include_once("../objects/{$object}");
 }
 
-eval ('$instance = new '.$objectName.'();');
+$instance = new $objectName();
 $attributeList = array_keys(get_object_vars($instance));
 $noOfExternalAttributes = sizeof($attributeList) - 3;
 
@@ -79,7 +79,7 @@ if ($openNodes != '')
 switch($action)
 {
     case 'Add':
-    	eval ('$instance = new '.$objectName.'();');
+    	$instance = new $objectName();
     	$attributeList = array_keys(get_object_vars($instance));
     	foreach($attributeList as $attribute)
 		{
@@ -114,7 +114,7 @@ switch($action)
     break;
     case 'DeleteDeep':
     case 'Delete':
-    	eval ('$instance = new '.$objectName.'();');
+    	$instance = new $objectName();
     	$instance->Get($objectId);
     	$instance->Delete(($action == 'DeleteDeep'));
     	for ($i = 0; $i < sizeof($root->visibleNodes); $i++)
@@ -134,7 +134,7 @@ switch($action)
     	RefreshTree($anchor, $root);
     break;
     case 'Update':
-    	eval ('$instance = new '.$objectName.'();');
+    	$instance = new $objectName();
     	$instance->Get($objectId);
     	$attributeList = array_keys(get_object_vars($instance));
     	foreach($attributeList as $attribute)
@@ -171,7 +171,7 @@ switch($action)
 		$sqlLimit = "$offset, $limit";
 
  		$js = "new Array(";
- 		eval ('$instance = new '.$objectName.'();');
+ 		$instance = new $objectName();
  		$recCount = GetNumberOfRecords(strtolower($objectName));
 		$attributeList = array_keys(get_object_vars($instance));
 		$instanceList = $instance->GetList(array(array(strtolower($objectName)."Id",">",0)), strtolower($objectName)."Id", false, $sqlLimit);
