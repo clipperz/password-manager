@@ -44,6 +44,8 @@ MochiKit.Base.update(Clipperz.Crypto.SRP, {
 
 	'_n': null,
 	'_g': null,
+	'_k': null,
+	
 	//-------------------------------------------------------------------------
 
 	'n': function() {
@@ -64,6 +66,15 @@ MochiKit.Base.update(Clipperz.Crypto.SRP, {
 		return Clipperz.Crypto.SRP._g;
 	},
 
+	'k': function() {
+		if (Clipperz.Crypto.SRP._k == null) {
+//			Clipperz.Crypto.SRP._k = new Clipperz.Crypto.BigInt(this.stringHash(this.n().asString() + this.g().asString()), 16);
+			Clipperz.Crypto.SRP._k = new Clipperz.Crypto.BigInt("64398bff522814e306a97cb9bfc4364b7eed16a8c17c5208a40a2bad2933c8e", 16);
+		}
+		
+		return Clipperz.Crypto.SRP._k;
+	},
+	
 	//-----------------------------------------------------------------------------
 
 	'exception': {
@@ -138,10 +149,9 @@ Clipperz.Crypto.SRP.Connection.prototype = MochiKit.Base.update(null, {
 
 	'A': function () {
 		if (this._A == null) {
-			//	Warning: this value should be strictly greater than zero: how should we perform this check?
+			//	Warning: this value should be strictly greater than zero
 			this._A = Clipperz.Crypto.SRP.g().powerModule(this.a(), Clipperz.Crypto.SRP.n());
-			
-			if (this._A.equals(0)) {
+			if (this._A.equals(0) || negative(this._A)) {
 				Clipperz.logError("Clipperz.Crypto.SRP.Connection: trying to set 'A' to 0.");
 				throw Clipperz.Crypto.SRP.exception.InvalidValue;
 			}
@@ -167,10 +177,9 @@ Clipperz.Crypto.SRP.Connection.prototype = MochiKit.Base.update(null, {
 	},
 
 	'set_B': function(aValue) {
-		//	Warning: this value should be strictly greater than zero: how should we perform this check?
-		if (! aValue.equals(0)) {
-			this._B = aValue;
-		} else {
+		//	Warning: this value should be strictly greater than zero
+		this._B = aValue;
+		if (this._B.equals(0) || negative(this._B)) {
 			Clipperz.logError("Clipperz.Crypto.SRP.Connection: trying to set 'B' to 0.");
 			throw Clipperz.Crypto.SRP.exception.InvalidValue;
 		}
@@ -190,7 +199,7 @@ Clipperz.Crypto.SRP.Connection.prototype = MochiKit.Base.update(null, {
 
 	'u': function () {
 		if (this._u == null) {
-			this._u = new Clipperz.Crypto.BigInt(this.stringHash(this.B().asString()), 16);
+			this._u = new Clipperz.Crypto.BigInt(this.stringHash(this.A().asString() + this.B().asString()), 16);
 		}
 		
 		return this._u;
@@ -207,9 +216,15 @@ Clipperz.Crypto.SRP.Connection.prototype = MochiKit.Base.update(null, {
 			srp = 	 Clipperz.Crypto.SRP;
 
 			this._S =	bigint.powerModule(
-								bigint.subtract(this.B(), bigint.powerModule(srp.g(), this.x(), srp.n())),
-								bigint.add(this.a(), bigint.multiply(this.u(), this.x())),
-								srp.n()
+							bigint.subtract(
+								this.B(),
+								bigint.multiply(
+									Clipperz.Crypto.SRP.k(),
+									bigint.powerModule(srp.g(), this.x(), srp.n())
+								)
+							),
+							bigint.add(this.a(), bigint.multiply(this.u(), this.x())),
+							srp.n()
 						)
 		}
 		
@@ -230,7 +245,20 @@ Clipperz.Crypto.SRP.Connection.prototype = MochiKit.Base.update(null, {
 
 	'M1': function () {
 		if (this._M1 == null) {
-			this._M1 = this.stringHash(this.A().asString(10) + this.B().asString(10) + this.K());
+//			this._M1 = this.stringHash(this.A().asString(10) + this.B().asString(10) + this.K());
+
+			//	http://srp.stanford.edu/design.html
+			//	User -> Host:  M = H(H(N) xor H(g), H(I), s, A, B, K)
+
+			this._M1 = this.stringHash(
+				"597626870978286801440197562148588907434001483655788865609375806439877501869636875571920406529" +
+				this.stringHash(this.C()) +
+				this.s().asString() +
+				this.A().asString() +
+				this.B().asString() +
+				this.K()
+			);
+//console.log("M1", this._M1);
 		}
 		
 		return this._M1;
@@ -241,6 +269,7 @@ Clipperz.Crypto.SRP.Connection.prototype = MochiKit.Base.update(null, {
 	'M2': function () {
 		if (this._M2 == null) {
 			this._M2 = this.stringHash(this.A().asString(10) + this.M1() + this.K());
+//console.log("M2", this._M2);
 		}
 		
 		return this._M2;
