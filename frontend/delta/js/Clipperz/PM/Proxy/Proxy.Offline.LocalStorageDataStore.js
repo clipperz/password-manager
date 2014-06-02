@@ -88,7 +88,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.LocalStorageDataStore, Clipperz.P
 			randomBytes = Clipperz.Crypto.Base.generateRandomSeed();
 			aConnection['b'] = new Clipperz.Crypto.BigInt(randomBytes, 16);
 			v = new Clipperz.Crypto.BigInt(aConnection['userData']['v'], 16);
-			aConnection['B'] = v.add(Clipperz.Crypto.SRP.g().powerModule(aConnection['b'], Clipperz.Crypto.SRP.n()));
+			aConnection['B'] = (Clipperz.Crypto.SRP.k().multiply(v)).add(Clipperz.Crypto.SRP.g().powerModule(aConnection['b'], Clipperz.Crypto.SRP.n()));
 			
 			aConnection['A'] = someParameters.parameters.A;
 			
@@ -97,20 +97,35 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.LocalStorageDataStore, Clipperz.P
 			
 			nextTollRequestType = 'CONNECT';
 		} else if (someParameters.message == "credentialCheck") {
-			var v, u, S, A, K, M1;
+			var v, u, s, S, A, K, M1;
+			var stringHash = function (aValue) {
+				return Clipperz.PM.Crypto.encryptingFunctions.versions[someParameters.version].hash(new Clipperz.ByteArray(aValue)).toHexString().substring(2);
+			};
 			
 			v = new Clipperz.Crypto.BigInt(aConnection['userData']['v'], 16);
-			u = new Clipperz.Crypto.BigInt(Clipperz.PM.Crypto.encryptingFunctions.versions[someParameters.version].hash(new Clipperz.ByteArray(aConnection['B'].asString(10))).toHexString(), 16);
 			A = new Clipperz.Crypto.BigInt(aConnection['A'], 16);
+			u = new Clipperz.Crypto.BigInt(Clipperz.PM.Crypto.encryptingFunctions.versions[someParameters.version].hash(new Clipperz.ByteArray(A.asString(10) + aConnection['B'].asString(10))).toHexString(), 16);
+			s = new Clipperz.Crypto.BigInt(aConnection['userData']['s'], 16);
 			S = (A.multiply(v.powerModule(u, Clipperz.Crypto.SRP.n()))).powerModule(aConnection['b'], Clipperz.Crypto.SRP.n());
 
-			K = Clipperz.PM.Crypto.encryptingFunctions.versions[someParameters.version].hash(new Clipperz.ByteArray(S.asString(10))).toHexString().slice(2);
+			K = stringHash(S.asString(10));
 
-			M1 = Clipperz.PM.Crypto.encryptingFunctions.versions[someParameters.version].hash(new Clipperz.ByteArray(A.asString(10) + aConnection['B'].asString(10) + K)).toHexString().slice(2);
+			M1 = stringHash(
+				"597626870978286801440197562148588907434001483655788865609375806439877501869636875571920406529" +
+				stringHash(aConnection['C']) +
+				s.asString(10) +
+				A.asString(10) +
+				aConnection['B'].asString(10) +
+				K
+			);
 			if (someParameters.parameters.M1 == M1) {
 				var M2;
 				
-				M2 = Clipperz.PM.Crypto.encryptingFunctions.versions[someParameters.version].hash(new Clipperz.ByteArray(A.asString(10) + someParameters.parameters.M1 + K)).toHexString().slice(2);
+				M2 = stringHash(
+					A.asString(10) +
+					someParameters.parameters.M1 +
+					K
+				);
 				result['M2'] = M2;
 			} else {
 				throw new Error("Client checksum verification failed! Expected <" + M1 + ">, received <" + someParameters.parameters.M1 + ">.", "Error");
