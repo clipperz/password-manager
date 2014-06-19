@@ -197,12 +197,6 @@ Clipperz.Crypto.PRNG.TimeRandomnessSource.prototype = MochiKit.Base.update(new C
 	},
 	
 	//-------------------------------------------------------------------------
-
-	'pollingFrequency': function() {
-		return 10;
-	},
-
-	//-------------------------------------------------------------------------
 	__syntaxFix__: "syntax fix"
 });
 
@@ -245,12 +239,12 @@ Clipperz.Crypto.PRNG.MouseRandomnessSource.prototype = MochiKit.Base.update(new 
 		var numberOfRandomBitsCollected;
 		
 		numberOfRandomBitsCollected = this.numberOfRandomBitsCollected();
-		collectetBits = this.randomBitsCollector() | (aValue << numberOfRandomBitsCollected);
-		this.setRandomBitsCollector(collectetBits);
+		collectedBits = this.randomBitsCollector() | (aValue << numberOfRandomBitsCollected);
+		this.setRandomBitsCollector(collectedBits);
 		numberOfRandomBitsCollected += this.numberOfBitsToCollectAtEachEvent();
 		
 		if (numberOfRandomBitsCollected == 8) {
-			this.updateGeneratorWithValue(collectetBits);
+			this.updateGeneratorWithValue(collectedBits);
 			numberOfRandomBitsCollected = 0;
 			this.setRandomBitsCollector(0);
 		}
@@ -289,95 +283,53 @@ Clipperz.Crypto.PRNG.MouseRandomnessSource.prototype = MochiKit.Base.update(new 
 	},
 	
 	//-------------------------------------------------------------------------
-
-	'pollingFrequency': function() {
-		return 10;
-	},
-
-	//-------------------------------------------------------------------------
 	__syntaxFix__: "syntax fix"
 });
 
 //*****************************************************************************
 
-Clipperz.Crypto.PRNG.KeyboardRandomnessSource = function(args) {
+Clipperz.Crypto.PRNG.CryptoRandomRandomnessSource = function(args) {
 	args = args || {};
+
+	this._intervalTime = args.intervalTime || 1000;
+	this._browserCrypto = args.browserCrypto;
+	
 	Clipperz.Crypto.PRNG.RandomnessSource.call(this, args);
 
-	this._randomBitsCollector = 0;
-	this._numberOfRandomBitsCollected = 0;
-	
-	MochiKit.Signal.connect(document, 'onkeypress', this, 'collectEntropy');
-
+	this.collectEntropy();
 	return this;
 }
 
-Clipperz.Crypto.PRNG.KeyboardRandomnessSource.prototype = MochiKit.Base.update(new Clipperz.Crypto.PRNG.RandomnessSource, {
+Clipperz.Crypto.PRNG.CryptoRandomRandomnessSource.prototype = MochiKit.Base.update(new Clipperz.Crypto.PRNG.RandomnessSource, {
 
+	'intervalTime': function() {
+		return this._intervalTime;
+	},
+	
+	'browserCrypto': function () {
+		return this._browserCrypto;
+	},
+	
 	//-------------------------------------------------------------------------
 
-	'randomBitsCollector': function() {
-		return this._randomBitsCollector;
-	},
+	'collectEntropy': function() {
+		var	bytesToCollect;
 
-	'setRandomBitsCollector': function(aValue) {
-		this._randomBitsCollector = aValue;
-	},
-
-	'appendRandomBitToRandomBitsCollector': function(aValue) {
-		var collectedBits;
-		var numberOfRandomBitsCollected;
-		
-		numberOfRandomBitsCollected = this.numberOfRandomBitsCollected();
-		collectetBits = this.randomBitsCollector() | (aValue << numberOfRandomBitsCollected);
-		this.setRandomBitsCollector(collectetBits);
-		numberOfRandomBitsCollected ++;
-		
-		if (numberOfRandomBitsCollected == 8) {
-			this.updateGeneratorWithValue(collectetBits);
-			numberOfRandomBitsCollected = 0;
-			this.setRandomBitsCollector(0);
+		if (this.boostMode() == true) {
+			bytesToCollect = 8;
+		} else {
+			bytesToCollect = 32;
 		}
-		
-		this.setNumberOfRandomBitsCollected(numberOfRandomBitsCollected)
+
+		var randomValuesArray = new Uint8Array(bytesToCollect);
+		this.browserCrypto().getRandomValues(randomValuesArray);
+		for (var i = 0; i < randomValuesArray.length; i++) {
+			this.updateGeneratorWithValue(randomValuesArray[i]);
+		}
+
+		setTimeout(this.collectEntropy, this.intervalTime());
 	},
 	
-	//-------------------------------------------------------------------------
-
-	'numberOfRandomBitsCollected': function() {
-		return this._numberOfRandomBitsCollected;
-	},
-
-	'setNumberOfRandomBitsCollected': function(aValue) {
-		this._numberOfRandomBitsCollected = aValue;
-	},
-
-	//-------------------------------------------------------------------------
-
-	'collectEntropy': function(anEvent) {
-/*
-		var mouseLocation;
-		var randomBit;
-		
-		mouseLocation = anEvent.mouse().client;
-			
-		randomBit = ((mouseLocation.x ^ mouseLocation.y) & 0x1);
-		this.appendRandomBitToRandomBitsCollector(randomBit);
-*/
-	},
-	
-	//-------------------------------------------------------------------------
-
-	'numberOfRandomBits': function() {
-		return 1;
-	},
-	
-	//-------------------------------------------------------------------------
-
-	'pollingFrequency': function() {
-		return 10;
-	},
-
 	//-------------------------------------------------------------------------
 	__syntaxFix__: "syntax fix"
 });
@@ -607,21 +559,16 @@ MochiKit.Logging.logWarning("Fortuna generator has not enough entropy, yet!");
 	'deferredEntropyCollection': function(aValue) {
 		var result;
 
-//MochiKit.Logging.logDebug(">>> PRNG.deferredEntropyCollection");
 
 		if (this.isReadyToGenerateRandomValues()) {
-//MochiKit.Logging.logDebug("--- PRNG.deferredEntropyCollection - 1");
 			result = aValue;
 		} else {
-//MochiKit.Logging.logDebug("--- PRNG.deferredEntropyCollection - 2");
 			var deferredResult;
 
 			Clipperz.NotificationCenter.notify(this, 'updatedProgressState', 'collectingEntropy', true);
 
 			deferredResult = new MochiKit.Async.Deferred();
-//			deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("1.2.1 - PRNG.deferredEntropyCollection - 1: " + res); return res;});
 			deferredResult.addCallback(MochiKit.Base.partial(MochiKit.Async.succeed, aValue));
-//			deferredResult.addBoth(function(res) {MochiKit.Logging.logDebug("1.2.2 - PRNG.deferredEntropyCollection - 2: " + res); return res;});
 			MochiKit.Signal.connect(this,
 									'readyToGenerateRandomBytes',
 									deferredResult,
@@ -629,7 +576,6 @@ MochiKit.Logging.logWarning("Fortuna generator has not enough entropy, yet!");
 									
 			result = deferredResult;
 		}
-//MochiKit.Logging.logDebug("<<< PRNG.deferredEntropyCollection - result: " + result);
 
 		return result;
 	},
@@ -643,7 +589,7 @@ MochiKit.Logging.logWarning("Fortuna generator has not enough entropy, yet!");
 	},
 	
 	//-------------------------------------------------------------------------
-
+/*
 	'dump': function(appendToDoc) {
 		var tbl;
 		var i,c;
@@ -749,7 +695,7 @@ MochiKit.Logging.logWarning("Fortuna generator has not enough entropy, yet!");
 
 		return tbl;
 	},
-
+*/
 	//-----------------------------------------------------------------------------
 	__syntaxFix__: "syntax fix"
 });
@@ -824,16 +770,26 @@ Clipperz.Crypto.PRNG.defaultRandomGenerator = function() {
 
 		//.............................................................
 		//
-		//		KeyboardRandomnessSource
+		//		CryptoRandomRandomnessSource
 		//
 		//.............................................................
 		{
 			var	newRandomnessSource;
+			var	browserCrypto;
 			
-			newRandomnessSource = new Clipperz.Crypto.PRNG.KeyboardRandomnessSource();
-			_clipperz_crypt_prng_defaultPRNG.addRandomnessSource(newRandomnessSource);
+			if (window.crypto && window.crypto.getRandomValues) {
+				browserCrypto = window.crypto;
+			} else if (window.msCrypto && window.msCrypto.getRandomValues) {
+				browserCrypto = window.msCrypto;
+			} else {
+				browserCrypto = null;
+			}
+	
+			if (browserCrypto != null) {
+				newRandomnessSource = new Clipperz.Crypto.PRNG.CryptoRandomRandomnessSource({'browserCrypto':browserCrypto});
+				_clipperz_crypt_prng_defaultPRNG.addRandomnessSource(newRandomnessSource);
+			}
 		}
-
 	}
 
 	return _clipperz_crypt_prng_defaultPRNG;
