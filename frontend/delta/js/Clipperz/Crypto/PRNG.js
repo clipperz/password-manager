@@ -318,9 +318,9 @@ Clipperz.Crypto.PRNG.CryptoRandomRandomnessSource.prototype = MochiKit.Base.upda
 		var	bytesToCollect;
 
 		if (this.boostMode() == true) {
-			bytesToCollect = 8;
+			bytesToCollect = 64;
 		} else {
-			bytesToCollect = 32;
+			bytesToCollect = 8;
 		}
 
 		var randomValuesArray = new Uint8Array(bytesToCollect);
