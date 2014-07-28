@@ -59,6 +59,8 @@ In order to streamline the development as much as possible, it is possible to au
 	
 Loading the application with this url will automatically login using the joe/clipperz credentials.
 
+In order to enable this behaviour you need to uncomment the final part of the `js/main.js` file; it contains a function called `simulateLogin` and the matching registration for the `loadEvent` callback.
+
 
 ## Making changes
 
