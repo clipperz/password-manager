@@ -21,6 +21,8 @@ refer to http://www.clipperz.com.
 
 */
 
+"use strict";
+
 if (typeof(Clipperz) == 'undefined') { Clipperz = {}; }
 if (typeof(Clipperz.Base) == 'undefined') { Clipperz.Base = {}; }
 
@@ -189,6 +191,10 @@ MochiKit.Base.update(Clipperz.Base, {
 		return Clipperz.Base.removeObjectFromArray(anObject, anArray);
 	},
 
+	'arrayWithUniqueValues': function (anArray) {
+		return anArray.filter(function (value, index, self) { return self.indexOf(value) === index; });
+	},
+	
 	//-------------------------------------------------------------------------
 
 	'splitStringAtFixedTokenSize': function(aString, aTokenSize) {

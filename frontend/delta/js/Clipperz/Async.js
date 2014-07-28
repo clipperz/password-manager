@@ -21,11 +21,8 @@ refer to http://www.clipperz.com.
 
 */
 
-//Clipperz.Async = MochiKit.Async;
-
-
-if (typeof(Clipperz) == 'undefined') { Clipperz = {}; }
-if (typeof(Clipperz.Async) == 'undefined') { Clipperz.Async = {}; }
+"use strict";
+Clipperz.Base.module('Clipperz.Async');
 
 Clipperz.Async.VERSION = "0.1";
 Clipperz.Async.NAME = "Clipperz.Async";
@@ -273,6 +270,12 @@ Clipperz.Base.extend(Clipperz.Async.Deferred, MochiKit.Async.Deferred, {
 	'getValue': function (aKey) {
 		this.addCallback(MochiKit.Base.bind(function () {
 			return this.vars()[aKey];
+		}, this));
+	},
+
+	'values': function () {
+		this.addCallback(MochiKit.Base.bind(function () {
+			return this.vars();
 		}, this));
 	},
 
@@ -702,6 +705,6 @@ MochiKit.Base.update(Clipperz.Async, {
 
 //#############################################################################
 
-CLIPPERZ_DEFERRED_LOGGING_ENABLED = true;
-CLIPPERZ_DEFERRED_TRACING_ENABLED = false;
-CLIPPERZ_DEFERRED_CALL_LOGGING_ENABLED = false;
+var CLIPPERZ_DEFERRED_LOGGING_ENABLED = true;
+var CLIPPERZ_DEFERRED_TRACING_ENABLED = false;
+var CLIPPERZ_DEFERRED_CALL_LOGGING_ENABLED = false;

@@ -293,7 +293,7 @@ Clipperz.Crypto.PRNG.MouseRandomnessSource.prototype = MochiKit.Base.update(new 
 Clipperz.Crypto.PRNG.CryptoRandomRandomnessSource = function(args) {
 	args = args || {};
 
-	this._intervalTime = args.intervalTime || 1000;
+	this._intervalTime = args.intervalTime || 500;
 	this._browserCrypto = args.browserCrypto;
 	
 	Clipperz.Crypto.PRNG.RandomnessSource.call(this, args);
@@ -318,7 +318,7 @@ Clipperz.Crypto.PRNG.CryptoRandomRandomnessSource.prototype = MochiKit.Base.upda
 		var	bytesToCollect;
 
 		if (this.boostMode() == true) {
-			bytesToCollect = 64;
+			bytesToCollect = 256;
 		} else {
 			bytesToCollect = 8;
 		}

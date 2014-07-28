@@ -89,6 +89,7 @@ def build (settings, repository):
 	
 	if repository.areTherePendingChanges():
 		if 'install' in settings['versions']:
+#			print "\nWARNING: repository has pending changes\n"
 			raise Exception("repository has pending changes, can't 'install'")
 		else:
 			print "\nWARNING: repository has pending changes\n"
@@ -135,7 +136,7 @@ def usage (message):
 #--------------------------------------------------------------------
 
 def allFrontends ():
-	return ['beta', 'gamma',  'gamma.mobile']
+	return ['beta', 'gamma',  'delta']
 
 def allBackends ():
 	return ['php',  'python']

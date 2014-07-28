@@ -8,5 +8,6 @@ class Gamma_MobileBuilder(FrontendBuilder):
 	def projectResourceTypes (self):
 		return ['js', 'css', 'images']
 
-	def copyStaticResources (self, targetFolder):
+#	def copyStaticResources (self, targetFolder):
+	def copyResourcesToFolder (self, targetFolder):
 		pass

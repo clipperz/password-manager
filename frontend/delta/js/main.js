@@ -44,11 +44,26 @@ MochiKit.Logging.logError("## MainController - GENERIC ERROR" + "\n" + "==>> " +
 React.initializeTouchEvents(true);
 
 Clipperz.PM.RunTime = {};
-function run() {
+
+function initOnMediaQuery () {
+	MQ.init(MochiKit.Base.map(function (queryStyle) {
+		return {
+			context: queryStyle,
+			match: function () {
+				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'matchMediaQuery', queryStyle);
+			},
+			unmatch: function () {
+				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'unmatchMediaQuery', queryStyle);
+			},
+		}
+//	}, ['extra-short', 'narrow', 'wide', 'extra-wide']));
+	}, Clipperz_PM_UI_availableStyles));
+}
+
+function run () {
 	var parameters = {};
 
 	Clipperz.PM.Strings.Languages.initSetup();
-
 
 	if ((window.location.search.indexOf('registration') != -1) || (window.location.hash.indexOf('registration') != -1)) {
 		parameters['shouldShowRegistrationForm'] = true;
@@ -59,7 +74,29 @@ function run() {
 	Clipperz.PM.DataModel.devicePreferences = new Clipperz.PM.DataModel.DevicePreferences({});
 
 	Clipperz.PM.RunTime.mainController = new Clipperz.PM.UI.MainController();
+	initOnMediaQuery();
 	Clipperz.PM.RunTime.mainController.run(parameters);
 }
 
 MochiKit.DOM.addLoadEvent(run);
+
+/* * /
+MochiKit.DOM.addLoadEvent(simulateLogin);
+function simulateLogin () {
+	var getURLParameter = function (name) {
+		return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+	}
+	
+	Clipperz.Crypto.PRNG.defaultRandomGenerator().fastEntropyAccumulationForTestingPurpose();
+	
+//	MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'doLogin', {username:'joe', passphrase:'clipperz'});	//	FULL
+//	http://localhost:8888/delta/index.html?username=joe&passphrase=clipperz
+
+//	MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'doLogin', {username:';', passphrase:';'});			//	EXPIRED
+//	http://localhost:8888/delta/index.html?username=%3B&passphrase=%3B
+
+	if ((getURLParameter('u') != null) && (getURLParameter('p'))) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'doLogin', {username:getURLParameter('u'), passphrase:getURLParameter('p')});
+	}
+}
+/ * */

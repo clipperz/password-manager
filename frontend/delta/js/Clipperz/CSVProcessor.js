@@ -21,7 +21,8 @@ refer to http://www.clipperz.com.
 
 */
 
-if (typeof(Clipperz) == 'undefined') { Clipperz = {}; }
+"use strict";
+Clipperz.Base.module('Clipperz');
 
 
 Clipperz.CSVProcessor = function(args) {
@@ -32,9 +33,9 @@ Clipperz.CSVProcessor = function(args) {
 //	this._string		= undefined;
 //	this._fields		= undefined;
 
-	this._quoteChar		= args['quoteChar'] 	||	"\042";
+	this._quoteChar		= args['quoteChar'] 	||	"\0x42";
 	this._eol			= args['eol']			||	"";
-	this._escapeChar	= args['escapeChar']	||	"\042";
+	this._escapeChar	= args['escapeChar']	||	"\0x42";
 	this._separatorChar	= args['separatorChar']	||	",";
 	this._binary		= args['binary']		||	false;
 	this._alwaysQuote	= args['alwaysQuote']	||	false;

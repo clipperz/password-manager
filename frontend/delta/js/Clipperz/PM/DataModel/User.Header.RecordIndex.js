@@ -29,7 +29,7 @@ if (typeof(Clipperz.PM.DataModel.User.Header) == 'undefined') { Clipperz.PM.Data
 
 Clipperz.PM.DataModel.User.Header.RecordIndex = function(args) {
 	Clipperz.PM.DataModel.User.Header.RecordIndex.superclass.constructor.apply(this, arguments);
-
+//console.log("RECORD INDEX ARGS", args);
 	this._recordsData = new Clipperz.PM.DataModel.EncryptedRemoteObject({
 		'name':	'recordsData',
 		'retrieveKeyFunction': args.retrieveKeyFunction,
@@ -37,9 +37,7 @@ Clipperz.PM.DataModel.User.Header.RecordIndex = function(args) {
 			'data': args.recordsData['data'],
 			'version': args.encryptedDataVersion,
 			'recordsStats': args.recordsStats
-		}//,
-//		'encryptedDataKeypath':			'data',
-//		'encryptedVersionKeypath':		'version'
+		}
 	});
 
 	this._directLoginsData = new Clipperz.PM.DataModel.EncryptedRemoteObject({
@@ -48,11 +46,10 @@ Clipperz.PM.DataModel.User.Header.RecordIndex = function(args) {
 		'remoteData': {
 			'data': args.directLoginsData['data'],
 			'version': args.encryptedDataVersion
-		}//,
-//		'encryptedDataKeypath':			'data',
-//		'encryptedVersionKeypath':		'version'
+		}
 	});
 
+	this._tagsData = 
 	this._lock = new MochiKit.Async.DeferredLock();
 	this._transientState = null;
 
@@ -154,9 +151,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 	},
 
 	'setDirectLoginIndexData': function (aDirectLoginReference, aKey, aValue) {
-//if (MochiKit.Base.isUndefinedOrNull(this.directLoginsIndex()[aDirectLoginReference])) {
-//	throw "PIPPO";
-//}
 		return this.directLoginsData().setValue(this.directLoginsIndex()[aDirectLoginReference] + '.' + aKey, aValue);
 	},
 
@@ -182,8 +176,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 				innerDeferredResult = new Clipperz.Async.Deferred("User.Header.RecordIndex.records <inner deferred>", {trace:false});
 				innerDeferredResult.collectResults({
 					'records': [
-//						MochiKit.Base.method(this.recordsData(), 'getObjectDataStore'),
-//						MochiKit.Base.methodcaller('values')
 						MochiKit.Base.method(this.recordsData(), 'values')
 					],
 					'recordsStats': [
@@ -191,8 +183,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 						MochiKit.Base.itemgetter('recordsStats')
 					],
 					'directLogins': [
-//						MochiKit.Base.method(this.directLoginsData(), 'getObjectDataStore'),
-//						MochiKit.Base.methodcaller('values')
 						MochiKit.Base.method(this.directLoginsData(), 'values')
 					]
 				})
@@ -210,11 +200,13 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 						var	record;
 						var reference;
 						var updateDate;
+						var accessDate;
 
 						reference = recordsInvertedIndex[indexReference];
 						
 						if (typeof(someData['recordsStats'][reference]) != 'undefined') {
 							updateDate = someData['recordsStats'][reference]['updateDate'];
+							accessDate = someData['recordsStats'][reference]['accessDate'];
 						
 							record = new Clipperz.PM.DataModel.Record({
 								'reference':					reference,
@@ -224,6 +216,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 								'retrieveIndexDataFunction':	MochiKit.Base.method(this, 'getRecordIndexData'),
 								'updateIndexDataFunction':		MochiKit.Base.method(this, 'updateRecordIndexData'),
 								'updateDate':					updateDate,
+								'accessDate':					accessDate,
 
 								'retrieveDirectLoginIndexDataFunction':	MochiKit.Base.method(this, 'getDirectLoginIndexData'),
 								'setDirectLoginIndexDataFunction':		MochiKit.Base.method(this, 'setDirectLoginIndexData'),
@@ -235,13 +228,10 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 							this._records[reference] = record;
 						} else {
 Clipperz.log("SKIPPING record " + reference + " as there are no stas associated - " + Clipperz.Base.serializeJSON(someData['records'][reference]));
-							//	# skip the record, as it seems it is not present in the DB
-							//	updateDate = Clipperz.PM.Date.formatDateWithUTCFormat(new Date());
 						}
 					}
 
 					for (indexReference in someData['directLogins']) {
-//						var	directLogin;
 						var reference;
 						var record;
 
@@ -249,7 +239,6 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stas associated 
 						record = this._records[recordsInvertedIndex[someData['directLogins'][indexReference]['record']]];
 
 						if (record != null) {
-//							directLogin = new Clipperz.PM.DataModel.DirectLogin({
 							new Clipperz.PM.DataModel.DirectLogin({
 								'reference':					reference,
 								'record':						record
@@ -301,6 +290,7 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stas associated 
 			'retrieveIndexDataFunction':	MochiKit.Base.method(this, 'getRecordIndexData'),
 			'updateIndexDataFunction':		MochiKit.Base.method(this, 'updateRecordIndexData'),
 			'updateDate':					Clipperz.PM.Date.formatDateWithUTCFormat(new Date()),
+			'accessDate':					Clipperz.PM.Date.formatDateWithUTCFormat(new Date()),
 
 			'retrieveDirectLoginIndexDataFunction':	MochiKit.Base.method(this, 'getDirectLoginIndexData'),
 			'setDirectLoginIndexDataFunction':		MochiKit.Base.method(this, 'setDirectLoginIndexData'),
@@ -384,10 +374,6 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stas associated 
 
 	'deleteAllCleanTextData': function () {
 		return Clipperz.Async.callbacks("User.Header.RecordIndex.deleteAllCleanTextData", [
-//			MochiKit.Base.method(this, 'records'),
-//			MochiKit.Base.values,
-//			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('deleteAllCleanTextData')),
-
 			MochiKit.Base.method(this, 'recordsData'),
 			MochiKit.Base.methodcaller('deleteAllCleanTextData'),
 			MochiKit.Base.method(this, 'directLoginsData'),
@@ -410,21 +396,9 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stas associated 
 				MochiKit.Base.method(this, 'directLoginsData'),
 				MochiKit.Base.methodcaller('hasAnyCleanTextData')
 			],
-//			'records': [
-//				MochiKit.Base.method(this, 'records'),
-//				MochiKit.Base.values,
-//				MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('hasAnyCleanTextData')),
-//				Clipperz.Async.collectAll
-//			]
 		});
 
-//		deferredResult.addCallback(MochiKit.Base.values);
-//		deferredResult.addCallback(MochiKit.Base.flattenArguments);
-//		deferredResult.addCallback(function(someValues) {
-//			return MochiKit.Iter.some(someValues, MochiKit.Base.operator.identity);
-//		});
 		deferredResult.addCallback(Clipperz.Async.or);
-		
 		deferredResult.callback();
 		
 		return deferredResult;
@@ -447,11 +421,6 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stas associated 
 			]
 		});
 		deferredResult.addCallback(Clipperz.Async.or);
-//		deferredResult.addCallback(MochiKit.Base.values);
-//		deferredResult.addCallback(MochiKit.Base.flattenArguments);
-//		deferredResult.addCallback(function(someValues) {
-//			return MochiKit.Iter.some(someValues, MochiKit.Base.operator.identity);
-//		});
 		deferredResult.callback();
 
 		return deferredResult;
@@ -482,9 +451,6 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stas associated 
 			MochiKit.Base.method(this, 'recordsData'),
 			MochiKit.Base.methodcaller('revertChanges'),
 
-//			MochiKit.Base.method(this, 'directLoginsData'),
-//			MochiKit.Base.methodcaller('revertChanges'),
-
 			MochiKit.Base.method(this, 'records'),
 			MochiKit.Base.bind(function (someRecords) {
 				var	recordReference;
@@ -500,22 +466,10 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stas associated 
 				}
 			}, this),
 
-//			MochiKit.Base.method(this, 'directLogins'),
 			MochiKit.Base.bind(function () {
 				var	directLoginReference;
 
-//	this.transientState().setValue('newDirectLoginReferences' + '.' + newDirectLogin.reference(), newDirectLogin);
-//
-//	this.directLoginsIndex()[newDirectLogin.reference()] = newDirectLoginIndexValue;
-//	this.directLoginsData().setValue(this.directLoginsIndex()[newDirectLogin.reference()], {'record': this.recordsIndex()[aRecord.reference()]});
-
-				
-//				for (directLoginReference in this.transientState().getValue('deleteDirectLoginReferences')) {
-//					someDirectLogins[directLoginReference] = this.transientState().getValue('deleteDirectLoginReferences' + '.' + recordReference);
-//				}
-
 				for (directLoginReference in this.transientState().getValue('newDirectLoginReferences')) {
-//					this.directLoginsData().removeValue(this.directLoginsIndex()[directLoginReference]);
 					delete this.directLoginsIndex()[directLoginReference];
 				}
 			}, this),

@@ -1,0 +1,289 @@
+@import "parameters";
+
+.page {
+	@include pageElement();
+}
+
+.mainPage {
+//	background-color: yellow;
+}
+
+.mainPage > #selectionPanel {
+	@include sliding-panel(left, $selectionPanelWidth);
+	
+	&.open {
+		@include sliding-panel-open(left, $selectionPanelWidth);
+	}
+}
+
+#mainPanel {
+//	background-color: $yellow;
+
+	&.extra-wide {
+		@include sliding-panel-container();
+		
+		.container {
+			@include flexbox;
+		}
+		
+		.subpanel {
+			
+			&.selection {
+				@include flex($selectionPanelWidth, 0);
+//				height: 100%;
+				overflow-y: scroll;
+			}
+			
+			&.cardContent {
+				@include flex($cardContentPanelWidth);
+				@include flexbox;
+				@include flex-direction(column);
+			}
+		}
+		
+		.selectionToggle {
+			.button {
+				display: none;
+				visibility: hidden;
+			}
+		}
+		
+	}
+
+	&.wide, &.narrow {
+		.container {
+			@include sliding-panel-container();
+		}
+	}
+
+	&.narrow {
+		.column {
+			@include pageElement();
+		}
+	}
+
+	&.open.left {
+		@include sliding-panel-wrapper-open (left, $selectionPanelWidth);
+		@include mask();
+	}
+
+	&.open.right {
+//		@include sliding-panel-wrapper-open (right, $settingsPanelWidth);
+		@include mask();
+	}
+
+}
+
+
+#extraFeaturesPanel {
+	@include sliding-panel(right, $settingsPanelWidth);
+	
+	&.open {
+		@include sliding-panel-open(right, $settingsPanelWidth);
+	}
+}
+
+.container {
+	height: 100%;
+	width: 100%;
+}
+
+.cardToolbarFrame {
+	height: 100%;
+	
+	@include flexbox;
+	@include flex-direction(column);
+
+	.cardToolbar {
+		@include flex(none);
+		
+	}
+	
+	.cardContent {
+	}
+}
+
+div.cardToolbar {
+//	background-color: $orange;
+	
+	header {
+		@include flexbox;
+		height: $mainCardToolbarHeight;
+		line-height: $mainCardToolbarHeight;
+		
+		background-color: $clipperz-orange;
+		color: white;
+		font-size: 24pt;
+
+		div {
+			
+			&.clipperz {
+				
+				span.logo {
+					@include icon-font();
+
+					@include align-self(center);
+					@include flex(4);
+					text-align: center;
+					
+					&.tag, &.search {
+						font-size: 14pt;
+					}
+				}
+				
+				span.value {
+					display: inline-block;
+					padding-left: 5px;
+					font-size: 18pt;
+				}
+			}
+		
+			&.selectionToggle {
+				@include flex(1);
+
+				.button {
+					text-align: left;
+
+					.label {
+						padding-left: 8px;
+					}
+				}
+			}
+
+//			&.logo {
+//				@include align-self(center);
+//				@include flex(4);
+//				text-align: center;
+//			}
+
+			&.settingsToggle {
+				@include flex(1);
+
+				.button {
+					text-align: right;
+
+					.label {
+						padding-right: 8px;
+					}
+				}
+			}
+			
+			.button {
+				overflow: hidden;
+				font-size: 24pt;
+				@include icon-font();
+				vertical-align: center;
+			}
+		}
+	}
+}
+
+
+div.cardContent {
+//	@include flex(flex-grow);	//	???
+
+	@include flexbox();
+	@include flex-direction(row);
+	
+	div.cardListColumn.column {
+		@include flex($cardListWidth, 0);
+		overflow-y: scroll;
+
+		div.cardToolbar.narrow {
+		}
+		
+		div.cardList {
+			overflow-y: scroll;
+			padding-bottom: 120px;
+
+			ul {
+			}
+		}
+		
+		div.addCardButton {
+			@include icon-font();
+			@include border-radius(50px);
+			@include radial-gradient (white, rgba(0, 0, 0, 0));
+			
+			position: relative;
+			bottom: 0px;
+			font-size: 75pt;
+			color: blue;
+
+			width: 100px;
+			height: 100px;
+			
+			float: right;
+			position: absolute;
+			margin-left: 100px;
+			margin-bottom: 10px;
+			
+			cursor: pointer;
+		}
+	}
+
+	div.cardDetail.column {
+		@include flex($cardDetailWidth);
+
+		@include flexbox();
+
+		div.view {
+			@include flex(auto);
+
+			@include flexbox;
+			@include flex-direction(column);
+
+			.cardDetailToolbar {
+				@include flex(none);
+				height: $mainCardToolbarHeight;
+				line-height: $mainCardToolbarHeight;
+			}
+
+			.content {
+				@include flex(auto);
+				overflow-y: scroll;
+			}
+		}
+	}
+}
+
+
+#cardDetailPage {
+	.view {
+		@include flexbox();
+		@include flex-direction(column);
+		height: 100%;
+		
+		.cardDetailToolbar {
+			@include flex(none);
+			height: $mainCardToolbarHeight;
+			line-height: $mainCardToolbarHeight;
+			
+			& > div {
+				@include flexbox();
+				@include flex-direction(row);
+				font-size: 24pt;
+
+				.back {
+					@include flex(auto);
+					cursor: pointer;
+				}
+			
+				.cardMenuOptions {
+					@include flex(auto);
+					cursor: pointer;
+				}
+			}
+		}
+		
+		.content {
+			@include flex(auto);
+			overflow-y: scroll;
+		}
+	}
+}
+
+.button {
+	cursor: pointer;
+}
+

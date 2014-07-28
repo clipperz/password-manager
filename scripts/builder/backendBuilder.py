@@ -92,6 +92,7 @@ class BackendBuilder(object):
 		print message + ": " + md5Digest + " (md5)"
 		print message + ": " + shaDigest + " (sha1)"
 		print message + ": " + sha256Digest + " (sha256)"
+		print "file size: " + "{:,}".format(len(content))
 		print "====="
 		
 	
@@ -112,14 +113,15 @@ class BackendBuilder(object):
 					submoduleExtension = '.' + frontend.submodule
 
 				main.createFolder(os.path.join(self.frontEndTempFolder(), frontend.module))
+				frontend.copyResourcesToFolder(self.frontEndTempFolder())
 
 				if 'debug' in self.versions:
-					frontend.copyResourcesToFolder(self.frontEndTempFolder())
-
+					frontend.copyDebugResourcesToFolder(self.frontEndTempFolder())
 					index = self.configureIndexContent(frontend.assemble(assemblyMode='DEBUG', versionType='DEBUG'))
 					self.writeToFolder(self.frontEndTempFolder(), os.path.join(frontend.module, 'index_debug' + submoduleExtension + '.html'), index)
 
 				if 'install' in self.versions:
+#					frontend.copyResourcesToFolder(self.frontEndTempFolder())
 					index = self.configureIndexContent(frontend.assemble())
 					self.writeToFolder(self.frontEndTempFolder(), os.path.join(frontend.module, 'index' + submoduleExtension + '.html'), index)
 

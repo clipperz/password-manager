@@ -38,8 +38,14 @@ class FrontendBuilder(object):
 	def projectResourceTypes (self):
 		raise NotImplementedError()
 
-	def copyStaticResources (self, targetFolder):
+#	def copyStaticResources (self, targetFolder):
+#		raise NotImplementedError()
+
+	def copyResourcesToFolder (self, targetFolder):
 		raise NotImplementedError()
+
+	def preprocessCSS (self, targetFile):
+		pass
 
 	#---------------------------------------------------------------------------
 
@@ -72,7 +78,7 @@ class FrontendBuilder(object):
 				result.append(file)
 			
 		return result
-	
+
 
 	def copyResources (self, sourceFolder, destinationFolder, fileType):
 		if fileType in self.settings:
@@ -94,17 +100,18 @@ class FrontendBuilder(object):
 
 		
 
-	def copyResourcesToFolder (self, targetFolder):
-#		self.copyResources(self.projectDir, targetFolder, 'css')
-#		self.copyResources(self.projectDir, targetFolder, 'js')
-#		self.copyResources(self.projectDir, targetFolder, 'images')
+#	def copyResourcesToFolder (self, targetFolder):
+#		for resoureceType in self.projectResourceTypes():
+#			self.copyResources(self.projectDir, targetFolder, resoureceType)
+#		self.copyStaticResources(targetFolder)
+	
+	def copyDebugResourcesToFolder (self, targetFolder):
 		for resoureceType in self.projectResourceTypes():
 			self.copyResources(self.projectDir, targetFolder, resoureceType)
-		self.copyStaticResources(targetFolder)
-	
 
-	def loadFilesContent (self, basePath, files):
-		result = ""
+
+	def loadIndividualFilesContent (self, basePath, files):
+		result = {}
 		
 		for file in self.filterFiles(files):
 			try:
@@ -112,11 +119,39 @@ class FrontendBuilder(object):
 			except:
 				print "FILE: " + file
 
-			result += fileHandler.read() + '\n'
+			result[file] = fileHandler.read()
 			fileHandler.close()
-			
+		
 		return result
-	
+
+
+	def loadFilesContent (self, basePath, files):
+		result = ""
+		
+#		for file in self.filterFiles(files):
+#			try:
+#				fileHandler = codecs.open(self.absolutePathForSourceFile(basePath, file), 'r', 'utf-8')
+#			except:
+#				print "FILE: " + file
+#
+#			result += fileHandler.read() + '\n'
+#			fileHandler.close()
+
+#		for name, content in self.loadIndividualFilesContent(basePath, files):
+		for name, content in list(self.loadIndividualFilesContent(basePath, files).items()):
+			result += content + '\n'
+		
+		return result
+
+
+#	def packFilesContent (self, filesContent):
+#		result = ""
+#		
+#		for name, content in filesContent:
+#			result += content + '\n'
+#			
+#		return result
+
 
 	def template (self):
 		processedFile = 'html_template'
@@ -126,6 +161,8 @@ class FrontendBuilder(object):
 			
 		return self.processedFiles[processedFile]
 	
+
+	#==========================================================================
 
 	def cssminCompressor (self, css):
 		# package found here:
@@ -172,13 +209,14 @@ class FrontendBuilder(object):
 		        print "%s{%s}" % ( ','.join( selectors ), ''.join(['%s:%s;' % (key, properties[key]) for key in porder])[:-1] )
 		
 		return css
-	
+
 
 	def compressCSS (self, css):
 		self.log("compressing CSS")
 		#return self.regexCssCompressor(css)
 		return self.cssminCompressor(css)
-	
+
+	#--------------------------------------------------------------------------
 
 	#==========================================================================
 
@@ -262,6 +300,8 @@ class FrontendBuilder(object):
 		return result
 	
 
+	#==========================================================================
+
 	def replaceTemplatePlaceholders (self, pageTitle, copyright, css, code, jsLoadMode, version, versionType):
 		result = self.template()
 		
@@ -331,6 +371,9 @@ class FrontendBuilder(object):
 			pageTitle = "Clipperz - " + self.module
 		else:
 			pageTitle = "Clipperz - " + self.module + " [" + versionType + " - " + assemblyMode +"]"
+
+		for cssFile in self.settings['css']:
+			self.preprocessCSS(self.absolutePathForSourceFile('css', cssFile))
 
 		if assemblyMode == 'INSTALL':
 			copyright = self.assembleCopyrightHeader()

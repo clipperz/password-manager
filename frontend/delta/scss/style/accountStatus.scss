@@ -1,0 +1,27 @@
+.accountStatus {
+	background-color: green;
+	
+	&.FULL {
+		display: none;
+		visibility: hidden;
+		
+		&.isExpiring {
+			display: block;
+			visibility: visible;
+			
+			background-color: yellow;
+		}
+	}
+	
+	&.TRIAL {
+		background-color: orange;
+
+		&.isExpiring {
+			background-color: red;
+		}
+	}
+	
+	&.EXPIRED {
+		background-color: red;
+	}
+}

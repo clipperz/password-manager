@@ -23,17 +23,17 @@ refer to http://www.clipperz.com.
 
 Clipperz.Base.module('Clipperz.PM.UI');
 
-Clipperz.PM.UI.DirectLoginRunner = function(args) {
+Clipperz.PM.UI.DirectLoginController = function(args) {
 	this._directLogin	= args['directLogin']		|| Clipperz.Base.exception.raise('MandatoryParameter');
 	this._target		= Clipperz.PM.Crypto.randomKey();
 
 	return this;
 }
 
-MochiKit.Base.update(Clipperz.PM.UI.DirectLoginRunner.prototype, {
+MochiKit.Base.update(Clipperz.PM.UI.DirectLoginController.prototype, {
 
 	'toString': function() {
-		return "Clipperz.PM.UI.DirectLoginRunner";
+		return "Clipperz.PM.UI.DirectLoginController";
 	},
 
 	//-----------------------------------------------------------------------------
@@ -237,19 +237,19 @@ MochiKit.Base.update(Clipperz.PM.UI.DirectLoginRunner.prototype, {
 
 //-----------------------------------------------------------------------------
 
-Clipperz.PM.UI.DirectLoginRunner.openDirectLogin = function (aDirectLogin) {
+Clipperz.PM.UI.DirectLoginController.openDirectLogin = function (aDirectLogin) {
 	var	runner;
 	
-	runner = new Clipperz.PM.UI.DirectLoginRunner({directLogin:aDirectLogin});
+	runner = new Clipperz.PM.UI.DirectLoginController({directLogin:aDirectLogin});
 	return runner.run();
 };
 
 //-----------------------------------------------------------------------------
 
-Clipperz.PM.UI.DirectLoginRunner.testDirectLogin = function (aDirectLogin) {
+Clipperz.PM.UI.DirectLoginController.testDirectLogin = function (aDirectLogin) {
 	var	runner;
 
-	runner = new Clipperz.PM.UI.DirectLoginRunner({directLogin:aDirectLogin});
+	runner = new Clipperz.PM.UI.DirectLoginController({directLogin:aDirectLogin});
 	return runner.test();
 };
 

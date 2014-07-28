@@ -57,7 +57,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.JSON, Clipperz.PM.Proxy, {
 			version: aVersion,
 			parameters: Clipperz.Base.serializeJSON(someParameters)
 		};
-console.log("PROXY.JSON._sendMessage", parameters);
+//console.log("PROXY.JSON._sendMessage", parameters);
 		deferredResult = new Clipperz.Async.Deferred("Proxy.JSON._sendMessage", {trace:false});
 		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'remoteRequestSent');
 		deferredResult.addCallback(MochiKit.Async.doXHR, this.url(), {

@@ -133,6 +133,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.Legacy, Clipperz.PM.DataM
 							'retrieveIndexDataFunction':	MochiKit.Base.method(this, 'getRecordIndexData'),
 							'updateIndexDataFunction':		MochiKit.Base.method(this, 'updateRecordIndexData'),
 							'updateDate':					someObjectData['recordsStats'][reference]['updateDate'],
+							'accessDate':					someObjectData['recordsStats'][reference]['accessDate'],
 
 							'retrieveDirectLoginIndexDataFunction':	MochiKit.Base.method(this, 'getDirectLoginIndexData'),
 							'setDirectLoginIndexDataFunction':		MochiKit.Base.method(this, 'setDirectLoginIndexData'),

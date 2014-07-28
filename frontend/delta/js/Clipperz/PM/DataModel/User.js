@@ -41,7 +41,7 @@ Clipperz.PM.DataModel.User = function (args) {
 	this._connection = null;
 	this._connectionVersion = 'current';
 
-	this._subscription = null;
+	this._accountInfo = null;
 	this._serverData = null;
 //	this._serverLockValue = null;
 	this._transientState = null;
@@ -78,12 +78,12 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 	//-------------------------------------------------------------------------
 
 //	this.setSubscription(new Clipperz.PM.DataModel.User.Subscription(someServerData['subscription']));
-	'subscription': function () {
-		return this._subscription;
+	'accountInfo': function () {
+		return this._accountInfo;
 	},
 
-	'setSubscription': function (aValue) {
-		this._subscription = aValue;
+	'setAccountInfo': function (aValue) {
+		this._accountInfo = aValue;
 	},
 
 	//-------------------------------------------------------------------------
@@ -247,19 +247,16 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		var deferredResult;
 
 		deferredResult = new Clipperz.Async.Deferred("User.login", {trace:false});
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'updateProgress', {'extraSteps':3});
 		deferredResult.addMethod(this, 'getPassphrase');
 		deferredResult.addCallback(Clipperz.PM.DataModel.OneTimePassword.isValidOneTimePasswordValue);
 		deferredResult.addCallback(Clipperz.Async.deferredIf("Is the passphrase an OTP", [
-//			MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'updateProgress', {'extraSteps':1}),
 			MochiKit.Base.method(this, 'getCredentials'),
 			MochiKit.Base.method(this.connection(), 'redeemOneTimePassword'),
 			MochiKit.Base.method(this.data(), 'setValue', 'passphrase')
 		], []));
 		deferredResult.addErrback(MochiKit.Base.method(this, 'getPassphrase'));
 		deferredResult.addMethod(this.connection(), 'login', false);
-		deferredResult.addMethod(this, 'setupConnectionInfo');
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal,	Clipperz.Signal.NotificationCenter, 'userSuccessfullyLoggedIn');
+		deferredResult.addMethod(this, 'setupAccountInfo');
 		deferredResult.addErrback (MochiKit.Base.method(this, 'handleConnectionFallback'));
 
 		deferredResult.callback();
@@ -295,9 +292,10 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 
 	//-------------------------------------------------------------------------
 
-	'setupConnectionInfo': function (aValue) {
+	'setupAccountInfo': function (aValue) {
+//console.log("User.setupAccountInfo", aValue, aValue['accountInfo']);
 //		this.setLoginInfo(aValue['loginInfo']);
-		this.setSubscription(new Clipperz.PM.DataModel.User.Subscription(aValue['subscription']));
+		this.setAccountInfo(new Clipperz.PM.DataModel.User.AccountInfo(aValue['accountInfo']));
 	},
 
 	//-------------------------------------------------------------------------
@@ -511,6 +509,19 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 
 	//=========================================================================
 
+	'getTags': function () {
+		return Clipperz.Async.callbacks("User.getTags", [
+			MochiKit.Base.method(this, 'getRecords'),
+			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('tags')),
+			Clipperz.Async.collectAll,
+			MochiKit.Base.flattenArray,
+			Clipperz.Base.arrayWithUniqueValues
+			
+		], {trace:false});
+	},
+
+	//=========================================================================
+
 	'getRecords': function () {
 		return Clipperz.Async.callbacks("User.getRecords", [
 			MochiKit.Base.method(this, 'getHeaderIndex', 'recordsIndex'),
@@ -519,6 +530,36 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		], {trace:false});
 	},
 
+	'getRecordsInfo': function (someInfo, shouldIncludeArchivedCards) {
+		return Clipperz.Async.callbacks("User.getRecordsInfo", [
+			MochiKit.Base.method(this, 'getRecords'),
+			MochiKit.Base.partial(MochiKit.Base.map, Clipperz.Async.collectResults("collectResults", someInfo, {trace:false})),
+			Clipperz.Async.collectAll
+		], {trace:false});
+	},
+/*
+	'filterRecordsInfo': function (someArgs) {
+		var	info			= (someArgs.info			? someArgs.info				: Clipperz.PM.DataModel.Record.defaultCardInfo);
+		var	searchField		= (someArgs.searchField		? someArgs.searchField		: Clipperz.PM.DataModel.Record.defaultSearchField);
+		var	includeArchived	= (someArgs.includeArchived	? someArgs.includeArchived	: false);
+		var	regExp			= (someArgs.regExp			? someArgs.regExp			: Clipperz.PM.DataModel.Record.regExpForSearch(''));
+		
+		if (someArgs.regExp) {
+			regExp = regExp;
+		} else if (someArgs.search) {
+			regExp = Clipperz.PM.DataModel.Record.regExpForSearch(someArgs.search);
+		} else if (someArgs.tag) {
+			regExp = Clipperz.PM.DataModel.Record.regExpForTag(someArgs.tag);
+		} else {
+			regExp = Clipperz.PM.DataModel.Record.regExpForSearch('');
+		};
+		
+		return Clipperz.Async.callbacks("User.filterRecordsInfo", [
+			MochiKit.Base.method(this, 'getRecordsInfo', info, includeArchived),
+			MochiKit.Base.partial(MochiKit.Base.filter, function (aCardInfo) { regExp.lastIndex = 0; return regExp.test(aCardInfo[searchField]);})
+		], {trace:false});
+	},
+*/
 	'recordWithLabel': function (aLabel) {
 		return Clipperz.Async.callbacks("User.recordWithLabel", [
 			MochiKit.Base.method(this, 'getRecords'),

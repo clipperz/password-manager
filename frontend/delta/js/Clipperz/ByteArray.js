@@ -21,6 +21,7 @@ refer to http://www.clipperz.com.
 
 */
 
+"use strict";
 if (typeof(Clipperz) == 'undefined') { Clipperz = {}; }
 
 //=============================================================================

@@ -1,0 +1,35 @@
+@import "core/reset";
+@import "core/palette";
+@import "core/parameters";
+@import "core/fonts";
+@import "core/flex";
+@import "core/overlay";
+@import "core/behavior";
+@import "core/layout";
+
+@import "style/loadingPage";
+@import "style/loginPage";
+@import "style/registrationPage";
+@import "style/selectionPanel";
+@import "style/settingsPanel";
+@import "style/accountStatus";
+@import "style/card";
+
+//----------------------------------------------------------------------------
+
+body {
+	font-family: "clipperz-font";
+	margin: 0;
+	padding: 0;
+}
+
+body:after {
+	display: none;
+}
+
+@import "core/sizes";
+
+//@import "sizes/narrow";
+//@import "sizes/wide";
+//@import "sizes/extra-wide";
+//@import "sizes/extra-short";

@@ -1,0 +1,32 @@
+//	$Loading_outer_color: $main-color;
+//	$Loading_inner-color: lighten($Loading_outer-color, 30%);
+//	
+//	$Loading_h1-color:			lighten($Loading_inner-color, 70%);
+//	$Loading_h3-color:			darken($Loading_outer-color, 20%);
+
+#loadingPage {
+//	@include radial-gradient($Loading_inner-color, $Loading_outer-color);
+	background-color: $main-color;
+
+	div {
+		vertical-align: middle;
+		width: 100%;
+		text-align: center;
+
+		h1 {
+			font-size: 40pt;
+			font-weight: bold;
+//			color: $Loading_h1-color;
+			color: $main-alternate-text-color;
+			margin-top: 10%;
+			margin-bottom: 5px;
+		}
+
+		h3 {
+			font-size: 18pt;
+//			color: $Loading_h3-color;
+			color: $main-text-color;
+			margin: 0px;
+		}
+	}
+}

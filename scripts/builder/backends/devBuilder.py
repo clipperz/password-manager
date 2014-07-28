@@ -39,6 +39,7 @@ class DevBuilder(BackendBuilder):
 				submoduleExtension = '.' + frontend.submodule
 
 			main.createFolder(os.path.join(self.frontEndTempFolder(), frontend.module))
+			frontend.copyResourcesToFolder(self.frontEndTempFolder())
 
 			index = self.configureIndexContent(frontend.assemble(assemblyMode='DEBUG', versionType='DEBUG'))
 			self.writeToFolder(self.frontEndTempFolder(), os.path.join(frontend.module, 'index' + submoduleExtension + '.html'), index)

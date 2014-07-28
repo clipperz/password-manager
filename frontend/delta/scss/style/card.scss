@@ -1,0 +1,270 @@
+$cardListHeight: 48px;
+$faviconSize: 32px;
+$padding: ($cardListHeight - $faviconSize) / 2;
+
+$cardToolbarBackgroundColor: brown;
+
+div.cardList {
+//	background-color: $yellow;
+
+	&.loadingCard {
+		li.selected {
+			background-color: gray;
+		}
+	}
+
+	ul {
+		li.selected {
+			background-color: yellow;
+		}
+
+		li {
+			cursor: pointer;
+
+			border-bottom: 1px solid #eee;
+
+			@include flexbox();
+			@include flex-direction(row);
+
+			.favicon {
+				width: $cardListHeight;
+				@include flex(none);
+
+				img {
+					width: $faviconSize;
+					height: $faviconSize;
+					padding: $padding;
+				}
+			}
+
+			.label {
+				@include flex(auto);
+
+				font-size: 18pt;
+
+				padding-top: 0.5em;
+				padding-bottom: 0.5em;
+				padding-left: $padding;
+				padding-right: $padding;
+			}
+			
+		}
+	}
+
+}
+
+div.cardList.narrow {
+	&.loadingCard {
+		li.selected {
+//			background-color: gray;
+
+			&:after {
+				color: white;
+				margin-right: 10px;
+				content: "loading";
+				@include animation(spin, 1s, linear, infinite);
+			}
+			
+		}
+	}
+
+	ul {
+		li {
+			
+			&:after {
+				content: "show detail";
+				@include flex(none);
+				@include icon-font();
+				height: 48px;
+				font-size: 24pt;
+				line-height: 48px;
+				margin-right: 25px;
+			}
+		}
+	}
+}
+
+$cardViewBasePadding: 10px;
+
+#cardDetailPage, .cardDetail {
+	.loading {
+//		height: 100%;
+//		width: 100%;
+//		background-color: rgba(0,0,0,0.5);
+	}
+
+	.view {
+		
+		.cardDetailToolbar {
+			
+			ul {
+				@include flexbox();
+				@include flex-direction(row);
+		
+				li {
+					@include flex(auto);
+					text-align: center;
+			
+					span {
+						cursor: pointer;
+					}
+				}
+			}
+			
+			&.narrow {
+				.back {
+					@include icon-font();
+				}
+				
+				.cardMenuOptions {
+					@include icon-font();
+					text-align: right;
+					font-size: 18pt;
+					padding-right: 10px;
+					
+				}
+
+				.commandMenu {
+//					display: none;
+					.commandMenuMask {
+						display: none;
+					}
+					
+					.commandMenu {
+						display: none;
+					}
+					
+					&.show {
+
+						.commandMenuMask {
+							display: block;
+							position: absolute;
+							top: 0;
+							left: 0;
+							width: 100%;
+							height: 100%;
+							background-color: rgba(0, 0, 0, 0);
+						}
+
+						.commandMenu {
+							display: block;
+							float: right;
+							position: absolute;
+							min-width: 200px;
+							top: 48px;
+							right: 5px;
+							color: black;
+							background-color: white;
+							@include box-shadow(0px, 2px, 5px, rgba(50, 50, 50, 0.75));
+					
+							ul {
+								@include flex-direction(column);
+						
+								li {
+									text-align: left;
+									font-size: 18pt;
+									padding: 5px 10px;
+									border-bottom: 1px solid black;
+							
+								}
+							}
+						}
+					}
+					
+				}
+			}
+		}		
+	}
+}	
+
+
+
+
+
+.cardDetailToolbar {
+	background-color: $cardToolbarBackgroundColor;
+	color: white;
+	
+	&.narrow {
+		
+		.cardMenuOptions {
+			margin-right: 5px;
+		}
+	}
+}
+
+.content {
+	.cardLabel {
+		font-size: 24pt;
+		padding: $cardViewBasePadding;
+	}
+
+	.cardTags {
+		@include flexbox();
+		@include flex-direction(row);
+		@include align-items(flex-start);
+		
+		padding: $cardViewBasePadding;
+
+		.cardTag {
+			@include flex(none);
+			font-size: 14pt;
+			padding-right: 10px;
+			
+			&:before {
+				content: 'tag';
+				@include icon-font();
+				font-size: 10pt;
+				padding-right: 4px;
+			}
+		}
+	}
+	
+	.cardNotes {
+		padding: $cardViewBasePadding;
+	}
+
+	.cardField {
+		@include flexbox;
+		@include flex-direction(row);
+
+		.fieldValues {
+			@include flex(1);
+			padding: $cardViewBasePadding;
+
+			.fieldLabel {
+				color: gray;
+			}
+
+			.fieldValue {
+				font-size: 18pt;
+
+				&.hidden {
+					font-family: clipperz-password;
+				}
+			}
+
+		
+		}
+
+		.fieldAction {
+			@include flex(none);
+			@include align-self(center);
+		}
+	
+		.action {
+			width: 32px;
+			height: 32px;
+			@include icon-font();
+			font-size: 20pt;
+		}
+
+	}
+
+	.cardDirectLogin {
+		font-size: 18pt;
+		padding: $cardViewBasePadding;
+		background-color: pink;
+		cursor: pointer;
+	}
+}

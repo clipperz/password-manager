@@ -9,10 +9,13 @@ class GammaBuilder(FrontendBuilder):
 	def projectResourceTypes (self):
 		return ['js', 'css', 'images']
 
-	def copyStaticResources (self, targetFolder):
+#	def copyStaticResources (self, targetFolder):
+	def copyResourcesToFolder (self, targetFolder):
+		self.copyResources(self.projectDir, targetFolder, 'images')
+
 		resourcesToCopy = [
-#			{'folder': 'html',	'source': 'exit_template.html',	'target': 'exit.html'},
-			{'folder': 'html',	'source': 'exit_template.html',	'target': 'logout.html'},
+			{'folder': 'html',	'source': 'exit_template.html',	'target': 'exit.html'},
+#			{'folder': 'html',	'source': 'exit_template.html',	'target': 'logout.html'},
 			{'folder': 'css',	'source': 'static.css',			'target': 'static.css'}
 		]
 

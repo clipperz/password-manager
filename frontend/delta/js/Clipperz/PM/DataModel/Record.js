@@ -30,6 +30,7 @@ Clipperz.PM.DataModel.Record = function(args) {
 	Clipperz.PM.DataModel.Record.superclass.constructor.apply(this, arguments);
 
 	this._updateDate				= (args.updateDate ? Clipperz.PM.Date.parse(args.updateDate) : Clipperz.Base.exception.raise('MandatoryParameter'));
+	this._accessDate				= (args.accessDate ? Clipperz.PM.Date.parse(args.accessDate) : Clipperz.Base.exception.raise('MandatoryParameter'));
 
 	this._retrieveIndexDataFunction	= args.retrieveIndexDataFunction	|| Clipperz.Base.exception.raise('MandatoryParameter');
 	this._updateIndexDataFunction	= args.updateIndexDataFunction		|| Clipperz.Base.exception.raise('MandatoryParameter');
@@ -40,6 +41,8 @@ Clipperz.PM.DataModel.Record = function(args) {
 
 	this._createNewDirectLoginFunction			= args.createNewDirectLoginFunction			|| null;
 	
+	this._tags = [];
+
 	this._directLogins = {};
 
 	this._versions = {};
@@ -128,22 +131,109 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		return deferredResult;
 	},
 
-	//=========================================================================
+	//============================================================================
 /*
 	'key': function () {
 		return this.getIndexDataForKey('key');
 	},
 */
-	//=========================================================================
+	//============================================================================
+
+	'fullLabel': function () {
+		return this.getIndexDataForKey('label');
+	},
+
+	'updateFullLabelWithTags': function (someTags) {
+		return Clipperz.Async.callbacks("Record.updateFullLabelWithTags", [
+			MochiKit.Base.method(this, 'label'),
+			function (aLabel) {
+				return aLabel + ' ' + MochiKit.Base.map(function (aTag) { return Clipperz.PM.DataModel.Record.tagChar + aTag; }, MochiKit.Base.keys(someTags)).join(' ');
+			},
+			MochiKit.Base.method(this, 'setIndexDataForKey', 'label')
+		], {trace:false});
+	},
+
+	//............................................................................
+
+	'tagChar': function () {
+		return Clipperz.PM.DataModel.Record.tagChar;
+	},
+
+	'tagRegExp': function () {
+		return new RegExp('\\' + this.tagChar() + '(\\w+)', 'g');
+	},
+
+	'trimSpacesRegExp': function () {
+		return new RegExp('^\\s+|\\s+$', 'g');
+	},
+
+	//............................................................................
+
+	'filterOutTags': function (aValue) {
+		var value;
+
+		value = aValue;
+		value = value.replace(this.tagRegExp(), '');
+		value = value.replace(this.trimSpacesRegExp(), '');
+
+		return value;
+	},
 
 	'label': function () {
-		return this.getIndexDataForKey('label');
+		return Clipperz.Async.callbacks("Record.label", [
+			MochiKit.Base.method(this, 'fullLabel'),
+			MochiKit.Base.method(this, 'filterOutTags')
+		], {trace:false});
+	},
+
+	'setLabel': function (aValue) {
+		return this.setIndexDataForKey('label', aValue);	//	[???]
 	},
 
 	//.........................................................................
 
-	'setLabel': function (aValue) {
-		return this.setIndexDataForKey('label', aValue);
+	'extractTags': function (aLabel) {
+		var	tagRegEx;
+		var	result;
+		var	match;
+		
+		result = {};
+		tagRegEx = this.tagRegExp();
+		match = tagRegEx.exec(aLabel);
+		while (match != null) {
+			result[match[1]] = true;
+		    match = tagRegEx.exec(aLabel);
+		}		
+		
+		return result;
+	},
+	
+	'tags': function () {
+		return Clipperz.Async.callbacks("Record.label", [
+			MochiKit.Base.method(this, 'fullLabel'),
+			MochiKit.Base.method(this, 'extractTags'),
+			MochiKit.Base.keys
+		], {trace:false});
+	},
+
+	'addTag': function (aNewTag) {
+//console.log("ADD TAG", aNewTag);
+		return Clipperz.Async.callbacks("Record.addTag", [
+			MochiKit.Base.method(this, 'fullLabel'),
+			MochiKit.Base.method(this, 'extractTags'),
+			function (someTags) { someTags[aNewTag] = true; console.log("UPDATED TAGS", someTags); return someTags; },
+			MochiKit.Base.method(this, 'updateFullLabelWithTags')
+		], {trace:false});
+	},
+
+	'removeTag': function (aTag) {
+//console.log("ADD TAG", aNewTag);
+		return Clipperz.Async.callbacks("Record.removeTag", [
+			MochiKit.Base.method(this, 'fullLabel'),
+			MochiKit.Base.method(this, 'extractTags'),
+			function (someTags) { delete someTags[aTag]; return someTags; },
+			MochiKit.Base.method(this, 'updateFullLabelWithTags')
+		], {trace:false});
 	},
 
 	//=========================================================================
@@ -183,6 +273,10 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		return MochiKit.Async.succeed(this._updateDate);
 	},
 
+	'accessDate': function () {
+		return MochiKit.Async.succeed(this._accessDate);
+	},
+
 	//=========================================================================
 
 	'favicon': function () {
@@ -208,7 +302,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		deferredResult = new Clipperz.Async.Deferred("Record.searchableContent", {trace:false});
 		
 		deferredResult.collectResults({
-			'recordLabel': MochiKit.Base.method(this, 'label'),
+			'recordLabel': MochiKit.Base.method(this, 'fullLabel'),
 			'directLoginLabels': [
 				MochiKit.Base.method(this, 'directLoginReferences'),
 				MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.itemgetter('label'))
@@ -889,3 +983,20 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 });
 
 
+Clipperz.PM.DataModel.Record.defaultCardInfo = {
+	'_rowObject':			MochiKit.Async.succeed,
+	'_reference':			MochiKit.Base.methodcaller('reference'),
+	'_searchableContent':	MochiKit.Base.methodcaller('searchableContent'),
+	'_accessDate':			MochiKit.Base.methodcaller('accessDate'),
+	'label':				MochiKit.Base.methodcaller('label'),
+	'favicon':				MochiKit.Base.methodcaller('favicon')
+};
+Clipperz.PM.DataModel.Record.defaultSearchField = '_searchableContent';
+
+Clipperz.PM.DataModel.Record.tagChar = '#';
+Clipperz.PM.DataModel.Record.regExpForTag = function (aTag) {
+	return new RegExp('\\' + Clipperz.PM.DataModel.Record.tagChar + aTag, 'g');
+};
+Clipperz.PM.DataModel.Record.regExpForSearch = function (aSearch) {
+	return new RegExp(aSearch.replace(/[^A-Za-z0-9]/g, '\\$&'), 'i');
+};

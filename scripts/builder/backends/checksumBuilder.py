@@ -42,6 +42,7 @@ class ChecksumBuilder(BackendBuilder):
 
 			index = self.configureIndexContent(frontend.assemble())
 			self.writeToFolder(self.frontEndTempFolder(), os.path.join(frontend.module, 'index' + submoduleExtension + '.html'), index)
+			frontend.copyResourcesToFolder(self.frontEndTempFolder())
 			self.logChecksums(index, "[" + self.name() + " - " + frontend.module + "] index" + submoduleExtension + ".html checksum")
 			print ""
 

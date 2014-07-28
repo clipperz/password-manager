@@ -21,8 +21,8 @@ refer to http://www.clipperz.com.
 
 */
 
-if (typeof(Clipperz) == 'undefined') { Clipperz = {}; }
-if (typeof(Clipperz.DOM) == 'undefined') { Clipperz.DOM = {}; }
+"use strict";
+Clipperz.Base.module('Clipperz.DOM');
 
 Clipperz.DOM.VERSION = "0.1";
 Clipperz.DOM.NAME = "Clipperz.DOM";

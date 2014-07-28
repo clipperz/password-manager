@@ -21,8 +21,8 @@ refer to http://www.clipperz.com.
 
 */
 
-if (typeof(Clipperz) == 'undefined') { Clipperz = {}; }
-if (typeof(Clipperz.Date) == 'undefined') { Clipperz.Date = {}; }
+"use strict";
+Clipperz.Base.module('Clipperz.Date');
 
 Clipperz.Date.VERSION = "0.1";
 Clipperz.Date.NAME = "Clipperz.Date";

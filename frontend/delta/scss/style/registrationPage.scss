@@ -1,0 +1,111 @@
+#registrationPage {
+	background-color: $main-alternate-color;
+	color: $main-alternate-text-color;
+
+	label {
+		display: none;
+	}
+
+	input {
+		display: block;
+		border: 1px solid $solarize-Background-92;
+		@include border-radius(6px);
+		padding: 5px;
+		margin-top: 5px;
+		margin-bottom: 10px;
+		font-size: 100%;
+		box-shadow:inset 0 0 0;
+	}
+
+
+	.steps {
+		.step {
+			display: none;
+
+			&.center {
+				display: block;
+			}
+
+			h1 {
+				color: $solarize-Accent-Blue;
+				font-size: 24pt;
+				font-weight: 700;
+				margin: 0px;
+			}
+			p {
+				color: $solarize-Content-50;
+				font-size: 14pt;
+				font-weight: 100;
+				margin: 0px;
+			}
+
+			&.TERMS_OF_SERVICE {
+				.checkboxBlock {
+					margin-top: 10px;
+					margin-bottom: 10px;
+					clear: both;
+
+					input {
+						display: block;
+						float: left;
+						margin: 5px;
+						width: 30px;
+					}
+
+					p {
+						font-size: 12pt;
+						font-weight: 500;
+						display: block;
+
+						a {
+							color: $solarize-Accent-Red;
+						}
+					}
+				}
+			}
+			.stepIndex {
+				text-align: center;
+				.stepIndexItem {
+					font-weight: 900;
+					font-size: 28pt;
+					display: inline;
+					color: lightgrey;
+
+					&.center {
+						color: gray;
+					}
+				}
+			}	
+			.buttons {
+				text-align: center;
+				margin-top: 10px;
+
+				.button {
+					margin: 10px;
+					text-align: center;
+					vertical-align: middle;
+					display: inline-block;
+					width: 80px;
+
+					font-weight: 900;
+					line-height: 45px;
+					font-size: 24px;
+
+					&.back {
+
+						background-color: lightgrey;
+
+//						&.step_-1 {
+//							visibility: hidden;
+//						}
+					}
+
+					&.disabled {
+						background-color: #c0c0c0;
+						cursor: default;
+					}
+				}
+			}
+		}
+	}
+}

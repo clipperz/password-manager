@@ -56,7 +56,7 @@ MochiKit.Base.update(Clipperz.Crypto.SRP, {
 		return Clipperz.Crypto.SRP._n;
 	},
 
-	//-------------------------------------------------------------------------
+	//.........................................................................
 
 	'g': function() {
 		if (Clipperz.Crypto.SRP._g == null) {
@@ -65,6 +65,8 @@ MochiKit.Base.update(Clipperz.Crypto.SRP, {
 		
 		return Clipperz.Crypto.SRP._g;
 	},
+
+	//.........................................................................
 
 	'k': function() {
 		if (Clipperz.Crypto.SRP._k == null) {

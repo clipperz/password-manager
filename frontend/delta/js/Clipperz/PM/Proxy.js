@@ -152,7 +152,7 @@ Clipperz.PM.Proxy.prototype = MochiKit.Base.update(null, {
 	'sendMessage': function (aFunctionName, someParameters) {
 		var deferredResult;
 
-console.log("PROXY.sendMessage", aFunctionName, someParameters);
+//console.log("PROXY.sendMessage", aFunctionName, someParameters);
 //	TODO: read actual application version for a property set at build time
 		deferredResult = new Clipperz.Async.Deferred("Proxy.sendMessage", {trace:false});
 		deferredResult.addMethod(this, '_sendMessage', aFunctionName, 'fake-app-version');

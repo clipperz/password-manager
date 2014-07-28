@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-
 def repositoryWithPath (path):
 	try:
-		from mercurial import ui, hg
+		# pip install hgapi
+		import hgapi
 
-		repo = hg.repository(ui.ui(), path)
+		repo = hgapi.Repo(path)
 		result = HgRepository(repo, path)
+		repo.hg_status()
 	except:
 		try:
 			from git import Repo
@@ -17,6 +18,7 @@ def repositoryWithPath (path):
 			print "Failed to import git, please install http://gitorious.org/git-python"
 			print "Use sudo apt-get install python-git for Ubuntu/Debian"
 			print "Use sudo yum install GitPython for Fedora/RHEL/CentOS"
+			print "Or manually running the following command: easy_install gitpython"
 		except:
 			result = SnapshotRepository('', path)
 
@@ -47,7 +49,6 @@ class Repository(object):
 		if self.areTherePendingChanges():
 			result = '>>> ' + result + ' <<<'
 
-		# print "VERSION: " + result
 		return result
 
 
@@ -76,15 +77,14 @@ class GitRepository(Repository):
 
 
 class HgRepository(Repository):
-	#	http://mercurial.selenic.com/wiki/MercurialApi
+	##	http://mercurial.selenic.com/wiki/MercurialApi
+	#	https://bitbucket.org/haard/hgapi
 
 	def revision (self):
-		return 'hg:' + str(self.repository['tip'])
-	
+		return 'hg: ' + str(self.repository['tip'].node)
 
 	def areTherePendingChanges (self):
-		# TODO: FIXME: repository.status() does not report 'unknown(?)' files. :(
-		return not all(map(lambda fileList: len(fileList) == 0, self.repository.status()))
+		return not all(map(lambda fileList: len(fileList) == 0, self.repository.hg_status()))
 
 
 #===================================================================

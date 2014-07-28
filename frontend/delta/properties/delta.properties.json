@@ -5,9 +5,17 @@
 		"mochikit.commit":				"6f26f745d5d915540aa0fc6c34fda24952891a9d",
 
 		"reactjs.repository":			"https://github.com/facebook/react.git",
-		"reactjs.version":				"0.4.1",
-		"reactjs.commit":				"0cac12d375264a8a232a426d6d6cc8074a94000a",
+		"reactjs.version":				"0.11.0",
+		"reactjs.commit":				"95d82cacd6e9cc6a2fe6366d79510cc9133886cb",
 
+		"modernizr.repository":			"https://github.com/Modernizr/Modernizr",
+		"modernizr.version":			"2.8.2",
+		"modernizr.commit":				"99c09fa23a83f160a021c98b3644628aaec5e37a",
+
+		"onmediaquery.repository":		"https://github.com/JoshBarr/on-media-query",
+		"onmediaquery.version":			"0.2.0",
+		"onmediaquery.commit":			"5080914636d392781ac858fb8eca9c0d99e5d35c",
+		
 		"addtohomescreen.repository":	"https://github.com/cubiq/add-to-homescreen.git",
 		"addtohomescreen.version":		"2.0.8",
 		"addtohomescreen.commit":		"4d375840079bcea994cc5795a568802400c7a793"
@@ -31,13 +39,14 @@
 		"MochiKit/Selector.js",
 		"-- MochiKit/Visual.js",
 
-		"-- React/react-0.4.1.js",
-		"React/react-0.5.0-alpha.js",
+		"React/react-with-addons-0.11.0.js",
 
 		"-- Hammer/hammer-1.0.5.js",
-		
-		"Cubiq/add2home.js",
+		"-- Cubiq/add2home.js",
+		"-- Modernizr/modernizr-2.8.2.js",
+		"OnMediaQuery/onmediaquery-0.2.0.js",
 
+		"-- IT WOULD BE NICE TO BE ABLE TO GET RID OF THESE IMPORTS",
 		"Clipperz/YUI/Utils.js",
 		"Clipperz/YUI/DomHelper.js",
 
@@ -45,14 +54,14 @@
 		"Clipperz/Base.js",
 		"Clipperz/Async.js",
 		"Clipperz/CSVProcessor.js",
-		"Clipperz/KeePassExportProcessor.js",
+		"-- Clipperz/KeePassExportProcessor.js",
 		"Clipperz/Date.js",
-		"Clipperz/DOM.js",
+		"-- Clipperz/DOM.js",
 		"Clipperz/Logging.js",
 		"Clipperz/Signal.js",
 		"-- Clipperz/Style.js",
 		"-- Clipperz/Visual.js",
-		"Clipperz/Set.js",
+		"-- Clipperz/Set.js",
 		"-- Clipperz/Profile.js",
 		"Clipperz/KeyValueObjectStore.js",
 
@@ -104,7 +113,7 @@
 		"Clipperz/PM/DataModel/User.Header.RecordIndex.js",
 		"Clipperz/PM/DataModel/User.Header.Preferences.js",
 		"Clipperz/PM/DataModel/User.Header.OneTimePasswords.js",
-		"Clipperz/PM/DataModel/User.Subscription.js",
+		"Clipperz/PM/DataModel/User.AccountInfo.js",
 		"Clipperz/PM/DataModel/Record.js",
 		"Clipperz/PM/DataModel/Record.Version.js",
 		"Clipperz/PM/DataModel/Record.Version.Field.js",
@@ -124,21 +133,42 @@
 		"-- Clipperz/PM/UI/Web/Controllers/MainController.js",
 
 		"Clipperz/PM/UI/Components/Overlay.js",
+		"Clipperz/PM/UI/Components/Button.js",
 		"Clipperz/PM/UI/Components/Checkbox.js",
-		"Clipperz/PM/UI/Components/PageTemplate.js",
-		"Clipperz/PM/UI/Components/LoginForm.js",
-		"Clipperz/PM/UI/Components/RegistrationWizard.js",
-		"Clipperz/PM/UI/Components/CardList.js",
-		"Clipperz/PM/UI/Components/CardDetail.js",
-		"Clipperz/PM/UI/Components/PreferencePage.js",
-		"Clipperz/PM/UI/Components/ErrorPage.js",
+		"Clipperz/PM/UI/Components/CardToolbar.js",
+		"Clipperz/PM/UI/Components/MessageBox.js",
+		"Clipperz/PM/UI/Components/Selections.js",
+		"Clipperz/PM/UI/Components/TagIndexItem.js",
+
+		"Clipperz/PM/UI/Components/ExpiredPanel.js",
+
+		"Clipperz/PM/UI/Components/Pages/LoginPage.js",
+		"Clipperz/PM/UI/Components/Pages/RegistrationPage.js",
+		"Clipperz/PM/UI/Components/Pages/MainPage.js",
+		"Clipperz/PM/UI/Components/Pages/CardDetailPage.js",
+		"Clipperz/PM/UI/Components/Pages/ErrorPage.js",
+
+		"Clipperz/PM/UI/Components/Panels/SelectionPanel.js",
+		"Clipperz/PM/UI/Components/Panels/MainPanel.js",
+		"Clipperz/PM/UI/Components/Panels/ExtraFeaturesPanel.js",
+
+		"Clipperz/PM/UI/Components/Cards/List.js",
+		"Clipperz/PM/UI/Components/Cards/View.js",
+		"Clipperz/PM/UI/Components/Cards/Toolbar.js",
+
+		"Clipperz/PM/UI/Components/AccountStatus.js",
 
 		"Clipperz/PM/UI/MainController.js",
+		"-- Clipperz/PM/UI/MainDesktopController.js",
 		"Clipperz/PM/UI/DirectLoginController.js",
 		"main.js"
 	],
 
 	"css": [
-		"web.css"
+		"clipperz.css"
+	],
+
+	"scss": [
+		"clipperz.scss"
 	]
 }
