@@ -109,7 +109,13 @@ Clipperz_normalizedNewLine = '\x0d\x0a';
 <!-- div class="testBlock">
 	<script type="text/javascript" src="./js/TestData/User.data.js" charset="utf-8"></script>
 	<script>
-		Clipperz.PM.Proxy.defaultProxy = new Clipperz.PM.Proxy.Offline({shouldPayTolls:true, isDefault:true});
+		var	dataStore = new Clipperz.PM.Proxy.Offline.DataStore({
+			'data': testData,
+			'readOnly': false,
+			'shouldPayTolls': false
+		});
+
+		Clipperz.PM.Proxy.defaultProxy = new Clipperz.PM.Proxy.Offline({'dataStore': dataStore});
 		Clipperz.PM.Proxy.defaultProxy.dataStore().setupWithEncryptedData(testData);
 
 		//	Live Reload hoock
