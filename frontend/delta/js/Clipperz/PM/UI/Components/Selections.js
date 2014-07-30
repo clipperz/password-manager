@@ -47,10 +47,13 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 	render: function () {
 		var	tagInfo;
 		var	tags;
+		var	archivedCardsCount;
 
 		tagInfo = this.props['tags'] ? this.props['tags'] : {};
-		tags = MochiKit.Base.keys(tagInfo).sort(Clipperz.Base.caseInsensitiveCompare);
+		tags = MochiKit.Base.filter(function (aTag) { return aTag != Clipperz.PM.DataModel.Record.archivedTag}, MochiKit.Base.keys(tagInfo)).sort(Clipperz.Base.caseInsensitiveCompare);
 		
+		archivedCardsCount = tagInfo[Clipperz.PM.DataModel.Record.archivedTag] ? tagInfo[Clipperz.PM.DataModel.Record.archivedTag] : 0;
+
 		return	React.DOM.div({'key':'selections', 'id':'selections'}, [
 			React.DOM.ul({'className':'defaultSet'}, [
 				React.DOM.li({'className':'allCards', onClick: this.selectAll}, "All"),
@@ -65,7 +68,8 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 			React.DOM.ul({'className':'tagList'}, MochiKit.Base.map(function (aTag) {return Clipperz.PM.UI.Components.TagIndexItem({'label':aTag, 'count':tagInfo[aTag]}); }, tags)),
 			React.DOM.div({'className':'showArchivedCards'}, [
 				React.DOM.input({'type':'checkbox', 'onChange':this.handleCheckboxChanges}),
-				React.DOM.h5({}, "Show archived cards")
+				React.DOM.span({'className':'label'}, "Show archived cards"),
+				archivedCardsCount > 0 ? React.DOM.span({'className':'count'}, archivedCardsCount) : null
 			]),
 		]);
 	}

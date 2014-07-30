@@ -43,11 +43,6 @@
 			
 			span.tagCount {
 //				@include flex(none);
-				background-color: gray;
-				font-size: 10pt;
-				margin-left: 10px;
-				padding: 0px 4px;
-				@include border-radius(4px);
 			}
 		}
 	}

@@ -426,6 +426,8 @@ console.log("SET USER", aUser);
 		deferredResult = new Clipperz.Async.Deferred('MainController.collectRecordInfo', {trace:false});
 		deferredResult.addMethod(aRecord, 'reference');
 		deferredResult.setValue('_reference');
+		deferredResult.addMethod(aRecord, 'isArchived');
+		deferredResult.setValue('_isArchived');
 		deferredResult.addMethod(aRecord, 'label');
 		deferredResult.setValue('label');
 		deferredResult.addMethod(aRecord, 'notes');

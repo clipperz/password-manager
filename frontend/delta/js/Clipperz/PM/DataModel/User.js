@@ -518,10 +518,9 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 			MochiKit.Iter.groupby,
 			function (someGroups) {
 				return  MochiKit.Iter.reduce(function(aCollector, aGroup) {
-					if (aGroup[0] != Clipperz.PM.DataModel.Record.archivedTag) {
-						var currentValue = aCollector[aGroup[0]] ? aCollector[aGroup[0]] : 0;
-						aCollector[aGroup[0]] = MochiKit.Iter.list(aGroup[1]).length + currentValue;
-					}
+					var currentValue = aCollector[aGroup[0]] ? aCollector[aGroup[0]] : 0;
+					aCollector[aGroup[0]] = MochiKit.Iter.list(aGroup[1]).length + currentValue;
+
 					return aCollector;
 				}, someGroups, {});
 			}

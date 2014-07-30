@@ -46,6 +46,17 @@
 			&:before {
 				content: "tag";
 			}
+
+			span.tagLabel {
+			}
+		
+			span.tagCount {
+				background-color: gray;
+				font-size: 10pt;
+				margin-left: 10px;
+				padding: 0px 4px;
+				@include border-radius(4px);
+			}
 		}
 	}
 	
@@ -68,5 +79,14 @@
 	}
 	
 	.showArchivedCards {
+		font-size: 12pt;
+		
+		span.count {
+			background-color: gray;
+			font-size: 10pt;
+			margin-left: 10px;
+			padding: 0px 4px;
+			@include border-radius(4px);
+		}
 	}
 }

@@ -99,6 +99,10 @@ $cardViewBasePadding: 10px;
 
 	.view {
 		
+		&.archived {
+			background-color: pink;
+		}
+		
 		.cardDetailToolbar {
 			
 			ul {

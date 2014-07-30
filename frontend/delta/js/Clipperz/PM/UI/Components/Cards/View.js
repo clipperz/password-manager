@@ -129,7 +129,12 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 	//............................................................................
 
 	renderCard: function () {
-		return	React.DOM.div({'className':'view'},[
+		var	classes = {
+			'view':		true,
+			'archived':	this.props['_isArchived']
+		}
+	
+		return	React.DOM.div({'className':React.addons.classSet(classes)},[
 			Clipperz.PM.UI.Components.Cards.Toolbar(this.props),
 			React.DOM.div({'className':'content'}, [
 				this.renderLabel(this.props['label']),
