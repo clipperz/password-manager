@@ -34,8 +34,8 @@ Clipperz.PM.UI.Components.TagIndexItem = React.createClass({
 	},
 
 	handleClick: function (anEvent) {
-//console.log("TAG INDEX ITEM - handle click TAG", anEvent.target.dataset.tag);
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'tagSelected', anEvent.target.dataset.tag);
+//console.log("TAG INDEX ITEM - handle click TAG", anEvent.currentTarget.dataset.tag);
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'tagSelected', anEvent.currentTarget.dataset.tag);
 	},
 	
 	render: function () {
