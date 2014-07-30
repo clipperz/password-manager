@@ -39,7 +39,8 @@ Clipperz.PM.UI.Components.Cards.List = React.createClass({
 	
 	renderItem: function (anItem) {
 		var	classes = {
-			'selected':	this.props['selectedCard'] ? this.props['selectedCard']['_reference'] == anItem['_reference'] : false
+			'selected':	this.props['selectedCard'] ? this.props['selectedCard']['_reference'] == anItem['_reference'] : false,
+			'archived':	anItem['_isArchived']
 		};		
 
 		return	React.DOM.li({'className':React.addons.classSet(classes), 'onClick': this.handleClick, 'key':anItem['_reference'], 'data-reference':anItem['_reference'], 'data-label':anItem['label']}, [

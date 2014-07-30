@@ -30,6 +30,7 @@ Clipperz.PM.UI.Components.TagIndexItem = React.createClass({
 
 	propTypes: {
 		'label':	React.PropTypes.string.isRequired,
+		'count':	React.PropTypes.number.isRequired,
 	},
 
 	handleClick: function (anEvent) {
@@ -38,7 +39,10 @@ Clipperz.PM.UI.Components.TagIndexItem = React.createClass({
 	},
 	
 	render: function () {
-		return	React.DOM.li({onClick: this.handleClick, 'data-tag':this.props['label']}, this.props['label']);
+		return	React.DOM.li({'onClick': this.handleClick, 'data-tag':this.props['label']}, [
+			React.DOM.span({'className':'tagLabel'}, this.props['label']),
+			React.DOM.span({'className':'tagCount'}, this.props['count'])
+		]);
 	},
 
 	//=========================================================================

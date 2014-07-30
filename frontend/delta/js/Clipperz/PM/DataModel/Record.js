@@ -236,6 +236,17 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		], {trace:false});
 	},
 
+	'archive': function () {
+		return this.addTag(Clipperz.PM.DataModel.Record.archivedTag);
+	},
+
+	'isArchived': function () {
+		return Clipperz.Async.callbacks("Record.isArchived", [
+			MochiKit.Base.method(this, 'tags'),
+			function (someTags) { return MochiKit.Iter.some(someTags, MochiKit.Base.partial(MochiKit.Base.objEqual, Clipperz.PM.DataModel.Record.archivedTag))},
+		], {trace:false});
+	},
+
 	//=========================================================================
 
 	'headerNotes': function () {
@@ -988,12 +999,18 @@ Clipperz.PM.DataModel.Record.defaultCardInfo = {
 	'_reference':			MochiKit.Base.methodcaller('reference'),
 	'_searchableContent':	MochiKit.Base.methodcaller('searchableContent'),
 	'_accessDate':			MochiKit.Base.methodcaller('accessDate'),
+	'_isArchived':			MochiKit.Base.methodcaller('isArchived'),
 	'label':				MochiKit.Base.methodcaller('label'),
 	'favicon':				MochiKit.Base.methodcaller('favicon')
 };
 Clipperz.PM.DataModel.Record.defaultSearchField = '_searchableContent';
 
-Clipperz.PM.DataModel.Record.tagChar = '#';
+Clipperz.PM.DataModel.Record.tagChar = '\uE009';
+Clipperz.PM.DataModel.Record.specialTagsWrapper = '___';
+Clipperz.PM.DataModel.Record.specialTagsConstructor = function (aTag) {
+	return Clipperz.PM.DataModel.Record.specialTagsWrapper + aTag + Clipperz.PM.DataModel.Record.specialTagsWrapper;
+}
+Clipperz.PM.DataModel.Record.archivedTag = Clipperz.PM.DataModel.Record.specialTagsConstructor('archived');
 Clipperz.PM.DataModel.Record.regExpForTag = function (aTag) {
 	return new RegExp('\\' + Clipperz.PM.DataModel.Record.tagChar + aTag, 'g');
 };

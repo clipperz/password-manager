@@ -32,6 +32,8 @@ Clipperz.PM.UI.MainController = function() {
 	this._user		= null;
 	this._filter	= {'type':'ALL'};
 
+	this._shouldIncludeArchivedCards = false;
+
 	this._isSelectionPanelOpen = false;
 	this._isSettingsPanelOpen = false;
 	
@@ -75,6 +77,9 @@ Clipperz.PM.UI.MainController = function() {
 		'deleteCard',
 		'archiveCard',
 		'editCard',
+		
+		'showArchivedCards',
+		'hideArchivedCards',
 		
 		'goBackToMainPage',
 		'maskClick',
@@ -366,6 +371,15 @@ console.log("SET USER", aUser);
 		return this._filter;
 	},
 
+
+	shouldIncludeArchivedCards: function () {
+		return this._shouldIncludeArchivedCards;
+	},
+	
+	setShouldIncludeArchivedCards: function (aValue) {
+		this._shouldIncludeArchivedCards = aValue;
+	},
+
 	//----------------------------------------------------------------------------
 
 	collectFieldInfo: function (aField) {
@@ -418,6 +432,8 @@ console.log("SET USER", aUser);
 		deferredResult.setValue('notes');
 		deferredResult.addMethod(aRecord, 'tags');
 		deferredResult.setValue('tags');
+		deferredResult.addMethod(aRecord, 'isArchived');
+		deferredResult.setValue('isArchived');
 
 		deferredResult.addMethod(aRecord, 'fields');
 		deferredResult.addCallback(MochiKit.Base.values);
@@ -533,6 +549,27 @@ console.log("SET USER", aUser);
 		return deferredResult;
 	},
 	
+	refreshSelectedCards: function () {
+		return this.updateSelectedCards(this.shouldIncludeArchivedCards(), this.filter());
+	},
+
+	refreshUI: function (selectedCardReference) {
+		var deferredResult;
+
+		deferredResult = new Clipperz.Async.Deferred('MainController.refreshUI', {trace:false});
+		deferredResult.addMethod(this, 'refreshSelectedCards');
+		deferredResult.addMethod(this, 'renderTags');
+		
+		if (selectedCardReference != null) {
+			deferredResult.addMethod(this.user(), 'getRecord', selectedCardReference);
+			deferredResult.addMethod(this, 'collectRecordInfo');
+			deferredResult.addMethod(this, 'setPageProperties', 'mainPage', 'selectedCard');
+		}
+		deferredResult.callback();
+		
+		return deferredResult;
+	},
+	
 	//----------------------------------------------------------------------------
 
 	setPageProperties: function (aPageName, aKey, aValue) {
@@ -543,19 +580,21 @@ console.log("SET USER", aUser);
 		return aValue;
 	},
 
+	renderTags: function () {
+		return Clipperz.Async.callbacks("MainController.renderTags", [
+			MochiKit.Base.method(this.user(), 'getTags'),
+//			MochiKit.Base.methodcaller('sort', Clipperz.Base.caseInsensitiveCompare),
+			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'tags'),
+		], {trace:false});
+	},
+	
 	renderAccountData: function () {
-		var deferredResult;
-
-		deferredResult = new Clipperz.Async.Deferred('MainController.renderAccountData', {trace:false});
-		deferredResult.addMethod(this, 'setFilter', 'ALL');
-		deferredResult.addMethod(this, 'updateSelectedCards', false);
-		
-		deferredResult.addMethod(this.user(), 'getTags');
-		deferredResult.addMethodcaller('sort', Clipperz.Base.caseInsensitiveCompare);
-		deferredResult.addMethod(this, 'setPageProperties', 'mainPage', 'tags');
-		deferredResult.callback();
-
-		return deferredResult;
+		return Clipperz.Async.callbacks("MainController.renderAccountData", [
+			MochiKit.Base.method(this, 'setFilter', 'ALL'),
+//			MochiKit.Base.method(this, 'refreshSelectedCards'),
+//			MochiKit.Base.method(this, 'renderTags'),
+			MochiKit.Base.method(this, 'refreshUI', null)
+		], {trace:false});
 	},
 
 	//=========================================================================
@@ -858,8 +897,20 @@ console.log("SET USER", aUser);
 		this.refreshCurrentPage();
 	},
 
-	cardSelected_handler: function (aReference) {
-		this.updateSelectedCard(aReference);
+	cardSelected_handler: function (someInfo) {
+		this.updateSelectedCard(someInfo);
+	},
+
+	//----------------------------------------------------------------------------
+
+	askConfirmation: function (aMessage) {
+		var	deferredResult;
+		
+		deferredResult = new Clipperz.Async.Deferred('MainController.askConfirmation', {trace:false});
+		deferredResult.callback();
+//		deferredResult.cancel();
+		
+		return deferredResult;
 	},
 
 	//----------------------------------------------------------------------------
@@ -869,11 +920,22 @@ console.log("ADD CARD CLICK");
 	},
 
 	deleteCard_handler: function (anEvent) {
-console.log("DELETE CARD", anEvent['reference']);
+		return Clipperz.Async.callbacks("MainController.deleteCard_handler", [
+			MochiKit.Base.method(this, 'askConfirmation', {'message':"Delete card?"}),
+			MochiKit.Base.method(this.user(), 'getRecord', anEvent['reference']),
+			MochiKit.Base.method(this.user(), 'deleteRecord'),
+			MochiKit.Base.method(this.user(), 'saveChanges'),
+			MochiKit.Base.method(this, 'refreshUI')
+		], {trace:false});
 	},
 	
 	archiveCard_handler: function (anEvent) {
-console.log("ARCHIVE CARD", anEvent['reference']);
+		return Clipperz.Async.callbacks("MainController.archiveCard_handler", [
+			MochiKit.Base.method(this.user(), 'getRecord', anEvent['reference']),
+			MochiKit.Base.methodcaller('archive'),
+			MochiKit.Base.method(this.user(), 'saveChanges'),
+			MochiKit.Base.method(this, 'refreshUI', anEvent['reference'])
+		], {trace:true});
 	},
 
 	editCard_handler: function (anEvent) {
@@ -889,17 +951,29 @@ console.log("EDIT CARD", anEvent['reference']);
 
 	selectAllCards_handler: function () {
 		this.setFilter('ALL');
-		this.updateSelectedCards(false, this.filter());
+		return this.refreshSelectedCards();
 	},
 	
 	selectRecentCards_handler: function () {
 		this.setFilter('RECENT');
-		this.updateSelectedCards(false, this.filter());
+		return this.refreshSelectedCards();
 	},
 
 	tagSelected_handler: function (aTag) {
 		this.setFilter('TAG', aTag);
-		this.updateSelectedCards(false, this.filter());
+		return this.refreshSelectedCards();
+	},
+
+	//............................................................................
+	
+	showArchivedCards_handler: function () {
+		this.setShouldIncludeArchivedCards(true);
+		return this.refreshSelectedCards();
+	},
+	
+	hideArchivedCards_handler: function () {
+		this.setShouldIncludeArchivedCards(false);
+		return this.refreshSelectedCards();
 	},
 	
 	//----------------------------------------------------------------------------

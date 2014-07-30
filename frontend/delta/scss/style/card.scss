@@ -14,10 +14,6 @@ div.cardList {
 	}
 
 	ul {
-		li.selected {
-			background-color: yellow;
-		}
-
 		li {
 			cursor: pointer;
 
@@ -25,6 +21,14 @@ div.cardList {
 
 			@include flexbox();
 			@include flex-direction(row);
+
+			&.selected {
+				background-color: yellow;
+			}
+			
+			&.archived {
+				background-color: pink;
+			}
 
 			.favicon {
 				width: $cardListHeight;

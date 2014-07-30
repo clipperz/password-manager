@@ -36,8 +36,22 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectRecentCards');
 	},
 
+	handleCheckboxChanges: function (anEvent) {
+		if (anEvent.target.checked) {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'showArchivedCards');
+		} else {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'hideArchivedCards');
+		}
+	},
+
 	render: function () {
-//console.log("Selections", this.props);
+		var	tagInfo;
+		var	tags;
+		
+		tagInfo = this.props['tags'] ? this.props['tags'] : {};
+//		tagInfo = {"tag1":1, "tag2":2, "tag3":1, "tag4":2, "tag5":1, "tag6":2, "tag7":1, "tag8":3, "tag9":1, "tag10":11, "tag11":1, "tag12":8, "tag13":1, "tag14":3, "tag15":1, "tag16":1};
+		tags = MochiKit.Base.keys(tagInfo).sort(Clipperz.Base.caseInsensitiveCompare);
+		
 		return	React.DOM.div({'key':'selections', 'id':'selections'}, [
 			React.DOM.ul({'className':'defaultSet'}, [
 				React.DOM.li({'className':'allCards', onClick: this.selectAll}, "All"),
@@ -49,7 +63,11 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 					React.DOM.input({'type':'text', 'id':'searchValue', 'name':'search'})
 				])
 			]),
-			React.DOM.ul({'className':'tagList'}, MochiKit.Base.map(function (aTag) { return Clipperz.PM.UI.Components.TagIndexItem({'label':aTag}); }, this.props['tags'] ? this.props['tags'] : []))
+			React.DOM.ul({'className':'tagList'}, MochiKit.Base.map(function (aTag) {return Clipperz.PM.UI.Components.TagIndexItem({'label':aTag, 'count':tagInfo[aTag]}); }, tags)),
+			React.DOM.div({'className':'showArchivedCards'}, [
+				React.DOM.input({'type':'checkbox', 'onChange':this.handleCheckboxChanges}),
+				React.DOM.h5({}, "Show archived cards")
+			]),
 		]);
 	}
 

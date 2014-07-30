@@ -16,6 +16,47 @@
 	}
 }
 
+#selections {
+	@include flexbox();
+	@include flex-direction(column);
+	min-height: 100%;
+
+	ul.defaultSet {
+		@include flex(none);
+	}
+
+	.search {
+		@include flex(none);
+	}
+
+	ul.tagList {
+		@include flex(auto);
+		margin-left: 0px;
+//		overflow-y: scroll;
+
+		li {
+//			@include flexbox();
+
+			span.tagLabel {
+//				@include flex(auto);
+			}
+			
+			span.tagCount {
+//				@include flex(none);
+				background-color: gray;
+				font-size: 10pt;
+				margin-left: 10px;
+				padding: 0px 4px;
+				@include border-radius(4px);
+			}
+		}
+	}
+	
+	.showArchivedCards {
+		@include flex(none);
+	}
+}
+
 #mainPanel {
 //	background-color: $yellow;
 

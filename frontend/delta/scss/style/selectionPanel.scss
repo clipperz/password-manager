@@ -3,7 +3,7 @@
 	color: $main-alternate-text-color;
 	font-size: 18pt;
 	overflow: scroll;
-	height: 100%;
+//	height: 100%;
 
 	$iconColumnWidth: 40px;
 
@@ -65,5 +65,8 @@
 			padding-right: 8px;
 			font-size: 14pt;
 		}
+	}
+	
+	.showArchivedCards {
 	}
 }

@@ -515,8 +515,15 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('tags')),
 			Clipperz.Async.collectAll,
 			MochiKit.Base.flattenArray,
-			Clipperz.Base.arrayWithUniqueValues
-			
+			MochiKit.Iter.groupby,
+			function (someGroups) {
+				return  MochiKit.Iter.reduce(function(aCollector, aGroup) {
+					if (aGroup[0] != Clipperz.PM.DataModel.Record.archivedTag) {
+						aCollector[aGroup[0]] = MochiKit.Iter.list(aGroup[1]).length;
+					}
+					return aCollector;
+				}, someGroups, {});
+			}
 		], {trace:false});
 	},
 
@@ -534,7 +541,19 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		return Clipperz.Async.callbacks("User.getRecordsInfo", [
 			MochiKit.Base.method(this, 'getRecords'),
 			MochiKit.Base.partial(MochiKit.Base.map, Clipperz.Async.collectResults("collectResults", someInfo, {trace:false})),
-			Clipperz.Async.collectAll
+			Clipperz.Async.collectAll,
+			function (aResult) {
+				var result;
+				
+				if (shouldIncludeArchivedCards == false) {
+					result = MochiKit.Base.filter(function (aRecordInfo) { return !aRecordInfo['_isArchived']; }, aResult);
+				} else {
+					result = aResult;
+				}
+				
+				return result;
+			}
+			
 		], {trace:false});
 	},
 /*
