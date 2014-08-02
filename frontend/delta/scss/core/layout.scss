@@ -49,6 +49,8 @@
 	
 	.showArchivedCards {
 		@include flex(none);
+		
+		cursor: pointer;
 	}
 }
 

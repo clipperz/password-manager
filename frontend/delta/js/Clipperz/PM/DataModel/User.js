@@ -509,11 +509,18 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 
 	//=========================================================================
 
-	'getTags': function () {
+	'getTags': function (shouldIncludeArchivedCards) {
+		var	archivedCardsFilter =	(shouldIncludeArchivedCards || false)
+									?	MochiKit.Async.succeed
+									:	MochiKit.Base.partial(MochiKit.Base.filter, function (someTags) {
+											return someTags.indexOf(Clipperz.PM.DataModel.Record.archivedTag) == -1;
+										});
+
 		return Clipperz.Async.callbacks("User.getTags", [
 			MochiKit.Base.method(this, 'getRecords'),
 			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('tags')),
 			Clipperz.Async.collectAll,
+			archivedCardsFilter,
 			MochiKit.Base.flattenArray,
 			MochiKit.Iter.groupby,
 			function (someGroups) {
@@ -556,6 +563,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 			
 		], {trace:false});
 	},
+	
 /*
 	'filterRecordsInfo': function (someArgs) {
 		var	info			= (someArgs.info			? someArgs.info				: Clipperz.PM.DataModel.Record.defaultCardInfo);

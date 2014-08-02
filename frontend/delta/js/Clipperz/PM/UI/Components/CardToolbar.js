@@ -63,14 +63,21 @@ Clipperz.PM.UI.Components.CardToolbar = React.createClass({
 	
 	renderWithoutSidePanels: function () {
 		var	result;
-		
+
 		if (this.props['filter']) {
+//console.log("CARD TOOLBAR", this.props['filter']['type']);
+
 			if (this.props['filter']['type'] == 'RECENT') {
 				result = [React.DOM.div({className:'clipperz'}, [React.DOM.span({className:'logo recent'}, "recent")])];
 			} else if (this.props['filter']['type'] == 'TAG') {
 				result = [React.DOM.div({className:'clipperz'}, [
 					React.DOM.span({className:'logo tag'}, "tag"),
 					React.DOM.span({className:'value'}, this.props['filter']['value'])
+				])];
+			} else if (this.props['filter']['type'] == 'UNTAGGED') {
+				result = [React.DOM.div({className:'clipperz'}, [
+					React.DOM.span({className:'logo tag'}, "tag"),
+					React.DOM.span({className:'value'}, "untagged")
 				])];
 			} else if (this.props['filter']['type'] == 'SEARCH') {
 				result = [React.DOM.div({className:'clipperz'}, [

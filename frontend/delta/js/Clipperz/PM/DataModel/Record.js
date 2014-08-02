@@ -155,12 +155,8 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 
 	//............................................................................
 
-	'tagChar': function () {
-		return Clipperz.PM.DataModel.Record.tagChar;
-	},
-
 	'tagRegExp': function () {
-		return new RegExp('\\' + this.tagChar() + '(\\w+)', 'g');
+		return new RegExp('\\' + Clipperz.PM.DataModel.Record.tagChar + '(' + Clipperz.PM.DataModel.Record.specialTagChar + '?\\w+)', 'g');
 	},
 
 	'trimSpacesRegExp': function () {
@@ -1006,13 +1002,22 @@ Clipperz.PM.DataModel.Record.defaultCardInfo = {
 Clipperz.PM.DataModel.Record.defaultSearchField = '_searchableContent';
 
 Clipperz.PM.DataModel.Record.tagChar = '\uE009';
-Clipperz.PM.DataModel.Record.specialTagsWrapper = '___';
+Clipperz.PM.DataModel.Record.specialTagChar = '\uE010';
 Clipperz.PM.DataModel.Record.specialTagsConstructor = function (aTag) {
-	return Clipperz.PM.DataModel.Record.specialTagsWrapper + aTag + Clipperz.PM.DataModel.Record.specialTagsWrapper;
+	return Clipperz.PM.DataModel.Record.specialTagChar + aTag;
 }
-Clipperz.PM.DataModel.Record.archivedTag = Clipperz.PM.DataModel.Record.specialTagsConstructor('archived');
+Clipperz.PM.DataModel.Record.archivedTag = Clipperz.PM.DataModel.Record.specialTagsConstructor('ARCH');
 Clipperz.PM.DataModel.Record.regExpForTag = function (aTag) {
 	return new RegExp('\\' + Clipperz.PM.DataModel.Record.tagChar + aTag, 'g');
+};
+Clipperz.PM.DataModel.Record.regExpForNoTag = function () {
+	return new RegExp('^((?!\\' + Clipperz.PM.DataModel.Record.tagChar + '[^' + Clipperz.PM.DataModel.Record.specialTagChar + ']).)*$', 'g');
+}
+Clipperz.PM.DataModel.Record.isSpecialTag = function (aTag) {
+	return aTag.indexOf(Clipperz.PM.DataModel.Record.specialTagChar) == 0;
+};
+Clipperz.PM.DataModel.Record.isRegularTag = function (aTag) {
+	return !Clipperz.PM.DataModel.Record.isSpecialTag(aTag);
 };
 Clipperz.PM.DataModel.Record.regExpForSearch = function (aSearch) {
 	return new RegExp(aSearch.replace(/[^A-Za-z0-9]/g, '\\$&'), 'i');

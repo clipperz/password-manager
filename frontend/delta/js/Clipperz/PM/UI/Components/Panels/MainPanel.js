@@ -171,7 +171,7 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 	},
 
 	render: function () {
-//console.log("MainPanel.cards", this.props['cards']);
+//console.log("MainPanel.cards", this.props['ask']);
 		var	classes = {
 			'panel':	true,
 			'left':		this.props['selectionPanelStatus'] == 'OPEN',

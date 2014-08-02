@@ -70,6 +70,7 @@ Clipperz.PM.UI.MainController = function() {
 		'selectAllCards',
 		'selectRecentCards',
 		'tagSelected',
+		'selectUntaggedCards',
 		
 		'cardSelected',
 		
@@ -536,6 +537,9 @@ console.log("SET USER", aUser);
 		} else if (aFilter['type'] == 'TAG') {
 			deferredResult.addCallback(MochiKit.Base.filter, this.regExpFilterGenerator(Clipperz.PM.DataModel.Record.regExpForTag(aFilter['value'])));
 			deferredResult.addMethodcaller('sort', sortCriteria);
+		} else if (aFilter['type'] == 'UNTAGGED') {
+			deferredResult.addCallback(MochiKit.Base.filter, this.regExpFilterGenerator(Clipperz.PM.DataModel.Record.regExpForNoTag()));
+			deferredResult.addMethodcaller('sort', sortCriteria);
 		}
 
 		deferredResult.addMethod(this, 'setPageProperties', 'mainPage', 'cards');
@@ -574,6 +578,34 @@ console.log("SET USER", aUser);
 	
 	//----------------------------------------------------------------------------
 
+	getArchivedCardsCount: function () {
+		return Clipperz.Async.callbacks("MainController.getArchivedCardsCount", [
+			MochiKit.Base.method(this.user(), 'getRecords'),
+			MochiKit.Base.partial(MochiKit.Base.map, Clipperz.Async.collectResults("collectResults", {'_isArchived':MochiKit.Base.methodcaller('isArchived')}, {trace:false})),
+			Clipperz.Async.collectAll,
+			function (aResult) {
+				return MochiKit.Base.filter(function (aRecordInfo) { return aRecordInfo['_isArchived']; }, aResult).length;
+			}
+		], {trace:false});
+	},
+	
+	getUntaggedCardsCount: function () {
+		var	archivedCardsFilter =	this.shouldIncludeArchivedCards()
+									?	MochiKit.Async.succeed
+									:	MochiKit.Base.partial(MochiKit.Base.filter, function (someRecordInfo) { return ! someRecordInfo['_isArchived']; });
+		
+		return Clipperz.Async.callbacks("MainController.getUntaggedCardsCount", [
+			MochiKit.Base.method(this.user(), 'getRecords'),
+			MochiKit.Base.partial(MochiKit.Base.map, Clipperz.Async.collectResults("collectResults", {'_fullLabel':MochiKit.Base.methodcaller('fullLabel'), '_isArchived':MochiKit.Base.methodcaller('isArchived')}, {trace:false})),
+			Clipperz.Async.collectAll,
+			archivedCardsFilter,
+			MochiKit.Base.partial(MochiKit.Base.filter, this.regExpFilterGenerator(Clipperz.PM.DataModel.Record.regExpForNoTag(), '_fullLabel')),
+			function (someCards) { return someCards.length; },
+		], {trace:false});
+	},
+
+	//----------------------------------------------------------------------------
+
 	setPageProperties: function (aPageName, aKey, aValue) {
 		var	props = {};
 		props[aKey] = aValue;
@@ -584,17 +616,19 @@ console.log("SET USER", aUser);
 
 	renderTags: function () {
 		return Clipperz.Async.callbacks("MainController.renderTags", [
-			MochiKit.Base.method(this.user(), 'getTags'),
-//			MochiKit.Base.methodcaller('sort', Clipperz.Base.caseInsensitiveCompare),
+			MochiKit.Base.method(this.user(), 'getTags', this.shouldIncludeArchivedCards()),
 			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'tags'),
+			MochiKit.Base.method(this, 'getArchivedCardsCount'),
+			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'archivedCardsCount'),
+			MochiKit.Base.method(this, 'getUntaggedCardsCount'),
+			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'untaggedCardsCount'),
+			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'shouldIncludeArchivedCards', this.shouldIncludeArchivedCards()),
 		], {trace:false});
 	},
 	
 	renderAccountData: function () {
 		return Clipperz.Async.callbacks("MainController.renderAccountData", [
 			MochiKit.Base.method(this, 'setFilter', 'ALL'),
-//			MochiKit.Base.method(this, 'refreshSelectedCards'),
-//			MochiKit.Base.method(this, 'renderTags'),
 			MochiKit.Base.method(this, 'refreshUI', null)
 		], {trace:false});
 	},
@@ -823,10 +857,11 @@ console.log("SET USER", aUser);
 		} else if (aPageName == 'registrationPage') {
 		} else if (aPageName == 'mainPage') {
 			extraProperties = {
-				'messageBox':			this.messageBoxContent(),
-				'accountStatus':		this.userAccountInfo(),
-				'selectionPanelStatus':	this.isSelectionPanelOpen()	? 'OPEN' : 'CLOSED',
-				'settingsPanelStatus':	this.isSettingsPanelOpen()	? 'OPEN' : 'CLOSED',
+				'messageBox':					this.messageBoxContent(),
+				'accountStatus':				this.userAccountInfo(),
+				'selectionPanelStatus':			this.isSelectionPanelOpen()	? 'OPEN' : 'CLOSED',
+				'settingsPanelStatus':			this.isSettingsPanelOpen()	? 'OPEN' : 'CLOSED',
+//				'shouldIncludeArchivedCards':	this.shouldIncludeArchivedCards(),
 //				'cards':				…,
 //				'tags':					…,
 //				'selectedCard':			…,
@@ -904,13 +939,24 @@ console.log("SET USER", aUser);
 	},
 
 	//----------------------------------------------------------------------------
-
+/*
 	askConfirmation: function (aMessage) {
 		var	deferredResult;
 		
 		deferredResult = new Clipperz.Async.Deferred('MainController.askConfirmation', {trace:false});
 		deferredResult.callback();
 //		deferredResult.cancel();
+		
+		return deferredResult;
+	},
+*/
+	
+	ask: function (someInfo) {
+		var	deferredResult;
+		
+		deferredResult = new Clipperz.Async.Deferred('MainController.ask', {trace:false});
+		
+		this.currentPage().setProps({'ask':someInfo, 'deferred':deferredResult});
 		
 		return deferredResult;
 	},
@@ -923,7 +969,14 @@ console.log("ADD CARD CLICK");
 
 	deleteCard_handler: function (anEvent) {
 		return Clipperz.Async.callbacks("MainController.deleteCard_handler", [
-			MochiKit.Base.method(this, 'askConfirmation', {'message':"Delete card?"}),
+//			MochiKit.Base.method(this, 'askConfirmation', {'message':"Delete card?"}),
+			MochiKit.Base.method(this, 'ask', {
+				'question': "Delete card?",
+				'possibleAnswers':{
+					'cancel':	{'label':"No",	'isDefault':true,	'answer':MochiKit.Base.methodcaller('cancel')},
+					'delete':	{'label':"Yes",	'isDefault':false,	'answer':MochiKit.Base.methodcaller('callback')}
+				}
+			}),
 			MochiKit.Base.method(this.user(), 'getRecord', anEvent['reference']),
 			MochiKit.Base.method(this.user(), 'deleteRecord'),
 			MochiKit.Base.method(this.user(), 'saveChanges'),
@@ -937,7 +990,7 @@ console.log("ADD CARD CLICK");
 			MochiKit.Base.methodcaller('archive'),
 			MochiKit.Base.method(this.user(), 'saveChanges'),
 			MochiKit.Base.method(this, 'refreshUI', anEvent['reference'])
-		], {trace:true});
+		], {trace:false});
 	},
 
 	editCard_handler: function (anEvent) {
@@ -966,16 +1019,21 @@ console.log("EDIT CARD", anEvent['reference']);
 		return this.refreshSelectedCards();
 	},
 
+	selectUntaggedCards_handler: function () {
+		this.setFilter('UNTAGGED');
+		return this.refreshSelectedCards();
+	},
+	
 	//............................................................................
 	
 	showArchivedCards_handler: function () {
 		this.setShouldIncludeArchivedCards(true);
-		return this.refreshSelectedCards();
+		return this.refreshUI();
 	},
 	
 	hideArchivedCards_handler: function () {
 		this.setShouldIncludeArchivedCards(false);
-		return this.refreshSelectedCards();
+		return this.refreshUI();
 	},
 	
 	//----------------------------------------------------------------------------

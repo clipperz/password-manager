@@ -39,7 +39,7 @@
 		"MochiKit/Selector.js",
 		"-- MochiKit/Visual.js",
 
-		"React/react-with-addons-0.11.0.js",
+		"React/react-with-addons-0.11.1.js",
 
 		"-- Hammer/hammer-1.0.5.js",
 		"-- Cubiq/add2home.js",
