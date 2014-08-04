@@ -61,13 +61,18 @@ Clipperz.Base.extend(Clipperz.Async.Deferred, MochiKit.Async.Deferred, {
 		}
 
 		if (this.chained == false) {
-			var message;
+			var deferredName = this._name;
 			
-			message = "ERROR [" + this._name + "]";
 			this.addErrback(function(aResult) {
+				var message;
+				
 				if (! (aResult instanceof MochiKit.Async.CancelledError)) {
-					Clipperz.log(message, aResult);
+					message = "ERROR [" + deferredName + "]";
+				} else {
+					message = "CANCELLED - " + deferredName;
 				}
+				Clipperz.log(message, aResult);
+
 				return aResult;
 			});
 
@@ -101,7 +106,7 @@ Clipperz.Base.extend(Clipperz.Async.Deferred, MochiKit.Async.Deferred, {
 //			this.addBoth(function(aResult) {Clipperz.log(message + "-->", aResult); return aResult;});
 			this.addCallbacks(
 				function(aResult) {Clipperz.log("-OK- " + message + "-->"/*, aResult*/); return aResult;},
-				function(aResult) {Clipperz.log("FAIL " + message + "-->"/*, aResult*/); return aResult;}
+				function(aResult) {if (! (aResult instanceof MochiKit.Async.CancelledError)) { Clipperz.log("FAIL " + message + "-->"/*, aResult*/);}; return aResult;}
 			);
 		}
 
@@ -111,7 +116,7 @@ Clipperz.Base.extend(Clipperz.Async.Deferred, MochiKit.Async.Deferred, {
 //			this.addBoth(function(aResult) {Clipperz.log(message + "<--", aResult); return aResult;});
 			this.addCallbacks(
 				function(aResult) {Clipperz.log("-OK- " + message + "<--", aResult); return aResult;},
-				function(aResult) {Clipperz.log("FAIL " + message + "<--", aResult); return aResult;}
+				function(aResult) {if (! (aResult instanceof MochiKit.Async.CancelledError)) { Clipperz.log("FAIL " + message + "<--", aResult);}; return aResult;}
 			);
 		}
 	},
