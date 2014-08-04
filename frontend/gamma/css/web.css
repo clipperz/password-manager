@@ -266,9 +266,9 @@ div.tooltip.RIGHT div.tooltip_body div.tooltip_text {
   display: inline-block;
   height: 20px;
   cursor: pointer;
-  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ffa76f), to(#ff6622));
-  background: -moz-linear-gradient(0% 100% 90deg, #ff6622, #ffa76f);
-  background: linear-gradient(0deg, #ff6622, #ffa76f);
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ff6622), to(#ff6622));
+  background: -moz-linear-gradient(0% 100% 90deg, #ff6622, #ff6622);
+  background: linear-gradient(0deg, #ff6622, #ff6622);
   border-radius: 5;
   -moz-border-radius: 5;
   -webkit-border-radius: 5;
@@ -281,6 +281,9 @@ div.tooltip.RIGHT div.tooltip_body div.tooltip_text {
   font-weight: lighter;
   text-shadow: -1px -1px 1px #ff6622, 1px 1px 1px #ffa76f;
   text-decoration: none;
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ffa76f), to(#ff6622));
+  background: -moz-linear-gradient(0% 100% 90deg, #ff6622, #ffa76f);
+  background: linear-gradient(0deg, #ff6622, #ffa76f);
   font-weight: normal;
 }
 .button.default:hover {
@@ -292,9 +295,9 @@ div.tooltip.RIGHT div.tooltip_body div.tooltip_text {
   display: inline-block;
   height: 20px;
   cursor: pointer;
-  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#bfbfbf), to(#999999));
-  background: -moz-linear-gradient(0% 100% 90deg, #999999, #bfbfbf);
-  background: linear-gradient(0deg, #999999, #bfbfbf);
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#999999), to(#999999));
+  background: -moz-linear-gradient(0% 100% 90deg, #999999, #999999);
+  background: linear-gradient(0deg, #999999, #999999);
   border-radius: 5;
   -moz-border-radius: 5;
   -webkit-border-radius: 5;
@@ -307,6 +310,9 @@ div.tooltip.RIGHT div.tooltip_body div.tooltip_text {
   font-weight: lighter;
   text-shadow: -1px -1px 1px #999999, 1px 1px 1px #bfbfbf;
   text-decoration: none;
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#bfbfbf), to(#999999));
+  background: -moz-linear-gradient(0% 100% 90deg, #999999, #bfbfbf);
+  background: linear-gradient(0deg, #999999, #bfbfbf);
 }
 .button:hover {
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ababab), to(#999999));
@@ -962,6 +968,7 @@ div.userInfoBox div.body div.accountInfo {
   margin-top: 6px;
   border-top: 1px solid white;
   border-color: #f4aa84;
+  min-height: 76px;
 }
 div.userInfoBox div.body div.accountInfo h5 {
   margin: 0px;
@@ -1327,9 +1334,9 @@ div.subPanelContent ul li.selected {
   display: inline-block;
   height: 20px;
   cursor: pointer;
-  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#59bc4c), to(#448833));
-  background: -moz-linear-gradient(0% 100% 90deg, #448833, #59bc4c);
-  background: linear-gradient(0deg, #448833, #59bc4c);
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#448833), to(#448833));
+  background: -moz-linear-gradient(0% 100% 90deg, #448833, #448833);
+  background: linear-gradient(0deg, #448833, #448833);
   border-radius: 5;
   -moz-border-radius: 5;
   -webkit-border-radius: 5;
@@ -1342,11 +1349,63 @@ div.subPanelContent ul li.selected {
   font-weight: lighter;
   text-shadow: -1px -1px 1px #448833, 1px 1px 1px #59bc4c;
   text-decoration: none;
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#59bc4c), to(#448833));
+  background: -moz-linear-gradient(0% 100% 90deg, #448833, #59bc4c);
+  background: linear-gradient(0deg, #448833, #59bc4c);
 }
 .downloadOfflineCopy:hover {
   background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#49a23d), to(#448833));
   background: -moz-linear-gradient(0% 100% 90deg, #448833, #49a23d);
   background: linear-gradient(0deg, #448833, #49a23d);
+}
+.deleteAccountButton {
+  display: inline-block;
+  height: 20px;
+  cursor: pointer;
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#a80700), to(#a80700));
+  background: -moz-linear-gradient(0% 100% 90deg, #a80700, #a80700);
+  background: linear-gradient(0deg, #a80700, #a80700);
+  border-radius: 5;
+  -moz-border-radius: 5;
+  -webkit-border-radius: 5;
+  border: 1px solid #cc0800;
+  padding-top: 4px;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-bottom: 2px;
+  color: white;
+  font-weight: lighter;
+  text-shadow: -1px -1px 1px #a80700, 1px 1px 1px #f41f00;
+  text-decoration: none;
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#f41f00), to(#a80700));
+  background: -moz-linear-gradient(0% 100% 90deg, #a80700, #f41f00);
+  background: linear-gradient(0deg, #a80700, #f41f00);
+}
+.deleteAccountButton:hover {
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#cc1900), to(#a80700));
+  background: -moz-linear-gradient(0% 100% 90deg, #a80700, #cc1900);
+  background: linear-gradient(0deg, #a80700, #cc1900);
+}
+.deleteAccountButton.disabled {
+  display: inline-block;
+  height: 20px;
+  cursor: pointer;
+  background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#a0a0a0), to(#a0a0a0));
+  background: -moz-linear-gradient(0% 100% 90deg, #a0a0a0, #a0a0a0);
+  background: linear-gradient(0deg, #a0a0a0, #a0a0a0);
+  border-radius: 5;
+  -moz-border-radius: 5;
+  -webkit-border-radius: 5;
+  border: 1px solid #b2b2b2;
+  padding-top: 4px;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-bottom: 2px;
+  color: white;
+  font-weight: lighter;
+  text-shadow: -1px -1px 1px #a0a0a0, 1px 1px 1px #c6c6c6;
+  text-decoration: none;
+  cursor: default;
 }
 div.SimpleMessagePanel {
   position: relative;
@@ -1422,7 +1481,119 @@ div.SimpleMessagePanel div.passphrase input {
 div.SimpleMessagePanel div.progressBarWrapper {
   margin-left: 80px;
 }
-/* @end */
+div.scrollable div.PaymentDialog {
+  top: 0px;
+}
+div.fixed div.PaymentDialog {
+  top: -166.66666666666666px;
+}
+div.PaymentDialog {
+  position: relative;
+  width: 600px;
+  left: -300px;
+  height: 500px;
+  background-color: red;
+  border-radius: 15px;
+  -moz-border-radius: 15px;
+  -webkit-border-radius: 15px;
+}
+div.PaymentDialog ul {
+  background-color: purple;
+}
+div.PaymentDialog ul li {
+  background-color: yellow;
+  display: inline-block;
+  width: 150px;
+  margin-right: 30px;
+  cursor: pointer;
+}
+div.PaymentDialog ul li.selected {
+  background-color: green;
+}
+/*
+div.mainDialog {
+	position: relative;
+	left: -263px;
+	width: 525px;
+	height: 325px;
+}
+div.scrollable div.mainDialog {
+	top: 0px;
+}
+div.fixed div.mainDialog {
+	top: -118px;
+}
+div.mainDialog div.header {
+	height: 55px;
+	background: url(./images/old/cardDialog/background_header.png) no-repeat;
+}
+div.mainDialog div.header div.title {
+	padding-top: 16px;
+	padding-left: 20px;
+	padding-right: 20px;
+}
+div.mainDialog div.header div.title input {
+	width: 100%;
+	display: block;
+	font-size: 16pt;
+	margin: 0px;
+	border: 0px;
+	padding: 3px 10px;
+	color: #787872;
+	border: 1px solid #cccec0;
+	background-color: #cccec0;
+}
+div.mainDialog div.header div.title h3 {
+	display: block;
+	font-size: 16pt;
+	color: #787872;
+	margin: 0px;
+	border: 0px;
+	padding: 3px 10px;
+}
+div.mainDialog div.header div.title.selectedField input, div.mainDialog div.header div.title:hover input {
+	border: 1px solid #515247;
+	background-color: #b5b7ab;
+}
+div.mainDialog div.header div.title.disabled:hover input {
+	border: 1px solid #cccec0;
+	background-color: #cccec0;
+}
+div.mainDialog div.body {
+	padding-top: 0px;
+	padding-left: 10px;
+	padding-right: 9px;
+	min-height: 200px;
+	background: url(./images/old/cardDialog/background_body.png) repeat-y;
+}
+div.mainDialog div.body div.mask {
+	display: none;
+}
+div.mainDialog.loading div.body div.mask {
+	display: block;
+	position: absolute;
+	top: 55px;
+	left: 10px;
+	right: 9px;
+	bottom: 70px;
+	z-index: 1001;
+	background-color: white;
+	padding-left: 146px;
+	padding-right: 146px;
+	padding-top: 70px;
+}
+div.mainDialog.loading div.body .tabPanels {
+	display: none;
+}
+div.mainDialog.loading div.body div.mask h3.progressDescription {
+	margin: 0px;
+	text-align: center;
+	padding-bottom: 10px;
+	color: #cccec0;
+	font-size: 14pt;
+	font-weight: normal;
+}
+*//* @end */
 /* @group Javascript Alert */
 div#javaScriptAlert div.mask {
   position: fixed;
@@ -2530,19 +2701,48 @@ div.mainPanels div.otherPanel div.body h1 {
 /* @end */
 /* @group Account */
 form.changePassphrase div.currentCredentials,
-form.changePassphrase div.newPassphrase {
+form.deleteAccount div.currentCredentials,
+form.changePassphrase div.newPassphrase,
+form.deleteAccount div.newPassphrase {
   float: left;
   padding: 10px 20px;
 }
-form.changePassphrase label {
+form.changePassphrase label,
+form.deleteAccount label {
   display: inline-block;
   width: 150px;
 }
-form.changePassphrase div.confirm {
+form.changePassphrase input,
+form.deleteAccount input {
+  width: 230px;
+  font-size: 13pt;
+  color: #787872;
+  height: 35px;
+  margin-left: 15px;
+  padding-left: 5px;
+}
+form.changePassphrase input.checkbox,
+form.deleteAccount input.checkbox {
+  margin: 10px 8px 0px 0px;
+  height: auto;
+  width: auto;
+  border: 0px;
+}
+form.changePassphrase input.checkbox:hover,
+form.deleteAccount input.checkbox:hover {
+  cursor: pointer;
+}
+form.changePassphrase div.field,
+form.deleteAccount div.field {
+  padding-bottom: 5px;
+}
+form.changePassphrase div.confirm,
+form.deleteAccount div.confirm {
   clear: both;
   padding: 10px 20px;
 }
-form.changePassphrase div.confirm label {
+form.changePassphrase div.confirm label,
+form.deleteAccount div.confirm label {
   width: 500px;
 }
 div.accountPanel h3.manageOTP {

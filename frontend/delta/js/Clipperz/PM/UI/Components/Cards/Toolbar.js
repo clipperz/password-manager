@@ -73,7 +73,8 @@ Clipperz.PM.UI.Components.Cards.Toolbar = React.createClass({
 	},
 	
 	selectCommandItem: function (anEvent) {
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, anEvent.target.dataset['broadcastEvent'], {'reference':this.props['_reference']});
+//console.log("SELECT COMMAND ITEM", anEvent.currentTarget.dataset['broadcastEvent'], this.props['_reference']);
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, anEvent.currentTarget.dataset['broadcastEvent'], {'reference':this.props['_reference']});
 	},
 
 	//----------------------------------------------------------------------------
@@ -82,7 +83,7 @@ Clipperz.PM.UI.Components.Cards.Toolbar = React.createClass({
 		var	commandHandler = this.selectCommandItem;
 		
 		return	React.DOM.ul({}, MochiKit.Base.map(function (aCommand) {
-					return React.DOM.li({}, [React.DOM.span({'onClick':commandHandler, 'data-broadcast-event':aCommand['broadcastEvent']}, aCommand['label'])]);
+					return React.DOM.li({'onClick':commandHandler, 'data-broadcast-event':aCommand['broadcastEvent']}, [React.DOM.span({}, aCommand['label'])]);
 				}, MochiKit.Base.values(this.commands())));
 	},
 

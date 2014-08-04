@@ -26,25 +26,67 @@ Clipperz.Base.module('Clipperz.PM.UI.Components');
 Clipperz.PM.UI.Components.DialogBox = React.createClass({
 
 	propTypes: {
-		'level':	React.PropTypes.oneOf(['HIDE', 'INFO', 'WARNING', 'ERROR']).isRequired,
-		'message':	React.PropTypes.string.isRequired,
+		'info':		React.PropTypes.object.isRequired,
+		'deferred':	React.PropTypes.object.isRequired
 	},
-
+/*
 	ask: function (someInfo) {
 		var	deferredResult;
-		
+
 		deferredResult = new Clipperz.Async.Deferred('DialogBox.ask', {trace:false});
-		deferredResult.addCallback(someInfo.['possibleAnswers']['cancel']['answer']);
+		deferredResult.addCallback(someInfo['possibleAnswers']['cancel']['answer']);
 		deferredResult.callback();
 //		deferredResult.cancel();
 		
 		return deferredResult;
 	},
-	
+*/
+
+	//-------------------------------------------------------------------------
+
+	handleKeyDown: function (anEvent) {
+console.log("DIALOG BOX - key DOWN", anEvent);
+	},
+
+	handleKeyPress: function (anEvent) {
+console.log("DIALOG BOX - key PRESS", anEvent);
+	},
+
+	handleKeyUp: function (anEvent) {
+console.log("DIALOG BOX - key UP", anEvent);
+	},
+
+	//-------------------------------------------------------------------------
+
+	handleAnswerButton: function (anEvent) {
+//console.log("HANDLE ANSWER BUTTON", anEvent.currentTarget.dataset['answerKey']);
+//console.log("ANSWER INFO", this.props['info']['possibleAnswers'][anEvent.currentTarget.dataset['answerKey']]);
+//console.log("<-- DEFERRED", this.props['deferred']);
+		this.props['info']['possibleAnswers'][anEvent.currentTarget.dataset['answerKey']]['answer'](this.props['deferred']);
+	},
+
+	renderAnswerButton: function (anAnswerInfoKey) {
+		var	answerInfo = this.props['info']['possibleAnswers'][anAnswerInfoKey];
+		var	classes = {
+			'button':		true,
+			'isDefault':	answerInfo['isDefault']
+		};
+		
+		return	React.DOM.div({'className':React.addons.classSet(classes), 'onClick':this.handleAnswerButton, 'data-answer-key':anAnswerInfoKey}, answerInfo['label'])
+	},
+
 	//=========================================================================
 
 	render: function () {
-		return	React.DOM.div({className:'messageBox ' + this.props['level']}, this.props['message']);
+//console.log("DIALOG BOX", this.props);
+//console.log("--> DEFERRED", this.props['deferred']);
+		return	React.DOM.div({'className':'dialogBox', 'onKeyDown':this.handleKeyDown, 'onKeyPress':this.handleKeyPress, 'onKeyUp':this.handleKeyUp}, [
+			React.DOM.div({'className':'mask'}),
+			React.DOM.div({'className':'dialog'}, [
+				React.DOM.h3({'className': 'message'}, this.props['info']['question']),
+				React.DOM.div({'className': 'answers'}, MochiKit.Base.map(this.renderAnswerButton, MochiKit.Base.keys(this.props['info']['possibleAnswers'])))
+			])
+		]);
 	}
 
 	//=========================================================================

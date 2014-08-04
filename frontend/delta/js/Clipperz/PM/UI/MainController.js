@@ -328,7 +328,7 @@ console.log("THE BROWSER IS OFFLINE");
 		this.overlay().show("creating user");
 
 		this.pages()['registrationPage'].setProps({disabled:true});
-		deferredResult = new Clipperz.Async.Deferred('MainController.registerNewUser', {trace:true});
+		deferredResult = new Clipperz.Async.Deferred('MainController.registerNewUser', {trace:false});
 		deferredResult.addCallback(Clipperz.PM.DataModel.User.registerNewAccount,
 			credentials['username'],
 			MochiKit.Base.partial(MochiKit.Async.succeed, credentials['passphrase'])
@@ -953,10 +953,14 @@ console.log("SET USER", aUser);
 	
 	ask: function (someInfo) {
 		var	deferredResult;
-		
+		var	currentPage = this.pages()[this.currentPage()];
+
 		deferredResult = new Clipperz.Async.Deferred('MainController.ask', {trace:false});
+		currentPage.setProps({'ask': {'info': someInfo, 'deferred':deferredResult}});
 		
-		this.currentPage().setProps({'ask':someInfo, 'deferred':deferredResult});
+//		deferredResult.addCallback(function (aResult) { console.log("ASK - OK", aResult); return aResult; });
+//		deferredResult.addErrback(function (aResult) { console.log("ASK - FAIL", aResult); return aResult; });
+		deferredResult.addBothPass(MochiKit.Base.method(currentPage, 'setProps', {'ask': null}));
 		
 		return deferredResult;
 	},
@@ -968,15 +972,18 @@ console.log("ADD CARD CLICK");
 	},
 
 	deleteCard_handler: function (anEvent) {
+		var	self = this;
+		
 		return Clipperz.Async.callbacks("MainController.deleteCard_handler", [
 //			MochiKit.Base.method(this, 'askConfirmation', {'message':"Delete card?"}),
-			MochiKit.Base.method(this, 'ask', {
+			MochiKit.Base.method(self, 'ask', {
 				'question': "Delete card?",
 				'possibleAnswers':{
-					'cancel':	{'label':"No",	'isDefault':true,	'answer':MochiKit.Base.methodcaller('cancel')},
+					'cancel':	{'label':"No",	'isDefault':true,	'answer':MochiKit.Base.methodcaller('cancel', new MochiKit.Async.CancelledError())},
 					'delete':	{'label':"Yes",	'isDefault':false,	'answer':MochiKit.Base.methodcaller('callback')}
 				}
 			}),
+//function (aValue) { console.log("<-- ASK", aValue); return aValue; },
 			MochiKit.Base.method(this.user(), 'getRecord', anEvent['reference']),
 			MochiKit.Base.method(this.user(), 'deleteRecord'),
 			MochiKit.Base.method(this.user(), 'saveChanges'),

@@ -325,3 +325,39 @@ div.cardContent {
 	cursor: pointer;
 }
 
+
+div.dialogBox {
+	@include mask();
+
+	@include flexbox();
+	@include align-items(center);
+	@include justify-content(center);
+
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+
+	div.dialog {
+		@include flex(none);
+		z-index: 99999;
+
+		h3.message {
+		}
+		
+		div.answers {
+			@include flexbox();
+			@include flex-direction(row);
+			@include justify-content(flex-end);
+			
+			div.button {
+				@include flex(none);
+				cursor: pointer;
+				
+				&.isDefault {
+				}
+			}
+		}
+	}
+}

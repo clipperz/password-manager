@@ -1,0 +1,28 @@
+div.dialog {
+	@include box-shadow(0px, 2px, 5px, rgba(50, 50, 50, 0.75));
+	@include border-radius(8px);
+
+	background-color: white;
+	padding: 30px;
+	
+	h3.message {
+		font-size: 18pt;
+		font-weight: bold;
+		padding-bottom: 20px;
+	}
+	
+	div.answers {
+
+		div.button {
+			border: 1px solid black;
+			margin-left: 10px;
+			padding: 5px 10px;
+			
+			&.isDefault {
+				font-weight: bold;
+				color: white;
+				background-color: blue;
+			}
+		}
+	}
+}
