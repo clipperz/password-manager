@@ -14,9 +14,6 @@ import subprocess
 #! sys.path.append("/usr/local/lib/python2.7/site-packages")
 # > export PYTHONPATH=/usr/local/lib/python2.7/site-packages
 
-from watchdog.observers	import Observer
-from watchdog.events	import FileSystemEventHandler
-
 #--------------------------------------------------------------------
 
 def scriptDir ():
@@ -63,7 +60,8 @@ class ClipperzTestSite(server.Site):
 				contentType = 'application/x-web-app-manifest+json'
 				absoluteFilePath = os.path.join(projectBaseDir(), 'frontend', version, 'properties', pathParts[2])
 				result = static.File(absoluteFilePath, contentType)
-			elif pathParts[2].endswith('.appcache'):
+#			elif pathParts[2].endswith('.appcache'):
+			elif pathParts[2].endswith('.appcache_disabled'):
 				print("-> appcache")
 				contentType = 'text/cache-manifest'
 				absoluteFilePath = os.path.join(projectBaseDir(), 'frontend', version, 'properties', pathParts[2])
@@ -119,27 +117,11 @@ class ClipperzTestSite(server.Site):
 		return result
 
 
-class BuildScriptRunner(FileSystemEventHandler):
-	def on_any_event(self, anEvent):
-		if (not anEvent.is_directory):
-#			if (anEvent.src_path.find() != -1 or anEvent.src_path.find('/properties/') != -1):
-			if (anEvent.src_path.find(item) != -1 for item in ['html', 'properties']):
-				print "Updating resource files ..."
-				os.system(projectBaseDir() + '/scripts/builder/main.py --frontends beta gamma delta --backends dev')
-				subprocess.call('say done', shell=True)
-				print "DONE!"
-
-
 def main ():
-#	site = ClipperzTestSite(proxy.ReverseProxyResource('localhost', 8080, '/java-backend'))
-	site = ClipperzTestSite(proxy.ReverseProxyResource('localhost', 8080, '/app'))
+#	site = ClipperzTestSite(proxy.ReverseProxyResource('localhost', 8084, '/java-backend'))
+	site = ClipperzTestSite(proxy.ReverseProxyResource('localhost', 8084, '/app'))
 #	site = ClipperzTestSite(proxy.ReverseProxyResource('www.clipperz.com', 443, '/'))
 	reactor.listenTCP(8888, site)
-
-#	event_handler = BuildScriptRunner()
-#	observer = Observer()
-#	observer.schedule(event_handler, path=projectBaseDir() + '/frontend', recursive=True)
-#	observer.start()
 
 	reactor.run()
 
