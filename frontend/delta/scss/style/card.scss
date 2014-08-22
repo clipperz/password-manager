@@ -104,22 +104,12 @@ $cardViewBasePadding: 10px;
 		}
 		
 		.cardDetailToolbar {
-			
-			ul {
-				@include flexbox();
-				@include flex-direction(row);
-		
-				li {
-					@include flex(auto);
-					text-align: center;
-			
-					span {
-						cursor: pointer;
-					}
-				}
-			}
-			
+			background-color: $cardToolbarBackgroundColor;
+			color: white;
+
 			&.narrow {
+				font-size: 24pt;
+
 				.back {
 					@include icon-font();
 				}
@@ -183,6 +173,13 @@ $cardViewBasePadding: 10px;
 			}
 		}		
 	}
+	
+	.edit {
+		.cardDetailToolbar {
+			background-color: purple;
+			color: white;
+		}
+	}
 }	
 
 
@@ -190,11 +187,31 @@ $cardViewBasePadding: 10px;
 
 
 .cardDetailToolbar {
-	background-color: $cardToolbarBackgroundColor;
-	color: white;
+	&.edit {
+		li {
+			font-weight: 100;
+		}
+		li.save {
+			color: yellow;
+		}
+		
+		&.hasPendingChanges {
+			li {
+				font-weight: 500;
+			}
+			li.save {
+				color: white;
+			}
+		}
+	}
+	
+	ul {
+		li {
+			text-align: center;
+		}
+	}
 	
 	&.narrow {
-		
 		.cardMenuOptions {
 			margin-right: 5px;
 		}
@@ -276,3 +293,4 @@ $cardViewBasePadding: 10px;
 		cursor: pointer;
 	}
 }
+

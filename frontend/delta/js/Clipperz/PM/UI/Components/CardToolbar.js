@@ -31,7 +31,7 @@ Clipperz.PM.UI.Components.CardToolbar = React.createClass({
 		'enableSidePanels':	React.PropTypes.bool.isRequired,
 		'accountStatus':	React.PropTypes.object.isRequired,
 		'messageBox':		React.PropTypes.object.isRequired,
-		'filter':			React.PropTypes.object.isRequired
+		'filter':			React.PropTypes.object /*.isRequired */
 	},
 
 	//----------------------------------------------------------------------------

@@ -30,7 +30,7 @@ Clipperz.PM.UI.Components.Cards.List = React.createClass({
 
 	propTypes: {
 		'cards':		React.PropTypes.array,
-		'selectedCard':	React.PropTypes.string
+		'selectedCard':	React.PropTypes.object
 	},
 
 	handleClick: function (anEvent) {

@@ -21,10 +21,10 @@ refer to http://www.clipperz.com.
 
 */
 
-Clipperz.Base.module('Clipperz.PM.UI.Components.Pages');
+Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
-Clipperz.PM.UI.Components.Pages.CardDetailPage = React.createClass({
-/*
+Clipperz.PM.UI.Components.Cards.Detail = React.createClass({
+
 	viewComponentProps: function () {
 		var	result;
 		
@@ -46,8 +46,4 @@ Clipperz.PM.UI.Components.Pages.CardDetailPage = React.createClass({
 		
 		return result;
 	},
-*/
-	render: function () {
-		return Clipperz.PM.UI.Components.Cards.Detail(this.props);
-	}
 });

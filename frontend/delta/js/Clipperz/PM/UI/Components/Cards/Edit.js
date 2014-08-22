@@ -24,56 +24,59 @@ refer to http://www.clipperz.com.
 'use strict';
 Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
-Clipperz.PM.UI.Components.Cards.View = React.createClass({
+Clipperz.PM.UI.Components.Cards.Edit = React.createClass({
 
 	//============================================================================
 
 	propTypes: {
-		'label':	React.PropTypes.string /*.isRequired */ ,
-		'loading':	React.PropTypes.bool,
+//		'label':	React.PropTypes.string /*.isRequired */ ,
+//		'loading':	React.PropTypes.bool,
 	},
 
 	//----------------------------------------------------------------------------
 
-	renderEmpty: function () {
-		return	React.DOM.h4({}, "EMPTY");
+	record: function () {
+		return this.props['_record'];
 	},
-	
-	//----------------------------------------------------------------------------
 
-	renderLoading: function () {
-		return	React.DOM.div({className:'loading'},[
-			this.renderLabel(),
-			React.DOM.h5({className:'message'}, "loading")
-/*
-			React.DOM.div({className:'overlay'}, [
-				React.DOM.div({className:'spinner'}, [
-					React.DOM.div({className:'bar01'}),
-					React.DOM.div({className:'bar02'}),
-					React.DOM.div({className:'bar03'}),
-					React.DOM.div({className:'bar04'}),
-					React.DOM.div({className:'bar05'}),
-					React.DOM.div({className:'bar06'}),
-					React.DOM.div({className:'bar07'}),
-					React.DOM.div({className:'bar08'}),
-					React.DOM.div({className:'bar09'}),
-					React.DOM.div({className:'bar10'}),
-					React.DOM.div({className:'bar11'}),
-					React.DOM.div({className:'bar12'})
-				])
-			])
-*/
-		]);
+	//============================================================================
+
+	handleChange: function (anObject , aMethodName) {
+		var	reference = this.props['_reference'];
+		var	method = MochiKit.Base.method(anObject, aMethodName);
+		
+		return function (anEvent) {
+			method(anEvent.target.value);
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', reference);
+//			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'refreshCardEditToolbar', reference);
+		};
 	},
-	
-	//----------------------------------------------------------------------------
+
+	removeField: function (aField) {
+		var	reference = this.props['_reference'];
+		var	record = this.record();
+		
+		return function (anEvent) {
+			record.removeField(aField);
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', reference);
+		};
+	},
+
+	addNewField: function (anEvent) {
+		var	reference = this.props['_reference'];
+
+		this.record().addField({'label':"", 'value':"", 'isHidden':false});
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', reference);
+	},
+
+	//============================================================================
 
 	renderLabel: function (aLabel) {
-		return	React.DOM.h3({'className':'cardLabel'}, aLabel);
+		return	React.DOM.input({'className':'cardLabel', 'onChange':this.handleChange(this.record(), 'setLabel'), 'defaultValue':aLabel});
 	},
 	
 	renderNotes: function (someNotes) {
-		return	React.DOM.div({'className':'cardNotes'}, someNotes);
+		return	React.DOM.textarea({'className':'cardNotes', 'onChange':this.handleChange(this.record(), 'setNotes'), 'defaultValue':someNotes});
 	},
 
 	//............................................................................
@@ -92,9 +95,12 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 	//............................................................................
 
 	renderField: function (aField) {
+		var	ref = aField['_reference'];
 		var	cardFieldClasses = {};
 		var	cardFieldValueClasses = {};
-		
+		var	field = aField['_field'];
+
+//console.log("RENDER FIELD", aField);
 		cardFieldClasses['cardField'] = true;
 		cardFieldClasses[aField['actionType']] = true;
 		cardFieldClasses['hidden'] = aField['isHidden'];
@@ -103,10 +109,11 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 		cardFieldValueClasses[aField['actionType']] = true;
 		cardFieldValueClasses['hidden'] = aField['isHidden'];
 		
-		return	React.DOM.div({'className':React.addons.classSet(cardFieldClasses)}, [
+		return	React.DOM.div({'className':React.addons.classSet(cardFieldClasses), 'key':ref}, [
 			React.DOM.div({'className':'fieldValues'}, [
-				React.DOM.div({'className':'fieldLabel'}, aField['label']),
-				React.DOM.div({'className':React.addons.classSet(cardFieldValueClasses)}, aField['value']),
+				React.DOM.span({'className':'removeField', 'onClick':this.removeField(field)}, "delete"),
+				React.DOM.input({'className':'fieldLabel', 'onChange':this.handleChange(field, 'setLabel'), 'defaultValue':aField['label']}),
+				React.DOM.textarea({'className':React.addons.classSet(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'defaultValue':aField['value']}),
 			]),
 			React.DOM.div({'className':'fieldAction action'}, aField['actionType'].toLowerCase())
 		]);
@@ -114,6 +121,10 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 
 	renderFields: function (someFields) {
 		return	React.DOM.div({'className':'cardFields'}, MochiKit.Base.map(this.renderField, someFields));
+	},
+
+	renderAddNewField: function () {
+		return	React.DOM.div({'className':'newCardField', 'onClick':this.addNewField}, "Add new field");
 	},
 
 	//............................................................................
@@ -131,39 +142,24 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 	
 	//............................................................................
 
-	renderCard: function () {
+	render: function () {
 		var	classes = {
-			'view':		true,
-			'archived':	this.props['_isArchived']
+			'edit':		true
 		}
-	
+
+console.log("RENDER CARD EDIT");
 		return	React.DOM.div({'className':React.addons.classSet(classes)},[
-			Clipperz.PM.UI.Components.Cards.CommandToolbar(this.props),
+			Clipperz.PM.UI.Components.Cards.EditToolbar(this.props),
 			React.DOM.div({'className':'content'}, [
 				this.renderLabel(this.props['label']),
 				this.renderTags(this.props['tags']),
 				this.renderNotes(this.props['notes']),
 				this.renderFields(this.props['fields']),
+				this.renderAddNewField(),
 				this.renderDirectLogins(this.props['directLogins'])
 			])
 		]);
 	},
 	
-	//----------------------------------------------------------------------------
-
-	render: function () {
-		var	result;
-
-		if (this.props['loading'] == true) {
-			result = this.renderLoading();
-		} else if (this.props['label']) {
-			result = this.renderCard();
-		} else {
-			result = this.renderEmpty();
-		}
-		
-		return result;
-	},
-
 	//=========================================================================
 });

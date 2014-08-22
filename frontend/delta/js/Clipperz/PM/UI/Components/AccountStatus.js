@@ -26,12 +26,12 @@ Clipperz.Base.module('Clipperz.PM.UI.Components');
 Clipperz.PM.UI.Components.AccountStatus = React.createClass({
 
 	propTypes: {
-		'currentSubscriptionType':		React.PropTypes.oneOf(['EARLY_ADOPTER', 'FRIEND', 'FAN', 'DEVOTEE', 'PATRON', 'TRIAL', 'TRIAL_EXPIRED', 'PAYMENT_FAILED_2', 'EXPIRED', 'PAYMENT_FAILED', 'VERIFYING_PAYMENT', 'VERIFYING_PAYMENT_2']).isRequired,
-		'expirationDate':				React.PropTypes.string.isRequired,
-		'featureSet':					React.PropTypes.oneOf(['TRIAL', 'EXPIRED', 'FULL']).isRequired,
-		'isExpired':					React.PropTypes.bool.isRequired,
-		'isExpiring':					React.PropTypes.bool.isRequired,
-		'paymentVerificationPending':	React.PropTypes.bool.isRequired,
+//		'currentSubscriptionType':		React.PropTypes.oneOf(['EARLY_ADOPTER', 'FRIEND', 'FAN', 'DEVOTEE', 'PATRON', 'TRIAL', 'TRIAL_EXPIRED', 'PAYMENT_FAILED_2', 'EXPIRED', 'PAYMENT_FAILED', 'VERIFYING_PAYMENT', 'VERIFYING_PAYMENT_2']).isRequired,
+		'expirationDate':				React.PropTypes.string /* .isRequired */,
+		'featureSet':					React.PropTypes.oneOf(['TRIAL', 'EXPIRED', 'FULL']) /* .isRequired */ ,
+		'isExpired':					React.PropTypes.bool /* .isRequired */ ,
+		'isExpiring':					React.PropTypes.bool /* .isRequired */ ,
+		'paymentVerificationPending':	React.PropTypes.bool /* .isRequired */ ,
 	},
 
 	//=========================================================================

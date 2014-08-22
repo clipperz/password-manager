@@ -373,7 +373,8 @@ class FrontendBuilder(object):
 			pageTitle = "Clipperz - " + self.module + " [" + versionType + " - " + assemblyMode +"]"
 
 		for cssFile in self.settings['css']:
-			self.preprocessCSS(self.absolutePathForSourceFile('css', cssFile))
+#			self.preprocessCSS(self.absolutePathForSourceFile('css', cssFile))
+			pass
 
 		if assemblyMode == 'INSTALL':
 			copyright = self.assembleCopyrightHeader()

@@ -71,7 +71,12 @@ Clipperz.PM.UI.MainController = function() {
 		'selectRecentCards',
 		'tagSelected',
 		'selectUntaggedCards',
-		
+
+		'refreshCardEditDetail',
+//		'refreshCardEditToolbar',
+		'saveCardEdits',
+		'cancelCardEdits',
+
 		'cardSelected',
 		
 		'addCardClick',
@@ -387,6 +392,7 @@ console.log("SET USER", aUser);
 		var deferredResult;
 		
 		deferredResult = new Clipperz.Async.Deferred('MainController.collectFieldInfo', {trace:false});
+		deferredResult.setValue('_field');
 		deferredResult.addMethod(aField, 'reference');
 		deferredResult.setValue('_reference');
 		deferredResult.addMethod(aField, 'label');
@@ -399,7 +405,7 @@ console.log("SET USER", aUser);
 		deferredResult.setValue('isHidden');
 		deferredResult.values();
 
-		deferredResult.callback();
+		deferredResult.callback(aField);
 		
 		return deferredResult;
 	},
@@ -425,18 +431,21 @@ console.log("SET USER", aUser);
 		var deferredResult;
 		
 		deferredResult = new Clipperz.Async.Deferred('MainController.collectRecordInfo', {trace:false});
+		deferredResult.setValue('_record');
 		deferredResult.addMethod(aRecord, 'reference');
 		deferredResult.setValue('_reference');
 		deferredResult.addMethod(aRecord, 'isArchived');
 		deferredResult.setValue('_isArchived');
+		deferredResult.addMethod(aRecord, 'hasPendingChanges');
+		deferredResult.setValue('hasPendingChanges');
 		deferredResult.addMethod(aRecord, 'label');
 		deferredResult.setValue('label');
 		deferredResult.addMethod(aRecord, 'notes');
 		deferredResult.setValue('notes');
 		deferredResult.addMethod(aRecord, 'tags');
 		deferredResult.setValue('tags');
-		deferredResult.addMethod(aRecord, 'isArchived');
-		deferredResult.setValue('isArchived');
+//		deferredResult.addMethod(aRecord, 'isArchived');
+//		deferredResult.setValue('isArchived');
 
 		deferredResult.addMethod(aRecord, 'fields');
 		deferredResult.addCallback(MochiKit.Base.values);
@@ -452,19 +461,22 @@ console.log("SET USER", aUser);
 
 		deferredResult.values();
 
-		deferredResult.callback();
+		deferredResult.callback(aRecord);
 		
 		return deferredResult;
 	},
 
-	updateSelectedCard: function (someInfo) {
+	updateSelectedCard: function (someInfo, shouldShowLoading) {
 		var deferredResult;
+		var showLoading = typeof shouldShowLoading !== 'undefined' ? shouldShowLoading : true;
 
 		if (someInfo == null) {
 			this.setPageProperties('mainPage', 'selectedCard', {});
 			deferredResult = MochiKit.Async.succeed();
 		} else {
-			this.setPageProperties('mainPage', 'selectedCard', {'loading':true, 'label':someInfo['label'], '_reference':someInfo['reference']});
+			if (showLoading) {
+				this.setPageProperties('mainPage', 'selectedCard', {'loading':true, 'label':someInfo['label'], '_reference':someInfo['reference']});
+			}
 
 			deferredResult = new Clipperz.Async.Deferred('MainController.updateSelectedCard', {trace:false});
 			deferredResult.addMethod(this.user(), 'getRecord', someInfo['reference']);
@@ -764,22 +776,26 @@ console.log("SET USER", aUser);
 	},
 
 	moveInPage: function (fromPage, toPage, addToHistory) {
-		var	shouldAddItemToHistory;
+		if (fromPage != toPage) {
+			var	shouldAddItemToHistory;
 
-		shouldAddItemToHistory = typeof(addToHistory) == 'undefined' ? false : addToHistory;
+			shouldAddItemToHistory = typeof(addToHistory) == 'undefined' ? false : addToHistory;
 
-		this.slidePage(MochiKit.DOM.getElement(fromPage), MochiKit.DOM.getElement(toPage), 'LEFT');
-		this.setCurrentPage(toPage);
+			this.slidePage(MochiKit.DOM.getElement(fromPage), MochiKit.DOM.getElement(toPage), 'LEFT');
+			this.setCurrentPage(toPage);
 
-		if (shouldAddItemToHistory) {
+			if (shouldAddItemToHistory) {
 //console.log("ADD ITEM TO HISTORY");
 //console.log("ADD ITEM TO HISTORY - window", window);
 //console.log("ADD ITEM TO HISTORY - window.history", window.history);
-			window.history.pushState({'fromPage': fromPage, 'toPage': toPage});
-//#			window.history.pushState();
+				window.history.pushState({'fromPage': fromPage, 'toPage': toPage});
+//#				window.history.pushState();
 //console.log("ADDED ITEM TO HISTORY");
-		} else {
+			} else {
 //console.log("Skip HISTORY");
+			}
+		} else {
+//console.log("No need to move in the same page");
 		}
 	},
 
@@ -938,6 +954,49 @@ console.log("SET USER", aUser);
 		this.updateSelectedCard(someInfo);
 	},
 
+	refreshCardEditDetail_handler: function (aRecordReference) {
+		this.updateSelectedCard({'reference':aRecordReference}, false);
+	},
+//	refreshCardEditToolbar_handler: function (aRecordReference) {
+//		
+//	},
+
+	saveCardEdits_handler: function (aRecordReference) {
+		var	currentPage = this.pages()[this.currentPage()];
+		var	self = this;
+		
+		return Clipperz.Async.callbacks("MainController.saveCardEdits_handler", [
+			MochiKit.Base.method(this.user(), 'saveChanges'),
+			MochiKit.Base.method(currentPage, 'setProps', {'mode':'view'}),
+//			MochiKit.Base.method(self, 'updateSelectedCard', {'reference':aRecordReference}, false),
+//			MochiKit.Base.method(self, 'refreshUI'),
+			MochiKit.Base.method(this, 'refreshUI', aRecordReference)
+		], {trace:true});
+	},
+
+	cancelCardEdits_handler: function (aRecordReference) {
+		var	currentPage = this.pages()[this.currentPage()];
+		var	self = this;
+		
+		return Clipperz.Async.callbacks("MainController.cancelCardEdits_handler", [
+			MochiKit.Base.method(this.user(), 'hasPendingChanges'),
+			Clipperz.Async.deferredIf('HasPendingChanges',[
+				MochiKit.Base.method(self, 'ask', {
+					'question': "Lose pending changes?",
+					'possibleAnswers':{
+						'cancel':	{'label':"No",	'isDefault':true,	'answer':MochiKit.Base.methodcaller('cancel', new MochiKit.Async.CancelledError())},
+						'revert':	{'label':"Yes",	'isDefault':false,	'answer':MochiKit.Base.methodcaller('callback')}
+					}
+				})
+			], [
+//				MochiKit.Async.succeed
+			]),
+			MochiKit.Base.method(currentPage, 'setProps', {'mode':'view'}),
+			MochiKit.Base.method(this.user(), 'revertChanges'),
+			MochiKit.Base.method(self, 'updateSelectedCard', {'reference':aRecordReference}, false),
+		], {trace:true});
+	},
+
 	//----------------------------------------------------------------------------
 /*
 	askConfirmation: function (aMessage) {
@@ -975,7 +1034,6 @@ console.log("ADD CARD CLICK");
 		var	self = this;
 		
 		return Clipperz.Async.callbacks("MainController.deleteCard_handler", [
-//			MochiKit.Base.method(this, 'askConfirmation', {'message':"Delete card?"}),
 			MochiKit.Base.method(self, 'ask', {
 				'question': "Delete card?",
 				'possibleAnswers':{
@@ -983,7 +1041,6 @@ console.log("ADD CARD CLICK");
 					'delete':	{'label':"Yes",	'isDefault':false,	'answer':MochiKit.Base.methodcaller('callback')}
 				}
 			}),
-//function (aValue) { console.log("<-- ASK", aValue); return aValue; },
 			MochiKit.Base.method(this.user(), 'getRecord', anEvent['reference']),
 			MochiKit.Base.method(this.user(), 'deleteRecord'),
 			MochiKit.Base.method(this.user(), 'saveChanges'),
@@ -1001,7 +1058,8 @@ console.log("ADD CARD CLICK");
 	},
 
 	editCard_handler: function (anEvent) {
-console.log("EDIT CARD", anEvent['reference']);
+//console.log("EDIT CARD", anEvent['reference']);
+		this.pages()[this.currentPage()].setProps({'mode': 'edit'});
 	},
 
 	goBackToMainPage_handler: function (anEvent) {

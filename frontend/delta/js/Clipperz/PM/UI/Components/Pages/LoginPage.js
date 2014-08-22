@@ -95,14 +95,14 @@ Clipperz.PM.UI.Components.Pages.LoginPage = React.createClass({
 
 
 	loginForm: function () {
-		return	React.DOM.form({'className':'loginForm credentials', 'onChange':this.handleChange, 'onSubmit':this.handleCredentialSubmit}, [
-					React.DOM.div(null,[
-						React.DOM.label({'htmlFor' :'name'}, "username"),
-						React.DOM.input({'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'key':'username', 'autoCapitalize':'none'}),
-						React.DOM.label({'htmlFor' :'passphrase'}, "passphrase"),
-						React.DOM.input({'type':'password', 'name':'passphrase', 'ref':'passphrase', 'placeholder':"passphrase", 'key':'passphrase'})
+		return	React.DOM.form({'key':'form', 'className':'loginForm credentials', 'onChange':this.handleChange, 'onSubmit':this.handleCredentialSubmit}, [
+					React.DOM.div({'key':'fields'},[
+						React.DOM.label({'key':'username-label', 'htmlFor' :'name'}, "username"),
+						React.DOM.input({'key':'username', 'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'autoCapitalize':'none'}),
+						React.DOM.label({'key':'passphrase-label', 'htmlFor' :'passphrase'}, "passphrase"),
+						React.DOM.input({'key':'passphrase', 'type':'password', 'name':'passphrase', 'ref':'passphrase', 'placeholder':"passphrase"})
 					]),
-					React.DOM.button({'type':'submit', 'disabled':!this.shouldEnableLoginButton(), 'className':'button'}, "login")
+					React.DOM.button({'key':'button', 'type':'submit', 'disabled':!this.shouldEnableLoginButton(), 'className':'button'}, "login")
 				]);
 	},
 
@@ -141,13 +141,13 @@ Clipperz.PM.UI.Components.Pages.LoginPage = React.createClass({
 	},
 
 	render: function() {
-		var registrationLink =	React.DOM.div({'className':'registrationLink'}, [
-									React.DOM.a({'onClick':this.handleRegistrationLinkClick}, "Sign up")
+		var registrationLink =	React.DOM.div({'key':'registrationLink', 'className':'registrationLink'}, [
+									React.DOM.a({'key':'signup', 'onClick':this.handleRegistrationLinkClick}, "Sign up")
 								]);
 
 		return React.DOM.div({'className':'loginForm ' + this.props['style']}, [
-			React.DOM.header({}, 'clipperz'),
-			React.DOM.div({'className':'form'}, [
+			React.DOM.header({'key':'header'}, 'clipperz'),
+			React.DOM.div({'key':'form-wrapper', 'className':'form'}, [
 				this.props.mode == 'PIN' ? this.pinForm() : this.loginForm(),
 			]),
 			this.props.isNewUserRegistrationAvailable ? registrationLink : null

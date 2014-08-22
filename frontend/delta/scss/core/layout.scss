@@ -265,17 +265,17 @@ div.cardContent {
 
 		@include flexbox();
 
-		div.view {
+		& > div.view, & > div.edit {
 			@include flex(auto);
 
 			@include flexbox;
 			@include flex-direction(column);
 
-			.cardDetailToolbar {
-				@include flex(none);
-				height: $mainCardToolbarHeight;
-				line-height: $mainCardToolbarHeight;
-			}
+//			.cardDetailToolbar {
+//				@include flex(none);
+//				height: $mainCardToolbarHeight;
+//				line-height: $mainCardToolbarHeight;
+//			}
 
 			.content {
 				@include flex(auto);
@@ -287,20 +287,20 @@ div.cardContent {
 
 
 #cardDetailPage {
-	.view {
+	& > .view, & > .edit {
 		@include flexbox();
 		@include flex-direction(column);
 		height: 100%;
-		
+/*		
 		.cardDetailToolbar {
 			@include flex(none);
 			height: $mainCardToolbarHeight;
 			line-height: $mainCardToolbarHeight;
 			
-			& > div {
+			&.commands > div {
 				@include flexbox();
 				@include flex-direction(row);
-				font-size: 24pt;
+//				font-size: 24pt;
 
 				.back {
 					@include flex(auto);
@@ -312,14 +312,86 @@ div.cardContent {
 					cursor: pointer;
 				}
 			}
+			
+			&.edit {
+				ul {
+					@include flexbox();
+					@include flex-direction(row);
+					
+					li {
+						@include flex(auto);
+						cursor: pointer;
+					}
+				}
+			}
 		}
-		
+*/		
 		.content {
 			@include flex(auto);
 			overflow-y: scroll;
 		}
 	}
 }
+
+.cardDetailToolbar {
+	@include flex(none);
+	height: $mainCardToolbarHeight;
+	line-height: $mainCardToolbarHeight;
+	
+	&.edit {
+		li.save {
+			cursor: default;
+		}
+		
+		&.hasPendingChanges {
+			li.save {
+				cursor: pointer;
+			}
+		}
+	}
+
+	&.commands > div {
+		@include flexbox();
+		@include flex-direction(row);
+//				font-size: 24pt;
+
+		.back {
+			@include flex(auto);
+			cursor: pointer;
+		}
+	
+		.cardMenuOptions {
+			@include flex(auto);
+			cursor: pointer;
+		}
+	}
+	
+//	&.edit {
+//		ul {
+//			@include flexbox();
+//			@include flex-direction(row);
+//
+//			li {
+//				@include flex(auto);
+//				cursor: pointer;
+//			}
+//		}
+//	}
+
+	ul {
+		@include flexbox();
+		@include flex-direction(row);
+
+		li {
+			@include flex(auto);
+			cursor: pointer;
+	
+			span {
+			}
+		}
+	}
+}
+
 
 .button {
 	cursor: pointer;

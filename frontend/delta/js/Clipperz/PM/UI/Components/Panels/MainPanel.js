@@ -93,7 +93,7 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 	},
 
 	//----------------------------------------------------------------------------
-
+/*
 	viewComponentProps: function () {
 		var	result;
 		
@@ -105,6 +105,25 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 		return result;
 	},
 	
+	renderCardDetail: function () {
+		var	result;
+//console.log("PROPS", this.props);
+		if (this.props['mode'] == 'edit') {
+			result = Clipperz.PM.UI.Components.Cards.Edit(this.viewComponentProps());
+		} else {
+			result = Clipperz.PM.UI.Components.Cards.View(this.viewComponentProps());
+		}
+		
+		return result;
+	},
+*/
+
+	renderCardDetail: function () {
+		return Clipperz.PM.UI.Components.Cards.Detail(this.props);
+	},
+
+	//----------------------------------------------------------------------------
+
 	renderExtraWide: function () {
 		return [
 			React.DOM.div({'className':'selection subpanel'}, [Clipperz.PM.UI.Components.Selections(this.props)]),
@@ -114,7 +133,7 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 						[Clipperz.PM.UI.Components.Cards.List(this.props)],
 						[
 							this.renderExpiredPanel(),
-							Clipperz.PM.UI.Components.Cards.View(this.viewComponentProps())
+							this.renderCardDetail()
 						]
 					)
 				)
@@ -131,7 +150,7 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 					[Clipperz.PM.UI.Components.Cards.List(this.props)],
 					[
 						this.renderExpiredPanel(),
-						Clipperz.PM.UI.Components.Cards.View(this.viewComponentProps())
+						this.renderCardDetail()
 					]
 				)
 			)
@@ -146,7 +165,7 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 				this.renderExpiredPanel(),
 				Clipperz.PM.UI.Components.Cards.List(this.props),
 			]),
-			[Clipperz.PM.UI.Components.Cards.View(this.viewComponentProps())]
+			this.renderCardDetail()
 		);
 	},
 	

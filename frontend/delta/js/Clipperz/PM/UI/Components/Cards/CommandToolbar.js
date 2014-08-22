@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 'use strict';
 Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
-Clipperz.PM.UI.Components.Cards.Toolbar = React.createClass({
+Clipperz.PM.UI.Components.Cards.CommandToolbar = React.createClass({
 
 	//============================================================================
 
@@ -124,6 +124,7 @@ Clipperz.PM.UI.Components.Cards.Toolbar = React.createClass({
 		var style = this.props['style'];
 		var	classes = {
 			'cardDetailToolbar':	true,
+			'commands':				true,
 		};
 		classes[style] = true;
 

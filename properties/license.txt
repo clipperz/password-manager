@@ -1,6 +1,6 @@
 	GNU AFFERO GENERAL PUBLIC LICENSE
 
-Copyright 2008-2013 Clipperz Srl
+Copyright 2008-2014 Clipperz Srl
 
 This file is part of Clipperz's Password Manager web application.
 <TODO: add description>
