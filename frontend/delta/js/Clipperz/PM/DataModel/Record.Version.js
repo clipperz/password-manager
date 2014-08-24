@@ -313,15 +313,30 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record.Version, Clipperz.PM.DataModel
 	},
 
 	//=========================================================================
-/*
+
 	'deleteAllCleanTextData': function () {
+		this._fields = null;
 		return Clipperz.PM.DataModel.Record.Version.superclass.deleteAllCleanTextData.apply(this, arguments);
 	},
 
 	'hasAnyCleanTextData': function () {
-		return Clipperz.PM.DataModel.Record.Version.superclass.hasAnyCleanTextData.apply(this, arguments);
+//		return Clipperz.PM.DataModel.Record.Version.superclass.hasAnyCleanTextData.apply(this, arguments);
+
+		var	deferredResult;
+		
+		deferredResult = new Clipperz.Async.Deferred("Record.Version.hasAnyCleanTextData", {trace:false});
+		deferredResult.collectResults({
+			'super':	MochiKit.Base.bind(Clipperz.PM.DataModel.Record.Version.superclass.hasAnyCleanTextData, this),
+			'self':		MochiKit.Base.bind(function () {
+							return MochiKit.Async.succeed(MochiKit.Base.keys(this._fields).length != 0);
+						}, this)
+		});
+		deferredResult.addCallback(Clipperz.Async.or);
+		deferredResult.callback();
+
+		return deferredResult;
 	},
-*/
+
 	//=========================================================================
 	__syntaxFix__: "syntax fix"
 });
