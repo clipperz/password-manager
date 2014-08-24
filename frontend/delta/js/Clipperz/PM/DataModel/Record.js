@@ -213,11 +213,10 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	},
 
 	'addTag': function (aNewTag) {
-//console.log("ADD TAG", aNewTag);
 		return Clipperz.Async.callbacks("Record.addTag", [
 			MochiKit.Base.method(this, 'fullLabel'),
 			MochiKit.Base.method(this, 'extractTags'),
-			function (someTags) { someTags[aNewTag] = true; console.log("UPDATED TAGS", someTags); return someTags; },
+			function (someTags) { someTags[aNewTag] = true; /* console.log("UPDATED TAGS", someTags); */ return someTags; },
 			MochiKit.Base.method(this, 'updateFullLabelWithTags')
 		], {trace:false});
 	},

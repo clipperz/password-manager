@@ -23,6 +23,7 @@ refer to http://www.clipperz.com.
 
 "use strict";
 
+Clipperz.PM.DataModel.Record.tagChar = '#';	//	Simplify tests using a 'regular' char instead of an UTF-8 reserved one
 Clipperz.Crypto.PRNG.defaultRandomGenerator().fastEntropyAccumulationForTestingPurpose();
 
 var tests = {
@@ -51,6 +52,7 @@ var tests = {
 				});
 			},
 			'updateDate': "Thu, 10 May 2007 13:01:21 UTC",
+			'accessDate': "Thu, 10 May 2007 13:01:21 UTC",
 //			'encryptedDataKeypath':			'data',
 //			'encryptedVersionKeypath':		'version',
 
@@ -1076,7 +1078,7 @@ var tests = {
 		return deferredResult;
 	},
 
-    //-------------------------------------------------------------------------
+	//-------------------------------------------------------------------------
 
 	'editFieldValueAndSaveIt': function (someTestArgs) {
 		var deferredResult;
@@ -1164,7 +1166,129 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		return deferredResult;
 	},
 
-    //-------------------------------------------------------------------------
+	//-------------------------------------------------------------------------
+
+	'removeFieldAndRevertChanges': function (someTestArgs) {
+		var deferredResult;
+		var proxy;
+		var user, user2;
+
+		var recordID =	'2977aa5f99a9f6e5596c1bd7871e82d7328c3716c9ef8ba349ae65f10d97924e';
+		var passwordFieldID =	'01e4bb6dcf054f312c535de8160bcf50bdccd664bdc05721b10d4e69583765f7';
+	
+		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:false, isDefault:true, readOnly:false});
+		user = new Clipperz.PM.DataModel.User({username:'joe', getPassphraseFunction:function () { return 'clipperz';}});
+		user2 = new Clipperz.PM.DataModel.User({username:'joe', getPassphraseFunction:function () { return 'clipperz';}});
+
+		deferredResult = new Clipperz.Async.Deferred("Record.test.removeFieldAndRevertChanges", someTestArgs);
+		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['joe_clipperz_offline_copy_with_multipleRecordVersions_data']);
+//		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['joe_clipperz_offline_copy_data']);
+		deferredResult.addMethod(user, 'login');
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('fields');
+//		deferredResult.addCallback(function (aValue) {console.log("FIELDS", aValue); return aValue; });
+		deferredResult.addCallback(MochiKit.Base.keys);
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(3, "the selected record has 3 fields");
+
+		deferredResult.collectResults({
+			'record':	MochiKit.Base.method(user, 'getRecord', recordID),
+			'field': [
+				MochiKit.Base.method(user, 'getRecord', recordID),
+				MochiKit.Base.methodcaller('fields'),
+				MochiKit.Base.itemgetter(passwordFieldID)
+			]
+		});
+		deferredResult.addCallback(function (someInfo) {
+			someInfo['record'].removeField(someInfo['field']);
+		});
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('fields');
+		deferredResult.addCallback(MochiKit.Base.keys);
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(2, "the selected record has 2 fields left");
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('hasPendingChanges');
+		deferredResult.addTest(true, "the record reports pending changes");
+
+		deferredResult.addMethod(user, 'hasPendingChanges');
+		deferredResult.addTest(true, "the user reports pending changes too");
+
+		deferredResult.addMethod(user, 'revertChanges');
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('hasPendingChanges');
+		deferredResult.addTest(false, "the record no longer reports pending changes");
+
+		deferredResult.addMethod(user, 'hasPendingChanges');
+		deferredResult.addTest(false, "the user reports no pending changes");
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('fields');
+		deferredResult.addCallback(MochiKit.Base.keys);
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(3, "the selected record should be back to have 3 fields");
+
+/*
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('fields');
+		deferredResult.addCallback(MochiKit.Base.itemgetter(passwordFieldID));
+		deferredResult.setValue('field');
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('fields');
+		deferredResult.addCallback(MochiKit.Base.itemgetter(passwordFieldID));
+		deferredResult.collectResults({
+			'label': MochiKit.Base.methodcaller('label'),
+			'value': MochiKit.Base.methodcaller('value')
+		});
+		deferredResult.addTest({'label': 'password', 'value': 'HRRd7ycaFVG6'},	"the current field label and value match", true);
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('fields');
+		deferredResult.addCallback(MochiKit.Base.itemgetter(passwordFieldID));
+		deferredResult.addMethodcaller('setValue', '<<pippo>>');
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('hasPendingChanges');
+		deferredResult.addTest(true, "changing the value of a field should trigger pending changes");
+
+		deferredResult.addMethod(user, 'saveChanges');
+		deferredResult.addMethod(user, 'hasPendingChanges');
+		deferredResult.addTest(false, "after saving, there should be no pending changes");
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('getVersions');
+		deferredResult.addCallback(MochiKit.Base.keys);
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(6, "the selected record, after saving a new version, has now 6 versions");
+
+		deferredResult.addMethod(user2, 'login');
+
+		deferredResult.addMethod(user2, 'getRecord', recordID);
+		deferredResult.addMethodcaller('getVersions');
+		deferredResult.addCallback(MochiKit.Base.keys);
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(6, "the selected record - reloaded from the db - has 6 versions");
+
+		deferredResult.addMethod(user2, 'getRecord', recordID);
+		deferredResult.addMethodcaller('fields');
+		deferredResult.addCallback(MochiKit.Base.itemgetter(passwordFieldID));
+		deferredResult.collectResults({
+			'label': MochiKit.Base.methodcaller('label'),
+			'value': MochiKit.Base.methodcaller('value')
+		});
+		deferredResult.addTest({'label': 'password', 'value': '<<pippo>>'},	"the current field label and value match", true);
+*/		
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+
+	//-------------------------------------------------------------------------
 
 	'editNotesAndRestoreIt': function (someTestArgs) {
 		var deferredResult;
@@ -1234,7 +1358,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		return deferredResult;
 	},
 
-    //-------------------------------------------------------------------------
+	//-------------------------------------------------------------------------
 
 	'createDirectLoginAndDeleteItAfterward': function (someTestArgs) {
 		var deferredResult;
@@ -1279,21 +1403,51 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		return deferredResult;
 	},
 
-    //-------------------------------------------------------------------------
+	//-------------------------------------------------------------------------
 
 	'selectTags': function (someTestArgs) {
 		var	deferredResult;
 		var	proxy;
 		var	user;
 
+		var	filterRecordsWithRegExp = function (aUser, aRegExp) {
+			var	innerDeferredResult;
+			var	filterCards = function (aCardInfo) {
+				aRegExp.lastIndex = 0;
+				return aRegExp.test(aCardInfo[Clipperz.PM.DataModel.Record.defaultSearchField]);
+			}
+
+			innerDeferredResult = new Clipperz.Async.Deferred("Record.test.selectTags-filterRecordsWithTag", someTestArgs);
+			innerDeferredResult.addMethod(aUser, 'getRecordsInfo', Clipperz.PM.DataModel.Record.defaultCardInfo, false);
+			innerDeferredResult.addCallback(MochiKit.Base.filter, filterCards);
+			innerDeferredResult.addMethodcaller('sort', Clipperz.Base.caseInsensitiveKeyComparator('label'));
+			innerDeferredResult.callback();
+	
+			return innerDeferredResult;
+		}
+
+		var	filterRecordsWithTag = function (aUser, aTag) {
+			return filterRecordsWithRegExp(aUser, Clipperz.PM.DataModel.Record.regExpForTag(aTag));
+		}
+
+		var	filterRecordsWithSearchTerm = function (aUser, aSearchTerm) {
+			return filterRecordsWithRegExp(aUser, Clipperz.PM.DataModel.Record.regExpForSearch(aSearchTerm));
+		}
+
 		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:false, isDefault:true, readOnly:false});
 		user  = new Clipperz.PM.DataModel.User({username:'tag', getPassphraseFunction:function () { return 'tag';}});
 
-		deferredResult = new Clipperz.Async.Deferred("Record.test.removeDirectLogin", someTestArgs);
+		deferredResult = new Clipperz.Async.Deferred("Record.test.selectTags", someTestArgs);
 		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['tag/tag_accountWithTags']);
+
 		deferredResult.addMethod(user, 'login');
 		deferredResult.addMethod(user, 'getTags');
-		deferredResult.addCallback(SimpleTest.eq, ['Tag1', 'Tag2', 'Tag3', 'Tag4']);
+		deferredResult.addCallback(SimpleTest.eq, {
+			'Tag1': 3,
+			'Tag2': 1,
+			'Tag3': 2,
+			'Tag4': 1
+		});
 
 		deferredResult.addMethod(user, 'getRecordsInfo', Clipperz.PM.DataModel.Record.defaultCardInfo);
 		deferredResult.addCallback(MochiKit.Base.map, Clipperz.Base.itemgetter('_searchableContent'));
@@ -1306,31 +1460,31 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 			'Card 6 '
 		]);
 
-		deferredResult.addMethod(user, 'filterRecordsInfo',	{'tag':'Tag1'});
+		deferredResult.addCallback(filterRecordsWithTag, user, 'Tag1');
 		deferredResult.addCallback(MochiKit.Base.map, Clipperz.Base.itemgetter('label'));
 		deferredResult.addCallback(SimpleTest.eq, ['Card 1', 'Card 2', 'Card 3']);
 
-		deferredResult.addMethod(user, 'filterRecordsInfo',	{'tag':'Tag2'});
+		deferredResult.addCallback(filterRecordsWithTag, user, 'Tag2');
 		deferredResult.addCallback(MochiKit.Base.map, Clipperz.Base.itemgetter('label'));
 		deferredResult.addCallback(SimpleTest.eq, ['Card 1']);
 
-		deferredResult.addMethod(user, 'filterRecordsInfo',	{'tag':'Tag3'});
+		deferredResult.addCallback(filterRecordsWithTag, user, 'Tag3');
 		deferredResult.addCallback(MochiKit.Base.map, Clipperz.Base.itemgetter('label'));
 		deferredResult.addCallback(SimpleTest.eq, ['Card 2', 'Card 4']);
 
-		deferredResult.addMethod(user, 'filterRecordsInfo',	{'tag':'Tag4'});
+		deferredResult.addCallback(filterRecordsWithTag, user, 'Tag4');
 		deferredResult.addCallback(MochiKit.Base.map, Clipperz.Base.itemgetter('label'));
 		deferredResult.addCallback(SimpleTest.eq, ['Card 5']);
 
-		deferredResult.addMethod(user, 'filterRecordsInfo',	{'tag':'Tag5'});
+		deferredResult.addCallback(filterRecordsWithTag, user, 'Tag5');
 		deferredResult.addCallback(MochiKit.Base.map, Clipperz.Base.itemgetter('label'));
 		deferredResult.addCallback(SimpleTest.eq, []);
 
-		deferredResult.addMethod(user, 'filterRecordsInfo',	{'search':'3'});
+		deferredResult.addCallback(filterRecordsWithSearchTerm, user, '3');
 		deferredResult.addCallback(MochiKit.Base.map, Clipperz.Base.itemgetter('label'));
 		deferredResult.addCallback(SimpleTest.eq, ['Card 2', 'Card 3', 'Card 4']);
 
-		deferredResult.addMethod(user, 'filterRecordsInfo',	{'search':'3'});
+		deferredResult.addCallback(filterRecordsWithSearchTerm, user, '3');
 		deferredResult.addMethodcaller('sort', Clipperz.Base.reverseComparator(Clipperz.Base.caseInsensitiveKeyComparator('label')));
 		deferredResult.addCallback(MochiKit.Base.map, Clipperz.Base.itemgetter('label'));
 		deferredResult.addCallback(SimpleTest.eq, ['Card 4', 'Card 3', 'Card 2']);
@@ -1340,7 +1494,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		return deferredResult;
 	},
 
-    //-------------------------------------------------------------------------
+	//-------------------------------------------------------------------------
 
 	'editTags_add': function (someTestArgs) {
 		var	deferredResult;
@@ -1423,7 +1577,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		var	user;
 		var user_2;
 		var	recordID = 'b869b4b928e26b8c669d7e39da1df55406336b259edf19b032ee2e475347e8fa';	//	fullLabel: "Card 6"
-
+		
 		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:false, isDefault:true, readOnly:false});
 		user  = new Clipperz.PM.DataModel.User({username:'tag', getPassphraseFunction:function () { return 'tag';}});
 		user_2  = new Clipperz.PM.DataModel.User({username:'tag', getPassphraseFunction:function () { return 'tag';}});
@@ -1431,6 +1585,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult = new Clipperz.Async.Deferred("Record.test.removeDirectLogin", someTestArgs);
 		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['tag/tag_accountWithTags']);
 		deferredResult.addMethod(user, 'login');
+
 		deferredResult.addMethod(user, 'getRecord', recordID);
 		deferredResult.addMethodcaller('tags');
 		deferredResult.addCallback(SimpleTest.eq, []);
@@ -1446,13 +1601,24 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult.addTest(true, "user should have pending changes");
 
 		deferredResult.addMethod(user, 'getTags');
-		deferredResult.addCallback(SimpleTest.eq, ['Tag1', 'Tag2', 'Tag3', 'Tag4']);
+		deferredResult.addCallback(SimpleTest.eq, {
+			'Tag1': 4,
+			'Tag2': 1,
+			'Tag3': 2,
+			'Tag4': 1,
+		});
 
 		deferredResult.addMethod(user, 'getRecord', recordID);
 		deferredResult.addMethodcaller('addTag', "Tag5");
 
 		deferredResult.addMethod(user, 'getTags');
-		deferredResult.addCallback(SimpleTest.eq, ['Tag1', 'Tag2', 'Tag3', 'Tag4', 'Tag5']);
+		deferredResult.addCallback(SimpleTest.eq, {
+			'Tag1': 4,
+			'Tag2': 1,
+			'Tag3': 2,
+			'Tag4': 1,
+			'Tag5': 1,
+		});
 
 		deferredResult.callback();
 

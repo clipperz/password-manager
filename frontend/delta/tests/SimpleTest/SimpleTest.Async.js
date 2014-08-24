@@ -70,7 +70,8 @@ MochiKit.Base.update(Clipperz.Async.Test, {
 
 	'is': function (anExpectedResult, aDescription) {
 		return MochiKit.Base.partial(function (anExpectedResult, aDescription, aResult) {
-			SimpleTest.is(aResult, anExpectedResult, aDescription);
+//			SimpleTest.is(aResult, anExpectedResult, aDescription);
+			SimpleTest.is(anExpectedResult, aResult, aDescription);
 		
 			return aResult;
 		}, anExpectedResult, aDescription);
@@ -100,7 +101,8 @@ MochiKit.Base.update(Clipperz.Async.Test, {
 
 	'isDeeply': function (anExpectedResult, aDescription) {
 		return MochiKit.Base.partial(function (anExpectedResult, aDescription, aResult) {
-			SimpleTest.isDeeply(aResult, anExpectedResult, aDescription);
+//			SimpleTest.isDeeply(aResult, anExpectedResult, aDescription);
+			SimpleTest.isDeeply(anExpectedResult, aResult, aDescription);
 		
 			return aResult;
 		}, anExpectedResult, aDescription);

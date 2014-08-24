@@ -278,6 +278,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record.Version, Clipperz.PM.DataModel
 	'revertChanges': function () {
 		this.setReference(this.transientState()['originalReference']);
 		Clipperz.PM.DataModel.Record.Version.superclass.revertChanges.apply(this, arguments);
+		this._fields = null;
 	},
 
 	//-------------------------------------------------------------------------

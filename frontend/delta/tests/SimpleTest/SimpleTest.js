@@ -105,7 +105,8 @@ SimpleTest.ok = function (condition, name, diag) {
  */
 SimpleTest.is = function (a, b, name) {
     var repr = MochiKit.Base.repr;
-    SimpleTest.ok(a == b, name, "got " + repr(a) + ", expected " + repr(b));
+//  SimpleTest.ok(a == b, name, "got " + repr(a) + ", expected " + repr(b));
+    SimpleTest.ok(a == b, name, "got " + repr(b) + ", expected " + repr(a));
 };
 
 /**
@@ -115,7 +116,8 @@ SimpleTest.eq = function (a, b, name) {
     var base = MochiKit.Base;
     var repr = base.repr;
     try {
-        SimpleTest.ok(base.compare(a, b) == 0, name, "got " + repr(a) + ", expected " + repr(b));
+//      SimpleTest.ok(base.compare(a, b) == 0, name, "got " + repr(a) + ", expected " + repr(b));
+        SimpleTest.ok(base.compare(a, b) == 0, name, "got " + repr(b) + ", expected " + repr(a));
     } catch (e) {
         SimpleTest.ok(false, name, "exception in compare: " + repr(e));
     }
