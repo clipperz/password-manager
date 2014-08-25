@@ -21,9 +21,12 @@ refer to http://www.clipperz.com.
 
 */
 
-if (typeof(Clipperz) == 'undefined') { Clipperz = {}; }
-if (typeof(Clipperz.PM) == 'undefined') { Clipperz.PM = {}; }
-if (typeof(Clipperz.PM.DataModel) == 'undefined') { Clipperz.PM.DataModel = {}; }
+"use strict";
+Clipperz.Base.module('Clipperz.PM.DataModel');
+
+//if (typeof(Clipperz) == 'undefined') { Clipperz = {}; }
+//if (typeof(Clipperz.PM) == 'undefined') { Clipperz.PM = {}; }
+//if (typeof(Clipperz.PM.DataModel) == 'undefined') { Clipperz.PM.DataModel = {}; }
 
 
 Clipperz.PM.DataModel.Record = function(args) {
@@ -142,14 +145,19 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	'fullLabel': function () {
 		return this.getIndexDataForKey('label');
 	},
+	
+	'setFullLabel': function (aLabel, someTags) {
+		var fullLabel = MochiKit.Base.extend([aLabel], MochiKit.Base.map(function (aTag) { return Clipperz.PM.DataModel.Record.tagChar + aTag; }, someTags)).join(' ');
 
-	'updateFullLabelWithTags': function (someTags) {
-		return Clipperz.Async.callbacks("Record.updateFullLabelWithTags", [
+		return this.setIndexDataForKey('label', fullLabel);
+	},
+
+	'updateTags': function (someTagInfo) {
+		return Clipperz.Async.callbacks("Record.updateTags", [
 			MochiKit.Base.method(this, 'label'),
-			function (aLabel) {
-				return aLabel + ' ' + MochiKit.Base.map(function (aTag) { return Clipperz.PM.DataModel.Record.tagChar + aTag; }, MochiKit.Base.keys(someTags)).join(' ');
-			},
-			MochiKit.Base.method(this, 'setIndexDataForKey', 'label')
+			MochiKit.Base.bind(function (aLabel) {
+				return this.setFullLabel(aLabel, MochiKit.Base.keys(someTagInfo));
+			}, this)
 		], {trace:false});
 	},
 
@@ -183,7 +191,18 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	},
 
 	'setLabel': function (aValue) {
-		return this.setIndexDataForKey('label', aValue);	//	[???]
+//		var	tags;
+		
+		return Clipperz.Async.callbacks("Record.setLabel", [
+			MochiKit.Base.method(this, 'tags'),
+//			function (someValues) { console.log("TAGS", someValues); tags = someValues; },
+//			MochiKit.Base.method(this, 'setIndexDataForKey', 'label', aValue),
+//			MochiKit.Base.method(this, 'updateFullLabelWithTags', tags),
+			MochiKit.Base.method(this, 'setFullLabel', aValue),
+			MochiKit.Base.method(this, 'label'),
+		], {trace:false});
+		
+//		return this.setIndexDataForKey('label', aValue);	//	[???]
 	},
 
 	//.........................................................................
@@ -217,7 +236,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 			MochiKit.Base.method(this, 'fullLabel'),
 			MochiKit.Base.method(this, 'extractTags'),
 			function (someTags) { someTags[aNewTag] = true; /* console.log("UPDATED TAGS", someTags); */ return someTags; },
-			MochiKit.Base.method(this, 'updateFullLabelWithTags')
+			MochiKit.Base.method(this, 'updateTags')
 		], {trace:false});
 	},
 
@@ -227,7 +246,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 			MochiKit.Base.method(this, 'fullLabel'),
 			MochiKit.Base.method(this, 'extractTags'),
 			function (someTags) { delete someTags[aTag]; return someTags; },
-			MochiKit.Base.method(this, 'updateFullLabelWithTags')
+			MochiKit.Base.method(this, 'updateTags')
 		], {trace:false});
 	},
 
@@ -754,7 +773,9 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	'hasPendingChanges': function () {
 		var deferredResult;
 
-		if (this.hasInitiatedObjectDataStore()) {
+		/*if (this.isBrandNew()) {
+			deferredResult = MochiKit.Async.succeed(true);
+		} else*/ if (this.hasInitiatedObjectDataStore()) {
 			deferredResult = new Clipperz.Async.Deferred("Clipperz.PM.DataModel.Record.hasPendingChanges", {trace:false});
 			deferredResult.collectResults({
 				'super': MochiKit.Base.bind(Clipperz.PM.DataModel.Record.superclass.hasPendingChanges, this),
@@ -985,6 +1006,14 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	},
 
 	//=========================================================================
+
+	'setUpWithRecord': function (aRecord) {
+		return Clipperz.Async.callbacks("Record.hasAnyCleanTextData", [
+			MochiKit.Base.method(aRecord, 'full')
+		], {trace:false});
+	},
+
+	//=========================================================================
 	__syntaxFix__: "syntax fix"
 });
 
@@ -995,6 +1024,7 @@ Clipperz.PM.DataModel.Record.defaultCardInfo = {
 	'_searchableContent':	MochiKit.Base.methodcaller('searchableContent'),
 	'_accessDate':			MochiKit.Base.methodcaller('accessDate'),
 	'_isArchived':			MochiKit.Base.methodcaller('isArchived'),
+	'_isBrandNew':			MochiKit.Base.methodcaller('isBrandNew'),
 	'label':				MochiKit.Base.methodcaller('label'),
 	'favicon':				MochiKit.Base.methodcaller('favicon')
 };

@@ -21,9 +21,12 @@ refer to http://www.clipperz.com.
 
 */
 
-if (typeof(Clipperz) == 'undefined') { Clipperz = {}; }
-if (typeof(Clipperz.PM) == 'undefined') { Clipperz.PM = {}; }
-if (typeof(Clipperz.PM.DataModel) == 'undefined') { Clipperz.PM.DataModel = {}; }
+"use strict";
+Clipperz.Base.module('Clipperz.PM.DataModel');
+
+//if (typeof(Clipperz) == 'undefined') { Clipperz = {}; }
+//if (typeof(Clipperz.PM) == 'undefined') { Clipperz.PM = {}; }
+//if (typeof(Clipperz.PM.DataModel) == 'undefined') { Clipperz.PM.DataModel = {}; }
 
 
 //#############################################################################
@@ -653,6 +656,14 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		return Clipperz.Async.callbacks("User.createNewRecord", [
 			MochiKit.Base.method(this, 'getHeaderIndex', 'recordsIndex'),
 			MochiKit.Base.methodcaller('createNewRecord')
+		], {trace:false});
+	},
+
+	'cloneRecord': function (aRecord) {
+console.log("USER.cloneRecord", aRecord);
+		return Clipperz.Async.callbacks("User.cloneRecord", [
+			MochiKit.Base.method(this, 'createNewRecord'),
+			MochiKit.Base.methodcaller('setUpWithRecord', aRecord)
 		], {trace:false});
 	},
 

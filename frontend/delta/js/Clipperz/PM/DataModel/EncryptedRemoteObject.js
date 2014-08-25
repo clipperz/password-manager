@@ -21,12 +21,15 @@ refer to http://www.clipperz.com.
 
 */
 
+"use strict";
 try { if (typeof(Clipperz.KeyValueObjectStore) == 'undefined') { throw ""; }} catch (e) {
 	throw "Clipperz.PM.DataModel.EncryptedRemoteObject depends on Clipperz.KeyValueObjectStore!";
 }  
 
-if (typeof(Clipperz.PM) == 'undefined') { Clipperz.PM = {}; }
-if (typeof(Clipperz.PM.DataModel) == 'undefined') { Clipperz.PM.DataModel = {}; }
+Clipperz.Base.module('Clipperz.PM.DataModel');
+
+//if (typeof(Clipperz.PM) == 'undefined') { Clipperz.PM = {}; }
+//if (typeof(Clipperz.PM.DataModel) == 'undefined') { Clipperz.PM.DataModel = {}; }
 
 Clipperz.PM.DataModel.EncryptedRemoteObject = function(args) {
 	args = args || {};

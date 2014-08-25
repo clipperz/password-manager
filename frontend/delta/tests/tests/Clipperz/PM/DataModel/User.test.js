@@ -1397,10 +1397,14 @@ var tests = {
 		});
 
 		deferredResult.addMethod(user, 'createNewRecord');
-		deferredResult.addMethodcaller('reference');
-		deferredResult.addCallback(function (aNewRecordReference) {
-			newRecordReference = aNewRecordReference;
-		})
+		deferredResult.addMethodcaller('hasPendingChanges');
+//		deferredResult.addTest(true, "a brand new record should report pending changes until it is saved");
+		deferredResult.addTest(false, "a brand new record should not report any pending changes until it is actually changed");
+		
+//		deferredResult.addMethodcaller('reference');
+//		deferredResult.addCallback(function (aNewRecordReference) {
+//			newRecordReference = aNewRecordReference;
+//		})
 
 		deferredResult.addMethod(user, 'getRecords');
 		deferredResult.addCallback(function (someRecords) {

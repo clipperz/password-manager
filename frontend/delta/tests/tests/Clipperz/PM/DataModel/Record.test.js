@@ -1515,6 +1515,10 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult.addCallback(SimpleTest.eq, ['Tag1', 'Tag2']);
 
 		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('label');
+		deferredResult.addTest("Card 1", "expected label");
+		
+		deferredResult.addMethod(user, 'getRecord', recordID);
 //deferredResult.addCallback(function (aValue) { console.log("VALUE", aValue); return aValue; });
 		deferredResult.addMethodcaller('addTag', "TagX");
 
@@ -1522,6 +1526,9 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult.addMethodcaller('tags');
 		deferredResult.addCallback(SimpleTest.eq, ['Tag1', 'Tag2', 'TagX']);
 
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('setLabel', "Card 1 - edited");
+		
 		deferredResult.addMethod(user, 'hasPendingChanges');
 		deferredResult.addTest(true, "user should have pending changes");
 		deferredResult.addMethod(user, 'saveChanges');
