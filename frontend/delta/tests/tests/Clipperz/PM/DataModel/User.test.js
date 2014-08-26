@@ -2047,6 +2047,12 @@ console.log("PROXY", proxy);
 		deferredResult.addCallback(MochiKit.Base.keys);
 		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
 		deferredResult.addTest(2, "The selected record has 2 fields");
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('directLogins');
+		deferredResult.addCallback(MochiKit.Base.keys);
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(1, "The selected record has 1 direct logins");
 		
 		deferredResult.addMethod(user, 'getRecord', recordID);
 		deferredResult.addMethod(user, 'cloneRecord');
@@ -2069,6 +2075,12 @@ console.log("PROXY", proxy);
 		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
 		deferredResult.addTest(2, "The cloned record has 2 fields too");
 
+		deferredResult.addCallback(function () { return clonedRecordID; })
+		deferredResult.addMethod(user, 'getRecord');
+		deferredResult.addMethodcaller('directLogins');
+		deferredResult.addCallback(MochiKit.Base.keys);
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(1, "The cloned record has 1 direct logins");
 
 		deferredResult.callback();
 		
