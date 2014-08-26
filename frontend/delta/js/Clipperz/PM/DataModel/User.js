@@ -660,10 +660,27 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 	},
 
 	'cloneRecord': function (aRecord) {
-console.log("USER.cloneRecord", aRecord);
+//console.log("USER.cloneRecord", aRecord);
+		var	result;
+		var	user = this;
+		
 		return Clipperz.Async.callbacks("User.cloneRecord", [
-			MochiKit.Base.method(this, 'createNewRecord'),
-			MochiKit.Base.methodcaller('setUpWithRecord', aRecord)
+//			MochiKit.Base.method(this, 'createNewRecord'),
+//			MochiKit.Base.methodcaller('setUpWithRecord', aRecord),
+//			function (aValue) { result = aValue; return aValue; },
+//			MochiKit.Base.method(this, 'saveChanges'),
+//			function () { return result; }
+
+			MochiKit.Base.method(this, 'hasPendingChanges'),
+			Clipperz.Async.deferredIf("User has pending changes", [
+				MochiKit.Async.fail
+			], [
+				MochiKit.Base.method(user, 'createNewRecord'),
+				MochiKit.Base.methodcaller('setUpWithRecord', aRecord),
+				function (aValue) { result = aValue; return aValue; },
+				MochiKit.Base.method(user, 'saveChanges'),
+				function () { return result; }
+			])
 		], {trace:false});
 	},
 

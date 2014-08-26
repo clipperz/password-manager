@@ -1978,7 +1978,7 @@ console.log("PROXY", proxy);
 		return deferredResult;
 	},
 
-    //-------------------------------------------------------------------------
+	//-------------------------------------------------------------------------
 
 	'changePassphrase_test': function (someTestArgs) {
 		var deferredResult;
@@ -2014,7 +2014,68 @@ console.log("PROXY", proxy);
 		return deferredResult;
 	},
 
-    //-------------------------------------------------------------------------
+	//-------------------------------------------------------------------------
+
+	'cloneRecord_test': function (someTestArgs) {
+		var deferredResult;
+		var proxy;
+		var user;
+		var user2;
+		var recordID;
+		var clonedRecordID;
+		
+		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:true, isDefault:true, readOnly:false});
+		user = new Clipperz.PM.DataModel.User({username:'joe', getPassphraseFunction:function () { return 'clipperz';}});
+		user2 = new Clipperz.PM.DataModel.User({username:'joe', getPassphraseFunction:function () { return 'clipperz';}});
+
+		recordID = '13a5e52976337ab210903cd04872588e1b21fb72bc183e91aa25c494b8138551';
+
+		deferredResult = new Clipperz.Async.Deferred("cloneRecord_test", someTestArgs);
+		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['joe_clipperz_offline_copy_data']);
+		deferredResult.addMethod(user, 'login');
+
+		deferredResult.addMethod(user, 'getRecords');
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(20, "This account has 20 cards");
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('label');
+		deferredResult.addTest("Amazon.com", "This is the card we are going to duplicate.");
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('fields');
+		deferredResult.addCallback(MochiKit.Base.keys);
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(2, "The selected record has 2 fields");
+		
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethod(user, 'cloneRecord');
+		deferredResult.addMethodcaller('reference');
+		deferredResult.addCallback(function (aReference) { clonedRecordID = aReference; return aReference; });
+
+		deferredResult.addMethod(user, 'getRecords');
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(20 + 1, "The account now has one more record");
+		
+		deferredResult.addCallback(function () { return clonedRecordID; })
+		deferredResult.addMethod(user, 'getRecord');
+		deferredResult.addMethodcaller('label');
+		deferredResult.addTest("Amazon.com - copy", "This is the label of the cloned card.");
+		
+		deferredResult.addCallback(function () { return clonedRecordID; })
+		deferredResult.addMethod(user, 'getRecord');
+		deferredResult.addMethodcaller('fields');
+		deferredResult.addCallback(MochiKit.Base.keys);
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(2, "The cloned record has 2 fields too");
+
+
+		deferredResult.callback();
+		
+		return deferredResult;
+	},
+
+	//-------------------------------------------------------------------------
 /*
 	'rearrangeRecordFieldOrderAndSave_test': function (someTestArgs) {
 		var deferredResult;

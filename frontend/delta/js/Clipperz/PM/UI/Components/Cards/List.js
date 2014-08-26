@@ -38,16 +38,24 @@ Clipperz.PM.UI.Components.Cards.List = React.createClass({
 	},
 	
 	renderItem: function (anItem) {
-		var	classes = {
-			'selected':	this.props['selectedCard'] ? this.props['selectedCard']['_reference'] == anItem['_reference'] : false,
-			'archived':	anItem['_isArchived']
-		};		
+		var	result;
 
-		return	React.DOM.li({'className':React.addons.classSet(classes), 'onClick': this.handleClick, 'key':anItem['_reference'], 'data-reference':anItem['_reference'], 'data-label':anItem['label']}, [
-			React.DOM.span({'className':'favicon'}, [ React.DOM.img({src:anItem['favicon']})]),
-			React.DOM.span({'className':'label'}, anItem['label']),
-//			React.DOM.span({'className':'action'}, 'show detail')
-		]);
+		if (anItem['_isBrandNew'] == true) {
+			result = null;
+		} else {
+			var	classes = {
+				'selected':	this.props['selectedCard'] ? this.props['selectedCard']['_reference'] == anItem['_reference'] : false,
+				'archived':	anItem['_isArchived']
+			};		
+
+			result = React.DOM.li({'className':React.addons.classSet(classes), 'onClick': this.handleClick, 'key':anItem['_reference'], 'data-reference':anItem['_reference'], 'data-label':anItem['label']}, [
+				React.DOM.span({'className':'favicon'}, [ React.DOM.img({src:anItem['favicon']})]),
+				React.DOM.span({'className':'label'}, anItem['label']),
+	//			React.DOM.span({'className':'action'}, 'show detail')
+			]);
+		}
+		
+		return result;
 	},
 
 	render: function () {

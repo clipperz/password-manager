@@ -59,7 +59,6 @@ Clipperz.PM.UI.Components.Cards.EditToolbar = React.createClass({
 		};
 		classes[style] = true;
 
-console.log("EDIT TOOLBAR", this.props);
 		return	React.DOM.div({'className':React.addons.classSet(classes)}, [
 					React.DOM.ul({}, [
 						React.DOM.li({'onClick':this.cancel, 'className':'cancel'},	[React.DOM.span({}, "cancel")]),

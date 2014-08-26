@@ -55,6 +55,10 @@ Clipperz.PM.UI.Components.Cards.CommandToolbar = React.createClass({
 //				'label': "share",
 //				'broadcastEvent': 'shareCard'
 //			},
+			'clone': {
+				'label': "clone",
+				'broadcastEvent': 'cloneCard'
+			},
 			'edit': {
 				'label': "edit",
 				'broadcastEvent': 'editCard'
@@ -83,7 +87,7 @@ Clipperz.PM.UI.Components.Cards.CommandToolbar = React.createClass({
 		var	commandHandler = this.selectCommandItem;
 		
 		return	React.DOM.ul({}, MochiKit.Base.map(function (aCommand) {
-					return React.DOM.li({'onClick':commandHandler, 'data-broadcast-event':aCommand['broadcastEvent']}, [React.DOM.span({}, aCommand['label'])]);
+					return React.DOM.li({'className':aCommand['broadcastEvent'], 'onClick':commandHandler, 'data-broadcast-event':aCommand['broadcastEvent']}, [React.DOM.span({}, aCommand['label'])]);
 				}, MochiKit.Base.values(this.commands())));
 	},
 

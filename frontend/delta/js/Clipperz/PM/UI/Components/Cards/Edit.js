@@ -72,11 +72,11 @@ Clipperz.PM.UI.Components.Cards.Edit = React.createClass({
 	//============================================================================
 
 	renderLabel: function (aLabel) {
-		return	React.DOM.input({'className':'cardLabel', 'onChange':this.handleChange(this.record(), 'setLabel'), 'defaultValue':aLabel});
+		return	React.DOM.input({'className':'cardLabel', 'onChange':this.handleChange(this.record(), 'setLabel'), 'defaultValue':aLabel, 'key':this.props['_reference'] + '_label'});
 	},
 	
 	renderNotes: function (someNotes) {
-		return	React.DOM.textarea({'className':'cardNotes', 'onChange':this.handleChange(this.record(), 'setNotes'), 'defaultValue':someNotes});
+		return	React.DOM.textarea({'className':'cardNotes', 'onChange':this.handleChange(this.record(), 'setNotes'), 'defaultValue':someNotes, 'key':this.props['_reference'] + '_notes'});
 	},
 
 	//............................................................................
@@ -130,7 +130,7 @@ Clipperz.PM.UI.Components.Cards.Edit = React.createClass({
 	//............................................................................
 
 	renderDirectLogin: function (aDirectLogin) {
-		return	React.DOM.div({'className':'cardDirectLogin'}, [
+		return	React.DOM.div({'className':'cardDirectLogin', 'key':aDirectLogin['_reference']}, [
 			React.DOM.span({'className':'directLoginLabel'}, aDirectLogin['label']),
 			React.DOM.div({'className':'directLoginAction action'}, 'DIRECT LOGIN')
 		]);
@@ -147,7 +147,7 @@ Clipperz.PM.UI.Components.Cards.Edit = React.createClass({
 			'edit':		true
 		}
 
-console.log("RENDER CARD EDIT");
+//console.log("RENDER CARD EDIT");
 		return	React.DOM.div({'className':React.addons.classSet(classes)},[
 			Clipperz.PM.UI.Components.Cards.EditToolbar(this.props),
 			React.DOM.div({'className':'content'}, [

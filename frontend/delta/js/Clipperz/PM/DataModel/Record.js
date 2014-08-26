@@ -207,7 +207,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 
 	//.........................................................................
 
-	'extractTags': function (aLabel) {
+	'extractTagsFromFullLabel': function (aLabel) {
 		var	tagRegEx;
 		var	result;
 		var	match;
@@ -226,7 +226,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	'tags': function () {
 		return Clipperz.Async.callbacks("Record.label", [
 			MochiKit.Base.method(this, 'fullLabel'),
-			MochiKit.Base.method(this, 'extractTags'),
+			MochiKit.Base.method(this, 'extractTagsFromFullLabel'),
 			MochiKit.Base.keys
 		], {trace:false});
 	},
@@ -234,7 +234,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	'addTag': function (aNewTag) {
 		return Clipperz.Async.callbacks("Record.addTag", [
 			MochiKit.Base.method(this, 'fullLabel'),
-			MochiKit.Base.method(this, 'extractTags'),
+			MochiKit.Base.method(this, 'extractTagsFromFullLabel'),
 			function (someTags) { someTags[aNewTag] = true; /* console.log("UPDATED TAGS", someTags); */ return someTags; },
 			MochiKit.Base.method(this, 'updateTags')
 		], {trace:false});
@@ -244,7 +244,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 //console.log("ADD TAG", aNewTag);
 		return Clipperz.Async.callbacks("Record.removeTag", [
 			MochiKit.Base.method(this, 'fullLabel'),
-			MochiKit.Base.method(this, 'extractTags'),
+			MochiKit.Base.method(this, 'extractTagsFromFullLabel'),
 			function (someTags) { delete someTags[aTag]; return someTags; },
 			MochiKit.Base.method(this, 'updateTags')
 		], {trace:false});
@@ -1008,8 +1008,29 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	//=========================================================================
 
 	'setUpWithRecord': function (aRecord) {
-		return Clipperz.Async.callbacks("Record.hasAnyCleanTextData", [
-			MochiKit.Base.method(aRecord, 'full')
+		return Clipperz.Async.callbacks("Record.setUpWithRecord", [
+			MochiKit.Base.method(aRecord, 'label'),
+			MochiKit.Base.bind(function (aLabel) {
+				return this.setLabel(aLabel + " - copy");
+			}, this),
+
+			MochiKit.Base.method(aRecord, 'fullLabel'),
+			MochiKit.Base.method(aRecord, 'extractTagsFromFullLabel'),
+			MochiKit.Base.method(this, 'updateTags'),
+			
+			MochiKit.Base.method(aRecord, 'notes'),
+			MochiKit.Base.method(this, 'setNotes'),
+
+			MochiKit.Base.method(aRecord, 'getFieldsValues'), MochiKit.Base.values,
+			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, 'addField')),
+			Clipperz.Async.collectAll,
+
+//			MochiKit.Base.method(aRecord, 'directLogins'), MochiKit.Base.values,
+//			function (aValue) { console.log("-> DirectLogin Values", aValue); return aValue; },
+//			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, 'addField')),
+//			Clipperz.Async.collectAll,
+
+			MochiKit.Base.bind(function () { return this; }, this)
 		], {trace:false});
 	},
 

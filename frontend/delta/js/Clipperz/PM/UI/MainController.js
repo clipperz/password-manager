@@ -82,6 +82,7 @@ Clipperz.PM.UI.MainController = function() {
 		'addCardClick',
 		'deleteCard',
 		'archiveCard',
+		'cloneCard',
 		'editCard',
 		
 		'showArchivedCards',
@@ -429,7 +430,7 @@ console.log("SET USER", aUser);
 	
 	collectRecordInfo: function (aRecord) {
 		var deferredResult;
-		
+
 		deferredResult = new Clipperz.Async.Deferred('MainController.collectRecordInfo', {trace:false});
 		deferredResult.setValue('_record');
 		deferredResult.addMethod(aRecord, 'reference');
@@ -444,8 +445,6 @@ console.log("SET USER", aUser);
 		deferredResult.setValue('notes');
 		deferredResult.addMethod(aRecord, 'tags');
 		deferredResult.setValue('tags');
-//		deferredResult.addMethod(aRecord, 'isArchived');
-//		deferredResult.setValue('isArchived');
 
 		deferredResult.addMethod(aRecord, 'fields');
 		deferredResult.addCallback(MochiKit.Base.values);
@@ -971,15 +970,21 @@ console.log("SET USER", aUser);
 //			MochiKit.Base.method(self, 'updateSelectedCard', {'reference':aRecordReference}, false),
 //			MochiKit.Base.method(self, 'refreshUI'),
 			MochiKit.Base.method(this, 'refreshUI', aRecordReference)
-		], {trace:true});
+		], {trace:false});
 	},
 
 	cancelCardEdits_handler: function (aRecordReference) {
 		var	currentPage = this.pages()[this.currentPage()];
 		var	self = this;
-		
+		var	wasBrandNew;
+
 		return Clipperz.Async.callbacks("MainController.cancelCardEdits_handler", [
+			MochiKit.Base.method(this.user(), 'getRecord', aRecordReference),
+			MochiKit.Base.methodcaller('isBrandNew'),
+			function (aValue) { wasBrandNew = aValue },
+			
 			MochiKit.Base.method(this.user(), 'hasPendingChanges'),
+//function (aValue) { console.log("2- USER.hasPendingChanges()", aValue); return aValue; },
 			Clipperz.Async.deferredIf('HasPendingChanges',[
 				MochiKit.Base.method(self, 'ask', {
 					'question': "Lose pending changes?",
@@ -993,8 +998,18 @@ console.log("SET USER", aUser);
 			]),
 			MochiKit.Base.method(currentPage, 'setProps', {'mode':'view'}),
 			MochiKit.Base.method(this.user(), 'revertChanges'),
-			MochiKit.Base.method(self, 'updateSelectedCard', {'reference':aRecordReference}, false),
-		], {trace:true});
+
+			MochiKit.Base.bind(function () {
+				var	info;
+				if (wasBrandNew == true) {
+					info = null;
+				} else {
+					info = {'reference': aRecordReference};
+				}
+
+				this.updateSelectedCard(info, false);
+			}, this)
+		], {trace:false});
 	},
 
 	//----------------------------------------------------------------------------
@@ -1027,7 +1042,14 @@ console.log("SET USER", aUser);
 	//----------------------------------------------------------------------------
 
 	addCardClick_handler: function () {
-console.log("ADD CARD CLICK");
+		return Clipperz.Async.callbacks("MainController.addCardClick_handler", [
+			MochiKit.Base.method(this.user(), 'createNewRecord'),
+			MochiKit.Base.methodcaller('reference'),
+			MochiKit.Base.method(this, 'refreshUI'),
+			MochiKit.Base.bind(function () {
+				this.pages()[this.currentPage()].setProps({'mode': 'edit'});
+			}, this),
+		], {trace:false});
 	},
 
 	deleteCard_handler: function (anEvent) {
@@ -1057,6 +1079,19 @@ console.log("ADD CARD CLICK");
 		], {trace:false});
 	},
 
+	cloneCard_handler: function (anEvent) {
+//console.log("CLONE CARD", anEvent['reference']);
+		return Clipperz.Async.callbacks("MainController.cloneCard_handler", [
+			MochiKit.Base.method(this.user(), 'getRecord', anEvent['reference']),
+			MochiKit.Base.method(this.user(), 'cloneRecord'),
+			MochiKit.Base.methodcaller('reference'),
+			MochiKit.Base.method(this, 'refreshUI'),
+//			MochiKit.Base.bind(function () {
+//				this.pages()[this.currentPage()].setProps({'mode': 'edit'});
+//			}, this),
+		], {trace:false});
+	},
+	
 	editCard_handler: function (anEvent) {
 //console.log("EDIT CARD", anEvent['reference']);
 		this.pages()[this.currentPage()].setProps({'mode': 'edit'});

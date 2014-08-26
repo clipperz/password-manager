@@ -186,7 +186,8 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record.Version, Clipperz.PM.DataModel
 			MochiKit.Base.bind(function () { this._fields[newField.reference()] = newField; }, this),
 			MochiKit.Base.method(newField,	'setLabel',		someParameters['label']),
 			MochiKit.Base.method(newField,	'setValue',		someParameters['value']),
-			MochiKit.Base.method(newField,	'setIsHidden',	someParameters['isHidden']),
+//			MochiKit.Base.method(newField,	'setIsHidden',	someParameters['isHidden']),
+			MochiKit.Base.method(newField,	'setIsHidden',	someParameters['hidden']),
 
 			MochiKit.Base.method(this, '_getObjectDataStore'),
 			MochiKit.Base.methodcaller('values'),
