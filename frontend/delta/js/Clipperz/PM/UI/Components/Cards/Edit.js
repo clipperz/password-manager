@@ -160,7 +160,8 @@ Clipperz.PM.UI.Components.Cards.Edit = React.createClass({
 					this.renderAddNewField(),
 					this.renderDirectLogins(this.props['directLogins'])
 				])
-			])
+			]),
+			this.props['ask'] ? Clipperz.PM.UI.Components.DialogBox(this.props['ask']) : null
 		]);
 	},
 	

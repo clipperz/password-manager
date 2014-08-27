@@ -31,6 +31,7 @@ Clipperz.PM.UI.Components.Cards.Detail = React.createClass({
 		result = this.props['selectedCard'];
 		if (result) {
 			result['style'] = this.props['style'];
+			result['ask'] = this.props['ask'];
 		}
 		
 		return result;
