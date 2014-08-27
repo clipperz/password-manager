@@ -265,11 +265,31 @@ div.cardContent {
 
 		@include flexbox();
 
-		& > div.view, & > div.edit {
+		div.editWrapper {
+			@include flex(auto);
+			@include mask();
+
+			@include flexbox;
+			& > div.edit {
+				@include flex(auto);
+				@include flexbox;
+				@include flex-direction(column);
+
+				position: relative;
+				z-index: 10+1;
+				
+				.content {
+					background-color: yellow;
+				}
+			}
+		}
+
+		& > div.view /*, & > div.editWrapper > div.edit */ {
 			@include flex(auto);
 
 			@include flexbox;
 			@include flex-direction(column);
+
 
 //			.cardDetailToolbar {
 //				@include flex(none);
@@ -277,17 +297,18 @@ div.cardContent {
 //				line-height: $mainCardToolbarHeight;
 //			}
 
-			.content {
-				@include flex(auto);
-				overflow-y: scroll;
-			}
+		}
+
+		.content {
+			@include flex(auto);
+			overflow-y: scroll;
 		}
 	}
 }
 
 
 #cardDetailPage {
-	& > .view, & > .edit {
+	& > .view, & > .editWrapper > .edit {
 		@include flexbox();
 		@include flex-direction(column);
 		height: 100%;

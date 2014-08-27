@@ -144,19 +144,22 @@ Clipperz.PM.UI.Components.Cards.Edit = React.createClass({
 
 	render: function () {
 		var	classes = {
-			'edit':		true
+			'edit':	true
 		}
 
 //console.log("RENDER CARD EDIT");
-		return	React.DOM.div({'className':React.addons.classSet(classes)},[
-			Clipperz.PM.UI.Components.Cards.EditToolbar(this.props),
-			React.DOM.div({'className':'content'}, [
-				this.renderLabel(this.props['label']),
-				this.renderTags(this.props['tags']),
-				this.renderNotes(this.props['notes']),
-				this.renderFields(this.props['fields']),
-				this.renderAddNewField(),
-				this.renderDirectLogins(this.props['directLogins'])
+		return	React.DOM.div({'className':'editWrapper'}, [
+			React.DOM.div({'className':'mask'}),
+			React.DOM.div({'className':React.addons.classSet(classes)},[
+				Clipperz.PM.UI.Components.Cards.EditToolbar(this.props),
+				React.DOM.div({'className':'content'}, [
+					this.renderLabel(this.props['label']),
+					this.renderTags(this.props['tags']),
+					this.renderNotes(this.props['notes']),
+					this.renderFields(this.props['fields']),
+					this.renderAddNewField(),
+					this.renderDirectLogins(this.props['directLogins'])
+				])
 			])
 		]);
 	},
