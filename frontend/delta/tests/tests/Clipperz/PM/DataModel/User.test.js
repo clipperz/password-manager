@@ -2020,13 +2020,11 @@ console.log("PROXY", proxy);
 		var deferredResult;
 		var proxy;
 		var user;
-		var user2;
 		var recordID;
 		var clonedRecordID;
 		
 		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:true, isDefault:true, readOnly:false});
 		user = new Clipperz.PM.DataModel.User({username:'joe', getPassphraseFunction:function () { return 'clipperz';}});
-		user2 = new Clipperz.PM.DataModel.User({username:'joe', getPassphraseFunction:function () { return 'clipperz';}});
 
 		recordID = '13a5e52976337ab210903cd04872588e1b21fb72bc183e91aa25c494b8138551';
 
@@ -2081,6 +2079,49 @@ console.log("PROXY", proxy);
 		deferredResult.addCallback(MochiKit.Base.keys);
 		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
 		deferredResult.addTest(1, "The cloned record has 1 direct logins");
+
+		deferredResult.callback();
+		
+		return deferredResult;
+	},
+
+	//-------------------------------------------------------------------------
+
+	'cloneRecordWithPendingChanges_test': function (someTestArgs) {
+		var deferredResult;
+		var proxy;
+		var user;
+		var recordID;
+		var clonedRecordID;
+		
+		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:true, isDefault:true, readOnly:false});
+		user = new Clipperz.PM.DataModel.User({username:'joe', getPassphraseFunction:function () { return 'clipperz';}});
+
+		recordID = '13a5e52976337ab210903cd04872588e1b21fb72bc183e91aa25c494b8138551';
+
+		deferredResult = new Clipperz.Async.Deferred("cloneRecord_test", someTestArgs);
+		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['joe_clipperz_offline_copy_data']);
+		deferredResult.addMethod(user, 'login');
+
+		deferredResult.addMethod(user, 'getRecords');
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(20, "This account has 20 cards");
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('setLabel', "new value");
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('hasPendingChanges');
+		deferredResult.addTest(true, "The record has pending changes.");
+
+		deferredResult.addMethod(user, 'hasPendingChanges');
+		deferredResult.addTest(true, "Also the user has pending changes.");
+		
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethod(user, 'cloneRecord');
+		deferredResult.addCallbacks(
+			MochiKit.Base.partial(SimpleTest.ok, false,	"An exception should have been thrown"),
+			MochiKit.Base.partial(SimpleTest.ok, true,	"An exception should have been thrown")
+		);
 
 		deferredResult.callback();
 		
