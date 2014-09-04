@@ -769,13 +769,11 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	},
 
 	//=========================================================================
-
+/*
 	'hasPendingChanges': function () {
 		var deferredResult;
 
-		/*if (this.isBrandNew()) {
-			deferredResult = MochiKit.Async.succeed(true);
-		} else*/ if (this.hasInitiatedObjectDataStore()) {
+		if (this.hasInitiatedObjectDataStore()) {
 			deferredResult = new Clipperz.Async.Deferred("Clipperz.PM.DataModel.Record.hasPendingChanges", {trace:false});
 			deferredResult.collectResults({
 				'super': MochiKit.Base.bind(Clipperz.PM.DataModel.Record.superclass.hasPendingChanges, this),
@@ -795,6 +793,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 //					}
 				]
 			});
+deferredResult.addCallback(function (aValue) { console.log("Record.hasPendingChanges", aValue); return aValue; });
 			deferredResult.addCallback(MochiKit.Base.values);
 			deferredResult.addCallback(MochiKit.Base.bind(function(someValues) {
 				var result;
@@ -820,6 +819,67 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 //				}
 			], {trace:false})
 		}
+
+		return deferredResult;
+	},
+*/
+
+	'hasPendingChanges': function () {
+		var deferredResult;
+//		var recordReference = this.reference();
+		var	self = this;
+
+		deferredResult = new Clipperz.Async.Deferred("Clipperz.PM.DataModel.Record.hasPendingChanges", {trace:false});
+		deferredResult.collectResults({
+			'super': [
+				MochiKit.Base.bind(Clipperz.PM.DataModel.Record.superclass.hasPendingChanges, this),
+
+//				MochiKit.Base.method(this, 'hasInitiatedObjectDataStore'),
+//				Clipperz.Async.deferredIf("Record.hasPendingChanges - hasInitiatedObjectDataStore", [
+//					MochiKit.Base.bind(Clipperz.PM.DataModel.Record.superclass.hasPendingChanges, this),
+//				], [
+//					MochiKit.Base.partial(MochiKit.Async.succeed, false),
+//				]),
+			],	
+			'currentVersion': [
+//				MochiKit.Base.method(this, 'invokeCurrentRecordVersionMethod', 'hasPendingChanges')
+				MochiKit.Base.method(this, 'hasInitiatedObjectDataStore'),
+				Clipperz.Async.deferredIf("Record.hasPendingChanges - hasInitiatedObjectDataStore", [
+					MochiKit.Base.method(this, 'invokeCurrentRecordVersionMethod', 'hasPendingChanges')
+				], [
+					MochiKit.Base.partial(MochiKit.Async.succeed, false),
+				]),
+			],
+			'directLogins': [
+				MochiKit.Base.method(this, 'directLogins'),
+				MochiKit.Base.values,
+				MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('hasPendingChanges')),
+				Clipperz.Async.collectAll,
+				Clipperz.Async.or
+			]
+		});
+//deferredResult.addCallback(function (someValues) {
+//	if (recordReference == 'd620764a656bfd4e1d3758500d5db72e460a0cf729d56ed1a7755b5725c50045') {
+//		console.log("Record.hasPendingChanges VALUES", someValues);
+//	}
+//	return someValues;
+//})
+		deferredResult.addCallback(MochiKit.Base.values);
+		deferredResult.addCallback(MochiKit.Base.bind(function(someValues) {
+			var result;
+			result = MochiKit.Iter.some(someValues, MochiKit.Base.operator.identity);
+/*
+			if ((result == false) && (this.isBrandNew() == false)) {
+console.log("TRANSIENT STATE", this.transientState());
+console.log("TRANSIENT STATE - hasPendingChanges", this.transientState().getValue('hasPendingChanges.indexData'));
+				result = MochiKit.Iter.some(MochiKit.Base.values(this.transientState().getValue('hasPendingChanges.indexData')), MochiKit.Base.operator.identity);
+			}
+console.log("Record.hasPendingChanges RESULT", result);
+*/
+			return result;
+		}, this));
+
+		deferredResult.callback();
 
 		return deferredResult;
 	},
@@ -872,15 +932,21 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 
 	'revertChanges': function () {
 		var deferredResult;
-
+		var recordReference = this.reference();
+		
 		if (this.isBrandNew() == false) {
+/*
 			deferredResult = new Clipperz.Async.Deferred("Clipperz.PM.DataModel.Record.revertChanges", {trace:false});
 			deferredResult.addMethod(this, 'hasPendingChanges');
+deferredResult.addCallback(function (aValue) { 
+	if (recordReference == 'd620764a656bfd4e1d3758500d5db72e460a0cf729d56ed1a7755b5725c50045') {
+		console.log("Record.revertChanges - hasPendingChanges", aValue);
+	}
+//	return aValue;
+	return true;
+});
 			deferredResult.addIf([
-//				MochiKit.Base.method(this, 'getCurrentRecordVersion'),
-//				MochiKit.Base.methodcaller('revertChanges'),
-				MochiKit.Base.method(this,'invokeCurrentRecordVersionMethod', 'revertChanges'),
-
+				MochiKit.Base.method(this, 'invokeCurrentRecordVersionMethod', 'revertChanges'),
 				MochiKit.Base.method(this, 'directLogins'),
 				MochiKit.Base.values,
 				MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('revertChanges')),
@@ -890,6 +956,15 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 				MochiKit.Async.succeed
 			]);
 			deferredResult.callback();
+*/
+			deferredResult = Clipperz.Async.callbacks("Clipperz.PM.DataModel.Record.revertChanges", [
+				MochiKit.Base.method(this, 'invokeCurrentRecordVersionMethod', 'revertChanges'),
+				MochiKit.Base.method(this, 'directLogins'),
+				MochiKit.Base.values,
+				MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('revertChanges')),
+
+				MochiKit.Base.bind(Clipperz.PM.DataModel.Record.superclass.revertChanges, this)
+			], {trace:false});
 		} else {
 //			this.deleteAllCleanTextData();
 			deferredResult = MochiKit.Async.succeed();
@@ -1005,6 +1080,45 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		])
 	},
 
+	//-------------------------------------------------------------------------
+
+	'moveFieldToPosition': function (aFieldReference, aPosition) {
+		var	deferredResult;
+		var	currentFieldValues;
+		var	fromPosition;
+
+		deferredResult = new Clipperz.Async.Deferred("Clipperz.PM.DataModel.Record.moveFieldToPosition", {trace:false});
+		deferredResult.addMethod(this, 'getFieldsValues');
+		deferredResult.addCallback(function (someValues) {
+			fromPosition = MochiKit.Base.keys(someValues).indexOf(aFieldReference);
+			
+			return ((fromPosition != -1) && (fromPosition!= aPosition));
+		});
+		deferredResult.addIf([
+			MochiKit.Base.method(this, 'getFieldsValues'),
+			function (someValues) { currentFieldValues = Clipperz.Base.deepClone(someValues); return currentFieldValues},
+			MochiKit.Base.method(this, 'fields'), MochiKit.Base.values,
+			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, 'removeField')),
+			Clipperz.Async.collectAll,
+
+			function () {
+				var	currentFieldKeys = MochiKit.Base.keys(currentFieldValues);
+				currentFieldKeys.splice(aPosition, 0, currentFieldKeys.splice(fromPosition, 1)[0]);
+				return currentFieldKeys;
+			},
+//function (aValue) { console.log("Sorted Keys", aValue); return aValue; },
+			MochiKit.Base.partial(MochiKit.Base.map, function (aReference) { return currentFieldValues[aReference]; }),
+function (aValue) { console.log("Sorted Field values", aValue); return aValue; },
+			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, 'addField')),
+			Clipperz.Async.collectAll,
+		], [
+			MochiKit.Async.succeed
+		]);
+		deferredResult.callback();
+		
+		return deferredResult;
+	},
+
 	//=========================================================================
 
 	'setUpWithRecord': function (aRecord) {
@@ -1025,9 +1139,10 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, 'addField')),
 			Clipperz.Async.collectAll,
 
-//			MochiKit.Base.method(aRecord, 'directLogins'), MochiKit.Base.values,
-//			function (aValue) { console.log("-> DirectLogin Values", aValue); return aValue; },
-//			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, 'addField')),
+			MochiKit.Base.method(aRecord, 'directLogins'), MochiKit.Base.values,
+function (aValue) { console.log("-> DirectLogin Values", aValue); return aValue; },
+			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, 'addDirectLogin')),
+//function (aValue) { console.log("-> DirectLogin Values", aValue); return aValue; },
 //			Clipperz.Async.collectAll,
 
 			MochiKit.Base.bind(function () { return this; }, this)

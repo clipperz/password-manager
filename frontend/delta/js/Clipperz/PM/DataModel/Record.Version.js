@@ -52,6 +52,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record.Version, Clipperz.PM.DataModel
 	'hasPendingChanges': function () {
 		var deferredResult;
 
+console.log("Record.Version.hasPendingChanges");
 		deferredResult = new Clipperz.Async.Deferred("Clipperz.PM.DataModel.Record.Version.hasPendingChanges", {trace:false});
 		deferredResult.addCallback(MochiKit.Base.bind(Clipperz.PM.DataModel.Record.Version.superclass.hasPendingChanges, this));
 		deferredResult.callback();
@@ -110,8 +111,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record.Version, Clipperz.PM.DataModel
 				someData['fields'][i] = fields[i];
 			}
 		}
-
-
 
 		return result;
 	},

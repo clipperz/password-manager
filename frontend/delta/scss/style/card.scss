@@ -249,10 +249,22 @@ $cardViewBasePadding: 10px;
 		padding: $cardViewBasePadding;
 	}
 
+	.dropArea {
+		border: 3px dashed red;
+		width: 100%;
+		height: 40px;
+	}
+
 	.cardField {
 		@include flexbox;
 		@include flex-direction(row);
+		
+		background-color: lightgreen;
 
+		&.dragged {
+//			border: 4px dotted red;
+			display: none;
+		}
 		.fieldValues {
 			@include flex(1);
 			padding: $cardViewBasePadding;

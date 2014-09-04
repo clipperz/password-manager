@@ -1163,13 +1163,46 @@ var tests = {
 		deferredResult.addMethodcaller('hasLoadedRemoteData');
 		deferredResult.addTest(false, "After saving, record_2 should still be NOT loaded");
 
-
 		deferredResult.callback();
 
 		return deferredResult;
 	},
 
-    //-------------------------------------------------------------------------
+	//-------------------------------------------------------------------------
+
+	'doNotLoadDataJustToAnswerHasPendingChanges_test': function (someTestArgs) {
+		var deferredResult;
+		var proxy;
+		var user;
+		var record_1;
+		
+		record_1 = '062af892bcfba49ffcff05c56d99b7af2d508358e39c058c2e1fc83531436f80';
+
+		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:true, isDefault:true, readOnly:false});
+		user = new Clipperz.PM.DataModel.User({username:'joe', getPassphraseFunction:function () { return 'clipperz';}});
+
+		deferredResult = new Clipperz.Async.Deferred("doNotLoadDataJustToAnswerHasPendingChanges_test", someTestArgs);
+		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['joe_clipperz_offline_copy_data']);
+		deferredResult.addMethod(user, 'login');
+
+		deferredResult.addMethod(user, 'getRecord', record_1);
+		deferredResult.addMethodcaller('hasLoadedRemoteData');
+		deferredResult.addTest(false, "The card data should have not been loaded yet");
+
+		deferredResult.addMethod(user, 'getRecord', record_1);
+		deferredResult.addMethodcaller('hasPendingChanges');
+		deferredResult.addTest(false, "record_1 shoud not have any changes");
+
+		deferredResult.addMethod(user, 'getRecord', record_1);
+		deferredResult.addMethodcaller('hasLoadedRemoteData');
+		deferredResult.addTest(false, "record_1 should not have loaded data just to answer the 'hasPendingChanges' method invocation");
+
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+	
+	//-------------------------------------------------------------------------
 
 	'addNewRecordFieldAndSave_test': function (someTestArgs) {
 		var deferredResult;
@@ -2080,6 +2113,14 @@ console.log("PROXY", proxy);
 		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
 		deferredResult.addTest(1, "The cloned record has 1 direct logins");
 
+		deferredResult.addCallback(function () { return clonedRecordID; })
+		deferredResult.addMethod(user, 'getRecord');
+		deferredResult.addMethodcaller('directLogins');
+		deferredResult.addCallback(MochiKit.Base.values);
+		deferredResult.addCallback(MochiKit.Base.itemgetter('0'));
+		deferredResult.addMethodcaller('label');
+		deferredResult.addTest("Amazon.com", "Label of the newly clone Direct Login");
+
 		deferredResult.callback();
 		
 		return deferredResult;
@@ -2108,7 +2149,7 @@ console.log("PROXY", proxy);
 		deferredResult.addTest(20, "This account has 20 cards");
 
 		deferredResult.addMethod(user, 'getRecord', recordID);
-		deferredResult.addMethodcaller('setLabel', "new value");
+		deferredResult.addMethodcaller('addField', { 'hidden': false, 'label': "New field", 'type': "URL", 'value': "http://www.example.com" });
 		deferredResult.addMethod(user, 'getRecord', recordID);
 		deferredResult.addMethodcaller('hasPendingChanges');
 		deferredResult.addTest(true, "The record has pending changes.");
