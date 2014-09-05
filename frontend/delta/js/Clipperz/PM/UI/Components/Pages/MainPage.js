@@ -54,7 +54,7 @@ Clipperz.PM.UI.Components.Pages.MainPage = React.createClass({
 		};
 		classes[this.props['style']] = true;
 
-//console.log("MAIN PAGE", this.props['ask']);
+//console.log("MAIN PAGE", this.props['showGlobalMask']);
 		return	React.DOM.div({'className':React.addons.classSet(classes)}, [
 			this.props['style'] != 'extra-wide' ? Clipperz.PM.UI.Components.Panels.SelectionPanel(this.props) : null,
 			Clipperz.PM.UI.Components.Panels.MainPanel(this.props),

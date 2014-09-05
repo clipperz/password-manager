@@ -53,7 +53,11 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 
 	//-------------------------------------------------------------------------
 
-	'show': function (aMessage) {
+	'show': function (aMessage, showMask) {
+		if (showMask === true) {
+			this.showMask();
+		}
+
 		this.resetStatus();
 		this.setMessage(aMessage);
 		MochiKit.DOM.removeElementClass(this.element(), 'ios-overlay-hide');
@@ -61,6 +65,7 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 	},
 	
 	'done': function (aMessage, aDelayBeforeHiding) {
+		this.hideMask();
 		this.completed(this.showDoneIcon, aMessage, aDelayBeforeHiding);
 	},
 	
@@ -68,6 +73,20 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 		this.completed(this.showFailIcon, aMessage, aDelayBeforeHiding);
 	},
 
+	//-------------------------------------------------------------------------
+
+	'maskElement': function () {
+		return this.getElement('mask');
+	},
+	
+	'showMask': function () {
+		MochiKit.DOM.removeElementClass(this.maskElement(), 'hidden');
+	},
+	
+	'hideMask': function () {
+		MochiKit.DOM.addElementClass(this.maskElement(), 'hidden');
+	},
+	
 	//-------------------------------------------------------------------------
 
 	'resetStatus': function () {

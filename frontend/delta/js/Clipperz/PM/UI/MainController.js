@@ -437,7 +437,8 @@ console.log("SET USER", aUser);
 		deferredResult.setValue('_reference');
 		deferredResult.addMethod(aRecord, 'isArchived');
 		deferredResult.setValue('_isArchived');
-		deferredResult.addMethod(aRecord, 'hasPendingChanges');
+//		deferredResult.addMethod(aRecord, 'hasPendingChanges');
+		deferredResult.addMethod(this.user(), 'hasPendingChanges');
 		deferredResult.setValue('hasPendingChanges');
 		deferredResult.addMethod(aRecord, 'label');
 		deferredResult.setValue('label');
@@ -965,11 +966,12 @@ console.log("SET USER", aUser);
 		var	self = this;
 		
 		return Clipperz.Async.callbacks("MainController.saveCardEdits_handler", [
+			MochiKit.Base.method(currentPage, 'setProps', {'showGlobalMask':true}),
+			MochiKit.Base.method(this.overlay(), 'show', "saving …", true),
 			MochiKit.Base.method(this.user(), 'saveChanges'),
-			MochiKit.Base.method(currentPage, 'setProps', {'mode':'view'}),
-//			MochiKit.Base.method(self, 'updateSelectedCard', {'reference':aRecordReference}, false),
-//			MochiKit.Base.method(self, 'refreshUI'),
-			MochiKit.Base.method(this, 'refreshUI', aRecordReference)
+			MochiKit.Base.method(currentPage, 'setProps', {'mode':'view', 'showGlobalMask':false}),
+			MochiKit.Base.method(this, 'refreshUI', aRecordReference),
+			MochiKit.Base.method(this.overlay(), 'done', "saved", 1),
 		], {trace:false});
 	},
 
@@ -992,12 +994,12 @@ console.log("SET USER", aUser);
 						'cancel':	{'label':"No",	'isDefault':true,	'answer':MochiKit.Base.methodcaller('cancel', new MochiKit.Async.CancelledError())},
 						'revert':	{'label':"Yes",	'isDefault':false,	'answer':MochiKit.Base.methodcaller('callback')}
 					}
-				})
+				}),
 			], [
 //				MochiKit.Async.succeed
 			]),
-			MochiKit.Base.method(currentPage, 'setProps', {'mode':'view'}),
 			MochiKit.Base.method(this.user(), 'revertChanges'),
+			MochiKit.Base.method(currentPage, 'setProps', {'mode':'view'}),
 
 			MochiKit.Base.bind(function () {
 				var	info;
@@ -1030,11 +1032,9 @@ console.log("SET USER", aUser);
 		var	currentPage = this.pages()[this.currentPage()];
 
 		deferredResult = new Clipperz.Async.Deferred('MainController.ask', {trace:false});
-		currentPage.setProps({'ask': {'info': someInfo, 'deferred':deferredResult}});
+		currentPage.setProps({'ask': {'info': someInfo, 'deferred':deferredResult}, 'showGlobalMask':true });
 		
-//		deferredResult.addCallback(function (aResult) { console.log("ASK - OK", aResult); return aResult; });
-//		deferredResult.addErrback(function (aResult) { console.log("ASK - FAIL", aResult); return aResult; });
-		deferredResult.addBothPass(MochiKit.Base.method(currentPage, 'setProps', {'ask': null}));
+		deferredResult.addBothPass(MochiKit.Base.method(currentPage, 'setProps', {'ask': null, 'showGlobalMask':false }));
 		
 		return deferredResult;
 	},

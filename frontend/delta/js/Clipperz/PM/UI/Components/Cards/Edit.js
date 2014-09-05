@@ -51,23 +51,7 @@ Clipperz.PM.UI.Components.Cards.Edit = React.createClass({
 	fields: function () {
 		return this.props['fields'];
 	},
-/*	
-	sortedFields: function () {
-		var	result;
-		var	from =	this.state['fromFieldPosition'];
-		var	to = 	this.state['toFieldPosition'];
 
-//		console.log("FIELDS", this.fields());
-		if ((from != -1) && (to != -1) && (from != to)) {
-			result = MochiKit.Base.clone(this.fields());
-			result.splice(to, 0, result.splice(from, 1)[0]);
-		} else {
-			result = this.fields();
-		}
-		
-		return result;
-	},
-*/
 	//============================================================================
 
 	positionOfField: function (aFieldReference) {
@@ -90,16 +74,6 @@ Clipperz.PM.UI.Components.Cards.Edit = React.createClass({
 			'toFieldPosition': -1,
 			'dropPosition': -1
 		}));
-
-//		this.setState({
-//			'draggedFieldReference': fieldReference,
-//			'fromFieldPosition': fieldPosition
-///			'toFieldPosition': 0
-//		});
-		
-//		anEvent.dataTransfer.effectAllowed = 'move';
-//		anEvent.dataTransfer.setData('text/html', this.innerHTML);
-//		anEvent.dropEffect
 	},
 /*
 	drag: function (anEvent) {
@@ -237,7 +211,6 @@ console.log("DROP");	//, anEvent);
 		return function (anEvent) {
 			method(anEvent.target.value);
 			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', reference);
-//			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'refreshCardEditToolbar', reference);
 		};
 	},
 
@@ -383,9 +356,9 @@ console.log("DROP");	//, anEvent);
 			'edit':	true
 		}
 
-//console.log("RENDER CARD EDIT");
+//console.log("RENDER CARD EDIT", this.props['showGlobalMask']);
 		return	React.DOM.div({'className':'editWrapper'}, [
-			React.DOM.div({'className':'mask'}),
+			this.props['showGlobalMask'] ? null : React.DOM.div({'className':'mask'}),
 			React.DOM.div({'className':React.addons.classSet(classes)},[
 				Clipperz.PM.UI.Components.Cards.EditToolbar(this.props),
 				React.DOM.div({'className':'content'}, [

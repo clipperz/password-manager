@@ -31,7 +31,8 @@ Clipperz.PM.UI.Components.Cards.Detail = React.createClass({
 		result = this.props['selectedCard'];
 		if (result) {
 			result['style'] = this.props['style'];
-			result['ask'] = this.props['ask'];
+			result['ask'] = (this.props['style'] == 'narrow') ? this.props['ask'] : null;
+			result['showGlobalMask'] = this.props['showGlobalMask'];
 		}
 		
 		return result;

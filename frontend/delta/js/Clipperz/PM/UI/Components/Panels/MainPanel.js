@@ -93,30 +93,6 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 	},
 
 	//----------------------------------------------------------------------------
-/*
-	viewComponentProps: function () {
-		var	result;
-		
-		result = this.props['selectedCard'];
-		if (result) {
-			result['style'] = this.props['style'];
-		}
-		
-		return result;
-	},
-	
-	renderCardDetail: function () {
-		var	result;
-//console.log("PROPS", this.props);
-		if (this.props['mode'] == 'edit') {
-			result = Clipperz.PM.UI.Components.Cards.Edit(this.viewComponentProps());
-		} else {
-			result = Clipperz.PM.UI.Components.Cards.View(this.viewComponentProps());
-		}
-		
-		return result;
-	},
-*/
 
 	renderCardDetail: function () {
 		return Clipperz.PM.UI.Components.Cards.Detail(this.props);
@@ -190,7 +166,7 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 	},
 
 	render: function () {
-//console.log("MainPanel.cards", this.props['ask']);
+//console.log("MainPanel.render", this.props['showGlobalMask']);
 		var	classes = {
 			'panel':	true,
 			'left':		this.props['selectionPanelStatus'] == 'OPEN',

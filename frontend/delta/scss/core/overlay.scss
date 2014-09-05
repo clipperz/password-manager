@@ -1,6 +1,16 @@
 @import "mixin";
 
 div.overlay {
+	@include mask;
+
+	.mask {
+		position: fixed;
+		z-index: -2;
+		
+		&.hidden {
+			display: none;
+		}
+	}
 	z-index: 99999;
 	position: fixed;
 	top: 50%;
