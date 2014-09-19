@@ -159,6 +159,7 @@
 		"Clipperz/PM/UI/Components/Cards/Edit.js",
 		"Clipperz/PM/UI/Components/Cards/CommandToolbar.js",
 		"Clipperz/PM/UI/Components/Cards/EditToolbar.js",
+		"Clipperz/PM/UI/Components/Cards/TagEditor.js",
 
 		"Clipperz/PM/UI/Components/AccountStatus.js",
 

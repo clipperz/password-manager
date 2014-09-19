@@ -78,15 +78,16 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 
 	//............................................................................
 
-	renderTag: function (aTag) {
-		return	React.DOM.div({'className':'cardTag'}, aTag);
-	},
+//	renderTag: function (aTag) {
+//		return	React.DOM.div({'className':'cardTag'}, aTag);
+//	},
 	
 	renderTags: function (someTags) {
 		var	tags;
 
 		tags = MochiKit.Base.filter(Clipperz.PM.DataModel.Record.isRegularTag, someTags).sort(Clipperz.Base.caseInsensitiveCompare);
-		return	React.DOM.div({'className':'cardTags'}, MochiKit.Base.map(this.renderTag, tags));
+//		return	React.DOM.div({'className':'cardTags'}, MochiKit.Base.map(this.renderTag, tags));
+		return	Clipperz.PM.UI.Components.Cards.TagEditor({'selectedTags':tags, 'readOnly':true });
 	},
 
 	//............................................................................

@@ -224,27 +224,10 @@ $cardViewBasePadding: 10px;
 		padding: $cardViewBasePadding;
 	}
 
-	.cardTags {
-		@include flexbox();
-		@include flex-direction(row);
-		@include align-items(flex-start);
-		
+	.tagEditor {
 		padding: $cardViewBasePadding;
-
-		.cardTag {
-			@include flex(none);
-			font-size: 14pt;
-			padding-right: 10px;
-			
-			&:before {
-				content: 'tag';
-				@include icon-font();
-				font-size: 10pt;
-				padding-right: 4px;
-			}
-		}
 	}
-	
+
 	.cardNotes {
 		padding: $cardViewBasePadding;
 	}
@@ -281,7 +264,9 @@ $cardViewBasePadding: 10px;
 				}
 			}
 
-		
+			.removeField {
+				cursor: pointer;
+			}
 		}
 
 		.fieldAction {
@@ -296,6 +281,10 @@ $cardViewBasePadding: 10px;
 			font-size: 20pt;
 		}
 
+	}
+
+	.newCardField {
+		cursor: pointer;
 	}
 
 	.cardDirectLogin {

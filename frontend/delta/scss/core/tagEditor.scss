@@ -1,0 +1,31 @@
+.tagEditor {
+
+	&.readWrite {
+		border: 1px solid red;
+	}
+
+	ul {
+		@include flexbox();
+		@include flex-direction(row);
+		@include align-items(flex-start);
+
+		li.tag {
+			@include flex(none);
+			font-size: 14pt;
+			padding-right: 10px;
+		
+			&:before {
+				content: 'tag';
+				@include icon-font();
+				font-size: 10pt;
+				padding-right: 4px;
+			}
+			
+			span.tagRemoveButton {
+				@include icon-font();
+				color: gray;
+				cursor: pointer;
+			}
+		}
+	}
+}

@@ -243,15 +243,13 @@ console.log("DROP");	//, anEvent);
 
 	//............................................................................
 
-	renderTag: function (aTag) {
-		return	React.DOM.div({'className':'cardTag'}, aTag);
-	},
-	
 	renderTags: function (someTags) {
 		var	tags;
+		var	allTags;
 
 		tags = MochiKit.Base.filter(Clipperz.PM.DataModel.Record.isRegularTag, someTags).sort(Clipperz.Base.caseInsensitiveCompare);
-		return	React.DOM.div({'className':'cardTags'}, MochiKit.Base.map(this.renderTag, tags));
+		allTags = tags;
+		return	Clipperz.PM.UI.Components.Cards.TagEditor({'selectedTags':tags, 'allTags':allTags, 'readOnly':false });
 	},
 
 	//............................................................................

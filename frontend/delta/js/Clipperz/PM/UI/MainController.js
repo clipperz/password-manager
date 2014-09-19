@@ -56,38 +56,18 @@ Clipperz.PM.UI.MainController = function() {
 	]);
 
 	this.registerForNotificationCenterEvents([
-		'doLogin',
-		'registerNewUser',
-		'showRegistrationForm',
-		'goBack',
-			
-		'toggleSelectionPanel',
-		'toggleSettingsPanel',
-			
-		'matchMediaQuery',
-		'unmatchMediaQuery',
-		
-		'selectAllCards',
-		'selectRecentCards',
-		'tagSelected',
-		'selectUntaggedCards',
-
+		'doLogin', 'registerNewUser', 'showRegistrationForm', 'goBack',
+		'toggleSelectionPanel', 'toggleSettingsPanel',
+		'matchMediaQuery', 'unmatchMediaQuery',
+		'selectAllCards', 'selectRecentCards', 'tagSelected', 'selectUntaggedCards',
 		'refreshCardEditDetail',
 //		'refreshCardEditToolbar',
-		'saveCardEdits',
-		'cancelCardEdits',
-
+		'saveCardEdits', 'cancelCardEdits',
 		'cardSelected',
-		
 		'addCardClick',
-		'deleteCard',
-		'archiveCard',
-		'cloneCard',
-		'editCard',
-		
-		'showArchivedCards',
-		'hideArchivedCards',
-		
+		'deleteCard', 'archiveCard', 'cloneCard', 'editCard',
+		'addTag', 'removeTag',
+		'showArchivedCards', 'hideArchivedCards',
 		'goBackToMainPage',
 		'maskClick',
 	]);
@@ -626,9 +606,14 @@ console.log("SET USER", aUser);
 		return aValue;
 	},
 
+	allTags: function (shouldIncludeArchivedCards) {
+		return this.user().getTags(shouldIncludeArchivedCards);
+	},
+	
 	renderTags: function () {
 		return Clipperz.Async.callbacks("MainController.renderTags", [
-			MochiKit.Base.method(this.user(), 'getTags', this.shouldIncludeArchivedCards()),
+//			MochiKit.Base.method(this.user(), 'getTags', this.shouldIncludeArchivedCards()),
+			MochiKit.Base.method(this, 'allTags', this.shouldIncludeArchivedCards()),
 			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'tags'),
 			MochiKit.Base.method(this, 'getArchivedCardsCount'),
 			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'archivedCardsCount'),
@@ -1046,9 +1031,10 @@ console.log("SET USER", aUser);
 			MochiKit.Base.method(this.user(), 'createNewRecord'),
 			MochiKit.Base.methodcaller('reference'),
 			MochiKit.Base.method(this, 'refreshUI'),
-			MochiKit.Base.bind(function () {
-				this.pages()[this.currentPage()].setProps({'mode': 'edit'});
-			}, this),
+//			MochiKit.Base.bind(function () {
+//				this.pages()[this.currentPage()].setProps({'mode': 'edit'});
+//			}, this),
+			MochiKit.Base.method(this, 'enterEditMode'),
 		], {trace:false});
 	},
 
@@ -1092,9 +1078,55 @@ console.log("SET USER", aUser);
 		], {trace:false});
 	},
 	
+	enterEditMode: function () {
+		var	currentPage = this.pages()[this.currentPage()];
+
+		currentPage.setProps({'mode': 'edit'});
+		
+		return Clipperz.Async.callbacks("MainController.enterEditMode", [
+			MochiKit.Base.method(this, 'allTags', true),
+			MochiKit.Base.keys,
+			function (aValue) {
+				currentPage.setProps({'allTags': aValue});
+			},
+		], {trace:false});
+		
+	},
+	
 	editCard_handler: function (anEvent) {
 //console.log("EDIT CARD", anEvent['reference']);
-		this.pages()[this.currentPage()].setProps({'mode': 'edit'});
+//		this.pages()[this.currentPage()].setProps({'mode': 'edit'});
+		this.enterEditMode();
+	},
+
+	addTag_handler: function (anEvent) {
+		var	record = this.pages()[this.currentPage()].props['selectedCard']['_record'];
+		var	tag = anEvent;
+		var	deferredResult;
+
+		deferredResult = new Clipperz.Async.Deferred('MainController.addTag', {trace:false});
+		deferredResult.addMethod(record, 'addTag', tag);
+		deferredResult.addMethod(this, 'collectRecordInfo', record);
+		deferredResult.addMethod(this, 'setPageProperties', this.currentPage(), 'selectedCard');
+//		deferredResult.addMethod(this, 'refreshCurrentPage');
+		deferredResult.callback();
+		
+		return deferredResult;
+	},
+	
+	removeTag_handler: function (anEvent) {
+		var	record = this.pages()[this.currentPage()].props['selectedCard']['_record'];
+		var	tag = anEvent;
+		var	deferredResult;
+
+		deferredResult = new Clipperz.Async.Deferred('MainController.removeTag', {trace:false});
+		deferredResult.addMethod(record, 'removeTag', tag);
+		deferredResult.addMethod(this, 'collectRecordInfo', record);
+		deferredResult.addMethod(this, 'setPageProperties', this.currentPage(), 'selectedCard');
+//		deferredResult.addMethod(this, 'refreshCurrentPage');
+		deferredResult.callback();
+		
+		return deferredResult;
 	},
 
 	goBackToMainPage_handler: function (anEvent) {
