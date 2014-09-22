@@ -48,27 +48,36 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 		}
 	},
 
+	handleSearchChange: function (anEvent) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'search', anEvent.currentTarget.value);
+	},
+	
 	render: function () {
 		var	tagInfo;
 		var	tags;
 		var	archivedCardsCount;
+		var	selectedCardCount;
+		var	filterType;
 
 		tagInfo = this.props['tags'] ? this.props['tags'] : {};
 		tags = MochiKit.Base.filter(Clipperz.PM.DataModel.Record.isRegularTag, MochiKit.Base.keys(tagInfo)).sort(Clipperz.Base.caseInsensitiveCompare);
-
-//		archivedCardsCount = tagInfo[Clipperz.PM.DataModel.Record.archivedTag] ? tagInfo[Clipperz.PM.DataModel.Record.archivedTag] : 0;
 		archivedCardsCount = this.props['archivedCardsCount'];
+		selectedCardCount = this.props['cards'] ? this.props['cards'].length : 0;
+		filterType = (this.props['filter'] && this.props['filter']['type']) ? this.props['filter']['type'] : 'ALL';
 
-		return	React.DOM.div({'key':'selections', 'id':'selections'}, [
+		return	React.DOM.div({'key':'selections', 'id':'selections', 'className':filterType}, [
 			React.DOM.ul({'className':'defaultSet'}, [
-				React.DOM.li({'className':'allCards', onClick: this.selectAll}, "All"),
-				React.DOM.li({'className':'recentCards', onClick: this.selectRecent}, "Recent"),
-				React.DOM.li({'className':'untaggedCards', onClick: this.selectUntaggedCards}, "Untagged - " + this.props['untaggedCardsCount'])
+				React.DOM.li({'className':'allCards', 'onClick': this.selectAll}, "All"),
+				React.DOM.li({'className':'recentCards', 'onClick': this.selectRecent}, "Recent"),
+				React.DOM.li({'className':'untaggedCards', 'onClick': this.selectUntaggedCards}, "Untagged - " + this.props['untaggedCardsCount'])
 			]),
 			React.DOM.div({'className':'search'}, [
 				React.DOM.form({'className':'searchForm'}, [
-					React.DOM.label({'htmlFor':'searchValue'}, 'search'),
-					React.DOM.input({'type':'text', 'id':'searchValue', 'name':'search'})
+					React.DOM.div({}, [
+						React.DOM.label({'htmlFor':'searchValue'}, 'search'),
+						React.DOM.input({'type':'text', 'id':'searchValue', 'onFocus':this.handleSearchChange, 'onChange':this.handleSearchChange, 'name':'search'})
+					]),
+					React.DOM.div({}, [ React.DOM.span({'className':'count'}, selectedCardCount) ])
 				])
 			]),
 			React.DOM.ul({'className':'tagList'}, MochiKit.Base.map(function (aTag) {return Clipperz.PM.UI.Components.TagIndexItem({'label':aTag, 'count':tagInfo[aTag]}); }, tags)),

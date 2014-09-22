@@ -59,7 +59,7 @@ Clipperz.PM.UI.MainController = function() {
 		'doLogin', 'registerNewUser', 'showRegistrationForm', 'goBack',
 		'toggleSelectionPanel', 'toggleSettingsPanel',
 		'matchMediaQuery', 'unmatchMediaQuery',
-		'selectAllCards', 'selectRecentCards', 'tagSelected', 'selectUntaggedCards',
+		'selectAllCards', 'selectRecentCards', 'search', 'tagSelected', 'selectUntaggedCards',
 		'refreshCardEditDetail',
 //		'refreshCardEditToolbar',
 		'saveCardEdits', 'cancelCardEdits',
@@ -1143,6 +1143,17 @@ console.log("SET USER", aUser);
 	
 	selectRecentCards_handler: function () {
 		this.setFilter('RECENT');
+		return this.refreshSelectedCards();
+	},
+
+	search_handler: function (aValue) {
+//console.log("SEARCH", aValue);
+		if (aValue == "") {
+			this.setFilter('ALL');
+		} else {
+			this.setFilter('SEARCH', aValue);
+		}
+
 		return this.refreshSelectedCards();
 	},
 

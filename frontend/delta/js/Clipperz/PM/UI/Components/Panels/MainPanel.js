@@ -156,8 +156,8 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 			result = this.renderWide();
 		} else if (aLayout == 'narrow') {
 			result = this.renderNarrow();
-		} else if (aLayout == 'extra-short') {
-			result = this.renderNarrow();
+//		} else if (aLayout == 'extra-short') {
+//			result = this.renderNarrow();
 		} else {
 			Clipperz.Base.exception.raise('UnknownType');
 		}
