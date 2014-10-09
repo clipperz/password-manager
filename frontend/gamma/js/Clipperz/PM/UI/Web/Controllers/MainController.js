@@ -190,7 +190,7 @@ MochiKit.Base.update(Clipperz.PM.UI.Web.Controllers.MainController.prototype, {
 	//-----------------------------------------------------------------------------
 
 	'handleLogout': function(anEvent) {
-		this.exit('logout.html');
+		this.exit('exit.html');
 	},
 
 	//-----------------------------------------------------------------------------

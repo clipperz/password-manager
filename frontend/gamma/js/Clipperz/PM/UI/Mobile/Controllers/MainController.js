@@ -350,7 +350,7 @@ MochiKit.Base.update(Clipperz.PM.UI.Mobile.Controllers.MainController.prototype,
 	'selectCardHandler': function (aCardReference) {
 		var deferredResult;
 
-		deferredResult = new Clipperz.Async.Deferred("MainController.selectCardHandler", {trace:true});
+		deferredResult = new Clipperz.Async.Deferred("MainController.selectCardHandler", {trace:false});
 		deferredResult.addMethod(this.cardDetail(), 'render');
 		deferredResult.addMethod(this.user(), 'getRecord', aCardReference);
 		deferredResult.addMethod(this.cardDetail(), 'showCard');

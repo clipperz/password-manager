@@ -105,9 +105,11 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record.Version.Field, Object, {
 				if (someValues['isHidden']) {
 					result = 'PASSWORD';
 				} else if (Clipperz.Base.isUrl(someValues['value'])) {
-					result = 'URL'
+					result = 'URL';
+//				} else if (Clipperz.Base.isBitcoin(someValues['value'])) {
+//					result = 'BITCOIN';
 				} else if (Clipperz.Base.isEmail(someValues['value'])) {
-					result = 'EMAIL'
+					result = 'EMAIL';
 				};
 
 				return result;

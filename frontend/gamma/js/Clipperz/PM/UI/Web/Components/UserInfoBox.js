@@ -110,7 +110,6 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.UserInfoBox, Clipperz.PM.UI.C
 		
 		deferredResult = Clipperz.Async.callbacks("UserInfoBox.unlock", [
 			MochiKit.Base.partial(Clipperz.Visual.deferredAnimation, MochiKit.Visual.fade, maskElement, {from:0.75, to:0.0, duration:0.5}),
-//			Clipperz.Visual.deferredAnimation(MochiKit.Visual.fade, maskElement, {from:0.75, to:0.0, duration:0.5}),
 			MochiKit.Base.partial(MochiKit.DOM.removeElementClass, this.element(), 'locked')
 		], {trace:false});
 	},
@@ -119,16 +118,7 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.UserInfoBox, Clipperz.PM.UI.C
 
 	'askForPassphrase': function () {
 		var	unlockPasswordComponent;
-/*
-		var	deferredResult;
-		
-		deferredResult = new Clipperz.Async.Deferred("UserInfoBox.askForPassphrase", {trace:false});
-		deferredResult.addCallback(MochiKit.Async.succeed, 'test');
-		
-		deferredResult.callback();
-		
-		return deferredResult;
-*/
+
 		unlockPasswordComponent = new Clipperz.PM.UI.Web.Components.UnlockPasswordComponent({
 			'title':	"Unlock account",
 			'text':		"Insert the passprase to unlock the account",
@@ -166,9 +156,12 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.UserInfoBox, Clipperz.PM.UI.C
 						{tag:'span', id:this.getId('directLoginsLabel'), html:"direct logins"}
 					]}
 				]},
+//				{tag:'div', cls:'accountInfo', id:this.getId('accountInfo'), children:[
+//					{tag:'h5', html:"Account info"},
+//				]},
 				{tag:'div', cls:'accountInfo', children:[
 					{tag:'div', cls:'payButton', children:[
-						{tag:'a', href:'#', id:this.getId('payButton'), cls:'info', html:"info"}
+						{tag:'a', href:'#', id:this.getId('infoButton'), cls:'info', html:"info"}
 					]},
 					{tag:'h5', html:"Account info"},
 					{tag:'div', cls:'accountStatus', children:[
@@ -177,12 +170,10 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.UserInfoBox, Clipperz.PM.UI.C
 					]},
 					{tag:'div', cls:'accountLevel', children:[
 						{tag:'span', cls:'label', html:"level"},
-//						{tag:'span', cls:'level', html:"★☆☆☆"}
 						{tag:'span', cls:'level', html:"☆☆☆☆"}
 					]},
 					{tag:'div', cls:'accountExpiration', children:[
 						{tag:'span', cls:'label', html:"expires"},
-//						{tag:'span', cls:'expriation', html:"on 26 April 2014"}
 						{tag:'span', cls:'expriation', html:"never"}
 					]}
 				]},
@@ -193,7 +184,7 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.UserInfoBox, Clipperz.PM.UI.C
 
 		MochiKit.Signal.connect(this.getElement('logout'),		'onclick', this, 'handleLogout');
 		MochiKit.Signal.connect(this.getElement('lock'),		'onclick', this, 'toggleLock');
-		MochiKit.Signal.connect(this.getElement('payButton'),	'onclick', this, 'handlePayButton');
+		MochiKit.Signal.connect(this.getElement('infoButton'),	'onclick', this, 'handleInfoButton');
 
 		this._lockTooltip = new Clipperz.PM.UI.Common.Components.Tooltip({
 			element:	this.getElement('lock'),
@@ -207,149 +198,21 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.UserInfoBox, Clipperz.PM.UI.C
 			]}
 		);
 		MochiKit.Style.hideElement(this.getId('modalDialogMask'));
-		
-//		this.drawUserInfoBackground(this.getElement('canvas'));
 	},
 
 	//-------------------------------------------------------------------------
 
-	'handlePayButton': function (anEvent) {
+	'handleInfoButton': function (anEvent) {
 		anEvent.preventDefault();
 		window.open('https://www.clipperz.com/pricing/', '_blank');
 	},
 
-	//-------------------------------------------------------------------------
-/*
-	'drawUserInfoBackground': function (canvas) {
-		var kMyDrawingFunctionWidth = 188.0;
-		var kMyDrawingFunctionHeight = 154.0;
-
-		var context = canvas.getContext("2d");
-		var color;
-		var resolution;
-		var alignStroke;
-		var path;
-		var pointX;
-		var pointY;
-		var controlPoint1X;
-		var controlPoint1Y;
-		var controlPoint2X;
-		var controlPoint2Y;
-		var gradient;
-		if (window.devicePixelRatio)
-			resolution = window.devicePixelRatio;
-		else
-			resolution = 1.0;
-		resolution *= 0.5 * (canvas.width / kMyDrawingFunctionWidth + canvas.height / kMyDrawingFunctionHeight);
-	
-		context.save();
-		context.scale(canvas.width / kMyDrawingFunctionWidth, canvas.height / kMyDrawingFunctionHeight);
-		context.clearRect(0.0, 0.0, kMyDrawingFunctionWidth, kMyDrawingFunctionHeight);
-	
-		// Setup for Shadow Effect
-		color = "rgba(0.0%, 0.0%, 0.0%, 0.667)";
-		context.save();
-		context.shadowColor = color;
-		context.shadowBlur = 3.0;
-		context.shadowOffsetX = 5.729 * Math.cos(7.592) * resolution;
-		context.shadowOffsetY = 5.729 * Math.sin(7.592) * resolution;
-	
-		// Layer 1
-	
-		alignStroke = 0.0;
-		context.beginPath();
-		pointX = 169.5;
-		pointY = 141.5;
-		pointX = (Math.round(resolution * pointX + alignStroke) - alignStroke) / resolution;
-		pointY = (Math.round(resolution * pointY + alignStroke) - alignStroke) / resolution;
-		context.moveTo(pointX, pointY);
-		pointX = 177.5;
-		pointY = 133.5;
-		pointX = (Math.round(resolution * pointX + alignStroke) - alignStroke) / resolution;
-		pointY = (Math.round(resolution * pointY + alignStroke) - alignStroke) / resolution;
-		controlPoint1X = 173.889;
-		controlPoint1Y = 141.5;
-		controlPoint1X = (Math.round(resolution * controlPoint1X + alignStroke) - alignStroke) / resolution;
-		controlPoint1Y = (Math.round(resolution * controlPoint1Y + alignStroke) - alignStroke) / resolution;
-		controlPoint2X = 177.5;
-		controlPoint2Y = 137.889;
-		controlPoint2X = (Math.round(resolution * controlPoint2X + alignStroke) - alignStroke) / resolution;
-		controlPoint2Y = (Math.round(resolution * controlPoint2Y + alignStroke) - alignStroke) / resolution;
-		context.bezierCurveTo(controlPoint1X, controlPoint1Y, controlPoint2X, controlPoint2Y, pointX, pointY);
-		pointX = 177.5;
-		pointY = 19.5;
-		pointX = (Math.round(resolution * pointX + alignStroke) - alignStroke) / resolution;
-		pointY = (Math.round(resolution * pointY + alignStroke) - alignStroke) / resolution;
-		context.lineTo(pointX, pointY);
-		pointX = 169.5;
-		pointY = 11.5;
-		pointX = (Math.round(resolution * pointX + alignStroke) - alignStroke) / resolution;
-		pointY = (Math.round(resolution * pointY + alignStroke) - alignStroke) / resolution;
-		controlPoint1X = 177.5;
-		controlPoint1Y = 15.111;
-		controlPoint1X = (Math.round(resolution * controlPoint1X + alignStroke) - alignStroke) / resolution;
-		controlPoint1Y = (Math.round(resolution * controlPoint1Y + alignStroke) - alignStroke) / resolution;
-		controlPoint2X = 173.889;
-		controlPoint2Y = 11.5;
-		controlPoint2X = (Math.round(resolution * controlPoint2X + alignStroke) - alignStroke) / resolution;
-		controlPoint2Y = (Math.round(resolution * controlPoint2Y + alignStroke) - alignStroke) / resolution;
-		context.bezierCurveTo(controlPoint1X, controlPoint1Y, controlPoint2X, controlPoint2Y, pointX, pointY);
-		pointX = 18.5;
-		pointY = 11.5;
-		pointX = (Math.round(resolution * pointX + alignStroke) - alignStroke) / resolution;
-		pointY = (Math.round(resolution * pointY + alignStroke) - alignStroke) / resolution;
-		context.lineTo(pointX, pointY);
-		pointX = 10.5;
-		pointY = 19.5;
-		pointX = (Math.round(resolution * pointX + alignStroke) - alignStroke) / resolution;
-		pointY = (Math.round(resolution * pointY + alignStroke) - alignStroke) / resolution;
-		controlPoint1X = 14.111;
-		controlPoint1Y = 11.5;
-		controlPoint1X = (Math.round(resolution * controlPoint1X + alignStroke) - alignStroke) / resolution;
-		controlPoint1Y = (Math.round(resolution * controlPoint1Y + alignStroke) - alignStroke) / resolution;
-		controlPoint2X = 10.5;
-		controlPoint2Y = 15.111;
-		controlPoint2X = (Math.round(resolution * controlPoint2X + alignStroke) - alignStroke) / resolution;
-		controlPoint2Y = (Math.round(resolution * controlPoint2Y + alignStroke) - alignStroke) / resolution;
-		context.bezierCurveTo(controlPoint1X, controlPoint1Y, controlPoint2X, controlPoint2Y, pointX, pointY);
-		pointX = 10.5;
-		pointY = 133.5;
-		pointX = (Math.round(resolution * pointX + alignStroke) - alignStroke) / resolution;
-		pointY = (Math.round(resolution * pointY + alignStroke) - alignStroke) / resolution;
-		context.lineTo(pointX, pointY);
-		pointX = 18.5;
-		pointY = 141.5;
-		pointX = (Math.round(resolution * pointX + alignStroke) - alignStroke) / resolution;
-		pointY = (Math.round(resolution * pointY + alignStroke) - alignStroke) / resolution;
-		controlPoint1X = 10.5;
-		controlPoint1Y = 137.889;
-		controlPoint1X = (Math.round(resolution * controlPoint1X + alignStroke) - alignStroke) / resolution;
-		controlPoint1Y = (Math.round(resolution * controlPoint1Y + alignStroke) - alignStroke) / resolution;
-		controlPoint2X = 14.111;
-		controlPoint2Y = 141.5;
-		controlPoint2X = (Math.round(resolution * controlPoint2X + alignStroke) - alignStroke) / resolution;
-		controlPoint2Y = (Math.round(resolution * controlPoint2Y + alignStroke) - alignStroke) / resolution;
-		context.bezierCurveTo(controlPoint1X, controlPoint1Y, controlPoint2X, controlPoint2Y, pointX, pointY);
-		pointX = 169.5;
-		pointY = 141.5;
-		pointX = (Math.round(resolution * pointX + alignStroke) - alignStroke) / resolution;
-		pointY = (Math.round(resolution * pointY + alignStroke) - alignStroke) / resolution;
-		context.lineTo(pointX, pointY);
-		context.closePath();
-		gradient = context.createLinearGradient(94.0, 11.5, 94.0, 141.5);
-		color = "#EE9B69";
-		gradient.addColorStop(0.0, color);
-		color = "#E38D62";
-		gradient.addColorStop(1.0, color);
-		context.fillStyle = gradient;
-		context.fill();
-	
-		// Shadow Effect
-		context.restore();
-	
-		context.restore();
+	'handlePayButton': function (anEvent) {
+		anEvent.preventDefault();
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'makePayment', anEvent);
 	},
-*/
+
+
 	//-------------------------------------------------------------------------
 
 	'updateUserDetails': function (someUserInfo) {
@@ -360,6 +223,103 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.UserInfoBox, Clipperz.PM.UI.C
 		}
 	},
 
+	'numberOfStarsMatchingActiveLevel': function (aValue) {
+		var	maxLevel = 15;
+		var	value;
+		var	result;
+
+		value = Math.min(aValue, maxLevel);
+		result = value / maxLevel * 5;
+		
+		return result;
+	},
+	
+	'starsLabel': function(numberOfActiveStars) {
+		var	result;
+		var	i;
+		
+		//	"★☆☆☆"
+		result = "";
+		for (i=0; i<5; i++) {
+			if (i < numberOfActiveStars) {
+				result = result + "★";
+			} else {
+				result = result + "☆";
+			}
+		}
+		
+		return result;
+	},
+/*
+	'updateCurrentSubscriptionDetails': function (anAccountInfo) {
+//console.log("AccountInfo", anAccountInfo);
+		var	subscriptionLevel					= anAccountInfo.latestActiveLevel();
+
+		var	expireLabel;
+		var	formattedDate;
+
+		if (anAccountInfo.expirationDate() == Clipperz.Date.distantFuture) {
+			formattedDate = "never";
+		} else {
+			formattedDate = Clipperz.PM.Date.formatDateWithTemplate(anAccountInfo.expirationDate(), "D, d M Y");
+		}
+
+		this.append(this.getElement('accountInfo'), [
+			{tag:'div', cls:'accountStatus', children:[
+				{tag:'span', cls:'label', html:"status"},
+				{tag:'span', cls:'status', html:anAccountInfo.status()}
+			]}
+		]);
+
+		if (anAccountInfo.isExpired()) {
+			expireLabel = "expired";
+		} else {
+			expireLabel = "expires";
+		}
+		
+		this.append(this.getElement('accountInfo'), [
+
+			{tag:'div', cls:'accountLevel', children:[
+				{tag:'span', cls:'label', html:"level"},
+				{tag:'span', cls:'level', html:this.starsLabel(this.numberOfStarsMatchingActiveLevel(anAccountInfo.latestActiveThreshold()))}
+			]},
+
+			{tag:'div', cls:'accountExpiration', children:[
+				{tag:'span', cls:'label', html:expireLabel},
+				{tag:'span', cls:'expriation', html:formattedDate}
+			]}
+		]);
+
+		if (anAccountInfo.isExpired() || anAccountInfo.isExpiring()) {
+			var	buttonLabel;
+
+			if (anAccountInfo.paymentVerificationPending()) {
+				buttonLabel = "Verify payment";
+			} else {
+				if (subscriptionLevel == 'TRIAL') {
+					buttonLabel = "Subscribe";
+				} else if (subscriptionLevel == 'EARLY_ADOPTER') {
+					buttonLabel = "Donate";
+				} else if (subscriptionLevel == 'PATRON') {
+					buttonLabel = "Donate";
+				} else if (subscriptionLevel == 'PAYMENT_PENDING') {
+					buttonLabel = "Verify payment";
+				} else {
+					buttonLabel = "Renew subscription";
+				}
+			}
+
+			this.append(this.getElement('accountInfo'), [
+				{tag:'div', cls:'payButton', children:[
+					{tag:'a', href:'#', id:this.getId('payButton'), cls:'info', html:buttonLabel}
+				]},
+			]);			
+
+			MochiKit.Signal.connect(this.getElement('payButton'),	'onclick', this, 'handlePayButton');
+
+		}
+	},
+*/
 	//-------------------------------------------------------------------------
 	__syntaxFix__: "syntax fix"
 });

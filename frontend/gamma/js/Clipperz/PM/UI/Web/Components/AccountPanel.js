@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Web.Components');
 Clipperz.PM.UI.Web.Components.AccountPanel = function(args) {
 	args = args || {};
 
+	this._credentialVefificationFunction = args['credentialVefificationFunction'];
+
 	Clipperz.PM.UI.Web.Components.AccountPanel.superclass.constructor.apply(this, arguments);
 
 //	this._initiallySelectedTab = args.selected || 'ACCOUNT';
@@ -50,6 +52,10 @@ Clipperz.PM.UI.Web.Components.AccountPanel = function(args) {
 		'LOGIN_HISTORY': {
 			tab:	'loginHistoryTab',
 			panel:	'loginHistoryPanel'
+		},
+		'DELETE_ACCOUNT': {
+			tab:	'deleteAccountTab',
+			panel:	'deleteAccountPanel'
 		}
 	};
 
@@ -78,7 +84,8 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.AccountPanel, Clipperz.PM.UI.
 						{tag:'li', id:this.getId('passphraseTab'),		children:[{tag:'a', href:'#', html:'Passphrase'}], cls:'first'},
 						{tag:'li', id:this.getId('OTPTab'),				children:[{tag:'a', href:'#', html:'One Time Passwords'}]},
 						{tag:'li', id:this.getId('preferencesTab'),		children:[{tag:'a', href:'#', html:'Preferences'}]},
-						{tag:'li', id:this.getId('loginHistoryTab'),	children:[{tag:'a', href:'#', html:'Login history'}]}
+						{tag:'li', id:this.getId('loginHistoryTab'),	children:[{tag:'a', href:'#', html:'Login history'}]},
+						{tag:'li', id:this.getId('deleteAccountTab'),	children:[{tag:'a', href:'#', html:'Delete account'}]}
 					]}
 				]}
 			]},
@@ -130,6 +137,30 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.AccountPanel, Clipperz.PM.UI.
 							]},
 							{tag:'li', id:this.getId('loginHistoryPanel'),		children:[
 //								{tag:'h3', html:"-- Login History --"}
+							]},
+							{tag:'li', id:this.getId('deleteAccountPanel'),		children:[
+								{tag:'h3', cls:'deleteAccount', html:"Delete your account"},
+								{tag:'form', id:this.getId('deleteAccountForm'), cls:'deleteAccount', children:[
+									{tag:'div', cls:'currentCredentials', children:[
+										{tag:'div', cls:'field username', children:[
+											{tag:'label', html:"username", 'for':this.getId('deleteAccount_currentUsername')},
+											{tag:'input', id:this.getId('deleteAccount_currentUsername')}
+										]},
+										{tag:'div', cls:'field passphrase', children:[
+											{tag:'label', html:"passphrase", 'for':this.getId('deleteAccount_currentPassphrase')},
+											{tag:'input', type:'password', id:this.getId('deleteAccount_currentPassphrase')}
+										]},
+										{tag:'div', cls:'confirm', children:[
+											{tag:'input', type:'checkbox', id:this.getId('deleteAccount_checkbox')},
+											{tag:'label', html:"I understand that all my data will be deleted and that this action is irreversible", 'for':this.getId('deleteAccount_checkbox')}
+										]}
+									]}
+								]},
+								{tag:'div', cls:'clear'},
+								{tag:'div', cls:'confirmButton', id:this.getId('confirmationButton'), children:[
+									{tag:'a', id:this.getId('deleteAccountButton'), href:'#', html:"Delete my account", cls:'deleteAccountButton disabled'}
+								]}
+
 							]}
 						]}
 					]}
@@ -139,8 +170,56 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.AccountPanel, Clipperz.PM.UI.
 		]);
 		
 		this.tabPanelController().setup({selected:this.initiallySelectedTab()});
+		MochiKit.Signal.connect(this.getId('deleteAccountButton'),	'onclick',	this,	'deleteAccount');
+
+		MochiKit.Signal.connect(this.getId('deleteAccount_currentUsername'),	'onchange',	this,	'deleteAccountFormChangedValue');
+		MochiKit.Signal.connect(this.getId('deleteAccount_currentUsername'),	'onkeyup',	this,	'deleteAccountFormChangedValue');
+		MochiKit.Signal.connect(this.getId('deleteAccount_currentPassphrase'),	'onchange',	this,	'deleteAccountFormChangedValue');
+		MochiKit.Signal.connect(this.getId('deleteAccount_currentPassphrase'),	'onkeyup',	this,	'deleteAccountFormChangedValue');
+		MochiKit.Signal.connect(this.getId('deleteAccount_checkbox'),			'onchange',	this,	'deleteAccountFormChangedValue');
 	},
 	
+	//-------------------------------------------------------------------------
+
+	'deleteAccount': function (anEvent) {
+console.log("DELETE ACCOUNT");
+
+		anEvent.preventDefault();
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'deleteAccount', this.deleteAccountCredentials());
+	},
+
+	'deleteAccountCredentials': function () {
+		return {
+			username: this.getElement('deleteAccount_currentUsername').value,
+			passphrase: this.getElement('deleteAccount_currentPassphrase').value
+		};
+	},
+
+	'deleteAccountFormChangedValue': function (anEvent) {
+		anEvent.preventDefault();
+
+		if (this.verifyDeleteAccountCredentials()) {
+			MochiKit.DOM.removeElementClass(this.getElement('deleteAccountButton'), 'disabled');
+		} else {
+			MochiKit.DOM.addElementClass(this.getElement('deleteAccountButton'), 'disabled')
+		}
+	},
+
+	'verifyDeleteAccountCredentials': function () {
+		var result;
+		var credentials;
+		var	checkboxChecked;
+
+		result = false;
+		checkboxChecked = this.getElement('deleteAccount_checkbox').checked;
+
+		if (checkboxChecked) {
+			result = this._credentialVefificationFunction(this.deleteAccountCredentials());
+		}
+
+		return result;
+	},
+
 	//-------------------------------------------------------------------------
 
 

@@ -127,19 +127,10 @@ class FrontendBuilder(object):
 
 	def loadFilesContent (self, basePath, files):
 		result = ""
-		
-#		for file in self.filterFiles(files):
-#			try:
-#				fileHandler = codecs.open(self.absolutePathForSourceFile(basePath, file), 'r', 'utf-8')
-#			except:
-#				print "FILE: " + file
-#
-#			result += fileHandler.read() + '\n'
-#			fileHandler.close()
 
-#		for name, content in self.loadIndividualFilesContent(basePath, files):
-		for name, content in list(self.loadIndividualFilesContent(basePath, files).items()):
-			result += content + '\n'
+		fileContent = self.loadIndividualFilesContent(basePath, files)
+		for file in self.filterFiles(files):
+			result += fileContent[file] + '\n'
 		
 		return result
 

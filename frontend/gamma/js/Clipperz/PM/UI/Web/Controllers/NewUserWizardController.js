@@ -320,6 +320,7 @@ MochiKit.Base.update(Clipperz.PM.UI.Web.Controllers.NewUserWizardController.prot
 
 	'done': function () {
 		this.doneWithRuler();
+		this.user().resetAllData();
 		MochiKit.Signal.signal(this, 'done', {'user': this.user()});
 	},
 	

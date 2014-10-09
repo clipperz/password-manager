@@ -82,6 +82,7 @@
 
 		"Clipperz/PM/DataModel/EncryptedRemoteObject.js",
 		"Clipperz/PM/DataModel/User.js",
+		"Clipperz/PM/DataModel/User.AccountInfo.js",
 		"Clipperz/PM/DataModel/User.Header.Legacy.js",
 		"Clipperz/PM/DataModel/User.Header.RecordIndex.js",
 		"Clipperz/PM/DataModel/User.Header.Preferences.js",
@@ -171,6 +172,7 @@
 		"Clipperz/PM/UI/Web/Components/UnlockPasswordComponent.js",
 		"Clipperz/PM/UI/Web/Components/NewUserCreationComponent.js",
 		"Clipperz/PM/UI/Web/Components/PasswordTooltip.js",
+		"Clipperz/PM/UI/Web/Components/PaymentComponent.js",
 
 		"Clipperz/PM/UI/Web/Controllers/MainController.js",
 		"Clipperz/PM/UI/Web/Controllers/LoginController.js",
@@ -182,6 +184,7 @@
 		"Clipperz/PM/UI/Web/Controllers/CardDialogController.js",
 		"Clipperz/PM/UI/Web/Controllers/DirectLoginWizardController.js",
 		"Clipperz/PM/UI/Web/Controllers/NewUserWizardController.js",
+		"Clipperz/PM/UI/Web/Controllers/PaymentController.js",
 
 		"main.js"
 	],

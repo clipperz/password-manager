@@ -394,6 +394,9 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Controllers.CardDialogController, Object
 						
 						window.open(url);
 						break;
+					case 'BITCOIN':
+						window.open(someValues['value']);
+						break;
 					case 'EMAIL':
 						var url;
 						

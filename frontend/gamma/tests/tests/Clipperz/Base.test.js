@@ -338,6 +338,27 @@ var tests = {
 
     //-------------------------------------------------------------------------
 
+	'Clipperz.Base.isBitcoin_test': function () {
+		var	bitcoinTestCases;
+		
+		bitcoinTestCases = [
+			{url:'bitcoin:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W?amount=20.3&label=Luke-Jr',	expectedResult:true},
+			{url:'bitcoin:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W',								expectedResult:true},
+
+			{url:'http://www.clipperz.com',													expectedResult:false},
+			{url:'http://clipperz.com',														expectedResult:false},
+			{}
+		];
+		
+		MochiKit.Base.map(function (someValues) {
+			if (typeof(someValues['url']) != 'undefined') {
+				SimpleTest.is(Clipperz.Base.isBitcoin(someValues['url']), someValues['expectedResult'], "testing url '" + someValues['url'] + "' - expected result: " + someValues['expectedResult']);
+			}
+		}, bitcoinTestCases);
+	},
+	
+    //-------------------------------------------------------------------------
+
 	'Clipperz.Base.isEmail_test': function () {
 		var	emailTestCases;
 		

@@ -132,6 +132,10 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.CardDialogRecordFieldComponen
 				MochiKit.Style.showElement(this.getId('actionLink'));
 				MochiKit.DOM.setElementClass(this.getId('actionLink'), 'url');
 				break;
+			case 'BITCOIN':
+				MochiKit.Style.showElement(this.getId('actionLink'));
+				MochiKit.DOM.setElementClass(this.getId('actionLink'), 'url');
+				break;
 			case 'EMAIL':
 				MochiKit.Style.showElement(this.getId('actionLink'));
 				MochiKit.DOM.setElementClass(this.getId('actionLink'), 'email');

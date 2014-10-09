@@ -342,6 +342,7 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 			var innerDeferredResult;
 
 			if (this._objectDataStore == null) {
+//console.log("EncryptedRemoteObject._getObjectDataStore", this._reference);
 				this._objectDataStore = new Clipperz.KeyValueObjectStore(/*{'name':'EncryptedRemoteObject.objectDataStore [4]'}*/);
 
 				innerDeferredResult = new Clipperz.Async.Deferred("EncryptedRemoteObject._getObjectDataStore <inner deferred>", {trace:false});
@@ -396,9 +397,10 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 		var tempObj = this;
 
 		if (this.isBrandNew()) {
-//			deferredResult = MochiKit.Async.succeed(true);
+//console.log("EncrypedRemoteObject.hasPendingChanges - isBrandNew");
 			deferredResult = this.hasPendingChangesWhenBrandNew();
 		} else if (this.hasInitiatedObjectDataStore()) {
+//console.log("EncrypedRemoteObject.hasPendingChanges - hasInitiatedObjectDataStore == true");
 			deferredResult = new Clipperz.Async.Deferred("EncryptedRemoteObject.hasPendingChanges", {trace:false});
 			deferredResult.collectResults({
 				'decryptedData': [
@@ -416,6 +418,7 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 			});
 			deferredResult.callback();
 		} else {
+//console.log("EncrypedRemoteObject.hasPendingChanges - hasInitiatedObjectDataStore == false");
 			deferredResult = MochiKit.Async.succeed(false);
 		}
 

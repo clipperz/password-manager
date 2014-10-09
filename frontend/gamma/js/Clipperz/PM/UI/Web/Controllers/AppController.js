@@ -49,6 +49,8 @@ Clipperz.PM.UI.Web.Controllers.AppController = function(args) {
 //	MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, 'deleteCard',	this, 'handleDeleteCard');
 
 	MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, 'userDataSuccessfullySaved',	this, 'userDataSuccessfullySavedHandler');
+//	MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, 'makePayment',					this, 'handlePaymentRequest');
+	MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, 'deleteAccount',				this, 'deleteAccount');
 
 	return this;
 }
@@ -125,7 +127,7 @@ MochiKit.Base.update(Clipperz.PM.UI.Web.Controllers.AppController.prototype, {
 
 	'accountPanel': function () {	
 		if (this._accountPanel == null) {
-			this._accountPanel = new Clipperz.PM.UI.Web.Components.AccountPanel(/*{selected:'Preferences'}*/);
+			this._accountPanel = new Clipperz.PM.UI.Web.Components.AccountPanel({credentialVefificationFunction: MochiKit.Base.bind(this.credentialVefificationFunction, this) /*, selected:'Preferences'*/});
 		}
 		
 		return this._accountPanel;
@@ -199,6 +201,10 @@ MochiKit.Base.update(Clipperz.PM.UI.Web.Controllers.AppController.prototype, {
 			]
 		})
 		deferredResult.addMethod(this.userInfoBox(), 'updateUserDetails');
+
+		deferredResult.addMethod(this.user(), 'getCurrentAccountInfo');
+//		deferredResult.addMethod(this.userInfoBox(), 'updateCurrentSubscriptionDetails');
+
 		deferredResult.callback(this.user());
 
 		return deferredResult;
@@ -339,6 +345,64 @@ MochiKit.Base.update(Clipperz.PM.UI.Web.Controllers.AppController.prototype, {
 			deferredResult.addCallback(function(aWindow) {
 				aWindow.location.href = downloadHref;
 			}, newWindow);
+			deferredResult.callback();
+		}
+	},
+
+	//=============================================================================
+/*
+	'handlePaymentRequest': function (anEvent) {
+		var	deferredResult;
+		var paymentController;
+
+console.log("AppController - handlePaymentRequest", anEvent);
+		paymentController = new Clipperz.PM.UI.Web.Controllers.PaymentController({delegate:this});
+		deferredResult = paymentController.run(anEvent.src());
+		
+		return deferredResult;
+	},
+
+	'subscriptionOptions': function () {
+		return 	this.user().connection().message('subscriptionOptions');
+	},
+	
+	'getPaymentSubscriptionInfo': function () {
+		return this.user().connection().message('paymentRequest');
+	},
+	
+	'getPaymentAddress': function (aCurrency, aLevel, aSubscription) {
+		return this.user().connection().message('paymentAddress', { subscription:aSubscription, currency:aCurrency, level:aLevel });
+	},
+*/
+	//=============================================================================
+
+	'credentialVefificationFunction': function (someCredentials) {
+		var	result;
+		var deferredPassphrase;
+
+		result = false;
+
+		deferredPassphrase = this.user().getPassphrase();
+		if (deferredPassphrase.state() == 'success') {
+			result = (someCredentials['passphrase'] == deferredPassphrase.results[0]);
+		}
+
+		result = result && (someCredentials['username'] == this.user().username());
+
+		return result;
+	},
+
+	'deleteAccount': function (someCredentials) {
+		if (this.credentialVefificationFunction(someCredentials)) {
+			var	deferredResult;
+
+			deferredResult = new Clipperz.Async.Deferred("AppController.deleteAccount", {trace:false});
+			deferredResult.addMethod(this.user(), 'deleteAccount');
+			deferredResult.addCallback(MochiKit.Signal.signal, this, 'logout');
+			deferredResult.addErrback(function (anError) {
+				console.log("ERROR", anError);
+			});
+
 			deferredResult.callback();
 		}
 	},

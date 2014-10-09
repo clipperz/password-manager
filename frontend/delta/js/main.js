@@ -80,7 +80,7 @@ function run () {
 
 MochiKit.DOM.addLoadEvent(run);
 
-/* * /
+/* */
 MochiKit.DOM.addLoadEvent(simulateLogin);
 function simulateLogin () {
 	var getURLParameter = function (name) {
@@ -99,4 +99,4 @@ function simulateLogin () {
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'doLogin', {username:getURLParameter('u'), passphrase:getURLParameter('p')});
 	}
 }
-/ * */
+/* */

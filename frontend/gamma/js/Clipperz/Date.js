@@ -283,6 +283,13 @@ MochiKit.Base.update(Clipperz.Date, {
 		return new Date(Date.parse(aValue));
 	},
 
+	'daysBetweendDates': function (date1, date2) {
+		var ONE_DAY = 24 * 60 * 60 * 1000;
+		return Math.round(Math.abs(date1.getTime() - date2.getTime()) / ONE_DAY)
+	},
+
+	'distantFuture':	'Mon, 01 January 4001 00:00:00 UTC',
+	'distantPast':		'Tue, 04 January 0001 00:00:00 UTC',
 	//=========================================================================
 	
 	'exception': {

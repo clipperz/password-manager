@@ -144,24 +144,16 @@ Clipperz.Base.extend(Clipperz.PM.UI.Web.Components.LoginForm, Clipperz.PM.UI.Com
 	//-------------------------------------------------------------------------
 	
 	'loginEventHandler': function(anEvent) {
-//		var	username;
-//		var passphrase;
-		var signalArguments;
+		var credentials;
 
 		anEvent.preventDefault();
 
-//		username = this.getElement('usernameField').value;
-//		passphrase = this.getElement('passphraseField').value;
-
-//		signalArguments = {username:username};
-//		signalArguments.passphrase = passphrase;
-
-		signalArguments = {
+		credentials = {
 			'username':		this.getElement('usernameField').value,
 			'passphrase':	this.getElement('passphraseField').value
 		};
 
-		MochiKit.Signal.signal(this, 'doLogin', signalArguments);
+		MochiKit.Signal.signal(this, 'doLogin', credentials);
 	},
 
 	//-------------------------------------------------------------------------

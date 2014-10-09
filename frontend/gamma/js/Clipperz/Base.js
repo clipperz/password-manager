@@ -61,6 +61,10 @@ MochiKit.Base.update(Clipperz.Base, {
 		return (MochiKit.Base.urlRegExp.test(aValue));
 	},
 
+//	'isBitcoin': function (aValue) {
+//		return (MochiKit.Base.bitcoinRegExp.test(aValue));
+//	},
+	
 	'isEmail': function (aValue) {
 		return (MochiKit.Base.emailRegExp.test(aValue));
 	},

@@ -327,7 +327,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		var oneTimePasswords;
 
 //		this.setServerLockValue(someServerData['lock']);
-
+console.log("USER.unpackServerData", someServerData);
 		headerVersion = this.headerFormatVersion(someServerData['header']);
 	
 		switch (headerVersion) {
@@ -410,7 +410,9 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 				'recordsIndex': recordsIndex,
 				'preferences': preferences,
 				'oneTimePasswords': oneTimePasswords
-			}
+			},
+//			'accountInfo': new Clipperz.PM.DataModel.User.AccountInfo(someServerData['accountInfo']),
+			'offlineCopyNeeded': someServerData['offlineCopyNeeded']
 		};
 
 		this._serverData = unpackedData;
@@ -449,6 +451,11 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		return deferredResult;
 	},
 
+	'resetAllData': function () {
+		this.deleteAllCleanTextData();
+		this._serverData = null;
+	},
+	
 	//-------------------------------------------------------------------------
 
 	'connectionVersion': function() {
@@ -489,6 +496,13 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 			MochiKit.Base.method(this, 'getServerData'),
 			MochiKit.Base.itemgetter('header'),
 			MochiKit.Base.itemgetter(aKey)
+		], {trace:false})
+	},
+
+	'getCurrentAccountInfo': function () {
+		return Clipperz.Async.callbacks("User.getHeaderIndex", [
+			MochiKit.Base.method(this, 'getServerData'),
+			MochiKit.Base.itemgetter('accountInfo')
 		], {trace:false})
 	},
 
@@ -775,6 +789,20 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		deferredResult.addErrbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'failureWhileSavingUserData');
 
 		deferredResult.callback();
+
+		return deferredResult;
+	},
+
+	'deleteAccount': function() {
+		var deferredResult;
+		
+//MochiKit.Logging.logDebug(">>> user.deleteAccountAction - " + this);
+		this.deleteAllCleanTextData();
+		deferredResult = new Clipperz.Async.Deferred("User.deleteAccount", {trace:false});
+		deferredResult.addCallback(MochiKit.Base.method(this.connection(), 'message'), 'deleteUser');
+//		deferredResult.addCallback(MochiKit.Base.method(this, 'resetAllLocalData'));
+		deferredResult.callback();
+//MochiKit.Logging.logDebug("<<< user.deleteAccountAction - " + this);
 
 		return deferredResult;
 	},
