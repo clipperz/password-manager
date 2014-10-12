@@ -141,3 +141,20 @@
 	0% { @include transform(0deg, 0, 0); }
 	100% { @include transform(359deg, 0, 0); }
 }
+
+@mixin user-select($value) {
+	//	http://css-tricks.com/almanac/properties/u/user-select/
+	//	none | text | all | element
+	-webkit-user-select: $value;	/* Chrome all / Safari all */
+	-moz-user-select: $value;		/* Firefox all */
+	-ms-user-select: $value;		/* IE 10+ */
+
+	/* No support for these yet, use at own risk */
+	-o-user-select: $value;
+	user-select: $value;
+}
+
+@mixin overflow-scroll () {
+	overflow: scroll;
+	-webkit-overflow-scrolling: touch;
+}

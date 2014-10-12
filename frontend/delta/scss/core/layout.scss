@@ -2,6 +2,7 @@
 
 .page {
 	@include pageElement();
+	@include user-select(none);
 }
 
 .mainPage {

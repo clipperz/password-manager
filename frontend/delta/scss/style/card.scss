@@ -220,6 +220,8 @@ $cardViewBasePadding: 10px;
 
 .content {
 	.cardLabel {
+		@include user-select(text);
+		
 		font-size: 24pt;
 		padding: $cardViewBasePadding;
 	}
@@ -258,6 +260,7 @@ $cardViewBasePadding: 10px;
 
 			.fieldValue {
 				font-size: 18pt;
+				@include user-select(text);
 
 				&.hidden {
 					font-family: clipperz-password;
