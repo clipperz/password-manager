@@ -2,7 +2,7 @@
 	background-color: $main-alternate-color;
 	color: $main-alternate-text-color;
 	font-size: 18pt;
-	overflow: scroll;
+	@include overflow-scroll;
 //	height: 100%;
 
 	$iconColumnWidth: 40px;
@@ -90,3 +90,39 @@
 		}
 	}
 }
+
+$selectionColor: yellow;
+
+#selections.ALL {
+	li.allCards {
+		color: $selectionColor;
+	}
+}
+
+#selections.RECENT {
+	li.recentCards {
+		color: $selectionColor;
+	}
+}
+
+#selections.UNTAGGED {
+	li.untaggedCards {
+		color: $selectionColor;
+	}
+}
+
+#selections.SEARCH {
+	div.search {
+		color: $selectionColor;
+	}
+}
+
+#selections.TAG {
+	ul.tagList {
+		li.selected {
+			color: $selectionColor;
+		}
+	}
+}
+
+

@@ -1,6 +1,6 @@
 #loginPage {
-	overflow: scroll;
-	
+	@include overflow-scroll;
+
 	div.loginForm {
 		@include flexbox;
 		@include flex-direction(column);

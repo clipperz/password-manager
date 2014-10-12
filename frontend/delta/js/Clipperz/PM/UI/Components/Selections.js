@@ -58,12 +58,16 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 		var	archivedCardsCount;
 		var	selectedCardCount;
 		var	filterType;
+		var	filterValue;
 
+console.log("SELECTIONS PROPS", this.props);
 		tagInfo = this.props['tags'] ? this.props['tags'] : {};
 		tags = MochiKit.Base.filter(Clipperz.PM.DataModel.Record.isRegularTag, MochiKit.Base.keys(tagInfo)).sort(Clipperz.Base.caseInsensitiveCompare);
 		archivedCardsCount = this.props['archivedCardsCount'];
 		selectedCardCount = this.props['cards'] ? this.props['cards'].length : 0;
+
 		filterType = (this.props['filter'] && this.props['filter']['type']) ? this.props['filter']['type'] : 'ALL';
+		filterValue = (this.props['filter'] && this.props['filter']['value']) ? this.props['filter']['value'] : null;
 
 		return	React.DOM.div({'key':'selections', 'id':'selections', 'className':filterType}, [
 			React.DOM.ul({'className':'defaultSet'}, [
@@ -80,7 +84,7 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 					React.DOM.div({}, [ React.DOM.span({'className':'count'}, selectedCardCount) ])
 				])
 			]),
-			React.DOM.ul({'className':'tagList'}, MochiKit.Base.map(function (aTag) {return Clipperz.PM.UI.Components.TagIndexItem({'label':aTag, 'count':tagInfo[aTag]}); }, tags)),
+			React.DOM.ul({'className':'tagList'}, MochiKit.Base.map(function (aTag) {return Clipperz.PM.UI.Components.TagIndexItem({'label':aTag, 'count':tagInfo[aTag], 'selected':aTag == filterValue}); }, tags)),
 			React.DOM.div({'className':'showArchivedCards', 'onClick':this.handleCheckboxChanges}, [
 				React.DOM.input({'type':'checkbox', 'checked':this.props['shouldIncludeArchivedCards'] ? 'checked' : null}),
 				React.DOM.span({'className':'label'}, "Show archived cards"),
