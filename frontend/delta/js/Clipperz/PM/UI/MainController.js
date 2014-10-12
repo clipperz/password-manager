@@ -65,7 +65,7 @@ Clipperz.PM.UI.MainController = function() {
 		'saveCardEdits', 'cancelCardEdits',
 		'cardSelected',
 		'addCardClick',
-		'deleteCard', 'archiveCard', 'cloneCard', 'editCard',
+		'deleteCard', 'toggleArchiveCard', 'cloneCard', 'editCard',
 		'addTag', 'removeTag',
 		'showArchivedCards', 'hideArchivedCards',
 		'goBackToMainPage',
@@ -1056,10 +1056,10 @@ console.log("SET USER", aUser);
 		], {trace:false});
 	},
 	
-	archiveCard_handler: function (anEvent) {
+	toggleArchiveCard_handler: function (anEvent) {
 		return Clipperz.Async.callbacks("MainController.archiveCard_handler", [
 			MochiKit.Base.method(this.user(), 'getRecord', anEvent['reference']),
-			MochiKit.Base.methodcaller('archive'),
+			MochiKit.Base.methodcaller('toggleArchive'),
 			MochiKit.Base.method(this.user(), 'saveChanges'),
 			MochiKit.Base.method(this, 'refreshUI', anEvent['reference'])
 		], {trace:false});

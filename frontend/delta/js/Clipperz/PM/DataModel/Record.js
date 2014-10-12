@@ -250,8 +250,15 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		], {trace:false});
 	},
 
-	'archive': function () {
-		return this.addTag(Clipperz.PM.DataModel.Record.archivedTag);
+	'toggleArchive': function () {
+		return Clipperz.Async.callbacks("Record.toggleArchive", [
+			MochiKit.Base.method(this, 'isArchived'),
+			Clipperz.Async.deferredIf("Record is archived", [
+				MochiKit.Base.method(this, 'removeTag', Clipperz.PM.DataModel.Record.archivedTag)
+			], [
+				MochiKit.Base.method(this, 'addTag', Clipperz.PM.DataModel.Record.archivedTag)
+			]),
+		], {trace:false});
 	},
 
 	'isArchived': function () {

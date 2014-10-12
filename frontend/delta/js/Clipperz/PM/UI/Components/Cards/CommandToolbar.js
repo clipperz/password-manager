@@ -38,7 +38,7 @@ Clipperz.PM.UI.Components.Cards.CommandToolbar = React.createClass({
 	getInitialState: function() {
 		return {'showCommandMenu': false };
 	},
-	
+
 	//----------------------------------------------------------------------------
 
 	commands: function () {
@@ -48,8 +48,8 @@ Clipperz.PM.UI.Components.Cards.CommandToolbar = React.createClass({
 				'broadcastEvent': 'deleteCard'
 			},
 			'archive': {
-				'label': "archive",
-				'broadcastEvent': 'archiveCard'
+				'label': this.props['_isArchived'] ? "restore" : "archive",
+				'broadcastEvent': 'toggleArchiveCard'
 			},
 //			'share': {
 //				'label': "share",
