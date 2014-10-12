@@ -43,7 +43,10 @@ Clipperz.PM.UI.MainController = function() {
 	this._isTouchDevice = ('ontouchstart' in window || 'onmsgesturechange' in window);
 	this._isDesktop = window.screenX != 0 && !this._isTouchDevice;
 	this._hasKeyboard = this._isDesktop;
-	
+
+	this._cardInfoList = [];
+	this._selectedCardInfo = null;
+
 	this._closeMaskAction = null;
 	
 	this._pages = {};
@@ -72,7 +75,7 @@ Clipperz.PM.UI.MainController = function() {
 		'maskClick',
 	]);
 
-	MochiKit.Signal.connect(MochiKit.DOM.currentDocument(), 'onselectionchange', this, 'selectionChangeHandler');
+//	MochiKit.Signal.connect(MochiKit.DOM.currentDocument(), 'onselectionchange', this, 'selectionChange_handler');
 
 	return this;
 }
@@ -178,8 +181,8 @@ console.log("THE BROWSER IS OFFLINE");
 	},
 
 	//-------------------------------------------------------------------------
-
-	selectionChangeHandler: function (anEvent) {
+/*
+	selectionChange_handler: function (anEvent) {
 		var	selection;
 		var	selectionRange;
 		var	selectionNode;
@@ -214,7 +217,7 @@ console.log("THE BROWSER IS OFFLINE");
 		}
 //console.log("-----------");
 	},
-
+*/
 	//-------------------------------------------------------------------------
 
 	run: function (parameters) {
@@ -509,19 +512,69 @@ console.log("SET USER", aUser);
 		return result;
 	},
 
+	getRecordsInfo: function (cardInfo, shouldIncludeArchivedCards) {
+		return this.user().getRecordsInfo(Clipperz.PM.DataModel.Record.defaultCardInfo /*, shouldIncludeArchivedCards*/);
+	},
+
 	updateSelectedCards: function (shouldIncludeArchivedCards, aFilter) {
 		var deferredResult;
+
+		var	filterCriteria;
 		var	sortCriteria;
+		var	rangeFilter;
+		var	fullFilterCriteria;
+		var	selectedCardReference = this._selectedCardInfo ? this._selectedCardInfo['reference'] : null;
 
-		sortCriteria = Clipperz.Base.caseInsensitiveKeyComparator('label');
+		if (aFilter['type'] == 'ALL') {
+			filterCriteria = MochiKit.Base.operator.truth;
+			sortCriteria = Clipperz.Base.caseInsensitiveKeyComparator('label');
+			rangeFilter = MochiKit.Base.operator.identity;
+		} else if (aFilter['type'] == 'RECENT') {
+			filterCriteria = MochiKit.Base.operator.truth;
+			sortCriteria = Clipperz.Base.reverseComparator(MochiKit.Base.keyComparator('accessDate'));
+			rangeFilter = function (someCards) { return someCards.slice(0, 9)};
+		} else if (aFilter['type'] == 'SEARCH') {
+			filterCriteria = this.regExpFilterGenerator(Clipperz.PM.DataModel.Record.regExpForSearch(aFilter['value']));
+			sortCriteria = Clipperz.Base.caseInsensitiveKeyComparator('label');
+			rangeFilter = MochiKit.Base.operator.identity;
+		} else if (aFilter['type'] == 'TAG') {
+			filterCriteria = this.regExpFilterGenerator(Clipperz.PM.DataModel.Record.regExpForTag(aFilter['value']));
+			sortCriteria = Clipperz.Base.caseInsensitiveKeyComparator('label');
+			rangeFilter = MochiKit.Base.operator.identity;
+		} else if (aFilter['type'] == 'UNTAGGED') {
+			filterCriteria = this.regExpFilterGenerator(Clipperz.PM.DataModel.Record.regExpForNoTag());
+			sortCriteria = Clipperz.Base.caseInsensitiveKeyComparator('label');
+			rangeFilter = MochiKit.Base.operator.identity;
+		}
 
-		deferredResult = new Clipperz.Async.Deferred('MainController.setFilter', {trace:false});
-		deferredResult.addMethod(this.user(), 'getRecordsInfo', Clipperz.PM.DataModel.Record.defaultCardInfo, shouldIncludeArchivedCards);
+		fullFilterCriteria = function (aRecordInfo) {
+			var	result;
+			
+			if (aRecordInfo['_reference'] == selectedCardReference) {
+				result = true;
+			} else {
+				if ((shouldIncludeArchivedCards == false) && (aRecordInfo['_isArchived'])) {
+					result = false;
+				} else {
+					result = filterCriteria(aRecordInfo);
+				}
+			}
 
+			return result;
+		}
+		
+		deferredResult = new Clipperz.Async.Deferred('MainController.updateSelectedCards', {trace:false});
+		deferredResult.addMethod(this, 'getRecordsInfo', Clipperz.PM.DataModel.Record.defaultCardInfo, shouldIncludeArchivedCards);
+
+		deferredResult.addCallback(MochiKit.Base.filter, fullFilterCriteria);
+		deferredResult.addMethodcaller('sort', sortCriteria);
+		deferredResult.addCallback(rangeFilter);
+
+/*
 		if (aFilter['type'] == 'ALL') {
 			deferredResult.addMethodcaller('sort', sortCriteria);
 		} else if (aFilter['type'] == 'RECENT') {
-			deferredResult.addMethodcaller('sort', Clipperz.Base.reverseComparator(MochiKit.Base.keyComparator('accessDate')));
+			deferredResult.addMethodcaller('sort', sortCriteria);
 			deferredResult.addCallback(function (someCards) { return someCards.slice(0, 9)});
 		} else if (aFilter['type'] == 'SEARCH') {
 			deferredResult.addCallback(MochiKit.Base.filter, this.regExpFilterGenerator(Clipperz.PM.DataModel.Record.regExpForSearch(aFilter['value'])));
@@ -533,7 +586,7 @@ console.log("SET USER", aUser);
 			deferredResult.addCallback(MochiKit.Base.filter, this.regExpFilterGenerator(Clipperz.PM.DataModel.Record.regExpForNoTag()));
 			deferredResult.addMethodcaller('sort', sortCriteria);
 		}
-
+*/
 		deferredResult.addMethod(this, 'setPageProperties', 'mainPage', 'cards');
 		deferredResult.addCallback(MochiKit.Base.bind(function (someCards) {
 			if (!this.isSelectedCardStillVisible(someCards)) {
@@ -935,7 +988,13 @@ console.log("SET USER", aUser);
 		this.refreshCurrentPage();
 	},
 
+	resetCardSelection: function () {
+		this._selectedCardInfo = null;
+	},
+
 	cardSelected_handler: function (someInfo) {
+		this._selectedCardInfo = someInfo;
+		this.refreshSelectedCards();
 		this.updateSelectedCard(someInfo);
 	},
 
@@ -1137,17 +1196,21 @@ console.log("SET USER", aUser);
 	//============================================================================
 
 	selectAllCards_handler: function () {
+		this.resetCardSelection();
 		this.setFilter('ALL');
 		return this.refreshSelectedCards();
 	},
 	
 	selectRecentCards_handler: function () {
+		this.resetCardSelection();
 		this.setFilter('RECENT');
 		return this.refreshSelectedCards();
 	},
 
 	search_handler: function (aValue) {
 //console.log("SEARCH", aValue);
+		this.resetCardSelection();
+
 		if (aValue == "") {
 			this.setFilter('ALL');
 		} else {
@@ -1158,11 +1221,13 @@ console.log("SET USER", aUser);
 	},
 
 	tagSelected_handler: function (aTag) {
+		this.resetCardSelection();
 		this.setFilter('TAG', aTag);
 		return this.refreshSelectedCards();
 	},
 
 	selectUntaggedCards_handler: function () {
+		this.resetCardSelection();
 		this.setFilter('UNTAGGED');
 		return this.refreshSelectedCards();
 	},
