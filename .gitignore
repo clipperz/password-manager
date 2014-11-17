@@ -4,3 +4,6 @@ backend/java
 scripts/builder/backends/javaBuilder.py
 scripts/btcTranfer
 scripts/deltaDeploy
+
+env/
+.pipcache/
