@@ -45,33 +45,27 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 					Clipperz.PM.UI.Components.Button({eventName:'settingsToggleButton', label:"menu", handler:this.settingsToggleHandler})
 				])
 			]),
-			React.DOM.h2({}, "Extra features")
+			React.DOM.div({className: "warnings"},
+				React.DOM.ul({},
+					React.DOM.li({}, "Synchronize local data")
+				)
+			),
+			React.DOM.ul({className: "account"},
+				React.DOM.li({}, "Account"),
+				React.DOM.li({}, "Subscription")
+			),
+			React.DOM.ul({className: "data"},
+				React.DOM.li({}, "Local Data"),
+				React.DOM.li({}, "OTP")
+			),
+			React.DOM.div({className: "donation"},				
+				React.DOM.ul({},
+					React.DOM.li({},
+						React.DOM.a({}, "Make a donation")
+					)
+				)			
+			)		
 		]);
-/*
-		<div id="extraFeaturesPanel" class="panel extraFeatures">
-
-			<div class="warnings">
-				<ul>
-					<li>Synchronize local data</li>
-				</ul>
-			</div>
-
-			<ul>
-				<li>Account</li>
-				<li>Subscription</li>
-			</ul>
-
-			<ul>
-				<li>Local Data</li>
-				<li>OTP</li>
-			</ul>
-
-			<div class="donation">
-				<a>Make a donation</a>
-			</div>
-		</div>
-*/
-
 	}
 
 	//=========================================================================

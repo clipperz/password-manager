@@ -7,3 +7,4 @@ scripts/deltaDeploy
 
 env/
 .pipcache/
+.sass-cache/

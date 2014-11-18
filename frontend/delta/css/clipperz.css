@@ -1,26 +1,3 @@
-/*
-
-Copyright 2008-2013 Clipperz Srl
-
-This file is part of Clipperz, the online password manager.
-For further information about its features and functionalities please
-refer to http://www.clipperz.com.
-
-* Clipperz is free software: you can redistribute it and/or modify it 
-  under the terms of the GNU Affero General Public License as published 
-  by the Free Software Foundation, either version 3 of the License, or 
-  (at your option) any later version.
-
-* Clipperz is distributed in the hope that it will be useful, but 
-  WITHOUT ANY WARRANTY; without even the implied warranty of 
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the GNU Affero General Public License for more details.
-
-* You should have received a copy of the GNU Affero General Public
-  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
-
-*/
-
 @charset "UTF-8";
 /* http://meyerweb.com/eric/tools/css/reset/ 
    v2.0 | 20110126
@@ -115,7 +92,6 @@ table {
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
-
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -129,7 +105,6 @@ table {
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
-
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -143,7 +118,6 @@ table {
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
-
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -157,7 +131,6 @@ table {
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
-
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -461,73 +434,61 @@ div.overlay {
 @-webkit-keyframes overlay-spin {
   from {
     opacity: 1; }
-
   to {
     opacity: 0.25; } }
 @-moz-keyframes overlay-spin {
   from {
     opacity: 1; }
-
   to {
     opacity: 0.25; } }
 @-ms-keyframes overlay-spin {
   from {
     opacity: 1; }
-
   to {
     opacity: 0.25; } }
 @keyframes overlay-spin {
   from {
     opacity: 1; }
-
   to {
     opacity: 0.25; } }
 @-webkit-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
-
   100% {
     opacity: 1; } }
 @-moz-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
-
   100% {
     opacity: 1; } }
 @-ms-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
-
   100% {
     opacity: 1; } }
 @keyframes ios-overlay-show {
   0% {
     opacity: 0; }
-
   100% {
     opacity: 1; } }
 @-webkit-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
-
   100% {
     opacity: 0; } }
 @-moz-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
-
   100% {
     opacity: 0; } }
 @-ms-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
-
   100% {
     opacity: 0; } }
 @keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
-
   100% {
     opacity: 0; } }
 /*
@@ -589,7 +550,16 @@ div.overlay {
   -webkit-transform: translate3d(0, 0, 0);
   transform: translate3d(0, 0, 0);
   -webkit-transition-duration: 0.5s;
-  transition-duration: 0.5s; }
+  transition-duration: 0.5s;
+  -webkit-user-select: none;
+  /* Chrome all / Safari all */
+  -moz-user-select: none;
+  /* Firefox all */
+  -ms-user-select: none;
+  /* IE 10+ */
+  /* No support for these yet, use at own risk */
+  -o-user-select: none;
+  user-select: none; }
   .page.left {
     -webkit-transform: translate3d(-100%, 0, 0);
     transform: translate3d(-100%, 0, 0); }
@@ -606,6 +576,7 @@ div.overlay {
   position: fixed;
   z-index: 20;
   overflow: scroll;
+  -webkit-overflow-scrolling: touch;
   width: 300px;
   height: 100%;
   top: 0;
@@ -750,6 +721,7 @@ div.overlay {
   position: fixed;
   z-index: 20;
   overflow: scroll;
+  -webkit-overflow-scrolling: touch;
   width: 300px;
   height: 100%;
   top: 0;
@@ -1255,7 +1227,8 @@ div.dialogBox {
       margin: 0px; }
 
 #loginPage {
-  overflow: scroll; }
+  overflow: scroll;
+  -webkit-overflow-scrolling: touch; }
   #loginPage div.loginForm {
     display: -webkit-box;
     display: -webkit-flex;
@@ -1461,7 +1434,8 @@ div.dialogBox {
   background-color: black;
   color: white;
   font-size: 18pt;
-  overflow: scroll; }
+  overflow: scroll;
+  -webkit-overflow-scrolling: touch; }
   #selections ul.defaultSet {
     font-weight: bold;
     padding-top: 10px;
@@ -1531,6 +1505,21 @@ div.dialogBox {
       -moz-border-radius: 4px;
       border-radius: 4px; }
 
+#selections.ALL li.allCards {
+  color: yellow; }
+
+#selections.RECENT li.recentCards {
+  color: yellow; }
+
+#selections.UNTAGGED li.untaggedCards {
+  color: yellow; }
+
+#selections.SEARCH div.search {
+  color: yellow; }
+
+#selections.TAG ul.tagList li.selected {
+  color: yellow; }
+
 #extraFeaturesPanel {
   background-color: black;
   color: white; }
@@ -1551,6 +1540,13 @@ div.dialogBox {
       #extraFeaturesPanel header .button .label {
         padding-top: 8px;
         padding-right: 8px; }
+  #extraFeaturesPanel .warnings li, #extraFeaturesPanel .account li, #extraFeaturesPanel .data li, #extraFeaturesPanel .donation li {
+    cursor: pointer;
+    padding: 10px;
+    font-size: 18px;
+    border-bottom: 1px solid #352F27; }
+    #extraFeaturesPanel .warnings li:hover, #extraFeaturesPanel .account li:hover, #extraFeaturesPanel .data li:hover, #extraFeaturesPanel .donation li:hover {
+      background: none repeat scroll 0% 0% #ff9900; }
 
 .accountStatus {
   background-color: green; }
@@ -1750,6 +1746,15 @@ div.cardList.narrow ul li:after {
   margin-right: 5px; }
 
 .content .cardLabel {
+  -webkit-user-select: text;
+  /* Chrome all / Safari all */
+  -moz-user-select: text;
+  /* Firefox all */
+  -ms-user-select: text;
+  /* IE 10+ */
+  /* No support for these yet, use at own risk */
+  -o-user-select: text;
+  user-select: text;
   font-size: 24pt;
   padding: 10px; }
 .content .tagEditor {
@@ -1786,7 +1791,16 @@ div.cardList.narrow ul li:after {
     .content .cardField .fieldValues .fieldLabel {
       color: gray; }
     .content .cardField .fieldValues .fieldValue {
-      font-size: 18pt; }
+      font-size: 18pt;
+      -webkit-user-select: text;
+      /* Chrome all / Safari all */
+      -moz-user-select: text;
+      /* Firefox all */
+      -ms-user-select: text;
+      /* IE 10+ */
+      /* No support for these yet, use at own risk */
+      -o-user-select: text;
+      user-select: text; }
       .content .cardField .fieldValues .fieldValue.hidden {
         font-family: clipperz-password; }
     .content .cardField .fieldValues .removeField {

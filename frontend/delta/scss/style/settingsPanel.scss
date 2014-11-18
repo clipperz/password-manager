@@ -15,5 +15,19 @@
 				padding-right: 8px;
 			}
 		}
+
+	}
+
+	.warnings, .account, .data, .donation{
+		li{
+			cursor: pointer;
+			padding: 10px;
+			font-size: 18px;
+			border-bottom: 1px solid #352F27;
+
+			&:hover{
+				background: none repeat scroll 0% 0% #ff9900;
+			}
+		}
 	}
 }
