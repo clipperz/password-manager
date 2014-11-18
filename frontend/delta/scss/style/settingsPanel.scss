@@ -21,16 +21,23 @@
 	.notifications{
 		padding: 5px;
 		background-color: #352F27;
+		margin-bottom: 5px;
 
 		label{
 			font-size: 12px;
 			margin-bottom: 7.5px;
 		}		
 		ul li{
-			border-radius: 3px;
+			font-size: 15px;
 			padding: 3px;
 			margin-top: 5px;
 			margin-bottom: 2px;
+			border-radius: 3px;
+			cursor: pointer;
+
+			&:hover{
+				opacity: 0.95;			
+			}
 
 			button.close{
 				float: right;
@@ -63,7 +70,6 @@
 					text-shadow: none;
 				}
 			}
-			font-size: 15px;
 		}
 	}
 

@@ -24,14 +24,12 @@ refer to http://www.clipperz.com.
 Clipperz.Base.module('Clipperz.PM.UI.Components.Panels');
 
 Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
-
 	settingsToggleHandler: function (anEvent) {
-//console.log("settingsToggleHandler");
+		// console.log("settingsToggleHandler");
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel');
 	},
 
 	//=========================================================================
-
 	render: function () {
 		var	classes = {
 			'panel': true,
@@ -47,26 +45,26 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 			]),
 			React.DOM.div({className: "notifications"},
 				React.DOM.label({}, "Notifications"),
-				React.DOM.ul({className:"items"},
-					React.DOM.li({className:"information"}, 
-						React.DOM.span({}, "Accont details saved successfully!"),
-						React.DOM.button({"type":"button", "className":"close", "data-dismiss":"modal"},
-							React.DOM.span({"aria-hidden":"true"}, "×")
-						)
-					),
-					React.DOM.li({className:"warning"}, 
-						React.DOM.span({}, "Your credentials were not verified."),
-						React.DOM.button({"type":"button", "className":"close", "data-dismiss":"modal"},
-							React.DOM.span({"aria-hidden":"true"}, "×")
-						)
-					),
-					React.DOM.li({className:"critical"}, 
-						React.DOM.span({}, "Your credentials were not verified."),
-						React.DOM.button({"type":"button", "className":"close", "data-dismiss":"modal"},
-							React.DOM.span({"aria-hidden":"true"}, "×")
+					React.DOM.ul({className:"items"},
+						React.DOM.li({className:"information"}, 
+							React.DOM.span({}, "Accont details saved successfully!"),
+							React.DOM.button({"type":"button", "className":"close", "data-dismiss":"modal"},
+								React.DOM.span({"aria-hidden":"true"}, "×")
+							)
+						),
+						React.DOM.li({className:"critical"}, 
+							React.DOM.span({}, "Your credentials were not verified."),
+							React.DOM.button({"type":"button", "className":"close", "data-dismiss":"modal"},
+								React.DOM.span({"aria-hidden":"true"}, "×")
+							)
+						),
+						React.DOM.li({className:"warning"}, 
+							React.DOM.span({}, "Your credentials were not verified."),
+							React.DOM.button({"type":"button", "className":"close", "data-dismiss":"modal"},
+								React.DOM.span({"aria-hidden":"true"}, "×")
+							)
 						)
 					)
-				)
 			),
 			React.DOM.div({className: "account"},
 				React.DOM.ul({},
