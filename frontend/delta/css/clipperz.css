@@ -1540,13 +1540,18 @@ div.dialogBox {
       #extraFeaturesPanel header .button .label {
         padding-top: 8px;
         padding-right: 8px; }
-  #extraFeaturesPanel .warnings li, #extraFeaturesPanel .account li, #extraFeaturesPanel .data li, #extraFeaturesPanel .donation li {
-    cursor: pointer;
-    padding: 10px;
-    font-size: 18px;
-    border-bottom: 1px solid #352F27; }
-    #extraFeaturesPanel .warnings li:hover, #extraFeaturesPanel .account li:hover, #extraFeaturesPanel .data li:hover, #extraFeaturesPanel .donation li:hover {
-      background: none repeat scroll 0% 0% #ff9900; }
+  #extraFeaturesPanel .warnings, #extraFeaturesPanel .account, #extraFeaturesPanel .data, #extraFeaturesPanel .donation {
+    border-bottom: 1px solid #fff; }
+    #extraFeaturesPanel .warnings ul li, #extraFeaturesPanel .account ul li, #extraFeaturesPanel .data ul li, #extraFeaturesPanel .donation ul li {
+      cursor: pointer;
+      padding: 10px;
+      font-size: 18px; }
+      #extraFeaturesPanel .warnings ul li:not(:last-child), #extraFeaturesPanel .account ul li:not(:last-child), #extraFeaturesPanel .data ul li:not(:last-child), #extraFeaturesPanel .donation ul li:not(:last-child) {
+        border-bottom: 1px solid #352F27; }
+      #extraFeaturesPanel .warnings ul li.synchronize, #extraFeaturesPanel .account ul li.synchronize, #extraFeaturesPanel .data ul li.synchronize, #extraFeaturesPanel .donation ul li.synchronize {
+        border-top: 1px solid #352F27; }
+      #extraFeaturesPanel .warnings ul li:hover, #extraFeaturesPanel .account ul li:hover, #extraFeaturesPanel .data ul li:hover, #extraFeaturesPanel .donation ul li:hover {
+        background: none repeat scroll 0% 0% #ff9900; }
 
 .accountStatus {
   background-color: green; }

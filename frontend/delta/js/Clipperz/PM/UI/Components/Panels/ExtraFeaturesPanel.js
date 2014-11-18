@@ -47,18 +47,22 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 			]),
 			React.DOM.div({className: "warnings"},
 				React.DOM.ul({},
-					React.DOM.li({}, "Synchronize local data")
+					React.DOM.li({className: "synchronize"}, "Synchronize local data")
 				)
 			),
-			React.DOM.ul({className: "account"},
-				React.DOM.li({}, "Account"),
-				React.DOM.li({}, "Subscription")
+			React.DOM.div({className: "account"},
+				React.DOM.ul({},
+					React.DOM.li({}, "Account"),
+					React.DOM.li({}, "Subscription")
+				)
 			),
-			React.DOM.ul({className: "data"},
-				React.DOM.li({}, "Local Data"),
-				React.DOM.li({}, "OTP")
+			React.DOM.div({className: "data"},
+				React.DOM.ul({},
+					React.DOM.li({}, "Local Data"),
+					React.DOM.li({}, "OTP")
+				)
 			),
-			React.DOM.div({className: "donation"},				
+			React.DOM.div({className: "donation"},
 				React.DOM.ul({},
 					React.DOM.li({},
 						React.DOM.a({}, "Make a donation")

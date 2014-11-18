@@ -19,11 +19,20 @@
 	}
 
 	.warnings, .account, .data, .donation{
-		li{
+		border-bottom: 1px solid #fff;
+
+		ul li{
 			cursor: pointer;
 			padding: 10px;
 			font-size: 18px;
-			border-bottom: 1px solid #352F27;
+
+			&:not(:last-child){
+				border-bottom: 1px solid #352F27;
+			}
+
+			&.synchronize{
+				border-top: 1px solid #352F27;
+			}
 
 			&:hover{
 				background: none repeat scroll 0% 0% #ff9900;
