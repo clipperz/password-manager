@@ -24,25 +24,15 @@ refer to http://www.clipperz.com.
 Clipperz.Base.module('Clipperz.PM.UI.Components.Panels');
 
 Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
-	settingsToggleHandler: function (anEvent) {
-		// console.log("settingsToggleHandler");
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel');
+	getInitialState: function(){
+		var notifications = this.getNotifications();
+		return {
+			notificationCount: notifications.length,
+			notifications: notifications
+		};
 	},
-
-	// getNotificationsCount: function(e){
-	// 	return (
-	// 		this.refs.notificationCenter == undefined
-	// 	) ? this.state.notificationsCount : this.refs.notificationCenter.count();
-	// },
-
-	//=========================================================================
-	render: function () {
-		var	classes = {
-			'panel': true,
-			'right': true,
-			'open': this.props['settingsPanelStatus'] == 'OPEN'
-		}
-		var  notifications = [{
+	getNotifications: function(){
+		return [{
 				text: 'Accont details saved successfully!',
 				severity: 'information'
 			},
@@ -54,19 +44,35 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 				text: 'Please change your login credentials',
 				severity: 'critical'
 		}];
+	},
+	settingsToggleHandler: function (e) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel');
+	},
+	updateNotificationCount: function(notificationCenter, e){		
+		this.setState({notificationCount:notificationCenter.getNotificationCount()});
+	},
+	render: function () {
+		var	classes = {
+			'panel': true,
+			'right': true,
+			'open': this.props['settingsPanelStatus'] == 'OPEN'
+		}
 
 		return	React.DOM.div({key:'extraFeaturesPanel', id:'extraFeaturesPanel', className:React.addons.classSet(classes)}, [
 			React.DOM.header({}, [
 				React.DOM.div({className:'settingsToggle'}, [
 					Clipperz.PM.UI.Components.Button({eventName:'settingsToggleButton', label:"menu", handler:this.settingsToggleHandler}),
 					React.DOM.div({
-						className: "notifications-counter" + (notifications.length == 0 ? " hidden" : "")
-					}, notifications.length)
+							className: "notifications-counter" + (this.state.notifications.length == 0 ? " hidden" : ""),
+						},
+						this.state.notificationCount
+					)
 				])
 			]),
 			Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel.NotificationCenter({
 				ref: "notificationCenter",
-				notifications: notifications
+				notifications: this.state.notifications,
+				updateNotificationCount: this.updateNotificationCount
 			}),
 			React.DOM.div({className: "account"},
 				React.DOM.ul({},
@@ -96,10 +102,10 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel.NotificationCenter = React.c
 	getInitialState: function() {
 	    return {notifications: this.props.notifications};
 	},
-	count: function(){
+	getNotificationCount: function(){
 		return this.state.notifications.length;
 	},
-	closeItem: function(e){
+	closeItemHandler: function(e){
 		var button = e.target;
 		var item = button.parentNode; //#notification-{index}
 		var notifications = this.state.notifications;
@@ -110,6 +116,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel.NotificationCenter = React.c
 		}
 
 		this.setState({notifications: notifications});
+		this.props.updateNotificationCount(this);
 	},
 	render: function(){
 		var notifications = this.state.notifications;
@@ -120,20 +127,21 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel.NotificationCenter = React.c
 				React.DOM.li({id: "notification-" + i, className: notifications[i].severity, "data-index": i},
 					React.DOM.span({}, notifications[i].text),
 					React.DOM.button({
-						type:"button", 
-						className:"close", 
-						"data-dismiss":"modal",
-						onClick:this.closeItem
-					},
+							type:"button", 
+							className:"close", 
+							"data-dismiss":"modal",
+							onClick:this.closeItemHandler
+						},
 						React.DOM.span({"aria-hidden":"true"}, "×")
 					)
 				)
-			);
+			)
 		}
 
 		return React.DOM.div({className: "notifications" + (notifications.length == 0 ? " hidden" : "")},
 			React.DOM.label({}, "Notifications"),
-				React.DOM.ul({className:"items"}, notification_list)
+				React.DOM.ul({className:"items"}, notification_list
+			)
 		);
 	}	
 });
