@@ -1540,17 +1540,51 @@ div.dialogBox {
       #extraFeaturesPanel header .button .label {
         padding-top: 8px;
         padding-right: 8px; }
-  #extraFeaturesPanel .warnings, #extraFeaturesPanel .account, #extraFeaturesPanel .data, #extraFeaturesPanel .donation {
+  #extraFeaturesPanel .notifications {
+    padding: 5px;
+    background-color: #352F27; }
+    #extraFeaturesPanel .notifications label {
+      font-size: 12px;
+      margin-bottom: 7.5px; }
+    #extraFeaturesPanel .notifications ul li {
+      border-radius: 3px;
+      padding: 3px;
+      margin-top: 5px;
+      margin-bottom: 2px;
+      font-size: 15px; }
+      #extraFeaturesPanel .notifications ul li button.close {
+        float: right;
+        font-size: 15px;
+        line-height: 1;
+        color: #000;
+        text-shadow: 0px 1px 0px #FFF;
+        font-weight: 300;
+        padding: 0px;
+        cursor: pointer;
+        background: none repeat scroll 0px 0px transparent;
+        border: 0px none;
+        margin-top: -14.5px;
+        margin-right: 2.5px; }
+      #extraFeaturesPanel .notifications ul li.warning {
+        background-color: #ECFB09;
+        color: #000; }
+      #extraFeaturesPanel .notifications ul li.information {
+        background-color: #1DDAF0;
+        color: #000; }
+      #extraFeaturesPanel .notifications ul li.critical {
+        background-color: #F56363; }
+        #extraFeaturesPanel .notifications ul li.critical button.close {
+          color: #FFF;
+          text-shadow: none; }
+  #extraFeaturesPanel .account, #extraFeaturesPanel .data, #extraFeaturesPanel .donation {
     border-bottom: 1px solid #fff; }
-    #extraFeaturesPanel .warnings ul li, #extraFeaturesPanel .account ul li, #extraFeaturesPanel .data ul li, #extraFeaturesPanel .donation ul li {
+    #extraFeaturesPanel .account ul li, #extraFeaturesPanel .data ul li, #extraFeaturesPanel .donation ul li {
       cursor: pointer;
       padding: 10px;
       font-size: 18px; }
-      #extraFeaturesPanel .warnings ul li:not(:last-child), #extraFeaturesPanel .account ul li:not(:last-child), #extraFeaturesPanel .data ul li:not(:last-child), #extraFeaturesPanel .donation ul li:not(:last-child) {
+      #extraFeaturesPanel .account ul li:not(:last-child), #extraFeaturesPanel .data ul li:not(:last-child), #extraFeaturesPanel .donation ul li:not(:last-child) {
         border-bottom: 1px solid #352F27; }
-      #extraFeaturesPanel .warnings ul li.synchronize, #extraFeaturesPanel .account ul li.synchronize, #extraFeaturesPanel .data ul li.synchronize, #extraFeaturesPanel .donation ul li.synchronize {
-        border-top: 1px solid #352F27; }
-      #extraFeaturesPanel .warnings ul li:hover, #extraFeaturesPanel .account ul li:hover, #extraFeaturesPanel .data ul li:hover, #extraFeaturesPanel .donation ul li:hover {
+      #extraFeaturesPanel .account ul li:hover, #extraFeaturesPanel .data ul li:hover, #extraFeaturesPanel .donation ul li:hover {
         background: none repeat scroll 0% 0% #ff9900; }
 
 .accountStatus {

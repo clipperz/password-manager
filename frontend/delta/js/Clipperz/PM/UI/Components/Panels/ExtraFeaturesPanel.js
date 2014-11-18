@@ -45,13 +45,32 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 					Clipperz.PM.UI.Components.Button({eventName:'settingsToggleButton', label:"menu", handler:this.settingsToggleHandler})
 				])
 			]),
-			React.DOM.div({className: "warnings"},
-				React.DOM.ul({},
-					React.DOM.li({className: "synchronize"}, "Synchronize local data")
+			React.DOM.div({className: "notifications"},
+				React.DOM.label({}, "Notifications"),
+				React.DOM.ul({className:"items"},
+					React.DOM.li({className:"information"}, 
+						React.DOM.span({}, "Accont details saved successfully!"),
+						React.DOM.button({"type":"button", "className":"close", "data-dismiss":"modal"},
+							React.DOM.span({"aria-hidden":"true"}, "×")
+						)
+					),
+					React.DOM.li({className:"warning"}, 
+						React.DOM.span({}, "Your credentials were not verified."),
+						React.DOM.button({"type":"button", "className":"close", "data-dismiss":"modal"},
+							React.DOM.span({"aria-hidden":"true"}, "×")
+						)
+					),
+					React.DOM.li({className:"critical"}, 
+						React.DOM.span({}, "Your credentials were not verified."),
+						React.DOM.button({"type":"button", "className":"close", "data-dismiss":"modal"},
+							React.DOM.span({"aria-hidden":"true"}, "×")
+						)
+					)
 				)
 			),
 			React.DOM.div({className: "account"},
 				React.DOM.ul({},
+					React.DOM.li({}, "Synchronize local data"),
 					React.DOM.li({}, "Account"),
 					React.DOM.li({}, "Subscription")
 				)
