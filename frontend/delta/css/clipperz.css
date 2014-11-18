@@ -1209,6 +1209,9 @@ div.dialogBox {
       color: gray;
       cursor: pointer; }
 
+.hidden {
+  display: none; }
+
 #loadingPage {
   background-color: #ff9900; }
   #loadingPage div {

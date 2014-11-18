@@ -23,6 +23,29 @@ refer to http://www.clipperz.com.
 
 Clipperz.Base.module('Clipperz.PM.UI.Components.Panels');
 
+Clipperz.PM.UI.Components.Panels.NotificationCenter = React.createClass({
+	render: function(){
+		var notification_list = [];
+		var notifications = this.props.notifications;
+
+		for (var i=0; i < notifications.length; i++) {
+			notification_list.push(
+				React.DOM.li({className: notifications[i].severity}, 
+					React.DOM.span({}, notifications[i].text),
+					React.DOM.button({"type":"button", "className":"close", "data-dismiss":"modal"},
+						React.DOM.span({"aria-hidden":"true"}, "×")
+					)
+				)
+			);
+		}
+
+		return React.DOM.div({className: "notifications" + (notifications.length == 0 ? " hidden" : "")},
+			React.DOM.label({}, "Notifications"),
+				React.DOM.ul({className:"items"}, notification_list)
+		);
+	}	
+});
+
 Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 	settingsToggleHandler: function (anEvent) {
 		// console.log("settingsToggleHandler");
@@ -36,6 +59,17 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 			'right': true,
 			'open': this.props['settingsPanelStatus'] == 'OPEN'
 		}
+		var  notifications = [];
+		// {
+		// 	text: 'Accont details saved successfully!',
+		// 	severity: 'information'
+		// },{
+		// 	text: 'Your credentials were not verified',
+		// 	severity: 'warning'
+		// },{
+		// 	text: 'Please change your login credentials',
+		// 	severity: 'critical'
+		// }];
 
 		return	React.DOM.div({key:'extraFeaturesPanel', id:'extraFeaturesPanel', className:React.addons.classSet(classes)}, [
 			React.DOM.header({}, [
@@ -43,29 +77,10 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 					Clipperz.PM.UI.Components.Button({eventName:'settingsToggleButton', label:"menu", handler:this.settingsToggleHandler})
 				])
 			]),
-			React.DOM.div({className: "notifications"},
-				React.DOM.label({}, "Notifications"),
-					React.DOM.ul({className:"items"},
-						React.DOM.li({className:"information"}, 
-							React.DOM.span({}, "Accont details saved successfully!"),
-							React.DOM.button({"type":"button", "className":"close", "data-dismiss":"modal"},
-								React.DOM.span({"aria-hidden":"true"}, "×")
-							)
-						),
-						React.DOM.li({className:"critical"}, 
-							React.DOM.span({}, "Your credentials were not verified."),
-							React.DOM.button({"type":"button", "className":"close", "data-dismiss":"modal"},
-								React.DOM.span({"aria-hidden":"true"}, "×")
-							)
-						),
-						React.DOM.li({className:"warning"}, 
-							React.DOM.span({}, "Your credentials were not verified."),
-							React.DOM.button({"type":"button", "className":"close", "data-dismiss":"modal"},
-								React.DOM.span({"aria-hidden":"true"}, "×")
-							)
-						)
-					)
-			),
+			Clipperz.PM.UI.Components.Panels.NotificationCenter({
+				ref: "notificationCenter",
+				notifications: notifications
+			}),
 			React.DOM.div({className: "account"},
 				React.DOM.ul({},
 					React.DOM.li({}, "Synchronize local data"),
