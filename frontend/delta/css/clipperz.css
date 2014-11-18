@@ -1531,6 +1531,7 @@ div.dialogBox {
     height: 48px;
     font-size: 24pt; }
     #extraFeaturesPanel header .button {
+      float: right;
       font-family: 'clipperz-icons';
       -webkit-font-feature-settings: "$foo","$bar";
       -moz-font-feature-settings: "$foo=1, $bar=1";
@@ -1543,6 +1544,16 @@ div.dialogBox {
       #extraFeaturesPanel header .button .label {
         padding-top: 8px;
         padding-right: 8px; }
+    #extraFeaturesPanel header .notifications-counter {
+      float: right;
+      font-size: 13px;
+      background: none repeat scroll 0% 0% #F90;
+      padding: 5px;
+      width: 10px;
+      height: 10px;
+      border-radius: 10px;
+      font-weight: 900;
+      line-height: 10px; }
   #extraFeaturesPanel .notifications {
     padding: 5px;
     background-color: #352F27;

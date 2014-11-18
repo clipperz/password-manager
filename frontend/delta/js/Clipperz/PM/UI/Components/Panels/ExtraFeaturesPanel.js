@@ -29,6 +29,12 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel');
 	},
 
+	// getNotificationsCount: function(e){
+	// 	return (
+	// 		this.refs.notificationCenter == undefined
+	// 	) ? this.state.notificationsCount : this.refs.notificationCenter.count();
+	// },
+
 	//=========================================================================
 	render: function () {
 		var	classes = {
@@ -52,7 +58,10 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 		return	React.DOM.div({key:'extraFeaturesPanel', id:'extraFeaturesPanel', className:React.addons.classSet(classes)}, [
 			React.DOM.header({}, [
 				React.DOM.div({className:'settingsToggle'}, [
-					Clipperz.PM.UI.Components.Button({eventName:'settingsToggleButton', label:"menu", handler:this.settingsToggleHandler})
+					Clipperz.PM.UI.Components.Button({eventName:'settingsToggleButton', label:"menu", handler:this.settingsToggleHandler}),
+					React.DOM.div({
+						className: "notifications-counter" + (notifications.length == 0 ? " hidden" : "")
+					}, notifications.length)
 				])
 			]),
 			Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel.NotificationCenter({
@@ -87,6 +96,9 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel.NotificationCenter = React.c
 	getInitialState: function() {
 	    return {notifications: this.props.notifications};
 	},
+	count: function(){
+		return this.state.notifications.length;
+	},
 	closeItem: function(e){
 		var button = e.target;
 		var item = button.parentNode; //#notification-{index}
@@ -100,8 +112,8 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel.NotificationCenter = React.c
 		this.setState({notifications: notifications});
 	},
 	render: function(){
-		var notification_list = [];
 		var notifications = this.state.notifications;
+		var notification_list = [];
 
 		for (var i=0; i < notifications.length; i++) {
 			notification_list.push(
