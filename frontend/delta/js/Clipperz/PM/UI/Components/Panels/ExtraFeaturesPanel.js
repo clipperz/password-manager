@@ -48,8 +48,8 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 	settingsToggleHandler: function (e) {
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel');
 	},
-	updateNotificationCount: function(notificationCenter, e){		
-		this.setState({notificationCount:notificationCenter.getNotificationCount()});
+	updateNotificationCount: function(notificationBox, e){		
+		this.setState({notificationCount:notificationBox.getNotificationCount()});
 	},
 	render: function () {
 		var	classes = {
@@ -69,8 +69,8 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 					)
 				])
 			]),
-			Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel.NotificationCenter({
-				ref: "notificationCenter",
+			Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel.NotificationBox({
+				ref: "notificationBox",
 				notifications: this.state.notifications,
 				updateNotificationCount: this.updateNotificationCount
 			}),
@@ -98,7 +98,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 	}
 });
 
-Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel.NotificationCenter = React.createClass({
+Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel.NotificationBox = React.createClass({
 	getInitialState: function() {
 	    return {notifications: this.props.notifications};
 	},
@@ -119,13 +119,12 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel.NotificationCenter = React.c
 		this.props.updateNotificationCount(this);
 	},
 	render: function(){
-		var notifications = this.state.notifications;
-		var notification_list = [];
+		var notification_list_items = [];
 
-		for (var i=0; i < notifications.length; i++) {
-			notification_list.push(
-				React.DOM.li({id: "notification-" + i, className: notifications[i].severity, "data-index": i},
-					React.DOM.span({}, notifications[i].text),
+		for (var i=0; i < this.state.notifications.length; i++) {
+			notification_list_items.push(
+				React.DOM.li({id: "notification-" + i, className: this.state.notifications[i].severity, "data-index": i},
+					React.DOM.span({}, this.state.notifications[i].text),
 					React.DOM.button({
 							type:"button", 
 							className:"close", 
@@ -138,9 +137,9 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel.NotificationCenter = React.c
 			)
 		}
 
-		return React.DOM.div({className: "notifications" + (notifications.length == 0 ? " hidden" : "")},
+		return React.DOM.div({className: "notifications" + (this.state.notifications.length == 0 ? " hidden" : "")},
 			React.DOM.label({}, "Notifications"),
-				React.DOM.ul({className:"items"}, notification_list
+				React.DOM.ul({className:"items"}, notification_list_items
 			)
 		);
 	}	

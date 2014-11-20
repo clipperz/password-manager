@@ -71,7 +71,7 @@ var tests = {
 		deferredResult.addMethod(user, 'getOneTimePasswords');
 		deferredResult.addCallback(MochiKit.Base.itemgetter(0));
 		deferredResult.addCallback(MochiKit.Base.methodcaller('status'));
-		deferredResult.addTest('USED', "The available OTP has been unsed to login, and should be marked accordingly");
+		deferredResult.addTest('USED', "The available OTP has been unused to login, and should be marked accordingly");
 
 		deferredResult.addMethod(user2, 'login');
 		deferredResult.shouldFail("trying to login using the same OTP twice");
