@@ -44,7 +44,7 @@ Clipperz.PM.UI.MainController = function() {
 	this._isDesktop = window.screenX != 0 && !this._isTouchDevice;
 	this._hasKeyboard = this._isDesktop;
 
-	this._cardInfoList = [];
+	this._recordsInfo = null;
 	this._selectedCardInfo = null;
 
 	this._closeMaskAction = null;
@@ -162,7 +162,7 @@ console.log("THE BROWSER IS OFFLINE");
 		var self = this;
 		MochiKit.Iter.forEach(pages, function (aPageName) {
 //console.log("RENDERING", aPageName);
-			self._pages[aPageName] = React.renderComponent(
+			self._pages[aPageName] = React.render(
 				Clipperz.PM.UI.Components.Pages[self.capitaliseFirstLetter(aPageName)](self.pageProperties(aPageName)),
 				MochiKit.DOM.getElement(aPageName)
 			);
@@ -512,9 +512,37 @@ console.log("SET USER", aUser);
 		return result;
 	},
 
-	getRecordsInfo: function (cardInfo, shouldIncludeArchivedCards) {
-		return this.user().getRecordsInfo(Clipperz.PM.DataModel.Record.defaultCardInfo /*, shouldIncludeArchivedCards*/);
+	//----------------------------------------------------------------------------
+	
+	recordsInfo: function () {
+		return this._recordsInfo;
 	},
+	
+	setRecordsInfo: function (someRecordsInfo) {
+		this._recordsInfo = someRecordsInfo;
+		return this._recordsInfo;
+	},
+	
+	resetRecordsInfo: function () {
+		this._recordsInfo = null;
+	},
+	
+	getRecordsInfo: function (cardInfo, shouldIncludeArchivedCards) {
+		var deferredResult;
+		
+		if (this._recordsInfo == null) {
+			deferredResult = new Clipperz.Async.Deferred('MainController.getRecordsInfo', {trace:false});
+			deferredResult.addMethod(this.user(), 'getRecordsInfo', Clipperz.PM.DataModel.Record.defaultCardInfo /*, shouldIncludeArchivedCards*/);
+			deferredResult.addMethod(this, 'setRecordsInfo');
+			deferredResult.callback();
+		} else {
+			deferredResult = MochiKit.Async.succeed(this._recordsInfo);
+		}
+		
+		return deferredResult;
+	},
+
+	//----------------------------------------------------------------------------
 
 	updateSelectedCards: function (shouldIncludeArchivedCards, aFilter) {
 		var deferredResult;
@@ -1005,6 +1033,13 @@ console.log("SET USER", aUser);
 //		
 //	},
 
+	saveChanges: function () {
+		return Clipperz.Async.callbacks("MainController.saveChanges", [
+			MochiKit.Base.method(this.user(), 'saveChanges'),
+			MochiKit.Base.method(this, 'resetRecordsInfo'),
+		], {trace:false});
+	},
+
 	saveCardEdits_handler: function (aRecordReference) {
 		var	currentPage = this.pages()[this.currentPage()];
 		var	self = this;
@@ -1012,7 +1047,7 @@ console.log("SET USER", aUser);
 		return Clipperz.Async.callbacks("MainController.saveCardEdits_handler", [
 			MochiKit.Base.method(currentPage, 'setProps', {'showGlobalMask':true}),
 			MochiKit.Base.method(this.overlay(), 'show', "saving …", true),
-			MochiKit.Base.method(this.user(), 'saveChanges'),
+			MochiKit.Base.method(this, 'saveChanges'),
 			MochiKit.Base.method(currentPage, 'setProps', {'mode':'view', 'showGlobalMask':false}),
 			MochiKit.Base.method(this, 'refreshUI', aRecordReference),
 			MochiKit.Base.method(this.overlay(), 'done', "saved", 1),
@@ -1110,7 +1145,7 @@ console.log("SET USER", aUser);
 			}),
 			MochiKit.Base.method(this.user(), 'getRecord', anEvent['reference']),
 			MochiKit.Base.method(this.user(), 'deleteRecord'),
-			MochiKit.Base.method(this.user(), 'saveChanges'),
+			MochiKit.Base.method(this, 'saveChanges'),
 			MochiKit.Base.method(this, 'refreshUI')
 		], {trace:false});
 	},
@@ -1119,7 +1154,7 @@ console.log("SET USER", aUser);
 		return Clipperz.Async.callbacks("MainController.archiveCard_handler", [
 			MochiKit.Base.method(this.user(), 'getRecord', anEvent['reference']),
 			MochiKit.Base.methodcaller('toggleArchive'),
-			MochiKit.Base.method(this.user(), 'saveChanges'),
+			MochiKit.Base.method(this, 'saveChanges'),
 			MochiKit.Base.method(this, 'refreshUI', anEvent['reference'])
 		], {trace:false});
 	},
