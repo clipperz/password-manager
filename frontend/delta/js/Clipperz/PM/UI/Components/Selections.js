@@ -79,7 +79,7 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 				React.DOM.form({'className':'searchForm'}, [
 					React.DOM.div({}, [
 						React.DOM.label({'htmlFor':'searchValue'}, 'search'),
-						React.DOM.input({'type':'text', 'id':'searchValue', 'onFocus':this.handleSearchChange, 'onChange':this.handleSearchChange, 'name':'search'})
+						React.DOM.input({'type':'text', 'id':'searchValue', 'onFocus':this.handleSearchChange, 'onChange':this.handleSearchChange, 'name':'search', 'value':this.props['searchTerm']})
 					]),
 					React.DOM.div({}, [ React.DOM.span({'className':'count'}, selectedCardCount) ])
 				])

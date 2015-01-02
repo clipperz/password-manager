@@ -496,7 +496,7 @@ console.log("SET USER", aUser);
 	selectedCardReference: function () {
 		return	this.pages()['mainPage'].props && 
 				this.pages()['mainPage'].props['selectedCard'] &&
-				this.pages()['mainPage'].props['selectedCard'] &&
+//				this.pages()['mainPage'].props['selectedCard'] &&
 				this.pages()['mainPage'].props['selectedCard']['_reference']
 			?	this.pages()['mainPage'].props['selectedCard']['_reference']
 			:	'';
@@ -722,7 +722,6 @@ console.log("SET USER", aUser);
 	},
 
 	runDirectLogin_handler: function (someParameters) {
-//console.log("RUN DIRECT LOGIN", someParameters);
 		var	deferredResult;
 
 		deferredResult = new Clipperz.Async.Deferred('MainController.runDirectLogin', {trace:false});
@@ -1259,7 +1258,6 @@ console.log("SET USER", aUser);
 	},
 
 	search_handler: function (aValue) {
-//console.log("SEARCH", aValue);
 		this.resetCardSelection();
 
 		if (aValue == "") {
@@ -1268,6 +1266,7 @@ console.log("SET USER", aUser);
 			this.setFilter('SEARCH', aValue);
 		}
 
+		this.setPageProperties('mainPage', 'searchTerm', aValue);
 		return this.refreshSelectedCards();
 	},
 
