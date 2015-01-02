@@ -22,11 +22,11 @@ refer to http://www.clipperz.com.
 */
 
 "use strict";
+Clipperz.Base.module('Clipperz.PM.DataModel');
+
 try { if (typeof(Clipperz.KeyValueObjectStore) == 'undefined') { throw ""; }} catch (e) {
 	throw "Clipperz.PM.DataModel.EncryptedRemoteObject depends on Clipperz.KeyValueObjectStore!";
 }  
-
-Clipperz.Base.module('Clipperz.PM.DataModel');
 
 //if (typeof(Clipperz.PM) == 'undefined') { Clipperz.PM = {}; }
 //if (typeof(Clipperz.PM.DataModel) == 'undefined') { Clipperz.PM.DataModel = {}; }
@@ -46,21 +46,19 @@ Clipperz.PM.DataModel.EncryptedRemoteObject = function(args) {
 
 	this._retrieveRemoteDataFunction	= args.retrieveRemoteDataFunction	|| null;
 	this._remoteData					= args.remoteData					|| null;
-//	this._remoteData					= args.remoteData ? Clipperz.Base.deepClone(args.remoteData) : null;
+
 	if ((!this._isBrandNew) && ((this._retrieveRemoteDataFunction == null) && (this._remoteData == null))) {
 		Clipperz.Base.exception.raise('MandatoryParameter');
 	}
 
+	this._encryptedDataKeypath			= args.encryptedDataKeypath			|| 'data';
+	this._encryptedVersionKeypath		= args.encryptedVersionKeypath		|| 'version';
 
-	this._encryptedDataKeypath			= args.encryptedDataKeypath			|| 'data';		//Clipperz.Base.exception.raise('MandatoryParameter');
-	this._encryptedVersionKeypath		= args.encryptedVersionKeypath		|| 'version';	//Clipperz.Base.exception.raise('MandatoryParameter');
-
-	
 	this._transientState = null;
 	this._deferredLocks = {};
 
 	if (this._isBrandNew == true) {
-		this._objectDataStore = new Clipperz.KeyValueObjectStore(/*{'name':'EncryptedRemoteObject.objectDataStore [1]'}*/);
+		this._objectDataStore = new Clipperz.KeyValueObjectStore();
 	} else {
 		this._objectDataStore = null;
 	}
@@ -111,7 +109,7 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 
 	'transientState': function () {
 		if (this._transientState == null) {
-			this._transientState = new Clipperz.KeyValueObjectStore(/*{'name':'EncryptedRemoteObject.transientState [2]'}*/);
+			this._transientState = new Clipperz.KeyValueObjectStore();
 		}
 		
 		return this._transientState;
@@ -166,6 +164,7 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 	//-------------------------------------------------------------------------
 
 	'hasLoadedRemoteData': function () {
+//console.log("EncryptedRemoteObject.hasLoadedRemoteData", this._remoteData);
 		return (this._remoteData != null);
 	},
 
@@ -237,7 +236,7 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 
 	'decryptedDataStore': function () {
 		if (this._decryptedDataStore == null) {
-			this._decryptedDataStore = new Clipperz.KeyValueObjectStore(/*{'name':'EncryptedRemoteObject.decryptedDataStore [3]'}*/);
+			this._decryptedDataStore = new Clipperz.KeyValueObjectStore();
 		};
 		
 		return this._decryptedDataStore;
@@ -343,7 +342,7 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 
 			if (this._objectDataStore == null) {
 //console.log("EncryptedRemoteObject._getObjectDataStore", this._reference);
-				this._objectDataStore = new Clipperz.KeyValueObjectStore(/*{'name':'EncryptedRemoteObject.objectDataStore [4]'}*/);
+				this._objectDataStore = new Clipperz.KeyValueObjectStore();
 
 				innerDeferredResult = new Clipperz.Async.Deferred("EncryptedRemoteObject._getObjectDataStore <inner deferred>", {trace:false});
 				innerDeferredResult.addMethod(this, 'getDecryptedData');
@@ -434,7 +433,6 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 	'commitTransientState': function () {
 		var deferredResult;
 
-//		if (this.transientState().getValue('__prepareRemoteData') == true) {
 		if (this.transientState().getValue('packedRemoteData') != null) {
 			deferredResult = Clipperz.Async.callbacks("EncryptedRemoteObject.commitTransientState - prepareRemoteData", [
 				MochiKit.Base.bind(function (someData) {
@@ -463,6 +461,7 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 	//-------------------------------------------------------------------------
 
 	'revertChanges': function () {
+//console.log("> EncryptedRemoveObject.revertChanges", this.toString(), this.hasInitiatedObjectDataStore());
 		if (this.hasInitiatedObjectDataStore()) {
 			this._objectDataStore.removeAllData();
 			this._objectDataStore = null;
@@ -523,7 +522,6 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 
 	'prepareRemoteDataWithKey': function (aKey) {
 		return Clipperz.Async.callbacks("EncryptedRemoteObject.prepareRemoteDataWithKey", [
-//			MochiKit.Base.method(this.transientState(), 'setValue', '__prepareRemoteData', true),
 			MochiKit.Base.method(this, '_getObjectDataStore'),
 			MochiKit.Base.methodcaller('values'),
 			MochiKit.Base.method(this, 'packData'),

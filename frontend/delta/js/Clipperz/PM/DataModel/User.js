@@ -547,11 +547,12 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		], {trace:false});
 	},
 
-	'getRecordsInfo': function (someInfo, shouldIncludeArchivedCards) {
+	'getRecordsInfo': function (someInfo /*, shouldIncludeArchivedCards */) {
 		return Clipperz.Async.callbacks("User.getRecordsInfo", [
 			MochiKit.Base.method(this, 'getRecords'),
 			MochiKit.Base.partial(MochiKit.Base.map, Clipperz.Async.collectResults("collectResults", someInfo, {trace:false})),
 			Clipperz.Async.collectAll,
+/*
 			function (aResult) {
 				var result;
 				
@@ -563,7 +564,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 				
 				return result;
 			}
-			
+*/			
 		], {trace:false});
 	},
 	
@@ -665,21 +666,15 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		var	user = this;
 		
 		return Clipperz.Async.callbacks("User.cloneRecord", [
-//			MochiKit.Base.method(this, 'createNewRecord'),
-//			MochiKit.Base.methodcaller('setUpWithRecord', aRecord),
-//			function (aValue) { result = aValue; return aValue; },
-//			MochiKit.Base.method(this, 'saveChanges'),
-//			function () { return result; }
-
 			MochiKit.Base.method(this, 'hasPendingChanges'),
 			Clipperz.Async.deferredIf("User has pending changes", [
 				MochiKit.Async.fail
 			], [
 				MochiKit.Base.method(user, 'createNewRecord'),
 				MochiKit.Base.methodcaller('setUpWithRecord', aRecord),
-				function (aValue) { result = aValue; return aValue; },
-				MochiKit.Base.method(user, 'saveChanges'),
-				function () { return result; }
+//				function (aValue) { result = aValue; return aValue; },
+//				MochiKit.Base.method(user, 'saveChanges'),
+//				function () { return result; }
 			])
 		], {trace:false});
 	},
@@ -781,9 +776,13 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 
 	'revertChanges': function () {
 		return Clipperz.Async.callbacks("User.revertChanges", [
+//function (aValue) { console.log("User.revertChanges - 1"); return aValue; },
 			MochiKit.Base.method(this, 'invokeMethodNamedOnHeader', 'revertChanges'),
+//function (aValue) { console.log("User.revertChanges - 2"); return aValue; },
 			MochiKit.Base.method(this, 'invokeMethodNamedOnRecords', 'revertChanges'),
-			MochiKit.Base.method(this, 'resetTransientState', false)
+//function (aValue) { console.log("User.revertChanges - 3"); return aValue; },
+			MochiKit.Base.method(this, 'resetTransientState', false),
+//function (aValue) { console.log("User.revertChanges - 4"); return aValue; },
 		], {trace:false});
 	},
 

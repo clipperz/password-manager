@@ -21,6 +21,9 @@ refer to http://www.clipperz.com.
 
 */
 
+"use strict";
+
+Clipperz.Base.module('Clipperz.PM.DataModel');
 try { if (typeof(Clipperz.PM.DataModel.Record) == 'undefined') { throw ""; }} catch (e) {
 	throw "Clipperz.PM.DataModel.Record.Version depends on Clipperz.PM.DataModel.Record!";
 }  
@@ -29,7 +32,7 @@ Clipperz.PM.DataModel.Record.Version = function(args) {
 	Clipperz.PM.DataModel.Record.Version.superclass.constructor.apply(this, arguments);
 
 	this._getVersionFunction = args.getVersion	|| Clipperz.Base.exception.raise('MandatoryParameter');
-	this._fields = null;
+//	this._fields = null;
 
 	return this;
 }
@@ -43,9 +46,9 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record.Version, Clipperz.PM.DataModel
 
 	//-------------------------------------------------------------------------
 
-	'reference': function () {
-		return this._reference;
-	},
+//	'reference': function () {
+//		return this._reference;
+//	},
 	
 	//-------------------------------------------------------------------------
 /*
@@ -128,13 +131,13 @@ console.log("Record.Version.hasPendingChanges");
 		deferredResult.addCallback(MochiKit.Base.bind(function () {
 			var innerDeferredResult;
 
-			if (this._fields == null) {
+//			if (this._fields == null) {
 				innerDeferredResult = new Clipperz.Async.Deferred("Record.Version.fields <inner deferred>", {trace:false});
 				innerDeferredResult.addMethod(this, 'getValue', 'fields');
 				innerDeferredResult.addCallback(MochiKit.Base.bind(function (someObjectData) {
 					var reference;
-
-					this._fields = {};
+					var result = {};
+//					this._fields = {};
 					
 					for (reference in someObjectData) {
 						var	recordVersionField;
@@ -144,15 +147,17 @@ console.log("Record.Version.hasPendingChanges");
 							'reference':		reference
 						});
 			
-						this._fields[reference] = recordVersionField;
+//						this._fields[reference] = recordVersionField;
+						result[reference] = recordVersionField;
 					}
 
-					return this._fields;
+//					return this._fields;
+					return result;
 				}, this));
 				innerDeferredResult.callback();
-			} else {
-				innerDeferredResult = MochiKit.Async.succeed(this._fields);
-			}
+//			} else {
+//				innerDeferredResult = MochiKit.Async.succeed(this._fields);
+//			}
 			
 			return innerDeferredResult;
 		}, this));
@@ -182,10 +187,9 @@ console.log("Record.Version.hasPendingChanges");
 			MochiKit.Base.methodcaller('values'),
 			Clipperz.Base.serializeJSON,
 
-			MochiKit.Base.bind(function () { this._fields[newField.reference()] = newField; }, this),
+//			MochiKit.Base.bind(function () { this._fields[newField.reference()] = newField; }, this),
 			MochiKit.Base.method(newField,	'setLabel',		someParameters['label']),
 			MochiKit.Base.method(newField,	'setValue',		someParameters['value']),
-//			MochiKit.Base.method(newField,	'setIsHidden',	someParameters['isHidden']),
 			MochiKit.Base.method(newField,	'setIsHidden',	someParameters['hidden']),
 
 			MochiKit.Base.method(this, '_getObjectDataStore'),
@@ -201,39 +205,12 @@ console.log("Record.Version.hasPendingChanges");
 	'removeField': function (aField) {
 		return Clipperz.Async.callbacks("Record.Version.removeField", [
 			MochiKit.Base.method(this, 'fields'),
-			MochiKit.Base.bind(function () { delete this._fields[aField.reference()]; }, this),
+//			MochiKit.Base.bind(function () { delete this._fields[aField.reference()]; }, this),
 			MochiKit.Base.method(this, 'removeValue', 'fields' + '.' + aField.reference())
 		], {trace:false});
 	},
 
 	//-------------------------------------------------------------------------
-/*
-	'sortFieldReference': function (someSortedFieldReferences) {
-
-
-
-	},
-*/
-	//=========================================================================
-/*
-	'directLogins': function () {
-		return MochiKit.Base.values(this._directLogins);
-	},
-
-	'addDirectLogin': function (aDirectLogin) {
-		this._directLogins[aDirectLogin.reference()] = aDirectLogin;
-	},
-*/
-
-	//=========================================================================
-/*
-	'updateValues': function (anotherVersion) {
-		return Clipperz.Async.callbacks("Record.Version.updateValue", [
-			MochiKit.Base.partial(MochiKit.Async.succeed, this)
-		], {trace:false});
-	},
-*/
-	//=========================================================================
 
 	'setRemoteData': function (aValue) {
 		this._remoteData = aValue;
@@ -241,7 +218,7 @@ console.log("Record.Version.hasPendingChanges");
 		return aValue;
 	},
 
-	//=========================================================================
+	//-------------------------------------------------------------------------
 
 	'getVersionFunction': function () {
 		return this._getVersionFunction;
@@ -276,9 +253,10 @@ console.log("Record.Version.hasPendingChanges");
 	//=========================================================================
 
 	'revertChanges': function () {
+//console.log("Record.Version.revertChanges", this.reference(), this.transientState()['originalReference']);
 		this.setReference(this.transientState()['originalReference']);
 		Clipperz.PM.DataModel.Record.Version.superclass.revertChanges.apply(this, arguments);
-		this._fields = null;
+//		this._fields = null;
 	},
 
 	//-------------------------------------------------------------------------
@@ -313,15 +291,15 @@ console.log("Record.Version.hasPendingChanges");
 	},
 
 	//=========================================================================
-
+/*
 	'deleteAllCleanTextData': function () {
-		this._fields = null;
+//		this._fields = null;
 		return Clipperz.PM.DataModel.Record.Version.superclass.deleteAllCleanTextData.apply(this, arguments);
 	},
 
 	'hasAnyCleanTextData': function () {
-//		return Clipperz.PM.DataModel.Record.Version.superclass.hasAnyCleanTextData.apply(this, arguments);
-
+		return Clipperz.PM.DataModel.Record.Version.superclass.hasAnyCleanTextData.apply(this, arguments);
+/ *
 		var	deferredResult;
 		
 		deferredResult = new Clipperz.Async.Deferred("Record.Version.hasAnyCleanTextData", {trace:false});
@@ -335,8 +313,9 @@ console.log("Record.Version.hasPendingChanges");
 		deferredResult.callback();
 
 		return deferredResult;
+* /
 	},
-
+*/
 	//=========================================================================
 	__syntaxFix__: "syntax fix"
 });

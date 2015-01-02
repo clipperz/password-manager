@@ -73,6 +73,7 @@ Clipperz.PM.UI.MainController = function() {
 		'showArchivedCards', 'hideArchivedCards',
 		'goBackToMainPage',
 		'maskClick',
+		'downloadOfflineCopy',
 	]);
 
 //	MochiKit.Signal.connect(MochiKit.DOM.currentDocument(), 'onselectionchange', this, 'selectionChange_handler');
@@ -636,6 +637,7 @@ console.log("SET USER", aUser);
 		var deferredResult;
 
 		deferredResult = new Clipperz.Async.Deferred('MainController.refreshUI', {trace:false});
+		deferredResult.addMethod(this, 'resetRecordsInfo'),
 		deferredResult.addMethod(this, 'refreshSelectedCards');
 		deferredResult.addMethod(this, 'renderTags');
 		
@@ -1034,9 +1036,12 @@ console.log("SET USER", aUser);
 //	},
 
 	saveChanges: function () {
+		//	TODO: handle errors while savings
 		return Clipperz.Async.callbacks("MainController.saveChanges", [
+			MochiKit.Base.method(this.overlay(), 'show', "saving …", true),
 			MochiKit.Base.method(this.user(), 'saveChanges'),
-			MochiKit.Base.method(this, 'resetRecordsInfo'),
+//			MochiKit.Base.method(this, 'resetRecordsInfo'),
+			MochiKit.Base.method(this.overlay(), 'done', "saved", 1),
 		], {trace:false});
 	},
 
@@ -1046,11 +1051,11 @@ console.log("SET USER", aUser);
 		
 		return Clipperz.Async.callbacks("MainController.saveCardEdits_handler", [
 			MochiKit.Base.method(currentPage, 'setProps', {'showGlobalMask':true}),
-			MochiKit.Base.method(this.overlay(), 'show', "saving …", true),
+//			MochiKit.Base.method(this.overlay(), 'show', "saving …", true),
 			MochiKit.Base.method(this, 'saveChanges'),
 			MochiKit.Base.method(currentPage, 'setProps', {'mode':'view', 'showGlobalMask':false}),
 			MochiKit.Base.method(this, 'refreshUI', aRecordReference),
-			MochiKit.Base.method(this.overlay(), 'done', "saved", 1),
+//			MochiKit.Base.method(this.overlay(), 'done', "saved", 1),
 		], {trace:false});
 	},
 
@@ -1160,16 +1165,26 @@ console.log("SET USER", aUser);
 	},
 
 	cloneCard_handler: function (anEvent) {
+		var	cardInfo;
+
 //console.log("CLONE CARD", anEvent['reference']);
 		return Clipperz.Async.callbacks("MainController.cloneCard_handler", [
 			MochiKit.Base.method(this.user(), 'getRecord', anEvent['reference']),
 			MochiKit.Base.method(this.user(), 'cloneRecord'),
-			MochiKit.Base.methodcaller('reference'),
+			Clipperz.Async.collectResults("MainController.cloneCard_handler <card info>", {
+				'label': MochiKit.Base.methodcaller('label'),
+				'reference': MochiKit.Base.methodcaller('reference')
+			}, {trace:false}),
+			function (aValue) { cardInfo = aValue; return aValue; },
+			MochiKit.Base.method(this, 'saveChanges'),
+
+			function (aValue) {
+				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'cardSelected', cardInfo);
+			},
+			
+			function (aValue) { return cardInfo['reference']; },
 			MochiKit.Base.method(this, 'refreshUI'),
-//			MochiKit.Base.bind(function () {
-//				this.pages()[this.currentPage()].setProps({'mode': 'edit'});
-//			}, this),
-		], {trace:false});
+		], {trace:true});
 	},
 	
 	enterEditMode: function () {
@@ -1322,7 +1337,27 @@ console.log("SET USER", aUser);
 	hasKeyboard: function () {
 		return this._hasKeyboard;
 	},
-	
+
+	//============================================================================
+
+	'downloadOfflineCopy_handler': function (anEvent) {
+		var downloadHref;
+		var	deferredResult;
+		var newWindow;
+		
+		downloadHref = window.location.href.replace(/\/[^\/]*$/,'') + Clipperz_dumpUrl;
+		newWindow = window.open("", "");
+
+		deferredResult = new Clipperz.Async.Deferred("AppController.handleDownloadOfflineCopy", {trace:false});
+		deferredResult.addCallback(MochiKit.Base.method(this.user().connection(), 'message'), 'echo', {'echo':"echo"});
+		deferredResult.addCallback(function(aWindow) {
+			aWindow.location.href = downloadHref;
+		}, newWindow);
+		deferredResult.callback();
+		
+		return deferredResult;
+	},
+
 	//============================================================================
 /*
 	wrongAppVersion: function (anError) {

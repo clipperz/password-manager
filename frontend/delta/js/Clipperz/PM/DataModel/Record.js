@@ -77,9 +77,9 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 
 	//-------------------------------------------------------------------------
 
-	'reference': function () {
-		return this._reference;
-	},
+//	'reference': function () {
+//		return this._reference;
+//	},
 	
 	//=========================================================================
 
@@ -171,6 +171,10 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		return new RegExp('^\\s+|\\s+$', 'g');
 	},
 
+//	'tagCleanupRegExp': function () {
+//		return new RegExp('\\' + Clipperz.PM.DataModel.Record.tagSpace, 'g');
+//	},
+	
 	//............................................................................
 
 	'filterOutTags': function (aValue) {
@@ -217,7 +221,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		match = tagRegEx.exec(aLabel);
 		while (match != null) {
 			result[match[1]] = true;
-		    match = tagRegEx.exec(aLabel);
+			match = tagRegEx.exec(aLabel);
 		}		
 		
 		return result;
@@ -232,10 +236,12 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	},
 
 	'addTag': function (aNewTag) {
+//		var	tag = aNewTag.replace(/\s/g, Clipperz.PM.DataModel.Record.tagSpace);
+//console.log("TAG", aNewTag, tag);
 		return Clipperz.Async.callbacks("Record.addTag", [
 			MochiKit.Base.method(this, 'fullLabel'),
 			MochiKit.Base.method(this, 'extractTagsFromFullLabel'),
-			function (someTags) { someTags[aNewTag] = true; /* console.log("UPDATED TAGS", someTags); */ return someTags; },
+			function (someTags) { someTags[aNewTag] = true; return someTags; },
 			MochiKit.Base.method(this, 'updateTags')
 		], {trace:false});
 	},
@@ -631,12 +637,18 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		var	deferredResult;
 		var transientStateKey;
 
+		if (typeof(aVersionReference) == 'undefined') {
+			console.log("ERROR; getVersionKey aVersionReference is undefined");
+		}
+
 		transientStateKey = 'versionKeys' + '.' + aVersionReference;
 		if (this.transientState().getValue(transientStateKey) != null) {
 			deferredResult = MochiKit.Async.succeed(this.transientState().getValue(transientStateKey));
 		} else {
 			deferredResult = Clipperz.Async.callbacks("Record.getVersionKey", [
+//MochiKit.Base.bind(function () {console.log("VERSION REFERENCE", aVersionReference, this.currentVersionReference()); }, this),
 				MochiKit.Base.method(this, 'getVersions'),
+//function (aValue) { console.log("VERSIONs", aValue); return aValue; },
 				MochiKit.Base.partial(MochiKit.Base.operator.eq, aVersionReference, this.currentVersionReference()),
 				Clipperz.Async.deferredIf("getVersionKey for current version", [
 					MochiKit.Base.method(this, 'getCurrentRecordVersionKey'),
@@ -758,7 +770,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	'invokeCurrentRecordVersionMethod': function (aMethodName, someValues) {
 		return Clipperz.Async.callbacks("Record.invokeCurrentRecordVersionMethod", [
 			MochiKit.Base.method(this, 'getCurrentRecordVersion'),
-			MochiKit.Base.methodcaller(aMethodName, someValues)
+			MochiKit.Base.methodcaller(aMethodName, someValues),
 		], {trace:false});
 	},
 
@@ -833,26 +845,18 @@ deferredResult.addCallback(function (aValue) { console.log("Record.hasPendingCha
 
 	'hasPendingChanges': function () {
 		var deferredResult;
-//		var recordReference = this.reference();
-		var	self = this;
+		var recordReference = this.reference();
+//		var	self = this;
 
 		deferredResult = new Clipperz.Async.Deferred("Clipperz.PM.DataModel.Record.hasPendingChanges", {trace:false});
 		deferredResult.collectResults({
 			'super': [
 				MochiKit.Base.bind(Clipperz.PM.DataModel.Record.superclass.hasPendingChanges, this),
-
-//				MochiKit.Base.method(this, 'hasInitiatedObjectDataStore'),
-//				Clipperz.Async.deferredIf("Record.hasPendingChanges - hasInitiatedObjectDataStore", [
-//					MochiKit.Base.bind(Clipperz.PM.DataModel.Record.superclass.hasPendingChanges, this),
-//				], [
-//					MochiKit.Base.partial(MochiKit.Async.succeed, false),
-//				]),
 			],	
 			'currentVersion': [
-//				MochiKit.Base.method(this, 'invokeCurrentRecordVersionMethod', 'hasPendingChanges')
 				MochiKit.Base.method(this, 'hasInitiatedObjectDataStore'),
 				Clipperz.Async.deferredIf("Record.hasPendingChanges - hasInitiatedObjectDataStore", [
-					MochiKit.Base.method(this, 'invokeCurrentRecordVersionMethod', 'hasPendingChanges')
+					MochiKit.Base.method(this, 'invokeCurrentRecordVersionMethod', 'hasPendingChanges'),
 				], [
 					MochiKit.Base.partial(MochiKit.Async.succeed, false),
 				]),
@@ -939,39 +943,47 @@ console.log("Record.hasPendingChanges RESULT", result);
 
 	'revertChanges': function () {
 		var deferredResult;
-		var recordReference = this.reference();
+//		var recordReference = this.reference();
 		
 		if (this.isBrandNew() == false) {
-/*
+/* */
 			deferredResult = new Clipperz.Async.Deferred("Clipperz.PM.DataModel.Record.revertChanges", {trace:false});
 			deferredResult.addMethod(this, 'hasPendingChanges');
-deferredResult.addCallback(function (aValue) { 
-	if (recordReference == 'd620764a656bfd4e1d3758500d5db72e460a0cf729d56ed1a7755b5725c50045') {
-		console.log("Record.revertChanges - hasPendingChanges", aValue);
-	}
+//deferredResult.addCallback(function (aValue) { 
+//	if (recordReference == 'd620764a656bfd4e1d3758500d5db72e460a0cf729d56ed1a7755b5725c50045') {
+//		console.log("Record.revertChanges - hasPendingChanges", aValue);
+//	}
 //	return aValue;
-	return true;
-});
+//	return true;
+//});
 			deferredResult.addIf([
+//function (aValue) { console.log("Record.revertChanges - 1"); return aValue; },
 				MochiKit.Base.method(this, 'invokeCurrentRecordVersionMethod', 'revertChanges'),
+//function (aValue) { console.log("Record.revertChanges - 2"); return aValue; },
+				
 				MochiKit.Base.method(this, 'directLogins'),
+//function (aValue) { console.log("Record.revertChanges - 3"); return aValue; },
 				MochiKit.Base.values,
+//function (aValue) { console.log("Record.revertChanges - 4"); return aValue; },
 				MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('revertChanges')),
+//function (aValue) { console.log("Record.revertChanges - 5"); return aValue; },
 
-				MochiKit.Base.bind(Clipperz.PM.DataModel.Record.superclass.revertChanges, this)
+				MochiKit.Base.bind(Clipperz.PM.DataModel.Record.superclass.revertChanges, this),
+//function (aValue) { console.log("Record.revertChanges - 6"); return aValue; },
 			], [
 				MochiKit.Async.succeed
 			]);
 			deferredResult.callback();
-*/
+/* * /
 			deferredResult = Clipperz.Async.callbacks("Clipperz.PM.DataModel.Record.revertChanges", [
-				MochiKit.Base.method(this, 'invokeCurrentRecordVersionMethod', 'revertChanges'),
 				MochiKit.Base.method(this, 'directLogins'),
 				MochiKit.Base.values,
 				MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('revertChanges')),
 
-				MochiKit.Base.bind(Clipperz.PM.DataModel.Record.superclass.revertChanges, this)
+				MochiKit.Base.method(this, 'invokeCurrentRecordVersionMethod', 'revertChanges'),
+				MochiKit.Base.bind(Clipperz.PM.DataModel.Record.superclass.revertChanges, this),
 			], {trace:false});
+/ * */
 		} else {
 //			this.deleteAllCleanTextData();
 			deferredResult = MochiKit.Async.succeed();
@@ -1115,7 +1127,7 @@ deferredResult.addCallback(function (aValue) {
 			},
 //function (aValue) { console.log("Sorted Keys", aValue); return aValue; },
 			MochiKit.Base.partial(MochiKit.Base.map, function (aReference) { return currentFieldValues[aReference]; }),
-function (aValue) { console.log("Sorted Field values", aValue); return aValue; },
+//function (aValue) { console.log("Sorted Field values", aValue); return aValue; },
 			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, 'addField')),
 			Clipperz.Async.collectAll,
 		], [
@@ -1147,7 +1159,7 @@ function (aValue) { console.log("Sorted Field values", aValue); return aValue; }
 			Clipperz.Async.collectAll,
 
 			MochiKit.Base.method(aRecord, 'directLogins'), MochiKit.Base.values,
-function (aValue) { console.log("-> DirectLogin Values", aValue); return aValue; },
+//function (aValue) { console.log("-> DirectLogin Values", aValue); return aValue; },
 			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, 'addDirectLogin')),
 //function (aValue) { console.log("-> DirectLogin Values", aValue); return aValue; },
 //			Clipperz.Async.collectAll,
@@ -1173,10 +1185,11 @@ Clipperz.PM.DataModel.Record.defaultCardInfo = {
 };
 Clipperz.PM.DataModel.Record.defaultSearchField = '_searchableContent';
 
-Clipperz.PM.DataModel.Record.tagChar = '\uE009';
-Clipperz.PM.DataModel.Record.specialTagChar = '\uE010';
+Clipperz.PM.DataModel.Record.tagChar =			'\uE009';
+Clipperz.PM.DataModel.Record.specialTagChar =	'\uE010';
+//Clipperz.PM.DataModel.Record.tagSpace =			'\uE011';
 Clipperz.PM.DataModel.Record.specialTagsConstructor = function (aTag) {
-	return Clipperz.PM.DataModel.Record.specialTagChar + aTag;
+	return Clipperz.PM.DataModel.Record.specialTagChar + aTag;	//.replace(/\s/g, Clipperz.PM.DataModel.Record.tagSpace);
 }
 Clipperz.PM.DataModel.Record.archivedTag = Clipperz.PM.DataModel.Record.specialTagsConstructor('ARCH');
 Clipperz.PM.DataModel.Record.regExpForTag = function (aTag) {

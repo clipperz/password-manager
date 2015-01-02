@@ -60,7 +60,7 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 		var	filterType;
 		var	filterValue;
 
-console.log("SELECTIONS PROPS", this.props);
+//console.log("SELECTIONS PROPS", this.props);
 		tagInfo = this.props['tags'] ? this.props['tags'] : {};
 		tags = MochiKit.Base.filter(Clipperz.PM.DataModel.Record.isRegularTag, MochiKit.Base.keys(tagInfo)).sort(Clipperz.Base.caseInsensitiveCompare);
 		archivedCardsCount = this.props['archivedCardsCount'];

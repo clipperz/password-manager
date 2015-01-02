@@ -227,7 +227,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 		
 							this._records[reference] = record;
 						} else {
-Clipperz.log("SKIPPING record " + reference + " as there are no stas associated - " + Clipperz.Base.serializeJSON(someData['records'][reference]));
+Clipperz.log("SKIPPING record " + reference + " as there are no stats associated - " + Clipperz.Base.serializeJSON(someData['records'][reference]));
 						}
 					}
 

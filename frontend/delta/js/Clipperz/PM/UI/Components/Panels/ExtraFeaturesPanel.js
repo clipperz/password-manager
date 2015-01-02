@@ -21,6 +21,7 @@ refer to http://www.clipperz.com.
 
 */
 
+"use strict";
 Clipperz.Base.module('Clipperz.PM.UI.Components.Panels');
 
 Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
@@ -30,6 +31,10 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel');
 	},
 
+	handleDownloadOfflineCopyLink: function (anEvent) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'downloadOfflineCopy');
+	},
+	
 	//=========================================================================
 
 	render: function () {
@@ -45,33 +50,39 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 					Clipperz.PM.UI.Components.Button({eventName:'settingsToggleButton', label:"menu", handler:this.settingsToggleHandler})
 				])
 			]),
-			React.DOM.h2({}, "Extra features")
+
+			React.DOM.div({}, [
+				React.DOM.ul({}, [
+					React.DOM.li({}, [
+						React.DOM.h1({}, "Account"),
+					]),
+					React.DOM.li({}, [
+						React.DOM.h1({}, "Data"),
+						React.DOM.ul({}, [
+							React.DOM.li({}, [
+								React.DOM.h2({}, "Offline copy"),
+								React.DOM.div({}, [
+									React.DOM.p({}, "With just one click you can dump all your encrypted data from Clipperz servers to your hard disk and create a read-only offline version of Clipperz to be used when you are not connected to the Internet."),
+									React.DOM.a({'onClick':this.handleDownloadOfflineCopyLink}, "Download")
+								])
+							]),
+							React.DOM.li({}, [
+								React.DOM.h2({}, "Sharing"),
+							]),
+							React.DOM.li({}, [
+								React.DOM.h2({}, "Import"),
+							]),
+							React.DOM.li({}, [
+								React.DOM.h2({}, "Export"),
+							])
+						])
+					]),
+					React.DOM.li({}, [
+						React.DOM.h1({}, "Tools"),
+					])
+				])
+			])
 		]);
-/*
-		<div id="extraFeaturesPanel" class="panel extraFeatures">
-
-			<div class="warnings">
-				<ul>
-					<li>Synchronize local data</li>
-				</ul>
-			</div>
-
-			<ul>
-				<li>Account</li>
-				<li>Subscription</li>
-			</ul>
-
-			<ul>
-				<li>Local Data</li>
-				<li>OTP</li>
-			</ul>
-
-			<div class="donation">
-				<a>Make a donation</a>
-			</div>
-		</div>
-*/
-
 	}
 
 	//=========================================================================
