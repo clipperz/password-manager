@@ -339,7 +339,7 @@ console.log("DROP");	//, anEvent);
 	renderDirectLogin: function (aDirectLogin) {
 		return	React.DOM.div({'className':'cardDirectLogin', 'key':aDirectLogin['_reference']}, [
 			React.DOM.span({'className':'directLoginLabel'}, aDirectLogin['label']),
-			React.DOM.div({'className':'directLoginAction action'}, 'DIRECT LOGIN')
+//			React.DOM.div({'className':'directLoginAction action'}, 'DIRECT LOGIN')
 		]);
 	},
 	

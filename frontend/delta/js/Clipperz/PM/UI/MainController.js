@@ -74,6 +74,7 @@ Clipperz.PM.UI.MainController = function() {
 		'goBackToMainPage',
 		'maskClick',
 		'downloadOfflineCopy',
+		'runDirectLogin',
 	]);
 
 //	MochiKit.Signal.connect(MochiKit.DOM.currentDocument(), 'onselectionchange', this, 'selectionChange_handler');
@@ -719,7 +720,7 @@ console.log("SET USER", aUser);
 		this.moveInPage(this.currentPage(), 'mainPage');
 		return this.renderAccountData();
 	},
-/*
+
 	runDirectLogin_handler: function (someParameters) {
 //console.log("RUN DIRECT LOGIN", someParameters);
 		var	deferredResult;
@@ -727,12 +728,12 @@ console.log("SET USER", aUser);
 		deferredResult = new Clipperz.Async.Deferred('MainController.runDirectLogin', {trace:false});
 		deferredResult.addMethod(this.user(), 'getRecord', someParameters['record']);
 		deferredResult.addMethodcaller('directLoginWithReference', someParameters['directLogin']);
-		deferredResult.addCallback(Clipperz.PM.UI.DirectLoginRunner.openDirectLogin);
+		deferredResult.addCallback(Clipperz.PM.UI.DirectLoginController.openDirectLogin);
 		deferredResult.callback();
 
 		return deferredResult;
 	},
-
+/*
 	shouldExitApp: function (anEvent) {
 //console.log("SHOULD EXIT APP");
 		anEvent.preventDefault();

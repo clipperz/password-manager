@@ -33,6 +33,20 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 		'loading':	React.PropTypes.bool,
 	},
 
+	handleDirectLoginClick: function (aDirectLogin) {
+		var	directLoginParameters;
+
+console.log("PROPS", this.props);
+		directLoginParameters = {
+			'record': this.props['_reference'],
+			'directLogin': aDirectLogin['_reference'],
+		};
+
+		return function (anEvent) {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'runDirectLogin', directLoginParameters);
+		};
+	},
+
 	//----------------------------------------------------------------------------
 
 	renderEmpty: function () {
@@ -120,9 +134,9 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 	//............................................................................
 
 	renderDirectLogin: function (aDirectLogin) {
-		return	React.DOM.div({'className':'cardDirectLogin'}, [
+		return	React.DOM.div({'className':'cardDirectLogin', 'onClick':this.handleDirectLoginClick(aDirectLogin)}, [
 			React.DOM.span({'className':'directLoginLabel'}, aDirectLogin['label']),
-			React.DOM.div({'className':'directLoginAction action'}, 'DIRECT LOGIN')
+//			React.DOM.div({'className':'directLoginAction action'}, 'DIRECT LOGIN')
 		]);
 	},
 	
