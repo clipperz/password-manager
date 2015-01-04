@@ -45,6 +45,8 @@ Clipperz.PM.UI.MainController = function() {
 	this._hasKeyboard = this._isDesktop;
 
 	this._recordsInfo = null;
+	this._selectedCards = null;
+
 	this._selectedCardInfo = null;
 
 	this._closeMaskAction = null;
@@ -65,7 +67,7 @@ Clipperz.PM.UI.MainController = function() {
 		'selectAllCards', 'selectRecentCards', 'search', 'tagSelected', 'selectUntaggedCards',
 		'refreshCardEditDetail',
 		'saveCardEdits', 'cancelCardEdits',
-		'cardSelected',
+		'selectCard',
 		'addCardClick',
 		'deleteCard', 'toggleArchiveCard', 'cloneCard', 'editCard',
 		'addTag', 'removeTag',
@@ -457,7 +459,7 @@ console.log("THE BROWSER IS OFFLINE");
 
 	updateSelectedCard: function (someInfo, shouldShowLoading) {
 		var deferredResult;
-		var showLoading = typeof shouldShowLoading !== 'undefined' ? shouldShowLoading : true;
+		var showLoading = typeof(shouldShowLoading) !== 'undefined' ? shouldShowLoading : true;
 
 		if (someInfo == null) {
 			this.setPageProperties('mainPage', 'selectedCard', {});
@@ -530,6 +532,7 @@ console.log("THE BROWSER IS OFFLINE");
 	
 	resetRecordsInfo: function () {
 		this._recordsInfo = null;
+		this._selectedCards = null;
 	},
 	
 	getRecordsInfo: function (cardInfo, shouldIncludeArchivedCards) {
@@ -547,6 +550,17 @@ console.log("THE BROWSER IS OFFLINE");
 		return deferredResult;
 	},
 
+	//............................................................................
+
+	selectedCards: function () {
+		return this._selectedCards;
+	},
+	
+	setSelectedCards: function (aValue) {
+		this._selectedCards = aValue;
+		return this._selectedCards;
+	},
+	
 	//----------------------------------------------------------------------------
 
 	updateSelectedCards: function (shouldIncludeArchivedCards, aFilter) {
@@ -605,6 +619,7 @@ console.log("THE BROWSER IS OFFLINE");
 
 		deferredResult.addMethod(this, 'setPageProperties', 'mainPage', 'cards');
 		deferredResult.addCallback(MochiKit.Base.bind(function (someCards) {
+			this.setSelectedCards(someCards);
 			if (!this.isSelectedCardStillVisible(someCards)) {
 				this.updateSelectedCard(null);
 			};
@@ -976,20 +991,20 @@ console.log("THE BROWSER IS OFFLINE");
 
 	isSelectionPanelHidable: function () {
 		var	result;
-		
+
 		if (this.mediaQueryStyle() == 'extra-wide') {
 			result = false;
 		} else {
 			result = true;
 		}
-		
+
 		return result;
 	},
-	
+
 	isSelectionPanelOpen: function () {
 		return this._isSelectionPanelOpen;
 	},
-	
+
 	toggleSelectionPanel_handler: function (anEvent) {
 		if (this.isSelectionPanelHidable() == true) {
 			this._isSelectionPanelOpen = !this._isSelectionPanelOpen;
@@ -997,23 +1012,97 @@ console.log("THE BROWSER IS OFFLINE");
 			this.refreshCurrentPage();
 		}
 	},
-	
 
 	isSettingsPanelOpen: function () {
 		return this._isSettingsPanelOpen;
 	},
-	
+
 	toggleSettingsPanel_handler: function (anEvent) {
 		this._isSettingsPanelOpen = !this._isSettingsPanelOpen;
 		this.setCloseMaskAction(MochiKit.Base.method(this, 'toggleSettingsPanel_handler'));
 		this.refreshCurrentPage();
 	},
 
-	resetCardSelection: function () {
+	//----------------------------------------------------------------------------
+
+	selectedCardInfo: function () {
+		return this._selectedCardInfo;
+	},
+
+	selectedCardIndex: function () {
+		var	selectedCardInfo;
+		var	result;
+		
+		result = -1;
+		selectedCardInfo = this.selectedCardInfo();
+		if (selectedCardInfo != null) {
+			var	selectedCards;
+			var	reference;
+			var i, c;
+			
+			selectedCards = this.selectedCards();
+			reference = selectedCardInfo['reference'];
+			c = selectedCards.length;
+			i = 0;
+			while (i<c && result == -1) {
+				if (selectedCards[i]['_reference'] == reference) {
+					result = i;
+				} else {
+					i++;
+				}
+			}
+		}
+
+		return result;
+	},
+
+	cardInfoAtIndex: function (anIndex) {
+		var	card;
+
+console.log("CARD INFO AT INDEX", anIndex);
+		card = this.selectedCards()[anIndex];
+		
+		return {
+			'label': card['label'],
+			'reference': card['_reference']
+		};
+	},
+
+	previousCardInfo: function () {
+		var	currentIndex;
+		var	nextIndex;
+
+		currentIndex = this.selectedCardIndex();
+		if (currentIndex == -1) {
+			nextIndex = this.selectedCards().length - 1;
+		} else {
+			nextIndex = Math.max(currentIndex - 1, 0);
+		}
+
+		return this.cardInfoAtIndex(nextIndex);
+	},
+	
+	nextCardInfo: function () {
+		var	currentIndex;
+		var	nextIndex;
+
+		currentIndex = this.selectedCardIndex();
+		if (currentIndex == -1) {
+			nextIndex = 0;
+		} else {
+			nextIndex = Math.min(currentIndex + 1, this.selectedCards().length - 1);
+		}
+
+		return this.cardInfoAtIndex(nextIndex);
+	},
+
+	//............................................................................
+
+	resetSelectedCard: function () {
 		this._selectedCardInfo = null;
 	},
 
-	cardSelected_handler: function (someInfo) {
+	selectCard_handler: function (someInfo) {
 		this._selectedCardInfo = someInfo;
 		this.refreshSelectedCards();
 		this.updateSelectedCard(someInfo);
@@ -1022,6 +1111,8 @@ console.log("THE BROWSER IS OFFLINE");
 	refreshCardEditDetail_handler: function (aRecordReference) {
 		this.updateSelectedCard({'reference':aRecordReference}, false);
 	},
+
+	//----------------------------------------------------------------------------
 
 	saveChanges: function () {
 		//	TODO: handle errors while savings
@@ -1165,7 +1256,7 @@ console.log("THE BROWSER IS OFFLINE");
 			MochiKit.Base.method(this, 'saveChanges'),
 
 			function (aValue) {
-				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'cardSelected', cardInfo);
+				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', cardInfo);
 			},
 			
 			function (aValue) { return cardInfo['reference']; },
@@ -1232,19 +1323,19 @@ console.log("THE BROWSER IS OFFLINE");
 	//============================================================================
 
 	selectAllCards_handler: function () {
-		this.resetCardSelection();
+		this.resetSelectedCard();
 		this.setFilter('ALL');
 		return this.refreshSelectedCards();
 	},
 	
 	selectRecentCards_handler: function () {
-		this.resetCardSelection();
+		this.resetSelectedCard();
 		this.setFilter('RECENT');
 		return this.refreshSelectedCards();
 	},
 
 	search_handler: function (aValue) {
-		this.resetCardSelection();
+		this.resetSelectedCard();
 
 		if (aValue == "") {
 			this.setFilter('ALL');
@@ -1257,13 +1348,13 @@ console.log("THE BROWSER IS OFFLINE");
 	},
 
 	tagSelected_handler: function (aTag) {
-		this.resetCardSelection();
+		this.resetSelectedCard();
 		this.setFilter('TAG', aTag);
 		return this.refreshSelectedCards();
 	},
 
 	selectUntaggedCards_handler: function () {
-		this.resetCardSelection();
+		this.resetSelectedCard();
 		this.setFilter('UNTAGGED');
 		return this.refreshSelectedCards();
 	},
@@ -1348,27 +1439,21 @@ console.log("THE BROWSER IS OFFLINE");
 
 	focusOnSearch: function (anEvent) {
 		anEvent.preventDefault();
-
-		//	TODO: show selection panel, if it is hidden
-//		if (! this.isSelectionPanelVisible()) {
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSelectionPanel');
-//		}
 		MochiKit.DOM.getElement('searchValue').focus();
 	},
 	
 	exitSearch_handler: function (anEvent) {
-		//	TODO: hide selection panel, if it is overlaying
-
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSelectionPanel');
 		MochiKit.DOM.getElement('searchValue').blur();
 	},
 
 	selectPreviousCard: function () {
-console.log("select PREVIOUS card");
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', this.previousCardInfo());
 	},
 
 	selectNextCard: function () {
-console.log("select NEXT card");
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', this.nextCardInfo());
 	},
 
 	//============================================================================
