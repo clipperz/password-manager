@@ -51,6 +51,21 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 	handleSearchChange: function (anEvent) {
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'search', anEvent.currentTarget.value);
 	},
+
+	handleKeyDown: function (anEvent) {
+		if (anEvent.key == 'Escape') {
+			this.clearSearch();
+		} else if (anEvent.key == 'Enter') {
+			anEvent.stopPropagation();
+			anEvent.preventDefault();
+
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'exitSearch', anEvent.currentTarget.value);
+		}
+	},
+
+	clearSearch: function (anEvent) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'search', "");
+	},
 	
 	render: function () {
 		var	tagInfo;
@@ -78,10 +93,14 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 			React.DOM.div({'className':'search'}, [
 				React.DOM.form({'className':'searchForm'}, [
 					React.DOM.div({}, [
+						React.DOM.input({'type':'text', 'id':'searchValue', 'onFocus':this.handleSearchChange, 'onChange':this.handleSearchChange, 'onKeyDown':this.handleKeyDown, 'name':'search', 'value':this.props['searchTerm']}),
 						React.DOM.label({'htmlFor':'searchValue'}, 'search'),
-						React.DOM.input({'type':'text', 'id':'searchValue', 'onFocus':this.handleSearchChange, 'onChange':this.handleSearchChange, 'name':'search', 'value':this.props['searchTerm']})
-					]),
-					React.DOM.div({}, [ React.DOM.span({'className':'count'}, selectedCardCount) ])
+						React.DOM.span({'className':'searchClear', 'onClick':this.clearSearch}, "clear")
+					])
+				]),
+				React.DOM.div({'className':'searchResultInfo'}, [
+					React.DOM.label({}, "Items found:"),
+					React.DOM.span({}, selectedCardCount)
 				])
 			]),
 			React.DOM.ul({'className':'tagList'}, MochiKit.Base.map(function (aTag) {return Clipperz.PM.UI.Components.TagIndexItem({'label':aTag, 'count':tagInfo[aTag], 'selected':aTag == filterValue}); }, tags)),

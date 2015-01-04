@@ -18,7 +18,11 @@
 		
 		"addtohomescreen.repository":	"https://github.com/cubiq/add-to-homescreen.git",
 		"addtohomescreen.version":		"2.0.8",
-		"addtohomescreen.commit":		"4d375840079bcea994cc5795a568802400c7a793"
+		"addtohomescreen.commit":		"4d375840079bcea994cc5795a568802400c7a793",
+		
+		"mousetrap.repository":			"https://github.com/ccampbell/mousetrap.git",
+		"mousetrap.version":			"1.4.6",
+		"mousetrap.commit":				"dcdf4d85b7d98dc2a141a7418f1bdf8987586b40"
 	},
 
 	"html.template": "index_template.html",
@@ -39,7 +43,12 @@
 		"MochiKit/Selector.js",
 		"-- MochiKit/Visual.js",
 
-		"React/react-with-addons-0.11.1.js",
+		"React/react-with-addons-0.12.2.js",
+
+		"MouseTrap/mousetrap.js",
+		"MouseTrap/mousetrap-bind-dictionary.js",
+		"-- MouseTrap/mousetrap-global-bind.js",
+		"-- MouseTrap/mousetrap-pause.js",
 
 		"-- Hammer/hammer-1.0.5.js",
 		"-- Cubiq/add2home.js",

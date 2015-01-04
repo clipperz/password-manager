@@ -64,7 +64,6 @@ Clipperz.PM.UI.MainController = function() {
 		'matchMediaQuery', 'unmatchMediaQuery',
 		'selectAllCards', 'selectRecentCards', 'search', 'tagSelected', 'selectUntaggedCards',
 		'refreshCardEditDetail',
-//		'refreshCardEditToolbar',
 		'saveCardEdits', 'cancelCardEdits',
 		'cardSelected',
 		'addCardClick',
@@ -75,9 +74,14 @@ Clipperz.PM.UI.MainController = function() {
 		'maskClick',
 		'downloadOfflineCopy',
 		'runDirectLogin',
+		'exitSearch'
 	]);
 
-//	MochiKit.Signal.connect(MochiKit.DOM.currentDocument(), 'onselectionchange', this, 'selectionChange_handler');
+	Mousetrap.bind({
+		'/':	MochiKit.Base.method(this, 'focusOnSearch'),
+		'up':	MochiKit.Base.method(this, 'selectPreviousCard'),
+		'down':	MochiKit.Base.method(this, 'selectNextCard'),
+	})
 
 	return this;
 }
@@ -347,7 +351,7 @@ console.log("THE BROWSER IS OFFLINE");
 	},
 
 	setUser: function (aUser) {
-console.log("SET USER", aUser);
+//console.log("SET USER", aUser);
 		this._user = aUser;
 		return this._user;
 	},
@@ -496,7 +500,6 @@ console.log("SET USER", aUser);
 	selectedCardReference: function () {
 		return	this.pages()['mainPage'].props && 
 				this.pages()['mainPage'].props['selectedCard'] &&
-//				this.pages()['mainPage'].props['selectedCard'] &&
 				this.pages()['mainPage'].props['selectedCard']['_reference']
 			?	this.pages()['mainPage'].props['selectedCard']['_reference']
 			:	'';
@@ -600,23 +603,6 @@ console.log("SET USER", aUser);
 		deferredResult.addMethodcaller('sort', sortCriteria);
 		deferredResult.addCallback(rangeFilter);
 
-/*
-		if (aFilter['type'] == 'ALL') {
-			deferredResult.addMethodcaller('sort', sortCriteria);
-		} else if (aFilter['type'] == 'RECENT') {
-			deferredResult.addMethodcaller('sort', sortCriteria);
-			deferredResult.addCallback(function (someCards) { return someCards.slice(0, 9)});
-		} else if (aFilter['type'] == 'SEARCH') {
-			deferredResult.addCallback(MochiKit.Base.filter, this.regExpFilterGenerator(Clipperz.PM.DataModel.Record.regExpForSearch(aFilter['value'])));
-			deferredResult.addMethodcaller('sort', sortCriteria);
-		} else if (aFilter['type'] == 'TAG') {
-			deferredResult.addCallback(MochiKit.Base.filter, this.regExpFilterGenerator(Clipperz.PM.DataModel.Record.regExpForTag(aFilter['value'])));
-			deferredResult.addMethodcaller('sort', sortCriteria);
-		} else if (aFilter['type'] == 'UNTAGGED') {
-			deferredResult.addCallback(MochiKit.Base.filter, this.regExpFilterGenerator(Clipperz.PM.DataModel.Record.regExpForNoTag()));
-			deferredResult.addMethodcaller('sort', sortCriteria);
-		}
-*/
 		deferredResult.addMethod(this, 'setPageProperties', 'mainPage', 'cards');
 		deferredResult.addCallback(MochiKit.Base.bind(function (someCards) {
 			if (!this.isSelectedCardStillVisible(someCards)) {
@@ -638,7 +624,7 @@ console.log("SET USER", aUser);
 		var deferredResult;
 
 		deferredResult = new Clipperz.Async.Deferred('MainController.refreshUI', {trace:false});
-		deferredResult.addMethod(this, 'resetRecordsInfo'),
+//		deferredResult.addMethod(this, 'resetRecordsInfo'),
 		deferredResult.addMethod(this, 'refreshSelectedCards');
 		deferredResult.addMethod(this, 'renderTags');
 		
@@ -737,14 +723,6 @@ console.log("SET USER", aUser);
 //console.log("SHOULD EXIT APP");
 		anEvent.preventDefault();
 		anEvent.stopPropagation();
-	},
-*/
-	//=========================================================================
-/*
-	searchCards_handler: function (someParameters) {
-//console.log("SEARCH CARDS", someParameters);
-		this.setFilter(someParameters);
-		this.renderAccountData();
 	},
 */
 	//=========================================================================
@@ -996,15 +974,28 @@ console.log("SET USER", aUser);
 		this._isSettingsPanelOpen = false;
 	},
 
+	isSelectionPanelHidable: function () {
+		var	result;
+		
+		if (this.mediaQueryStyle() == 'extra-wide') {
+			result = false;
+		} else {
+			result = true;
+		}
+		
+		return result;
+	},
+	
 	isSelectionPanelOpen: function () {
 		return this._isSelectionPanelOpen;
 	},
 	
-	
 	toggleSelectionPanel_handler: function (anEvent) {
-		this._isSelectionPanelOpen = !this._isSelectionPanelOpen;
-		this.setCloseMaskAction(MochiKit.Base.method(this, 'toggleSelectionPanel_handler'));
-		this.refreshCurrentPage();
+		if (this.isSelectionPanelHidable() == true) {
+			this._isSelectionPanelOpen = !this._isSelectionPanelOpen;
+			this.setCloseMaskAction(MochiKit.Base.method(this, 'toggleSelectionPanel_handler'));
+			this.refreshCurrentPage();
+		}
 	},
 	
 
@@ -1031,16 +1022,13 @@ console.log("SET USER", aUser);
 	refreshCardEditDetail_handler: function (aRecordReference) {
 		this.updateSelectedCard({'reference':aRecordReference}, false);
 	},
-//	refreshCardEditToolbar_handler: function (aRecordReference) {
-//		
-//	},
 
 	saveChanges: function () {
 		//	TODO: handle errors while savings
 		return Clipperz.Async.callbacks("MainController.saveChanges", [
 			MochiKit.Base.method(this.overlay(), 'show', "saving …", true),
 			MochiKit.Base.method(this.user(), 'saveChanges'),
-//			MochiKit.Base.method(this, 'resetRecordsInfo'),
+			MochiKit.Base.method(this, 'resetRecordsInfo'),
 			MochiKit.Base.method(this.overlay(), 'done', "saved", 1),
 		], {trace:false});
 	},
@@ -1051,11 +1039,9 @@ console.log("SET USER", aUser);
 		
 		return Clipperz.Async.callbacks("MainController.saveCardEdits_handler", [
 			MochiKit.Base.method(currentPage, 'setProps', {'showGlobalMask':true}),
-//			MochiKit.Base.method(this.overlay(), 'show', "saving …", true),
 			MochiKit.Base.method(this, 'saveChanges'),
 			MochiKit.Base.method(currentPage, 'setProps', {'mode':'view', 'showGlobalMask':false}),
 			MochiKit.Base.method(this, 'refreshUI', aRecordReference),
-//			MochiKit.Base.method(this.overlay(), 'done', "saved", 1),
 		], {trace:false});
 	},
 
@@ -1340,7 +1326,7 @@ console.log("SET USER", aUser);
 
 	//============================================================================
 
-	'downloadOfflineCopy_handler': function (anEvent) {
+	downloadOfflineCopy_handler: function (anEvent) {
 		var downloadHref;
 		var	deferredResult;
 		var newWindow;
@@ -1356,6 +1342,33 @@ console.log("SET USER", aUser);
 		deferredResult.callback();
 		
 		return deferredResult;
+	},
+
+	//============================================================================
+
+	focusOnSearch: function (anEvent) {
+		anEvent.preventDefault();
+
+		//	TODO: show selection panel, if it is hidden
+//		if (! this.isSelectionPanelVisible()) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSelectionPanel');
+//		}
+		MochiKit.DOM.getElement('searchValue').focus();
+	},
+	
+	exitSearch_handler: function (anEvent) {
+		//	TODO: hide selection panel, if it is overlaying
+
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSelectionPanel');
+		MochiKit.DOM.getElement('searchValue').blur();
+	},
+
+	selectPreviousCard: function () {
+console.log("select PREVIOUS card");
+	},
+
+	selectNextCard: function () {
+console.log("select NEXT card");
 	},
 
 	//============================================================================

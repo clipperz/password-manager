@@ -464,6 +464,18 @@
 	|	THE SOFTWARE.
 
 
+# mousetrap (http://craig.is/killing/mice)
+	- repository: @mousetrap.repository@ (version: @mousetrap.version@ - commit: @mousetrap.commit@)
+
+	* Software license: https://github.com/ccampbell/mousetrap
+
+	|	[…]
+	|
+	|	It is licensed under the Apache 2.0 license.
+	|
+	|	[…]
+
+
 # Add to Home Screen (http://cubiq.org/add-to-home-screen)
 	- repository: @addtohomescreen.repository@ (version: @addtohomescreen.version@ - commit: @addtohomescreen.commit@)
 

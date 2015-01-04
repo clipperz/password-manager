@@ -6,6 +6,7 @@
 //	height: 100%;
 
 	$iconColumnWidth: 40px;
+	$spacing: 5px;
 
 	ul.defaultSet {
 		font-weight: bold;
@@ -24,18 +25,51 @@
 	}
 
 	.search {
-		label {
-			@include icon-font();
-			font-size: 18pt;
-			padding-left: 5px;
-			padding-right:5px;
-		}
+		form {
+			input {
+				font-family: "clipperz-font";
+				color: #999;
+				font-size: 18pt;
+				padding: 0px 30px;
+				margin: 0px 5px;
+//				width: $selectionPanelWidth - $iconColumnWidth - 10px;
+				width: $selectionPanelWidth - ($spacing * 2);
+			}
+
+			label {
+				@include icon-font();
+				font-size: 18pt;
+				padding-left: $spacing;
+//				padding-right:5px;
+				margin-left: -$selectionPanelWidth + $spacing;
+				color: #666;
+			}
 		
-		input {
-			font-family: "clipperz-font";
-			color: #999;
-			font-size: 18pt;
-			width: $selectionPanelWidth - $iconColumnWidth - 10px;
+			.searchClear {
+				@include icon-font();
+				@include border-radius(4px);
+				background-color: #aaa;
+				color: white;
+				margin-left: $selectionPanelWidth - $iconColumnWidth - 30px;
+				cursor: pointer;
+				padding: 5px;
+				font-size: 10pt;
+			
+				&:hover {
+					background-color: #666;
+				}
+			}
+		}
+
+		.searchResultInfo {
+//			color: #999;
+			font-size: 10pt;
+			padding: 2px 6px;
+			display: none;
+
+			label {
+				padding-right: 3px;
+			}
 		}
 	}
 
@@ -113,7 +147,10 @@ $selectionColor: yellow;
 
 #selections.SEARCH {
 	div.search {
-		color: $selectionColor;
+		.searchResultInfo {
+			color: $selectionColor;
+			display: block;
+		}
 	}
 }
 
