@@ -36,7 +36,7 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 	handleDirectLoginClick: function (aDirectLogin) {
 		var	directLoginParameters;
 
-console.log("PROPS", this.props);
+//console.log("PROPS", this.props);
 		directLoginParameters = {
 			'record': this.props['_reference'],
 			'directLogin': aDirectLogin['_reference'],

@@ -79,11 +79,14 @@ Clipperz.PM.UI.MainController = function() {
 		'exitSearch'
 	]);
 
-	Mousetrap.bind({
-		'/':	MochiKit.Base.method(this, 'focusOnSearch'),
-		'up':	MochiKit.Base.method(this, 'selectPreviousCard'),
-		'down':	MochiKit.Base.method(this, 'selectNextCard'),
-	})
+	Mousetrap.bind(['/'],					MochiKit.Base.method(this, 'focusOnSearch'));
+
+	Mousetrap.bind(['left',  'h', 'esc'],	MochiKit.Base.method(this, 'exitCurrentSelection'));
+	Mousetrap.bind(['right', 'l', 'enter'],	MochiKit.Base.method(this, 'selectDetail'));
+
+	Mousetrap.bind(['up',    'k'],			MochiKit.Base.method(this, 'selectPreviousCard'));
+	Mousetrap.bind(['down',  'j'],			MochiKit.Base.method(this, 'selectNextCard'));
+
 
 	return this;
 }
@@ -457,7 +460,14 @@ console.log("THE BROWSER IS OFFLINE");
 		return deferredResult;
 	},
 
-	updateSelectedCard: function (someInfo, shouldShowLoading) {
+	showCardDetailInNarrowView: function (aValue) {
+		return Clipperz.Async.callbacks("MainController.showCardDetailInNarrowView", [
+			MochiKit.Base.method(this, 'setPageProperties', 'cardDetailPage', 'selectedCard', aValue),
+			MochiKit.Base.method(this, 'moveInPage', this.currentPage(), 'cardDetailPage'),
+		], {trace:false});
+	},
+
+	updateSelectedCard: function (someInfo, shouldShowLoading, shouldShowCardDetail) {
 		var deferredResult;
 		var showLoading = typeof(shouldShowLoading) !== 'undefined' ? shouldShowLoading : true;
 
@@ -475,11 +485,10 @@ console.log("THE BROWSER IS OFFLINE");
 
 //console.log("MEDIA QUERY STYLE", this.mediaQueryStyle());
 			deferredResult.addMethod(this, 'setPageProperties', 'mainPage', 'selectedCard');
-			if (this.mediaQueryStyle() == 'narrow') {
-				deferredResult.addMethod(this, 'setPageProperties', 'cardDetailPage', 'selectedCard');
-				deferredResult.addMethod(this, 'moveInPage', this.currentPage(), 'cardDetailPage');
-//				deferredResult.addCallback(function (aValue) { console.log("SHOULD SLIDE IN PAGE DETAIL"); return aValue; });
-//console.log("SHOULD SLIDE IN PAGE DETAIL");
+			if ((this.mediaQueryStyle() == 'narrow') && shouldShowCardDetail) {
+				deferredResult.addMethod(this, 'showCardDetailInNarrowView');
+//				deferredResult.addMethod(this, 'setPageProperties', 'cardDetailPage', 'selectedCard');
+//				deferredResult.addMethod(this, 'moveInPage', this.currentPage(), 'cardDetailPage');
 			}
 		
 			MochiKit.Async.callLater(0.1, MochiKit.Base.method(deferredResult, 'callback'));
@@ -989,16 +998,16 @@ console.log("THE BROWSER IS OFFLINE");
 		this._isSettingsPanelOpen = false;
 	},
 
+	featureAvailableForStyles: function (listOfSupportedStyles) {
+		return MochiKit.Iter.some(listOfSupportedStyles, MochiKit.Base.partial(MochiKit.Base.operator.eq, this.mediaQueryStyle()));
+	},
+
+	shouldShowCardDetailWhenMovingBetweenCardsUsingKeys: function () {
+		return !(this.featureAvailableForStyles(['narrow']) && (this.currentPage() == 'mainPage'));
+	},
+	
 	isSelectionPanelHidable: function () {
-		var	result;
-
-		if (this.mediaQueryStyle() == 'extra-wide') {
-			result = false;
-		} else {
-			result = true;
-		}
-
-		return result;
+		return !this.featureAvailableForStyles(['extra-wide']);
 	},
 
 	isSelectionPanelOpen: function () {
@@ -1007,6 +1016,9 @@ console.log("THE BROWSER IS OFFLINE");
 
 	toggleSelectionPanel_handler: function (anEvent) {
 		if (this.isSelectionPanelHidable() == true) {
+			if (this.currentPage() == 'cardDetailPage') {
+				this.goBackToMainPage();
+			}
 			this._isSelectionPanelOpen = !this._isSelectionPanelOpen;
 			this.setCloseMaskAction(MochiKit.Base.method(this, 'toggleSelectionPanel_handler'));
 			this.refreshCurrentPage();
@@ -1059,9 +1071,8 @@ console.log("THE BROWSER IS OFFLINE");
 	cardInfoAtIndex: function (anIndex) {
 		var	card;
 
-console.log("CARD INFO AT INDEX", anIndex);
 		card = this.selectedCards()[anIndex];
-		
+
 		return {
 			'label': card['label'],
 			'reference': card['_reference']
@@ -1071,6 +1082,7 @@ console.log("CARD INFO AT INDEX", anIndex);
 	previousCardInfo: function () {
 		var	currentIndex;
 		var	nextIndex;
+		var	result;
 
 		currentIndex = this.selectedCardIndex();
 		if (currentIndex == -1) {
@@ -1079,12 +1091,19 @@ console.log("CARD INFO AT INDEX", anIndex);
 			nextIndex = Math.max(currentIndex - 1, 0);
 		}
 
-		return this.cardInfoAtIndex(nextIndex);
+		if (currentIndex == nextIndex) {
+			result = null;
+		} else {
+			result = this.cardInfoAtIndex(nextIndex);
+		}
+		
+		return result;
 	},
 	
 	nextCardInfo: function () {
 		var	currentIndex;
 		var	nextIndex;
+		var result;
 
 		currentIndex = this.selectedCardIndex();
 		if (currentIndex == -1) {
@@ -1093,23 +1112,36 @@ console.log("CARD INFO AT INDEX", anIndex);
 			nextIndex = Math.min(currentIndex + 1, this.selectedCards().length - 1);
 		}
 
-		return this.cardInfoAtIndex(nextIndex);
+		if (currentIndex == nextIndex) {
+			result = null;
+		} else {
+			result = this.cardInfoAtIndex(nextIndex);
+		}
+		
+		return result;
 	},
 
 	//............................................................................
+
+	goBackToMainPage: function (anEvent) {
+		if (this.currentPage() == 'cardDetailPage') {
+//			this.updateSelectedCard(anEvent, true, false);	//	TODO: is this statement really needed?
+			this.moveOutPage(this.currentPage(), 'mainPage');
+		}
+	},
 
 	resetSelectedCard: function () {
 		this._selectedCardInfo = null;
 	},
 
-	selectCard_handler: function (someInfo) {
+	selectCard_handler: function (someInfo, shouldUpdateCardDetail) {
 		this._selectedCardInfo = someInfo;
 		this.refreshSelectedCards();
-		this.updateSelectedCard(someInfo);
+		this.updateSelectedCard(someInfo, true, shouldUpdateCardDetail);
 	},
 
 	refreshCardEditDetail_handler: function (aRecordReference) {
-		this.updateSelectedCard({'reference':aRecordReference}, false);
+		this.updateSelectedCard({'reference':aRecordReference}, false, true);
 	},
 
 	//----------------------------------------------------------------------------
@@ -1170,7 +1202,7 @@ console.log("CARD INFO AT INDEX", anIndex);
 					info = {'reference': aRecordReference};
 				}
 
-				this.updateSelectedCard(info, false);
+				this.updateSelectedCard(info, false, true);
 			}, this)
 		], {trace:false});
 	},
@@ -1261,7 +1293,7 @@ console.log("CARD INFO AT INDEX", anIndex);
 			
 			function (aValue) { return cardInfo['reference']; },
 			MochiKit.Base.method(this, 'refreshUI'),
-		], {trace:true});
+		], {trace:false});
 	},
 	
 	enterEditMode: function () {
@@ -1316,8 +1348,7 @@ console.log("CARD INFO AT INDEX", anIndex);
 	},
 
 	goBackToMainPage_handler: function (anEvent) {
-		this.updateSelectedCard();
-		this.moveOutPage(this.currentPage(), 'mainPage');
+		this.goBackToMainPage(anEvent);
 	},
 
 	//============================================================================
@@ -1431,7 +1462,7 @@ console.log("CARD INFO AT INDEX", anIndex);
 			aWindow.location.href = downloadHref;
 		}, newWindow);
 		deferredResult.callback();
-		
+
 		return deferredResult;
 	},
 
@@ -1442,20 +1473,53 @@ console.log("CARD INFO AT INDEX", anIndex);
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSelectionPanel');
 		MochiKit.DOM.getElement('searchValue').focus();
 	},
-	
+
 	exitSearch_handler: function (anEvent) {
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSelectionPanel');
 		MochiKit.DOM.getElement('searchValue').blur();
 	},
 
 	selectPreviousCard: function () {
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', this.previousCardInfo());
+		var	prevCardInfo;
+		var	shouldUpdateCardDetail;
+		
+		prevCardInfo = this.previousCardInfo();
+		shouldUpdateCardDetail = this.shouldShowCardDetailWhenMovingBetweenCardsUsingKeys();
+//console.log("PREV CARD INFO", prevCardInfo);
+		if (prevCardInfo != null) {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', prevCardInfo, shouldUpdateCardDetail);
+		}
 	},
 
 	selectNextCard: function () {
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', this.nextCardInfo());
+		var	nextCardInfo;
+		var	shouldUpdateCardDetail;
+
+		nextCardInfo = this.nextCardInfo();
+		shouldUpdateCardDetail = this.shouldShowCardDetailWhenMovingBetweenCardsUsingKeys();
+//console.log("NEXT CARD INFO", shouldUpdateCardDetail);
+		if (nextCardInfo != null) {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', nextCardInfo, shouldUpdateCardDetail);
+		}
 	},
 
+	selectDetail: function () {
+//console.log("TODO: SELECT DETAIL (right arrow key)", this.mediaQueryStyle(), this.currentPage(), this.selectedCardInfo());
+		if ((this.mediaQueryStyle() == 'narrow') && (this.currentPage() == 'mainPage')) {
+			Clipperz.Async.callbacks("MainController.selectDetail", [
+				MochiKit.Base.method(this.user(), 'getRecord', this.selectedCardInfo()['reference']),
+				MochiKit.Base.method(this, 'collectRecordInfo'),
+				MochiKit.Base.method(this, 'showCardDetailInNarrowView'),
+			], {trace:false}).callback();
+		}
+	},
+
+	exitCurrentSelection: function () {
+		if (this.currentPage() == 'cardDetailPage') {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'goBackToMainPage', {'reference':this.selectedCardInfo()['reference']});
+		}
+	},
+	
 	//============================================================================
 /*
 	wrongAppVersion: function (anError) {
