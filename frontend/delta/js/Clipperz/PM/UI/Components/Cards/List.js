@@ -34,7 +34,7 @@ Clipperz.PM.UI.Components.Cards.List = React.createClass({
 	},
 
 	handleClick: function (anEvent) {
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', {'reference':anEvent.currentTarget.dataset.reference, 'label':anEvent.currentTarget.dataset.label});
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', {'reference':anEvent.currentTarget.dataset.reference, 'label':anEvent.currentTarget.dataset.label}, true);
 	},
 	
 	renderItem: function (anItem) {
