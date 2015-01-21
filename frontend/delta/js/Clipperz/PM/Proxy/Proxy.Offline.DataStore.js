@@ -373,35 +373,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 					K
 				);
 				result['M2'] = M2;
-				result['accountInfo'] = {
-					'currentSubscriptionType': "FAN",
-					'expirationDate': "Tue, 21 April 2015 11:59:12 UTC",
-					'featureSet': "FULL",
-					'features': [
-						'UPDATE_CREDENTIALS',
-						'EDIT_CARD',
-						'CARD_DETAILS',
-						'ADD_CARD',
-						'DELETE_CARD',
-						'OFFLINE_COPY',
-						'LIST_CARDS'
-					],
-					'isExpired': false,
-					'isExpiring': false,
-					'latestActiveLevel': "PAYING",
-					'latestActiveThreshold': "5.00000000",
-					'paymentVerificationPending': false,
-					'payments': [
-						{		
-							'amount': "0.08500000",
-							'currency': "BTC",
-							'date': "Mon, 21 April 2014 12:11:12 UTC",
-							'reference': "cad577106f8747ae1b0fad3f139f4b4644301a0608dd931f758ad18c1766cabe",
-							'value': "5.23730000"
-						}
-					],
-					'referenceDate': "Tue, 22 July 2014 15:47:08 UTC"
-				};
+				result['accountInfo'] = aConnection['userData']['accountInfo'];
 			} else {
 				throw new Error("Client checksum verification failed! Expected <" + M1 + ">, received <" + someParameters.parameters.M1 + ">.", "Error");
 			}
