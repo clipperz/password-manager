@@ -46,7 +46,7 @@
 		"React/react-with-addons-0.12.2.js",
 
 		"MouseTrap/mousetrap.js",
-		"MouseTrap/mousetrap-bind-dictionary.js",
+		"-- MouseTrap/mousetrap-bind-dictionary.js",
 		"-- MouseTrap/mousetrap-global-bind.js",
 		"-- MouseTrap/mousetrap-pause.js",
 
