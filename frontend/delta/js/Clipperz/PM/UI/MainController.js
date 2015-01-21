@@ -581,6 +581,7 @@ console.log("THE BROWSER IS OFFLINE");
 		var	fullFilterCriteria;
 		var	selectedCardReference = this._selectedCardInfo ? this._selectedCardInfo['reference'] : null;
 
+//console.log("updateSelectedCards - ACCOUNT INFO.featureSet", this.userAccountInfo()['featureSet']);
 		if (aFilter['type'] == 'ALL') {
 			filterCriteria = MochiKit.Base.operator.truth;
 			sortCriteria = Clipperz.Base.caseInsensitiveKeyComparator('label');
@@ -884,7 +885,7 @@ console.log("THE BROWSER IS OFFLINE");
 		level = 'HIDE';
 		
 //console.log("messageBox - this.user()", this.user());
-		if (this.user() != null && this.user().accountInfo() != null && this.user().accountInfo().featureSet() == 'EXPIRED') {
+		if (this.userAccountInfo()['featureSet'] == 'EXPIRED') {
 			message = "Exprired subscription";
 			level = 'ERROR';
 		}
@@ -905,6 +906,7 @@ console.log("THE BROWSER IS OFFLINE");
 				'currentSubscriptionType',
 				'expirationDate',
 				'featureSet',
+				'features',
 				'isExpired',
 				'isExpiring',
 				'paymentVerificationPending'
@@ -944,9 +946,10 @@ console.log("THE BROWSER IS OFFLINE");
 		} else if (aPageName == 'mainPage') {
 			extraProperties = {
 				'messageBox':					this.messageBoxContent(),
-				'accountStatus':				this.userAccountInfo(),
+				'accountInfo':					this.userAccountInfo(),
 				'selectionPanelStatus':			this.isSelectionPanelOpen()	? 'OPEN' : 'CLOSED',
 				'settingsPanelStatus':			this.isSettingsPanelOpen()	? 'OPEN' : 'CLOSED',
+				'featureSet':					this.userAccountInfo()['featureSet'],
 //				'shouldIncludeArchivedCards':	this.shouldIncludeArchivedCards(),
 //				'cards':				…,
 //				'tags':					…,
@@ -1135,9 +1138,15 @@ console.log("THE BROWSER IS OFFLINE");
 	},
 
 	selectCard_handler: function (someInfo, shouldUpdateCardDetail) {
-		this._selectedCardInfo = someInfo;
-		this.refreshSelectedCards();
-		this.updateSelectedCard(someInfo, true, shouldUpdateCardDetail);
+		if (this.userAccountInfo()['featureSet'] != 'EXPIRED') {
+			this._selectedCardInfo = someInfo;
+			this.refreshSelectedCards();
+			this.updateSelectedCard(someInfo, true, shouldUpdateCardDetail);
+
+//			# TODO:	make the selected element visible; 
+//					this may not always be the case, as selection can also be changed using keys.
+//			MochiKit.Visual.ScrollTo(MochiKit.DOM.getElement("xxx"));
+		}
 	},
 
 	refreshCardEditDetail_handler: function (aRecordReference) {

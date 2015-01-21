@@ -30,6 +30,7 @@ Clipperz.PM.UI.Components.Cards.List = React.createClass({
 
 	propTypes: {
 		'cards':		React.PropTypes.array,
+		'featureSet':	React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL', 'OFFLINE']).isRequired,
 		'selectedCard':	React.PropTypes.object
 	},
 
@@ -62,7 +63,8 @@ Clipperz.PM.UI.Components.Cards.List = React.createClass({
 		var	cards = this.props['cards'] ? this.props['cards'] : [];
 		var	classes = {
 			'cardList':		true,
-			'loadingCard':	this.props['selectedCard'] && this.props['selectedCard']['_reference'] && this.props['selectedCard']['loading']
+			'loadingCard':	this.props['selectedCard'] && this.props['selectedCard']['_reference'] && this.props['selectedCard']['loading'],
+			'EXPIRED':		this.props['featureSet'] == 'EXPIRED',
 		};		
 		classes[this.props['style']] = true;
 

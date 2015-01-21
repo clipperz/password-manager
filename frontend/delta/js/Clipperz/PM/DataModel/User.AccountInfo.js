@@ -33,6 +33,41 @@ Clipperz.PM.DataModel.User.AccountInfo = function(args) {
 
 Clipperz.Base.extend(Clipperz.PM.DataModel.User.AccountInfo, Object, {
 
+	'status': function () {
+		return this._attributes['currentSubscriptionType'];
+	},
+
+	'level': function () {
+		var	result;
+		
+		// -1.00 -> EARLY_ADOPTER
+		//  2.00 -> FRIEND
+		//  5.00 -> FAN
+		// 10.00 -> DEVOTEE
+		// 15.00 -> PATRON
+		
+		if (this.status() == 'FRIEND') {
+			result = 1;
+		} else if (this.status() == 'FAN') {
+			result = 2;
+		} else if (this.status() == 'DEVOTEE') {
+			result = 3;
+		} else if (this.status() == 'PATRON') {
+			result = 4;
+		} else {
+			result = 0;
+		};
+		
+		return result;
+//		return this._attributes['latestActiveThreshold'];
+	},
+
+	'isExpiring': function () {
+		return this._attributes['isExpiring'];
+	},
+
+	//............................................................................
+
 	'features': function () {
 		return this._attributes['features'];
 	},
@@ -47,6 +82,12 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.AccountInfo, Object, {
 			'to':	this._attributes['expirationDate']
 		};
 	},
+	
+	'isExpired': function () {
+		return this._attributes['isExpired'];
+	},
+	
+	
 
 	//=========================================================================
 	__syntaxFix__: "syntax fix"

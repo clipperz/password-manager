@@ -29,7 +29,7 @@ Clipperz.PM.UI.Components.CardToolbar = React.createClass({
 //		'style':			React.PropTypes.oneOf(['extra-short', 'narrow', 'wide', 'extra-wide']).isRequired,
 		'style':			React.PropTypes.oneOf(Clipperz_PM_UI_availableStyles).isRequired,
 		'enableSidePanels':	React.PropTypes.bool.isRequired,
-		'accountStatus':	React.PropTypes.object.isRequired,
+		'accountInfo':		React.PropTypes.object.isRequired,
 		'messageBox':		React.PropTypes.object.isRequired,
 		'filter':			React.PropTypes.object /*.isRequired */
 	},
@@ -99,7 +99,7 @@ Clipperz.PM.UI.Components.CardToolbar = React.createClass({
 		return	React.DOM.div({className:'cardToolbar ' + this.props['style']}, [
 //			React.DOM.div({className:'header'}, this.props['enableSidePanels'] ? this.renderWithSidePanels() : this.renderWithoutSidePanels()),
 			React.DOM.header({}, this.props['enableSidePanels'] ? this.renderWithSidePanels() : this.renderWithoutSidePanels()),
-			Clipperz.PM.UI.Components.AccountStatus(this.props['accountStatus']),
+			Clipperz.PM.UI.Components.AccountStatus(this.props['accountInfo']),
 			Clipperz.PM.UI.Components.MessageBox(this.props['messageBox']),
 		]);
 	}

@@ -34,10 +34,32 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 	handleDownloadOfflineCopyLink: function (anEvent) {
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'downloadOfflineCopy');
 	},
-	
+
+	propTypes: {
+		'accountInfo':		React.PropTypes.object.isRequired,
+	},
+
+	getInitialState: function() {
+		return {
+			'account':		false,
+			'subscription':	false,
+			'data':			false,
+		};
+	},
+
+	toggleState: function (section) {
+		return MochiKit.Base.bind(function () {
+			var	newState = {};
+			
+			newState[section] = !this.state[section];
+			this.setState(newState);
+		}, this);
+	},
+
 	//=========================================================================
 
 	render: function () {
+//console.log("ExtraFeaturesPanel props", this.props);
 		var	classes = {
 			'panel': true,
 			'right': true,
@@ -53,32 +75,93 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 
 			React.DOM.div({}, [
 				React.DOM.ul({}, [
-					React.DOM.li({}, [
-						React.DOM.h1({}, "Account"),
+					React.DOM.li({'className':this.state['account'] ? 'open' : 'closed'}, [
+						React.DOM.h1({'onClick':this.toggleState('account')}, "Account"),
+						React.DOM.ul({}, [
+							React.DOM.li({}, [
+								React.DOM.h2({}, "Passphrase"),
+								React.DOM.div({}, [
+									React.DOM.p({}, "")
+								])
+							]),
+							React.DOM.li({}, [
+								React.DOM.h2({}, "One Time Passwords"),
+								React.DOM.div({}, [
+									React.DOM.p({}, "")
+								])
+							]),
+							React.DOM.li({}, [
+								React.DOM.h2({}, "Preferences"),
+								React.DOM.div({}, [
+									React.DOM.p({}, "")
+								])
+							]),
+							React.DOM.li({}, [
+								React.DOM.h2({}, "Delete account"),
+								React.DOM.div({}, [
+									React.DOM.p({}, "")
+								])
+							])
+						])
 					]),
-					React.DOM.li({}, [
-						React.DOM.h1({}, "Data"),
+					React.DOM.li({'className':this.state['subscription'] ? 'open' : 'closed'}, [
+						React.DOM.h1({'onClick':this.toggleState('subscription')}, "Subscription"),
+						React.DOM.ul({}, [
+							React.DOM.li({}, [
+								React.DOM.h2({}, "x1"),
+								React.DOM.div({}, [
+									React.DOM.p({}, "")
+								])
+							]),
+							React.DOM.li({}, [
+								React.DOM.h2({}, "x2"),
+								React.DOM.div({}, [
+									React.DOM.p({}, "")
+								])
+							]),
+							React.DOM.li({}, [
+								React.DOM.h2({}, "x3"),
+								React.DOM.div({}, [
+									React.DOM.p({}, "")
+								])
+							]),
+							React.DOM.li({}, [
+								React.DOM.h2({}, "x4"),
+								React.DOM.div({}, [
+									React.DOM.p({}, "")
+								])
+							])
+						])
+					]),
+					React.DOM.li({'className':this.state['data'] ? 'open' : 'closed'}, [
+						React.DOM.h1({'onClick':this.toggleState('data')}, "Data"),
 						React.DOM.ul({}, [
 							React.DOM.li({}, [
 								React.DOM.h2({}, "Offline copy"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "With just one click you can dump all your encrypted data from Clipperz servers to your hard disk and create a read-only offline version of Clipperz to be used when you are not connected to the Internet."),
-									React.DOM.a({'onClick':this.handleDownloadOfflineCopyLink}, "Download")
+									React.DOM.a({'className':'button', 'onClick':this.handleDownloadOfflineCopyLink}, "Download")
+								])
+							]),
+							React.DOM.li({}, [
+								React.DOM.h2({}, "Import"),
+								React.DOM.div({}, [
+									React.DOM.p({}, "")
+								])
+							]),
+							React.DOM.li({}, [
+								React.DOM.h2({}, "Export"),
+								React.DOM.div({}, [
+									React.DOM.p({}, "")
 								])
 							]),
 							React.DOM.li({}, [
 								React.DOM.h2({}, "Sharing"),
-							]),
-							React.DOM.li({}, [
-								React.DOM.h2({}, "Import"),
-							]),
-							React.DOM.li({}, [
-								React.DOM.h2({}, "Export"),
+								React.DOM.div({}, [
+									React.DOM.p({}, "")
+								])
 							])
 						])
-					]),
-					React.DOM.li({}, [
-						React.DOM.h1({}, "Tools"),
 					])
 				])
 			])

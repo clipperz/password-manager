@@ -28,13 +28,14 @@ Clipperz.PM.UI.Components.Pages.MainPage = React.createClass({
 
 	getDefaultProps: function () {
 		return {
-		}
+			featureSet: 'FULL'
+		};
 	},
 
 	propTypes: {
 		'messageBox':		React.PropTypes.object.isRequired,
-//		'featureSet':		React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']),
-		'accountStatus':	React.PropTypes.object.isRequired,
+		'featureSet':		React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL', 'OFFLINE']).isRequired,
+		'accountInfo':		React.PropTypes.object.isRequired,
 //		'mediaQueryStyle':	React.PropTypes.oneOf(['extra-short', 'narrow', 'wide', 'extra-wide']).isRequired,
 		'style':			React.PropTypes.oneOf(Clipperz_PM_UI_availableStyles).isRequired,
 		//		'cards':			React.PropTypes.deferred.isRequired

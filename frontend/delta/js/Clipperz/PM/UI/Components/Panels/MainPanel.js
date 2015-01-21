@@ -30,14 +30,8 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 
 	propTypes: {
 		'messageBox':		React.PropTypes.object.isRequired,
-		'featureSet':		React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
+		'featureSet':		React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL', 'OFFLINE']).isRequired,
 		'style':			React.PropTypes.oneOf(Clipperz_PM_UI_availableStyles).isRequired,
-	},
-
-	getDefaultProps: function () {
-		return {
-			featureSet: 'FULL'
-		};
 	},
 
 	style: function () {
@@ -66,7 +60,13 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 	},
 
 	renderCardFrame: function (firstColumnComponents, secondColumnComponents) {
-		var	addCardButton = React.DOM.div({'className': 'addCardButton', 'onClick':this.handleAddCardClick}, 'add card');
+		var	addCardButton;
+
+		if ((this.props['featureSet'] != 'EXPIRED') && (this.props['featureSet'] != 'OFFLINE')) {
+			addCardButton = React.DOM.div({'className': 'addCardButton', 'onClick':this.handleAddCardClick}, 'add card');
+		} else {
+			addCardButton = null;
+		}
 
 		return React.DOM.div({'key':'cardContent', 'className':'cardContent'}, [
 			React.DOM.div({'className':'cardListColumn column'}, [addCardButton, firstColumnComponents]),
@@ -82,7 +82,8 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 		cardToolbarProps = MochiKit.Base.merge(this.props, {
 			'key':				'toolbar',
 			'style':			this.style(),
-			'enableSidePanels':	(this.props['featureSet'] != 'EXPIRED')
+//			'enableSidePanels':	(this.props['featureSet'] != 'EXPIRED')
+			'enableSidePanels':	true,
 		});
 		
 		return Clipperz.PM.UI.Components.CardToolbar(cardToolbarProps);
