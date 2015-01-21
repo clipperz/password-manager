@@ -86,6 +86,16 @@ div.cardList.narrow {
 			}
 		}
 	}
+	
+	&.EXPIRED {
+		ul {
+			li {
+				&:after {
+					content: "";
+				}
+			}
+		}
+	}
 }
 
 $cardViewBasePadding: 10px;
