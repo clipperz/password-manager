@@ -15,7 +15,7 @@
 				]
 			},
 			"properties": {
-				"order": 22,
+				"order": 16,
 				"id": 0,
 				"prevSize": 32,
 				"code": 58894,
@@ -216,6 +216,52 @@
 		{
 			"icon": {
 				"paths": [
+					"M592 448h-16v-192c0-105.87-86.13-192-192-192h-128c-105.87 0-192 86.13-192 192v192h-16c-26.4 0-48 21.6-48 48v480c0 26.4 21.6 48 48 48h544c26.4 0 48-21.6 48-48v-480c0-26.4-21.6-48-48-48zM384 896h-128l27.84-139.2c-16.808-11.532-27.84-30.874-27.84-52.8 0-35.346 28.654-64 64-64 35.346 0 64 28.654 64 64 0 21.926-11.032 41.268-27.84 52.8l27.84 139.2zM448 448h-256v-192c0-35.29 28.71-64 64-64h128c35.29 0 64 28.71 64 64v192z"
+				],
+				"tags": [
+					"lock",
+					"secure",
+					"private",
+					"encrypted"
+				],
+				"grid": 16
+			},
+			"properties": {
+				"id": 137,
+				"order": 17,
+				"prevSize": 32,
+				"code": 58896,
+				"name": "lock2",
+				"ligatures": "locked"
+			},
+			"setIdx": 2,
+			"iconIdx": 138
+		},
+		{
+			"icon": {
+				"paths": [
+					"M768 64h-128c-105.87 0-192 86.13-192 192v192h-400c-26.4 0-48 21.6-48 48v480c0 26.4 21.6 48 48 48h544c26.4 0 48-21.6 48-48v-480c0-26.4-21.6-48-48-48h-16v-192c0-35.29 28.71-64 64-64h128c35.29 0 64 28.71 64 64v192h128v-192c0-105.87-86.13-192-192-192zM384 896h-128l27.84-139.2c-16.808-11.532-27.84-30.874-27.84-52.8 0-35.346 28.654-64 64-64 35.346 0 64 28.654 64 64 0 21.926-11.032 41.268-27.84 52.8l27.84 139.2z"
+				],
+				"tags": [
+					"unlocked",
+					"lock"
+				],
+				"grid": 16
+			},
+			"properties": {
+				"id": 138,
+				"order": 18,
+				"prevSize": 32,
+				"code": 58897,
+				"name": "unlocked",
+				"ligatures": "unlocked"
+			},
+			"setIdx": 2,
+			"iconIdx": 139
+		},
+		{
+			"icon": {
+				"paths": [
 					"M64 192h896v192h-896zM64 448h896v192h-896zM64 704h896v192h-896z"
 				],
 				"tags": [
@@ -258,7 +304,7 @@
 				"prevSize": 32,
 				"code": 58882,
 				"name": "close",
-				"ligatures": "failure, failed"
+				"ligatures": "failure, failed, delete, clear"
 			},
 			"setIdx": 2,
 			"iconIdx": 254
@@ -325,7 +371,7 @@
 			},
 			"properties": {
 				"id": 125,
-				"order": 16,
+				"order": 15,
 				"prevSize": 32,
 				"code": 58895,
 				"name": "plus",
@@ -426,6 +472,8 @@
 		"search": "",
 		"quickUsageToken": {
 			"UntitledProject1": "YzBlN2I0ZDQ5YTQyY2NjYjgwNGRkYzNhYzU4NDZhMDcjMiMxNDAzMTA2OTk5IyMj"
-		}
+		},
+		"showQuickUse2": true,
+		"showSVGs": true
 	}
 }
