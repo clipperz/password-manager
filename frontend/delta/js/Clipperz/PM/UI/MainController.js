@@ -1481,6 +1481,7 @@ console.log("THE BROWSER IS OFFLINE");
 		anEvent.preventDefault();
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSelectionPanel');
 		MochiKit.DOM.getElement('searchValue').focus();
+		MochiKit.DOM.getElement('searchValue').select();
 	},
 
 	exitSearch_handler: function (anEvent) {
