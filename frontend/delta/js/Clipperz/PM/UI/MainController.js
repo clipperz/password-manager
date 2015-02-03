@@ -1506,9 +1506,13 @@ console.log("THE BROWSER IS OFFLINE");
 	focusOnSearch: function (anEvent) {
 		anEvent.preventDefault();
 		
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSelectionPanel');
-		MochiKit.DOM.getElement('searchValue').focus();
-		MochiKit.DOM.getElement('searchValue').select();
+		if (this.pages()[this.currentPage()].props['mode'] == 'edit') {
+			//	pass
+		} else {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSelectionPanel');
+			MochiKit.DOM.getElement('searchValue').focus();
+			MochiKit.DOM.getElement('searchValue').select();
+		}
 	},
 
 	exitSearch_handler: function (anEvent) {
