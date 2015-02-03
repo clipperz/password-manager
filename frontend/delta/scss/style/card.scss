@@ -1,7 +1,7 @@
 $cardListHeight: 48px;
 $faviconSize: 32px;
 $padding: ($cardListHeight - $faviconSize) / 2;
-
+$cardArchivedColor: #ccc;
 $cardToolbarBackgroundColor: brown;
 
 div.cardList {
@@ -27,7 +27,8 @@ div.cardList {
 			}
 			
 			&.archived {
-				background-color: pink;
+//				background-color: pink;
+				background-color: $cardArchivedColor;
 			}
 
 			.favicon {
@@ -110,7 +111,8 @@ $cardViewBasePadding: 10px;
 	.view {
 		
 		&.archived {
-			background-color: pink;
+//			background-color: pink;
+			background-color: $cardArchivedColor;
 		}
 		
 		.cardDetailToolbar {
@@ -186,8 +188,11 @@ $cardViewBasePadding: 10px;
 	
 	.edit {
 		.cardDetailToolbar {
-			background-color: purple;
+//			background-color: purple;
+			background-color: $cardToolbarBackgroundColor;
 			color: white;
+//			@include icon-font();
+//			font-size: 20pt;
 		}
 	}
 }	
@@ -200,17 +205,23 @@ $cardViewBasePadding: 10px;
 	&.edit {
 		li {
 			font-weight: 100;
+//			color: #aaa;
+			
+			&:hover {
+				color: white;
+			};
 		}
 		li.save {
-			color: yellow;
+//			color: yellow;
 		}
 		
 		&.hasPendingChanges {
 			li {
+//				color: #ccc;
 				font-weight: 500;
 			}
 			li.save {
-				color: white;
+//				color: white;
 			}
 		}
 	}
@@ -233,7 +244,15 @@ $cardViewBasePadding: 10px;
 		@include user-select(text);
 		
 		font-size: 24pt;
+		width: 100%;
 		padding: $cardViewBasePadding;
+//		height: 52px;
+//		line-height: 32px;
+		border: 0px;
+	}
+	
+	input.cardLabel {
+		height: 52px;
 	}
 
 	.tagEditor {
@@ -242,6 +261,7 @@ $cardViewBasePadding: 10px;
 
 	.cardNotes {
 		padding: $cardViewBasePadding;
+		width: 100%;
 	}
 
 	.dropArea {
@@ -254,7 +274,7 @@ $cardViewBasePadding: 10px;
 		@include flexbox;
 		@include flex-direction(row);
 		
-		background-color: lightgreen;
+//		background-color: lightgreen;
 
 		&.dragged {
 //			border: 4px dotted red;
@@ -278,7 +298,14 @@ $cardViewBasePadding: 10px;
 			}
 
 			.removeField {
+				@include icon-font();
 				cursor: pointer;
+				color: gray;
+				font-size: 20pt;
+
+				&:hover {
+					color: red;
+				};
 			}
 		}
 
@@ -297,13 +324,22 @@ $cardViewBasePadding: 10px;
 	}
 
 	.newCardField {
+		@include icon-font();
 		cursor: pointer;
+		color: gray;
+		font-size: 20pt;
+
+		&:hover {
+			color: green;
+		};
 	}
 
 	.cardDirectLogin {
 		font-size: 18pt;
 		padding: $cardViewBasePadding;
-		background-color: pink;
+//		background-color: pink;
+		background-color: $clipperz-orange;
+		color: white;
 		cursor: pointer;
 	}
 }
