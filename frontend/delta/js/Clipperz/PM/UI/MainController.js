@@ -1133,20 +1133,30 @@ console.log("THE BROWSER IS OFFLINE");
 		}
 	},
 
+	selectCard: function (someInfo, shouldUpdateCardDetail) {
+		var result;
+
+		if (this.userAccountInfo()['featureSet'] != 'EXPIRED') {
+			this._selectedCardInfo = someInfo;
+			this.refreshSelectedCards();
+			result = this.updateSelectedCard(someInfo, true, shouldUpdateCardDetail);
+
+//			# TODO:	make the selected element visible; 
+//					this may not always be the case, as selection can also be changed using keys.
+//			MochiKit.Visual.ScrollTo(MochiKit.DOM.getElement("xxx"));
+		} else {
+			result = MochiKit.Async.succeed();
+		};
+		
+		return result;
+	},
+	
 	resetSelectedCard: function () {
 		this._selectedCardInfo = null;
 	},
 
 	selectCard_handler: function (someInfo, shouldUpdateCardDetail) {
-		if (this.userAccountInfo()['featureSet'] != 'EXPIRED') {
-			this._selectedCardInfo = someInfo;
-			this.refreshSelectedCards();
-			this.updateSelectedCard(someInfo, true, shouldUpdateCardDetail);
-
-//			# TODO:	make the selected element visible; 
-//					this may not always be the case, as selection can also be changed using keys.
-//			MochiKit.Visual.ScrollTo(MochiKit.DOM.getElement("xxx"));
-		}
+		this.selectCard(someInfo, shouldUpdateCardDetail);
 	},
 
 	refreshCardEditDetail_handler: function (aRecordReference) {
@@ -1212,7 +1222,13 @@ console.log("THE BROWSER IS OFFLINE");
 				}
 
 				this.updateSelectedCard(info, false, true);
-			}, this)
+			}, this),
+
+			MochiKit.Base.bind(function () {
+				if ((wasBrandNew == true) && (this.currentPage() == 'cardDetailPage')) {
+					this.goBackToMainPage();
+				}
+			},this),
 		], {trace:false});
 	},
 
@@ -1244,13 +1260,23 @@ console.log("THE BROWSER IS OFFLINE");
 	//----------------------------------------------------------------------------
 
 	addCardClick_handler: function () {
+		var	newRecordReference;
 		return Clipperz.Async.callbacks("MainController.addCardClick_handler", [
 			MochiKit.Base.method(this.user(), 'createNewRecord'),
 			MochiKit.Base.methodcaller('reference'),
+//			MochiKit.Base.method(this, 'selectCard'),
+			function (aValue) {
+				newRecordReference = aValue;
+//				return {'reference': newRecordReference, 'label': ""};
+				return newRecordReference;
+			},
 			MochiKit.Base.method(this, 'refreshUI'),
-//			MochiKit.Base.bind(function () {
-//				this.pages()[this.currentPage()].setProps({'mode': 'edit'});
-//			}, this),
+			MochiKit.Base.bind(function () {
+				return this.selectCard({
+					'reference': newRecordReference,
+					'label': ""
+				}, true);
+			}, this),
 			MochiKit.Base.method(this, 'enterEditMode'),
 		], {trace:false});
 	},
@@ -1479,6 +1505,7 @@ console.log("THE BROWSER IS OFFLINE");
 
 	focusOnSearch: function (anEvent) {
 		anEvent.preventDefault();
+		
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSelectionPanel');
 		MochiKit.DOM.getElement('searchValue').focus();
 		MochiKit.DOM.getElement('searchValue').select();
