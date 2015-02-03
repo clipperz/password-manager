@@ -234,11 +234,11 @@ console.log("DROP");	//, anEvent);
 	//============================================================================
 
 	renderLabel: function (aLabel) {
-		return	React.DOM.input({'className':'cardLabel', 'onChange':this.handleChange(this.record(), 'setLabel'), 'defaultValue':aLabel, 'key':this.props['_reference'] + '_label'});
+		return	React.DOM.input({'className':'cardLabel', 'onChange':this.handleChange(this.record(), 'setLabel'), 'defaultValue':aLabel, 'key':this.props['_reference'] + '_label', 'placeholder': "card title"});
 	},
 	
 	renderNotes: function (someNotes) {
-		return	React.DOM.textarea({'className':'cardNotes', 'onChange':this.handleChange(this.record(), 'setNotes'), 'defaultValue':someNotes, 'key':this.props['_reference'] + '_notes'});
+		return	React.DOM.textarea({'className':'cardNotes', 'onChange':this.handleChange(this.record(), 'setNotes'), 'defaultValue':someNotes, 'key':this.props['_reference'] + '_notes', 'placeholder': "notes"});
 	},
 
 	//............................................................................
@@ -286,9 +286,9 @@ console.log("DROP");	//, anEvent);
 								'onDragEnd':this.dragEnd
 		}, [
 			React.DOM.div({'className':'fieldValues'}, [
-				React.DOM.span({'className':'removeField', 'onClick':this.removeField(field)}, "delete"),
-				React.DOM.input({'className':'fieldLabel', 'onChange':this.handleChange(field, 'setLabel'), 'defaultValue':aField['label']}),
-				React.DOM.textarea({'className':React.addons.classSet(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'defaultValue':aField['value']}),
+				React.DOM.span({'className':'removeField', 'onClick':this.removeField(field)}, "remove field"),
+				React.DOM.input({'className':'fieldLabel', 'onChange':this.handleChange(field, 'setLabel'), 'defaultValue':aField['label'], 'placeholder': "label"}),
+				React.DOM.textarea({'className':React.addons.classSet(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'defaultValue':aField['value'], 'placeholder': "value"}),
 			]),
 			React.DOM.div({'className':'fieldAction action'}, aField['actionType'].toLowerCase())
 		]);
@@ -331,7 +331,7 @@ console.log("DROP");	//, anEvent);
 	},
 
 	renderAddNewField: function () {
-		return	React.DOM.div({'className':'newCardField', 'onClick':this.addNewField}, "Add new field");
+		return	React.DOM.div({'className':'newCardField', 'onClick':this.addNewField}, "add new field");
 	},
 
 	//............................................................................
