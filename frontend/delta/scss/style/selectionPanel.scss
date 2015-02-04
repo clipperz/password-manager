@@ -21,6 +21,10 @@
 			&.recentCards:before {
 				content: "recent";
 			}
+			
+			&.untaggedCards {
+				padding-left: 70px;
+			}
 		}
 	}
 
@@ -125,7 +129,9 @@
 	}
 }
 
-$selectionColor: yellow;
+
+//$selectionColor: yellow;
+$selectionColor: $clipperz-orange;
 
 #selections.ALL {
 	li.allCards {

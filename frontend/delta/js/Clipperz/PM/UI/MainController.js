@@ -87,6 +87,7 @@ Clipperz.PM.UI.MainController = function() {
 	Mousetrap.bind(['up',    'k'],			MochiKit.Base.method(this, 'selectPreviousCard'));
 	Mousetrap.bind(['down',  'j'],			MochiKit.Base.method(this, 'selectNextCard'));
 
+	Mousetrap.bind(['* a'],					MochiKit.Base.method(this, 'selectAllCards_handler'));
 
 	return this;
 }
@@ -649,15 +650,15 @@ console.log("THE BROWSER IS OFFLINE");
 		var deferredResult;
 
 		deferredResult = new Clipperz.Async.Deferred('MainController.refreshUI', {trace:false});
-//		deferredResult.addMethod(this, 'resetRecordsInfo'),
 		deferredResult.addMethod(this, 'refreshSelectedCards');
 		deferredResult.addMethod(this, 'renderTags');
 		
 		if (selectedCardReference != null) {
 			deferredResult.addMethod(this.user(), 'getRecord', selectedCardReference);
 			deferredResult.addMethod(this, 'collectRecordInfo');
-			deferredResult.addMethod(this, 'setPageProperties', 'mainPage', 'selectedCard');
+			deferredResult.addMethod(this, 'setPageProperties', this.currentPage(), 'selectedCard');
 		}
+
 		deferredResult.callback();
 		
 		return deferredResult;
@@ -1128,7 +1129,8 @@ console.log("THE BROWSER IS OFFLINE");
 
 	goBackToMainPage: function (anEvent) {
 		if (this.currentPage() == 'cardDetailPage') {
-//			this.updateSelectedCard(anEvent, true, false);	//	TODO: is this statement really needed?
+			var	resetSelection = null;
+			this.updateSelectedCard(resetSelection, true, false);
 			this.moveOutPage(this.currentPage(), 'mainPage');
 		}
 	},
@@ -1261,19 +1263,27 @@ console.log("THE BROWSER IS OFFLINE");
 
 	addCardClick_handler: function () {
 		var	newRecordReference;
+		var newRecord;
+
 		return Clipperz.Async.callbacks("MainController.addCardClick_handler", [
 			MochiKit.Base.method(this.user(), 'createNewRecord'),
-			MochiKit.Base.methodcaller('reference'),
-//			MochiKit.Base.method(this, 'selectCard'),
 			function (aValue) {
-				newRecordReference = aValue;
-//				return {'reference': newRecordReference, 'label': ""};
-				return newRecordReference;
+				newRecord = aValue;
+				return newRecord;
 			},
+			MochiKit.Base.methodcaller('addField', {'label':"", 'value':"", 'isHidden':false}),
+			function () { return newRecord; },
+			MochiKit.Base.methodcaller('reference'),
+//			function (aValue) {
+//				newRecordReference = aValue;
+//				return newRecordReference;
+//			},
 			MochiKit.Base.method(this, 'refreshUI'),
-			MochiKit.Base.bind(function () {
+			function () { return newRecord; },
+			MochiKit.Base.methodcaller('reference'),
+			MochiKit.Base.bind(function (aRecordReference) {
 				return this.selectCard({
-					'reference': newRecordReference,
+					'reference': aRecordReference,
 					'label': ""
 				}, true);
 			}, this),

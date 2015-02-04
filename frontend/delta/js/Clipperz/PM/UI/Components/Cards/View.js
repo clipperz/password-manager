@@ -50,7 +50,8 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 	//----------------------------------------------------------------------------
 
 	renderEmpty: function () {
-		return	React.DOM.h4({}, "EMPTY");
+//		return	React.DOM.h4({}, "EMPTY");
+		return	React.DOM.h4({}, "");
 	},
 	
 	//----------------------------------------------------------------------------
@@ -58,8 +59,8 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 	renderLoading: function () {
 		return	React.DOM.div({className:'loading'},[
 			this.renderLabel(),
-			React.DOM.h5({className:'message'}, "loading")
-/*
+//			React.DOM.h5({className:'message'}, "loading")
+
 			React.DOM.div({className:'overlay'}, [
 				React.DOM.div({className:'spinner'}, [
 					React.DOM.div({className:'bar01'}),
@@ -76,7 +77,6 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 					React.DOM.div({className:'bar12'})
 				])
 			])
-*/
 		]);
 	},
 	
@@ -87,7 +87,16 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 	},
 	
 	renderNotes: function (someNotes) {
-		return	React.DOM.div({'className':'cardNotes'}, someNotes);
+		var	result;
+
+//console.log("NOTES", someNotes);
+		if (someNotes != "") {
+			result = React.DOM.div({'className':'cardNotes'}, someNotes);
+		} else {
+			result = null;
+		}
+
+		return	result;
 	},
 
 	//............................................................................
@@ -98,10 +107,18 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 	
 	renderTags: function (someTags) {
 		var	tags;
+		var	result;
 
+//console.log("TAGS", someTags);
 		tags = MochiKit.Base.filter(Clipperz.PM.DataModel.Record.isRegularTag, someTags).sort(Clipperz.Base.caseInsensitiveCompare);
-//		return	React.DOM.div({'className':'cardTags'}, MochiKit.Base.map(this.renderTag, tags));
-		return	Clipperz.PM.UI.Components.Cards.TagEditor({'selectedTags':tags, 'readOnly':true });
+
+		if (tags.length > 0) {
+			result = Clipperz.PM.UI.Components.Cards.TagEditor({'selectedTags':tags, 'readOnly':true });
+		} else {
+			result = null;
+		}
+
+		return result;
 	},
 
 	//............................................................................
@@ -119,6 +136,7 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 		cardFieldValueClasses['hidden'] = aField['isHidden'];
 		
 		return	React.DOM.div({'className':React.addons.classSet(cardFieldClasses)}, [
+			React.DOM.div({'className':'fieldEditAction'}, null),
 			React.DOM.div({'className':'fieldValues'}, [
 				React.DOM.div({'className':'fieldLabel'}, aField['label']),
 				React.DOM.div({'className':React.addons.classSet(cardFieldValueClasses)}, aField['value']),
@@ -157,8 +175,8 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 			React.DOM.div({'className':'content'}, [
 				this.renderLabel(this.props['label']),
 				this.renderTags(this.props['tags']),
-				this.renderNotes(this.props['notes']),
 				this.renderFields(this.props['fields']),
+				this.renderNotes(this.props['notes']),
 				this.renderDirectLogins(this.props['directLogins'])
 			])
 		]);

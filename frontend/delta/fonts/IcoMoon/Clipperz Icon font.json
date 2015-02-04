@@ -304,7 +304,7 @@
 				"prevSize": 32,
 				"code": 58882,
 				"name": "close",
-				"ligatures": "failure, failed, delete, clear"
+				"ligatures": "failure, failed, delete, clear, cancel"
 			},
 			"setIdx": 2,
 			"iconIdx": 254
@@ -329,7 +329,7 @@
 				"prevSize": 32,
 				"code": 58883,
 				"name": "checkmark",
-				"ligatures": "done, ok"
+				"ligatures": "done, ok, save"
 			},
 			"setIdx": 2,
 			"iconIdx": 255
@@ -352,7 +352,7 @@
 				"prevSize": 32,
 				"code": 58890,
 				"name": "popup",
-				"ligatures": "url"
+				"ligatures": "url, direct login"
 			},
 			"setIdx": 5,
 			"iconIdx": 35
@@ -375,10 +375,35 @@
 				"prevSize": 32,
 				"code": 58895,
 				"name": "plus",
-				"ligatures": "add card"
+				"ligatures": "add card, add new field"
 			},
 			"setIdx": 5,
 			"iconIdx": 125
+		},
+		{
+			"icon": {
+				"paths": [
+					"M512 81.92c-237.568 0-430.080 192.614-430.080 430.080 0 237.568 192.563 430.080 430.080 430.080 237.517 0 430.080-192.563 430.080-430.080 0-237.517-192.563-430.080-430.080-430.080zM600.525 512l156.723 156.723-88.525 88.525-156.723-156.723-156.723 156.723-88.474-88.525 156.672-156.723-156.672-156.672 88.474-88.525 156.723 156.672 156.723-156.672 88.525 88.474-156.723 156.723z"
+				],
+				"tags": [
+					"cross",
+					"cancel",
+					"close",
+					"remove",
+					"delete"
+				],
+				"grid": 20
+			},
+			"properties": {
+				"id": 126,
+				"order": 19,
+				"prevSize": 32,
+				"code": 58898,
+				"name": "cross",
+				"ligatures": "remove field"
+			},
+			"setIdx": 5,
+			"iconIdx": 126
 		},
 		{
 			"icon": {

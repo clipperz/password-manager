@@ -886,7 +886,9 @@ div.cardContent {
     -moz-flex: 1 0;
     -ms-flex: 1 0;
     flex: 1 0;
-    overflow-y: scroll; }
+    overflow-y: scroll;
+    z-index: 5;
+    box-shadow: 2px 0 6px 0 rgba(0, 0, 0, 0.1); }
     div.cardContent div.cardListColumn.column div.cardList {
       overflow-y: scroll;
       padding-bottom: 120px; }
@@ -918,7 +920,7 @@ div.cardContent {
       position: relative;
       bottom: 0px;
       font-size: 75pt;
-      color: blue;
+      color: #aaa;
       width: 100px;
       height: 100px;
       float: right;
@@ -926,6 +928,8 @@ div.cardContent {
       margin-left: 100px;
       margin-bottom: 10px;
       cursor: pointer; }
+      div.cardContent div.cardListColumn.column div.addCardButton:hover {
+        color: green; }
   div.cardContent div.cardDetail.column {
     -webkit-box-flex: 2;
     -webkit-flex: 2;
@@ -980,6 +984,8 @@ div.cardContent {
         z-index: 11; }
         div.cardContent div.cardDetail.column div.editWrapper > div.edit .content {
           background-color: white; }
+      div.cardContent div.cardDetail.column div.editWrapper .mask {
+        background-color: rgba(255, 255, 255, 0.8); }
     div.cardContent div.cardDetail.column > div.view {
       -webkit-box-flex: auto;
       -webkit-flex: auto;
@@ -1194,8 +1200,6 @@ div.dialogBox {
         flex: none;
         cursor: pointer; }
 
-.tagEditor.readWrite {
-  border: 1px solid red; }
 .tagEditor ul {
   display: -webkit-box;
   display: -webkit-flex;
@@ -1483,6 +1487,8 @@ div.dialogBox {
       content: "clipperz"; }
     #selections ul.defaultSet li.recentCards:before {
       content: "recent"; }
+    #selections ul.defaultSet li.untaggedCards {
+      padding-left: 70px; }
   #selections .search form input {
     font-family: "clipperz-font";
     color: #999;
@@ -1575,20 +1581,20 @@ div.dialogBox {
       border-radius: 4px; }
 
 #selections.ALL li.allCards {
-  color: yellow; }
+  color: #ff9900; }
 
 #selections.RECENT li.recentCards {
-  color: yellow; }
+  color: #ff9900; }
 
 #selections.UNTAGGED li.untaggedCards {
-  color: yellow; }
+  color: #ff9900; }
 
 #selections.SEARCH div.search .searchResultInfo {
-  color: yellow;
+  color: #ff9900;
   display: block; }
 
 #selections.TAG ul.tagList li.selected {
-  color: yellow; }
+  color: #ff9900; }
 
 #extraFeaturesPanel {
   background-color: black;
@@ -1666,48 +1672,54 @@ div.dialogBox {
 
 div.cardList.loadingCard li.selected {
   background-color: gray; }
-div.cardList ul li {
-  cursor: pointer;
-  border-bottom: 1px solid #eee;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -moz-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-direction: normal;
-  -webkit-box-orient: horizontal;
-  -webkit-flex-direction: row;
-  -moz-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row; }
-  div.cardList ul li.selected {
-    background-color: yellow; }
-  div.cardList ul li.archived {
-    background-color: #cccccc; }
-  div.cardList ul li .favicon {
-    width: 48px;
-    -webkit-box-flex: none;
-    -webkit-flex: none;
-    -moz-box-flex: none;
-    -moz-flex: none;
-    -ms-flex: none;
-    flex: none; }
-    div.cardList ul li .favicon img {
-      width: 32px;
-      height: 32px;
-      padding: 8px; }
-  div.cardList ul li .label {
-    -webkit-box-flex: auto;
-    -webkit-flex: auto;
-    -moz-box-flex: auto;
-    -moz-flex: auto;
-    -ms-flex: auto;
-    flex: auto;
-    font-size: 18pt;
-    padding-top: 0.5em;
-    padding-bottom: 0.5em;
-    padding-left: 8px;
-    padding-right: 8px; }
+div.cardList ul {
+  background-color: #e38800; }
+  div.cardList ul li {
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    background-color: white;
+    transition: margin-left 0.3s ease-in-out;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-direction: normal;
+    -webkit-box-orient: horizontal;
+    -webkit-flex-direction: row;
+    -moz-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row; }
+    div.cardList ul li.selected {
+      margin-left: 50px;
+      box-shadow: -3px 1px 3px 0 rgba(0, 0, 0, 0.2); }
+    div.cardList ul li.archived {
+      background-color: #eeeeee;
+      color: #999; }
+    div.cardList ul li .favicon {
+      width: 48px;
+      -webkit-box-flex: none;
+      -webkit-flex: none;
+      -moz-box-flex: none;
+      -moz-flex: none;
+      -ms-flex: none;
+      flex: none; }
+      div.cardList ul li .favicon img {
+        width: 32px;
+        height: 32px;
+        padding: 8px; }
+    div.cardList ul li .label {
+      -webkit-box-flex: auto;
+      -webkit-flex: auto;
+      -moz-box-flex: auto;
+      -moz-flex: auto;
+      -ms-flex: auto;
+      flex: auto;
+      font-size: 18pt;
+      padding-top: 0.5em;
+      padding-bottom: 0.5em;
+      padding-left: 8px;
+      padding-right: 8px; }
 
 div.cardList.narrow.loadingCard li.selected:after {
   color: white;
@@ -1763,9 +1775,9 @@ div.cardList.narrow.EXPIRED ul li:after {
   content: ""; }
 
 #cardDetailPage .view.archived, .cardDetail .view.archived {
-  background-color: #cccccc; }
+  background-color: #eeeeee; }
 #cardDetailPage .view .cardDetailToolbar, .cardDetail .view .cardDetailToolbar {
-  background-color: brown;
+  background-color: #e38800;
   color: white; }
   #cardDetailPage .view .cardDetailToolbar.narrow, .cardDetail .view .cardDetailToolbar.narrow {
     font-size: 24pt; }
@@ -1831,7 +1843,7 @@ div.cardList.narrow.EXPIRED ul li:after {
           padding: 5px 10px;
           border-bottom: 1px solid black; }
 #cardDetailPage .edit .cardDetailToolbar, .cardDetail .edit .cardDetailToolbar {
-  background-color: brown;
+  background-color: #e38800;
   color: white; }
 
 .cardDetailToolbar.edit li {
@@ -1856,18 +1868,23 @@ div.cardList.narrow.EXPIRED ul li:after {
   -o-user-select: text;
   user-select: text;
   font-size: 24pt;
-  width: 100%;
   padding: 10px;
   border: 0px; }
 .content input.cardLabel {
+  width: 100%;
   height: 52px; }
 .content .tagEditor {
   padding: 10px; }
 .content .cardNotes {
   padding: 10px;
-  width: 100%; }
+  width: 100%;
+  border: 0px;
+  font-size: 10pt;
+  font-style: italic;
+  white-space: pre-wrap;
+  word-wrap: break-word; }
 .content .dropArea {
-  border: 3px dashed red;
+  background-color: #ccc;
   width: 100%;
   height: 40px; }
 .content .cardField {
@@ -1881,33 +1898,23 @@ div.cardList.narrow.EXPIRED ul li:after {
   -webkit-flex-direction: row;
   -moz-flex-direction: row;
   -ms-flex-direction: row;
-  flex-direction: row; }
+  flex-direction: row;
+  background-color: rgba(255, 255, 255, 0.75); }
   .content .cardField.dragged {
     display: none; }
-  .content .cardField .fieldValues {
-    -webkit-box-flex: 1;
-    -webkit-flex: 1;
-    -moz-box-flex: 1;
-    -moz-flex: 1;
-    -ms-flex: 1;
-    flex: 1;
-    padding: 10px; }
-    .content .cardField .fieldValues .fieldLabel {
-      color: gray; }
-    .content .cardField .fieldValues .fieldValue {
-      font-size: 18pt;
-      -webkit-user-select: text;
-      /* Chrome all / Safari all */
-      -moz-user-select: text;
-      /* Firefox all */
-      -ms-user-select: text;
-      /* IE 10+ */
-      /* No support for these yet, use at own risk */
-      -o-user-select: text;
-      user-select: text; }
-      .content .cardField .fieldValues .fieldValue.hidden {
-        font-family: clipperz-password; }
-    .content .cardField .fieldValues .removeField {
+  .content .cardField .fieldEditAction {
+    -webkit-box-flex: none;
+    -webkit-flex: none;
+    -moz-box-flex: none;
+    -moz-flex: none;
+    -ms-flex: none;
+    flex: none;
+    width: 32px; }
+    .content .cardField .fieldEditAction .removeField {
+      -webkit-align-self: flex-start;
+      -moz-align-self: flex-start;
+      -ms-flex-item-align: start;
+      align-self: flex-start;
       font-family: 'clipperz-icons';
       -webkit-font-feature-settings: "$foo","$bar";
       -moz-font-feature-settings: "$foo=1, $bar=1";
@@ -1917,11 +1924,72 @@ div.cardList.narrow.EXPIRED ul li:after {
       font-feature-settings: "$foo","$bar";
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
+      display: block;
+      margin: 6px;
       cursor: pointer;
-      color: gray;
+      color: #ccc;
       font-size: 20pt; }
-      .content .cardField .fieldValues .removeField:hover {
-        color: red; }
+      .content .cardField .fieldEditAction .removeField:hover {
+        color: #9b0000; }
+    .content .cardField .fieldEditAction .toggleLock {
+      -webkit-align-self: flex-end;
+      -moz-align-self: flex-end;
+      -ms-flex-item-align: end;
+      align-self: flex-end;
+      font-family: 'clipperz-icons';
+      -webkit-font-feature-settings: "$foo","$bar";
+      -moz-font-feature-settings: "$foo=1, $bar=1";
+      -moz-font-feature-settings: "$foo","$bar";
+      -ms-font-feature-settings: "$foo","$bar";
+      -o-font-feature-settings: "$foo","$bar";
+      font-feature-settings: "$foo","$bar";
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      display: block;
+      margin: 6px;
+      margin-left: 12px;
+      cursor: pointer;
+      color: #ccc;
+      font-size: 20pt; }
+      .content .cardField .fieldEditAction .toggleLock:hover {
+        color: #888; }
+  .content .cardField .fieldValues {
+    -webkit-box-flex: 1;
+    -webkit-flex: 1;
+    -moz-box-flex: 1;
+    -moz-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+    padding: 10px; }
+    .content .cardField .fieldValues .fieldLabel {
+      color: gray;
+      border-bottom: 1px dotted #ddd;
+      padding-bottom: 4px;
+      margin-bottom: 4px; }
+      .content .cardField .fieldValues .fieldLabel input {
+        font-size: 12pt;
+        color: gray;
+        border: 0px;
+        width: 100%; }
+    .content .cardField .fieldValues .fieldValue {
+      font-size: 18pt;
+      line-height: 28px;
+      -webkit-user-select: text;
+      /* Chrome all / Safari all */
+      -moz-user-select: text;
+      /* Firefox all */
+      -ms-user-select: text;
+      /* IE 10+ */
+      /* No support for these yet, use at own risk */
+      -o-user-select: text;
+      user-select: text;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      border: 0px;
+      width: 100%; }
+      .content .cardField .fieldValues .fieldValue.hidden {
+        font-family: clipperz-password;
+        font-size: 23pt; }
   .content .cardField .fieldAction {
     -webkit-box-flex: none;
     -webkit-flex: none;
@@ -1929,13 +1997,11 @@ div.cardList.narrow.EXPIRED ul li:after {
     -moz-flex: none;
     -ms-flex: none;
     flex: none;
-    -webkit-align-self: center;
-    -moz-align-self: center;
-    -ms-flex-item-align: center;
-    align-self: center; }
+    -webkit-align-self: flex-start;
+    -moz-align-self: flex-start;
+    -ms-flex-item-align: start;
+    align-self: flex-start; }
   .content .cardField .action {
-    width: 32px;
-    height: 32px;
     font-family: 'clipperz-icons';
     -webkit-font-feature-settings: "$foo","$bar";
     -moz-font-feature-settings: "$foo=1, $bar=1";
@@ -1945,7 +2011,11 @@ div.cardList.narrow.EXPIRED ul li:after {
     font-feature-settings: "$foo","$bar";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    font-size: 20pt; }
+    color: #aaa;
+    width: 20px;
+    height: 20px;
+    font-size: 15pt;
+    margin: 6px; }
 .content .newCardField {
   font-family: 'clipperz-icons';
   -webkit-font-feature-settings: "$foo","$bar";
@@ -1956,8 +2026,9 @@ div.cardList.narrow.EXPIRED ul li:after {
   font-feature-settings: "$foo","$bar";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  margin: 6px;
   cursor: pointer;
-  color: gray;
+  color: #ccc;
   font-size: 20pt; }
   .content .newCardField:hover {
     color: green; }
@@ -2001,6 +2072,9 @@ body:after {
   display: none; }
 
 input {
+  font-family: "clipperz-font"; }
+
+textarea {
   font-family: "clipperz-font"; }
 
 /*

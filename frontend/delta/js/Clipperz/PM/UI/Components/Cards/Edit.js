@@ -231,6 +231,26 @@ console.log("DROP");	//, anEvent);
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', reference);
 	},
 
+	toggleLock: function (aField) {
+		var	reference = this.props['_reference'];
+		
+		return function (anEvent) {
+//console.log("FIELD", aField.isHidden(), aField);
+//			aField.setIsHidden(!aField.isHidden());
+//			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', reference);
+
+			return Clipperz.Async.callbacks("Clipperz.PM.UI.Components.Cards.Edit.toggleLock", [
+				MochiKit.Base.method(aField, 'isHidden'),
+				MochiKit.Base.operator.lognot,
+				MochiKit.Base.method(aField, 'setIsHidden'),
+				function (aValue) {
+					MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', reference);
+				},
+			], {trace:false});
+
+		};
+	},
+
 	//============================================================================
 
 	renderLabel: function (aLabel) {
@@ -285,10 +305,17 @@ console.log("DROP");	//, anEvent);
 //								'onDrop':this.drop,
 								'onDragEnd':this.dragEnd
 		}, [
-			React.DOM.div({'className':'fieldValues'}, [
+			React.DOM.div({'className':'fieldEditAction'}, [
 				React.DOM.span({'className':'removeField', 'onClick':this.removeField(field)}, "remove field"),
-				React.DOM.input({'className':'fieldLabel', 'onChange':this.handleChange(field, 'setLabel'), 'defaultValue':aField['label'], 'placeholder': "label"}),
-				React.DOM.textarea({'className':React.addons.classSet(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'defaultValue':aField['value'], 'placeholder': "value"}),
+				React.DOM.span({'className':'toggleLock', 'onClick':this.toggleLock(field)}, aField['isHidden'] ? "locked" : "unlocked"),
+			]),
+			React.DOM.div({'className':'fieldValues'}, [
+				React.DOM.div({'className':'fieldLabel'}, [
+					React.DOM.input({'_className_':'_fieldLabel_', 'onChange':this.handleChange(field, 'setLabel'), 'defaultValue':aField['label'], 'placeholder': "label"}),
+				]),
+				React.DOM.div({'className':'fieldValue'}, [
+					React.DOM.textarea({'className':React.addons.classSet(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'defaultValue':aField['value'], 'placeholder': "value"}),
+				])
 			]),
 			React.DOM.div({'className':'fieldAction action'}, aField['actionType'].toLowerCase())
 		]);
@@ -362,9 +389,9 @@ console.log("DROP");	//, anEvent);
 				React.DOM.div({'className':'content'}, [
 					this.renderLabel(this.props['label']),
 					this.renderTags(this.props['tags']),
-					this.renderNotes(this.props['notes']),
 					this.renderFields(this.fields()),
 					this.renderAddNewField(),
+					this.renderNotes(this.props['notes']),
 					this.renderDirectLogins(this.props['directLogins'])
 				])
 			]),

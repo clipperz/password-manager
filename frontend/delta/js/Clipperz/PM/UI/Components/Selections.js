@@ -88,7 +88,8 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 			React.DOM.ul({'className':'defaultSet'}, [
 				React.DOM.li({'className':'allCards', 'onClick': this.selectAll}, "All"),
 				React.DOM.li({'className':'recentCards', 'onClick': this.selectRecent}, "Recent"),
-				React.DOM.li({'className':'untaggedCards', 'onClick': this.selectUntaggedCards}, "Untagged - " + this.props['untaggedCardsCount'])
+//				React.DOM.li({'className':'untaggedCards', 'onClick': this.selectUntaggedCards}, "Untagged - " + this.props['untaggedCardsCount'])
+				React.DOM.li({'className':'untaggedCards', 'onClick': this.selectUntaggedCards}, "Untagged")
 			]),
 			React.DOM.div({'className':'search'}, [
 				React.DOM.form({'className':'searchForm'}, [
