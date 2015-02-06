@@ -21,7 +21,6 @@
 	@include flexbox();
 	@include flex-direction(column);
 	min-height: 100%;
-	@include overflow-scroll;
 
 	ul.defaultSet {
 		@include flex(none);
@@ -34,9 +33,8 @@
 	ul.tagList {
 		@include flex(auto);
 		margin-left: 0px;
-
-//		min-height: 100%;
-//		@include overflow-scroll;
+//		overflow-y: scroll;
+		overflow:auto;
 
 		li {
 //			@include flexbox();
@@ -72,9 +70,8 @@
 			
 			&.selection {
 				@include flex($selectionPanelWidth, 0);
-				height: 100%;
+//				height: 100%;
 //				overflow-y: scroll;
-//				@include overflow-scroll;
 			}
 			
 			&.cardContent {
@@ -231,7 +228,7 @@ div.cardContent {
 	div.cardListColumn.column {
 		@include flex($cardListWidth, 0);
 //		overflow-y: scroll;
-		overflow-y: auto;
+		overflow:auto;
 
 		z-index: 5;
 		box-shadow: 2px 0 6px 0 rgba(0,0,0, 0.1);
@@ -240,6 +237,7 @@ div.cardContent {
 		}
 		
 		div.cardList {
+//			overflow-y: scroll;
 			padding-bottom: 120px;
 
 			ul {
@@ -249,15 +247,13 @@ div.cardContent {
 		div.addCardButton {
 			@include icon-font();
 			@include border-radius(50px);
-//			@include radial-gradient (white, rgba(0, 0, 0, 0));
-			box-shadow: 0 0 50px 20px rgba(255, 255, 255, 0.9);
+			@include radial-gradient (white, rgba(0, 0, 0, 0));
 			
 			position: relative;
 			bottom: 0px;
 			font-size: 75pt;
 //			color: blue;
 			color: #aaa;
-			background-color: white;
 
 			width: 100px;
 			height: 100px;
@@ -271,8 +267,7 @@ div.cardContent {
 			
 			&:hover {
 //				color: $clipperz-orange;
-				color: $clipperz-blue;
-//				color: green;
+				color: green;
 //				color: brown;
 			};
 		}
@@ -325,7 +320,7 @@ div.cardContent {
 		.content {
 			@include flex(auto);
 //			overflow-y: scroll;
-			overflow-y: auto;
+			overflow:auto;
 		}
 	}
 }
@@ -374,7 +369,6 @@ div.cardContent {
 		.content {
 			@include flex(auto);
 //			overflow-y: scroll;
-			overflow-y: auto;
 		}
 	}
 }
