@@ -590,7 +590,7 @@ console.log("THE BROWSER IS OFFLINE");
 		} else if (aFilter['type'] == 'RECENT') {
 			filterCriteria = MochiKit.Base.operator.truth;
 			sortCriteria = Clipperz.Base.reverseComparator(MochiKit.Base.keyComparator('accessDate'));
-			rangeFilter = function (someCards) { return someCards.slice(0, 9)};
+			rangeFilter = function (someCards) { return someCards.slice(0, 10)};
 		} else if (aFilter['type'] == 'SEARCH') {
 			filterCriteria = this.regExpFilterGenerator(Clipperz.PM.DataModel.Record.regExpForSearch(aFilter['value']));
 			sortCriteria = Clipperz.Base.caseInsensitiveKeyComparator('label');
@@ -666,6 +666,20 @@ console.log("THE BROWSER IS OFFLINE");
 	
 	//----------------------------------------------------------------------------
 
+	getAllCardsCount: function () {
+		var	archivedCardsFilter =	this.shouldIncludeArchivedCards()
+									?	MochiKit.Async.succeed
+									:	MochiKit.Base.partial(MochiKit.Base.filter, function (someRecordInfo) { return ! someRecordInfo['_isArchived']; });
+
+		return Clipperz.Async.callbacks("MainController.getUntaggedCardsCount", [
+			MochiKit.Base.method(this.user(), 'getRecords'),
+			MochiKit.Base.partial(MochiKit.Base.map, Clipperz.Async.collectResults("collectResults", {'_fullLabel':MochiKit.Base.methodcaller('fullLabel'), '_isArchived':MochiKit.Base.methodcaller('isArchived')}, {trace:false})),
+			Clipperz.Async.collectAll,
+			archivedCardsFilter,
+			function (someCards) { return someCards.length; },
+		], {trace:false});
+	},
+	
 	getArchivedCardsCount: function () {
 		return Clipperz.Async.callbacks("MainController.getArchivedCardsCount", [
 			MochiKit.Base.method(this.user(), 'getRecords'),
@@ -711,6 +725,8 @@ console.log("THE BROWSER IS OFFLINE");
 //			MochiKit.Base.method(this.user(), 'getTags', this.shouldIncludeArchivedCards()),
 			MochiKit.Base.method(this, 'allTags', this.shouldIncludeArchivedCards()),
 			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'tags'),
+			MochiKit.Base.method(this, 'getAllCardsCount'),
+			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'allCardsCount'),
 			MochiKit.Base.method(this, 'getArchivedCardsCount'),
 			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'archivedCardsCount'),
 			MochiKit.Base.method(this, 'getUntaggedCardsCount'),

@@ -75,7 +75,7 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 		var	filterType;
 		var	filterValue;
 
-//console.log("SELECTIONS PROPS", this.props);
+console.log("SELECTIONS PROPS", this.props);
 		tagInfo = this.props['tags'] ? this.props['tags'] : {};
 		tags = MochiKit.Base.filter(Clipperz.PM.DataModel.Record.isRegularTag, MochiKit.Base.keys(tagInfo)).sort(Clipperz.Base.caseInsensitiveCompare);
 		archivedCardsCount = this.props['archivedCardsCount'];
@@ -86,10 +86,19 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 
 		return	React.DOM.div({'key':'selections', 'id':'selections', 'className':filterType}, [
 			React.DOM.ul({'className':'defaultSet'}, [
-				React.DOM.li({'className':'allCards', 'onClick': this.selectAll}, "All"),
-				React.DOM.li({'className':'recentCards', 'onClick': this.selectRecent}, "Recent"),
+				React.DOM.li({'className':'allCards', 'onClick': this.selectAll}, [
+					"All",
+					React.DOM.span({'className':'count'}, this.props['allCardsCount'])
+				]),
+				React.DOM.li({'className':'recentCards', 'onClick': this.selectRecent}, [
+					"Recent",
+					React.DOM.span({'className':'count'}, "10")
+				]),
 //				React.DOM.li({'className':'untaggedCards', 'onClick': this.selectUntaggedCards}, "Untagged - " + this.props['untaggedCardsCount'])
-				React.DOM.li({'className':'untaggedCards', 'onClick': this.selectUntaggedCards}, "Untagged")
+				React.DOM.li({'className':'untaggedCards', 'onClick': this.selectUntaggedCards}, [
+					"Untagged",
+					React.DOM.span({'className':'count'}, this.props['untaggedCardsCount'])
+				])
 			]),
 			React.DOM.div({'className':'search'}, [
 				React.DOM.form({'className':'searchForm'}, [
