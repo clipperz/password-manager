@@ -1,9 +1,16 @@
+//	ARCHIVE - RESTORE
+//	
+//	background-color: #800;
+//	box-shadow: inset 0 2px 3px 0 rgba(0,0,0,0.3);
+//	color: #ccc;
+
+
 $cardListHeight: 48px;
 $faviconSize: 32px;
 $padding: ($cardListHeight - $faviconSize) / 2;
 $cardArchivedColor: #eee;
-$cardToolbarBackgroundColor: #e38800;
-//$cardToolbarBackgroundColor: $clipperz-blue;
+//$cardToolbarBackgroundColor: #e38800;
+$cardToolbarBackgroundColor: $clipperz-blue;
 $iconMargin: 6px;
 $labelColor: gray;
 
@@ -25,6 +32,9 @@ div.cardList {
 			border-bottom: 1px solid #eee;
 			background-color: white;
 			transition: margin-left 0.3s ease-in-out;
+
+			white-space: pre-wrap;
+			word-wrap: break-word;
 
 			@include flexbox();
 			@include flex-direction(row);
@@ -208,6 +218,12 @@ $cardViewBasePadding: 10px;
 			color: white;
 
 //			box-shadow: inset 2px 0 6px 0 rgba(0, 0, 0, 0.1);
+		}
+		
+		.cardField {
+			&:hover {
+				background-color: #eee;
+			}
 		}
 	}
 }	

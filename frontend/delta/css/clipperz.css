@@ -614,7 +614,7 @@ div.overlay {
 .mainPage > #selectionPanel {
   position: fixed;
   z-index: 20;
-  overflow: scroll;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   width: 300px;
   height: 100%;
@@ -635,7 +635,9 @@ div.overlay {
   -moz-flex-direction: column;
   -ms-flex-direction: column;
   flex-direction: column;
-  min-height: 100%; }
+  min-height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; }
   #selections ul.defaultSet {
     -webkit-box-flex: none;
     -webkit-flex: none;
@@ -684,7 +686,7 @@ div.overlay {
     -moz-flex: 300px 0;
     -ms-flex: 300px 0;
     flex: 300px 0;
-    overflow-y: scroll; }
+    height: 100%; }
   #mainPanel.extra-wide .subpanel.cardContent {
     -webkit-box-flex: 4;
     -webkit-flex: 4;
@@ -759,7 +761,7 @@ div.overlay {
 #extraFeaturesPanel {
   position: fixed;
   z-index: 20;
-  overflow: scroll;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   width: 300px;
   height: 100%;
@@ -886,11 +888,10 @@ div.cardContent {
     -moz-flex: 1 0;
     -ms-flex: 1 0;
     flex: 1 0;
-    overflow-y: scroll;
+    overflow-y: auto;
     z-index: 5;
     box-shadow: 2px 0 6px 0 rgba(0, 0, 0, 0.1); }
     div.cardContent div.cardListColumn.column div.cardList {
-      overflow-y: scroll;
       padding-bottom: 120px; }
     div.cardContent div.cardListColumn.column div.addCardButton {
       font-family: 'clipperz-icons';
@@ -905,22 +906,12 @@ div.cardContent {
       -webkit-border-radius: 50px;
       -moz-border-radius: 50px;
       border-radius: 50px;
-      background-image: -ms-radial-gradient(center, circle farthest-corner, white 0%, transparent 100%);
-      /* IE10 */
-      background-image: -moz-radial-gradient(center, circle farthest-corner, white 0%, transparent 100%);
-      /* Mozilla Firefox */
-      background-image: -o-radial-gradient(center, circle farthest-corner, white 0%, transparent 100%);
-      /* Opera */
-      background-image: -webkit-radial-gradient(center, circle farthest-corner, white 0%, transparent 100%);
-      /* Webkit (Chrome 11+) */
-      background-image: radial-gradient(center, circle farthest-corner, white 0%, transparent 100%);
-      /* Proposed W3C Markup */
-      background-image: -webkit-gradient(radial, center center, 0, center center, 495, color-stop(0, white), color-stop(1, transparent));
-      /* Webkit (Safari/Chrome 10) */
+      box-shadow: 0 0 50px 20px rgba(255, 255, 255, 0.9);
       position: relative;
       bottom: 0px;
       font-size: 75pt;
       color: #aaa;
+      background-color: white;
       width: 100px;
       height: 100px;
       float: right;
@@ -929,7 +920,7 @@ div.cardContent {
       margin-bottom: 10px;
       cursor: pointer; }
       div.cardContent div.cardListColumn.column div.addCardButton:hover {
-        color: green; }
+        color: #1863a1; }
   div.cardContent div.cardDetail.column {
     -webkit-box-flex: 2;
     -webkit-flex: 2;
@@ -1011,7 +1002,7 @@ div.cardContent {
       -moz-flex: auto;
       -ms-flex: auto;
       flex: auto;
-      overflow-y: scroll; }
+      overflow-y: auto; }
 
 #cardDetailPage > .view, #cardDetailPage > .editWrapper > .edit {
   display: -webkit-box;
@@ -1068,7 +1059,7 @@ div.cardContent {
     -moz-flex: auto;
     -ms-flex: auto;
     flex: auto;
-    overflow-y: scroll; }
+    overflow-y: auto; }
 
 .cardDetailToolbar {
   -webkit-box-flex: none;
@@ -1270,7 +1261,7 @@ div.dialogBox {
       margin: 0px; }
 
 #loginPage {
-  overflow: scroll;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch; }
   #loginPage div.loginForm {
     display: -webkit-box;
@@ -1476,9 +1467,7 @@ div.dialogBox {
 #selections {
   background-color: black;
   color: white;
-  font-size: 18pt;
-  overflow: scroll;
-  -webkit-overflow-scrolling: touch; }
+  font-size: 18pt; }
   #selections ul.defaultSet {
     font-weight: bold;
     padding-top: 10px;
@@ -1673,12 +1662,14 @@ div.dialogBox {
 div.cardList.loadingCard li.selected {
   background-color: gray; }
 div.cardList ul {
-  background-color: #e38800; }
+  background-color: #1863a1; }
   div.cardList ul li {
     cursor: pointer;
     border-bottom: 1px solid #eee;
     background-color: white;
     transition: margin-left 0.3s ease-in-out;
+    white-space: pre-wrap;
+    word-wrap: break-word;
     display: -webkit-box;
     display: -webkit-flex;
     display: -moz-flex;
@@ -1777,7 +1768,7 @@ div.cardList.narrow.EXPIRED ul li:after {
 #cardDetailPage .view.archived, .cardDetail .view.archived {
   background-color: #eeeeee; }
 #cardDetailPage .view .cardDetailToolbar, .cardDetail .view .cardDetailToolbar {
-  background-color: #e38800;
+  background-color: #1863a1;
   color: white; }
   #cardDetailPage .view .cardDetailToolbar.narrow, .cardDetail .view .cardDetailToolbar.narrow {
     font-size: 24pt; }
@@ -1843,8 +1834,10 @@ div.cardList.narrow.EXPIRED ul li:after {
           padding: 5px 10px;
           border-bottom: 1px solid black; }
 #cardDetailPage .edit .cardDetailToolbar, .cardDetail .edit .cardDetailToolbar {
-  background-color: #e38800;
+  background-color: #1863a1;
   color: white; }
+#cardDetailPage .edit .cardField:hover, .cardDetail .edit .cardField:hover {
+  background-color: #eee; }
 
 .cardDetailToolbar.edit li {
   font-weight: 100; }
@@ -2055,13 +2048,16 @@ div.dialog {
     font-weight: bold;
     padding-bottom: 20px; }
   div.dialog div.answers div.button {
-    border: 1px solid black;
+    -webkit-border-radius: 4;
+    -moz-border-radius: 4;
+    border-radius: 4;
     margin-left: 10px;
-    padding: 5px 10px; }
+    padding: 5px 15px;
+    background-color: #ddd; }
     div.dialog div.answers div.button.isDefault {
       font-weight: bold;
       color: white;
-      background-color: blue; }
+      background-color: #666; }
 
 body {
   font-family: "clipperz-font";

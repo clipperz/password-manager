@@ -14,14 +14,16 @@ div.dialog {
 	div.answers {
 
 		div.button {
-			border: 1px solid black;
+			@include border-radius(4);
+//			border: 1px solid black;
 			margin-left: 10px;
-			padding: 5px 10px;
+			padding: 5px 15px;
+			background-color: #ddd;
 			
 			&.isDefault {
 				font-weight: bold;
 				color: white;
-				background-color: blue;
+				background-color: #666;
 			}
 		}
 	}
