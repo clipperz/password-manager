@@ -83,6 +83,8 @@ div.cardList {
 }
 
 div.cardList.narrow {
+	@include overflow-scroll;
+	
 	&.loadingCard {
 		li.selected {
 //			background-color: gray;

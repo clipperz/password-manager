@@ -1484,7 +1484,8 @@ div.dialogBox {
     font-size: 18pt;
     padding: 0px 30px;
     margin: 0px 5px;
-    width: 290px; }
+    width: 290px;
+    vertical-align: middle; }
   #selections .search form label {
     font-family: 'clipperz-icons';
     -webkit-font-feature-settings: "$foo","$bar";
@@ -1498,7 +1499,8 @@ div.dialogBox {
     font-size: 18pt;
     padding-left: 5px;
     margin-left: -295px;
-    color: #666; }
+    color: #666;
+    vertical-align: sub; }
   #selections .search form .searchClear {
     font-family: 'clipperz-icons';
     -webkit-font-feature-settings: "$foo","$bar";
@@ -1559,15 +1561,22 @@ div.dialogBox {
       padding-right: 8px;
       font-size: 14pt; }
   #selections .showArchivedCards {
+    padding: 10px;
     font-size: 12pt; }
-    #selections .showArchivedCards span.count {
-      background-color: gray;
-      font-size: 10pt;
-      margin-left: 10px;
-      padding: 0px 4px;
-      -webkit-border-radius: 4px;
-      -moz-border-radius: 4px;
-      border-radius: 4px; }
+    #selections .showArchivedCards .label {
+      padding-left: 5px; }
+
+span.count {
+  background-color: gray;
+  font-size: 10pt;
+  margin-left: 10px;
+  padding: 0px 4px;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  color: white;
+  font-weight: 300;
+  vertical-align: middle; }
 
 #selections.ALL li.allCards {
   color: #ff9900; }
@@ -1712,58 +1721,61 @@ div.cardList ul {
       padding-left: 8px;
       padding-right: 8px; }
 
-div.cardList.narrow.loadingCard li.selected:after {
-  color: white;
-  margin-right: 10px;
-  content: "loading";
-  -webkit-animation-name: spin;
-  -webkit-animation-duration: 1s;
-  -webkit-animation-timing-function: linear;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-fill-mode: none;
-  -moz-animation-name: spin;
-  -moz-animation-duration: 1s;
-  -moz-animation-timing-function: linear;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-fill-mode: none;
-  -ms-animation-name: spin;
-  -ms-animation-duration: 1s;
-  -ms-animation-timing-function: linear;
-  -ms-animation-iteration-count: infinite;
-  -ms-animation-fill-mode: none;
-  -o-animation-name: spin;
-  -o-animation-duration: 1s;
-  -o-animation-timing-function: linear;
-  -o-animation-iteration-count: infinite;
-  -o-animation-fill-mode: none;
-  animation-name: spin;
-  animation-duration: 1s;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  animation-fill-mode: none; }
-div.cardList.narrow ul li:after {
-  content: "show detail";
-  -webkit-box-flex: none;
-  -webkit-flex: none;
-  -moz-box-flex: none;
-  -moz-flex: none;
-  -ms-flex: none;
-  flex: none;
-  font-family: 'clipperz-icons';
-  -webkit-font-feature-settings: "$foo","$bar";
-  -moz-font-feature-settings: "$foo=1, $bar=1";
-  -moz-font-feature-settings: "$foo","$bar";
-  -ms-font-feature-settings: "$foo","$bar";
-  -o-font-feature-settings: "$foo","$bar";
-  font-feature-settings: "$foo","$bar";
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  height: 48px;
-  font-size: 24pt;
-  line-height: 48px;
-  margin-right: 25px; }
-div.cardList.narrow.EXPIRED ul li:after {
-  content: ""; }
+div.cardList.narrow {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; }
+  div.cardList.narrow.loadingCard li.selected:after {
+    color: white;
+    margin-right: 10px;
+    content: "loading";
+    -webkit-animation-name: spin;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-timing-function: linear;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-fill-mode: none;
+    -moz-animation-name: spin;
+    -moz-animation-duration: 1s;
+    -moz-animation-timing-function: linear;
+    -moz-animation-iteration-count: infinite;
+    -moz-animation-fill-mode: none;
+    -ms-animation-name: spin;
+    -ms-animation-duration: 1s;
+    -ms-animation-timing-function: linear;
+    -ms-animation-iteration-count: infinite;
+    -ms-animation-fill-mode: none;
+    -o-animation-name: spin;
+    -o-animation-duration: 1s;
+    -o-animation-timing-function: linear;
+    -o-animation-iteration-count: infinite;
+    -o-animation-fill-mode: none;
+    animation-name: spin;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-fill-mode: none; }
+  div.cardList.narrow ul li:after {
+    content: "show detail";
+    -webkit-box-flex: none;
+    -webkit-flex: none;
+    -moz-box-flex: none;
+    -moz-flex: none;
+    -ms-flex: none;
+    flex: none;
+    font-family: 'clipperz-icons';
+    -webkit-font-feature-settings: "$foo","$bar";
+    -moz-font-feature-settings: "$foo=1, $bar=1";
+    -moz-font-feature-settings: "$foo","$bar";
+    -ms-font-feature-settings: "$foo","$bar";
+    -o-font-feature-settings: "$foo","$bar";
+    font-feature-settings: "$foo","$bar";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    height: 48px;
+    font-size: 24pt;
+    line-height: 48px;
+    margin-right: 25px; }
+  div.cardList.narrow.EXPIRED ul li:after {
+    content: ""; }
 
 #cardDetailPage .view.archived, .cardDetail .view.archived {
   background-color: #eeeeee; }

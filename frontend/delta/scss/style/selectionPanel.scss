@@ -38,6 +38,7 @@
 				margin: 0px 5px;
 //				width: $selectionPanelWidth - $iconColumnWidth - 10px;
 				width: $selectionPanelWidth - ($spacing * 2);
+				vertical-align: middle;
 			}
 
 			label {
@@ -47,6 +48,7 @@
 //				padding-right:5px;
 				margin-left: -$selectionPanelWidth + $spacing;
 				color: #666;
+				vertical-align: sub;
 			}
 		
 			.searchClear {
@@ -117,16 +119,26 @@
 	}
 	
 	.showArchivedCards {
+		padding: 10px;
 		font-size: 12pt;
 		
-		span.count {
-			background-color: gray;
-			font-size: 10pt;
-			margin-left: 10px;
-			padding: 0px 4px;
-			@include border-radius(4px);
+		.label {
+			padding-left: 5px;
 		}
+
 	}
+}
+
+span.count {
+	background-color: gray;
+	font-size: 10pt;
+	margin-left: 10px;
+	padding: 0px 4px;
+	@include border-radius(4px);
+
+	color: white;
+	font-weight: 300;
+	vertical-align: middle;
 }
 
 
