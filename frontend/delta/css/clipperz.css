@@ -1472,12 +1472,42 @@ div.dialogBox {
     font-weight: bold;
     padding-top: 10px;
     padding-bottom: 10px; }
-    #selections ul.defaultSet li.allCards:before {
-      content: "clipperz"; }
-    #selections ul.defaultSet li.recentCards:before {
-      content: "recent"; }
-    #selections ul.defaultSet li.untaggedCards {
-      padding-left: 70px; }
+    #selections ul.defaultSet li {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-direction: normal;
+      -webkit-box-orient: horizontal;
+      -webkit-flex-direction: row;
+      -moz-flex-direction: row;
+      -ms-flex-direction: row;
+      flex-direction: row; }
+      #selections ul.defaultSet li span.label {
+        -webkit-box-flex: auto;
+        -webkit-flex: auto;
+        -moz-box-flex: auto;
+        -moz-flex: auto;
+        -ms-flex: auto;
+        flex: auto; }
+      #selections ul.defaultSet li span.count {
+        -webkit-box-flex: none;
+        -webkit-flex: none;
+        -moz-box-flex: none;
+        -moz-flex: none;
+        -ms-flex: none;
+        flex: none;
+        -webkit-align-self: flex-end;
+        -moz-align-self: flex-end;
+        -ms-flex-item-align: end;
+        align-self: flex-end; }
+      #selections ul.defaultSet li.allCards:before {
+        content: "clipperz"; }
+      #selections ul.defaultSet li.recentCards:before {
+        content: "recent"; }
+      #selections ul.defaultSet li.untaggedCards {
+        padding-left: 35px; }
   #selections .search form input {
     font-family: "clipperz-font";
     color: #999;
@@ -1541,8 +1571,6 @@ div.dialogBox {
       -moz-border-radius: 4px;
       border-radius: 4px; }
   #selections li {
-    padding-left: 35px;
-    text-indent: -35px;
     padding-top: 7px;
     padding-bottom: 7px;
     cursor: pointer; }
@@ -1559,18 +1587,55 @@ div.dialogBox {
       font-weight: normal;
       padding-left: 8px;
       padding-right: 8px;
-      font-size: 14pt; }
+      font-size: 14pt;
+      vertical-align: baseline; }
   #selections .showArchivedCards {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-direction: normal;
+    -webkit-box-orient: horizontal;
+    -webkit-flex-direction: row;
+    -moz-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
     padding: 10px;
     font-size: 12pt; }
+    #selections .showArchivedCards input {
+      -webkit-box-flex: none;
+      -webkit-flex: none;
+      -moz-box-flex: none;
+      -moz-flex: none;
+      -ms-flex: none;
+      flex: none; }
     #selections .showArchivedCards .label {
+      -webkit-box-flex: auto;
+      -webkit-flex: auto;
+      -moz-box-flex: auto;
+      -moz-flex: auto;
+      -ms-flex: auto;
+      flex: auto;
       padding-left: 5px; }
+    #selections .showArchivedCards .count {
+      -webkit-box-flex: none;
+      -webkit-flex: none;
+      -moz-box-flex: none;
+      -moz-flex: none;
+      -ms-flex: none;
+      flex: none;
+      -webkit-align-self: flex-end;
+      -moz-align-self: flex-end;
+      -ms-flex-item-align: end;
+      align-self: flex-end;
+      margin-right: 2px; }
 
 span.count {
   background-color: gray;
   font-size: 10pt;
-  margin-left: 10px;
-  padding: 0px 4px;
+  margin-right: 12px;
+  padding: 3px 5px;
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
   border-radius: 4px;
