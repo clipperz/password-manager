@@ -1,16 +1,9 @@
-//	ARCHIVE - RESTORE
-//	
-//	background-color: #800;
-//	box-shadow: inset 0 2px 3px 0 rgba(0,0,0,0.3);
-//	color: #ccc;
-
-
 $cardListHeight: 48px;
 $faviconSize: 32px;
 $padding: ($cardListHeight - $faviconSize) / 2;
 $cardArchivedColor: #eee;
-//$cardToolbarBackgroundColor: #e38800;
-$cardToolbarBackgroundColor: $clipperz-blue;
+$cardToolbarBackgroundColor: #e38800;
+//$cardToolbarBackgroundColor: $clipperz-blue;
 $iconMargin: 6px;
 $labelColor: gray;
 
@@ -31,10 +24,8 @@ div.cardList {
 
 			border-bottom: 1px solid #eee;
 			background-color: white;
-			transition: margin-left 0.3s ease-in-out;
-
-			white-space: pre-wrap;
-			word-wrap: break-word;
+			transition: margin-left 0.1s ease-in-out, padding-right 0.1s ease-in-out;
+			padding-right:40px; // prevent new lines on selection
 
 			@include flexbox();
 			@include flex-direction(row);
@@ -44,8 +35,9 @@ div.cardList {
 //				background-color: brown;
 //				background-color: $clipperz-blue;
 //				color: white;
-				margin-left: 50px;
-				box-shadow: -3px 1px 3px 0 rgba(0, 0, 0, 0.2);
+				margin-left: 40px;
+				padding-right: 0px; // prevent new lines on selection
+				box-shadow: -4px 0px 3px -1px rgba(0, 0, 0, 0.2);
 			}
 			
 			&.archived {
@@ -83,8 +75,6 @@ div.cardList {
 }
 
 div.cardList.narrow {
-	@include overflow-scroll;
-	
 	&.loadingCard {
 		li.selected {
 //			background-color: gray;
@@ -220,12 +210,6 @@ $cardViewBasePadding: 10px;
 			color: white;
 
 //			box-shadow: inset 2px 0 6px 0 rgba(0, 0, 0, 0.1);
-		}
-		
-		.cardField {
-			&:hover {
-				background-color: #eee;
-			}
 		}
 	}
 }	

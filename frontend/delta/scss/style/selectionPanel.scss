@@ -2,7 +2,7 @@
 	background-color: $main-alternate-color;
 	color: $main-alternate-text-color;
 	font-size: 18pt;
-//	@include overflow-scroll;
+	@include overflow-scroll;
 //	height: 100%;
 
 	$iconColumnWidth: 40px;
@@ -30,15 +30,19 @@
 
 	.search {
 		form {
+			padding:2px;
+			position:relative;
+			box-sizing:border-box;
+			width:95%;
+
 			input {
 				font-family: "clipperz-font";
 				color: #999;
 				font-size: 18pt;
 				padding: 0px 30px;
 				margin: 0px 5px;
-//				width: $selectionPanelWidth - $iconColumnWidth - 10px;
-				width: $selectionPanelWidth - ($spacing * 2);
-				vertical-align: middle;
+				width: 100%;
+				box-sizing:border-box;
 			}
 
 			label {
@@ -46,17 +50,20 @@
 				font-size: 18pt;
 				padding-left: $spacing;
 //				padding-right:5px;
-				margin-left: -$selectionPanelWidth + $spacing;
+				position:absolute;
+				top:9px;
+				left:9px;
 				color: #666;
-				vertical-align: sub;
 			}
 		
 			.searchClear {
 				@include icon-font();
-				@include border-radius(4px);
+				@include border-radius(50%);
 				background-color: #aaa;
 				color: white;
-				margin-left: $selectionPanelWidth - $iconColumnWidth - 30px;
+				position:absolute;
+				right:9px;
+				top:9px;
 				cursor: pointer;
 				padding: 5px;
 				font-size: 10pt;
@@ -119,26 +126,16 @@
 	}
 	
 	.showArchivedCards {
-		padding: 10px;
 		font-size: 12pt;
 		
-		.label {
-			padding-left: 5px;
+		span.count {
+			background-color: gray;
+			font-size: 10pt;
+			margin-left: 10px;
+			padding: 0px 4px;
+			@include border-radius(4px);
 		}
-
 	}
-}
-
-span.count {
-	background-color: gray;
-	font-size: 10pt;
-	margin-left: 10px;
-	padding: 0px 4px;
-	@include border-radius(4px);
-
-	color: white;
-	font-weight: 300;
-	vertical-align: middle;
 }
 
 
