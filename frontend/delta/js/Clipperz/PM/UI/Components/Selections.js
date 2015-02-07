@@ -87,17 +87,17 @@ console.log("SELECTIONS PROPS", this.props);
 		return	React.DOM.div({'key':'selections', 'id':'selections', 'className':filterType}, [
 			React.DOM.ul({'className':'defaultSet'}, [
 				React.DOM.li({'className':'allCards', 'onClick': this.selectAll}, [
-					"All",
-					React.DOM.span({'className':'count'}, this.props['allCardsCount'])
+					React.DOM.span({'className':'label'}, "All"),
+					React.DOM.span({'className':'count'}, this.props['allCardsCount'] ? this.props['allCardsCount'] : '-')
 				]),
 				React.DOM.li({'className':'recentCards', 'onClick': this.selectRecent}, [
-					"Recent",
-					React.DOM.span({'className':'count'}, "10")
+					React.DOM.span({'className':'label'}, "Recent"),
+					React.DOM.span({'className':'count'}, this.props['allCardsCount'] ? '10' : '-')
 				]),
 //				React.DOM.li({'className':'untaggedCards', 'onClick': this.selectUntaggedCards}, "Untagged - " + this.props['untaggedCardsCount'])
 				React.DOM.li({'className':'untaggedCards', 'onClick': this.selectUntaggedCards}, [
-					"Untagged",
-					React.DOM.span({'className':'count'}, this.props['untaggedCardsCount'])
+					React.DOM.span({'className':'label'}, "Untagged"),
+					React.DOM.span({'className':'count'}, this.props['untaggedCardsCount'] ? this.props['untaggedCardsCount'] : '-')
 				])
 			]),
 			React.DOM.div({'className':'search'}, [
