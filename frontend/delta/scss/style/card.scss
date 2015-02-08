@@ -31,7 +31,8 @@ div.cardList {
 
 			border-bottom: 1px solid #eee;
 			background-color: white;
-			transition: margin-left 0.3s ease-in-out;
+			transition: margin-left 0.1s ease-in-out, padding-right 0.1s ease-in-out;
+//			padding-right:40px; // prevent new lines on selection
 
 			white-space: pre-wrap;
 			word-wrap: break-word;
@@ -44,8 +45,9 @@ div.cardList {
 //				background-color: brown;
 //				background-color: $clipperz-blue;
 //				color: white;
-				margin-left: 50px;
-				box-shadow: -3px 1px 3px 0 rgba(0, 0, 0, 0.2);
+				margin-left: 40px;
+				padding-right: 0px; // prevent new lines on selection
+				box-shadow: -4px 0px 3px -1px rgba(0, 0, 0, 0.2);
 			}
 			
 			&.archived {
@@ -225,8 +227,8 @@ $cardViewBasePadding: 10px;
 		.cardField {
 			&:hover {
 				background-color: #eee;
-			}
-		}
+	}
+}	
 	}
 }	
 

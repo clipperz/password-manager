@@ -1,26 +1,3 @@
-/*
-
-Copyright 2008-2013 Clipperz Srl
-
-This file is part of Clipperz, the online password manager.
-For further information about its features and functionalities please
-refer to http://www.clipperz.com.
-
-* Clipperz is free software: you can redistribute it and/or modify it 
-  under the terms of the GNU Affero General Public License as published 
-  by the Free Software Foundation, either version 3 of the License, or 
-  (at your option) any later version.
-
-* Clipperz is distributed in the hope that it will be useful, but 
-  WITHOUT ANY WARRANTY; without even the implied warranty of 
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  See the GNU Affero General Public License for more details.
-
-* You should have received a copy of the GNU Affero General Public
-  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
-
-*/
-
 @charset "UTF-8";
 /* http://meyerweb.com/eric/tools/css/reset/ 
    v2.0 | 20110126
@@ -614,7 +591,7 @@ div.overlay {
 .mainPage > #selectionPanel {
   position: fixed;
   z-index: 20;
-  overflow-y: auto;
+  overflow: scroll;
   -webkit-overflow-scrolling: touch;
   width: 300px;
   height: 100%;
@@ -635,9 +612,7 @@ div.overlay {
   -moz-flex-direction: column;
   -ms-flex-direction: column;
   flex-direction: column;
-  min-height: 100%;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch; }
+  min-height: 100%; }
   #selections ul.defaultSet {
     -webkit-box-flex: none;
     -webkit-flex: none;
@@ -659,7 +634,8 @@ div.overlay {
     -moz-flex: auto;
     -ms-flex: auto;
     flex: auto;
-    margin-left: 0px; }
+    margin-left: 0px;
+    overflow: auto; }
   #selections .showArchivedCards {
     -webkit-box-flex: none;
     -webkit-flex: none;
@@ -685,8 +661,7 @@ div.overlay {
     -moz-box-flex: 300px;
     -moz-flex: 300px 0;
     -ms-flex: 300px 0;
-    flex: 300px 0;
-    height: 100%; }
+    flex: 300px 0; }
   #mainPanel.extra-wide .subpanel.cardContent {
     -webkit-box-flex: 4;
     -webkit-flex: 4;
@@ -761,7 +736,7 @@ div.overlay {
 #extraFeaturesPanel {
   position: fixed;
   z-index: 20;
-  overflow-y: auto;
+  overflow: scroll;
   -webkit-overflow-scrolling: touch;
   width: 300px;
   height: 100%;
@@ -888,7 +863,7 @@ div.cardContent {
     -moz-flex: 1 0;
     -ms-flex: 1 0;
     flex: 1 0;
-    overflow-y: auto;
+    overflow: auto;
     z-index: 5;
     box-shadow: 2px 0 6px 0 rgba(0, 0, 0, 0.1); }
     div.cardContent div.cardListColumn.column div.cardList {
@@ -906,12 +881,22 @@ div.cardContent {
       -webkit-border-radius: 50px;
       -moz-border-radius: 50px;
       border-radius: 50px;
-      box-shadow: 0 0 50px 20px rgba(255, 255, 255, 0.9);
+      background-image: -ms-radial-gradient(center, circle farthest-corner, white 0%, transparent 100%);
+      /* IE10 */
+      background-image: -moz-radial-gradient(center, circle farthest-corner, white 0%, transparent 100%);
+      /* Mozilla Firefox */
+      background-image: -o-radial-gradient(center, circle farthest-corner, white 0%, transparent 100%);
+      /* Opera */
+      background-image: -webkit-radial-gradient(center, circle farthest-corner, white 0%, transparent 100%);
+      /* Webkit (Chrome 11+) */
+      background-image: radial-gradient(center, circle farthest-corner, white 0%, transparent 100%);
+      /* Proposed W3C Markup */
+      background-image: -webkit-gradient(radial, center center, 0, center center, 495, color-stop(0, white), color-stop(1, transparent));
+      /* Webkit (Safari/Chrome 10) */
       position: relative;
       bottom: 0px;
       font-size: 75pt;
       color: #aaa;
-      background-color: white;
       width: 100px;
       height: 100px;
       float: right;
@@ -920,7 +905,7 @@ div.cardContent {
       margin-bottom: 10px;
       cursor: pointer; }
       div.cardContent div.cardListColumn.column div.addCardButton:hover {
-        color: #1863a1; }
+        color: green; }
   div.cardContent div.cardDetail.column {
     -webkit-box-flex: 2;
     -webkit-flex: 2;
@@ -1002,7 +987,7 @@ div.cardContent {
       -moz-flex: auto;
       -ms-flex: auto;
       flex: auto;
-      overflow-y: auto; }
+      overflow: auto; }
 
 #cardDetailPage > .view, #cardDetailPage > .editWrapper > .edit {
   display: -webkit-box;
@@ -1058,8 +1043,7 @@ div.cardContent {
     -moz-box-flex: auto;
     -moz-flex: auto;
     -ms-flex: auto;
-    flex: auto;
-    overflow-y: auto; }
+    flex: auto; }
 
 .cardDetailToolbar {
   -webkit-box-flex: none;
@@ -1261,7 +1245,7 @@ div.dialogBox {
       margin: 0px; }
 
 #loginPage {
-  overflow-y: auto;
+  overflow: scroll;
   -webkit-overflow-scrolling: touch; }
   #loginPage div.loginForm {
     display: -webkit-box;
@@ -1467,7 +1451,9 @@ div.dialogBox {
 #selections {
   background-color: black;
   color: white;
-  font-size: 18pt; }
+  font-size: 18pt;
+  overflow: scroll;
+  -webkit-overflow-scrolling: touch; }
   #selections ul.defaultSet {
     font-weight: bold;
     padding-top: 10px;
@@ -1508,50 +1494,58 @@ div.dialogBox {
         content: "recent"; }
       #selections ul.defaultSet li.untaggedCards {
         padding-left: 35px; }
-  #selections .search form input {
-    font-family: "clipperz-font";
-    color: #999;
-    font-size: 18pt;
-    padding: 0px 30px;
-    margin: 0px 5px;
-    width: 290px;
-    vertical-align: middle; }
-  #selections .search form label {
-    font-family: 'clipperz-icons';
-    -webkit-font-feature-settings: "$foo","$bar";
-    -moz-font-feature-settings: "$foo=1, $bar=1";
-    -moz-font-feature-settings: "$foo","$bar";
-    -ms-font-feature-settings: "$foo","$bar";
-    -o-font-feature-settings: "$foo","$bar";
-    font-feature-settings: "$foo","$bar";
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    font-size: 18pt;
-    padding-left: 5px;
-    margin-left: -295px;
-    color: #666;
-    vertical-align: sub; }
-  #selections .search form .searchClear {
-    font-family: 'clipperz-icons';
-    -webkit-font-feature-settings: "$foo","$bar";
-    -moz-font-feature-settings: "$foo=1, $bar=1";
-    -moz-font-feature-settings: "$foo","$bar";
-    -ms-font-feature-settings: "$foo","$bar";
-    -o-font-feature-settings: "$foo","$bar";
-    font-feature-settings: "$foo","$bar";
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    -webkit-border-radius: 4px;
-    -moz-border-radius: 4px;
-    border-radius: 4px;
-    background-color: #aaa;
-    color: white;
-    margin-left: 230px;
-    cursor: pointer;
-    padding: 5px;
-    font-size: 10pt; }
-    #selections .search form .searchClear:hover {
-      background-color: #666; }
+  #selections .search form {
+    padding: 2px;
+    position: relative;
+    box-sizing: border-box;
+    width: 95%; }
+    #selections .search form input {
+      font-family: "clipperz-font";
+      color: #999;
+      font-size: 18pt;
+      padding: 0px 30px;
+      margin: 0px 5px;
+      width: 100%;
+      box-sizing: border-box; }
+    #selections .search form label {
+      font-family: 'clipperz-icons';
+      -webkit-font-feature-settings: "$foo","$bar";
+      -moz-font-feature-settings: "$foo=1, $bar=1";
+      -moz-font-feature-settings: "$foo","$bar";
+      -ms-font-feature-settings: "$foo","$bar";
+      -o-font-feature-settings: "$foo","$bar";
+      font-feature-settings: "$foo","$bar";
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      font-size: 18pt;
+      padding-left: 5px;
+      position: absolute;
+      top: 9px;
+      left: 9px;
+      color: #666; }
+    #selections .search form .searchClear {
+      font-family: 'clipperz-icons';
+      -webkit-font-feature-settings: "$foo","$bar";
+      -moz-font-feature-settings: "$foo=1, $bar=1";
+      -moz-font-feature-settings: "$foo","$bar";
+      -ms-font-feature-settings: "$foo","$bar";
+      -o-font-feature-settings: "$foo","$bar";
+      font-feature-settings: "$foo","$bar";
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      -webkit-border-radius: 50%;
+      -moz-border-radius: 50%;
+      border-radius: 50%;
+      background-color: #aaa;
+      color: white;
+      position: absolute;
+      right: 9px;
+      top: 9px;
+      cursor: pointer;
+      padding: 5px;
+      font-size: 10pt; }
+      #selections .search form .searchClear:hover {
+        background-color: #666; }
   #selections .search .searchResultInfo {
     font-size: 10pt;
     padding: 2px 6px;
@@ -1741,7 +1735,7 @@ div.cardList ul {
     cursor: pointer;
     border-bottom: 1px solid #eee;
     background-color: white;
-    transition: margin-left 0.3s ease-in-out;
+    transition: margin-left 0.1s ease-in-out, padding-right 0.1s ease-in-out;
     white-space: pre-wrap;
     word-wrap: break-word;
     display: -webkit-box;
@@ -1756,8 +1750,9 @@ div.cardList ul {
     -ms-flex-direction: row;
     flex-direction: row; }
     div.cardList ul li.selected {
-      margin-left: 50px;
-      box-shadow: -3px 1px 3px 0 rgba(0, 0, 0, 0.2); }
+      margin-left: 40px;
+      padding-right: 0px;
+      box-shadow: -4px 0px 3px -1px rgba(0, 0, 0, 0.2); }
     div.cardList ul li.archived {
       background-color: #eeeeee;
       color: #999; }
@@ -1787,7 +1782,7 @@ div.cardList ul {
       padding-right: 8px; }
 
 div.cardList.narrow {
-  overflow-y: auto;
+  overflow: scroll;
   -webkit-overflow-scrolling: touch; }
   div.cardList.narrow.loadingCard li.selected:after {
     color: white;
@@ -2125,16 +2120,13 @@ div.dialog {
     font-weight: bold;
     padding-bottom: 20px; }
   div.dialog div.answers div.button {
-    -webkit-border-radius: 4;
-    -moz-border-radius: 4;
-    border-radius: 4;
+    border: 1px solid black;
     margin-left: 10px;
-    padding: 5px 15px;
-    background-color: #ddd; }
+    padding: 5px 10px; }
     div.dialog div.answers div.button.isDefault {
       font-weight: bold;
       color: white;
-      background-color: #666; }
+      background-color: blue; }
 
 body {
   font-family: "clipperz-font";
@@ -2193,5 +2185,3 @@ This configuration is now located in the first script included in the index_temp
 	}
 }
 */
-
-/*# sourceMappingURL=clipperz.css.map */
