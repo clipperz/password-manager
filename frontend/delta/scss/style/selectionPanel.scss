@@ -163,17 +163,17 @@
 	}
 }
 
-		span.count {
-			background-color: gray;
-			font-size: 10pt;
+span.count {
+	background-color: gray;
+	font-size: 10pt;
 	margin-right: 12px;
 	padding: 3px 5px;
-			@include border-radius(4px);
+	@include border-radius(4px);
 
 	color: white;
 	font-weight: 300;
 	vertical-align: middle;
-		}
+}
 
 
 //$selectionColor: yellow;

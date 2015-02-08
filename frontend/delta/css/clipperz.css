@@ -2120,13 +2120,16 @@ div.dialog {
     font-weight: bold;
     padding-bottom: 20px; }
   div.dialog div.answers div.button {
-    border: 1px solid black;
+    -webkit-border-radius: 4;
+    -moz-border-radius: 4;
+    border-radius: 4;
     margin-left: 10px;
-    padding: 5px 10px; }
+    padding: 5px 15px;
+    background-color: #ddd; }
     div.dialog div.answers div.button.isDefault {
       font-weight: bold;
       color: white;
-      background-color: blue; }
+      background-color: #666; }
 
 body {
   font-family: "clipperz-font";
