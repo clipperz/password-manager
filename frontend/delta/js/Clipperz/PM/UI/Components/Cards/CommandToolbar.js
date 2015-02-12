@@ -83,12 +83,17 @@ Clipperz.PM.UI.Components.Cards.CommandToolbar = React.createClass({
 
 	//----------------------------------------------------------------------------
 
-	renderCommands: function () {
-		var	commandHandler = this.selectCommandItem;
+	renderCommands: function (shouldReverseCommandOrder) {
+		var	commandHandler	= this.selectCommandItem;
+		var	commandValues	= MochiKit.Base.values(this.commands());
+		
+		if (shouldReverseCommandOrder == true) {
+			commandValues = MochiKit.Iter.reversed(commandValues);
+		}
 		
 		return	React.DOM.ul({}, MochiKit.Base.map(function (aCommand) {
 					return React.DOM.li({'className':aCommand['broadcastEvent'], 'onClick':commandHandler, 'data-broadcast-event':aCommand['broadcastEvent']}, [React.DOM.span({}, aCommand['label'])]);
-				}, MochiKit.Base.values(this.commands())));
+				}, commandValues));
 	},
 
 	//----------------------------------------------------------------------------
@@ -100,7 +105,7 @@ Clipperz.PM.UI.Components.Cards.CommandToolbar = React.createClass({
 				React.DOM.div({'className':'cardMenuOptions', 'onClick':this.toggleMenu}, 'commands'),
 				React.DOM.div({'className':React.addons.classSet({'commandMenu':true, 'show':this.state['showCommandMenu']})}, [
 					React.DOM.div({'className':'commandMenuMask', 'onClick':this.toggleMenu}),
-					React.DOM.div({'className':'commandMenu'}, this.renderCommands())
+					React.DOM.div({'className':'commandMenu'}, this.renderCommands(true))
 				])
 			])
 		]
