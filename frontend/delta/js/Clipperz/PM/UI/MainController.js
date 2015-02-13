@@ -1321,6 +1321,7 @@ console.log("THE BROWSER IS OFFLINE");
 			MochiKit.Base.method(this.user(), 'getRecord', anEvent['reference']),
 			MochiKit.Base.method(this.user(), 'deleteRecord'),
 			MochiKit.Base.method(this, 'saveChanges'),
+			MochiKit.Base.method(this, 'exitCurrentSelection'),
 			MochiKit.Base.method(this, 'refreshUI')
 		], {trace:false});
 	},

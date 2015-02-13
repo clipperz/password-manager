@@ -178,7 +178,8 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 				this.renderFields(this.props['fields']),
 				this.renderNotes(this.props['notes']),
 				this.renderDirectLogins(this.props['directLogins'])
-			])
+			]),
+			this.props['ask'] ? Clipperz.PM.UI.Components.DialogBox(this.props['ask']) : null
 		]);
 	},
 	
