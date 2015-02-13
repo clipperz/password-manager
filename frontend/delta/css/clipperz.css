@@ -705,7 +705,13 @@ div.overlay {
   #mainPanel.extra-wide .selectionToggle .button {
     display: none;
     visibility: hidden; }
-#mainPanel.wide .container, #mainPanel.narrow .container {
+  #mainPanel.extra-wide div.addCardButton {
+    margin-left: 20%; }
+#mainPanel.wide .container {
+  width: 100%;
+  height: 100%;
+  margin: 0 auto; }
+#mainPanel.narrow .container {
   width: 100%;
   height: 100%;
   margin: 0 auto; }
@@ -731,6 +737,8 @@ div.overlay {
     #mainPanel.narrow .column.right.transition {
       visibility: visible;
       display: block; }
+#mainPanel.narrow div.addCardButton {
+  margin-left: 75%; }
 #mainPanel.open.left {
   width: 100%;
   margin: 0 auto;
@@ -908,9 +916,8 @@ div.cardContent {
       box-shadow: 2px 8px 6px 0 rgba(0, 0, 0, 0.2);
       width: 60px;
       height: 60px;
-      float: right;
       position: absolute;
-      margin-left: 150px;
+      margin-left: 25%;
       margin-bottom: 20px;
       cursor: pointer; }
       div.cardContent div.cardListColumn.column div.addCardButton:hover {

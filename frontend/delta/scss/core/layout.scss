@@ -87,18 +87,29 @@
 				visibility: hidden;
 			}
 		}
-		
+
+		div.addCardButton {
+			margin-left: 20%;
+		}
 	}
 
-	&.wide, &.narrow {
+	&.wide {
 		.container {
 			@include sliding-panel-container();
 		}
 	}
 
 	&.narrow {
+		.container {
+			@include sliding-panel-container();
+		}
+
 		.column {
 			@include pageElement();
+		}
+		
+		div.addCardButton {
+			margin-left: 75%;
 		}
 	}
 
@@ -263,10 +274,10 @@ div.cardContent {
 			width: $addButtonSize;
 			height: $addButtonSize;
 			
-			float: right;
+//			float: right;
 			position: absolute;
-			margin-left: 150px;
-//			margin-left: 70%;
+//			margin-left: 150px;
+			margin-left: 25%;
 			margin-bottom: 20px;
 			
 			cursor: pointer;
