@@ -1,10 +1,16 @@
+$tagEditor_lineHeight: 26px;
 .tagEditor {
+	@include flexbox();
+	@include flex-direction(row);
+	
 
 	&.readWrite {
 //		border: 1px solid red;
 	}
 
 	ul {
+		@include flex(none);
+
 		@include flexbox();
 		@include flex-direction(row);
 		@include align-items(flex-start);
@@ -14,6 +20,7 @@
 			@include icon-font();
 			font-size: 16pt;
 			padding-right: 11px;
+			line-height: $tagEditor_lineHeight;
 			color: #ccc;
 		}
 
@@ -23,6 +30,7 @@
 			font-weight: 100;
 
 			padding-right: 10px;
+			line-height: $tagEditor_lineHeight;
 
 //			&:last-child:after {
 //				content: '';
@@ -36,9 +44,30 @@
 			
 			span.tagRemoveButton {
 				@include icon-font();
-				color: gray;
 				cursor: pointer;
+				line-height: 22px;
+				color: #ccc;
+
+				&:hover {
+					color: rgb(155, 0, 0);
+				};
 			}
 		}
+		
+	}
+	
+	input {
+		@include flex(auto);
+		font-size: 13pt;
+		font-weight: 100;
+
+		line-height: 24px;
+		border: 0px;
+		
+//		@include placeholder {
+//			font-style: italic;
+//			color: #ccc;
+///			font-weight:100;
+//		}
 	}
 }

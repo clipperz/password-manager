@@ -97,7 +97,7 @@
 			"attrs": [],
 			"properties": {
 				"id": 120,
-				"order": 11,
+				"order": 10,
 				"prevSize": 32,
 				"code": 58891,
 				"name": "spinner",
@@ -151,7 +151,7 @@
 			"attrs": [],
 			"properties": {
 				"id": 136,
-				"order": 9,
+				"order": 8,
 				"prevSize": 32,
 				"code": 58889,
 				"name": "lock",
@@ -178,7 +178,7 @@
 			"attrs": [],
 			"properties": {
 				"id": 137,
-				"order": 17,
+				"order": 15,
 				"prevSize": 32,
 				"code": 58896,
 				"name": "lock2",
@@ -203,7 +203,7 @@
 			"attrs": [],
 			"properties": {
 				"id": 138,
-				"order": 18,
+				"order": 16,
 				"prevSize": 32,
 				"code": 58897,
 				"name": "unlocked",
@@ -231,7 +231,7 @@
 			"attrs": [],
 			"properties": {
 				"id": 184,
-				"order": 14,
+				"order": 13,
 				"prevSize": 32,
 				"code": 58881,
 				"name": "menu2",
@@ -310,7 +310,7 @@
 				]
 			},
 			"properties": {
-				"order": 20,
+				"order": 18,
 				"id": 1,
 				"prevSize": 32,
 				"code": 58899,
@@ -359,7 +359,7 @@
 			},
 			"properties": {
 				"id": 4,
-				"order": 22,
+				"order": 19,
 				"prevSize": 32,
 				"code": 58894,
 				"name": "mail",
@@ -382,7 +382,7 @@
 			},
 			"properties": {
 				"id": 35,
-				"order": 10,
+				"order": 9,
 				"prevSize": 32,
 				"code": 58890,
 				"name": "popup",
@@ -405,7 +405,7 @@
 			},
 			"properties": {
 				"id": 125,
-				"order": 15,
+				"order": 14,
 				"prevSize": 32,
 				"code": 58895,
 				"name": "plus",
@@ -430,11 +430,11 @@
 			},
 			"properties": {
 				"id": 126,
-				"order": 19,
+				"order": 17,
 				"prevSize": 32,
 				"code": 58898,
 				"name": "cross",
-				"ligatures": "remove field"
+				"ligatures": "remove field, remove tag"
 			},
 			"setIdx": 6,
 			"iconIdx": 126
@@ -453,7 +453,7 @@
 			},
 			"properties": {
 				"id": 128,
-				"order": 26,
+				"order": 20,
 				"prevSize": 32,
 				"code": 58888,
 				"name": "plus3",
@@ -476,7 +476,7 @@
 			},
 			"properties": {
 				"id": 205,
-				"order": 12,
+				"order": 11,
 				"prevSize": 32,
 				"code": 58892,
 				"name": "arrow-left",
@@ -499,7 +499,7 @@
 			},
 			"properties": {
 				"id": 208,
-				"order": 13,
+				"order": 12,
 				"prevSize": 32,
 				"code": 58893,
 				"name": "arrow-right",

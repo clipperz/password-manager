@@ -115,12 +115,12 @@ Clipperz.PM.UI.Components.Cards.TagEditor = React.createClass({
 	renderTag: function (aTag) {
 		return	React.DOM.li({'className':'tag'}, [
 			React.DOM.span({'className':'tagLabel'}, aTag),
-			this.isReadOnly() ? null : React.DOM.span({'className':'tagRemoveButton', 'onClick':this.removeTagHandler, 'data-label':aTag}, 'delete')
+			this.isReadOnly() ? null : React.DOM.span({'className':'tagRemoveButton', 'onClick':this.removeTagHandler, 'data-label':aTag}, 'remove tag')
 		])
 	},
 	
 	renderEditField: function () {
-		return	React.DOM.input({'type':'text', 'onKeyDown': this.handleKeyDown});
+		return	React.DOM.input({'type':'text', 'onKeyDown':this.handleKeyDown, 'placeholder': "tag"});
 	},
 	
 	render: function () {
@@ -133,8 +133,8 @@ Clipperz.PM.UI.Components.Cards.TagEditor = React.createClass({
 		return	React.DOM.div({'className':React.addons.classSet(classes)}, [
 			React.DOM.ul({},[
 				MochiKit.Base.map(this.renderTag, this.props['selectedTags']),
-				this.isReadOnly() ? null : this.renderEditField()
-			])
+			]),
+			this.isReadOnly() ? null : this.renderEditField()
 		]);
 	},
 

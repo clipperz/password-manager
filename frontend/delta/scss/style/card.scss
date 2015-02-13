@@ -229,6 +229,14 @@ $cardViewBasePadding: 10px;
 				background-color: #eee;
 			}
 		}	
+
+		input, textarea {
+			@include placeholder {
+				font-style: italic;
+				color: #ccc;
+	//			font-weight:100;
+			}
+		}
 	}
 }	
 
