@@ -1,3 +1,26 @@
+/*
+
+Copyright 2008-2013 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
+
 @charset "UTF-8";
 /* http://meyerweb.com/eric/tools/css/reset/ 
    v2.0 | 20110126
@@ -70,7 +93,7 @@ table {
   font-family: "clipperz-icons";
   font-style: normal;
   font-weight: normal;
-  src: url(data:application/x-font-ttf;charset=utf-8;base64,AAEAAAAMAIAAAwBAR1NVQurt7A4AAADMAAACck9TLzIIYvzJAAADQAAAAGBjbWFwG4jNhwAAA6AAAABsZ2FzcAAAABAAAAQMAAAACGdseWa9qmb6AAAEFAAACthoZWFkAyQKMQAADuwAAAA2aGhlYQP5Ai8AAA8kAAAAJGhtdHglygJjAAAPSAAAALhsb2NhKXgm1AAAEAAAAABebWF4cAA3AHwAABBgAAAAIG5hbWWH7XEQAAAQgAAAAYRwb3N0AAMAAAAAEgQAAAAgAAEAAAAKAB4ALAABbGF0bgAIAAQAAAAAAAAAAQAAAAFsaWdhAAgAAAABAAAAAQAEAAQAAAABAAoAAAABACQADwBGAHoAiADQAQoBGgE+AWIBcAF6AZABvgH2Ag4CLgABAA8ABAAFAAYABwAIAAkADgAPABEAEgATABQAFQAWAC0AAgAGACIAKQANAAcABwADABAACAAYAAMACQAMAAgADgAHACkACAAHAAcAAwAGAAQAEwAHAAEABAAmAAQABAAGAA0ABAAKABwALgA6ACgACAARAA8ADwAEABAABwAUAB4ACAAOAAwAEgASAAgAEwAZABwABQAOAAgABAATABwABgAEABAABgAIAA4AAwAIABIALAAdAAQAEQAQAAgAJAAMAAwAEwAIAAYAFQADAA4AEQAKAAwAEAAcAAYACAAOAAgAFQAIAAEABAAiAAUADwAEAAwADgACAAYAFgAcAAcABAAMAA4AFgATAAgAHAAGAAQADAAOAAgABwACAAYAFAAqAAYAEQAGAA0ACAAHACUABwARAAQABwAMABAACgABAAQAGwAEAAgAEAAWAAEABAAdAAIADQABAAQAIwAIAAQAFAAUABgAEQATAAcAAgAGACAALAAMAAgADwARABcACAADAAkADAAIAA4ABwAhAAYACAAGAAgAEAAVAAMACAAgAC4AJwALAAsAEQAYAAMABwAIABUABAAMAA4AIAAGAAgABAATAAYACwAdAAQABAAXAAgAAgAGABAAGgAEAAQACgAUAB8AAwAEAAoAAgAGAA4AJAADABMADgArAAgAEAAOABEABgANAAgABwABAAQALAACAC0AAAADAgABkAAFAAABTAFmAAAARwFMAWYAAAD1ABkAhAAAAAAAAAAAAAAAAAAAAAEQAAAAAAAAAAAAAAAAAAAAAEAAAOYT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) format("truetype"); }
+  src: url(data:application/x-font-ttf;charset=utf-8;base64,AAEAAAAMAIAAAwBAR1NVQur67AgAAADMAAACck9TLzIIYvzKAAADQAAAAGBjbWFwG4jNiAAAA6AAAABsZ2FzcAAAABAAAAQMAAAACGdseWZsgnaIAAAEFAAAC2xoZWFkAzbUGQAAD4AAAAA2aGhlYQP5AjAAAA+4AAAAJGhtdHgnygLpAAAP3AAAALxsb2NhKe4s8AAAEJgAAABgbWF4cAA4AHwAABD4AAAAIG5hbWWH7XEQAAARGAAAAYRwb3N0AAMAAAAAEpwAAAAgAAEAAAAKAB4ALAABbGF0bgAIAAQAAAAAAAAAAQAAAAFsaWdhAAgAAAABAAAAAQAEAAQAAAABAAoAAAABACQADwBGAHoAiADQAQoBGgE+AWIBcAF6AZABvgH2Ag4CLgABAA8ABAAFAAYABwAIAAkADgAPABEAEgATABQAFQAWAC4AAgAGACIAKQANAAcABwADABAACAAYAAMACQAMAAgADgAHACIACAAHAAcAAwAGAAQAEwAHAAEABAAmAAQABAAGAA0ABAAKABwALgA6AC0ACAARAA8ADwAEABAABwAUAB4ACAAOAAwAEgASAAgAEwAZABwABQAOAAgABAATABwABgAEABAABgAIAA4AAwAIABIALAAdAAQAEQAQAAgAJAAMAAwAEwAIAAYAFQADAA4AEQAKAAwAEAAcAAYACAAOAAgAFQAIAAEABAAoAAUADwAEAAwADgACAAYAFgAcAAcABAAMAA4AFgATAAgAHAAGAAQADAAOAAgABwACAAYAFAAqAAYAEQAGAA0ACAAHACUABwARAAQABwAMABAACgABAAQAGwAEAAgAEAAWAAEABAAdAAIADQABAAQAIwAIAAQAFAAUABgAEQATAAcAAgAGACAALAAMAAgADwARABcACAADAAkADAAIAA4ABwAhAAYACAAGAAgAEAAVAAMACAAgAC4AJwALAAsAEQAYAAMABwAIABUABAAMAA4AIAAGAAgABAATAAYACwAdAAQABAAXAAgAAgAGABAAGgAEAAQACgAUAB8AAwAEAAoAAgAGAA4AJAADABMADgArAAgAEAAOABEABgANAAgABwABAAQALQACAC4AAAADAgABkAAFAAABTAFmAAAARwFMAWYAAAD1ABkAhAAAAAAAAAAAAAAAAAAAAAEQAAAAAAAAAAAAAAAAAAAAAEAAAOYU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) format("truetype"); }
 /*
 @font-face {
 	font-family: "clipperz-password";
@@ -189,12 +212,11 @@ div.overlay {
     text-align: center;
     vertical-align: middle;
     font-family: 'clipperz-icons';
-    -webkit-font-feature-settings: "$foo","$bar";
-    -moz-font-feature-settings: "$foo=1, $bar=1";
-    -moz-font-feature-settings: "$foo","$bar";
-    -ms-font-feature-settings: "$foo","$bar";
-    -o-font-feature-settings: "$foo","$bar";
-    font-feature-settings: "$foo","$bar";
+    -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+    -moz-font-feature-settings: "liga" 1, "dlig" 1;
+    -ms-font-feature-settings: "liga" 1, "dlig" 1;
+    -o-font-feature-settings: "liga" 1, "dlig" 1;
+    font-feature-settings: "liga" 1, "dlig" 1;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     font-size: 96pt;
@@ -593,10 +615,10 @@ div.overlay {
   z-index: 20;
   overflow: scroll;
   -webkit-overflow-scrolling: touch;
-  width: 300px;
+  width: 250px;
   height: 100%;
   top: 0;
-  left: -300px; }
+  left: -250px; }
   .mainPage > #selectionPanel.open {
     left: 0px; }
 
@@ -656,12 +678,12 @@ div.overlay {
     display: -ms-flexbox;
     display: flex; }
   #mainPanel.extra-wide .subpanel.selection {
-    -webkit-box-flex: 300px;
-    -webkit-flex: 300px 0;
-    -moz-box-flex: 300px;
-    -moz-flex: 300px 0;
-    -ms-flex: 300px 0;
-    flex: 300px 0; }
+    -webkit-box-flex: 1;
+    -webkit-flex: 1 0;
+    -moz-box-flex: 1;
+    -moz-flex: 1 0;
+    -ms-flex: 1 0;
+    flex: 1 0; }
   #mainPanel.extra-wide .subpanel.cardContent {
     -webkit-box-flex: 4;
     -webkit-flex: 4;
@@ -715,7 +737,7 @@ div.overlay {
   position: relative;
   z-index: 10;
   top: 0;
-  left: 300px; }
+  left: 250px; }
   #mainPanel.open.left .mask {
     position: absolute;
     top: 0;
@@ -783,12 +805,11 @@ div.cardToolbar header {
   font-size: 24pt; }
   div.cardToolbar header div.clipperz span.logo {
     font-family: 'clipperz-icons';
-    -webkit-font-feature-settings: "$foo","$bar";
-    -moz-font-feature-settings: "$foo=1, $bar=1";
-    -moz-font-feature-settings: "$foo","$bar";
-    -ms-font-feature-settings: "$foo","$bar";
-    -o-font-feature-settings: "$foo","$bar";
-    font-feature-settings: "$foo","$bar";
+    -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+    -moz-font-feature-settings: "liga" 1, "dlig" 1;
+    -ms-font-feature-settings: "liga" 1, "dlig" 1;
+    -o-font-feature-settings: "liga" 1, "dlig" 1;
+    font-feature-settings: "liga" 1, "dlig" 1;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     -webkit-align-self: center;
@@ -834,12 +855,11 @@ div.cardToolbar header {
     overflow: hidden;
     font-size: 24pt;
     font-family: 'clipperz-icons';
-    -webkit-font-feature-settings: "$foo","$bar";
-    -moz-font-feature-settings: "$foo=1, $bar=1";
-    -moz-font-feature-settings: "$foo","$bar";
-    -ms-font-feature-settings: "$foo","$bar";
-    -o-font-feature-settings: "$foo","$bar";
-    font-feature-settings: "$foo","$bar";
+    -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+    -moz-font-feature-settings: "liga" 1, "dlig" 1;
+    -ms-font-feature-settings: "liga" 1, "dlig" 1;
+    -o-font-feature-settings: "liga" 1, "dlig" 1;
+    font-feature-settings: "liga" 1, "dlig" 1;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     vertical-align: center; }
@@ -867,45 +887,34 @@ div.cardContent {
     z-index: 5;
     box-shadow: 2px 0 6px 0 rgba(0, 0, 0, 0.1); }
     div.cardContent div.cardListColumn.column div.cardList {
-      padding-bottom: 120px; }
+      padding-bottom: 100px; }
     div.cardContent div.cardListColumn.column div.addCardButton {
       font-family: 'clipperz-icons';
-      -webkit-font-feature-settings: "$foo","$bar";
-      -moz-font-feature-settings: "$foo=1, $bar=1";
-      -moz-font-feature-settings: "$foo","$bar";
-      -ms-font-feature-settings: "$foo","$bar";
-      -o-font-feature-settings: "$foo","$bar";
-      font-feature-settings: "$foo","$bar";
+      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+      -moz-font-feature-settings: "liga" 1, "dlig" 1;
+      -ms-font-feature-settings: "liga" 1, "dlig" 1;
+      -o-font-feature-settings: "liga" 1, "dlig" 1;
+      font-feature-settings: "liga" 1, "dlig" 1;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
-      -webkit-border-radius: 50px;
-      -moz-border-radius: 50px;
-      border-radius: 50px;
-      background-image: -ms-radial-gradient(center, circle farthest-corner, white 0%, transparent 100%);
-      /* IE10 */
-      background-image: -moz-radial-gradient(center, circle farthest-corner, white 0%, transparent 100%);
-      /* Mozilla Firefox */
-      background-image: -o-radial-gradient(center, circle farthest-corner, white 0%, transparent 100%);
-      /* Opera */
-      background-image: -webkit-radial-gradient(center, circle farthest-corner, white 0%, transparent 100%);
-      /* Webkit (Chrome 11+) */
-      background-image: radial-gradient(center, circle farthest-corner, white 0%, transparent 100%);
-      /* Proposed W3C Markup */
-      background-image: -webkit-gradient(radial, center center, 0, center center, 495, color-stop(0, white), color-stop(1, transparent));
-      /* Webkit (Safari/Chrome 10) */
+      -webkit-border-radius: 30px;
+      -moz-border-radius: 30px;
+      border-radius: 30px;
       position: relative;
       bottom: 0px;
-      font-size: 75pt;
-      color: #aaa;
-      width: 100px;
-      height: 100px;
+      font-size: 45pt;
+      color: white;
+      background-color: #1863a1;
+      box-shadow: 2px 8px 6px 0 rgba(0, 0, 0, 0.2);
+      width: 60px;
+      height: 60px;
       float: right;
       position: absolute;
-      margin-left: 100px;
-      margin-bottom: 10px;
+      margin-left: 150px;
+      margin-bottom: 20px;
       cursor: pointer; }
       div.cardContent div.cardListColumn.column div.addCardButton:hover {
-        color: green; }
+        background-color: #114875; }
   div.cardContent div.cardDetail.column {
     -webkit-box-flex: 2;
     -webkit-flex: 2;
@@ -1192,6 +1201,19 @@ div.dialogBox {
   -webkit-align-items: flex-start;
   -moz-align-items: flex-start;
   align-items: flex-start; }
+  .tagEditor ul:before {
+    content: 'tag';
+    font-family: 'clipperz-icons';
+    -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+    -moz-font-feature-settings: "liga" 1, "dlig" 1;
+    -ms-font-feature-settings: "liga" 1, "dlig" 1;
+    -o-font-feature-settings: "liga" 1, "dlig" 1;
+    font-feature-settings: "liga" 1, "dlig" 1;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-size: 16pt;
+    padding-right: 11px;
+    color: #ccc; }
   .tagEditor ul li.tag {
     -webkit-box-flex: none;
     -webkit-flex: none;
@@ -1199,29 +1221,16 @@ div.dialogBox {
     -moz-flex: none;
     -ms-flex: none;
     flex: none;
-    font-size: 14pt;
+    font-size: 13pt;
+    font-weight: 100;
     padding-right: 10px; }
-    .tagEditor ul li.tag:before {
-      content: 'tag';
-      font-family: 'clipperz-icons';
-      -webkit-font-feature-settings: "$foo","$bar";
-      -moz-font-feature-settings: "$foo=1, $bar=1";
-      -moz-font-feature-settings: "$foo","$bar";
-      -ms-font-feature-settings: "$foo","$bar";
-      -o-font-feature-settings: "$foo","$bar";
-      font-feature-settings: "$foo","$bar";
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
-      font-size: 10pt;
-      padding-right: 4px; }
     .tagEditor ul li.tag span.tagRemoveButton {
       font-family: 'clipperz-icons';
-      -webkit-font-feature-settings: "$foo","$bar";
-      -moz-font-feature-settings: "$foo=1, $bar=1";
-      -moz-font-feature-settings: "$foo","$bar";
-      -ms-font-feature-settings: "$foo","$bar";
-      -o-font-feature-settings: "$foo","$bar";
-      font-feature-settings: "$foo","$bar";
+      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+      -moz-font-feature-settings: "liga" 1, "dlig" 1;
+      -ms-font-feature-settings: "liga" 1, "dlig" 1;
+      -o-font-feature-settings: "liga" 1, "dlig" 1;
+      font-feature-settings: "liga" 1, "dlig" 1;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
       color: gray;
@@ -1275,12 +1284,11 @@ div.dialogBox {
       -ms-flex: 1;
       flex: 1;
       font-family: 'clipperz-icons';
-      -webkit-font-feature-settings: "$foo","$bar";
-      -moz-font-feature-settings: "$foo=1, $bar=1";
-      -moz-font-feature-settings: "$foo","$bar";
-      -ms-font-feature-settings: "$foo","$bar";
-      -o-font-feature-settings: "$foo","$bar";
-      font-feature-settings: "$foo","$bar";
+      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+      -moz-font-feature-settings: "liga" 1, "dlig" 1;
+      -ms-font-feature-settings: "liga" 1, "dlig" 1;
+      -o-font-feature-settings: "liga" 1, "dlig" 1;
+      font-feature-settings: "liga" 1, "dlig" 1;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
       font-size: 48pt;
@@ -1509,12 +1517,11 @@ div.dialogBox {
       box-sizing: border-box; }
     #selections .search form label {
       font-family: 'clipperz-icons';
-      -webkit-font-feature-settings: "$foo","$bar";
-      -moz-font-feature-settings: "$foo=1, $bar=1";
-      -moz-font-feature-settings: "$foo","$bar";
-      -ms-font-feature-settings: "$foo","$bar";
-      -o-font-feature-settings: "$foo","$bar";
-      font-feature-settings: "$foo","$bar";
+      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+      -moz-font-feature-settings: "liga" 1, "dlig" 1;
+      -ms-font-feature-settings: "liga" 1, "dlig" 1;
+      -o-font-feature-settings: "liga" 1, "dlig" 1;
+      font-feature-settings: "liga" 1, "dlig" 1;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
       font-size: 18pt;
@@ -1525,12 +1532,11 @@ div.dialogBox {
       color: #666; }
     #selections .search form .searchClear {
       font-family: 'clipperz-icons';
-      -webkit-font-feature-settings: "$foo","$bar";
-      -moz-font-feature-settings: "$foo=1, $bar=1";
-      -moz-font-feature-settings: "$foo","$bar";
-      -ms-font-feature-settings: "$foo","$bar";
-      -o-font-feature-settings: "$foo","$bar";
-      font-feature-settings: "$foo","$bar";
+      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+      -moz-font-feature-settings: "liga" 1, "dlig" 1;
+      -ms-font-feature-settings: "liga" 1, "dlig" 1;
+      -o-font-feature-settings: "liga" 1, "dlig" 1;
+      font-feature-settings: "liga" 1, "dlig" 1;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
       -webkit-border-radius: 50%;
@@ -1570,12 +1576,11 @@ div.dialogBox {
     cursor: pointer; }
     #selections li:before {
       font-family: 'clipperz-icons';
-      -webkit-font-feature-settings: "$foo","$bar";
-      -moz-font-feature-settings: "$foo=1, $bar=1";
-      -moz-font-feature-settings: "$foo","$bar";
-      -ms-font-feature-settings: "$foo","$bar";
-      -o-font-feature-settings: "$foo","$bar";
-      font-feature-settings: "$foo","$bar";
+      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+      -moz-font-feature-settings: "liga" 1, "dlig" 1;
+      -ms-font-feature-settings: "liga" 1, "dlig" 1;
+      -o-font-feature-settings: "liga" 1, "dlig" 1;
+      font-feature-settings: "liga" 1, "dlig" 1;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
       font-weight: normal;
@@ -1662,12 +1667,11 @@ span.count {
     font-size: 24pt; }
     #extraFeaturesPanel header .button {
       font-family: 'clipperz-icons';
-      -webkit-font-feature-settings: "$foo","$bar";
-      -moz-font-feature-settings: "$foo=1, $bar=1";
-      -moz-font-feature-settings: "$foo","$bar";
-      -ms-font-feature-settings: "$foo","$bar";
-      -o-font-feature-settings: "$foo","$bar";
-      font-feature-settings: "$foo","$bar";
+      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+      -moz-font-feature-settings: "liga" 1, "dlig" 1;
+      -ms-font-feature-settings: "liga" 1, "dlig" 1;
+      -o-font-feature-settings: "liga" 1, "dlig" 1;
+      font-feature-settings: "liga" 1, "dlig" 1;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility; }
       #extraFeaturesPanel header .button .label {
@@ -1822,12 +1826,11 @@ div.cardList.narrow {
     -ms-flex: none;
     flex: none;
     font-family: 'clipperz-icons';
-    -webkit-font-feature-settings: "$foo","$bar";
-    -moz-font-feature-settings: "$foo=1, $bar=1";
-    -moz-font-feature-settings: "$foo","$bar";
-    -ms-font-feature-settings: "$foo","$bar";
-    -o-font-feature-settings: "$foo","$bar";
-    font-feature-settings: "$foo","$bar";
+    -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+    -moz-font-feature-settings: "liga" 1, "dlig" 1;
+    -ms-font-feature-settings: "liga" 1, "dlig" 1;
+    -o-font-feature-settings: "liga" 1, "dlig" 1;
+    font-feature-settings: "liga" 1, "dlig" 1;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     height: 48px;
@@ -1846,22 +1849,20 @@ div.cardList.narrow {
     font-size: 24pt; }
     #cardDetailPage .view .cardDetailToolbar.narrow .back, .cardDetail .view .cardDetailToolbar.narrow .back {
       font-family: 'clipperz-icons';
-      -webkit-font-feature-settings: "$foo","$bar";
-      -moz-font-feature-settings: "$foo=1, $bar=1";
-      -moz-font-feature-settings: "$foo","$bar";
-      -ms-font-feature-settings: "$foo","$bar";
-      -o-font-feature-settings: "$foo","$bar";
-      font-feature-settings: "$foo","$bar";
+      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+      -moz-font-feature-settings: "liga" 1, "dlig" 1;
+      -ms-font-feature-settings: "liga" 1, "dlig" 1;
+      -o-font-feature-settings: "liga" 1, "dlig" 1;
+      font-feature-settings: "liga" 1, "dlig" 1;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility; }
     #cardDetailPage .view .cardDetailToolbar.narrow .cardMenuOptions, .cardDetail .view .cardDetailToolbar.narrow .cardMenuOptions {
       font-family: 'clipperz-icons';
-      -webkit-font-feature-settings: "$foo","$bar";
-      -moz-font-feature-settings: "$foo=1, $bar=1";
-      -moz-font-feature-settings: "$foo","$bar";
-      -ms-font-feature-settings: "$foo","$bar";
-      -o-font-feature-settings: "$foo","$bar";
-      font-feature-settings: "$foo","$bar";
+      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+      -moz-font-feature-settings: "liga" 1, "dlig" 1;
+      -ms-font-feature-settings: "liga" 1, "dlig" 1;
+      -o-font-feature-settings: "liga" 1, "dlig" 1;
+      font-feature-settings: "liga" 1, "dlig" 1;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
       text-align: right;
@@ -1981,12 +1982,11 @@ div.cardList.narrow {
       -ms-flex-item-align: start;
       align-self: flex-start;
       font-family: 'clipperz-icons';
-      -webkit-font-feature-settings: "$foo","$bar";
-      -moz-font-feature-settings: "$foo=1, $bar=1";
-      -moz-font-feature-settings: "$foo","$bar";
-      -ms-font-feature-settings: "$foo","$bar";
-      -o-font-feature-settings: "$foo","$bar";
-      font-feature-settings: "$foo","$bar";
+      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+      -moz-font-feature-settings: "liga" 1, "dlig" 1;
+      -ms-font-feature-settings: "liga" 1, "dlig" 1;
+      -o-font-feature-settings: "liga" 1, "dlig" 1;
+      font-feature-settings: "liga" 1, "dlig" 1;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
       display: block;
@@ -2002,12 +2002,11 @@ div.cardList.narrow {
       -ms-flex-item-align: end;
       align-self: flex-end;
       font-family: 'clipperz-icons';
-      -webkit-font-feature-settings: "$foo","$bar";
-      -moz-font-feature-settings: "$foo=1, $bar=1";
-      -moz-font-feature-settings: "$foo","$bar";
-      -ms-font-feature-settings: "$foo","$bar";
-      -o-font-feature-settings: "$foo","$bar";
-      font-feature-settings: "$foo","$bar";
+      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+      -moz-font-feature-settings: "liga" 1, "dlig" 1;
+      -ms-font-feature-settings: "liga" 1, "dlig" 1;
+      -o-font-feature-settings: "liga" 1, "dlig" 1;
+      font-feature-settings: "liga" 1, "dlig" 1;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
       display: block;
@@ -2028,7 +2027,6 @@ div.cardList.narrow {
     padding: 10px; }
     .content .cardField .fieldValues .fieldLabel {
       color: gray;
-      border-bottom: 1px dotted #ddd;
       padding-bottom: 4px;
       margin-bottom: 4px; }
       .content .cardField .fieldValues .fieldLabel input {
@@ -2068,12 +2066,11 @@ div.cardList.narrow {
     align-self: flex-start; }
   .content .cardField .action {
     font-family: 'clipperz-icons';
-    -webkit-font-feature-settings: "$foo","$bar";
-    -moz-font-feature-settings: "$foo=1, $bar=1";
-    -moz-font-feature-settings: "$foo","$bar";
-    -ms-font-feature-settings: "$foo","$bar";
-    -o-font-feature-settings: "$foo","$bar";
-    font-feature-settings: "$foo","$bar";
+    -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+    -moz-font-feature-settings: "liga" 1, "dlig" 1;
+    -ms-font-feature-settings: "liga" 1, "dlig" 1;
+    -o-font-feature-settings: "liga" 1, "dlig" 1;
+    font-feature-settings: "liga" 1, "dlig" 1;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     color: #aaa;
@@ -2083,12 +2080,11 @@ div.cardList.narrow {
     margin: 6px; }
 .content .newCardField {
   font-family: 'clipperz-icons';
-  -webkit-font-feature-settings: "$foo","$bar";
-  -moz-font-feature-settings: "$foo=1, $bar=1";
-  -moz-font-feature-settings: "$foo","$bar";
-  -ms-font-feature-settings: "$foo","$bar";
-  -o-font-feature-settings: "$foo","$bar";
-  font-feature-settings: "$foo","$bar";
+  -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+  -moz-font-feature-settings: "liga" 1, "dlig" 1;
+  -ms-font-feature-settings: "liga" 1, "dlig" 1;
+  -o-font-feature-settings: "liga" 1, "dlig" 1;
+  font-feature-settings: "liga" 1, "dlig" 1;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   margin: 6px;
@@ -2124,7 +2120,8 @@ div.dialog {
     -moz-border-radius: 4;
     border-radius: 4;
     margin-left: 10px;
-    padding: 5px 15px;
+    font-size: 16pt;
+    padding: 15px 25px;
     background-color: #ddd; }
     div.dialog div.answers div.button.isDefault {
       font-weight: bold;
@@ -2188,3 +2185,5 @@ This configuration is now located in the first script included in the index_temp
 	}
 }
 */
+
+/*# sourceMappingURL=clipperz.css.map */

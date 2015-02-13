@@ -17,7 +17,8 @@ div.dialog {
 			@include border-radius(4);
 //			border: 1px solid black;
 			margin-left: 10px;
-			padding: 5px 15px;
+			font-size: 16pt;
+			padding: 15px 25px;
 			background-color: #ddd;
 			
 			&.isDefault {

@@ -69,13 +69,13 @@
 		.subpanel {
 			
 			&.selection {
-				@include flex($selectionPanelWidth, 0);
+				@include flex($selectionPanelFlexWidth, 0);
 //				height: 100%;
 //				overflow-y: scroll;
 			}
 			
 			&.cardContent {
-				@include flex($cardContentPanelWidth);
+				@include flex($cardContentPanelFlexWidth);
 				@include flexbox;
 				@include flex-direction(column);
 			}
@@ -238,37 +238,41 @@ div.cardContent {
 		
 		div.cardList {
 //			overflow-y: scroll;
-			padding-bottom: 120px;
+			padding-bottom: 100px;
 
 			ul {
 			}
 		}
 		
+		$addButtonSize: 60px;
 		div.addCardButton {
 			@include icon-font();
-			@include border-radius(50px);
-			@include radial-gradient (white, rgba(0, 0, 0, 0));
+			@include border-radius($addButtonSize / 2);
+//			@include radial-gradient (white, rgba(0, 0, 0, 0));
 			
 			position: relative;
 			bottom: 0px;
-			font-size: 75pt;
-//			color: blue;
-			color: #aaa;
+			font-size: 45pt;
+//			text-align: center;
+//			line-height: 56px;
 
-			width: 100px;
-			height: 100px;
+			color: white;
+			background-color: $clipperz-blue;
+			box-shadow: 2px 8px 6px 0 rgba(0,0,0, 0.2);
+
+			width: $addButtonSize;
+			height: $addButtonSize;
 			
 			float: right;
 			position: absolute;
-			margin-left: 100px;
-			margin-bottom: 10px;
+			margin-left: 150px;
+//			margin-left: 70%;
+			margin-bottom: 20px;
 			
 			cursor: pointer;
 			
 			&:hover {
-//				color: $clipperz-orange;
-				color: green;
-//				color: brown;
+				background-color: darken($clipperz-blue, 10%);
 			};
 		}
 	}

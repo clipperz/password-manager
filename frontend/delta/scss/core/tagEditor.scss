@@ -9,17 +9,30 @@
 		@include flex-direction(row);
 		@include align-items(flex-start);
 
+		&:before {
+			content: 'tag';
+			@include icon-font();
+			font-size: 16pt;
+			padding-right: 11px;
+			color: #ccc;
+		}
+
 		li.tag {
 			@include flex(none);
-			font-size: 14pt;
+			font-size: 13pt;
+			font-weight: 100;
+
 			padding-right: 10px;
-		
-			&:before {
-				content: 'tag';
-				@include icon-font();
-				font-size: 10pt;
-				padding-right: 4px;
-			}
+
+//			&:last-child:after {
+//				content: '';
+//			}
+//
+//			&:after {
+//				content: '-';
+//				color: #bbb;
+//				padding: 0px 6px;
+//			}
 			
 			span.tagRemoveButton {
 				@include icon-font();

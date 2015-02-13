@@ -14,12 +14,12 @@
 }
 
 @mixin font-feature-settings ($foo, $bar) {
-	-webkit-font-feature-settings:"$foo","$bar";
-	-moz-font-feature-settings:"$foo=1, $bar=1";
-	-moz-font-feature-settings:"$foo","$bar";
-	-ms-font-feature-settings:"$foo","$bar";
-	-o-font-feature-settings:"$foo","$bar";
-	font-feature-settings:"$foo","$bar";
+	-webkit-font-feature-settings:$foo 1, $bar 1;
+//	-moz-font-feature-settings:$foo = 1, $bar = 1;
+	-moz-font-feature-settings:$foo 1, $bar 1;
+	-ms-font-feature-settings:$foo 1, $bar 1;
+	-o-font-feature-settings:$foo 1, $bar 1;
+	font-feature-settings:$foo 1, $bar 1;
 }
 
 @mixin icon-font () {
