@@ -383,7 +383,7 @@ div.cardContent {
 */		
 		.content {
 			@include flex(auto);
-//			overflow-y: scroll;
+			overflow-y: scroll;
 		}
 	}
 }

@@ -1059,7 +1059,8 @@ div.cardContent {
     -moz-box-flex: auto;
     -moz-flex: auto;
     -ms-flex: auto;
-    flex: auto; }
+    flex: auto;
+    overflow-y: scroll; }
 
 .cardDetailToolbar {
   -webkit-box-flex: none;
