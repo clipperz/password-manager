@@ -151,7 +151,8 @@ Clipperz.Crypto.SRP.Connection.prototype = MochiKit.Base.update(null, {
 		if (this._A == null) {
 			//	Warning: this value should be strictly greater than zero
 			this._A = Clipperz.Crypto.SRP.g().powerModule(this.a(), Clipperz.Crypto.SRP.n());
-			if (this._A.equals(0) || negative(this._A)) {
+//			if (this._A.equals(0) || negative(this._A)) {
+			if (this._A.compare(Clipperz.Crypto.BigInt.ZERO) <= 0) {
 				Clipperz.logError("Clipperz.Crypto.SRP.Connection: trying to set 'A' to 0.");
 				throw Clipperz.Crypto.SRP.exception.InvalidValue;
 			}
@@ -179,7 +180,8 @@ Clipperz.Crypto.SRP.Connection.prototype = MochiKit.Base.update(null, {
 	'set_B': function(aValue) {
 		//	Warning: this value should be strictly greater than zero
 		this._B = aValue;
-		if (this._B.equals(0) || negative(this._B)) {
+//		if (this._B.equals(0) || negative(this._B)) {
+		if (this._B.compare(Clipperz.Crypto.BigInt.ZERO) <= 0) {
 			Clipperz.logError("Clipperz.Crypto.SRP.Connection: trying to set 'B' to 0.");
 			throw Clipperz.Crypto.SRP.exception.InvalidValue;
 		}
