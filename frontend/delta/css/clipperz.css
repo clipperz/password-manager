@@ -2018,8 +2018,7 @@ div.cardList.narrow {
   -webkit-flex-direction: row;
   -moz-flex-direction: row;
   -ms-flex-direction: row;
-  flex-direction: row;
-  background-color: rgba(255, 255, 255, 0.75); }
+  flex-direction: row; }
   .content .cardField.dragged {
     display: none; }
   .content .cardField .fieldEditAction {
