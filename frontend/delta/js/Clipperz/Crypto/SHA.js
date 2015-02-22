@@ -21,6 +21,8 @@ refer to http://www.clipperz.com.
 
 */
 
+"use strict";
+
 try { if (typeof(Clipperz.ByteArray) == 'undefined') { throw ""; }} catch (e) {
 	throw "Clipperz.Crypto.PRNG depends on Clipperz.ByteArray!";
 }  
@@ -43,30 +45,21 @@ MochiKit.Base.update(Clipperz.Crypto.SHA, {
 
 	//-----------------------------------------------------------------------------
 
-	'rotateRight': function(aValue, aNumberOfBits) {
-//Clipperz.Profile.start("Clipperz.Crypto.SHA.rotateRight");
-		var result;
-		
-		result = (aValue >>> aNumberOfBits) | (aValue << (32 - aNumberOfBits));
-		
-//Clipperz.Profile.stop("Clipperz.Crypto.SHA.rotateRight");
-		return result;
+	'rotateRight': function (aValue, aNumberOfBits) {
+		return (aValue >>> aNumberOfBits) | (aValue << (32 - aNumberOfBits));
+	},
+	
+	'rotateLeft': function (aValue, aNumberOfBits) {
+		return ((aValue << aNumberOfBits) | (aValue >>> (32 - aNumberOfBits)));
 	},
 
 	'shiftRight': function(aValue, aNumberOfBits) {
-//Clipperz.Profile.start("Clipperz.Crypto.SHA.shiftRight");
-		var result;
-		
-		result = aValue >>> aNumberOfBits;
-		
-//Clipperz.Profile.stop("Clipperz.Crypto.SHA.shiftRight");
-		return result;
+		return aValue >>> aNumberOfBits;
 	},
 
 	//-----------------------------------------------------------------------------
 
 	'safeAdd': function() {
-//Clipperz.Profile.start("Clipperz.Crypto.SHA.safeAdd");
 		var	result;
 		var	i, c;
 		
@@ -79,14 +72,164 @@ MochiKit.Base.update(Clipperz.Crypto.SHA, {
 			result = (((result >> 16) + (arguments[i] >> 16) + (lowerBytesSum >> 16)) << 16) | (lowerBytesSum & 0xffff);
 		}
 		
-//Clipperz.Profile.stop("Clipperz.Crypto.SHA.safeAdd");
 		return result;
 	},
-	
+
+
+	//=============================================================================
+
+	'sha1_array': function(aValue) {
+		var	result;
+		var	message;
+		var	messageLength;
+		var	messageLengthInBits;
+		var h0, h1, h2, h3, h4;
+		var charBits;
+		var	bytesPerBlock;
+		var currentMessageIndex;
+		var rotateLeft, safeAdd;
+		var	_i, _c;
+
+		h0 = 0x67452301;
+		h1 = 0xEFCDAB89;
+		h2 = 0x98BADCFE;
+		h3 = 0x10325476;
+		h4 = 0xC3D2E1F0;
+
+		message = aValue;
+		messageLength = message.length;
+		bytesPerBlock = 512/8;
+		charBits = 8;
+		rotateLeft = Clipperz.Crypto.SHA.rotateLeft;
+		safeAdd = Clipperz.Crypto.SHA.safeAdd;
+
+		//Pre-processing:
+		message.push(0x80);	//	append a single "1" bit to  message
+
+//		var offset = (((messageLength + 65) >>> 9) << 4) + 15;
+		_c = (512 - (((messageLength + 1) * charBits) % 512) - 64) / charBits;
+		if (_c < 0) {
+			_c = _c + (512 / charBits);
+		}
+//		_c = offset;
+
+		for (_i=0; _i<_c; _i++) {
+			message.push(0x00);			//	append "0" bits until message length ≡ 448 ≡ -64 (mod 512)
+		}
+
+		messageLengthInBits = messageLength * charBits;
+		message.push(0x00);	//	the 4 most high byte are alway 0 as message length is represented with a 32bit value;
+		message.push(0x00);
+		message.push(0x00);
+		message.push(0x00);
+		message.push((messageLengthInBits >> 24)	& 0xff);
+		message.push((messageLengthInBits >> 16)	& 0xff);
+		message.push((messageLengthInBits >> 8)		& 0xff);
+		message.push( messageLengthInBits			& 0xff);
+
+		currentMessageIndex = 0;
+		while(currentMessageIndex < message.length) {
+			var	w;
+			var	a, b, c, d, e;
+
+			w = Array(80);
+
+			_c = 16;
+			for (_i=0; _i<_c; _i++) {
+				var _j;
+
+				_j = currentMessageIndex + _i*4;
+				w[_i] = (message[_j + 0] << 24) | (message[_j + 1] << 16) | (message[_j + 2] << 8) | (message[_j + 3] << 0);
+			}
+
+			_c = 80;
+			for (_i=16; _i<_c; _i++) {
+				w[_i] = rotateLeft(w[_i-3] ^ w[_i-8] ^ w[_i-14] ^ w[_i-16], 1);
+			}
+
+			a=h0; b=h1; c=h2; d=h3; e=h4;
+
+			_c = 80
+			for (_i=0; _i<_c; _i++) {
+				var	temp;
+				var	f, k;
+
+				if (_i < 20) {
+					f = (b & c) | ((~b) & d)
+					k = 0x5A827999;
+				} else if (_i < 40) {
+					f = b ^ c ^ d;
+					k = 0x6ED9EBA1;
+				} else if (_i < 60) {
+					f = (b & c) | (b & d) | (c & d);
+					k = 0x8F1BBCDC;
+				} else {
+					f = b ^ c ^ d;
+					k = 0xCA62C1D6;
+				}
+
+				temp = safeAdd(rotateLeft(a, 5), f, e, k, w[_i]);
+				e = d;
+				d = c;
+				c = rotateLeft(b, 30);
+				b = a;
+				a = temp;
+
+			}
+
+			h0 = safeAdd(h0, a);
+			h1 = safeAdd(h1, b);
+			h2 = safeAdd(h2, c);
+			h3 = safeAdd(h3, d);
+			h4 = safeAdd(h4, e);
+
+			currentMessageIndex += bytesPerBlock;
+		}
+
+		result = new Array(160/8);
+		result[0]  = (h0 >> 24)	& 0xff;
+		result[1]  = (h0 >> 16)	& 0xff;
+		result[2]  = (h0 >> 8)	& 0xff;
+		result[3]  =  h0		& 0xff;
+
+		result[4]  = (h1 >> 24)	& 0xff;
+		result[5]  = (h1 >> 16)	& 0xff;
+		result[6]  = (h1 >> 8)	& 0xff;
+		result[7]  =  h1		& 0xff;
+
+		result[8]  = (h2 >> 24)	& 0xff;
+		result[9]  = (h2 >> 16)	& 0xff;
+		result[10] = (h2 >> 8)	& 0xff;
+		result[11] =  h2		& 0xff;
+		
+		result[12] = (h3 >> 24)	& 0xff;
+		result[13] = (h3 >> 16)	& 0xff;
+		result[14] = (h3 >> 8)	& 0xff;
+		result[15] =  h3		& 0xff;
+
+		result[16] = (h4 >> 24)	& 0xff;
+		result[17] = (h4 >> 16)	& 0xff;
+		result[18] = (h4 >> 8)	& 0xff;
+		result[19] =  h4		& 0xff;
+		
+		return result;
+	},
+
 	//-----------------------------------------------------------------------------
 
+	'sha1': function (aValue) {
+		var resultArray;
+		var	valueArray;
+
+		valueArray = aValue.arrayValues();
+		resultArray = Clipperz.Crypto.SHA.sha1_array(valueArray);
+
+		return new Clipperz.ByteArray(resultArray);
+	},
+
+	//=============================================================================
+	
 	'sha256_array': function(aValue) {
-//Clipperz.Profile.start("Clipperz.Crypto.SHA.sha256_array");
 		var	result;
 		var	message;
 		var h0, h1, h2, h3, h4, h5, h6, h7;
@@ -251,32 +394,24 @@ MochiKit.Base.update(Clipperz.Crypto.SHA, {
 		result[30] = (h7 >> 8)	& 0xff;
 		result[31] =  h7		& 0xff;
 		
-//Clipperz.Profile.stop("Clipperz.Crypto.SHA.sha256_array");
 		return result;
 	},
 
 	//-----------------------------------------------------------------------------
 
 	'sha256': function(aValue) {
-//Clipperz.Profile.start("Clipperz.Crypto.SHA.sha256");
-		var result;
 		var resultArray;
 		var	valueArray;
 		
 		valueArray = aValue.arrayValues();
 		resultArray = Clipperz.Crypto.SHA.sha256_array(valueArray);
 		
-		result = new Clipperz.ByteArray(resultArray);
-		
-//Clipperz.Profile.stop("Clipperz.Crypto.SHA.sha256");
-		return result;
+		return new Clipperz.ByteArray(resultArray);
 	},
 	
 	//-----------------------------------------------------------------------------
 
 	'sha_d256': function(aValue) {
-//Clipperz.Profile.start("Clipperz.Crypto.SHA.sha_d256");
-		var result;
 		var resultArray;
 		var	valueArray;
 		
@@ -284,13 +419,10 @@ MochiKit.Base.update(Clipperz.Crypto.SHA, {
 		resultArray = Clipperz.Crypto.SHA.sha256_array(valueArray);
 		resultArray = Clipperz.Crypto.SHA.sha256_array(resultArray);
 		
-		result = new Clipperz.ByteArray(resultArray);
-		
-//Clipperz.Profile.stop("Clipperz.Crypto.SHA.sha256");
-		return result;
+		return new Clipperz.ByteArray(resultArray);
 	},
 	
-	//-----------------------------------------------------------------------------
+	//=============================================================================
 	__syntaxFix__: "syntax fix"
 	
 });

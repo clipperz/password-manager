@@ -396,8 +396,8 @@ SimpleTest._formatStack = function (stack) {
         }
     }
 
-    out += vars[0] + ' = ' + vals[0] + SimpleTest.LF;
-    out += vars[1] + ' = ' + vals[1] + SimpleTest.LF;
+    out += vars[1] + ' = ' + vals[0] + SimpleTest.LF;
+    out += vars[0] + ' = ' + vals[1] + SimpleTest.LF;
     
     return '    ' + out;
 };
