@@ -1014,11 +1014,15 @@ Clipperz.ByteArray_array.prototype = MochiKit.Base.update(new Clipperz.ByteArray
 
 	//-------------------------------------------------------------------------
 
-	'toHexString': function() {
+	'toHexString': function(shouldAddPrefix) {
 		var result;
 		var i, c;
 		
-		result = "0x";
+		if (shouldAddPrefix === false) {
+			result = "";
+		} else {
+			result = "0x";
+		}
 		c = this.length();
 		for (i=0; i<c; i++) {
 			result += Clipperz.ByteArray.byteToHex(this._value[i]);
@@ -1043,7 +1047,7 @@ Clipperz.ByteArray_array.prototype = MochiKit.Base.update(new Clipperz.ByteArray
 	'arrayValues': function() {
 		return this._value.slice(0);
 	},
-	
+
 	//-------------------------------------------------------------------------
 	__syntaxFix__: "syntax fix"
 });
