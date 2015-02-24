@@ -1548,9 +1548,8 @@ MochiKit.Base.update(Clipperz.Crypto.BigInt.prototype, {
 			value = new Clipperz.Crypto.BigInt(aValue);
 		}
 
-console.log("should subtract return a negative value?", greater(value.internalValue(), this.internalValue()));
 		result = sub(this.internalValue(), value.internalValue());
-console.log("is result negative?", negative(result));
+
 		return new Clipperz.Crypto.BigInt(result);
 	},
 	
