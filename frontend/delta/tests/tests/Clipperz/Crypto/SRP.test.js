@@ -27,6 +27,28 @@ var hashString = function(aValue) {
 	return Clipperz.Crypto.SHA.sha256(new Clipperz.ByteArray(aValue)).toHexString().substring(2)	
 }
 
+var computeSharedSecret = function (aMinuend, aSubtrahend, aPower, aModulo) {
+	var	result;
+	var	isBaseNegative;
+	var	baseAbsoluteValue;
+
+	isBaseNegative = (aMinuend.compare(aSubtrahend) === -1);
+
+	if (isBaseNegative) {
+		baseAbsoluteValue = aSubtrahend.subtract(aMinuend);
+	} else {
+		baseAbsoluteValue = aMinuend.subtract(aSubtrahend);
+	}
+
+	result = baseAbsoluteValue.powerModulo(aPower, aModulo);
+	
+	if (isBaseNegative && (aPower.modulo(2) == 1)) {
+		result = aModulo.subtract(result);
+	}
+	
+	return result;
+}
+
 var tests = {
 
 	'test_01': function (someTestArgs) {
@@ -47,7 +69,7 @@ var tests = {
 		x = hashString(salt + P);
 		is(x, "21fe88a158e420aade86e00b5eb12a4c19bf15482fa34c542c90b1afdbd5b5fd", "x");
 	
-		v = Clipperz.Crypto.SRP.g().powerModule(new Clipperz.Crypto.BigInt(x, 16), Clipperz.Crypto.SRP.n());
+		v = Clipperz.Crypto.SRP.g().powerModulo(new Clipperz.Crypto.BigInt(x, 16), Clipperz.Crypto.SRP.n());
 		is(v.asString(10), "33816467430011076413789931449607305355248467973000153409872503376381719918118", "v");
 		is(v.asString(16), "4ac37139dbf32ebabd2c43f91dd085066d3c457d059efd5902d32ed247fcb626", "v (base 16)");
 	},
@@ -70,7 +92,7 @@ var tests = {
 		x = hashString(salt + P);
 		is(x, "93d4af3cdcd2447a745d309826dff3161feed4b15f32db8e909ff032a2bc8fb8", "x");
 	
-		v = Clipperz.Crypto.SRP.g().powerModule(new Clipperz.Crypto.BigInt(x, 16), Clipperz.Crypto.SRP.n());
+		v = Clipperz.Crypto.SRP.g().powerModulo(new Clipperz.Crypto.BigInt(x, 16), Clipperz.Crypto.SRP.n());
 		is(v.asString(10), "115049747015252903452664067168789229427785288458366249918596663144588656606556", "v");
 	},
 	
@@ -115,49 +137,36 @@ var tests = {
 
 //		k = SHA1(N | PAD(g))
 		var k = new Clipperz.Crypto.BigInt(Clipperz.Crypto.SHA.sha1(new Clipperz.ByteArray('0x' + N.asString(16) + g.asString(16, sizeN))).toHexString(false), 16);
-		is(k.asString(16), "7556aa045aef2cdd07abaf0f665c3e818913186f", "k");
+		is("7556aa045aef2cdd07abaf0f665c3e818913186f", k.asString(16), "k");
 
 //		x = SHA1(s | SHA1(I | ":" | P))
 		var hash_I_P = Clipperz.Crypto.SHA.sha1(new Clipperz.ByteArray(I + ":" + P)).toHexString(false);
 		var x = new Clipperz.Crypto.BigInt(Clipperz.Crypto.SHA.sha1(new Clipperz.ByteArray('0x' + s.asString(16) + hash_I_P)).toHexString(false), 16);
-		is(x.asString(16), "94b7555aabe9127cc58ccf4993db6cf84d16c124", "x");
+		is("94b7555aabe9127cc58ccf4993db6cf84d16c124", x.asString(16), "x");
 		
 //		v = g^x % N
-		var v = g.powerModule(x, N);
-		is(v.asString(16), "7e273de8696ffc4f4e337d05b4b375beb0dde1569e8fa00a9886d8129bada1f1822223ca1a605b530e379ba4729fdc59f105b4787e5186f5c671085a1447b52a48cf1970b4fb6f8400bbf4cebfbb168152e08ab5ea53d15c1aff87b2b9da6e04e058ad51cc72bfc9033b564e26480d78e955a5e29e7ab245db2be315e2099afb", "v");
+		var v = g.powerModulo(x, N);
+		is("7e273de8696ffc4f4e337d05b4b375beb0dde1569e8fa00a9886d8129bada1f1822223ca1a605b530e379ba4729fdc59f105b4787e5186f5c671085a1447b52a48cf1970b4fb6f8400bbf4cebfbb168152e08ab5ea53d15c1aff87b2b9da6e04e058ad51cc72bfc9033b564e26480d78e955a5e29e7ab245db2be315e2099afb", v.asString(16), "v");
 
 		var a = new Clipperz.Crypto.BigInt("60975527035cf2ad1989806f0407210bc81edc04e2762a56afd529ddda2d4393", 16);
 		var b = new Clipperz.Crypto.BigInt("e487cb59d31ac550471e81f00f6928e01dda08e974a004f49e61f5d105284d20" ,16);
-		is(b.asString(16), "e487cb59d31ac550471e81f00f6928e01dda08e974a004f49e61f5d105284d20", "b");
+		is("e487cb59d31ac550471e81f00f6928e01dda08e974a004f49e61f5d105284d20", b.asString(16), "b");
 
-		var A = new Clipperz.Crypto.BigInt("61d5e490f6f1b79547b0704c436f523dd0e560f0c64115bb72557ec44352e8903211c04692272d8b2d1a5358a2cf1b6e0bfcf99f921530ec8e39356179eae45e42ba92aeaced825171e1e8b9af6d9c03e1327f44be087ef06530e69f66615261eef54073ca11cf5858f0edfdfe15efeab349ef5d76988a3672fac47b0769447b", 16);
+//		A = pow(g, a, N)
+		var A = g.powerModulo(a, N);
+		is("61d5e490f6f1b79547b0704c436f523dd0e560f0c64115bb72557ec44352e8903211c04692272d8b2d1a5358a2cf1b6e0bfcf99f921530ec8e39356179eae45e42ba92aeaced825171e1e8b9af6d9c03e1327f44be087ef06530e69f66615261eef54073ca11cf5858f0edfdfe15efeab349ef5d76988a3672fac47b0769447b", A.asString(16), "A");
 
 //		B = k*v + g^b % N
-		var B = (k.multiply(v)).add(g.powerModule(b, N));	//	!!!!!
-//		var B = new Clipperz.Crypto.BigInt("bd0c61512c692c0cb6d041fa01bb152d4916a1e77af46ae105393011baf38964dc46a0670dd125b95a981652236f99d9b681cbf87837ec996c6da04453728610d0c6ddb58b318885d7d82c7f8deb75ce7bd4fbaa37089e6f9c6059f388838e7a00030b331eb76840910440b1b27aaeaeeb4012b7d7665238a8e3fb004b117b58", 16);
-		is(B.asString(16), "bd0c61512c692c0cb6d041fa01bb152d4916a1e77af46ae105393011baf38964dc46a0670dd125b95a981652236f99d9b681cbf87837ec996c6da04453728610d0c6ddb58b318885d7d82c7f8deb75ce7bd4fbaa37089e6f9c6059f388838e7a00030b331eb76840910440b1b27aaeaeeb4012b7d7665238a8e3fb004b117b58", "B");
+		var B = (k.multiply(v)).add(g.powerModulo(b, N)).modulo(N);
+		is("bd0c61512c692c0cb6d041fa01bb152d4916a1e77af46ae105393011baf38964dc46a0670dd125b95a981652236f99d9b681cbf87837ec996c6da04453728610d0c6ddb58b318885d7d82c7f8deb75ce7bd4fbaa37089e6f9c6059f388838e7a00030b331eb76840910440b1b27aaeaeeb4012b7d7665238a8e3fb004b117b58", B.asString(16), "B");
 
 //		u = SHA1(PAD(A) | PAD(B))
 		var u = new Clipperz.Crypto.BigInt(Clipperz.Crypto.SHA.sha1(new Clipperz.ByteArray('0x' + A.asString(16, sizeN) + B.asString(16, sizeN))).toHexString(false), 16);
-		is(u.asString(16), "ce38b9593487da98554ed47d70a7ae5f462ef019", "u");
+		is("ce38b9593487da98554ed47d70a7ae5f462ef019", u.asString(16), "u");
 
 //		secret = (B - (k * g^x)) ^ (a + (u * x)) % N
-		var secret1 = (B.subtract(k.multiply(g.powerModule(x, N)))).powerModule(a.add(u.multiply(x)), N);
-		var secret =	Clipperz.Crypto.BigInt.powerModule(
-							Clipperz.Crypto.BigInt.subtract(
-								B,
-								Clipperz.Crypto.BigInt.multiply(
-									k,
-									Clipperz.Crypto.BigInt.powerModule(g, x, N)
-								)
-							),
-							Clipperz.Crypto.BigInt.add(a, Clipperz.Crypto.BigInt.multiply(u, x)),
-							N
-						);
-
-		is(secret.asString(16), "b0dc82babcf30674ae450c0287745e7990a3381f63b387aaf271a10d233861e359b48220f7c4693c9ae12b0a6f67809f0876e2d013800d6c41bb59b6d5979b5c00a172b4a2a5903a0bdcaf8a709585eb2afafa8f3499b200210dcc1f10eb33943cd67fc88a2f39a4be5bec4ec0a3212dc346d7e474b29ede8a469ffeca686e5a", "secret");
-		is(secret.asString(16), secret1.asString(16), 's vs s1');
-		
+		var secret = computeSharedSecret(B, k.multiply(g.powerModulo(x, N)), a.add(u.multiply(x)), N);
+		is("b0dc82babcf30674ae450c0287745e7990a3381f63b387aaf271a10d233861e359b48220f7c4693c9ae12b0a6f67809f0876e2d013800d6c41bb59b6d5979b5c00a172b4a2a5903a0bdcaf8a709585eb2afafa8f3499b200210dcc1f10eb33943cd67fc88a2f39a4be5bec4ec0a3212dc346d7e474b29ede8a469ffeca686e5a", secret.asString(16), "secret");
 	},
 }
 
