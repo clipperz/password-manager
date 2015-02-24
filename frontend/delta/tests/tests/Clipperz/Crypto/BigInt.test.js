@@ -219,12 +219,12 @@ var tests = {
 		bigInt_2 = new Clipperz.Crypto.BigInt("10", 10);
 		is(true, bigInt_1.equals(bigInt_2), "bigInt(-10) - bigInt(10). No negative number are managed");
 		
-		bigInt_1 = new Clipperz.Crypto.BigInt("1", 10);
-		bigInt_2 = new Clipperz.Crypto.BigInt("10", 10);
-		is(true, bigInt_1.subtract(bigInt_2).isNegative(), "bigInt(1) - bigInt(10) is negative");
+//		bigInt_1 = new Clipperz.Crypto.BigInt("1", 10);
+//		bigInt_2 = new Clipperz.Crypto.BigInt("10", 10);
+//		is(true, bigInt_1.subtract(bigInt_2).isNegative(), "bigInt(1) - bigInt(10) is negative");
 
-		bigInt_1 = new Clipperz.Crypto.BigInt("-1", 10);
-		is(true, bigInt_1.isNegative(), "bigInt(-1) is negative");
+//		bigInt_1 = new Clipperz.Crypto.BigInt("-1", 10);
+//		is(true, bigInt_1.isNegative(), "bigInt(-1) is negative");
 	},
 
 	'xor_test': function (someTestArgs) {
