@@ -1034,7 +1034,7 @@ Clipperz.Crypto.SRP.Connection.prototype = MochiKit.Base.update(null, {
 
 			bigint = Clipperz.Crypto.BigInt;
 			srp = 	 Clipperz.Crypto.SRP;
-
+/*
 			this._S =	bigint.powerModulo(
 							bigint.subtract(
 								this.B(),
@@ -1046,6 +1046,33 @@ Clipperz.Crypto.SRP.Connection.prototype = MochiKit.Base.update(null, {
 							bigint.add(this.a(), bigint.multiply(this.u(), this.x())),
 							srp.n()
 						)
+*/
+			
+			var	result;
+			var minuend, subtrahend, power, modulo;
+			var	isBaseNegative;
+			var	baseAbsoluteValue;
+
+			power = this.a().add(this.u().multiply(this.x()));
+			modulo = Clipperz.Crypto.SRP.n();
+			minuend = this.B();
+			subtrahend = Clipperz.Crypto.SRP.k().multiply(Clipperz.Crypto.SRP.g().powerModulo(this.x(), modulo));
+			
+			isBaseNegative = (minuend.compare(subtrahend) === -1);
+
+			if (isBaseNegative) {
+				baseAbsoluteValue = subtrahend.subtract(minuend);
+			} else {
+				baseAbsoluteValue = minuend.subtract(subtrahend);
+			}
+
+			result = baseAbsoluteValue.powerModulo(power, modulo);
+	
+			if (isBaseNegative && (power.modulo(2) == 1)) {
+				result = modulo.subtract(result);
+			}
+			
+			this._S = result;
 		}
 		
 		return this._S;
