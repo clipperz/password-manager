@@ -1429,7 +1429,7 @@ Clipperz.Crypto.BigInt = function (aValue, aBase) {
 			base = aBase;
 		}
 
-		this._internalValue = str2bigInt(value, base, 1, 1);
+		this._internalValue = str2bigInt(value, base, 1);
 	}
 	
 	return this;
@@ -1509,21 +1509,6 @@ MochiKit.Base.update(Clipperz.Crypto.BigInt.prototype, {
 	//-------------------------------------------------------------------------
 
 	'compare': function(aValue) {
-/*
-		var result;
-		var thisAsString;
-		var aValueAsString;
-		
-		thisAsString = this.asString(10);
-		aValueAsString = aValue.asString(10);
-		
-		result = MochiKit.Base.compare(thisAsString.length, aValueAsString.length);
-		if (result == 0) {
-			result = MochiKit.Base.compare(thisAsString, aValueAsString);
-		}
-		
-		return result;
-*/
 		var result;
 		
 		if (equals(this.internalValue(), aValue.internalValue())) {
@@ -1563,14 +1548,15 @@ MochiKit.Base.update(Clipperz.Crypto.BigInt.prototype, {
 			value = new Clipperz.Crypto.BigInt(aValue);
 		}
 
-	 	result = sub(this.internalValue(), value.internalValue());
-
+console.log("should subtract return a negative value?", greater(value.internalValue(), this.internalValue()));
+		result = sub(this.internalValue(), value.internalValue());
+console.log("is result negative?", negative(result));
 		return new Clipperz.Crypto.BigInt(result);
 	},
 	
 	//-------------------------------------------------------------------------
 
-	'multiply': function (aValue, aModule) {
+	'multiply': function (aValue, aModulo) {
 		var result;
 		var value;
 
@@ -1580,13 +1566,13 @@ MochiKit.Base.update(Clipperz.Crypto.BigInt.prototype, {
 			value = new Clipperz.Crypto.BigInt(aValue);
 		}
 			
-		if (typeof(aModule) == 'undefined') {
+		if (typeof(aModulo) == 'undefined') {
 	 		result = mult(this.internalValue(), value.internalValue());
 		} else {
 			if (greater(this.internalValue(), value.internalValue())) {
-				result = multMod(this.internalValue(), value.internalValue(), aModule);
+				result = multMod(this.internalValue(), value.internalValue(), aModulo);
 			} else {
-				result = multMod(value.internalValue(), this.internalValue(), aModule);
+				result = multMod(value.internalValue(), this.internalValue(), aModulo);
 			}
 		}
 		
@@ -1595,27 +1581,27 @@ MochiKit.Base.update(Clipperz.Crypto.BigInt.prototype, {
 	
 	//-------------------------------------------------------------------------
 
-	'module': function (aModule) {
+	'modulo': function (aModulo) {
 		var	result;
-		var module;
+		var modulo;
 		
-		if (aModule.isBigInt) {
-			module = aModule;
+		if (aModulo.isBigInt) {
+			modulo = aModulo;
 		} else {
-			module = new Clipperz.Crypto.BigInt(aModule);
+			modulo = new Clipperz.Crypto.BigInt(aModulo);
 		}
 
-		result = mod(this.internalValue(), module.internalValue());
+		result = mod(this.internalValue(), modulo.internalValue());
 		
 		return new Clipperz.Crypto.BigInt(result);
 	},
 
 	//-------------------------------------------------------------------------
 
-	'powerModule': function(aValue, aModule) {
+	'powerModulo': function(aValue, aModulo) {
 		var	result;
 		var	value;
-		var module;
+		var modulo;
 		
 		if (aValue.isBigInt) {
 			value = aValue;
@@ -1623,16 +1609,16 @@ MochiKit.Base.update(Clipperz.Crypto.BigInt.prototype, {
 			value = new Clipperz.Crypto.BigInt(aValue);
 		}
 
-		if (aModule.isBigInt) {
-			module = aModule;
+		if (aModulo.isBigInt) {
+			modulo = aModulo;
 		} else {
-			module = new Clipperz.Crypto.BigInt(aModule);
+			modulo = new Clipperz.Crypto.BigInt(aModulo);
 		}
 
 		if (aValue == -1) {
-			result = inverseMod(this.internalValue(), module.internalValue());
+			result = inverseMod(this.internalValue(), modulo.internalValue());
 		} else {
-			result = powMod(this.internalValue(), value.internalValue(), module.internalValue());
+			result = powMod(this.internalValue(), value.internalValue(), modulo.internalValue());
 		}
 		
 		return new Clipperz.Crypto.BigInt(result);
@@ -1676,7 +1662,7 @@ MochiKit.Base.update(Clipperz.Crypto.BigInt.prototype, {
 			for (i=0; i<c; i++) {
 				hexValue += "00";
 			}
-			internalResult = str2bigInt(hexValue, 16, 1, 1);
+			internalResult = str2bigInt(hexValue, 16, 1);
 		}
 
 		if (bitsLeftToShift > 0) {
@@ -1707,6 +1693,10 @@ MochiKit.Base.update(Clipperz.Crypto.BigInt.prototype, {
 		return result;
 	},
 	
+	'isNegative': function () {
+		return negative(this.internalValue());
+	},
+
 	//-------------------------------------------------------------------------
 	__syntaxFix__: "syntax fix"
 
@@ -1737,16 +1727,16 @@ Clipperz.Crypto.BigInt.subtract = function(a, b) {
 	return a.subtract(b);
 }
 
-Clipperz.Crypto.BigInt.multiply = function(a, b, module) {
-	return a.multiply(b, module);
+Clipperz.Crypto.BigInt.multiply = function(a, b, modulo) {
+	return a.multiply(b, modulo);
 }
 
-Clipperz.Crypto.BigInt.module = function(a, module) {
-	return a.module(module);
+Clipperz.Crypto.BigInt.modulo = function(a, modulo) {
+	return a.modulo(modulo);
 }
 
-Clipperz.Crypto.BigInt.powerModule = function(a, b, module) {
-	return a.powerModule(b, module);
+Clipperz.Crypto.BigInt.powerModulo = function(a, b, modulo) {
+	return a.powerModulo(b, modulo);
 }
 
 Clipperz.Crypto.BigInt.exception = {
