@@ -1812,7 +1812,8 @@ span.count {
   #extraFeaturesPanel div ul li p {
     font-size: 10pt;
     font-weight: 100;
-    padding-bottom: 5px; }
+    padding-bottom: 5px;
+    line-height: 1.2em; }
   #extraFeaturesPanel div ul li a.button {
     -webkit-border-radius: 2;
     -moz-border-radius: 2;
@@ -2018,8 +2019,12 @@ div.cardList.narrow {
 #cardDetailPage .edit .cardDetailToolbar, .cardDetail .edit .cardDetailToolbar {
   background-color: #1863a1;
   color: white; }
-#cardDetailPage .edit .cardField:hover, .cardDetail .edit .cardField:hover {
-  background-color: #eee; }
+#cardDetailPage .edit .cardField, .cardDetail .edit .cardField {
+  border-top: 1px solid #eee; }
+  #cardDetailPage .edit .cardField:last-child, .cardDetail .edit .cardField:last-child {
+    border-bottom: 1px solid #eee; }
+  #cardDetailPage .edit .cardField:hover, .cardDetail .edit .cardField:hover {
+    background-color: #eee; }
 #cardDetailPage .edit input::-webkit-input-placeholder, #cardDetailPage .edit textarea::-webkit-input-placeholder, .cardDetail .edit input::-webkit-input-placeholder, .cardDetail .edit textarea::-webkit-input-placeholder {
   font-style: italic;
   color: #ccc; }
@@ -2063,13 +2068,13 @@ div.cardList.narrow {
 .content .tagEditor {
   padding: 10px; }
 .content .cardNotes {
-  padding: 10px;
   width: 100%;
   border: 0px;
   font-size: 10pt;
-  font-style: italic;
   white-space: pre-wrap;
   word-wrap: break-word; }
+  .content .cardNotes div {
+    padding: 10px; }
 .content .dropArea {
   background-color: #ccc;
   width: 100%;

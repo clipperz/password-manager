@@ -44,35 +44,6 @@ Clipperz.PM.UI.Components.Cards.Edit = React.createClass({
 
 	//----------------------------------------------------------------------------
 
-	componentDidMount: function() {
-		var textareas;
-		var autoresize = this.autoresize;
-
-		textareas = [].slice.call(this.getDOMNode().querySelectorAll('textarea'));
-		textareas.forEach(function(aTextarea) {
-			aTextarea.addEventListener('input', autoresize, false);
-			autoresize({target:aTextarea});
-		});
-	},
-
-	componentWillUnmount: function() {
-		var textareas;
-		var autoresize = this.autoresize;
-
-		textareas = [].slice.call(this.getDOMNode().querySelectorAll('textarea'));
-		textareas.forEach(function(aTextarea) {
-			aTextarea.removeEventListener('input', autoresize, false);
-		});
-	},
-
-	autoresize: function (anEvent) {
-		anEvent.target.style.height = 'auto';
-		anEvent.target.style.height = anEvent.target.scrollHeight+'px';
-		window.scrollTo(window.scrollLeft, (anEvent.target.scrollTop + anEvent.target.scrollHeight));
-	},
-
-	//----------------------------------------------------------------------------
-
 	record: function () {
 		return this.props['_record'];
 	},
@@ -287,7 +258,8 @@ console.log("DROP");	//, anEvent);
 	},
 	
 	renderNotes: function (someNotes) {
-		return	React.DOM.textarea({'className':'cardNotes', 'onChange':this.handleChange(this.record(), 'setNotes'), 'defaultValue':someNotes, 'key':this.props['_reference'] + '_notes', 'placeholder': "notes"});
+//		return	React.DOM.textarea({'className':'cardNotes', 'onChange':this.handleChange(this.record(), 'setNotes'), 'defaultValue':someNotes, 'key':this.props['_reference'] + '_notes', 'placeholder': "notes"});
+		return	Clipperz.PM.UI.Components.Cards.TextArea({'className':'cardNotes', 'onChange':this.handleChange(this.record(), 'setNotes'), 'defaultValue':someNotes, 'key':this.props['_reference'] + '_notes', 'placeholder': "notes"});
 	},
 
 	//............................................................................
@@ -343,7 +315,8 @@ console.log("DROP");	//, anEvent);
 					React.DOM.input({'_className_':'_fieldLabel_', 'onChange':this.handleChange(field, 'setLabel'), 'defaultValue':aField['label'], 'placeholder': "label"}),
 				]),
 				React.DOM.div({'className':'fieldValue'}, [
-					React.DOM.textarea({'className':React.addons.classSet(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'defaultValue':aField['value'], 'placeholder': "value"}),
+//					React.DOM.textarea({'className':React.addons.classSet(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'defaultValue':aField['value'], 'placeholder': "value"}),
+					Clipperz.PM.UI.Components.Cards.TextArea({'className':React.addons.classSet(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'defaultValue':aField['value'], 'placeholder': "value"}),
 				])
 			]),
 			React.DOM.div({'className':'fieldAction action'}, aField['actionType'].toLowerCase())

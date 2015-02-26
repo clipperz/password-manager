@@ -91,7 +91,9 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 
 //console.log("NOTES", someNotes);
 		if (someNotes != "") {
-			result = React.DOM.div({'className':'cardNotes'}, someNotes);
+			result = React.DOM.div({'className':'cardNotes'}, [
+				React.DOM.div({}, someNotes)
+			]);
 		} else {
 			result = null;
 		}

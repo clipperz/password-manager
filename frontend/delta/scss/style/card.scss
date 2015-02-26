@@ -225,6 +225,12 @@ $cardViewBasePadding: 10px;
 		}
 		
 		.cardField {
+			border-top: 1px solid #eee;
+			
+			&:last-child {
+				border-bottom: 1px solid #eee;
+			};
+			
 			&:hover {
 				background-color: #eee;
 			}
@@ -305,17 +311,19 @@ $cardViewBasePadding: 10px;
 	}
 
 	.cardNotes {
-		padding: $cardViewBasePadding;
 		width: 100%;
 		border: 0px;
 
 		font-size: 10pt;
-		font-style: italic;
+//		font-style: italic;
 
 		white-space: pre-wrap;
 		word-wrap: break-word;
 
 //		background-color: gold;
+		div {
+			padding: $cardViewBasePadding;
+		}
 	}
 
 	.dropArea {
