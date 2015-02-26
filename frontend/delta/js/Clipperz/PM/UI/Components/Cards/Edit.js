@@ -44,6 +44,35 @@ Clipperz.PM.UI.Components.Cards.Edit = React.createClass({
 
 	//----------------------------------------------------------------------------
 
+	componentDidMount: function() {
+		var textareas;
+		var autoresize = this.autoresize;
+
+		textareas = [].slice.call(this.getDOMNode().querySelectorAll('textarea'));
+		textareas.forEach(function(aTextarea) {
+			aTextarea.addEventListener('input', autoresize, false);
+			autoresize({target:aTextarea});
+		});
+	},
+
+	componentWillUnmount: function() {
+		var textareas;
+		var autoresize = this.autoresize;
+
+		textareas = [].slice.call(this.getDOMNode().querySelectorAll('textarea'));
+		textareas.forEach(function(aTextarea) {
+			aTextarea.removeEventListener('input', autoresize, false);
+		});
+	},
+
+	autoresize: function (anEvent) {
+		anEvent.target.style.height = 'auto';
+		anEvent.target.style.height = anEvent.target.scrollHeight+'px';
+		window.scrollTo(window.scrollLeft, (anEvent.target.scrollTop + anEvent.target.scrollHeight));
+	},
+
+	//----------------------------------------------------------------------------
+
 	record: function () {
 		return this.props['_record'];
 	},
