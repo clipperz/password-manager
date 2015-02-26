@@ -141,7 +141,7 @@ Clipperz.PM.UI.Components.Pages.LoginPage = React.createClass({
 	},
 
 	render: function() {
-		var registrationLink =	React.DOM.div({'key':'registrationLink', 'className':'registrationLink'}, [
+		var registrationLink =	React.DOM.footer({'key':'registrationLink', 'className':'registrationLink'}, [
 									React.DOM.a({'key':'signup', 'onClick':this.handleRegistrationLinkClick}, "Sign up")
 								]);
 

@@ -16,13 +16,12 @@
 			@include icon-font();
 
 			font-size: 48pt;
+			line-height: 90pt;
 			color: $main-alternate-text-color;
 		}
 
 		div.form {
 			@include flex(4);
-			margin-left: auto;
-			margin-right: auto;
 
 			form {
 				position: relative;
@@ -31,6 +30,10 @@
 //				@include border-radius(10px);
 				padding: 20px;
 				margin-bottom: 50px;
+				max-width: 400px;
+
+				margin-left: auto;
+				margin-right: auto;
 /*			
 				&:after {
 					content: "";
@@ -95,7 +98,8 @@
 		}
 
 
-		div.registrationLink {
+//		div.registrationLink {
+		footer {
 			@include flex(1);
 
 			color: $main-alternate-text-color;
@@ -108,6 +112,7 @@
 			};
 
 			a {
+				line-height: 50pt;
 			}
 		}
 	}
@@ -142,7 +147,8 @@
 			}
 		}
 
-		div.registrationLink {
+//		div.registrationLink {
+		footer {
 //			@include flex(2);
 			font-size: 14pt;
 		}

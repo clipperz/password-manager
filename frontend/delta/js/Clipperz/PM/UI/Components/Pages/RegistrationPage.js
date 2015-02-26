@@ -28,7 +28,7 @@ Clipperz.PM.UI.Components.Pages.RegistrationPage = React.createClass({
 	getDefaultProps: function () {
 		return {
 			steps: [
-				{name:'CREDENTIALS',			label:'registration',	_label:'credentials',	description:"Choose your credentails"},
+				{name:'CREDENTIALS',			label:'registration',	_label:'credentials',	description:"Choose your credentials"},
 				{name:'PASSWORD_VERIFICATION',	label:'registration',	_label:'verify',		description:"Verify your passphrase"},
 				{name:'TERMS_OF_SERVICE',		label:'registration',	_label:'terms',			description:"Check our terms of service"}
 			],
@@ -89,6 +89,10 @@ Clipperz.PM.UI.Components.Pages.RegistrationPage = React.createClass({
 
 	//=========================================================================
 
+	handleLoginLinkClick: function (anEvent) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'goBack');
+	},
+
 	handleBackClick: function (anEvent) {
 		var nextStep;
 		anEvent.preventDefault();
@@ -97,7 +101,7 @@ Clipperz.PM.UI.Components.Pages.RegistrationPage = React.createClass({
 			nextStep = this.props['steps'][this.currentStepIndex() - 1];
 			this.setState({currentStep: nextStep['name']});
 		} else {
-			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'goBack');
+//			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'goBack');
 		}
 	},
 
@@ -202,9 +206,9 @@ Clipperz.PM.UI.Components.Pages.RegistrationPage = React.createClass({
 
 	renderStep: function (aStep) {
 		return	React.DOM.div({'className':'step' + ' ' + aStep['name'] + ' ' + this.statusClassForStep(aStep) + ' step_' + this.currentStepIndex()}, [
-					React.DOM.h1(null, aStep['label']),
+//					React.DOM.h1(null, aStep['label']),
 					React.DOM.p(null, aStep['description']),
-					this['render_' + aStep['name']].apply(),
+					React.DOM.div({'className':'stepBody'}, this['render_' + aStep['name']].apply()),
 					React.DOM.div({'className':'stepIndex'}, MochiKit.Base.map(this.renderIndexStep, this.props['steps'])),
 					React.DOM.div({'className':'buttons'}, this.renderButtons())
 				]);
@@ -212,8 +216,14 @@ Clipperz.PM.UI.Components.Pages.RegistrationPage = React.createClass({
 
 	render: function () {
 		return	React.DOM.div({'className':'registrationForm'},[
-					React.DOM.form({onChange: this.handleChange}, [
-						React.DOM.div({'className':'steps'}, MochiKit.Base.map(this.renderStep, this.props['steps']))
+					React.DOM.header({'key':'header'}, 'clipperz'),
+					React.DOM.div({'className':'form'}, [
+						React.DOM.form({onChange: this.handleChange}, [
+							React.DOM.div({'className':'steps'}, MochiKit.Base.map(this.renderStep, this.props['steps']))
+						])
+					]),
+					React.DOM.footer({}, [
+						React.DOM.a({'key':'login', 'onClick':this.handleLoginLinkClick}, "Login")
 					])
 				]);
 	},
