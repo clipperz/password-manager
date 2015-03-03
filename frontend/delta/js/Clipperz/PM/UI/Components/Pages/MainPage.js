@@ -33,6 +33,8 @@ Clipperz.PM.UI.Components.Pages.MainPage = React.createClass({
 	},
 
 	propTypes: {
+		'tags':				React.PropTypes.object,
+		'allTags':			React.PropTypes.array,
 		'messageBox':		React.PropTypes.object.isRequired,
 		'featureSet':		React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL', 'OFFLINE']).isRequired,
 		'accountInfo':		React.PropTypes.object.isRequired,

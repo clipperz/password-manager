@@ -24,6 +24,10 @@ refer to http://www.clipperz.com.
 Clipperz.Base.module('Clipperz.PM.UI.Components.Pages');
 
 Clipperz.PM.UI.Components.Pages.CardDetailPage = React.createClass({
+	propTypes: {
+		'allTags':	React.PropTypes.array,
+	},
+
 /*
 	viewComponentProps: function () {
 		var	result;

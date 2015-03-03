@@ -29,6 +29,7 @@ Clipperz.PM.UI.Components.Cards.Edit = React.createClass({
 	//============================================================================
 
 	propTypes: {
+		'allTags':	React.PropTypes.array,
 //		'label':	React.PropTypes.string /*.isRequired */ ,
 //		'loading':	React.PropTypes.bool,
 	},
@@ -264,13 +265,12 @@ console.log("DROP");	//, anEvent);
 
 	//............................................................................
 
-	renderTags: function (someTags) {
-		var	tags;
-		var	allTags;
+	cleanupTags: function (someTags) {
+		return MochiKit.Base.filter(Clipperz.PM.DataModel.Record.isRegularTag, someTags).sort(Clipperz.Base.caseInsensitiveCompare);
+	},
 
-		tags = MochiKit.Base.filter(Clipperz.PM.DataModel.Record.isRegularTag, someTags).sort(Clipperz.Base.caseInsensitiveCompare);
-		allTags = tags;
-		return	Clipperz.PM.UI.Components.Cards.TagEditor({'selectedTags':tags, 'allTags':allTags, 'readOnly':false });
+	renderTags: function (someTags) {
+		return	Clipperz.PM.UI.Components.Cards.TagEditor({'selectedTags':this.cleanupTags(someTags), 'allTags':this.cleanupTags(this.props['allTags']), 'readOnly':false });
 	},
 
 	//............................................................................

@@ -25,6 +25,10 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
 Clipperz.PM.UI.Components.Cards.Detail = React.createClass({
 
+	propTypes: {
+		'allTags':	React.PropTypes.array,
+	},
+
 	viewComponentProps: function () {
 		var	result;
 

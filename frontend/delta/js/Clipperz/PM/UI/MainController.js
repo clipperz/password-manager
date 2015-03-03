@@ -242,12 +242,11 @@ console.log("THE BROWSER IS OFFLINE");
 		shouldShowRegistrationForm = parameters['shouldShowRegistrationForm'] && canRegisterNewUsers;
 		this.pages()['loginPage'].setProps({'mode':this.loginMode(), 'isNewUserRegistrationAvailable':canRegisterNewUsers});
 
+		this.showLoginForm();
 		if (shouldShowRegistrationForm) {
 			this.showRegistrationForm_handler();
-		} else {
-			this.showLoginForm();
 		}
-
+	
 //		this.overlay().done("", 0.5);
 		this.overlay().hide();
 	},
@@ -725,6 +724,9 @@ console.log("THE BROWSER IS OFFLINE");
 //			MochiKit.Base.method(this.user(), 'getTags', this.shouldIncludeArchivedCards()),
 			MochiKit.Base.method(this, 'allTags', this.shouldIncludeArchivedCards()),
 			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'tags'),
+			MochiKit.Base.method(this, 'allTags', true || this.shouldIncludeArchivedCards()),
+			MochiKit.Base.keys,
+			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'allTags'),
 			MochiKit.Base.method(this, 'getAllCardsCount'),
 			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'allCardsCount'),
 			MochiKit.Base.method(this, 'getArchivedCardsCount'),

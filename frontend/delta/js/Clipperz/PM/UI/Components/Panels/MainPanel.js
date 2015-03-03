@@ -29,9 +29,10 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 	//=========================================================================
 
 	propTypes: {
-		'messageBox':		React.PropTypes.object.isRequired,
-		'featureSet':		React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL', 'OFFLINE']).isRequired,
-		'style':			React.PropTypes.oneOf(Clipperz_PM_UI_availableStyles).isRequired,
+		'allTags':		React.PropTypes.array,
+		'messageBox':	React.PropTypes.object.isRequired,
+		'featureSet':	React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL', 'OFFLINE']).isRequired,
+		'style':		React.PropTypes.oneOf(Clipperz_PM_UI_availableStyles).isRequired,
 	},
 
 	style: function () {

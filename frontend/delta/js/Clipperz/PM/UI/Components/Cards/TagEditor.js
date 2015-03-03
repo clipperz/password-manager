@@ -43,10 +43,14 @@ Clipperz.PM.UI.Components.Cards.TagEditor = React.createClass({
 
 	//----------------------------------------------------------------------------
 
-	stillNotUsedTags: function () {
-//		return MochiKit.Base.filter(function, this.props['allTags']);
+	listOfTagsNotUsedYet: function () {
+		var	selectedTags = this.props['selectedTags'];
+//console.log("ALL TAGS", this.props['allTags']);
+//console.log("SELECTED TAGS", this.props['selectedTags']);
+		return MochiKit.Base.filter(function (aTag) { return selectedTags.indexOf(aTag) == -1 }, this.props['allTags']);
+//		return this.props['allTags'];
 	},
-
+	
 	//----------------------------------------------------------------------------
 
 	removeTagHandler: function (anEvent) {
@@ -67,24 +71,23 @@ Clipperz.PM.UI.Components.Cards.TagEditor = React.createClass({
 
 	//----------------------------------------------------------------------------
 
+	addTagValue: function (anEvent) {
+		this.addTag(anEvent.currentTarget.value);
+		anEvent.currentTarget.value = "";
+	},
+
 	handleKeyDown: function(anEvent) {
 		switch (anEvent.keyCode) {
 			
 			case 9: // tab
-				console.log("TAB");
-//				if (anEvent.shiftKey || !this.state.isOpen) {
-//					return;
-//				}
-//				this.selectFocusedOption();
-			break;
+				this.addTagValue(anEvent);
+				break;
 			
 			case 13: // enter
-				console.log("ENTER");
-				this.addTag(anEvent.currentTarget.value);
-				anEvent.currentTarget.value = "";
-//				this.selectFocusedOption();
-			break;
-			
+				this.addTagValue(anEvent);
+				anEvent.preventDefault();
+				break;
+/*			
 			case 27: // escape
 				console.log("ESCAPE");
 //				if (this.state.isOpen) {
@@ -92,22 +95,22 @@ Clipperz.PM.UI.Components.Cards.TagEditor = React.createClass({
 //				} else {
 //					this.clearValue();
 //				}
-			break;
+				break;
 			
 			case 38: // up
 				console.log("UP");
 //				this.focusPreviousOption();
-			break;
+				break;
 			
 			case 40: // down
 				console.log("DOWN");
 //				this.focusNextOption();
-			break;
+				break;
 			
-			default: return;
+			default:
+				return;
+*/
 		}
-		
-		anEvent.preventDefault();
 	},
 	
 	//----------------------------------------------------------------------------
@@ -120,7 +123,10 @@ Clipperz.PM.UI.Components.Cards.TagEditor = React.createClass({
 	},
 	
 	renderEditField: function () {
-		return	React.DOM.input({'type':'text', 'onKeyDown':this.handleKeyDown, 'placeholder': "tag"});
+		return	[
+					React.DOM.input({'type':'text', 'list':'tagListData', 'onKeyDown':this.handleKeyDown, 'placeholder': "tag"}),
+					React.DOM.datalist({'id':'tagListData'}, MochiKit.Base.map(function (aTag) { return React.DOM.option({}, aTag); }, this.listOfTagsNotUsedYet()))
+				];
 	},
 	
 	render: function () {
