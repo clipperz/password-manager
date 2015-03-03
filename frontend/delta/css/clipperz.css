@@ -989,7 +989,7 @@ div.cardContent {
         div.cardContent div.cardDetail.column div.editWrapper > div.edit .content {
           background-color: white; }
       div.cardContent div.cardDetail.column div.editWrapper .mask {
-        background-color: rgba(255, 255, 255, 0.8); }
+        background-color: rgba(0, 0, 0, 0.6); }
     div.cardContent div.cardDetail.column > div.view {
       -webkit-box-flex: auto;
       -webkit-flex: auto;
