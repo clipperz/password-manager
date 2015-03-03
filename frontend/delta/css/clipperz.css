@@ -1455,7 +1455,7 @@ div.dialogBox {
       text-rendering: optimizeLegibility;
       font-size: 48pt;
       line-height: 90pt;
-      color: #ff9900; }
+      color: white; }
     #registrationPage .registrationForm div.form {
       -webkit-box-flex: 4;
       -webkit-flex: 4;
@@ -1518,7 +1518,7 @@ div.dialogBox {
             #registrationPage .registrationForm div.form form .steps .step.TERMS_OF_SERVICE .stepIndex {
               margin-top: 10px; }
             #registrationPage .registrationForm div.form form .steps .step .stepBody {
-              min-height: 130px; }
+              min-height: 140px; }
             #registrationPage .registrationForm div.form form .steps .step .stepIndex {
               text-align: center; }
               #registrationPage .registrationForm div.form form .steps .step .stepIndex .stepIndexItem {
