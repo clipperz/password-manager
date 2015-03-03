@@ -68,7 +68,7 @@ Clipperz.PM.UI.Components.Cards.TextArea = React.createClass({
 		node.style.height = node.scrollHeight+'px';
 		window.scrollTo(window.scrollLeft, (node.scrollTop + node.scrollHeight));
 	},
-
+/*
 	recalculateSize_2: function() {
 		var diff;
 		var node = this.getDOMNode();
@@ -96,7 +96,7 @@ Clipperz.PM.UI.Components.Cards.TextArea = React.createClass({
 		node.style.height = 'auto';
 		node.style.height = (node.scrollHeight - diff) + 'px';
 	},
-	
+*/
 	//----------------------------------------------------------------------------
 
 //	render: function () {

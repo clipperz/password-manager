@@ -50,7 +50,8 @@ Clipperz.PM.UI.Components.Cards.List = React.createClass({
 			};		
 
 			result = React.DOM.li({'className':React.addons.classSet(classes), 'onClick': this.handleClick, 'key':anItem['_reference'], 'data-reference':anItem['_reference'], 'data-label':anItem['label']}, [
-				React.DOM.span({'className':'favicon'}, [ React.DOM.img({src:anItem['favicon']})]),
+//				React.DOM.span({'className':'favicon'}, React.DOM.img({'onLoad':this.faviconEvent, 'onError':this.faviconEvent, 'onAbort':this.faviconEvent, 'src':anItem['favicon']})),
+				React.DOM.span({'className':'favicon'}, Clipperz.PM.UI.Components.Cards.FavIcon({'src':anItem['favicon']})),
 				React.DOM.span({'className':'label'}, anItem['label']),
 	//			React.DOM.span({'className':'action'}, 'show detail')
 			]);
