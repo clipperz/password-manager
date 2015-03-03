@@ -1,4 +1,4 @@
-$tagEditor_lineHeight: 26px;
+$tagEditor_lineHeight: 27px;
 .tagEditor {
 	@include flexbox();
 	@include flex-direction(row);
@@ -30,6 +30,7 @@ $tagEditor_lineHeight: 26px;
 			font-weight: 100;
 
 			padding-right: 10px;
+			padding-left: 1px;
 			line-height: $tagEditor_lineHeight;
 
 //			&:last-child:after {

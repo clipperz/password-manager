@@ -1279,7 +1279,7 @@ div.dialogBox {
       text-rendering: optimizeLegibility;
       font-size: 16pt;
       padding-right: 11px;
-      line-height: 26px;
+      line-height: 27px;
       color: #ccc; }
     .tagEditor ul li.tag {
       -webkit-box-flex: none;
@@ -1291,7 +1291,8 @@ div.dialogBox {
       font-size: 13pt;
       font-weight: 100;
       padding-right: 10px;
-      line-height: 26px; }
+      padding-left: 1px;
+      line-height: 27px; }
       .tagEditor ul li.tag span.tagRemoveButton {
         font-family: 'clipperz-icons';
         -webkit-font-feature-settings: "liga" 1, "dlig" 1;
