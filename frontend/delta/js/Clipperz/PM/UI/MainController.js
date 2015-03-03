@@ -1587,6 +1587,8 @@ console.log("THE BROWSER IS OFFLINE");
 	exitCurrentSelection: function () {
 		if (this.currentPage() == 'cardDetailPage') {
 			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'goBackToMainPage', {'reference':this.selectedCardInfo()['reference']});
+		} else if (this.currentPage() == 'mainPage') {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', null, true);
 		}
 	},
 	
