@@ -46,6 +46,35 @@
 // * http://dev.opera.com/articles/view/advanced-cross-browser-flexbox/
 // * https://developer.mozilla.org/en-us/docs/web/guide/css/flexible_boxes
 
+/*
+
+# Flex container notes
+	display: flex | inline-flex;
+
+	flex-direction: row | row-reverse | column | column-reverse;
+	flex-wrap: nowrap | wrap | wrap-reverse;
+
+	flex-flow: <flex-direction> <flex-wrap>;
+
+	justify-content: flex-start | flex-end | center | space-between | space-around;
+
+	align-items: stretch | flex-start | flex-end | center | baseline;
+	align-content: stretch | flex-start | flex-end | center | space-between | space-around;
+
+# Flex items
+	visibility: collapse;
+	flex: none | [ <‘flex-grow’> <‘flex-shrink’>? || <‘flex-basis’> ];
+	order: 0;
+	min-width: min-content;
+	margin-left: auto;
+	align-self: auto | flex-start | flex-end | center | baseline | stretch;
+
+
+http://css-tricks.com/snippets/css/a-guide-to-flexbox/
+http://jonibologna.com/flexbox-cheatsheet/
+
+*/
+
 //----------------------------------------------------------------------
 
 // Flexbox Containers

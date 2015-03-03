@@ -98,8 +98,9 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 				React.DOM.li({'className':'untaggedCards', 'onClick': this.selectUntaggedCards}, [
 					React.DOM.span({'className':'label'}, "Untagged"),
 					React.DOM.span({'className':'count'}, this.props['untaggedCardsCount'] ? this.props['untaggedCardsCount'] : '-')
-				])
-			]),
+				]),
+//			]),
+/*
 			React.DOM.div({'className':'search'}, [
 				React.DOM.form({'className':'searchForm'}, [
 					React.DOM.div({}, [
@@ -113,6 +114,21 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 					React.DOM.span({}, selectedCardCount)
 				])
 			]),
+*/
+			React.DOM.div({'className':'search'}, [
+				React.DOM.form({'className':'searchForm'}, [
+					React.DOM.div({}, [
+						React.DOM.input({'type':'text', 'id':'searchValue', 'onFocus':this.handleSearchChange, 'onChange':this.handleSearchChange, 'onKeyDown':this.handleKeyDown, 'name':'search', 'value':this.props['searchTerm'] /*, 'placeholder':"search" */ }),
+						React.DOM.label({'htmlFor':'searchValue'}, 'search'),
+						React.DOM.div({'className':'searchClear', 'onClick':this.clearSearch}, [
+							React.DOM.span({'className':'count'}, selectedCardCount),
+							React.DOM.span({'className':'clear'}, "clear")
+						]),
+					])
+				]),
+			]),
+			]),
+
 			React.DOM.ul({'className':'tagList'}, MochiKit.Base.map(function (aTag) {return Clipperz.PM.UI.Components.TagIndexItem({'label':aTag, 'count':tagInfo[aTag], 'selected':aTag == filterValue}); }, tags)),
 			React.DOM.div({'className':'showArchivedCards', 'onClick':this.handleCheckboxChanges}, [
 				React.DOM.input({'type':'checkbox', 'checked':this.props['shouldIncludeArchivedCards'] ? 'checked' : null}),

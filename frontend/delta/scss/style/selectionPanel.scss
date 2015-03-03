@@ -9,7 +9,7 @@
 	$spacing: 5px;
 
 	ul.defaultSet {
-		font-weight: bold;
+//		font-weight: bold;
 		padding-top: 10px;
 		padding-bottom: 10px;
 
@@ -17,7 +17,6 @@
 			@include flexbox();
 			@include flex-direction(row);
 
-			
 			span.label {
 				@include flex(auto);
 			}
@@ -43,46 +42,97 @@
 
 	.search {
 		form {
-			padding:2px;
-			position:relative;
-			box-sizing:border-box;
-			width:95%;
+//			padding:2px;
+//			position:relative;
+//			box-sizing:border-box;
+//			width:95%;
 
-			input {
-				font-family: "clipperz-font";
-				color: #999;
-				font-size: 18pt;
-				padding: 0px 30px;
-				margin: 0px 5px;
-				width: 100%;
-				box-sizing:border-box;
-			}
+			div {
+				@include flexbox();
+				@include flex-direction(row);
 
-			label {
-				@include icon-font();
-				font-size: 18pt;
-				padding-left: $spacing;
-//				padding-right:5px;
-				position:absolute;
-				top:9px;
-				left:9px;
-				color: #666;
-			}
-		
-			.searchClear {
-				@include icon-font();
-				@include border-radius(50%);
-				background-color: #aaa;
-				color: white;
-				position:absolute;
-				right:9px;
-				top:9px;
-				cursor: pointer;
-				padding: 5px;
-				font-size: 10pt;
-			
-				&:hover {
-					background-color: #666;
+				input {
+					@include flex(auto);
+					@include order(1);
+
+					font-family: "clipperz-font";
+					font-size: 18pt;
+					color: white;
+					background-color: black;
+					border: 0px;
+					border-bottom: 1px solid #333;
+					outline: none;
+					margin-right: 10px;
+
+//					color: #999;
+//					padding: 0px 30px;
+//					margin: 0px 5px;
+//					width: 100%;
+//					box-sizing:border-box;
+
+					@include placeholder {
+						font-style: italic;
+						color: #ccc;
+					}
+				}
+
+				label {
+					@include flex(none);
+					@include order(0);
+					@include icon-font();
+
+					font-weight: normal;
+					padding-left: 8px;
+					padding-right: 8px;
+					font-size: 14pt;
+					vertical-align: baseline;
+					
+					margin-top: 10px;
+
+//					font-size: 18pt;
+//					padding-left: $spacing;
+//					padding-right:5px;
+//					position:absolute;
+//					top:9px;
+//					left:9px;
+//					color: #666;
+				}
+
+				.searchClear {
+					@include flex(none);
+					@include order(2);
+					@include align-self(flex-end);
+					cursor: pointer;
+					margin: 12px 12px 6px 0px;
+
+					.count {
+						margin-right: 0px;
+						display: none;
+					}
+					.clear {
+						@include icon-font();
+						display: none;
+
+//						@include border-radius(50%);
+						@include border-radius(4px);
+						color: white;
+						background-color: gray;
+//						right:9px;
+//						top:9px;
+//						padding: 5px;
+						padding: 3px 5px;
+						font-size: 10pt;
+					}
+
+					&:hover {
+						.count {
+							display: none;
+						}
+						.clear {
+							background-color: #666;
+							display: block;
+						}
+					}
 				}
 			}
 		}
@@ -103,19 +153,27 @@
 		padding-top: 10px;
 
 		li {
+			@include flexbox();
+			@include flex-direction(row);
+
 			&:before {
 				content: "tag";
 			}
 
-			span.tagLabel {
+			span.label {
+				font-size: 14pt;
+				@include flex(auto);
 			}
 		
-			span.tagCount {
-				background-color: gray;
-				font-size: 10pt;
-				margin-left: 10px;
-				padding: 0px 4px;
-				@include border-radius(4px);
+			span.count {
+				@include flex(none);
+				@include align-self(flex-end);
+
+//				background-color: gray;
+//				font-size: 10pt;
+//				margin-left: 10px;
+//				padding: 0px 4px;
+//				@include border-radius(4px);
 			}
 		}
 	}
@@ -199,9 +257,26 @@ $selectionColor: $clipperz-orange;
 
 #selections.SEARCH {
 	div.search {
-		.searchResultInfo {
-			color: $selectionColor;
-			display: block;
+//		.searchResultInfo {
+//			color: $selectionColor;
+//			display: block;
+//		}
+		
+		form {
+			label {
+				color: $selectionColor;
+			}
+			.searchClear {
+				.count {
+					display: block;
+				}
+				
+				&:hover {
+					.count {
+						display: none;
+					}
+				}
+			}
 		}
 	}
 }

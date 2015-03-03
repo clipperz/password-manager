@@ -44,8 +44,8 @@ Clipperz.PM.UI.Components.TagIndexItem = React.createClass({
 		}
 	
 		return	React.DOM.li({'onClick': this.handleClick, 'className':React.addons.classSet(classes), 'data-tag':this.props['label']}, [
-			React.DOM.span({'className':'tagLabel'}, this.props['label']),
-			React.DOM.span({'className':'tagCount'}, this.props['count'])
+			React.DOM.span({'className':'label'}, this.props['label']),
+			React.DOM.span({'className':'count'}, this.props['count'])
 		]);
 	},
 
