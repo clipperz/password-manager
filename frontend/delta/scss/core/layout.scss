@@ -128,10 +128,26 @@
 
 #extraFeaturesPanel {
 	@include sliding-panel(right, $settingsPanelWidth);
+	@include flexbox();
+	@include flex-direction(column);
+	min-height: 100%;
 	
 	&.open {
 		@include sliding-panel-open(right, $settingsPanelWidth);
 	}
+
+	header {
+		@include flex(none);
+		
+	}
+	
+	& > div {
+		@include flex(auto);
+		
+		overflow: auto;
+		
+	}
+
 }
 
 .container {

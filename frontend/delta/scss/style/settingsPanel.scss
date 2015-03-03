@@ -17,20 +17,22 @@
 		}
 	}
 
-	div {
+	& > div {
+		border-top: 1px solid white;
+
 		
 		& > ul > li {
 //			padding: 10px;
 //			padding-right: 0px;
-			border-top: 1px solid white;
+			border-bottom: 1px solid white;
 
 			& > ul {
 				padding-left: 10px;
 			}
 
-			&:last-child {
-				border-bottom: 1px solid white;
-			}
+//			&:last-child {
+//				border-bottom: 1px solid white;
+//			}
 			
 			&.closed > ul {
 				display: none;

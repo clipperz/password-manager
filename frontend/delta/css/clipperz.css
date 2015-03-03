@@ -756,9 +756,36 @@ div.overlay {
   width: 300px;
   height: 100%;
   top: 0;
-  right: -300px; }
+  right: -300px;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-direction: normal;
+  -webkit-box-orient: vertical;
+  -webkit-flex-direction: column;
+  -moz-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  min-height: 100%; }
   #extraFeaturesPanel.open {
     right: 0px; }
+  #extraFeaturesPanel header {
+    -webkit-box-flex: none;
+    -webkit-flex: none;
+    -moz-box-flex: none;
+    -moz-flex: none;
+    -ms-flex: none;
+    flex: none; }
+  #extraFeaturesPanel > div {
+    -webkit-box-flex: auto;
+    -webkit-flex: auto;
+    -moz-box-flex: auto;
+    -moz-flex: auto;
+    -ms-flex: auto;
+    flex: auto;
+    overflow: auto; }
 
 .container {
   height: 100%;
@@ -1786,44 +1813,44 @@ span.count {
       #extraFeaturesPanel header .button .label {
         padding-top: 8px;
         padding-right: 8px; }
-  #extraFeaturesPanel div > ul > li {
+  #extraFeaturesPanel > div {
     border-top: 1px solid white; }
-    #extraFeaturesPanel div > ul > li > ul {
-      padding-left: 10px; }
-    #extraFeaturesPanel div > ul > li:last-child {
+    #extraFeaturesPanel > div > ul > li {
       border-bottom: 1px solid white; }
-    #extraFeaturesPanel div > ul > li.closed > ul {
-      display: none;
-      visibility: hidden; }
-  #extraFeaturesPanel div ul li > ul > li {
-    padding: 10px;
-    padding-right: 0px; }
-    #extraFeaturesPanel div ul li > ul > li > div {
-      padding: 4px; }
-  #extraFeaturesPanel div ul li h1 {
-    cursor: pointer;
-    font-size: 16pt;
-    padding: 10px; }
-  #extraFeaturesPanel div ul li h2 {
-    font-weight: 300;
-    font-size: 14pt; }
-  #extraFeaturesPanel div ul li h3 {
-    font-size: 12pt; }
-  #extraFeaturesPanel div ul li p {
-    font-size: 10pt;
-    font-weight: 100;
-    padding-bottom: 5px;
-    line-height: 1.2em; }
-  #extraFeaturesPanel div ul li a.button {
-    -webkit-border-radius: 2;
-    -moz-border-radius: 2;
-    border-radius: 2;
-    display: inline-block;
-    padding: 4px 8px;
-    background-color: green;
-    color: white; }
-    #extraFeaturesPanel div ul li a.button:hover {
-      color: lightgrey; }
+      #extraFeaturesPanel > div > ul > li > ul {
+        padding-left: 10px; }
+      #extraFeaturesPanel > div > ul > li.closed > ul {
+        display: none;
+        visibility: hidden; }
+    #extraFeaturesPanel > div ul li > ul > li {
+      padding: 10px;
+      padding-right: 0px; }
+      #extraFeaturesPanel > div ul li > ul > li > div {
+        padding: 4px; }
+    #extraFeaturesPanel > div ul li h1 {
+      cursor: pointer;
+      font-size: 16pt;
+      padding: 10px; }
+    #extraFeaturesPanel > div ul li h2 {
+      font-weight: 300;
+      font-size: 14pt; }
+    #extraFeaturesPanel > div ul li h3 {
+      font-size: 12pt; }
+    #extraFeaturesPanel > div ul li p {
+      font-size: 10pt;
+      font-weight: 100;
+      padding-bottom: 5px;
+      line-height: 1.2em; }
+    #extraFeaturesPanel > div ul li a.button {
+      -webkit-border-radius: 2;
+      -moz-border-radius: 2;
+      border-radius: 2;
+      display: inline-block;
+      padding: 4px 8px;
+      background-color: green;
+      color: white; }
+      #extraFeaturesPanel > div ul li a.button:hover {
+        color: lightgrey; }
 
 .accountStatus {
   background-color: green; }
