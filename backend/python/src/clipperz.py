@@ -1,5 +1,5 @@
 #
-#	Copyright 2008-2013 Clipperz Srl
+#	Copyright 2008-2015 Clipperz Srl
 #	
 #	This file is part of Clipperz, the online password manager.
 #	For further information about its features and functionalities please
