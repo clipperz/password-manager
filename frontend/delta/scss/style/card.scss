@@ -204,6 +204,9 @@ $cardViewBasePadding: 10px;
 									padding: 5px 10px;
 									border-bottom: 1px solid black;
 							
+									&.disabled {
+										color: #ddd;
+									}
 								}
 							}
 						}
@@ -278,6 +281,11 @@ $cardViewBasePadding: 10px;
 	ul {
 		li {
 			text-align: center;
+			
+			&.disabled {
+				color: #333;
+				cursor: default;
+			}
 		}
 	}
 	
@@ -360,30 +368,46 @@ $cardViewBasePadding: 10px;
 				
 				display: block;
 				margin: $iconMargin;
+				margin-top: 12px;
 				cursor: pointer;
 				color: #ccc;
+				width: 40px;
 				font-size: 20pt;
 
 				&:hover {
 					color: rgb(155, 0, 0);
 				};
 			}
-			
-			.toggleLock {
-				@include align-self(flex-end);
-				@include icon-font();
 
+			.dragHandler {
+//				@include dotted-background();
+				@include cursor-grab();
+				
+				background: repeating-linear-gradient(
+					0deg,
+					white,
+					white 2px,
+					#ddd 2px,
+					#ddd 3px
+				);
+
+				width: 28px;
+				height: 20px;
+				margin-left: 6px;
 				display: block;
-				margin: $iconMargin;
-				margin-left: $iconMargin * 2;
-				cursor: pointer;
-				color: #ccc;
-				font-size: 20pt;
+/*
+				@include icon-font();
+				color: #aaa;
 
-				&:hover {
-					color: #888;
+				font-size: 15pt;
+				margin: $iconMargin;
+				margin-left: 10px;
+*/				
+				&:active {
+					@include cursor-grabbing();
 				};
 			}
+			
 		}
 		
 		.fieldValues {
@@ -427,20 +451,40 @@ $cardViewBasePadding: 10px;
 			@include flex(none);
 //			@include align-self(center);
 			@include align-self(flex-start);
+
+			span {
+				display: block;
+
+				&.action {
+					@include icon-font();
+					color: #aaa;
+
+					width: 20px;
+					height: 20px;
+					font-size: 15pt;
+					margin: $iconMargin;
+				}
+
+				&.toggleLock {
+					@include align-self(flex-end);
+					@include icon-font();
+
+					display: block;
+					margin: $iconMargin;
+					margin-left: 9px;
+					padding-top: 10px;
+					cursor: pointer;
+					color: #ccc;
+					font-size: 18pt;
+
+					&:hover {
+						color: #888;
+					};
+				}
+				
+			}
 		}
 	
-		.action {
-			@include icon-font();
-			color: #aaa;
-
-//			width: 32px;
-			width: 20px;
-//			height: 32px;
-			height: 20px;
-//			font-size: 20pt;
-			font-size: 15pt;
-			margin: $iconMargin;
-		}
 
 	}
 

@@ -71,7 +71,7 @@
 			&.selection {
 				@include flex($selectionPanelFlexWidth, 0);
 //				height: 100%;
-//				overflow-y: scroll;
+				@include overflow-scroll;
 			}
 			
 			&.cardContent {
@@ -319,6 +319,8 @@ div.cardContent {
 				@include flexbox;
 				@include flex-direction(column);
 
+				box-shadow: 0px 0px 10px 2px rgba(0,0,0,0.75);
+
 				position: relative;
 				z-index: 10+1;
 				
@@ -340,14 +342,6 @@ div.cardContent {
 
 			@include flexbox;
 			@include flex-direction(column);
-
-
-//			.cardDetailToolbar {
-//				@include flex(none);
-//				height: $mainCardToolbarHeight;
-//				line-height: $mainCardToolbarHeight;
-//			}
-
 		}
 
 		.content {
@@ -364,41 +358,7 @@ div.cardContent {
 		@include flexbox();
 		@include flex-direction(column);
 		height: 100%;
-/*		
-		.cardDetailToolbar {
-			@include flex(none);
-			height: $mainCardToolbarHeight;
-			line-height: $mainCardToolbarHeight;
-			
-			&.commands > div {
-				@include flexbox();
-				@include flex-direction(row);
-//				font-size: 24pt;
 
-				.back {
-					@include flex(auto);
-					cursor: pointer;
-				}
-			
-				.cardMenuOptions {
-					@include flex(auto);
-					cursor: pointer;
-				}
-			}
-			
-			&.edit {
-				ul {
-					@include flexbox();
-					@include flex-direction(row);
-					
-					li {
-						@include flex(auto);
-						cursor: pointer;
-					}
-				}
-			}
-		}
-*/		
 		.content {
 			@include flex(auto);
 			overflow-y: scroll;

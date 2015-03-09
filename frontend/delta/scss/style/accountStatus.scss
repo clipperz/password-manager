@@ -1,5 +1,8 @@
 .accountStatus {
 	background-color: green;
+	padding: 3px;
+	font-size: 10pt;
+	border-bottom: 1px solid white;
 	
 	&.FULL {
 		display: none;
@@ -23,5 +26,19 @@
 	
 	&.EXPIRED {
 		background-color: red;
+	}
+	
+	&.OFFLINE_COPY {
+		background-color: $clipperz-blue;
+		color: white;
+		
+		.expirationDate {
+			display: none;
+			visibility: hidden;
+		}
+		
+		.referenceDate {
+			padding-left: 10px;
+		}
 	}
 }
