@@ -33,6 +33,12 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 		'loading':	React.PropTypes.bool,
 	},
 
+	getInitialState: function () {
+		return {};
+	},
+	
+	//----------------------------------------------------------------------------
+
 	handleDirectLoginClick: function (aDirectLogin) {
 		var	directLoginParameters;
 
@@ -45,6 +51,33 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 		return function (anEvent) {
 			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'runDirectLogin', directLoginParameters);
 		};
+	},
+
+	//----------------------------------------------------------------------------
+
+	handlePasswordFieldAction: function (aField) {
+		var	self = this;
+		var newState = {}
+		
+		newState[aField['_reference']] = !this.state[aField['_reference']];
+		
+		return function () {
+console.log("SHOW PASSWORD", aField, self);
+			self.setState(newState);
+		};
+	},
+
+	handleFieldAction: function (aField) {
+		var	result;
+
+		if (aField['actionType'] == 'PASSWORD') {
+			result = this.handlePasswordFieldAction(aField);
+//		} else if (aField['actionType'] == 'URL') {
+		} else {
+			result = MochiKit.Base.noop;
+		};
+		
+		return result;
 	},
 
 	//----------------------------------------------------------------------------
@@ -128,6 +161,7 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 	renderField: function (aField) {
 		var	cardFieldClasses = {};
 		var	cardFieldValueClasses = {};
+		var cardFieldActionClasses = {};
 		
 		cardFieldClasses['cardField'] = true;
 		cardFieldClasses[aField['actionType']] = true;
@@ -136,14 +170,21 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 		cardFieldValueClasses['fieldValue'] = true;
 		cardFieldValueClasses[aField['actionType']] = true;
 		cardFieldValueClasses['hidden'] = aField['isHidden'];
-		
+		cardFieldValueClasses['visible'] = this.state[aField['_reference']];
+
+		cardFieldActionClasses['action'] = true;
+		cardFieldActionClasses[aField['actionType']] = true;
+		cardFieldActionClasses['active'] = this.state[aField['_reference']];
+
 		return	React.DOM.div({'className':React.addons.classSet(cardFieldClasses)}, [
 			React.DOM.div({'className':'fieldEditAction'}, null),
 			React.DOM.div({'className':'fieldValues'}, [
 				React.DOM.div({'className':'fieldLabel'}, aField['label']),
 				React.DOM.div({'className':React.addons.classSet(cardFieldValueClasses)}, aField['value']),
 			]),
-			React.DOM.div({'className':'fieldAction action'}, aField['actionType'].toLowerCase())
+			React.DOM.div({'className':'fieldAction'}, [
+				React.DOM.span({'className':React.addons.classSet(cardFieldActionClasses), 'onClick':this.handleFieldAction(aField)}, aField['actionType'].toLowerCase() == 'password' ? 'view password' : aField['actionType'].toLowerCase())
+			])
 		]);
 	},
 
