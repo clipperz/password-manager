@@ -64,7 +64,7 @@ refer to http://www.clipperz.com.
 <script>
 //	Clipperz_IEisBroken = false;
 //	Clipperz_normalizedNewLine = '\n';
-	Clipperz_dumpUrl = "@dump.path@";
+	Clipperz_dumpUrl = "@dump.path@/delta";
 	Clipperz_version = "@application.version@";
 	Clipperz_PM_UI_availableStyles = ['extra-short', 'narrow', 'wide', 'extra-wide'];
 	
@@ -109,7 +109,7 @@ Clipperz_normalizedNewLine = '\x0d\x0a';
 	<span class="icon done"   style="display:none">done</span>
 	<span class="icon failed" style="display:none">failed</span>
 	<span class="title">loading</span>
-	<div class="mask hidden" />
+	<div class="mask hidden"></div>
 </div>
 
 @js_LINKED@
@@ -129,7 +129,7 @@ Clipperz_normalizedNewLine = '\x0d\x0a';
 			'shouldPayTolls': false
 		});
 
-		Clipperz.PM.Proxy.defaultProxy = new Clipperz.PM.Proxy.Offline({'dataStore': dataStore});
+		Clipperz.PM.Proxy.defaultProxy = new Clipperz.PM.Proxy.Offline({ 'dataStore':dataStore, 'type':'OFFLINE_COPY', 'typeDescription':'Offline copy'});
 		Clipperz.PM.Proxy.defaultProxy.dataStore().setupWithEncryptedData(testData);
 
 		//	Live Reload hoock
