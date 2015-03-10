@@ -131,6 +131,7 @@
 		"Clipperz/PM/DataModel/DirectLoginBinding.js",
 		"Clipperz/PM/DataModel/DirectLoginFormValue.js",
 		"Clipperz/PM/DataModel/OneTimePassword.js",
+		"Clipperz/PM/DataModel/Feature.js",
 
 		"Clipperz/PM/DataModel/DevicePreferences.js",
 
@@ -162,9 +163,11 @@
 		"Clipperz/PM/UI/Components/Panels/MainPanel.js",
 		"Clipperz/PM/UI/Components/Panels/ExtraFeaturesPanel.js",
 
+		"Clipperz/PM/UI/Components/Cards/FavIcon.js",
 		"Clipperz/PM/UI/Components/Cards/List.js",
 		"Clipperz/PM/UI/Components/Cards/Detail.js",
 		"Clipperz/PM/UI/Components/Cards/View.js",
+		"Clipperz/PM/UI/Components/Cards/TextArea.js",
 		"Clipperz/PM/UI/Components/Cards/Edit.js",
 		"Clipperz/PM/UI/Components/Cards/CommandToolbar.js",
 		"Clipperz/PM/UI/Components/Cards/EditToolbar.js",
