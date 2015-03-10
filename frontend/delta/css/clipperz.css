@@ -1943,7 +1943,11 @@ span.count {
     display: block;
     visibility: visible;
     background-color: #1863a1;
-    color: white; }
+    color: white;
+    padding: 8px 10px 6px 10px;
+    font-size: 9pt; }
+    .miscInfo .proxyInfo.OFFLINE_COPY .proxyDescription:after {
+      content: ':'; }
     .miscInfo .proxyInfo.OFFLINE_COPY .referenceDate {
       padding-left: 10px; }
 .miscInfo .accountStatus {

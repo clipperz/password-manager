@@ -10,7 +10,14 @@
 
 			background-color: $clipperz-blue;
 			color: white;
-		
+
+			padding: 8px 10px 6px 10px;
+			font-size: 9pt;
+
+			.proxyDescription:after {
+				content: ':';
+			}
+
 			.referenceDate {
 				padding-left: 10px;
 			}
