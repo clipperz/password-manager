@@ -64,10 +64,12 @@ Clipperz.PM.UI.Components.Cards.Edit = React.createClass({
 	dragStart: function (anEvent) {
 		var	fieldReference = anEvent.currentTarget.dataset['reference'];
 		var fieldPosition = this.positionOfField(fieldReference);
+		var dragElement = MochiKit.DOM.getElement(fieldReference);
 		
-		var x = anEvent.clientX - anEvent.currentTarget.getBoundingClientRect().left;
-		var y = anEvent.clientY - anEvent.currentTarget.getBoundingClientRect().top;
-		anEvent.dataTransfer.setDragImage(anEvent.currentTarget, x, y);
+		var x = anEvent.clientX - dragElement.getBoundingClientRect().left;
+		var y = anEvent.clientY - dragElement.getBoundingClientRect().top;
+//		anEvent.dataTransfer.setDragImage(anEvent.currentTarget, x, y);
+		anEvent.dataTransfer.setDragImage(dragElement, x, y);
 
 		MochiKit.Async.callLater(0.1, MochiKit.Base.bind(this.setState, this, {
 			'draggedFieldReference': fieldReference,
@@ -114,10 +116,12 @@ console.log("DROP");	//, anEvent);
 	dragOver: function (anEvent) {
 		var	toFieldPosition;
 		var	dropPosition;
-		
+
 		if (typeof(anEvent.currentTarget.dataset['index']) != 'undefined') {
-			var	y = anEvent.clientY - anEvent.currentTarget.getBoundingClientRect().top;
-			var	h = anEvent.currentTarget.getBoundingClientRect().height;
+			var dragElement = MochiKit.DOM.getElement(anEvent.currentTarget.dataset['reference']);
+			var	y = anEvent.clientY - dragElement.getBoundingClientRect().top;
+			var	h = dragElement.getBoundingClientRect().height;
+
 			var	hoveringIndex;
 			var	draggingIndex;
 			var	isHoveringTopPart;
@@ -293,22 +297,22 @@ console.log("DROP");	//, anEvent);
 		cardFieldValueClasses[aField['actionType']] = true;
 		cardFieldValueClasses['hidden'] = aField['isHidden'];
 
-		return	React.DOM.div({'className':React.addons.classSet(cardFieldClasses), 'draggable':true, 'key':ref,
+		return	React.DOM.div({'className':React.addons.classSet(cardFieldClasses), 'id':ref, 'key':ref,
+								'data-reference':ref,
+								'data-index':this.positionOfField(ref),
+								'onDragOver':this.dragOver,
+		}, [
+			React.DOM.div({'className':'fieldEditAction'}, [
+				React.DOM.span({'className':'removeField', 'onClick':this.removeField(field)}, "remove field"),
+				React.DOM.span({'className':'dragHandler',
+								'draggable':true, 
 								'data-reference':ref,
 								'data-document-id':ref,
 								'data-index':this.positionOfField(ref),
 
 								'onDragStart':this.dragStart,
-//								'onDrag':this.drag,
-//								'onDragEnter':this.dragEnter,
-								'onDragOver':this.dragOver,
-//								'onDragLeave':this.dragLeave,
-//								'onDrop':this.drop,
 								'onDragEnd':this.dragEnd
-		}, [
-			React.DOM.div({'className':'fieldEditAction'}, [
-				React.DOM.span({'className':'removeField', 'onClick':this.removeField(field)}, "remove field"),
-				React.DOM.span({'className':'toggleLock', 'onClick':this.toggleLock(field)}, aField['isHidden'] ? "locked" : "unlocked"),
+				}, ' ')
 			]),
 			React.DOM.div({'className':'fieldValues'}, [
 				React.DOM.div({'className':'fieldLabel'}, [
@@ -319,7 +323,10 @@ console.log("DROP");	//, anEvent);
 					Clipperz.PM.UI.Components.Cards.TextArea({'className':React.addons.classSet(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'defaultValue':aField['value'], 'placeholder': "value"}),
 				])
 			]),
-			React.DOM.div({'className':'fieldAction action'}, aField['actionType'].toLowerCase())
+			React.DOM.div({'className':'fieldAction'}, [
+				React.DOM.span({'className':'action'}, aField['actionType'].toLowerCase() == 'password' ? 'generate password' : aField['actionType'].toLowerCase()),
+				React.DOM.span({'className':'toggleLock', 'onClick':this.toggleLock(field)}, aField['isHidden'] ? "locked" : "unlocked")
+			])
 		]);
 	},
 
