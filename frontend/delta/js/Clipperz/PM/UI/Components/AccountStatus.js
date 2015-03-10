@@ -21,6 +21,7 @@ refer to http://www.clipperz.com.
 
 */
 
+"use strict";
 Clipperz.Base.module('Clipperz.PM.UI.Components');
 
 Clipperz.PM.UI.Components.AccountStatus = React.createClass({
@@ -28,7 +29,9 @@ Clipperz.PM.UI.Components.AccountStatus = React.createClass({
 	propTypes: {
 //		'currentSubscriptionType':		React.PropTypes.oneOf(['EARLY_ADOPTER', 'FRIEND', 'FAN', 'DEVOTEE', 'PATRON', 'TRIAL', 'TRIAL_EXPIRED', 'PAYMENT_FAILED_2', 'EXPIRED', 'PAYMENT_FAILED', 'VERIFYING_PAYMENT', 'VERIFYING_PAYMENT_2']).isRequired,
 		'expirationDate':				React.PropTypes.string /* .isRequired */,
+		'referenceDate':				React.PropTypes.string /* .isRequired */,
 		'featureSet':					React.PropTypes.oneOf(['TRIAL', 'EXPIRED', 'FULL']) /* .isRequired */ ,
+		'proxyType':					React.PropTypes.oneOf(['ONLINE', 'OFFLINE', 'OFFLINE_COPY']),
 		'isExpired':					React.PropTypes.bool /* .isRequired */ ,
 		'isExpiring':					React.PropTypes.bool /* .isRequired */ ,
 		'paymentVerificationPending':	React.PropTypes.bool /* .isRequired */ ,
@@ -38,18 +41,30 @@ Clipperz.PM.UI.Components.AccountStatus = React.createClass({
 
 	render: function () {
 //console.log("AccountStatus props", this.props);
-		var	classes = {
+		var	accountInfoClasses = {
 			'accountStatus':	true,
 			'isExpiring':		this.props['isExpiring'],
 			'isExpired':		this.props['isExpired'],
 		};
+		accountInfoClasses[this.props['featureSet']] = true;
 		
-		classes[this.props['featureSet']] = true;
+		var proxyInfoClasses = {
+			'proxyInfo':				true
+		}
+		proxyInfoClasses[this.props['proxyType']] = true;
 
-		return	React.DOM.div({'className':React.addons.classSet(classes)}, [
-			React.DOM.span({'className': 'level'}, this.props['featureSet']),
-			React.DOM.span({'className': 'expirationDate'}, this.props['expirationDate'])
+		return	React.DOM.div({'className':'miscInfo'}, [
+			React.DOM.div({'className':React.addons.classSet(proxyInfoClasses)}, [
+				React.DOM.span({'className':'proxyDescription'}, this.props['proxyTypeDescription']),
+				React.DOM.span({'className':'referenceDate'}, this.props['referenceDate'])
+			]),
+			React.DOM.div({'className':React.addons.classSet(accountInfoClasses)}, [
+				React.DOM.span({'className':'level'}, Clipperz.PM.DataModel.Feature['featureSets'][this.props['featureSet']]),
+				React.DOM.span({'className':'expirationMessage'}, "expiring on"),
+				React.DOM.span({'className':'expirationDate'}, this.props['expirationDate'])
+			])
 		]);
+		
 	}
 
 	//=========================================================================

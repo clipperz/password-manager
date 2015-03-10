@@ -936,7 +936,7 @@ div.cardContent {
     overflow: auto;
     z-index: 5;
     box-shadow: 2px 0 6px 0 rgba(0, 0, 0, 0.1); }
-    div.cardContent div.cardListColumn.column div.cardList {
+    div.cardContent div.cardListColumn.column.addCard div.cardList {
       padding-bottom: 100px; }
     div.cardContent div.cardListColumn.column div.addCardButton {
       font-family: 'clipperz-icons';
@@ -1935,32 +1935,35 @@ span.count {
       #extraFeaturesPanel > div ul li a.button:hover {
         color: lightgrey; }
 
-.accountStatus {
+.miscInfo .proxyInfo {
+  border-bottom: 1px solid white;
+  display: none;
+  visibility: hidden; }
+  .miscInfo .proxyInfo.OFFLINE_COPY {
+    display: block;
+    visibility: visible;
+    background-color: #1863a1;
+    color: white; }
+    .miscInfo .proxyInfo.OFFLINE_COPY .referenceDate {
+      padding-left: 10px; }
+.miscInfo .accountStatus {
+  border-bottom: 1px solid white;
   background-color: green;
   padding: 3px;
-  font-size: 10pt;
-  border-bottom: 1px solid white; }
-  .accountStatus.FULL {
+  font-size: 10pt; }
+  .miscInfo .accountStatus.FULL {
     display: none;
     visibility: hidden; }
-    .accountStatus.FULL.isExpiring {
+    .miscInfo .accountStatus.FULL.isExpiring {
       display: block;
       visibility: visible;
       background-color: yellow; }
-  .accountStatus.TRIAL {
+  .miscInfo .accountStatus.TRIAL {
     background-color: orange; }
-    .accountStatus.TRIAL.isExpiring {
+    .miscInfo .accountStatus.TRIAL.isExpiring {
       background-color: red; }
-  .accountStatus.EXPIRED {
+  .miscInfo .accountStatus.EXPIRED {
     background-color: red; }
-  .accountStatus.OFFLINE_COPY {
-    background-color: #1863a1;
-    color: white; }
-    .accountStatus.OFFLINE_COPY .expirationDate {
-      display: none;
-      visibility: hidden; }
-    .accountStatus.OFFLINE_COPY .referenceDate {
-      padding-left: 10px; }
 
 div.cardList.loadingCard li.selected {
   background-color: gray; }

@@ -31,7 +31,8 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 	propTypes: {
 		'allTags':		React.PropTypes.array,
 		'messageBox':	React.PropTypes.object.isRequired,
-		'featureSet':	React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL', 'OFFLINE']).isRequired,
+		'featureSet':	React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
+		'features':		React.PropTypes.array.isRequired,
 		'style':		React.PropTypes.oneOf(Clipperz_PM_UI_availableStyles).isRequired,
 	},
 
@@ -41,6 +42,14 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 
 	featureSet: function () {
 		return this.props['featureSet'];
+	},
+
+	features: function () {
+		return this.props['features'];
+	},
+	
+	isFeatureEnabled: function (aValue) {
+		return (this.features().indexOf(aValue) > -1);
 	},
 
 	handleMaskClick: function () {
@@ -62,15 +71,22 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 
 	renderCardFrame: function (firstColumnComponents, secondColumnComponents) {
 		var	addCardButton;
+		var	cardColumnClasses;
 
-		if ((this.props['featureSet'] != 'EXPIRED') && (this.props['featureSet'] != 'OFFLINE')) {
+//		if ((this.props['featureSet'] != 'EXPIRED') && (this.props['featureSet'] != 'OFFLINE')) {
+		if (this.isFeatureEnabled('ADD_CARD')) {
 			addCardButton = React.DOM.div({'className': 'addCardButton', 'onClick':this.handleAddCardClick}, 'add card');
 		} else {
 			addCardButton = null;
 		}
 
+		cardColumnClasses = {
+			'cardListColumn':	true,
+			'column':			true,
+			'addCard':			this.isFeatureEnabled('ADD_CARD')
+		}
 		return React.DOM.div({'key':'cardContent', 'className':'cardContent'}, [
-			React.DOM.div({'className':'cardListColumn column'}, [addCardButton, firstColumnComponents]),
+			React.DOM.div({'className':React.addons.classSet(cardColumnClasses)}, [addCardButton, firstColumnComponents]),
 			React.DOM.div({'className':'cardDetail column right'}, secondColumnComponents)
 		])
 	},

@@ -36,7 +36,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 	},
 
 	propTypes: {
-		'accountInfo':		React.PropTypes.object.isRequired,
+		'accountInfo':	React.PropTypes.object.isRequired,
 	},
 
 	getInitialState: function() {
@@ -88,6 +88,12 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 								React.DOM.h2({}, "One Time Passwords"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "")
+								])
+							]),
+							React.DOM.li({}, [
+								React.DOM.h2({}, "Device PIN"),
+								React.DOM.div({}, [
+									React.DOM.p({}, "Configure a PIN that will allow to get access to your cards, but only on this device.")
 								])
 							]),
 							React.DOM.li({}, [

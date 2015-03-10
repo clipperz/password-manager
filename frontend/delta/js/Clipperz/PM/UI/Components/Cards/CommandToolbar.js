@@ -31,6 +31,15 @@ Clipperz.PM.UI.Components.Cards.CommandToolbar = React.createClass({
 	propTypes: {
 //		'label':	React.PropTypes.string.isRequired,
 //		'loading':	React.PropTypes.bool,
+		'features':		React.PropTypes.array.isRequired,
+	},
+
+	features: function () {
+		return this.props['features'];
+	},
+	
+	isFeatureEnabled: function (aValue) {
+		return (this.features().indexOf(aValue) > -1);
 	},
 
 	//----------------------------------------------------------------------------
@@ -40,29 +49,17 @@ Clipperz.PM.UI.Components.Cards.CommandToolbar = React.createClass({
 	},
 
 	//----------------------------------------------------------------------------
-
+//	EDIT_CARD	-> archive, edit
+//	DELETE_CARD	-> delete
+//	ADD_CARD	-> clone
 	commands: function () {
+		var	archiveLabel = this.props['_isArchived'] ? "restore" : "archive";
 		return {
-			'delete': {
-				'label': "delete",
-				'broadcastEvent': 'deleteCard'
-			},
-			'archive': {
-				'label': this.props['_isArchived'] ? "restore" : "archive",
-				'broadcastEvent': 'toggleArchiveCard'
-			},
-//			'share': {
-//				'label': "share",
-//				'broadcastEvent': 'shareCard'
-//			},
-			'clone': {
-				'label': "clone",
-				'broadcastEvent': 'cloneCard'
-			},
-			'edit': {
-				'label': "edit",
-				'broadcastEvent': 'editCard'
-			}
+			'delete':	{ 'label': "delete",		'broadcastEvent': 'deleteCard',			'enabled': this.isFeatureEnabled('DELETE_CARD')},
+			'archive':	{ 'label': archiveLabel,	'broadcastEvent': 'toggleArchiveCard',	'enabled': this.isFeatureEnabled('EDIT_CARD')},
+//			'share':	{ 'label': "share",			'broadcastEvent': 'shareCard' },
+			'clone':	{ 'label': "clone",			'broadcastEvent': 'cloneCard',			'enabled': this.isFeatureEnabled('ADD_CARD')},
+			'edit':		{ 'label': "edit",			'broadcastEvent': 'editCard',			'enabled': this.isFeatureEnabled('EDIT_CARD')}
 		};
 	},
 
@@ -92,7 +89,12 @@ Clipperz.PM.UI.Components.Cards.CommandToolbar = React.createClass({
 		}
 		
 		return	React.DOM.ul({}, MochiKit.Base.map(function (aCommand) {
-					return React.DOM.li({'className':aCommand['broadcastEvent'], 'onClick':commandHandler, 'data-broadcast-event':aCommand['broadcastEvent']}, [React.DOM.span({}, aCommand['label'])]);
+					var classes = {};
+					classes[aCommand['broadcastEvent']] = true;
+					classes['enabled'] = aCommand['enabled'];
+					classes['disabled'] = !aCommand['enabled'];
+
+					return React.DOM.li({'className':React.addons.classSet(classes), 'onClick':aCommand['enabled'] ? commandHandler : null, 'data-broadcast-event':aCommand['broadcastEvent']}, [React.DOM.span({}, aCommand['label'])]);
 				}, commandValues));
 	},
 

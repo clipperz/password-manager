@@ -263,11 +263,9 @@ div.cardContent {
 		div.cardToolbar.narrow {
 		}
 		
-		div.cardList {
-//			overflow-y: scroll;
-			padding-bottom: 100px;
-
-			ul {
+		&.addCard {
+			div.cardList {
+				padding-bottom: 100px;
 			}
 		}
 		

@@ -50,7 +50,7 @@ Clipperz.PM.UI.MainController = function() {
 	this._selectedCardInfo = null;
 
 	this._closeMaskAction = null;
-	
+
 	this._pages = {};
 	this.renderPages([
 		'loginPage',
@@ -462,6 +462,7 @@ console.log("THE BROWSER IS OFFLINE");
 
 	showCardDetailInNarrowView: function (aValue) {
 		return Clipperz.Async.callbacks("MainController.showCardDetailInNarrowView", [
+			MochiKit.Base.method(this, 'setPageProperties', 'cardDetailPage', 'features', this.features()),
 			MochiKit.Base.method(this, 'setPageProperties', 'cardDetailPage', 'selectedCard', aValue),
 			MochiKit.Base.method(this, 'moveInPage', this.currentPage(), 'cardDetailPage'),
 		], {trace:false});
@@ -581,7 +582,6 @@ console.log("THE BROWSER IS OFFLINE");
 		var	fullFilterCriteria;
 		var	selectedCardReference = this._selectedCardInfo ? this._selectedCardInfo['reference'] : null;
 
-//console.log("updateSelectedCards - ACCOUNT INFO.featureSet", this.userAccountInfo()['featureSet']);
 		if (aFilter['type'] == 'ALL') {
 			filterCriteria = MochiKit.Base.operator.truth;
 			sortCriteria = Clipperz.Base.caseInsensitiveKeyComparator('label');
@@ -896,25 +896,17 @@ console.log("THE BROWSER IS OFFLINE");
 
 	//-------------------------------------------------------------------------
 
-	messageBoxContent: function () {
-		var	message;
-		var	level;
-		
-		message = "";
-		level = 'HIDE';
-		
-//console.log("messageBox - this.user()", this.user());
-		if (this.userAccountInfo()['featureSet'] == 'EXPIRED') {
-			message = "Exprired subscription";
-			level = 'ERROR';
-		}
-
-		return {
-			'message': message,
-			'level': level
-		};
+	featureSet: function () {
+		return this.userAccountInfo()['featureSet'];
 	},
 
+	features: function () {
+//		return this.userAccountInfo()['features'];
+		return Clipperz.PM.Proxy.defaultProxy.features(this.userAccountInfo()['features']);
+	},
+
+	//.........................................................................
+	
 	userAccountInfo: function () {
 		var	result;
 		
@@ -924,6 +916,7 @@ console.log("THE BROWSER IS OFFLINE");
 			var	usefulFields = [
 				'currentSubscriptionType',
 				'expirationDate',
+				'referenceDate',
 				'featureSet',
 				'features',
 				'isExpired',
@@ -939,12 +932,40 @@ console.log("THE BROWSER IS OFFLINE");
 		
 		return result;
 	},
-	
+
+	proxyInfo: function () {
+		return {
+			'proxyType':			Clipperz.PM.Proxy.defaultProxy.type(),
+			'proxyTypeDescription':	Clipperz.PM.Proxy.defaultProxy.typeDescription()
+		}
+		
+	},
+	//-------------------------------------------------------------------------
+
+	messageBoxContent: function () {
+		var	message;
+		var	level;
+		
+		message = "";
+		level = 'HIDE';
+		
+//console.log("messageBox - this.user()", this.user());
+		if (this.featureSet() == 'EXPIRED') {
+			message = "Exprired subscription";
+			level = 'ERROR';
+		}
+
+		return {
+			'message': message,
+			'level': level
+		};
+	},
+
 	genericPageProperties: function () {
 		return {
 			'style':			this.mediaQueryStyle(),
-		    'isTouchDevice':	this.isTouchDevice(),
-		    'isDesktop':		this.isDesktop(),
+			'isTouchDevice':	this.isTouchDevice(),
+			'isDesktop':		this.isDesktop(),
 			'hasKeyboard':		this.hasKeyboard()
 		};
 	},
@@ -968,7 +989,9 @@ console.log("THE BROWSER IS OFFLINE");
 				'accountInfo':					this.userAccountInfo(),
 				'selectionPanelStatus':			this.isSelectionPanelOpen()	? 'OPEN' : 'CLOSED',
 				'settingsPanelStatus':			this.isSettingsPanelOpen()	? 'OPEN' : 'CLOSED',
-				'featureSet':					this.userAccountInfo()['featureSet'],
+				'featureSet':					this.featureSet(),
+				'features':						this.features(),
+				'proxyInfo':					this.proxyInfo(),
 //				'shouldIncludeArchivedCards':	this.shouldIncludeArchivedCards(),
 //				'cards':				…,
 //				'tags':					…,
@@ -1156,7 +1179,7 @@ console.log("THE BROWSER IS OFFLINE");
 	selectCard: function (someInfo, shouldUpdateCardDetail) {
 		var result;
 
-		if (this.userAccountInfo()['featureSet'] != 'EXPIRED') {
+		if (this.featureSet() != 'EXPIRED') {
 			this._selectedCardInfo = someInfo;
 			this.refreshSelectedCards();
 			result = this.updateSelectedCard(someInfo, true, shouldUpdateCardDetail);

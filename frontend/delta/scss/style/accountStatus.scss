@@ -1,44 +1,50 @@
-.accountStatus {
-	background-color: green;
-	padding: 3px;
-	font-size: 10pt;
-	border-bottom: 1px solid white;
-	
-	&.FULL {
+.miscInfo {
+	.proxyInfo {
+		border-bottom: 1px solid white;
 		display: none;
 		visibility: hidden;
 		
-		&.isExpiring {
-			display: block;
+		&.OFFLINE_COPY {
+			display:block;
 			visibility: visible;
-			
-			background-color: yellow;
-		}
-	}
-	
-	&.TRIAL {
-		background-color: orange;
 
-		&.isExpiring {
-			background-color: red;
+			background-color: $clipperz-blue;
+			color: white;
+		
+			.referenceDate {
+				padding-left: 10px;
+			}
 		}
 	}
+
+	.accountStatus {
+		border-bottom: 1px solid white;
+		background-color: green;
+		padding: 3px;
+		font-size: 10pt;
 	
-	&.EXPIRED {
-		background-color: red;
-	}
-	
-	&.OFFLINE_COPY {
-		background-color: $clipperz-blue;
-		color: white;
-		
-		.expirationDate {
+		&.FULL {
 			display: none;
 			visibility: hidden;
-		}
 		
-		.referenceDate {
-			padding-left: 10px;
+			&.isExpiring {
+				display: block;
+				visibility: visible;
+			
+				background-color: yellow;
+			}
+		}
+	
+		&.TRIAL {
+			background-color: orange;
+
+			&.isExpiring {
+				background-color: red;
+			}
+		}
+	
+		&.EXPIRED {
+			background-color: red;
 		}
 	}
 }

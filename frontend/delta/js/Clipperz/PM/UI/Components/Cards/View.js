@@ -62,7 +62,6 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 		newState[aField['_reference']] = !this.state[aField['_reference']];
 		
 		return function () {
-console.log("SHOW PASSWORD", aField, self);
 			self.setState(newState);
 		};
 	},

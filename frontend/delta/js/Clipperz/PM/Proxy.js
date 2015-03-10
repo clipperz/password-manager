@@ -131,6 +131,20 @@ Clipperz.PM.Proxy.prototype = MochiKit.Base.update(null, {
 
 	//=========================================================================
 
+	'type': function () {
+		throw Clipperz.Base.exception.AbstractMethod;
+	},
+
+	'typeDescription': function () {
+		throw Clipperz.Base.exception.AbstractMethod;
+	},
+
+	'features': function (someFeatures) {
+		throw Clipperz.Base.exception.AbstractMethod;
+	},
+
+	//=========================================================================
+
 	'processMessage': function (aFunctionName, someParameters, aRequestType) {
 		var	deferredResult;
 

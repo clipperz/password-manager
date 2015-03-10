@@ -30,12 +30,23 @@ Clipperz.PM.UI.Components.Cards.List = React.createClass({
 
 	propTypes: {
 		'cards':		React.PropTypes.array,
-		'featureSet':	React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL', 'OFFLINE']).isRequired,
+		'featureSet':	React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
+		'features':		React.PropTypes.array.isRequired,
 		'selectedCard':	React.PropTypes.object
 	},
 
+	features: function () {
+		return this.props['features'];
+	},
+	
+	isFeatureEnabled: function (aValue) {
+		return (this.features().indexOf(aValue) > -1);
+	},
+
 	handleClick: function (anEvent) {
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', {'reference':anEvent.currentTarget.dataset.reference, 'label':anEvent.currentTarget.dataset.label}, true);
+		if (this.isFeatureEnabled('CARD_DETAILS')) {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', {'reference':anEvent.currentTarget.dataset.reference, 'label':anEvent.currentTarget.dataset.label}, true);
+		}
 	},
 	
 	renderItem: function (anItem) {
@@ -70,7 +81,7 @@ Clipperz.PM.UI.Components.Cards.List = React.createClass({
 		classes[this.props['style']] = true;
 
 		return	React.DOM.div({'key':'cardList', 'className':React.addons.classSet(classes)}, [
-					React.DOM.ul({}, MochiKit.Base.map(this.renderItem, cards))
+					this.isFeatureEnabled('LIST_CARDS') ? React.DOM.ul({}, MochiKit.Base.map(this.renderItem, cards)) : null
 				]);
 	},
 	

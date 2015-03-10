@@ -47,6 +47,20 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.JSON, Clipperz.PM.Proxy, {
 	},
 
 	//=========================================================================
+
+	'type': function () {
+		return 'ONLINE';
+	},
+
+	'typeDescription': function () {
+		return 'Online service';
+	},
+
+	'features': function (someFeatures) {
+		return someFeatures;
+	},
+
+	//=========================================================================
 	
 	'_sendMessage': function(aFunctionName, aVersion, someParameters) {
 		var	deferredResult;

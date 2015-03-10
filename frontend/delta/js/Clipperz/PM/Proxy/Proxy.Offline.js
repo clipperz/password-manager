@@ -21,6 +21,7 @@ refer to http://www.clipperz.com.
 
 */
 
+
 if (typeof(Clipperz) == 'undefined') { Clipperz = {}; }
 if (typeof(Clipperz.PM) == 'undefined') { Clipperz.PM = {}; }
 
@@ -32,6 +33,8 @@ Clipperz.PM.Proxy.Offline = function(args) {
 	Clipperz.PM.Proxy.Offline.superclass.constructor.call(this, args);
 
 	this._dataStore = args.dataStore || new Clipperz.PM.Proxy.Offline.DataStore(args);
+	this._type = args.type || 'OFFLINE';
+	this._typeDescription = args.typeDescription || 'Offline';
 
 	return this;
 }
@@ -64,7 +67,29 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline, Clipperz.PM.Proxy, {
 		return this.dataStore().canRegisterNewUsers();
 	},
 
-	//-------------------------------------------------------------------------
+	//=========================================================================
+
+	'type': function () {
+		return this._type;
+	},
+
+	'typeDescription': function () {
+		return this._typeDescription;
+	},
+
+	'features': function (someFeatures) {
+		var	result;
+		
+		if (this.type() == 'OFFLINE_COPY') {
+			result = ['LIST_CARDS', 'CARD_DETAILS'];
+		} else {
+			result = someFeatures;
+		}
+		
+		return result;
+	},
+
+	//=========================================================================
 
 	__syntaxFix__: "syntax fix"
 	

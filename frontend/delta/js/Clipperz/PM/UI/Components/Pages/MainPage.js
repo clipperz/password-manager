@@ -28,7 +28,8 @@ Clipperz.PM.UI.Components.Pages.MainPage = React.createClass({
 
 	getDefaultProps: function () {
 		return {
-			featureSet: 'FULL'
+			featureSet: 'FULL',
+			features:	[]
 		};
 	},
 
@@ -36,7 +37,8 @@ Clipperz.PM.UI.Components.Pages.MainPage = React.createClass({
 		'tags':				React.PropTypes.object,
 		'allTags':			React.PropTypes.array,
 		'messageBox':		React.PropTypes.object.isRequired,
-		'featureSet':		React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL', 'OFFLINE']).isRequired,
+		'featureSet':		React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
+		'features':			React.PropTypes.array.isRequired,
 		'accountInfo':		React.PropTypes.object.isRequired,
 //		'mediaQueryStyle':	React.PropTypes.oneOf(['extra-short', 'narrow', 'wide', 'extra-wide']).isRequired,
 		'style':			React.PropTypes.oneOf(Clipperz_PM_UI_availableStyles).isRequired,
