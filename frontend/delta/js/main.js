@@ -21,6 +21,8 @@ refer to http://www.clipperz.com.
 
 */
 
+"use strict";
+
 function _pm_logEvent(anEvent) {
 //	console.log("####", anEvent);
 	
@@ -60,7 +62,6 @@ function initOnMediaQuery () {
 	}, Clipperz_PM_UI_availableStyles));
 }
 
-
 function run () {
 	var parameters = {};
 
@@ -90,12 +91,6 @@ function simulateLogin () {
 	
 	Clipperz.Crypto.PRNG.defaultRandomGenerator().fastEntropyAccumulationForTestingPurpose();
 	
-//	MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'doLogin', {username:'joe', passphrase:'clipperz'});	//	FULL
-//	http://localhost:8888/delta/index.html?username=joe&passphrase=clipperz
-
-//	MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'doLogin', {username:';', passphrase:';'});			//	EXPIRED
-//	http://localhost:8888/delta/index.html?username=%3B&passphrase=%3B
-
 	if ((getURLParameter('u') != null) && (getURLParameter('p'))) {
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'doLogin', {username:getURLParameter('u'), passphrase:getURLParameter('p')});
 	}
