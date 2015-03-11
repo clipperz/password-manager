@@ -1134,6 +1134,8 @@ div.cardContent {
 
 .button {
   cursor: pointer; }
+  .button.disabled {
+    cursor: default; }
 
 div.dialogBox {
   display: -webkit-box;
@@ -1417,10 +1419,10 @@ div.dialogBox {
       background-color: black;
       cursor: pointer;
       font-size: 24pt; }
-      #loginPage div.loginForm footer:before {
-        content: "> "; }
       #loginPage div.loginForm footer a {
         line-height: 50pt; }
+        #loginPage div.loginForm footer a:before {
+          content: "> "; }
   #loginPage div.loginForm.extra-short header {
     font-size: 18pt; }
   #loginPage div.loginForm.extra-short div.form form {
@@ -1929,11 +1931,15 @@ span.count {
       -moz-border-radius: 2;
       border-radius: 2;
       display: inline-block;
-      padding: 4px 8px;
+      padding: 10px 16px;
       background-color: green;
       color: white; }
       #extraFeaturesPanel > div ul li a.button:hover {
         color: lightgrey; }
+      #extraFeaturesPanel > div ul li a.button.disabled {
+        background-color: #999; }
+        #extraFeaturesPanel > div ul li a.button.disabled:hover {
+          color: white; }
 
 .miscInfo .proxyInfo {
   border-bottom: 1px solid white;

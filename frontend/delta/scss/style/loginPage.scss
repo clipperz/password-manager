@@ -107,12 +107,12 @@
 			cursor: pointer;
 			font-size: 24pt;
 
-			&:before {
-				content: "> ";
-			};
-
 			a {
 				line-height: 50pt;
+
+				&:before {
+					content: "> ";
+				};
 			}
 		}
 	}

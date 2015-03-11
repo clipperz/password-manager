@@ -85,13 +85,21 @@
 				a.button {
 					@include border-radius(2);
 					display: inline-block;
-					padding: 4px 8px;
+					padding: 10px 16px;
 					background-color: green;
 					color: white;
 					
 					&:hover {
 						color: lightgrey;
 					};
+					
+					&.disabled {
+						background-color: #999;
+
+						&:hover {
+							color: white;
+						};
+					}
 				}
 			}
 		}

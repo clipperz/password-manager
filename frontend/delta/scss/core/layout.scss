@@ -426,6 +426,10 @@ div.cardContent {
 
 .button {
 	cursor: pointer;
+	
+	&.disabled {
+		cursor: default;
+	}
 }
 
 
