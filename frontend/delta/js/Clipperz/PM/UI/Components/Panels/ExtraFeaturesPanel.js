@@ -32,7 +32,9 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 	},
 
 	handleDownloadOfflineCopyLink: function (anEvent) {
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'downloadOfflineCopy');
+		if (this.isFeatureEnabled('OFFLINE_COPY')) {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'downloadOfflineCopy');
+		}
 	},
 
 	propTypes: {
@@ -56,6 +58,10 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 		}, this);
 	},
 
+	isFeatureEnabled: function (aValue) {
+		return (this.props['features'].indexOf(aValue) > -1);
+	},
+
 	//=========================================================================
 
 	render: function () {
@@ -65,11 +71,16 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 			'right': true,
 			'open': this.props['settingsPanelStatus'] == 'OPEN'
 		}
+		
+		var	offlineCopyButtonClasses = {
+			'button': true,
+			'disabled': !this.isFeatureEnabled('OFFLINE_COPY')
+		}
 
-		return	React.DOM.div({key:'extraFeaturesPanel', id:'extraFeaturesPanel', className:React.addons.classSet(classes)}, [
+		return	React.DOM.div({'key':'extraFeaturesPanel', 'id':'extraFeaturesPanel', 'className':React.addons.classSet(classes)}, [
 			React.DOM.header({}, [
-				React.DOM.div({className:'settingsToggle'}, [
-					Clipperz.PM.UI.Components.Button({eventName:'settingsToggleButton', label:"menu", handler:this.settingsToggleHandler})
+				React.DOM.div({'className':'settingsToggle'}, [
+					Clipperz.PM.UI.Components.Button({'eventName':'settingsToggleButton', 'label':"menu", 'handler':this.settingsToggleHandler})
 				])
 			]),
 
@@ -146,7 +157,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 								React.DOM.h2({}, "Offline copy"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "With just one click you can dump all your encrypted data from Clipperz servers to your hard disk and create a read-only offline version of Clipperz to be used when you are not connected to the Internet."),
-									React.DOM.a({'className':'button', 'onClick':this.handleDownloadOfflineCopyLink}, "Download")
+									React.DOM.a({'className':React.addons.classSet(offlineCopyButtonClasses), 'onClick':this.handleDownloadOfflineCopyLink}, "Download")
 								])
 							]),
 							React.DOM.li({}, [
