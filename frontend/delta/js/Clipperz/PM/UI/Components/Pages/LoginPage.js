@@ -141,16 +141,22 @@ Clipperz.PM.UI.Components.Pages.LoginPage = React.createClass({
 	},
 
 	render: function() {
-		var registrationLink =	React.DOM.footer({'key':'registrationLink', 'className':'registrationLink'}, [
-									React.DOM.a({'key':'signup', 'onClick':this.handleRegistrationLinkClick}, "Sign up")
-								]);
+//console.log("LOGIN PAGE", this.props);
+//		var registrationLink =	React.DOM.footer({'key':'registrationLink', 'className':'registrationLink'}, [
+//									React.DOM.a({'key':'signup', 'onClick':this.handleRegistrationLinkClick}, "Sign up")
+//								]);
+
+		var	registrationLink = React.DOM.a({'key':'signup', 'onClick':this.handleRegistrationLinkClick}, "Sign up");
 
 		return React.DOM.div({'className':'loginForm ' + this.props['style']}, [
 			React.DOM.header({'key':'header'}, 'clipperz'),
 			React.DOM.div({'key':'form-wrapper', 'className':'form'}, [
 				this.props.mode == 'PIN' ? this.pinForm() : this.loginForm(),
 			]),
-			this.props.isNewUserRegistrationAvailable ? registrationLink : null
+			React.DOM.footer({'key':'registrationLink', 'className':'registrationLink'}, [
+				this.props['isNewUserRegistrationAvailable'] ? registrationLink : null
+			])
+//			this.props['isNewUserRegistrationAvailable'] ? registrationLink : null
 		]);
 	}
 });

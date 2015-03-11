@@ -237,10 +237,10 @@ console.log("THE BROWSER IS OFFLINE");
 		var	canRegisterNewUsers;
 
 		canRegisterNewUsers = Clipperz.PM.Proxy.defaultProxy.canRegisterNewUsers();
-
+//console.log("CAN REGISTER NEW USERS", canRegisterNewUsers);
 		this.selectInitialProxy();
 		shouldShowRegistrationForm = parameters['shouldShowRegistrationForm'] && canRegisterNewUsers;
-		this.pages()['loginPage'].setProps({'mode':this.loginMode(), 'isNewUserRegistrationAvailable':canRegisterNewUsers});
+//		this.pages()['loginPage'].setProps({'mode':this.loginMode(), 'isNewUserRegistrationAvailable':canRegisterNewUsers});
 
 		this.showLoginForm();
 		if (shouldShowRegistrationForm) {
@@ -257,7 +257,8 @@ console.log("THE BROWSER IS OFFLINE");
 		var	loginFormPage;
 
 		loginFormPage = this.pages()['loginPage'];
-		loginFormPage.setProps({'mode':this.loginMode(), 'isNewUserRegistrationAvailable':Clipperz.PM.Proxy.defaultProxy.canRegisterNewUsers()});
+//		loginFormPage.setProps({'mode':this.loginMode(), 'isNewUserRegistrationAvailable':Clipperz.PM.Proxy.defaultProxy.canRegisterNewUsers()});
+		loginFormPage.setProps({'mode':this.loginMode()});
 		this.moveInPage(this.currentPage(), 'loginPage');
 		MochiKit.Async.callLater(0.5, MochiKit.Base.method(loginFormPage, 'setInitialFocus'));
 	},
@@ -979,7 +980,7 @@ console.log("THE BROWSER IS OFFLINE");
 		if (aPageName == 'loginPage') {
 			extraProperties = {
 				'mode':								'CREDENTIALS',
-				'isNewUserRegistrationAvailable':	true,
+				'isNewUserRegistrationAvailable':	Clipperz.PM.Proxy.defaultProxy.canRegisterNewUsers(),
 				'disabled':							false,
 			};
 		} else if (aPageName == 'registrationPage') {
