@@ -345,6 +345,6 @@ Clipperz.PM.DataModel.OneTimePassword.normalizedOneTimePassword = function(aPass
 	}
 
 	return result;
-}
+};
 
 //#############################################################################
