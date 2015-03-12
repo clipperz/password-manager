@@ -2207,13 +2207,25 @@ div.cardList.narrow {
 .content .tagEditor {
   padding: 10px; }
 .content .cardNotes {
-  width: 100%;
   border: 0px;
   font-size: 10pt;
-  white-space: pre-wrap;
-  word-wrap: break-word; }
+  padding: 10px 42px 10px 42px; }
   .content .cardNotes div {
-    padding: 10px; }
+    -webkit-user-select: text;
+    /* Chrome all / Safari all */
+    -moz-user-select: text;
+    /* Firefox all */
+    -ms-user-select: text;
+    /* IE 10+ */
+    /* No support for these yet, use at own risk */
+    -o-user-select: text;
+    user-select: text;
+    line-height: 1.5em; }
+  .content .cardNotes textarea {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    width: 100%;
+    border: 0px; }
 .content .dropArea {
   background-color: #ccc;
   width: 100%;
@@ -2294,7 +2306,16 @@ div.cardList.narrow {
     .content .cardField .fieldValues .fieldLabel {
       color: gray;
       padding-bottom: 4px;
-      margin-bottom: 4px; }
+      margin-bottom: 4px;
+      -webkit-user-select: text;
+      /* Chrome all / Safari all */
+      -moz-user-select: text;
+      /* Firefox all */
+      -ms-user-select: text;
+      /* IE 10+ */
+      /* No support for these yet, use at own risk */
+      -o-user-select: text;
+      user-select: text; }
       .content .cardField .fieldValues .fieldLabel input {
         font-size: 12pt;
         color: gray;
@@ -2302,7 +2323,7 @@ div.cardList.narrow {
         width: 100%; }
     .content .cardField .fieldValues .fieldValue {
       font-size: 18pt;
-      line-height: 28px;
+      line-height: 1.2em;
       -webkit-user-select: text;
       /* Chrome all / Safari all */
       -moz-user-select: text;

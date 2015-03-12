@@ -319,18 +319,26 @@ $cardViewBasePadding: 10px;
 	}
 
 	.cardNotes {
-		width: 100%;
+//		width: 100%;
 		border: 0px;
 
 		font-size: 10pt;
 //		font-style: italic;
 
-		white-space: pre-wrap;
-		word-wrap: break-word;
+		padding: 10px 42px 10px 42px;
 
 //		background-color: gold;
 		div {
-			padding: $cardViewBasePadding;
+			@include user-select(text);
+			line-height: 1.5em;
+//			padding: $cardViewBasePadding;
+		}
+		
+		textarea {
+			white-space: pre-wrap;
+			word-wrap: break-word;
+			width: 100%;
+			border: 0px;
 		}
 	}
 
@@ -419,6 +427,7 @@ $cardViewBasePadding: 10px;
 //				border-bottom: 1px dotted #ddd;
 				padding-bottom: 4px;
 				margin-bottom: 4px;
+				@include user-select(text);
 				
 				input {
 					font-size: 12pt;
@@ -430,7 +439,8 @@ $cardViewBasePadding: 10px;
 
 			.fieldValue {
 				font-size: 18pt;
-				line-height: 28px;
+//				line-height: 28px;
+				line-height: 1.2em;
 				@include user-select(text);
 
 				white-space: pre-wrap;
