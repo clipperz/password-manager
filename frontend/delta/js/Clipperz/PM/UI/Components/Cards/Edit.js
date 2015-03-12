@@ -87,11 +87,13 @@ console.log("DROP");	//, anEvent);
 	},
 */
 	dragEnd: function (anEvent) {
-		if (this.state['toFieldPosition'] != -1) {
+		var	dragPosition = this.state['dropPosition'];	//	this.state['toFieldPosition']
+
+		if (dragPosition != -1) {
 			var	reference = this.props['_reference'];
 //console.log("MOVE FIELD POSITION", this.state['toFieldPosition'], this.state['draggedFieldReference']);
 			Clipperz.Async.callbacks("Clipperz.PM.UI.Components.Cards.Edit.dragEnd-moveFieldToPosition", [
-				MochiKit.Base.method(this.record(), 'moveFieldToPosition', this.state['draggedFieldReference'], this.state['toFieldPosition']),
+				MochiKit.Base.method(this.record(), 'moveFieldToPosition', this.state['draggedFieldReference'], dragPosition),
 				MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', reference),
 			], {trace:false});
 		} else {
@@ -114,6 +116,8 @@ console.log("DROP");	//, anEvent);
 	},
 */
 	dragOver: function (anEvent) {
+//console.log("DRAG OVER", anEvent);
+//console.log("DRAG OVER", anEvent.currentTarget.dataset['index']);
 		var	toFieldPosition;
 		var	dropPosition;
 
@@ -148,7 +152,7 @@ console.log("DROP");	//, anEvent);
 			dropPosition = anEvent.currentTarget.dataset['dropIndex'];
 			toFieldPosition = dropPosition;
 		}
-
+//console.log("-- ", dropPosition, this.state['dropPosition'], toFieldPosition, this.state['toFieldPosition']);
 		if ((dropPosition != this.state['dropPosition']) || (toFieldPosition != this.state['toFieldPosition'])) {
 			this.setState({'dropPosition': dropPosition, 'toFieldPosition':toFieldPosition});
 		}
@@ -186,6 +190,7 @@ console.log("DROP");	//, anEvent);
 	},
 */
 	dragOverDropTarget: function (anEvent) {
+//console.log("DRAG OVER DROP TARGET", anEvent.currentTarget.dataset['dropIndex']/*, anEvent*/);
 		var	toFieldPosition = anEvent.currentTarget.dataset['dropIndex'];
 		
 		if (toFieldPosition != this.state['toFieldPosition']) {
@@ -264,7 +269,9 @@ console.log("DROP");	//, anEvent);
 	
 	renderNotes: function (someNotes) {
 //		return	React.DOM.textarea({'className':'cardNotes', 'onChange':this.handleChange(this.record(), 'setNotes'), 'defaultValue':someNotes, 'key':this.props['_reference'] + '_notes', 'placeholder': "notes"});
-		return	Clipperz.PM.UI.Components.Cards.TextArea({'className':'cardNotes', 'onChange':this.handleChange(this.record(), 'setNotes'), 'defaultValue':someNotes, 'key':this.props['_reference'] + '_notes', 'placeholder': "notes"});
+		return	React.DOM.div({'className':'cardNotes'}, [
+			Clipperz.PM.UI.Components.Cards.TextArea({'onChange':this.handleChange(this.record(), 'setNotes'), 'defaultValue':someNotes, 'key':this.props['_reference'] + '_notes', 'placeholder': "notes"})
+		]);
 	},
 
 	//............................................................................
