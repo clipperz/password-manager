@@ -1675,7 +1675,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 	},
 
 	//-------------------------------------------------------------------------
-/*	NEW	TEST
+
 	'answerHasPendingChangesWithoutLoadingRemoteData': function (someTestArgs) {
 		var	deferredResult;
 		var	proxy;
@@ -1702,7 +1702,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 
 		return deferredResult;
 	},
-*/
+
 	//-------------------------------------------------------------------------
 
 	'changeFieldOrder': function (someTestArgs) {
@@ -1915,7 +1915,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 	},
 
 	//-------------------------------------------------------------------------
-/*
+/*	NEW TEST
 	'changeFieldOrderAndRevert': function (someTestArgs) {
 		var	deferredResult;
 		var	proxy;
