@@ -1675,6 +1675,35 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 	},
 
 	//-------------------------------------------------------------------------
+/*	NEW	TEST
+	'answerHasPendingChangesWithoutLoadingRemoteData': function (someTestArgs) {
+		var	deferredResult;
+		var	proxy;
+		var	user;
+		var	recordID = '021c1512cd4eb8e05fd82d4b0d86cb6edcc7be0c06e32bc21ed74beafefdb33d';	//	fullLabel: "Card 1 #Tag1 #Tag2"
+
+		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:false, isDefault:true, readOnly:false});
+		user  = new Clipperz.PM.DataModel.User({username:'tag', getPassphraseFunction:function () { return 'tag';}});
+
+		deferredResult = new Clipperz.Async.Deferred("Record.test.answerHasPendingChangesWithoutLoadingRemoteData", someTestArgs);
+		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['tag/tag_accountWithTags']);
+		deferredResult.addMethod(user, 'login');
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('hasLoadedRemoteData');
+		deferredResult.addTest(false, "Initially, the record should not have loaded remote data");
+
+		deferredResult.addMethod(user, 'hasPendingChanges');
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('hasLoadedRemoteData');
+		deferredResult.addTest(false, "After chencking for pending changes, the record should have not loaded its remote data");
+
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+*/
+	//-------------------------------------------------------------------------
 
 	'changeFieldOrder': function (someTestArgs) {
 		var	deferredResult;
@@ -1724,7 +1753,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult.addMethodcaller('getFieldsValues');
 		deferredResult.addCallback(MochiKit.Base.values);
 		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.itemgetter('label'));
-		deferredResult.addCallback(function (aValue) { console.log("[1] -> 0", aValue); return aValue; });
+//		deferredResult.addCallback(function (aValue) { console.log("[1] -> 0", aValue); return aValue; });
 		deferredResult.addTest([
 			"Web site",		// *
 			"AAdvantage N.",
@@ -1740,7 +1769,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult.addMethodcaller('getFieldsValues');
 		deferredResult.addCallback(MochiKit.Base.values);
 		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.itemgetter('label'));
-		deferredResult.addCallback(function (aValue) { console.log("[2] -> 0", aValue); return aValue; });
+//		deferredResult.addCallback(function (aValue) { console.log("[2] -> 0", aValue); return aValue; });
 		deferredResult.addTest([
 			"Web site",		// *
 			"AAdvantage N.",
@@ -1790,7 +1819,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult.addMethodcaller('getFieldsValues');
 		deferredResult.addCallback(MochiKit.Base.values);
 		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.itemgetter('label'));
-		deferredResult.addCallback(function (aValue) { console.log("[3] -> 0", aValue); return aValue; });
+//		deferredResult.addCallback(function (aValue) { console.log("[3] -> 0", aValue); return aValue; });
 		deferredResult.addTest([
 			"Web site",		// *
 			"AAdvantage N.",
@@ -1806,7 +1835,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult.addMethodcaller('getFieldsValues');
 		deferredResult.addCallback(MochiKit.Base.values);
 		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.itemgetter('label'));
-		deferredResult.addCallback(function (aValue) { console.log("[4] -> 1", aValue); return aValue; });
+//		deferredResult.addCallback(function (aValue) { console.log("[4] -> 1", aValue); return aValue; });
 		deferredResult.addTest([
 			"AAdvantage N.",
 			"Web site",		// *
@@ -1822,7 +1851,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult.addMethodcaller('getFieldsValues');
 		deferredResult.addCallback(MochiKit.Base.values);
 		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.itemgetter('label'));
-		deferredResult.addCallback(function (aValue) { console.log("[5] -> 2", aValue); return aValue; });
+//		deferredResult.addCallback(function (aValue) { console.log("[5] -> 2", aValue); return aValue; });
 		deferredResult.addTest([
 			"AAdvantage N.",
 			"Password",
@@ -1838,7 +1867,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult.addMethodcaller('getFieldsValues');
 		deferredResult.addCallback(MochiKit.Base.values);
 		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.itemgetter('label'));
-		deferredResult.addCallback(function (aValue) { console.log("[6] -> 3", aValue); return aValue; });
+//		deferredResult.addCallback(function (aValue) { console.log("[6] -> 3", aValue); return aValue; });
 		deferredResult.addTest([
 			"AAdvantage N.",
 			"Password",
@@ -1854,7 +1883,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult.addMethodcaller('getFieldsValues');
 		deferredResult.addCallback(MochiKit.Base.values);
 		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.itemgetter('label'));
-		deferredResult.addCallback(function (aValue) { console.log("[7] -> 4", aValue); return aValue; });
+//		deferredResult.addCallback(function (aValue) { console.log("[7] -> 4", aValue); return aValue; });
 		deferredResult.addTest([
 			"AAdvantage N.",
 			"Password",
@@ -1870,7 +1899,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult.addMethodcaller('getFieldsValues');
 		deferredResult.addCallback(MochiKit.Base.values);
 		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.itemgetter('label'));
-		deferredResult.addCallback(function (aValue) { console.log("[8] -> 10 -> 4", aValue); return aValue; });
+//		deferredResult.addCallback(function (aValue) { console.log("[8] -> 10 -> 4", aValue); return aValue; });
 		deferredResult.addTest([
 			"AAdvantage N.",
 			"Password",
@@ -1880,6 +1909,263 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		], "final order of keys [8]", true);
 		deferredResult.addMethod(user, 'revertChanges');
 
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+
+	//-------------------------------------------------------------------------
+/*
+	'changeFieldOrderAndRevert': function (someTestArgs) {
+		var	deferredResult;
+		var	proxy;
+		var	user;
+		var recordID =		'eb9a01d0094fcd8f3cbf4f875b7f4c43afa2bb796b5787badf75fba1b3e77c01'
+		var originalFieldReference = 'bfd7624054e1eb6f1849082714f4016e300bce66645c7a7370276d82767cf125';
+
+		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:false, isDefault:true, readOnly:false});
+		user  = new Clipperz.PM.DataModel.User({username:'1', getPassphraseFunction:function () { return '1';}});
+
+		deferredResult = new Clipperz.Async.Deferred("Record.test.changeFieldOrderAndRevert", someTestArgs);
+		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['1/1_data']);
+		deferredResult.addMethod(user, 'login');
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('getCurrentRecordVersion');
+		deferredResult.addMethodcaller('hasInitiatedObjectDataStore');
+		deferredResult.addTest(false, "the current version of the record is not initiated if no data is accessed");
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('getCurrentRecordVersion');
+		deferredResult.addMethodcaller('transientState');
+		deferredResult.addMethodcaller('isEmpty');
+		deferredResult.addTest(true, "the current version should initially have an empty Transient State");
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('moveFieldToPosition', originalFieldReference, 0);
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('getCurrentRecordVersion');
+		deferredResult.addMethodcaller('transientState');
+		deferredResult.addCallback(function (aValue) { console.log("TRANSIENT STATE", aValue); return aValue});
+		deferredResult.addMethodcaller('isEmpty');
+		deferredResult.addTest(false, "once a field has been moved, the current version should have a non empty Transient State");
+
+/ *
+		for (var i=0; i<2; i++) {
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('moveFieldToPosition', originalFieldReference, 0);
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('getFieldsValues');
+			deferredResult.addCallback(MochiKit.Base.values);
+			deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.itemgetter('label'));
+	deferredResult.addCallback(function (aValue) { console.log("[changeFieldOrderAndRevert] -> 0", aValue); return aValue; });
+			deferredResult.addTest([
+				"Label 2",		// *
+				"Label 1",
+				"Label 3",
+			], "final order of keys", true);
+
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('getCurrentRecordVersion');
+			deferredResult.addMethodcaller('hasInitiatedObjectDataStore');
+			deferredResult.addTest(true, "once data is accessed, the version is initiated");
+
+			deferredResult.addMethod(user, 'revertChanges');
+
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('getCurrentRecordVersion');
+			deferredResult.addMethodcaller('hasInitiatedObjectDataStore');
+			deferredResult.addTest(false, "reverting changes, the current version object data store is de-initiated");
+
+
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('getFieldsValues');
+			deferredResult.addCallback(MochiKit.Base.values);
+			deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.itemgetter('label'));
+	deferredResult.addCallback(function (aValue) { console.log("[changeFieldOrderAndRevert] REVERTED", aValue); return aValue; });
+			deferredResult.addTest([
+				"Label 1",
+				"Label 2",		// *
+				"Label 3",
+			], "initial order of keys", true);
+		}
+* /
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+*/
+	//-------------------------------------------------------------------------
+
+	'deleteFieldAndRevert': function (someTestArgs) {
+		var	deferredResult;
+		var	proxy;
+		var	user;
+		var recordID =		'eb9a01d0094fcd8f3cbf4f875b7f4c43afa2bb796b5787badf75fba1b3e77c01'
+		var originalFieldReference = 'bfd7624054e1eb6f1849082714f4016e300bce66645c7a7370276d82767cf125';
+
+		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:false, isDefault:true, readOnly:false});
+		user  = new Clipperz.PM.DataModel.User({username:'1', getPassphraseFunction:function () { return '1';}});
+
+		deferredResult = new Clipperz.Async.Deferred("Record.test.deleteFieldAndRevert", someTestArgs);
+		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['1/1_data']);
+		deferredResult.addMethod(user, 'login');
+
+		for (var i=0; i<2; i++) {
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('removeField', { 'reference': function () { return originalFieldReference; } });
+
+			deferredResult.addMethod(user, 'hasPendingChanges');
+			deferredResult.addTest(true, "removing a field on a record trigger pending changes");
+
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('getFieldsValues');
+			deferredResult.addCallback(MochiKit.Base.values);
+			deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.itemgetter('label'));
+			deferredResult.addTest([
+				"Label 1",
+				"Label 3",
+			], "Keys left", true);
+
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('fields');
+			deferredResult.addCallback(MochiKit.Base.values);
+			deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+			deferredResult.addTest(2, "The record is left with two fields");
+
+			deferredResult.addMethod(user, 'revertChanges');
+
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('getFieldsValues');
+			deferredResult.addCallback(MochiKit.Base.values);
+			deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.itemgetter('label'));
+			deferredResult.addTest([
+				"Label 1",
+				"Label 2",
+				"Label 3",
+			], "All fields restored", true);
+
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('fields');
+			deferredResult.addCallback(MochiKit.Base.values);
+			deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+			deferredResult.addTest(3, "The record is left with two fields");
+
+			deferredResult.addMethod(user, 'hasPendingChanges');
+			deferredResult.addTest(false, "reverting changes discards not saved changes");
+		}
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+
+	//-------------------------------------------------------------------------
+
+	'addFieldAndRevert': function (someTestArgs) {
+		var	deferredResult;
+		var	proxy;
+		var	user;
+		var recordID =		'eb9a01d0094fcd8f3cbf4f875b7f4c43afa2bb796b5787badf75fba1b3e77c01'
+//		var originalFieldReference = 'bfd7624054e1eb6f1849082714f4016e300bce66645c7a7370276d82767cf125';
+
+		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:false, isDefault:true, readOnly:false});
+		user  = new Clipperz.PM.DataModel.User({username:'1', getPassphraseFunction:function () { return '1';}});
+
+		deferredResult = new Clipperz.Async.Deferred("Record.test.addFieldAndRevert", someTestArgs);
+		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['1/1_data']);
+		deferredResult.addMethod(user, 'login');
+
+		for (var i=0; i<2; i++) {
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('addField', { 'label':"Label 4", 'value':"Value 4", 'hidden':false });
+
+			deferredResult.addMethod(user, 'hasPendingChanges');
+			deferredResult.addTest(true, "addking a field on a record trigger pending changes");
+
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('getFieldsValues');
+			deferredResult.addCallback(MochiKit.Base.values);
+			deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.itemgetter('label'));
+			deferredResult.addTest([
+				"Label 1",
+				"Label 2",
+				"Label 3",
+				"Label 4",
+			], "Keys left", true);
+
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('fields');
+			deferredResult.addCallback(MochiKit.Base.values);
+			deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+			deferredResult.addTest(4, "The record is left with two fields");
+
+			deferredResult.addMethod(user, 'revertChanges');
+
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('getFieldsValues');
+			deferredResult.addCallback(MochiKit.Base.values);
+			deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.itemgetter('label'));
+			deferredResult.addTest([
+				"Label 1",
+				"Label 2",
+				"Label 3",
+			], "All fields restored", true);
+
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('fields');
+			deferredResult.addCallback(MochiKit.Base.values);
+			deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+			deferredResult.addTest(3, "The record is left with two fields");
+
+			deferredResult.addMethod(user, 'hasPendingChanges');
+			deferredResult.addTest(false, "reverting changes discards not saved changes");
+		}
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+
+	//-------------------------------------------------------------------------
+
+	'setNotesAndRevert': function (someTestArgs) {
+		var	deferredResult;
+		var	proxy;
+		var	user;
+		var recordID =		'eb9a01d0094fcd8f3cbf4f875b7f4c43afa2bb796b5787badf75fba1b3e77c01'
+//		var originalFieldReference = 'bfd7624054e1eb6f1849082714f4016e300bce66645c7a7370276d82767cf125';
+
+		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:false, isDefault:true, readOnly:false});
+		user  = new Clipperz.PM.DataModel.User({username:'1', getPassphraseFunction:function () { return '1';}});
+
+		deferredResult = new Clipperz.Async.Deferred("Record.test.setNotesAndRevert", someTestArgs);
+		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['1/1_data']);
+		deferredResult.addMethod(user, 'login');
+
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('notes');
+		deferredResult.addTest("", "The record has no notes");
+
+		for (var i=0; i<2; i++) {
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('setNotes', "New notes added to the record");
+
+			deferredResult.addMethod(user, 'hasPendingChanges');
+			deferredResult.addTest(true, "adding some notes to a record trigger pending changes");
+
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('notes');
+			deferredResult.addTest("New notes added to the record", "new notes value is stored");
+
+			deferredResult.addMethod(user, 'revertChanges');
+
+			deferredResult.addMethod(user, 'getRecord', recordID);
+			deferredResult.addMethodcaller('notes');
+			deferredResult.addTest("", "Restored original notes");
+
+			deferredResult.addMethod(user, 'hasPendingChanges');
+			deferredResult.addTest(false, "reverting changes discards not saved changes");
+		}
 		deferredResult.callback();
 
 		return deferredResult;
@@ -1934,7 +2220,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult.addMethodcaller('getFieldsValues');
 		deferredResult.addCallback(MochiKit.Base.values);
 		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.itemgetter('label'));
-		deferredResult.addCallback(function (aValue) { console.log("[9]", aValue); return aValue; });
+//		deferredResult.addCallback(function (aValue) { console.log("[9]", aValue); return aValue; });
 		deferredResult.addTest([
 			"AAdvantage N.",
 			"Password",
@@ -1948,6 +2234,53 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		return deferredResult;
 	},
 
+	//-------------------------------------------------------------------------
+/*
+	'sortFieldsThenCancelAndLoadSomeOtherRecord_test': function (someTestArgs) {
+		var	deferredResult;
+		var	proxy;
+		var	user;
+		var recordID_1 = 'd620764a656bfd4e1d3758500d5db72e460a0cf729d56ed1a7755b5725c50045';
+		var recordID_2 = '6026370f3db3860d2c46a08e389a7e906dc14f98c8444b21be9a7e9f405a2728';
+		
+		var originalFieldReference = '31d750b1944b65454a47ab10ad8b04ce99464c68b5f85bb015817ae7433b3940';
+
+		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:false, isDefault:true, readOnly:false});
+		user  = new Clipperz.PM.DataModel.User({username:'joe', getPassphraseFunction:function () { return 'clipperz';}});
+
+		deferredResult = new Clipperz.Async.Deferred("Record.test.sortFieldsThenCancelAndLoadSomeOtherRecord_test", someTestArgs);
+		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['joe_clipperz_offline_copy_data']);
+		deferredResult.addMethod(user, 'login');
+
+//		deferredResult.addMethod(user, 'getRecord', recordID_2);
+//		deferredResult.addMethodcaller('fields');
+//deferredResult.addCallback(function () { console.log(">!> ========================="); });
+
+		deferredResult.addMethod(user, 'getRecord', recordID_1);
+		deferredResult.addMethodcaller('moveFieldToPosition', originalFieldReference, 0);
+		deferredResult.addMethod(user, 'hasPendingChanges');
+		deferredResult.addTest(true, "changing the position of a field to its previous place should not trigger any changes");
+
+deferredResult.addCallback(function () { console.log(">>> ========================="); });
+
+		deferredResult.addMethod(user, 'revertChanges');
+		deferredResult.addMethod(user, 'hasPendingChanges');
+		deferredResult.addTest(false, "changing the position of a field to its previous place should not trigger any changes");
+
+deferredResult.addCallback(function () { console.log("<<< ========================="); });
+
+		deferredResult.addMethod(user, 'getRecord', recordID_2);
+		deferredResult.addMethodcaller('fields');
+		deferredResult.addCallbacks(
+			MochiKit.Base.partial(SimpleTest.ok, true,	"Execution should complete without errors"),
+			MochiKit.Base.partial(SimpleTest.ok, false,	"Execution should complete without errors")
+		);
+
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+*/
 	//-------------------------------------------------------------------------
 
 	'syntaxFix': MochiKit.Base.noop

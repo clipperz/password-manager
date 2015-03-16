@@ -970,6 +970,7 @@ console.log("Record.hasPendingChanges RESULT", result);
 
 				MochiKit.Base.bind(Clipperz.PM.DataModel.Record.superclass.revertChanges, this),
 //function (aValue) { console.log("Record.revertChanges - 6"); return aValue; },
+				MochiKit.Base.method(this, '_getObjectDataStore'),
 			], [
 				MochiKit.Async.succeed
 			]);
