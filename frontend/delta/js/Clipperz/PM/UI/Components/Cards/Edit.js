@@ -277,7 +277,7 @@ console.log("DROP");	//, anEvent);
 	//............................................................................
 
 	cleanupTags: function (someTags) {
-		return MochiKit.Base.filter(Clipperz.PM.DataModel.Record.isRegularTag, someTags).sort(Clipperz.Base.caseInsensitiveCompare);
+		return MochiKit.Base.filter(Clipperz.PM.DataModel.Record.isRegularTag, someTags || []).sort(Clipperz.Base.caseInsensitiveCompare);
 	},
 
 	renderTags: function (someTags) {

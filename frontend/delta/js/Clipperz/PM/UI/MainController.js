@@ -466,6 +466,7 @@ console.log("THE BROWSER IS OFFLINE");
 			MochiKit.Base.method(this, 'setPageProperties', 'cardDetailPage', 'features', this.features()),
 			MochiKit.Base.method(this, 'setPageProperties', 'cardDetailPage', 'selectedCard', aValue),
 			MochiKit.Base.method(this, 'moveInPage', this.currentPage(), 'cardDetailPage'),
+			function () { return aValue; },
 		], {trace:false});
 	},
 
@@ -485,12 +486,9 @@ console.log("THE BROWSER IS OFFLINE");
 			deferredResult.addMethod(this.user(), 'getRecord', someInfo['reference']);
 			deferredResult.addMethod(this, 'collectRecordInfo');
 
-//console.log("MEDIA QUERY STYLE", this.mediaQueryStyle());
 			deferredResult.addMethod(this, 'setPageProperties', 'mainPage', 'selectedCard');
 			if ((this.mediaQueryStyle() == 'narrow') && shouldShowCardDetail) {
 				deferredResult.addMethod(this, 'showCardDetailInNarrowView');
-//				deferredResult.addMethod(this, 'setPageProperties', 'cardDetailPage', 'selectedCard');
-//				deferredResult.addMethod(this, 'moveInPage', this.currentPage(), 'cardDetailPage');
 			}
 		
 			MochiKit.Async.callLater(0.1, MochiKit.Base.method(deferredResult, 'callback'));
@@ -836,7 +834,6 @@ console.log("THE BROWSER IS OFFLINE");
 		MochiKit.Async.callLater(0.5, function () {
 			MochiKit.DOM.removeElementClass(itemToTransition, 'transition');
 		})
-
 	},
 
 	//.........................................................................
@@ -1304,7 +1301,6 @@ console.log("THE BROWSER IS OFFLINE");
 	//----------------------------------------------------------------------------
 
 	addCardClick_handler: function () {
-		var	newRecordReference;
 		var newRecord;
 
 		return Clipperz.Async.callbacks("MainController.addCardClick_handler", [
@@ -1316,10 +1312,6 @@ console.log("THE BROWSER IS OFFLINE");
 			MochiKit.Base.methodcaller('addField', {'label':"", 'value':"", 'isHidden':false}),
 			function () { return newRecord; },
 			MochiKit.Base.methodcaller('reference'),
-//			function (aValue) {
-//				newRecordReference = aValue;
-//				return newRecordReference;
-//			},
 			MochiKit.Base.method(this, 'refreshUI'),
 			function () { return newRecord; },
 			MochiKit.Base.methodcaller('reference'),
@@ -1396,7 +1388,6 @@ console.log("THE BROWSER IS OFFLINE");
 				currentPage.setProps({'allTags': aValue});
 			},
 		], {trace:false});
-		
 	},
 	
 	editCard_handler: function (anEvent) {
