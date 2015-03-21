@@ -194,7 +194,7 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 		classes[this.style()] = true;
 
 		return	React.DOM.div({'key':'mainPanel', 'id':'mainPanel', 'className':React.addons.classSet(classes)}, [
-			React.DOM.div({'className':'mask', 'onClick': this.handleMaskClick}),
+			React.DOM.div({'className':'mask', 'onClick':this.handleMaskClick, 'onTouchEnd':this.handleMaskClick}),
 			React.DOM.div({'className':'container'},
 //				this.style() == 'extra-wide' ?  this.renderExtraWide() : this.renderOther()
 				this.renderLayout(this.style())
