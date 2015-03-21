@@ -71,10 +71,10 @@ div.cardList {
 			.label {
 				@include flex(auto);
 
-				font-size: 18pt;
+				font-size: 14pt;
 
-				padding-top: 0.5em;
-				padding-bottom: 0.5em;
+				padding-top: 0.8em;
+				padding-bottom: 0.8em;
 				padding-left: $padding;
 				padding-right: $padding;
 			}
@@ -302,7 +302,8 @@ $cardViewBasePadding: 10px;
 		
 		font-size: 24pt;
 //		width: 100%;
-		padding: $cardViewBasePadding;
+//		padding: $cardViewBasePadding;
+		padding: 20px 20px 20px 42px;
 //		height: 52px;
 //		line-height: 32px;
 		border: 0px;
@@ -310,7 +311,8 @@ $cardViewBasePadding: 10px;
 	
 	input.cardLabel {
 		width: 100%;
-		height: 52px;
+		padding: 20px 20px 20px 42px;
+//		height: 52px;
 	}
 
 	.tagEditor {
@@ -331,9 +333,10 @@ $cardViewBasePadding: 10px;
 		div {
 			@include user-select(text);
 			line-height: 1.5em;
+			white-space: pre-wrap;
 //			padding: $cardViewBasePadding;
 		}
-		
+
 		textarea {
 			white-space: pre-wrap;
 			word-wrap: break-word;
@@ -533,6 +536,10 @@ $cardViewBasePadding: 10px;
 		background-color: $clipperz-orange;
 		color: white;
 		cursor: pointer;
+		
+		.directLoginLabel {
+			padding-left: 42px - $iconMargin;
+		}
 	}
 }
 
