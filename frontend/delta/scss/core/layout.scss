@@ -1,5 +1,11 @@
 @import "parameters";
 
+html {
+	position: fixed;
+	height: 100%;
+	width: 100%;
+}
+
 .page {
 	@include pageElement();
 	@include user-select(none);
@@ -273,6 +279,7 @@ div.cardContent {
 		div.addCardButton {
 			@include icon-font();
 			@include border-radius($addButtonSize / 2);
+			z-index: 1;
 //			@include radial-gradient (white, rgba(0, 0, 0, 0));
 			
 			position: relative;
@@ -411,7 +418,8 @@ div.cardContent {
 
 	ul {
 		@include flexbox();
-		@include flex-direction(row);
+//		@include flex-direction(row);
+		@include flex-direction(row-reverse);
 
 		li {
 			@include flex(auto);
