@@ -257,7 +257,8 @@ div.cardContent {
 
 	@include flexbox();
 	@include flex-direction(row);
-	
+	height: 100%;
+
 	div.cardListColumn.column {
 		@include flex($cardListWidth, 0);
 //		overflow-y: scroll;

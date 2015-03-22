@@ -146,15 +146,19 @@ Clipperz.PM.UI.Components.Pages.LoginPage = React.createClass({
 //									React.DOM.a({'key':'signup', 'onClick':this.handleRegistrationLinkClick}, "Sign up")
 //								]);
 
-		var	registrationLink = React.DOM.a({'key':'signup', 'onClick':this.handleRegistrationLinkClick}, "Sign up");
+		var	registrationLink = React.DOM.a({'className':'registrationLink', 'key':'signup', 'onClick':this.handleRegistrationLinkClick}, "Sign up");
 
 		return React.DOM.div({'className':'loginForm ' + this.props['style']}, [
 			React.DOM.header({'key':'header'}, 'clipperz'),
 			React.DOM.div({'key':'form-wrapper', 'className':'form'}, [
 				this.props.mode == 'PIN' ? this.pinForm() : this.loginForm(),
 			]),
-			React.DOM.footer({'key':'registrationLink', 'className':'registrationLink'}, [
-				this.props['isNewUserRegistrationAvailable'] ? registrationLink : null
+			React.DOM.footer({}, [
+				this.props['isNewUserRegistrationAvailable'] ? registrationLink : null,
+				React.DOM.div({'className':'applicationVersion'}, [
+					React.DOM.span({}, "application version"),
+					React.DOM.a({'href':'https://github.com/clipperz/password-manager/commit/' + Clipperz_version}, Clipperz_version)
+				])
 			])
 //			this.props['isNewUserRegistrationAvailable'] ? registrationLink : null
 		]);

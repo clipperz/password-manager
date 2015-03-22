@@ -98,21 +98,46 @@
 		}
 
 
-//		div.registrationLink {
 		footer {
 			@include flex(1);
 
+			@include flexbox;
+			@include flex-direction(column);
+			@include align-items(stretch);
+
 			color: $main-alternate-text-color;
 			background-color: $main-alternate-color;
-			cursor: pointer;
 			font-size: 24pt;
+			cursor: default;
 
-			a {
+			a.registrationLink {
+				cursor: pointer;
+				@include flex(auto);
 				line-height: 50pt;
 
 				&:before {
 					content: "> ";
 				};
+			}
+			
+			.applicationVersion {
+				@include flex(1);
+				font-size: 8pt;
+				
+				$applicationVersionColor: #999;
+
+				span {
+					color: $applicationVersionColor;
+					&:after {
+						content: ":";
+					};
+				}
+				a {
+					color: $applicationVersionColor;
+					text-decoration: none;
+					padding-left: 5px;
+					font-weight: bold;
+				}
 			}
 		}
 	}
@@ -147,9 +172,7 @@
 			}
 		}
 
-//		div.registrationLink {
 		footer {
-//			@include flex(2);
 			font-size: 14pt;
 		}
 	}

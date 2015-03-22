@@ -591,6 +591,11 @@ div.overlay {
 	&.show-bottom { transform: translateZ( -100px ) rotateX(   90deg ); }
 }
 */
+html {
+  position: fixed;
+  height: 100%;
+  width: 100%; }
+
 .page {
   position: absolute;
   top: 0;
@@ -925,7 +930,8 @@ div.cardContent {
   -webkit-flex-direction: row;
   -moz-flex-direction: row;
   -ms-flex-direction: row;
-  flex-direction: row; }
+  flex-direction: row;
+  height: 100%; }
   div.cardContent div.cardListColumn.column {
     -webkit-box-flex: 1;
     -webkit-flex: 1 0;
@@ -950,6 +956,7 @@ div.cardContent {
       -webkit-border-radius: 30px;
       -moz-border-radius: 30px;
       border-radius: 30px;
+      z-index: 1;
       position: relative;
       bottom: 0px;
       font-size: 45pt;
@@ -1117,12 +1124,12 @@ div.cardContent {
     display: -moz-flex;
     display: -ms-flexbox;
     display: flex;
-    -webkit-box-direction: normal;
+    -webkit-box-direction: reverse;
     -webkit-box-orient: horizontal;
-    -webkit-flex-direction: row;
-    -moz-flex-direction: row;
-    -ms-flex-direction: row;
-    flex-direction: row; }
+    -webkit-flex-direction: row-reverse;
+    -moz-flex-direction: row-reverse;
+    -ms-flex-direction: row-reverse;
+    flex-direction: row-reverse; }
     .cardDetailToolbar ul li {
       -webkit-box-flex: auto;
       -webkit-flex: auto;
@@ -1415,14 +1422,54 @@ div.dialogBox {
       -moz-flex: 1;
       -ms-flex: 1;
       flex: 1;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-direction: normal;
+      -webkit-box-orient: vertical;
+      -webkit-flex-direction: column;
+      -moz-flex-direction: column;
+      -ms-flex-direction: column;
+      flex-direction: column;
+      -webkit-box-align: stretch;
+      -ms-flex-align: stretch;
+      -webkit-align-items: stretch;
+      -moz-align-items: stretch;
+      align-items: stretch;
       color: white;
       background-color: black;
-      cursor: pointer;
-      font-size: 24pt; }
-      #loginPage div.loginForm footer a {
+      font-size: 24pt;
+      cursor: default; }
+      #loginPage div.loginForm footer a.registrationLink {
+        cursor: pointer;
+        -webkit-box-flex: auto;
+        -webkit-flex: auto;
+        -moz-box-flex: auto;
+        -moz-flex: auto;
+        -ms-flex: auto;
+        flex: auto;
         line-height: 50pt; }
-        #loginPage div.loginForm footer a:before {
+        #loginPage div.loginForm footer a.registrationLink:before {
           content: "> "; }
+      #loginPage div.loginForm footer .applicationVersion {
+        -webkit-box-flex: 1;
+        -webkit-flex: 1;
+        -moz-box-flex: 1;
+        -moz-flex: 1;
+        -ms-flex: 1;
+        flex: 1;
+        font-size: 8pt; }
+        #loginPage div.loginForm footer .applicationVersion span {
+          color: #999999; }
+          #loginPage div.loginForm footer .applicationVersion span:after {
+            content: ":"; }
+        #loginPage div.loginForm footer .applicationVersion a {
+          color: #999999;
+          text-decoration: none;
+          padding-left: 5px;
+          font-weight: bold; }
   #loginPage div.loginForm.extra-short header {
     font-size: 18pt; }
   #loginPage div.loginForm.extra-short div.form form {
@@ -2023,9 +2070,9 @@ div.cardList ul {
       -moz-flex: auto;
       -ms-flex: auto;
       flex: auto;
-      font-size: 18pt;
-      padding-top: 0.5em;
-      padding-bottom: 0.5em;
+      font-size: 14pt;
+      padding-top: 0.8em;
+      padding-bottom: 0.8em;
       padding-left: 8px;
       padding-right: 8px; }
 
@@ -2199,11 +2246,11 @@ div.cardList.narrow {
   -o-user-select: text;
   user-select: text;
   font-size: 24pt;
-  padding: 10px;
+  padding: 20px 20px 20px 42px;
   border: 0px; }
 .content input.cardLabel {
   width: 100%;
-  height: 52px; }
+  padding: 20px 20px 20px 42px; }
 .content .tagEditor {
   padding: 10px; }
 .content .cardNotes {
@@ -2220,7 +2267,8 @@ div.cardList.narrow {
     /* No support for these yet, use at own risk */
     -o-user-select: text;
     user-select: text;
-    line-height: 1.5em; }
+    line-height: 1.5em;
+    white-space: pre-wrap; }
   .content .cardNotes textarea {
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -2419,6 +2467,8 @@ div.cardList.narrow {
   background-color: #ff9900;
   color: white;
   cursor: pointer; }
+  .content .cardDirectLogin .directLoginLabel {
+    padding-left: 36px; }
 
 div.dialog {
   -webkit-box-shadow: 0px 2px 5px rgba(50, 50, 50, 0.75);
