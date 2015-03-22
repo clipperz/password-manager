@@ -478,11 +478,11 @@ $cardViewBasePadding: 10px;
 				&.hidden {
 					font-family: clipperz-password;
 					font-size: 23pt;
+					line-height: 28px;
 					
 					&.visible {
 						font-family: "clipperz-font";
 						font-size: 18pt;
-						line-height: 28px;
 					}
 				}
 			}

@@ -2408,11 +2408,11 @@ div.cardList.narrow {
       width: 100%; }
       .content .cardField .fieldValues .fieldValue.hidden {
         font-family: clipperz-password;
-        font-size: 23pt; }
+        font-size: 23pt;
+        line-height: 28px; }
         .content .cardField .fieldValues .fieldValue.hidden.visible {
           font-family: "clipperz-font";
-          font-size: 18pt;
-          line-height: 28px; }
+          font-size: 18pt; }
   .content .cardField .fieldAction {
     -webkit-box-flex: none;
     -webkit-flex: none;
