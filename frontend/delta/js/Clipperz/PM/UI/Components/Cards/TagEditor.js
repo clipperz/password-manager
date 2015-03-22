@@ -76,7 +76,7 @@ Clipperz.PM.UI.Components.Cards.TagEditor = React.createClass({
 		anEvent.currentTarget.value = "";
 	},
 
-	handleKeyDown: function(anEvent) {
+	handleKeyDown: function (anEvent) {
 		switch (anEvent.keyCode) {
 			
 			case 9: // tab
@@ -112,7 +112,11 @@ Clipperz.PM.UI.Components.Cards.TagEditor = React.createClass({
 */
 		}
 	},
-	
+
+	handleBlur: function (anEvent) {
+		this.addTagValue(anEvent);
+	},
+
 	//----------------------------------------------------------------------------
 
 	renderTag: function (aTag) {
@@ -124,7 +128,7 @@ Clipperz.PM.UI.Components.Cards.TagEditor = React.createClass({
 	
 	renderEditField: function () {
 		return	[
-					React.DOM.input({'type':'text', 'list':'tagListData', 'onKeyDown':this.handleKeyDown, 'placeholder': "tag"}),
+					React.DOM.input({'type':'text', 'list':'tagListData', 'onKeyDown':this.handleKeyDown, 'onBlur':this.handleBlur, 'placeholder': "tag"}),
 					React.DOM.datalist({'id':'tagListData'}, MochiKit.Base.map(function (aTag) { return React.DOM.option({}, aTag); }, this.listOfTagsNotUsedYet()))
 				];
 	},
