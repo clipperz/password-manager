@@ -1648,7 +1648,7 @@ div.dialogBox {
 #selections {
   background-color: black;
   color: white;
-  font-size: 18pt; }
+  font-size: 14pt; }
   #selections ul.defaultSet {
     padding-top: 10px;
     padding-bottom: 10px; }
@@ -1713,7 +1713,7 @@ div.dialogBox {
       -ms-flex-order: 1;
       order: 1;
       font-family: "clipperz-font";
-      font-size: 18pt;
+      font-size: 14pt;
       color: white;
       background-color: black;
       border: 0px;
@@ -1873,7 +1873,7 @@ div.dialogBox {
     -ms-flex-direction: row;
     flex-direction: row;
     padding: 10px;
-    font-size: 12pt; }
+    font-size: 10pt; }
     #selections .showArchivedCards input {
       -webkit-box-flex: none;
       -webkit-flex: none;
@@ -1888,7 +1888,8 @@ div.dialogBox {
       -moz-flex: auto;
       -ms-flex: auto;
       flex: auto;
-      padding-left: 5px; }
+      padding-left: 5px;
+      line-height: initial; }
     #selections .showArchivedCards .count {
       -webkit-box-flex: none;
       -webkit-flex: none;

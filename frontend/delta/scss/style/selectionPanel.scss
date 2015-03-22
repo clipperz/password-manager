@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 #selections {
 	background-color: $main-alternate-color;
 	color: $main-alternate-text-color;
-	font-size: 18pt;
+	font-size: 14pt;
 
 //	height: 100%;
 
@@ -79,7 +79,7 @@ refer to http://www.clipperz.com.
 					@include order(1);
 
 					font-family: "clipperz-font";
-					font-size: 18pt;
+					font-size: 14pt;
 					color: white;
 					background-color: black;
 					border: 0px;
@@ -225,7 +225,7 @@ refer to http://www.clipperz.com.
 		@include flex-direction(row);
 
 		padding: 10px;
-		font-size: 12pt;
+		font-size: 10pt;
 		
 		input {
 			@include flex(none);
@@ -234,6 +234,9 @@ refer to http://www.clipperz.com.
 		.label {
 			@include flex(auto);
 			padding-left: 5px;
+			
+//			font-size: 10pt;
+			line-height: initial;
 		}
 
 		.count {
