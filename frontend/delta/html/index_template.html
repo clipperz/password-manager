@@ -1,3 +1,6 @@
+<!--
+@copyright@
+-->
 <html manifest="manifest.appcache">
 <head>
 	<title>@page.title@</title>
@@ -11,9 +14,6 @@
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-status-bar-style" content="translucent-black" />
 	<meta name="apple-mobile-web-app-title" content="Clipperz" />
-<!--
-@copyright@
--->
 
 <!-- link rel="apple-touch-icon-precomposed" ... -->
 <!--
@@ -106,7 +106,8 @@ Clipperz_normalizedNewLine = '\x0d\x0a';
 			'shouldPayTolls': false
 		});
 
-		Clipperz.PM.Proxy.defaultProxy = new Clipperz.PM.Proxy.Offline({ 'dataStore':dataStore, 'type':'OFFLINE_COPY', 'typeDescription':'Offline copy'});
+//		Clipperz.PM.Proxy.defaultProxy = new Clipperz.PM.Proxy.Offline({ 'dataStore':dataStore, 'type':'OFFLINE_COPY', 'typeDescription':'Offline copy'});
+		Clipperz.PM.Proxy.defaultProxy = new Clipperz.PM.Proxy.Offline({ 'dataStore':dataStore, 'type':'ONLINE', 'typeDescription':'Offline copy'});
 		Clipperz.PM.Proxy.defaultProxy.dataStore().setupWithEncryptedData(testData);
 
 		//	Live Reload hoock
