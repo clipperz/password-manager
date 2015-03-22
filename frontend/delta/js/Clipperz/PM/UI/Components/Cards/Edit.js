@@ -224,6 +224,29 @@ console.log("DROP");	//, anEvent);
 		};
 	},
 
+	handleKeyDown: function (aField) {
+		var	self = this;
+		return function (anEvent) {
+			switch (anEvent.keyCode) {
+				case 9: // tab
+					var	fieldReferences = MochiKit.Base.map(function (aValue) { return aValue['_reference']}, self.fields());
+					var	fieldIndex = fieldReferences.indexOf(aField.reference());
+					if (fieldIndex == fieldReferences.length - 1) {
+						Clipperz.Async.callbacks("Clipperz.PM.UI.Components.Cards.Edit.handleKeyDown", [
+							MochiKit.Base.method(aField, 'isEmpty'),
+							Clipperz.Async.deferredIf('isEmpty',[
+							], [
+								MochiKit.Base.method(self, 'addNewField')
+//	TODO: set the focus to the newly created field
+//	hints: http://stackoverflow.com/questions/24248234/react-js-set-input-value-from-sibling-component
+							])
+						], {trace:false});
+					}
+					break;
+			}
+		};
+	},
+
 	removeField: function (aField) {
 		var	reference = this.props['_reference'];
 		var	record = this.record();
@@ -264,7 +287,7 @@ console.log("DROP");	//, anEvent);
 	//============================================================================
 
 	renderLabel: function (aLabel) {
-		return	React.DOM.input({'className':'cardLabel', 'onChange':this.handleChange(this.record(), 'setLabel'), 'defaultValue':aLabel, 'key':this.props['_reference'] + '_label', 'placeholder': "card title"});
+		return	React.DOM.input({'className':'cardLabel', 'autoFocus':true, 'onChange':this.handleChange(this.record(), 'setLabel'), 'defaultValue':aLabel, 'key':this.props['_reference'] + '_label', 'placeholder': "card title"});
 	},
 	
 	renderNotes: function (someNotes) {
@@ -327,7 +350,7 @@ console.log("DROP");	//, anEvent);
 				]),
 				React.DOM.div({'className':'fieldValue'}, [
 //					React.DOM.textarea({'className':React.addons.classSet(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'defaultValue':aField['value'], 'placeholder': "value"}),
-					Clipperz.PM.UI.Components.Cards.TextArea({'className':React.addons.classSet(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'defaultValue':aField['value'], 'placeholder': "value"}),
+					Clipperz.PM.UI.Components.Cards.TextArea({'className':React.addons.classSet(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'onKeyDown':this.handleKeyDown(field), 'defaultValue':aField['value'], 'placeholder': "value"}),
 				])
 			]),
 			React.DOM.div({'className':'fieldAction'}, [
