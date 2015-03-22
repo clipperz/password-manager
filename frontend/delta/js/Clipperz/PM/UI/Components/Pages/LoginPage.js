@@ -157,7 +157,7 @@ Clipperz.PM.UI.Components.Pages.LoginPage = React.createClass({
 				this.props['isNewUserRegistrationAvailable'] ? registrationLink : null,
 				React.DOM.div({'className':'applicationVersion'}, [
 					React.DOM.span({}, "application version"),
-					React.DOM.a({'href':'https://github.com/clipperz/password-manager/commit/' + Clipperz_version}, Clipperz_version)
+					React.DOM.a({'href':'https://github.com/clipperz/password-manager/commit/' + Clipperz_version, 'target':'github'}, Clipperz_version)
 				])
 			])
 //			this.props['isNewUserRegistrationAvailable'] ? registrationLink : null

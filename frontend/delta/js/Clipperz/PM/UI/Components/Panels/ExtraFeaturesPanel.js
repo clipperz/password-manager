@@ -181,6 +181,10 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 						])
 					])
 				])
+			]),
+			React.DOM.footer({'className':'applicationVersion'}, [
+				React.DOM.span({}, "application version"),
+				React.DOM.a({'href':'https://github.com/clipperz/password-manager/commit/' + Clipperz_version, 'target':'github'}, Clipperz_version)
 			])
 		]);
 	}

@@ -821,6 +821,13 @@ html {
     -ms-flex: auto;
     flex: auto;
     overflow: auto; }
+  #extraFeaturesPanel footer {
+    -webkit-box-flex: none;
+    -webkit-flex: none;
+    -moz-box-flex: none;
+    -moz-flex: none;
+    -ms-flex: none;
+    flex: none; }
 
 .container {
   height: 100%;
@@ -1987,6 +1994,19 @@ span.count {
         background-color: #999; }
         #extraFeaturesPanel > div ul li a.button.disabled:hover {
           color: white; }
+  #extraFeaturesPanel footer {
+    font-size: 8pt;
+    padding: 5px 5px 5px 5px;
+    border-top: 1px solid #999999; }
+    #extraFeaturesPanel footer span {
+      color: #999999; }
+      #extraFeaturesPanel footer span:after {
+        content: ":"; }
+    #extraFeaturesPanel footer a {
+      color: #999999;
+      text-decoration: none;
+      padding-left: 5px;
+      font-weight: bold; }
 
 .miscInfo .proxyInfo {
   border-bottom: 1px solid white;

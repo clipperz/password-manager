@@ -144,7 +144,6 @@ html {
 
 	header {
 		@include flex(none);
-		
 	}
 	
 	& > div {
@@ -154,6 +153,9 @@ html {
 		
 	}
 
+	footer {
+		@include flex(none);
+	}
 }
 
 .container {
