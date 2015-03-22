@@ -1,15 +1,13 @@
 CACHE MANIFEST
-# @application.version@
+@application.version@
 
 CACHE:
 # - Explicitly cached 'master entries'.
-#index.html
+index.html
 
 NETWORK:
 # - Resources that require the user to be online.
-#login.php
-#/myapi
-#http://api.twitter.com
+@request.path@
 
 FALLBACK:
 # - static.html will be served if main.py is inaccessible
