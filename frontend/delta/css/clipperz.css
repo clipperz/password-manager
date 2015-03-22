@@ -2441,6 +2441,8 @@ div.cardList.narrow {
         font-size: 15pt;
         margin: 6px;
         cursor: default; }
+        .content .cardField .fieldAction span.action.URL {
+          cursor: pointer; }
         .content .cardField .fieldAction span.action.PASSWORD {
           cursor: pointer; }
           .content .cardField .fieldAction span.action.PASSWORD.active {

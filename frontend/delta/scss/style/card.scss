@@ -508,6 +508,10 @@ $cardViewBasePadding: 10px;
 
 					cursor: default;
 
+					&.URL {
+						cursor: pointer;
+					}
+
 					&.PASSWORD {
 						cursor: pointer;
 						

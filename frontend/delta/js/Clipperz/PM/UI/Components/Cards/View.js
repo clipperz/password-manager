@@ -66,12 +66,26 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 		};
 	},
 
+	handleLinkFieldAction: function (aField) {
+		return function () {
+			var url;
+
+			url = aField['value'];
+			if (/^https?\:\/\//.test(url) == false) {
+				url = 'http://' + url;
+			}
+
+			window.open(url);
+		}
+	},
+
 	handleFieldAction: function (aField) {
 		var	result;
 
 		if (aField['actionType'] == 'PASSWORD') {
 			result = this.handlePasswordFieldAction(aField);
-//		} else if (aField['actionType'] == 'URL') {
+		} else if (aField['actionType'] == 'URL') {
+			result = this.handleLinkFieldAction(aField);
 		} else {
 			result = MochiKit.Base.noop;
 		};
