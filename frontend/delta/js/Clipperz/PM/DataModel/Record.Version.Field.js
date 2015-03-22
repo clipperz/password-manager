@@ -143,7 +143,10 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record.Version.Field, Object, {
 			],
 			'isHidden': [
 				MochiKit.Base.method(this, 'isHidden'),
-				MochiKit.Base.partial(MochiKit.Base.operator.eq, false)
+//				MochiKit.Base.partial(MochiKit.Base.operator.eq, false)
+				function (aValue) {
+					return (aValue == false) || (aValue == null);
+				}
 			]
 		});
 		deferredResult.addCallback(MochiKit.Base.values);
