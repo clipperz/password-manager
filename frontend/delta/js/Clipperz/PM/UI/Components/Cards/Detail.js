@@ -23,7 +23,7 @@ refer to http://www.clipperz.com.
 
 Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
-Clipperz.PM.UI.Components.Cards.Detail = React.createClass({
+Clipperz.PM.UI.Components.Cards.DetailClass = React.createClass({
 
 	propTypes: {
 		'allTags':	React.PropTypes.array,
@@ -55,3 +55,5 @@ Clipperz.PM.UI.Components.Cards.Detail = React.createClass({
 		return result;
 	},
 });
+
+Clipperz.PM.UI.Components.Cards.Detail = React.createFactory(Clipperz.PM.UI.Components.Cards.DetailClass);

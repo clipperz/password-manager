@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 'use strict';
 Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
-Clipperz.PM.UI.Components.Cards.Edit = React.createClass({
+Clipperz.PM.UI.Components.Cards.EditClass = React.createClass({
 
 	//============================================================================
 
@@ -327,7 +327,7 @@ console.log("DROP");	//, anEvent);
 		cardFieldValueClasses[aField['actionType']] = true;
 		cardFieldValueClasses['hidden'] = aField['isHidden'];
 
-		return	React.DOM.div({'className':React.addons.classSet(cardFieldClasses), 'id':ref, 'key':ref,
+		return	React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(cardFieldClasses), 'id':ref, 'key':ref,
 								'data-reference':ref,
 								'data-index':this.positionOfField(ref),
 								'onDragOver':this.dragOver,
@@ -349,8 +349,8 @@ console.log("DROP");	//, anEvent);
 					React.DOM.input({'_className_':'_fieldLabel_', 'onChange':this.handleChange(field, 'setLabel'), 'defaultValue':aField['label'], 'placeholder': "label"}),
 				]),
 				React.DOM.div({'className':'fieldValue'}, [
-//					React.DOM.textarea({'className':React.addons.classSet(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'defaultValue':aField['value'], 'placeholder': "value"}),
-					Clipperz.PM.UI.Components.Cards.TextArea({'className':React.addons.classSet(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'onKeyDown':this.handleKeyDown(field), 'defaultValue':aField['value'], 'placeholder': "value"}),
+//					React.DOM.textarea({'className':Clipperz.PM.UI.Components.classNames(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'defaultValue':aField['value'], 'placeholder': "value"}),
+					Clipperz.PM.UI.Components.Cards.TextArea({'className':Clipperz.PM.UI.Components.classNames(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'onKeyDown':this.handleKeyDown(field), 'defaultValue':aField['value'], 'placeholder': "value"}),
 				])
 			]),
 			React.DOM.div({'className':'fieldAction'}, [
@@ -423,7 +423,7 @@ console.log("DROP");	//, anEvent);
 //console.log("RENDER CARD EDIT", this.props['showGlobalMask']);
 		return	React.DOM.div({'className':'editWrapper'}, [
 			this.props['showGlobalMask'] ? null : React.DOM.div({'className':'mask'}),
-			React.DOM.div({'className':React.addons.classSet(classes)},[
+			React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(classes)},[
 				Clipperz.PM.UI.Components.Cards.EditToolbar(this.props),
 				React.DOM.div({'className':'content'}, [
 					this.renderLabel(this.props['label']),
@@ -440,3 +440,5 @@ console.log("DROP");	//, anEvent);
 	
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.Cards.Edit = React.createFactory(Clipperz.PM.UI.Components.Cards.EditClass);

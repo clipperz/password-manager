@@ -25,7 +25,7 @@ refer to http://www.clipperz.com.
 
 Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
-Clipperz.PM.UI.Components.Cards.FavIcon = React.createClass({
+Clipperz.PM.UI.Components.Cards.FavIconClass = React.createClass({
 
 	propTypes: {
 		'src':	React.PropTypes.string,
@@ -54,3 +54,5 @@ Clipperz.PM.UI.Components.Cards.FavIcon = React.createClass({
 	},
 
 });
+
+Clipperz.PM.UI.Components.Cards.FavIcon = React.createFactory(Clipperz.PM.UI.Components.Cards.FavIconClass);

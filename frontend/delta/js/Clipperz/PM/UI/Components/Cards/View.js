@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 'use strict';
 Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
-Clipperz.PM.UI.Components.Cards.View = React.createClass({
+Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 
 	//============================================================================
 
@@ -189,14 +189,14 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 		cardFieldActionClasses[aField['actionType']] = true;
 		cardFieldActionClasses['active'] = this.state[aField['_reference']];
 
-		return	React.DOM.div({'className':React.addons.classSet(cardFieldClasses)}, [
+		return	React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(cardFieldClasses)}, [
 			React.DOM.div({'className':'fieldEditAction'}, null),
 			React.DOM.div({'className':'fieldValues'}, [
 				React.DOM.div({'className':'fieldLabel'}, aField['label']),
-				React.DOM.div({'className':React.addons.classSet(cardFieldValueClasses)}, aField['value']),
+				React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(cardFieldValueClasses)}, aField['value']),
 			]),
 			React.DOM.div({'className':'fieldAction'}, [
-				React.DOM.span({'className':React.addons.classSet(cardFieldActionClasses), 'onClick':this.handleFieldAction(aField)}, aField['actionType'].toLowerCase() == 'password' ? 'view password' : aField['actionType'].toLowerCase())
+				React.DOM.span({'className':Clipperz.PM.UI.Components.classNames(cardFieldActionClasses), 'onClick':this.handleFieldAction(aField)}, aField['actionType'].toLowerCase() == 'password' ? 'view password' : aField['actionType'].toLowerCase())
 			])
 		]);
 	},
@@ -226,7 +226,7 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 			'archived':	this.props['_isArchived']
 		}
 	
-		return	React.DOM.div({'className':React.addons.classSet(classes)},[
+		return	React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(classes)},[
 			Clipperz.PM.UI.Components.Cards.CommandToolbar(this.props),
 			React.DOM.div({'className':'content'}, [
 				this.renderLabel(this.props['label']),
@@ -257,3 +257,5 @@ Clipperz.PM.UI.Components.Cards.View = React.createClass({
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.Cards.View = React.createFactory(Clipperz.PM.UI.Components.Cards.ViewClass);

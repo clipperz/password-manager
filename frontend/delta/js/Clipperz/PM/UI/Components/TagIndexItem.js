@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 'use strict';
 Clipperz.Base.module('Clipperz.PM.UI.Components');
 
-Clipperz.PM.UI.Components.TagIndexItem = React.createClass({
+Clipperz.PM.UI.Components.TagIndexItemClass = React.createClass({
 
 	//=========================================================================
 
@@ -43,7 +43,7 @@ Clipperz.PM.UI.Components.TagIndexItem = React.createClass({
 			'selected':	this.props['selected']
 		}
 	
-		return	React.DOM.li({'onClick': this.handleClick, 'className':React.addons.classSet(classes), 'data-tag':this.props['label']}, [
+		return	React.DOM.li({'onClick': this.handleClick, 'className':Clipperz.PM.UI.Components.classNames(classes), 'data-tag':this.props['label']}, [
 			React.DOM.span({'className':'label'}, this.props['label']),
 			React.DOM.span({'className':'count'}, this.props['count'])
 		]);
@@ -51,3 +51,5 @@ Clipperz.PM.UI.Components.TagIndexItem = React.createClass({
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.TagIndexItem = React.createFactory(Clipperz.PM.UI.Components.TagIndexItemClass);

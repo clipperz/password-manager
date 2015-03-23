@@ -23,7 +23,7 @@ refer to http://www.clipperz.com.
 
 Clipperz.Base.module('Clipperz.PM.UI.Components');
 
-Clipperz.PM.UI.Components.ExpiredPanel = React.createClass({
+Clipperz.PM.UI.Components.ExpiredPanelClass = React.createClass({
 
 	propTypes: {
 //		featureSet:			React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
@@ -38,3 +38,5 @@ Clipperz.PM.UI.Components.ExpiredPanel = React.createClass({
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.ExpiredPanel = React.createFactory(Clipperz.PM.UI.Components.ExpiredPanelClass);

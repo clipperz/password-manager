@@ -23,7 +23,7 @@ refer to http://www.clipperz.com.
 
 Clipperz.Base.module('Clipperz.PM.UI.Components.Pages');
 
-Clipperz.PM.UI.Components.Pages.ErrorPage = React.createClass({
+Clipperz.PM.UI.Components.Pages.ErrorPageClass = React.createClass({
 
 	getDefaultProps: function () {
 		return {
@@ -46,3 +46,5 @@ Clipperz.PM.UI.Components.Pages.ErrorPage = React.createClass({
 //		return	new this.props.template({'innerComponent': this._render()});
 //	}
 });
+
+Clipperz.PM.UI.Components.Pages.ErrorPage = React.createFactory(Clipperz.PM.UI.Components.Pages.ErrorPageClass);

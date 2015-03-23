@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 'use strict';
 Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
-Clipperz.PM.UI.Components.Cards.TextArea = React.createClass({
+Clipperz.PM.UI.Components.Cards.TextAreaClass = React.createClass({
 
 	//----------------------------------------------------------------------------
 
@@ -108,3 +108,5 @@ Clipperz.PM.UI.Components.Cards.TextArea = React.createClass({
 	},
 
 });
+
+Clipperz.PM.UI.Components.Cards.TextArea = React.createFactory(Clipperz.PM.UI.Components.Cards.TextAreaClass);

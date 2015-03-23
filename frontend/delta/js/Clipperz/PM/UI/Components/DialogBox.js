@@ -23,7 +23,7 @@ refer to http://www.clipperz.com.
 
 Clipperz.Base.module('Clipperz.PM.UI.Components');
 
-Clipperz.PM.UI.Components.DialogBox = React.createClass({
+Clipperz.PM.UI.Components.DialogBoxClass = React.createClass({
 
 	propTypes: {
 		'info':		React.PropTypes.object.isRequired,
@@ -57,7 +57,7 @@ console.log("DIALOG BOX - key UP", anEvent);
 			'isDefault':	answerInfo['isDefault']
 		};
 		
-		return	React.DOM.div({'className':React.addons.classSet(classes), 'onClick':this.handleAnswerButton, 'data-answer-key':anAnswerInfoKey}, answerInfo['label'])
+		return	React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(classes), 'onClick':this.handleAnswerButton, 'data-answer-key':anAnswerInfoKey}, answerInfo['label'])
 	},
 
 	//=========================================================================
@@ -74,3 +74,5 @@ console.log("DIALOG BOX - key UP", anEvent);
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.DialogBox = React.createFactory(Clipperz.PM.UI.Components.DialogBoxClass);

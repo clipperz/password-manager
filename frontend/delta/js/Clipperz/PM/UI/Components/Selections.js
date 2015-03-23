@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 'use strict';
 Clipperz.Base.module('Clipperz.PM.UI.Components');
 
-Clipperz.PM.UI.Components.Selections = React.createClass({
+Clipperz.PM.UI.Components.SelectionsClass = React.createClass({
 
 	//=========================================================================
 
@@ -140,3 +140,5 @@ Clipperz.PM.UI.Components.Selections = React.createClass({
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.Selections = React.createFactory(Clipperz.PM.UI.Components.SelectionsClass);

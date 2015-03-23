@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 'use strict';
 Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
-Clipperz.PM.UI.Components.Cards.CommandToolbar = React.createClass({
+Clipperz.PM.UI.Components.Cards.CommandToolbarClass = React.createClass({
 
 	//============================================================================
 
@@ -94,7 +94,7 @@ Clipperz.PM.UI.Components.Cards.CommandToolbar = React.createClass({
 					classes['enabled'] = aCommand['enabled'];
 					classes['disabled'] = !aCommand['enabled'];
 
-					return React.DOM.li({'className':React.addons.classSet(classes), 'onClick':aCommand['enabled'] ? commandHandler : null, 'data-broadcast-event':aCommand['broadcastEvent']}, [React.DOM.span({}, aCommand['label'])]);
+					return React.DOM.li({'className':Clipperz.PM.UI.Components.classNames(classes), 'onClick':aCommand['enabled'] ? commandHandler : null, 'data-broadcast-event':aCommand['broadcastEvent']}, [React.DOM.span({}, aCommand['label'])]);
 				}, commandValues));
 	},
 
@@ -105,7 +105,7 @@ Clipperz.PM.UI.Components.Cards.CommandToolbar = React.createClass({
 			React.DOM.div({}, [
 				React.DOM.div({'className':'back', 'onClick': this.exit}, 'back'),
 				React.DOM.div({'className':'cardMenuOptions', 'onClick':this.toggleMenu}, 'commands'),
-				React.DOM.div({'className':React.addons.classSet({'commandMenu':true, 'show':this.state['showCommandMenu']})}, [
+				React.DOM.div({'className':Clipperz.PM.UI.Components.classNames({'commandMenu':true, 'show':this.state['showCommandMenu']})}, [
 					React.DOM.div({'className':'commandMenuMask', 'onClick':this.toggleMenu}),
 					React.DOM.div({'className':'commandMenu'}, this.renderCommands(true))
 				])
@@ -139,8 +139,10 @@ Clipperz.PM.UI.Components.Cards.CommandToolbar = React.createClass({
 		};
 		classes[style] = true;
 
-		return React.DOM.div({'className':React.addons.classSet(classes)}, this.renderLayout(style));
+		return React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(classes)}, this.renderLayout(style));
 	},
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.Cards.CommandToolbar = React.createFactory(Clipperz.PM.UI.Components.Cards.CommandToolbarClass);

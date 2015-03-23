@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 'use strict';
 Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
-Clipperz.PM.UI.Components.Cards.TagEditor = React.createClass({
+Clipperz.PM.UI.Components.Cards.TagEditorClass = React.createClass({
 
 	//============================================================================
 
@@ -140,7 +140,7 @@ Clipperz.PM.UI.Components.Cards.TagEditor = React.createClass({
 			'readWrite':	!this.props['readOnly']
 		};
 		
-		return	React.DOM.div({'className':React.addons.classSet(classes)}, [
+		return	React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(classes)}, [
 			React.DOM.ul({},[
 				MochiKit.Base.map(this.renderTag, this.props['selectedTags']),
 			]),
@@ -150,3 +150,5 @@ Clipperz.PM.UI.Components.Cards.TagEditor = React.createClass({
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.Cards.TagEditor = React.createFactory(Clipperz.PM.UI.Components.Cards.TagEditorClass);

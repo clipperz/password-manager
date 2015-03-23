@@ -140,3 +140,4 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 	//-------------------------------------------------------------------------
 	__syntaxFix__: "syntax fix"
 });
+

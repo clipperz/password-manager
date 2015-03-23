@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 "use strict";
 Clipperz.Base.module('Clipperz.PM.UI.Components.Pages');
 
-Clipperz.PM.UI.Components.Pages.LoginPage = React.createClass({
+Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 
 	propTypes: {
 		mode:							React.PropTypes.oneOf(['CREDENTIALS','PIN']).isRequired,
@@ -119,12 +119,12 @@ Clipperz.PM.UI.Components.Pages.LoginPage = React.createClass({
 	},
 
 	pinForm: function () {
-		return	React.DOM.form({'className':'loginForm pin', 'onChange':this.handleChange, 'onSubmit':this.handlePINSubmit}, [
-					React.DOM.div(null,[
+		return	React.DOM.form({'className':'pinForm pin', 'onChange':this.handleChange, 'onSubmit':this.handlePINSubmit}, [
+					React.DOM.div({'key':'pinFormDiv'},[
 						React.DOM.label({'for':'pin'}, "pin"),
 						React.DOM.input({'type':'text', 'name':'pin', 'ref':'pin', placeholder:"PIN", 'key':'pin', 'autocapitalize':'none'})
 					]),
-					React.DOM.button({'type':'submit', 'disabled':this.props.disabled, 'className':'button'}, "login")
+					React.DOM.button({'key':'submitButton', 'type':'submit', 'disabled':this.props.disabled, 'className':'button'}, "login")
 				]);
 	},
 
@@ -146,21 +146,23 @@ Clipperz.PM.UI.Components.Pages.LoginPage = React.createClass({
 //									React.DOM.a({'key':'signup', 'onClick':this.handleRegistrationLinkClick}, "Sign up")
 //								]);
 
-		var	registrationLink = React.DOM.a({'className':'registrationLink', 'key':'signup', 'onClick':this.handleRegistrationLinkClick}, "Sign up");
+		var	registrationLink = React.DOM.a({'key':'signup', 'className':'registrationLink', 'onClick':this.handleRegistrationLinkClick}, "Sign up");
 
-		return React.DOM.div({'className':'loginForm ' + this.props['style']}, [
+		return React.DOM.div({'key':'loginForm', 'className':'loginForm ' + this.props['style']}, [
 			React.DOM.header({'key':'header'}, 'clipperz'),
-			React.DOM.div({'key':'form-wrapper', 'className':'form'}, [
+			React.DOM.div({'key':'formWrapper', 'className':'form'}, [
 				this.props.mode == 'PIN' ? this.pinForm() : this.loginForm(),
 			]),
-			React.DOM.footer({}, [
+			React.DOM.footer({'key':'footer'}, [
 				this.props['isNewUserRegistrationAvailable'] ? registrationLink : null,
-				React.DOM.div({'className':'applicationVersion'}, [
-					React.DOM.span({}, "application version"),
-					React.DOM.a({'href':'https://github.com/clipperz/password-manager/commit/' + Clipperz_version, 'target':'github'}, Clipperz_version)
+				React.DOM.div({'key':'applicationVersion', 'className':'applicationVersion'}, [
+					React.DOM.span({'key':'applicationVersionLabel'}, "application version"),
+					React.DOM.a({'key':'applicationVersionLink', 'href':'https://github.com/clipperz/password-manager/commit/' + Clipperz_version, 'target':'github'}, Clipperz_version)
 				])
 			])
 //			this.props['isNewUserRegistrationAvailable'] ? registrationLink : null
 		]);
 	}
 });
+
+Clipperz.PM.UI.Components.Pages.LoginPage = React.createFactory(Clipperz.PM.UI.Components.Pages.LoginPageClass);

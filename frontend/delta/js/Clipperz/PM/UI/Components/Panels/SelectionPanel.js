@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 'use strict';
 Clipperz.Base.module('Clipperz.PM.UI.Components.Panels');
 
-Clipperz.PM.UI.Components.Panels.SelectionPanel = React.createClass({
+Clipperz.PM.UI.Components.Panels.SelectionPanelClass = React.createClass({
 
 	propTypes: {
 		selectionPanelStatus:	React.PropTypes.oneOf(['OPEN', 'CLOSED']).isRequired
@@ -34,7 +34,7 @@ Clipperz.PM.UI.Components.Panels.SelectionPanel = React.createClass({
 
 	render: function () {
 //console.log("SelectionPanel", this.props);
-		var	classes = React.addons.classSet({
+		var	classes = Clipperz.PM.UI.Components.classNames({
 			'panel': true,
 			'left': true,
 			'open': this.props['selectionPanelStatus'] == 'OPEN'
@@ -47,3 +47,5 @@ Clipperz.PM.UI.Components.Panels.SelectionPanel = React.createClass({
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.Panels.SelectionPanel = React.createFactory(Clipperz.PM.UI.Components.Panels.SelectionPanelClass);

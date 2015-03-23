@@ -23,7 +23,7 @@ refer to http://www.clipperz.com.
 
 Clipperz.Base.module('Clipperz.PM.UI.Components');
 
-Clipperz.PM.UI.Components.CardToolbar = React.createClass({
+Clipperz.PM.UI.Components.CardToolbarClass = React.createClass({
 
 	propTypes: {
 //		'style':			React.PropTypes.oneOf(['extra-short', 'narrow', 'wide', 'extra-wide']).isRequired,
@@ -107,3 +107,5 @@ Clipperz.PM.UI.Components.CardToolbar = React.createClass({
 
 	//============================================================================
 });
+
+Clipperz.PM.UI.Components.CardToolbar = React.createFactory(Clipperz.PM.UI.Components.CardToolbarClass);

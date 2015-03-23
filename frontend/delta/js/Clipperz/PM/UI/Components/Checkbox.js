@@ -23,7 +23,7 @@ refer to http://www.clipperz.com.
 
 Clipperz.Base.module('Clipperz.PM.UI.Components');
 
-Clipperz.PM.UI.Components.Checkbox = React.createClass({
+Clipperz.PM.UI.Components.CheckboxClass = React.createClass({
 //	http://development.tobypitman.com/iphoneCheckboxes/iphoneCheckboxes2.html
 
 	propTypes: {
@@ -44,3 +44,5 @@ Clipperz.PM.UI.Components.Checkbox = React.createClass({
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.Checkbox = React.createFactory(Clipperz.PM.UI.Components.CheckboxClass);

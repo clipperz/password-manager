@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 'use strict';
 Clipperz.Base.module('Clipperz.PM.UI.Components.Panels');
 
-Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
+Clipperz.PM.UI.Components.Panels.MainPanelClass = React.createClass({
 
 	//=========================================================================
 
@@ -86,7 +86,7 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 			'addCard':			this.isFeatureEnabled('ADD_CARD')
 		}
 		return React.DOM.div({'key':'cardContent', 'className':'cardContent'}, [
-			React.DOM.div({'className':React.addons.classSet(cardColumnClasses)}, [addCardButton, firstColumnComponents]),
+			React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(cardColumnClasses)}, [addCardButton, firstColumnComponents]),
 			React.DOM.div({'className':'cardDetail column right'}, secondColumnComponents)
 		])
 	},
@@ -193,7 +193,7 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 		};
 		classes[this.style()] = true;
 
-		return	React.DOM.div({'key':'mainPanel', 'id':'mainPanel', 'className':React.addons.classSet(classes)}, [
+		return	React.DOM.div({'key':'mainPanel', 'id':'mainPanel', 'className':Clipperz.PM.UI.Components.classNames(classes)}, [
 			React.DOM.div({'className':'mask', 'onClick':this.handleMaskClick, 'onTouchEnd':this.handleMaskClick}),
 			React.DOM.div({'className':'container'},
 //				this.style() == 'extra-wide' ?  this.renderExtraWide() : this.renderOther()
@@ -204,3 +204,5 @@ Clipperz.PM.UI.Components.Panels.MainPanel = React.createClass({
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.Panels.MainPanel = React.createFactory(Clipperz.PM.UI.Components.Panels.MainPanelClass);

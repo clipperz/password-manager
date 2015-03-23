@@ -43,7 +43,10 @@
 		"MochiKit/Selector.js",
 		"-- MochiKit/Visual.js",
 
-		"React/react-with-addons-0.12.2.js",
+		"React/react-0.13.1.js",
+		"-- React/react.min-0.13.1.js",
+		"-- #React/react-with-addons-0.13.1.js",
+		"-- #React/react-with-addons.min-0.13.1.js",
 
 		"MouseTrap/mousetrap.js",
 		"-- MouseTrap/mousetrap-bind-dictionary.js",
@@ -142,6 +145,7 @@
 
 		"-- Clipperz/PM/UI/Web/Controllers/MainController.js",
 
+		"Clipperz/PM/UI/Components.js",
 		"Clipperz/PM/UI/Components/Overlay.js",
 		"Clipperz/PM/UI/Components/Button.js",
 		"Clipperz/PM/UI/Components/Checkbox.js",

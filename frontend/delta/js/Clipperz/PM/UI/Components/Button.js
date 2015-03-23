@@ -23,7 +23,7 @@ refer to http://www.clipperz.com.
 
 Clipperz.Base.module('Clipperz.PM.UI.Components');
 
-Clipperz.PM.UI.Components.Button = React.createClass({
+Clipperz.PM.UI.Components.ButtonClass = React.createClass({
 
 	propTypes: {
 		'eventName':	React.PropTypes.string.isRequired,
@@ -42,7 +42,7 @@ Clipperz.PM.UI.Components.Button = React.createClass({
 			classes[this.props['className']] = true;
 		};
 	
-		return	React.DOM.div({className:React.addons.classSet(classes), onClick:this.props['handler']}, [
+		return	React.DOM.div({className:Clipperz.PM.UI.Components.classNames(classes), onClick:this.props['handler']}, [
 			React.DOM.div({className:this.props['eventName']}, [
 				React.DOM.h3({className:'label'}, this.props['label'])
 			])
@@ -51,3 +51,5 @@ Clipperz.PM.UI.Components.Button = React.createClass({
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.Button = React.createFactory(Clipperz.PM.UI.Components.ButtonClass);

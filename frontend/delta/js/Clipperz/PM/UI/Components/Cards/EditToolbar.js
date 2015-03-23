@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 'use strict';
 Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
-Clipperz.PM.UI.Components.Cards.EditToolbar = React.createClass({
+Clipperz.PM.UI.Components.Cards.EditToolbarClass = React.createClass({
 
 	//============================================================================
 
@@ -59,7 +59,7 @@ Clipperz.PM.UI.Components.Cards.EditToolbar = React.createClass({
 		};
 		classes[style] = true;
 
-		return	React.DOM.div({'className':React.addons.classSet(classes)}, [
+		return	React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(classes)}, [
 					React.DOM.ul({}, [
 						React.DOM.li({'onClick':this.cancel, 'className':'cancel'},	[React.DOM.span({}, "cancel")]),
 						React.DOM.li({'onClick':this.save,   'className':'save'},	[React.DOM.span({}, "save")]),
@@ -69,3 +69,5 @@ Clipperz.PM.UI.Components.Cards.EditToolbar = React.createClass({
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.Cards.EditToolbar = React.createFactory(Clipperz.PM.UI.Components.Cards.EditToolbarClass);

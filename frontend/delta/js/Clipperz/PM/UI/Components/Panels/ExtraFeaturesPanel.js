@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 "use strict";
 Clipperz.Base.module('Clipperz.PM.UI.Components.Panels');
 
-Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
+Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 
 	settingsToggleHandler: function (anEvent) {
 //console.log("settingsToggleHandler");
@@ -77,43 +77,43 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 			'disabled': !this.isFeatureEnabled('OFFLINE_COPY')
 		}
 
-		return	React.DOM.div({'key':'extraFeaturesPanel', 'id':'extraFeaturesPanel', 'className':React.addons.classSet(classes)}, [
-			React.DOM.header({}, [
-				React.DOM.div({'className':'settingsToggle'}, [
-					Clipperz.PM.UI.Components.Button({'eventName':'settingsToggleButton', 'label':"menu", 'handler':this.settingsToggleHandler})
+		return	React.DOM.div({'key':'extraFeaturesPanel', 'id':'extraFeaturesPanel', 'className':Clipperz.PM.UI.Components.classNames(classes)}, [
+			React.DOM.header({'key':'header'}, [
+				React.DOM.div({'key':'headerDiv', 'className':'settingsToggle'}, [
+					Clipperz.PM.UI.Components.Button({'key':'button', 'eventName':'settingsToggleButton', 'label':"menu", 'handler':this.settingsToggleHandler})
 				])
 			]),
 
-			React.DOM.div({}, [
-				React.DOM.ul({}, [
-					React.DOM.li({'className':this.state['account'] ? 'open' : 'closed'}, [
-						React.DOM.h1({'onClick':this.toggleState('account')}, "Account"),
-						React.DOM.ul({}, [
-							React.DOM.li({}, [
-								React.DOM.h2({}, "Passphrase"),
-								React.DOM.div({}, [
-									React.DOM.p({}, "")
+			React.DOM.div({'key':'ulWrapper'}, [
+				React.DOM.ul({'key':'ul'}, [
+					React.DOM.li({'key':'account', 'className':this.state['account'] ? 'open' : 'closed'}, [
+						React.DOM.h1({'key':'accountH1', 'onClick':this.toggleState('account')}, "Account"),
+						React.DOM.ul({'key':'accountUL'}, [
+							React.DOM.li({'key':'account_1'}, [
+								React.DOM.h2({'key':'account_1_h2'}, "Passphrase"),
+								React.DOM.div({'key':'account_1_div'}, [
+									React.DOM.p({'key':'account_1_p'}, "")
 								])
 							]),
-							React.DOM.li({}, [
+							React.DOM.li({'key':'account_2'}, [
 								React.DOM.h2({}, "One Time Passwords"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "")
 								])
 							]),
-							React.DOM.li({}, [
+							React.DOM.li({'key':'account_3'}, [
 								React.DOM.h2({}, "Device PIN"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "Configure a PIN that will allow to get access to your cards, but only on this device.")
 								])
 							]),
-							React.DOM.li({}, [
+							React.DOM.li({'key':'account_4'}, [
 								React.DOM.h2({}, "Preferences"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "")
 								])
 							]),
-							React.DOM.li({}, [
+							React.DOM.li({'key':'account_5'}, [
 								React.DOM.h2({}, "Delete account"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "")
@@ -121,28 +121,28 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 							])
 						])
 					]),
-					React.DOM.li({'className':this.state['subscription'] ? 'open' : 'closed'}, [
+					React.DOM.li({'key':'subscription', 'className':this.state['subscription'] ? 'open' : 'closed'}, [
 						React.DOM.h1({'onClick':this.toggleState('subscription')}, "Subscription"),
-						React.DOM.ul({}, [
-							React.DOM.li({}, [
+						React.DOM.ul({'key':'subscription'}, [
+							React.DOM.li({'key':'subscription_1'}, [
 								React.DOM.h2({}, "x1"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "")
 								])
 							]),
-							React.DOM.li({}, [
+							React.DOM.li({'key':'subscription_2'}, [
 								React.DOM.h2({}, "x2"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "")
 								])
 							]),
-							React.DOM.li({}, [
+							React.DOM.li({'key':'subscription_3'}, [
 								React.DOM.h2({}, "x3"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "")
 								])
 							]),
-							React.DOM.li({}, [
+							React.DOM.li({'key':'subscription_4'}, [
 								React.DOM.h2({}, "x4"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "")
@@ -150,29 +150,29 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 							])
 						])
 					]),
-					React.DOM.li({'className':this.state['data'] ? 'open' : 'closed'}, [
+					React.DOM.li({'key':'data', 'className':this.state['data'] ? 'open' : 'closed'}, [
 						React.DOM.h1({'onClick':this.toggleState('data')}, "Data"),
-						React.DOM.ul({}, [
-							React.DOM.li({}, [
+						React.DOM.ul({'key':'data'}, [
+							React.DOM.li({'key':'data_1'}, [
 								React.DOM.h2({}, "Offline copy"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "With just one click you can dump all your encrypted data from Clipperz servers to your hard disk and create a read-only offline version of Clipperz to be used when you are not connected to the Internet."),
-									React.DOM.a({'className':React.addons.classSet(offlineCopyButtonClasses), 'onClick':this.handleDownloadOfflineCopyLink}, "Download")
+									React.DOM.a({'className':Clipperz.PM.UI.Components.classNames(offlineCopyButtonClasses), 'onClick':this.handleDownloadOfflineCopyLink}, "Download")
 								])
 							]),
-							React.DOM.li({}, [
+							React.DOM.li({'key':'data_2'}, [
 								React.DOM.h2({}, "Import"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "")
 								])
 							]),
-							React.DOM.li({}, [
+							React.DOM.li({'key':'data_3'}, [
 								React.DOM.h2({}, "Export"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "")
 								])
 							]),
-							React.DOM.li({}, [
+							React.DOM.li({'key':'data_4'}, [
 								React.DOM.h2({}, "Sharing"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "")
@@ -182,12 +182,14 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createClass({
 					])
 				])
 			]),
-			React.DOM.footer({'className':'applicationVersion'}, [
-				React.DOM.span({}, "application version"),
-				React.DOM.a({'href':'https://github.com/clipperz/password-manager/commit/' + Clipperz_version, 'target':'github'}, Clipperz_version)
+			React.DOM.footer({'key':'footer', 'className':'applicationVersion'}, [
+				React.DOM.span({'key':'applicationVersion'}, "application version"),
+				React.DOM.a({'key':'applicationVersionLink', 'href':'https://github.com/clipperz/password-manager/commit/' + Clipperz_version, 'target':'github'}, Clipperz_version)
 			])
 		]);
 	}
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel = React.createFactory(Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass);

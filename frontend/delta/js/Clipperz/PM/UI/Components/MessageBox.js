@@ -23,7 +23,7 @@ refer to http://www.clipperz.com.
 
 Clipperz.Base.module('Clipperz.PM.UI.Components');
 
-Clipperz.PM.UI.Components.MessageBox = React.createClass({
+Clipperz.PM.UI.Components.MessageBoxClass = React.createClass({
 
 	propTypes: {
 		'level':	React.PropTypes.oneOf(['HIDE', 'INFO', 'WARNING', 'ERROR']).isRequired,
@@ -45,3 +45,5 @@ Clipperz.PM.UI.Components.MessageBox = React.createClass({
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.MessageBox = React.createFactory(Clipperz.PM.UI.Components.MessageBoxClass);

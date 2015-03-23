@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 'use strict';
 Clipperz.Base.module('Clipperz.PM.UI.Components.Pages');
 
-Clipperz.PM.UI.Components.Pages.MainPage = React.createClass({
+Clipperz.PM.UI.Components.Pages.MainPageClass = React.createClass({
 
 	getDefaultProps: function () {
 		return {
@@ -60,7 +60,7 @@ Clipperz.PM.UI.Components.Pages.MainPage = React.createClass({
 		classes[this.props['style']] = true;
 
 //console.log("MAIN PAGE", this.props['showGlobalMask']);
-		return	React.DOM.div({'className':React.addons.classSet(classes)}, [
+		return	React.DOM.div({'key':'mainPage', 'className':Clipperz.PM.UI.Components.classNames(classes)/*Clipperz.PM.UI.Components.classNames(classes)*/}, [
 			this.props['style'] != 'extra-wide' ? Clipperz.PM.UI.Components.Panels.SelectionPanel(this.props) : null,
 			Clipperz.PM.UI.Components.Panels.MainPanel(this.props),
 			Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel(this.props),
@@ -70,3 +70,5 @@ Clipperz.PM.UI.Components.Pages.MainPage = React.createClass({
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.Pages.MainPage = React.createFactory(Clipperz.PM.UI.Components.Pages.MainPageClass);

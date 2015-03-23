@@ -24,7 +24,7 @@ refer to http://www.clipperz.com.
 'use strict';
 Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
-Clipperz.PM.UI.Components.Cards.List = React.createClass({
+Clipperz.PM.UI.Components.Cards.ListClass = React.createClass({
 
 	//=========================================================================
 
@@ -60,7 +60,7 @@ Clipperz.PM.UI.Components.Cards.List = React.createClass({
 				'archived':	anItem['_isArchived']
 			};		
 
-			result = React.DOM.li({'className':React.addons.classSet(classes), 'onClick': this.handleClick, 'key':anItem['_reference'], 'data-reference':anItem['_reference'], 'data-label':anItem['label']}, [
+			result = React.DOM.li({'className':Clipperz.PM.UI.Components.classNames(classes), 'onClick': this.handleClick, 'key':anItem['_reference'], 'data-reference':anItem['_reference'], 'data-label':anItem['label']}, [
 //				React.DOM.span({'className':'favicon'}, React.DOM.img({'onLoad':this.faviconEvent, 'onError':this.faviconEvent, 'onAbort':this.faviconEvent, 'src':anItem['favicon']})),
 				React.DOM.span({'className':'favicon'}, Clipperz.PM.UI.Components.Cards.FavIcon({'src':anItem['favicon']})),
 				React.DOM.span({'className':'label'}, anItem['label']),
@@ -80,10 +80,12 @@ Clipperz.PM.UI.Components.Cards.List = React.createClass({
 		};		
 		classes[this.props['style']] = true;
 
-		return	React.DOM.div({'key':'cardList', 'className':React.addons.classSet(classes)}, [
+		return	React.DOM.div({'key':'cardList', 'className':Clipperz.PM.UI.Components.classNames(classes)}, [
 					this.isFeatureEnabled('LIST_CARDS') ? React.DOM.ul({}, MochiKit.Base.map(this.renderItem, cards)) : null
 				]);
 	},
 	
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.Cards.List = React.createFactory(Clipperz.PM.UI.Components.Cards.ListClass);
