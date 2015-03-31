@@ -135,10 +135,18 @@ div.cardList.narrow {
 				font-size: 24pt;
 				line-height: 48px;
 				margin-right: 25px;
+				color: #ccc;
+				
 			}
+
+			&:hover {
+				&:after {
+					color: $clipperz-blue;
+				}
+			};
 		}
 	}
-	
+
 	&.EXPIRED {
 		ul {
 			li {
