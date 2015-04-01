@@ -167,6 +167,8 @@
 		"Clipperz/PM/UI/Components/Panels/MainPanel.js",
 		"Clipperz/PM/UI/Components/Panels/ExtraFeaturesPanel.js",
 
+		"Clipperz/PM/UI/Components/ExtraFeatures/DevicePIN.js",
+
 		"Clipperz/PM/UI/Components/Cards/FavIcon.js",
 		"Clipperz/PM/UI/Components/Cards/List.js",
 		"Clipperz/PM/UI/Components/Cards/Detail.js",

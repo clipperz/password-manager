@@ -28,6 +28,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 
 	settingsToggleHandler: function (anEvent) {
 //console.log("settingsToggleHandler");
+		this.hideExtraFeatureContent();
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel');
 	},
 
@@ -43,17 +44,20 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 
 	getInitialState: function() {
 		return {
-			'account':		false,
-			'subscription':	false,
-			'data':			false,
+			'index': {
+				'account':		false,
+				'subscription':	false,
+				'data':			false,
+			},
+			'isFullyOpen':	false
 		};
 	},
 
-	toggleState: function (section) {
+	toggleIndexState: function (section) {
 		return MochiKit.Base.bind(function () {
-			var	newState = {};
+			var	newState = { 'index': {} };
 			
-			newState[section] = !this.state[section];
+			newState['index'][section] = !this.state['index'][section];
 			this.setState(newState);
 		}, this);
 	},
@@ -64,20 +68,46 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 
 	//=========================================================================
 
-	render: function () {
-//console.log("ExtraFeaturesPanel props", this.props);
-		var	classes = {
-			'panel': true,
-			'right': true,
-			'open': this.props['settingsPanelStatus'] == 'OPEN'
-		}
-		
+//	showDevicePin: function () {
+//		this.showExtraFeatureContent(Clipperz.PM.UI.Components.ExtraFeatures.DevicePIN());
+//	},
+
+	showExtraFeatureComponent: function (aComponentName) {
+		return MochiKit.Base.bind(function () {
+			this.showExtraFeatureContent(Clipperz.PM.UI.Components.ExtraFeatures[aComponentName]);
+		}, this);
+	},
+
+	extraFeaturesProps: function () {
+		return this.props;
+	},
+
+	//-------------------------------------------------------------------------
+
+	hideExtraFeatureContent: function () {
+		this.setState({'isFullyOpen':false});
+	},
+
+	showExtraFeatureContent: function (aComponent) {
+		this.setState({
+			'isFullyOpen':true,
+			'extraFeatureContent': aComponent(this.extraFeaturesProps())
+		});
+	},
+	
+	toggleExtraFeatureContent: function () {
+		this.setState({'isFullyOpen':!this.state['isFullyOpen']});
+	},
+
+	//=========================================================================
+
+	renderIndex: function () {
 		var	offlineCopyButtonClasses = {
 			'button': true,
 			'disabled': !this.isFeatureEnabled('OFFLINE_COPY')
 		}
-
-		return	React.DOM.div({'key':'extraFeaturesPanel', 'id':'extraFeaturesPanel', 'className':Clipperz.PM.UI.Components.classNames(classes)}, [
+		
+		return	React.DOM.div({'className':'extraFeatureIndex'}, [
 			React.DOM.header({'key':'header'}, [
 				React.DOM.div({'key':'headerDiv', 'className':'settingsToggle'}, [
 					Clipperz.PM.UI.Components.Button({'key':'button', 'eventName':'settingsToggleButton', 'label':"menu", 'handler':this.settingsToggleHandler})
@@ -86,8 +116,8 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 
 			React.DOM.div({'key':'ulWrapper'}, [
 				React.DOM.ul({'key':'ul'}, [
-					React.DOM.li({'key':'account', 'className':this.state['account'] ? 'open' : 'closed'}, [
-						React.DOM.h1({'key':'accountH1', 'onClick':this.toggleState('account')}, "Account"),
+					React.DOM.li({'key':'account', 'className':this.state['index']['account'] ? 'open' : 'closed'}, [
+						React.DOM.h1({'key':'accountH1', 'onClick':this.toggleIndexState('account')}, "Account"),
 						React.DOM.ul({'key':'accountUL'}, [
 							React.DOM.li({'key':'account_1'}, [
 								React.DOM.h2({'key':'account_1_h2'}, "Passphrase"),
@@ -101,7 +131,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 									React.DOM.p({}, "")
 								])
 							]),
-							React.DOM.li({'key':'account_3'}, [
+							React.DOM.li({'key':'account_3', 'onClick':this.showExtraFeatureComponent('DevicePIN')}, [
 								React.DOM.h2({}, "Device PIN"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "Configure a PIN that will allow to get access to your cards, but only on this device.")
@@ -121,8 +151,8 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 							])
 						])
 					]),
-					React.DOM.li({'key':'subscription', 'className':this.state['subscription'] ? 'open' : 'closed'}, [
-						React.DOM.h1({'onClick':this.toggleState('subscription')}, "Subscription"),
+					React.DOM.li({'key':'subscription', 'className':this.state['index']['subscription'] ? 'open' : 'closed'}, [
+						React.DOM.h1({'onClick':this.toggleIndexState('subscription')}, "Subscription"),
 						React.DOM.ul({'key':'subscription'}, [
 							React.DOM.li({'key':'subscription_1'}, [
 								React.DOM.h2({}, "x1"),
@@ -150,8 +180,8 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 							])
 						])
 					]),
-					React.DOM.li({'key':'data', 'className':this.state['data'] ? 'open' : 'closed'}, [
-						React.DOM.h1({'onClick':this.toggleState('data')}, "Data"),
+					React.DOM.li({'key':'data', 'className':this.state['index']['data'] ? 'open' : 'closed'}, [
+						React.DOM.h1({'onClick':this.toggleIndexState('data')}, "Data"),
 						React.DOM.ul({'key':'data'}, [
 							React.DOM.li({'key':'data_1'}, [
 								React.DOM.h2({}, "Offline copy"),
@@ -186,6 +216,31 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 				React.DOM.span({'key':'applicationVersion'}, "application version"),
 				React.DOM.a({'key':'applicationVersionLink', 'href':'https://github.com/clipperz/password-manager/commit/' + Clipperz_version, 'target':'github'}, Clipperz_version)
 			])
+		]);
+	},
+	
+	renderContent: function () {
+		return	React.DOM.div({'className':'extraFeatureContent'}, [
+			React.DOM.header({}, [
+				React.DOM.div({'className':'button', 'onClick':this.hideExtraFeatureContent}, "close")
+			]),
+			this.state['extraFeatureContent']
+		]);
+	},
+
+	render: function () {
+//console.log("ExtraFeaturesPanel props", this.props);
+		var	classes = {
+			'panel': true,
+			'right': true,
+			'open': this.props['settingsPanelStatus'] == 'OPEN',
+			'fullOpen': this.state['isFullyOpen']
+		}
+		
+
+		return	React.DOM.div({'key':'extraFeaturesPanel', 'id':'extraFeaturesPanel', 'className':Clipperz.PM.UI.Components.classNames(classes)}, [
+			this.renderIndex(),
+			this.renderContent(),
 		]);
 	}
 

@@ -64,6 +64,7 @@ $transition-duration: 0.5s;
 	
 	top: 0;
 	left: -$size;
+//	transition: left 0.3s ease-in-out;
 }
 
 @mixin sliding-panel-right ($size) {
@@ -74,6 +75,7 @@ $transition-duration: 0.5s;
 
 	top: 0;
 	right: -$size;
+	transition: right 0.3s ease-in-out;
 }
 
 @mixin sliding-panel ($side, $size) {
@@ -107,11 +109,13 @@ $transition-duration: 0.5s;
 @mixin sliding-panel-wrapper-open-left ($size) {
 	top: 0;
 	left: $size;
+//	transition: left 0.3s ease-in-out;
 }
 
 @mixin sliding-panel-wrapper-open-right ($size) {
 	top: 0;
 	right: $size;
+//	transition: right 0.3s ease-in-out;
 }
 
 @mixin sliding-panel-wrapper-open ($side, $size) {

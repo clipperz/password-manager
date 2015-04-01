@@ -27,6 +27,7 @@
 				"name": "key"
 			},
 			"setIdx": 1,
+			"setId": 7,
 			"iconIdx": 141
 		},
 		{
@@ -55,6 +56,7 @@
 				"name": "eye"
 			},
 			"setIdx": 1,
+			"setId": 7,
 			"iconIdx": 206
 		},
 		{
@@ -80,6 +82,7 @@
 				"ligatures": "tag"
 			},
 			"setIdx": 2,
+			"setId": 6,
 			"iconIdx": 0
 		},
 		{
@@ -106,6 +109,7 @@
 				"ligatures": "tags"
 			},
 			"setIdx": 2,
+			"setId": 6,
 			"iconIdx": 1
 		},
 		{
@@ -132,6 +136,7 @@
 				"ligatures": "recent"
 			},
 			"setIdx": 2,
+			"setId": 6,
 			"iconIdx": 2
 		},
 		{
@@ -160,6 +165,7 @@
 				"ligatures": "loading"
 			},
 			"setIdx": 2,
+			"setId": 6,
 			"iconIdx": 3
 		},
 		{
@@ -187,6 +193,7 @@
 				"ligatures": "search"
 			},
 			"setIdx": 2,
+			"setId": 6,
 			"iconIdx": 4
 		},
 		{
@@ -214,6 +221,7 @@
 				"ligatures": "locked"
 			},
 			"setIdx": 2,
+			"setId": 6,
 			"iconIdx": 6
 		},
 		{
@@ -239,6 +247,7 @@
 				"ligatures": "unlocked"
 			},
 			"setIdx": 2,
+			"setId": 6,
 			"iconIdx": 7
 		},
 		{
@@ -267,6 +276,7 @@
 				"ligatures": "menu"
 			},
 			"setIdx": 2,
+			"setId": 6,
 			"iconIdx": 8
 		},
 		{
@@ -292,9 +302,10 @@
 				"prevSize": 32,
 				"code": 58882,
 				"name": "close",
-				"ligatures": "failure, failed, delete, clear, cancel"
+				"ligatures": "failure, failed, delete, clear, cancel, close"
 			},
 			"setIdx": 2,
+			"setId": 6,
 			"iconIdx": 9
 		},
 		{
@@ -323,6 +334,7 @@
 				"ligatures": "done, ok, save"
 			},
 			"setIdx": 2,
+			"setId": 6,
 			"iconIdx": 10
 		},
 		{
@@ -347,6 +359,7 @@
 				"ligatures": "commands"
 			},
 			"setIdx": 3,
+			"setId": 4,
 			"iconIdx": 0
 		},
 		{
@@ -369,6 +382,7 @@
 				"ligatures": "clipperz"
 			},
 			"setIdx": 3,
+			"setId": 4,
 			"iconIdx": 1
 		},
 		{
@@ -395,6 +409,7 @@
 				"ligatures": "email"
 			},
 			"setIdx": 6,
+			"setId": 0,
 			"iconIdx": 4
 		},
 		{
@@ -418,6 +433,7 @@
 				"ligatures": "url, direct login"
 			},
 			"setIdx": 6,
+			"setId": 0,
 			"iconIdx": 35
 		},
 		{
@@ -441,6 +457,7 @@
 				"ligatures": "add new field"
 			},
 			"setIdx": 6,
+			"setId": 0,
 			"iconIdx": 125
 		},
 		{
@@ -466,6 +483,7 @@
 				"ligatures": "remove field, remove tag"
 			},
 			"setIdx": 6,
+			"setId": 0,
 			"iconIdx": 126
 		},
 		{
@@ -489,6 +507,7 @@
 				"ligatures": "add card"
 			},
 			"setIdx": 6,
+			"setId": 0,
 			"iconIdx": 128
 		},
 		{
@@ -512,6 +531,7 @@
 				"ligatures": "back"
 			},
 			"setIdx": 6,
+			"setId": 0,
 			"iconIdx": 205
 		},
 		{
@@ -535,6 +555,7 @@
 				"ligatures": "show detail"
 			},
 			"setIdx": 6,
+			"setId": 0,
 			"iconIdx": 208
 		}
 	],

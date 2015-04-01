@@ -22,129 +22,163 @@ refer to http://www.clipperz.com.
 */
 
 #extraFeaturesPanel {
-	background-color: $main-alternate-color;
-	color: $main-alternate-text-color;
-	
-	header {
-		text-align: right;
-		height: 48px;
-		font-size: 24pt;
+	.extraFeatureIndex {
+		background-color: $main-alternate-color;
+		color: $main-alternate-text-color;
 
-		.button {
-			@include icon-font();
+		header {
+			text-align: right;
+			height: 48px;
+			font-size: 24pt;
 
-			.label {
-				padding-top: 8px;
-				padding-right: 8px;
+			.button {
+				@include icon-font();
+
+				.label {
+					padding-top: 8px;
+					padding-right: 8px;
+				}
 			}
 		}
-	}
 
-	& > div {
-		border-top: 1px solid white;
+		& > div {
+			border-top: 1px solid white;
 
 		
-		& > ul > li {
-//			padding: 10px;
-//			padding-right: 0px;
-			border-bottom: 1px solid white;
+			& > ul > li {
+//				padding: 10px;
+//				padding-right: 0px;
+				border-bottom: 1px solid white;
 
-			& > ul {
-				padding-left: 10px;
+				& > ul {
+					padding-left: 10px;
+				}
+
+//				&:last-child {
+//					border-bottom: 1px solid white;
+//				}
+			
+				&.closed > ul {
+					display: none;
+					visibility: hidden;
+				}
 			}
 
-//			&:last-child {
-//				border-bottom: 1px solid white;
-//			}
-			
-			&.closed > ul {
-				display: none;
-				visibility: hidden;
+			ul {
+
+				li {
+					& > ul > li {
+						padding: 10px;
+						padding-right: 0px;
+					
+						& > div {
+							padding: 4px;
+						}
+					}
+
+					&.open {
+					
+					}
+
+					&.close {
+					
+					}
+
+					h1 {
+						cursor: pointer;
+						font-size: 16pt;
+						padding: 10px;
+					}
+				
+					h2 {
+						font-weight: 300;
+						font-size: 14pt;
+					}
+				
+					h3 {
+						font-size: 12pt;
+					}
+				
+					p {
+						font-size: 10pt;
+						font-weight: 100;
+						padding-bottom: 5px;
+						line-height: 1.2em;
+					}
+				
+					a.button {
+						@include border-radius(2);
+						display: inline-block;
+						padding: 10px 16px;
+						background-color: green;
+						color: white;
+					
+						&:hover {
+							color: lightgrey;
+						};
+					
+						&.disabled {
+							background-color: #999;
+
+							&:hover {
+								color: white;
+							};
+						}
+					}
+				}
 			}
 		}
+	
+		footer {
+			$applicationVersionColor: #999;
+			font-size: 8pt;
+			padding: 5px 5px 5px 5px;
+			border-top: 1px solid $applicationVersionColor;
 
-		ul {
-
-			li {
-				& > ul > li {
-					padding: 10px;
-					padding-right: 0px;
-					
-					& > div {
-						padding: 4px;
-					}
-				}
-
-				&.open {
-					
-				}
-
-				&.close {
-					
-				}
-
-				h1 {
-					cursor: pointer;
-					font-size: 16pt;
-					padding: 10px;
-				}
-				
-				h2 {
-					font-weight: 300;
-					font-size: 14pt;
-				}
-				
-				h3 {
-					font-size: 12pt;
-				}
-				
-				p {
-					font-size: 10pt;
-					font-weight: 100;
-					padding-bottom: 5px;
-					line-height: 1.2em;
-				}
-				
-				a.button {
-					@include border-radius(2);
-					display: inline-block;
-					padding: 10px 16px;
-					background-color: green;
-					color: white;
-					
-					&:hover {
-						color: lightgrey;
-					};
-					
-					&.disabled {
-						background-color: #999;
-
-						&:hover {
-							color: white;
-						};
-					}
-				}
+			span {
+				color: $applicationVersionColor;
+				&:after {
+					content: ":";
+				};
+			}
+			a {
+				color: $applicationVersionColor;
+				text-decoration: none;
+				padding-left: 5px;
+				font-weight: bold;
 			}
 		}
 	}
-	
-	footer {
-		$applicationVersionColor: #999;
-		font-size: 8pt;
-		padding: 5px 5px 5px 5px;
-		border-top: 1px solid $applicationVersionColor;
 
-		span {
-			color: $applicationVersionColor;
-			&:after {
-				content: ":";
-			};
+	.extraFeatureContent {
+		border-right: 1px solid #222;
+		color: white;
+
+		header {
+			display: none;
 		}
-		a {
-			color: $applicationVersionColor;
-			text-decoration: none;
-			padding-left: 5px;
-			font-weight: bold;
+	}
+}
+
+
+.mainPage.narrow {
+	#extraFeaturesPanel {
+		.extraFeatureContent {
+			header {
+				display: block;
+				height: 48px;
+				border-bottom : 1px solid white;
+
+				.button {
+					@include icon-font();
+					cursor: pointer;
+					color: white;
+
+					font-size: 16pt;
+					padding-top: 15px;
+					padding-left: 10px;
+				}
+			}
 		}
 	}
 }
