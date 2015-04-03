@@ -128,6 +128,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -141,6 +142,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -154,6 +156,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -167,6 +170,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -469,61 +473,73 @@ div.overlay {
 @-webkit-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-moz-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-ms-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-webkit-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-moz-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-ms-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-webkit-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @-moz-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @-ms-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 /*
@@ -620,7 +636,8 @@ html {
   width: 250px;
   height: 100%;
   top: 0;
-  left: -250px; }
+  left: -250px;
+  transition: left 0.3s ease-in-out; }
   .mainPage > #selectionPanel.open {
     left: 0px; }
 
@@ -669,88 +686,100 @@ html {
     flex: none;
     cursor: pointer; }
 
-#mainPanel.extra-wide {
-  width: 100%;
-  height: 100%;
-  margin: 0 auto; }
-  #mainPanel.extra-wide .container {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
-    display: flex; }
-  #mainPanel.extra-wide .subpanel.selection {
-    -webkit-box-flex: 1;
-    -webkit-flex: 1 0;
-    -moz-box-flex: 1;
-    -moz-flex: 1 0;
-    -ms-flex: 1 0;
-    flex: 1 0;
-    overflow: scroll;
-    -webkit-overflow-scrolling: touch; }
-  #mainPanel.extra-wide .subpanel.cardContent {
-    -webkit-box-flex: 4;
-    -webkit-flex: 4;
-    -moz-box-flex: 4;
-    -moz-flex: 4;
-    -ms-flex: 4;
-    flex: 4;
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-box-direction: normal;
-    -webkit-box-orient: vertical;
-    -webkit-flex-direction: column;
-    -moz-flex-direction: column;
-    -ms-flex-direction: column;
-    flex-direction: column; }
-  #mainPanel.extra-wide .selectionToggle .button {
-    display: none;
-    visibility: hidden; }
-  #mainPanel.extra-wide div.addCardButton {
-    margin-left: 20%; }
-#mainPanel.wide .container {
-  width: 100%;
-  height: 100%;
-  margin: 0 auto; }
-#mainPanel.narrow .container {
-  width: 100%;
-  height: 100%;
-  margin: 0 auto; }
-#mainPanel.narrow .column {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  -webkit-transform: translate3d(0, 0, 0);
-  transform: translate3d(0, 0, 0);
-  -webkit-transition-duration: 0.5s;
-  transition-duration: 0.5s; }
-  #mainPanel.narrow .column.left {
-    -webkit-transform: translate3d(-100%, 0, 0);
-    transform: translate3d(-100%, 0, 0); }
-  #mainPanel.narrow .column.right {
-    -webkit-transform: translate3d(100%, 0, 0);
-    transform: translate3d(100%, 0, 0);
-    visibility: hidden;
-    display: none; }
-    #mainPanel.narrow .column.right.transition {
-      visibility: visible;
-      display: block; }
-#mainPanel.narrow div.addCardButton {
-  margin-left: 75%; }
-#mainPanel.open.left {
-  width: 100%;
-  margin: 0 auto;
-  position: relative;
-  z-index: 10;
-  top: 0;
-  left: 250px; }
-  #mainPanel.open.left .mask {
+#mainPanel {
+  left: 0px; }
+  #mainPanel.extra-wide {
+    width: 100%;
+    height: 100%;
+    margin: 0 auto; }
+    #mainPanel.extra-wide .container {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex; }
+    #mainPanel.extra-wide .subpanel.selection {
+      -webkit-box-flex: 1;
+      -webkit-flex: 1 0;
+      -moz-box-flex: 1;
+      -moz-flex: 1 0;
+      -ms-flex: 1 0;
+      flex: 1 0;
+      overflow: scroll;
+      -webkit-overflow-scrolling: touch; }
+    #mainPanel.extra-wide .subpanel.cardContent {
+      -webkit-box-flex: 4;
+      -webkit-flex: 4;
+      -moz-box-flex: 4;
+      -moz-flex: 4;
+      -ms-flex: 4;
+      flex: 4;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-direction: normal;
+      -webkit-box-orient: vertical;
+      -webkit-flex-direction: column;
+      -moz-flex-direction: column;
+      -ms-flex-direction: column;
+      flex-direction: column; }
+    #mainPanel.extra-wide .selectionToggle .button {
+      display: none;
+      visibility: hidden; }
+    #mainPanel.extra-wide div.addCardButton {
+      margin-left: 20%; }
+  #mainPanel.wide {
+    transition: left 0.3s ease-in-out; }
+    #mainPanel.wide .container {
+      width: 100%;
+      height: 100%;
+      margin: 0 auto; }
+  #mainPanel.narrow .container {
+    width: 100%;
+    height: 100%;
+    margin: 0 auto; }
+  #mainPanel.narrow .column {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    -webkit-transition-duration: 0.5s;
+    transition-duration: 0.5s; }
+    #mainPanel.narrow .column.left {
+      -webkit-transform: translate3d(-100%, 0, 0);
+      transform: translate3d(-100%, 0, 0); }
+    #mainPanel.narrow .column.right {
+      -webkit-transform: translate3d(100%, 0, 0);
+      transform: translate3d(100%, 0, 0);
+      visibility: hidden;
+      display: none; }
+      #mainPanel.narrow .column.right.transition {
+        visibility: visible;
+        display: block; }
+  #mainPanel.narrow div.addCardButton {
+    margin-left: 75%; }
+  #mainPanel.open.left {
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+    top: 0;
+    left: 250px; }
+    #mainPanel.open.left .mask {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      background-color: rgba(0, 0, 0, 0.5); }
+  #mainPanel.open.right .mask {
     position: absolute;
     top: 0;
     left: 0;
@@ -758,14 +787,6 @@ html {
     height: 100%;
     z-index: 10;
     background-color: rgba(0, 0, 0, 0.5); }
-#mainPanel.open.right .mask {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 10;
-  background-color: rgba(0, 0, 0, 0.5); }
 
 .mainPage.narrow #extraFeaturesPanel.fullOpen .extraFeatureIndex {
   width: 0px; }
@@ -1492,11 +1513,11 @@ div.dialogBox {
         flex: 1;
         font-size: 8pt; }
         #loginPage div.loginForm footer .applicationVersion span {
-          color: #999; }
+          color: #999999; }
           #loginPage div.loginForm footer .applicationVersion span:after {
             content: ":"; }
         #loginPage div.loginForm footer .applicationVersion a {
-          color: #999;
+          color: #999999;
           text-decoration: none;
           padding-left: 5px;
           font-weight: bold; }
@@ -2011,9 +2032,9 @@ span.count {
       display: inline-block;
       padding: 10px 16px;
       background-color: green;
-      color: white; }
+      color: lightgrey; }
       #extraFeaturesPanel .extraFeatureIndex > div ul li a.button:hover {
-        color: lightgrey; }
+        color: white; }
       #extraFeaturesPanel .extraFeatureIndex > div ul li a.button.disabled {
         background-color: #999; }
         #extraFeaturesPanel .extraFeatureIndex > div ul li a.button.disabled:hover {
@@ -2021,13 +2042,13 @@ span.count {
   #extraFeaturesPanel .extraFeatureIndex footer {
     font-size: 8pt;
     padding: 5px 5px 5px 5px;
-    border-top: 1px solid #999; }
+    border-top: 1px solid #999999; }
     #extraFeaturesPanel .extraFeatureIndex footer span {
-      color: #999; }
+      color: #999999; }
       #extraFeaturesPanel .extraFeatureIndex footer span:after {
         content: ":"; }
     #extraFeaturesPanel .extraFeatureIndex footer a {
-      color: #999;
+      color: #999999;
       text-decoration: none;
       padding-left: 5px;
       font-weight: bold; }
@@ -2121,7 +2142,7 @@ div.cardList ul {
       padding-right: 0px;
       box-shadow: -4px 0px 3px -1px rgba(0, 0, 0, 0.2); }
     div.cardList ul li.archived {
-      background-color: #eee;
+      background-color: #eeeeee;
       color: #999; }
     div.cardList ul li .favicon {
       width: 48px;
@@ -2207,7 +2228,7 @@ div.cardList.narrow {
     content: ""; }
 
 #cardDetailPage .view.archived, .cardDetail .view.archived {
-  background-color: #eee; }
+  background-color: #eeeeee; }
 #cardDetailPage .view .cardDetailToolbar, .cardDetail .view .cardDetailToolbar {
   background-color: #1863a1;
   color: white; }
@@ -2401,7 +2422,7 @@ div.cardList.narrow {
       cursor: grab;
       cursor: -moz-grab;
       cursor: -webkit-grab;
-      background: repeating-linear-gradient(0deg, white, white 2px, #ddd 2px, #ddd 3px);
+      background: repeating-linear-gradient(0deg, white, white 2px, #dddddd 2px, #dddddd 3px);
       width: 28px;
       height: 20px;
       margin-left: 6px;

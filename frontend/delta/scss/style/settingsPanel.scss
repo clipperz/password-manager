@@ -44,7 +44,6 @@ refer to http://www.clipperz.com.
 		& > div {
 			border-top: 1px solid white;
 
-		
 			& > ul > li {
 //				padding: 10px;
 //				padding-right: 0px;
@@ -111,10 +110,10 @@ refer to http://www.clipperz.com.
 						display: inline-block;
 						padding: 10px 16px;
 						background-color: green;
-						color: white;
+						color: lightgrey;
 					
 						&:hover {
-							color: lightgrey;
+							color: white;
 						};
 					
 						&.disabled {
@@ -162,12 +161,12 @@ refer to http://www.clipperz.com.
 			
 			label {
 				display: block;
-			}
+	}
 			
 			input {
 				display: block;
-			}
-			
+}
+
 		}
 	}
 }

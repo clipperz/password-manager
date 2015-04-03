@@ -87,6 +87,7 @@ html {
 
 #mainPanel {
 //	background-color: $yellow;
+	left: 0px;
 
 	&.extra-wide {
 		@include sliding-panel-container();
@@ -123,7 +124,7 @@ html {
 	}
 
 	&.wide {
-//		transition: left 0.3s ease-in-out;
+		transition: left 0.3s ease-in-out;
 		.container {
 			@include sliding-panel-container();
 		}

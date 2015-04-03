@@ -64,7 +64,7 @@ $transition-duration: 0.5s;
 	
 	top: 0;
 	left: -$size;
-//	transition: left 0.3s ease-in-out;
+	transition: left 0.3s ease-in-out;
 }
 
 @mixin sliding-panel-right ($size) {

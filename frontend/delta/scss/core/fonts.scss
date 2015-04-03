@@ -26,6 +26,7 @@ refer to http://www.clipperz.com.
 //
 //	C l i p p e r z    I c o n s
 //
+//	openssl enc -base64 -in ./fonts/clipperz-icons.woff | awk 1 ORS='' | pbcopy
 
 @font-face {
 	font-family: "clipperz-icons";
