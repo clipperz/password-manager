@@ -64,10 +64,10 @@ Clipperz.PM.UI.Components.ExtraFeatures.PassphraseClass = React.createClass({
 	handleChangePassphrase: function(event) {
 		event.preventDefault();
 		
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'changePassphrase', this.refs['new-passphrase'].getDOMNode().value);
+
 		this.refs['new-passphrase'].getDOMNode().value = '';
 		this.refs['confirm-new-passphrase'].getDOMNode().value = '';
-		
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'changePassphrase', this.refs['new-passphrase'].getDOMNode().value);
 	},
 
 	//=========================================================================
