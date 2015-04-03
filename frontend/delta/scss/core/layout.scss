@@ -40,6 +40,7 @@ html {
 
 .mainPage > #selectionPanel {
 	@include sliding-panel(left, $selectionPanelWidth);
+	overflow: auto;
 
 	&.open {
 		@include sliding-panel-open(left, $selectionPanelWidth);
@@ -100,8 +101,8 @@ html {
 			
 			&.selection {
 				@include flex($selectionPanelFlexWidth, 0);
-//				height: 100%;
-				@include overflow-scroll;
+//				heig ht: 100%;
+//				@include overflow-scroll;
 			}
 			
 			&.cardContent {
