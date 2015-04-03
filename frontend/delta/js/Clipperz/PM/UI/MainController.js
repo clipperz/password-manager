@@ -1208,7 +1208,26 @@ console.log("THE BROWSER IS OFFLINE");
 	//----------------------------------------------------------------------------
 
 	changePassphrase_handler: function(newPassphrase) {
-		console.log("changePassphrase", newPassphrase);
+		var	currentPage = this.pages()[this.currentPage()];
+		var deferredResult;
+		var getPassphraseDelegate;
+		var user;
+		
+		getPassphraseDelegate = MochiKit.Base.partial(MochiKit.Async.succeed, newPassphrase);
+		user = new Clipperz.PM.DataModel.User({'username':this.user().username(), 'getPassphraseFunction':getPassphraseDelegate});
+		
+		deferredResult = new Clipperz.Async.Deferred("MainController.changePassphrase_handler", {trace: false});
+//		deferredResult.addMethod(currentPage, 'setProps', {'showGlobalMask':true});
+		deferredResult.addMethod(this.overlay(), 'show', "changing …", true);
+		deferredResult.addMethod(this.user(), 'changePassphrase', newPassphrase);
+		deferredResult.addMethod(user, 'login');
+		deferredResult.addMethod(this, 'setUser', user);
+//		deferredResult.addMethod(currentPage, 'setProps', {'mode':'view', 'showGlobalMask':false});
+		deferredResult.addMethod(this.overlay(), 'done', "saved", 1);
+		
+		deferredResult.callback();
+		
+		return deferredResult;
 	}, 
 
 	//----------------------------------------------------------------------------
