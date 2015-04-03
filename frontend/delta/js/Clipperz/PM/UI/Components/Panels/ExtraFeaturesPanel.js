@@ -55,7 +55,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 
 	toggleIndexState: function (section) {
 		return MochiKit.Base.bind(function () {
-			var	newState = { 'index': {} };
+			var	newState = { 'index': this.state['index'] };
 			
 			newState['index'][section] = !this.state['index'][section];
 			this.setState(newState);
@@ -119,7 +119,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 					React.DOM.li({'key':'account', 'className':this.state['index']['account'] ? 'open' : 'closed'}, [
 						React.DOM.h1({'key':'accountH1', 'onClick':this.toggleIndexState('account')}, "Account"),
 						React.DOM.ul({'key':'accountUL'}, [
-							React.DOM.li({'key':'account_1'}, [
+							React.DOM.li({'key':'account_1', 'onClick':this.showExtraFeatureComponent('Passphrase')}, [
 								React.DOM.h2({'key':'account_1_h2'}, "Passphrase"),
 								React.DOM.div({'key':'account_1_div'}, [
 									React.DOM.p({'key':'account_1_p'}, "")

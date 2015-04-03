@@ -62,6 +62,7 @@ Clipperz.PM.UI.MainController = function() {
 
 	this.registerForNotificationCenterEvents([
 		'doLogin', 'registerNewUser', 'showRegistrationForm', 'goBack',
+		'changePassphrase',
 		'toggleSelectionPanel', 'toggleSettingsPanel',
 		'matchMediaQuery', 'unmatchMediaQuery',
 		'selectAllCards', 'selectRecentCards', 'search', 'tagSelected', 'selectUntaggedCards',
@@ -1203,6 +1204,12 @@ console.log("THE BROWSER IS OFFLINE");
 	refreshCardEditDetail_handler: function (aRecordReference) {
 		this.updateSelectedCard({'reference':aRecordReference}, false, true);
 	},
+
+	//----------------------------------------------------------------------------
+
+	changePassphrase_handler: function(newPassphrase) {
+		console.log("changePassphrase", newPassphrase);
+	}, 
 
 	//----------------------------------------------------------------------------
 

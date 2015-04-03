@@ -128,7 +128,6 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
-
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -142,7 +141,6 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
-
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -156,7 +154,6 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
-
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -170,7 +167,6 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
-
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -473,73 +469,61 @@ div.overlay {
 @-webkit-keyframes overlay-spin {
   from {
     opacity: 1; }
-
   to {
     opacity: 0.25; } }
 @-moz-keyframes overlay-spin {
   from {
     opacity: 1; }
-
   to {
     opacity: 0.25; } }
 @-ms-keyframes overlay-spin {
   from {
     opacity: 1; }
-
   to {
     opacity: 0.25; } }
 @keyframes overlay-spin {
   from {
     opacity: 1; }
-
   to {
     opacity: 0.25; } }
 @-webkit-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
-
   100% {
     opacity: 1; } }
 @-moz-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
-
   100% {
     opacity: 1; } }
 @-ms-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
-
   100% {
     opacity: 1; } }
 @keyframes ios-overlay-show {
   0% {
     opacity: 0; }
-
   100% {
     opacity: 1; } }
 @-webkit-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
-
   100% {
     opacity: 0; } }
 @-moz-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
-
   100% {
     opacity: 0; } }
 @-ms-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
-
   100% {
     opacity: 0; } }
 @keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
-
   100% {
     opacity: 0; } }
 /*
@@ -1508,11 +1492,11 @@ div.dialogBox {
         flex: 1;
         font-size: 8pt; }
         #loginPage div.loginForm footer .applicationVersion span {
-          color: #999999; }
+          color: #999; }
           #loginPage div.loginForm footer .applicationVersion span:after {
             content: ":"; }
         #loginPage div.loginForm footer .applicationVersion a {
-          color: #999999;
+          color: #999;
           text-decoration: none;
           padding-left: 5px;
           font-weight: bold; }
@@ -2037,13 +2021,13 @@ span.count {
   #extraFeaturesPanel .extraFeatureIndex footer {
     font-size: 8pt;
     padding: 5px 5px 5px 5px;
-    border-top: 1px solid #999999; }
+    border-top: 1px solid #999; }
     #extraFeaturesPanel .extraFeatureIndex footer span {
-      color: #999999; }
+      color: #999; }
       #extraFeaturesPanel .extraFeatureIndex footer span:after {
         content: ":"; }
     #extraFeaturesPanel .extraFeatureIndex footer a {
-      color: #999999;
+      color: #999;
       text-decoration: none;
       padding-left: 5px;
       font-weight: bold; }
@@ -2052,6 +2036,10 @@ span.count {
   color: white; }
   #extraFeaturesPanel .extraFeatureContent header {
     display: none; }
+  #extraFeaturesPanel .extraFeatureContent .changePassphraseForm label {
+    display: block; }
+  #extraFeaturesPanel .extraFeatureContent .changePassphraseForm input {
+    display: block; }
 
 .mainPage.narrow #extraFeaturesPanel .extraFeatureContent header {
   display: block;
@@ -2133,7 +2121,7 @@ div.cardList ul {
       padding-right: 0px;
       box-shadow: -4px 0px 3px -1px rgba(0, 0, 0, 0.2); }
     div.cardList ul li.archived {
-      background-color: #eeeeee;
+      background-color: #eee;
       color: #999; }
     div.cardList ul li .favicon {
       width: 48px;
@@ -2219,7 +2207,7 @@ div.cardList.narrow {
     content: ""; }
 
 #cardDetailPage .view.archived, .cardDetail .view.archived {
-  background-color: #eeeeee; }
+  background-color: #eee; }
 #cardDetailPage .view .cardDetailToolbar, .cardDetail .view .cardDetailToolbar {
   background-color: #1863a1;
   color: white; }
@@ -2413,7 +2401,7 @@ div.cardList.narrow {
       cursor: grab;
       cursor: -moz-grab;
       cursor: -webkit-grab;
-      background: repeating-linear-gradient(0deg, white, white 2px, #dddddd 2px, #dddddd 3px);
+      background: repeating-linear-gradient(0deg, white, white 2px, #ddd 2px, #ddd 3px);
       width: 28px;
       height: 20px;
       margin-left: 6px;
