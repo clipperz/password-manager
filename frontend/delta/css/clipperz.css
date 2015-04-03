@@ -636,7 +636,7 @@ html {
   -moz-flex-direction: column;
   -ms-flex-direction: column;
   flex-direction: column;
-  min-height: 100%; }
+  height: 100%; }
   #selections ul.defaultSet {
     -webkit-box-flex: none;
     -webkit-flex: none;
@@ -717,34 +717,36 @@ html {
       width: 100%;
       height: 100%;
       margin: 0 auto; }
-  #mainPanel.narrow .container {
-    width: 100%;
-    height: 100%;
-    margin: 0 auto; }
-  #mainPanel.narrow .column {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
-    -webkit-transition-duration: 0.5s;
-    transition-duration: 0.5s; }
-    #mainPanel.narrow .column.left {
-      -webkit-transform: translate3d(-100%, 0, 0);
-      transform: translate3d(-100%, 0, 0); }
-    #mainPanel.narrow .column.right {
-      -webkit-transform: translate3d(100%, 0, 0);
-      transform: translate3d(100%, 0, 0);
-      visibility: hidden;
-      display: none; }
-      #mainPanel.narrow .column.right.transition {
-        visibility: visible;
-        display: block; }
-  #mainPanel.narrow div.addCardButton {
-    margin-left: 75%; }
+  #mainPanel.narrow {
+    transition: left 0.3s ease-in-out; }
+    #mainPanel.narrow .container {
+      width: 100%;
+      height: 100%;
+      margin: 0 auto; }
+    #mainPanel.narrow .column {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0);
+      -webkit-transition-duration: 0.5s;
+      transition-duration: 0.5s; }
+      #mainPanel.narrow .column.left {
+        -webkit-transform: translate3d(-100%, 0, 0);
+        transform: translate3d(-100%, 0, 0); }
+      #mainPanel.narrow .column.right {
+        -webkit-transform: translate3d(100%, 0, 0);
+        transform: translate3d(100%, 0, 0);
+        visibility: hidden;
+        display: none; }
+        #mainPanel.narrow .column.right.transition {
+          visibility: visible;
+          display: block; }
+    #mainPanel.narrow div.addCardButton {
+      margin-left: 75%; }
   #mainPanel.open.left {
     width: 100%;
     margin: 0 auto;
@@ -1742,7 +1744,8 @@ div.dialogBox {
       border: 0px;
       border-bottom: 1px solid #333;
       outline: none;
-      margin-right: 10px; }
+      margin-right: 10px;
+      width: 210px; }
       #selections .search form div input::-webkit-input-placeholder {
         font-style: italic;
         color: #ccc; }

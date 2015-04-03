@@ -50,7 +50,8 @@ html {
 #selections {
 	@include flexbox();
 	@include flex-direction(column);
-	min-height: 100%;
+//	min-height: 100%;
+	height: 100%;
 
 	ul.defaultSet {
 		@include flex(none);
@@ -101,7 +102,7 @@ html {
 			
 			&.selection {
 				@include flex($selectionPanelFlexWidth, 0);
-//				heig ht: 100%;
+//				height: 100%;
 //				@include overflow-scroll;
 			}
 			
@@ -132,7 +133,7 @@ html {
 	}
 
 	&.narrow {
-//		transition: left 0.3s ease-in-out;
+		transition: left 0.3s ease-in-out;
 		.container {
 			@include sliding-panel-container();
 		}
