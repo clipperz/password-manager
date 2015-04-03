@@ -93,9 +93,8 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 				!this.props['disabled'];
 	},
 
-
 	loginForm: function () {
-		return	React.DOM.form({'key':'form', 'className':'loginForm credentials', 'onChange':this.handleChange, 'onSubmit':this.handleCredentialSubmit}, [
+		return	React.DOM.form({'key':'form', 'className':'loginForm credentials', 'autoComplete':'off', 'onChange':this.handleChange, 'onSubmit':this.handleCredentialSubmit}, [
 					React.DOM.div({'key':'fields'},[
 						React.DOM.label({'key':'username-label', 'htmlFor' :'name'}, "username"),
 						React.DOM.input({'key':'username', 'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'autoCapitalize':'none'}),
@@ -119,7 +118,7 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 	},
 
 	pinForm: function () {
-		return	React.DOM.form({'className':'pinForm pin', 'onChange':this.handleChange, 'onSubmit':this.handlePINSubmit}, [
+		return	React.DOM.form({'className':'pinForm pin', 'autoComplete':'off', 'onChange':this.handleChange, 'onSubmit':this.handlePINSubmit}, [
 					React.DOM.div({'key':'pinFormDiv'},[
 						React.DOM.label({'for':'pin'}, "pin"),
 						React.DOM.input({'type':'text', 'name':'pin', 'ref':'pin', placeholder:"PIN", 'key':'pin', 'autocapitalize':'none'})

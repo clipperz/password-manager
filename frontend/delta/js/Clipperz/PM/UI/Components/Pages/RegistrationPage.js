@@ -218,7 +218,7 @@ Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 		return	React.DOM.div({'className':'registrationForm'},[
 					React.DOM.header({'key':'header'}, 'clipperz'),
 					React.DOM.div({'key':'body', 'className':'form'}, [
-						React.DOM.form({'key':'registrationForm', 'onChange': this.handleChange}, [
+						React.DOM.form({'key':'registrationForm', 'autoComplete':'off', 'onChange': this.handleChange}, [
 							React.DOM.div({'key':'steps', 'className':'steps'}, MochiKit.Base.map(this.renderStep, this.props['steps']))
 						])
 					]),
