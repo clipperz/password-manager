@@ -1,5 +1,5 @@
 from frontendBuilder import FrontendBuilder
-from scss import Scss
+#from scss import Scss
 
 import os
 import shutil
@@ -38,6 +38,7 @@ class DeltaBuilder(FrontendBuilder):
 		return ""
 
 	def preprocessCSS (self, targetFile):
+		from scss import Scss
 		logging.basicConfig()
 		scssVariables = {}
 		scssCompiler = Scss(
