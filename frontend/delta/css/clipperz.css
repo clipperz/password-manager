@@ -2043,6 +2043,27 @@ span.count {
     display: block; }
   #extraFeaturesPanel .extraFeatureContent .changePassphraseForm input {
     display: block; }
+  #extraFeaturesPanel .extraFeatureContent .deleteAccountForm {
+    margin-top: 1em; }
+    #extraFeaturesPanel .extraFeatureContent .deleteAccountForm label {
+      display: block; }
+    #extraFeaturesPanel .extraFeatureContent .deleteAccountForm input {
+      display: inline-block;
+      margin-right: 1em;
+      margin-bottom: 1em; }
+    #extraFeaturesPanel .extraFeatureContent .deleteAccountForm .confirmCheckbox {
+      display: inline-block; }
+  #extraFeaturesPanel .extraFeatureContent form input.valid + .invalidMsg, #extraFeaturesPanel .extraFeatureContent form input.empty + .invalidMsg, #extraFeaturesPanel .extraFeatureContent form input:focus + .invalidMsg, #extraFeaturesPanel .extraFeatureContent form input.invalid:focus + .invalidMsg {
+    visibility: hidden; }
+  #extraFeaturesPanel .extraFeatureContent form input:focus {
+    border: 2px solid #ff9900; }
+  #extraFeaturesPanel .extraFeatureContent form input.valid:focus {
+    border: 2px solid #1863a1; }
+  #extraFeaturesPanel .extraFeatureContent form input.invalid + .invalidMsg {
+    visibility: visible; }
+  #extraFeaturesPanel .extraFeatureContent form .invalidMsg::before {
+    font-family: serif;
+    content: "\26A0 \0000a0"; }
 
 .mainPage.narrow #extraFeaturesPanel .extraFeatureContent header {
   display: block;

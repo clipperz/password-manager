@@ -143,7 +143,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 									React.DOM.p({}, "")
 								])
 							]),
-							React.DOM.li({'key':'account_5'}, [
+							React.DOM.li({'key':'account_5', 'onClick':this.showExtraFeatureComponent('DeleteAccount')}, [
 								React.DOM.h2({}, "Delete account"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "")

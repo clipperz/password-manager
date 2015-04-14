@@ -62,7 +62,7 @@ Clipperz.PM.UI.MainController = function() {
 
 	this.registerForNotificationCenterEvents([
 		'doLogin', 'registerNewUser', 'showRegistrationForm', 'goBack',
-		'changePassphrase',
+		'changePassphrase', 'deleteAccount',
 		'toggleSelectionPanel', 'toggleSettingsPanel',
 		'matchMediaQuery', 'unmatchMediaQuery',
 		'selectAllCards', 'selectRecentCards', 'search', 'tagSelected', 'selectUntaggedCards',
@@ -252,6 +252,20 @@ console.log("THE BROWSER IS OFFLINE");
 		this.overlay().hide();
 	},
 
+	//-------------------------------------------------------------------------
+	
+	checkPassphrase: function( passphraseIn ) {
+		var deferredResult;
+		
+		deferredResult = new Clipperz.Async.Deferred("MainController.deleteAccount_handler", {trace: false});
+		deferredResult.addMethod(this.user(), 'getPassphrase');
+		deferredResult.addCallback(function (candidatePassphrase, realPassphrase) { return candidatePassphrase == realPassphrase; }, passphraseIn );
+
+		deferredResult.callback();
+		
+		return deferredResult;
+	},
+	
 	//-------------------------------------------------------------------------
 
 	showLoginForm: function () {
@@ -906,6 +920,20 @@ console.log("THE BROWSER IS OFFLINE");
 
 	//.........................................................................
 	
+	userInfo: function() {
+		var result;
+		
+		result = {
+			'checkPassphraseCallback':	MochiKit.Base.bind(this.checkPassphrase,this)
+		};
+		
+		if (this.user() != null) {
+			result['username'] = this.user().username();
+		}
+		
+		return result;
+	},
+	
 	userAccountInfo: function () {
 		var	result;
 		
@@ -985,6 +1013,7 @@ console.log("THE BROWSER IS OFFLINE");
 		} else if (aPageName == 'mainPage') {
 			extraProperties = {
 				'messageBox':					this.messageBoxContent(),
+				'userInfo':						this.userInfo(),
 				'accountInfo':					this.userAccountInfo(),
 				'selectionPanelStatus':			this.isSelectionPanelOpen()	? 'OPEN' : 'CLOSED',
 				'settingsPanelStatus':			this.isSettingsPanelOpen()	? 'OPEN' : 'CLOSED',
@@ -1229,6 +1258,19 @@ console.log("THE BROWSER IS OFFLINE");
 		
 		return deferredResult;
 	}, 
+	
+	deleteAccount_handler: function() {
+		var deferredResult;
+		
+		deferredResult = new Clipperz.Async.Deferred("MainController.deleteAccount_handler", {trace: false});
+		deferredResult.addMethod(this.overlay(), 'show', "deleting …", true);
+		deferredResult.addMethod(this.user(), 'deleteAccount');
+		deferredResult.addCallback(function() { window.location.href = '/'; });
+		
+		deferredResult.callback();
+		
+		return deferredResult;
+	},
 
 	//----------------------------------------------------------------------------
 

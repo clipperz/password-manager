@@ -243,6 +243,44 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		
 		return deferredResult;
 	},
+	
+	// TODO: test (taken straight from /beta)
+	'deleteAccount': function() {
+		
+console.log("deleting account from user");
+		
+		var deferredResult;
+		
+		deferredResult = new MochiKit.Async.Deferred("User.deleteAccount", {trace: true});
+		deferredResult.addCallback(MochiKit.Base.method(this.connection(), 'message'), 'deleteUser');
+		deferredResult.addCallback(MochiKit.Base.method(this, 'resetAllLocalData'));
+		deferredResult.callback();
+
+		return deferredResult;
+		
+
+	},
+	
+	// TODO: check (I have half of an idea what i'm doing)
+	'resetAllLocalData': function() {
+		
+console.log("resetting all local data...");	
+		
+		var deferredResult;
+		
+		deferredResult = new MochiKit.Async.Deferred("User.resetAllLocalData", {trace: true});
+		deferredResult.addCallback(MochiKit.Base.method(this, 'deleteAllCleanTextData'));
+		deferredResult.addCallback(MochiKit.Base.method(this, function() {
+			this.resetConnection();
+			this.setUsername("");
+			this._getPassphraseFunction = function() { return ""; };
+			this._serverData = null;
+		}));
+		
+		deferredResult.callback();
+		
+		return deferredResult;	
+	},
 
 	//-------------------------------------------------------------------------
 

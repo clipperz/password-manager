@@ -169,6 +169,7 @@
 
 		"Clipperz/PM/UI/Components/ExtraFeatures/DevicePIN.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/Passphrase.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/DeleteAccount.js",
 
 		"Clipperz/PM/UI/Components/Cards/FavIcon.js",
 		"Clipperz/PM/UI/Components/Cards/List.js",

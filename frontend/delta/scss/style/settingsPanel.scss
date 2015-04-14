@@ -158,16 +158,56 @@ refer to http://www.clipperz.com.
 		}
 		
 		.changePassphraseForm {
-			
 			label {
 				display: block;
-	}
+			}
 			
 			input {
 				display: block;
-}
-
+			}
 		}
+		
+		.deleteAccountForm {
+			margin-top: 1em;
+		
+			label {
+				display: block;
+			}
+			
+			input {
+				display: inline-block;
+				margin-right: 1em;
+				margin-bottom: 1em;
+			}
+			
+			.confirmCheckbox {
+				display: inline-block;
+			}
+		}
+		
+		form {
+			input.valid + .invalidMsg, input.empty + .invalidMsg, input:focus + .invalidMsg, input.invalid:focus + .invalidMsg {
+				visibility: hidden;
+			}
+			
+			input:focus {
+				border: 2px solid $clipperz-orange;
+			}
+			
+			input.valid:focus {
+				border: 2px solid $clipperz-blue;
+			}
+			
+			input.invalid + .invalidMsg {
+				visibility: visible;
+			}
+			
+			.invalidMsg::before {
+				font-family: serif;
+				content: "\26A0 \0000a0";
+			}
+		}
+		
 	}
 }
 

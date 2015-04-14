@@ -37,7 +37,11 @@ class ClipperzTestSite(server.Site):
 		uri = request.uri
 		uri = uri.split("?", 1)[0]
 		uri = uri.split("#", 1)[0]
-		if uri.startswith('/json') or uri.startswith('/dump'):
+
+		if uri == '/':
+			# This serves the message, but also throws an exception; can't understand why...
+			result = static.Data('<html>In production you would now be on https://clipperz.is/</html>', 'text/html')
+		elif uri.startswith('/json') or uri.startswith('/dump'):
 			resource.prepath = ['app']
 			result = resource.getChildForRequest(self.resource, request)
 		elif uri.startswith('/payment'):
@@ -115,7 +119,6 @@ class ClipperzTestSite(server.Site):
 
 #		print("RESULT\n" + str(result))
 		return result
-
 
 def main ():
 #	site = ClipperzTestSite(proxy.ReverseProxyResource('localhost', 8084, '/java-backend'))

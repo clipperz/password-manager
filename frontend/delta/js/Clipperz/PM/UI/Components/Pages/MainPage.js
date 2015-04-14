@@ -34,12 +34,13 @@ Clipperz.PM.UI.Components.Pages.MainPageClass = React.createClass({
 	},
 
 	propTypes: {
-		'tags':				React.PropTypes.object,
-		'allTags':			React.PropTypes.array,
-		'messageBox':		React.PropTypes.object.isRequired,
-		'featureSet':		React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
-		'features':			React.PropTypes.array.isRequired,
-		'accountInfo':		React.PropTypes.object.isRequired,
+		'tags':						React.PropTypes.object,
+		'allTags':					React.PropTypes.array,
+		'messageBox':				React.PropTypes.object.isRequired,
+		'featureSet':				React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
+		'features':					React.PropTypes.array.isRequired,
+		'userInfo':					React.PropTypes.object.isRequired,
+		'accountInfo':				React.PropTypes.object.isRequired,
 //		'mediaQueryStyle':	React.PropTypes.oneOf(['extra-short', 'narrow', 'wide', 'extra-wide']).isRequired,
 		'style':			React.PropTypes.oneOf(Clipperz_PM_UI_availableStyles).isRequired,
 		//		'cards':			React.PropTypes.deferred.isRequired

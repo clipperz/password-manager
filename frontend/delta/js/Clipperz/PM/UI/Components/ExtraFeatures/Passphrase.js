@@ -33,10 +33,11 @@ Clipperz.PM.UI.Components.ExtraFeatures.PassphraseClass = React.createClass({
 	
 	getInitialState: function() {
 		return {
-//			'username': '',
-//			'old-passphrase': '',
+			'username': '',
+			'old-passphrase': '',
 			'new-passphrase': '',
-			'confirm-new-passphrase': ''
+			'confirm-new-passphrase': '',
+			'error': ''
 		};
 	},
 
@@ -44,8 +45,8 @@ Clipperz.PM.UI.Components.ExtraFeatures.PassphraseClass = React.createClass({
 
 	shouldEnableChangePassphraseButton: function() {
 		return (
-//			this.state['username'] && 
-//			this.state['old-passphrase'] &&
+			this.state['username'] && 
+			this.state['old-passphrase'] &&
 			this.state['new-passphrase'] &&
 			this.state['confirm-new-passphrase'] &&
 			(this.state['new-passphrase'] == this.state['confirm-new-passphrase'])
@@ -54,8 +55,8 @@ Clipperz.PM.UI.Components.ExtraFeatures.PassphraseClass = React.createClass({
 	
 	handleFormChange: function() {
 		this.setState({
-//			'username': this.refs['username'].getDOMNode().value,
-//			'old-passphrase': this.refs['old-passphrase'].getDOMNode().value,
+			'username': this.refs['username'].getDOMNode().value,
+			'old-passphrase': this.refs['old-passphrase'].getDOMNode().value,
 			'new-passphrase': this.refs['new-passphrase'].getDOMNode().value,
 			'confirm-new-passphrase': this.refs['confirm-new-passphrase'].getDOMNode().value
 		});
@@ -63,30 +64,58 @@ Clipperz.PM.UI.Components.ExtraFeatures.PassphraseClass = React.createClass({
 
 	handleChangePassphrase: function(event) {
 		event.preventDefault();
-		
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'changePassphrase', this.refs['new-passphrase'].getDOMNode().value);
 
-		this.refs['new-passphrase'].getDOMNode().value = '';
-		this.refs['confirm-new-passphrase'].getDOMNode().value = '';
+		if (this.refs['username'].getDOMNode().value != this.props.userInfo['username']) {
+			this.setState({error: "Invalid username"});
+			return;
+		}
+		
+		var deferredResult;
+		
+		deferredResult = new Clipperz.Async.Deferred("Passphrase.handleChangePassphrase", {trace: false});
+		deferredResult.addCallback(this.props.userInfo['checkPassphraseCallback'], this.refs['old-passphrase'].getDOMNode().value);
+		deferredResult.addIf(
+			[
+				MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'changePassphrase', this.refs['new-passphrase'].getDOMNode().value),
+				MochiKit.Base.method(this, function() {
+					this.refs['username'].getDOMNode().value = '';
+					this.refs['old-passphrase'].getDOMNode().value = '';
+					this.refs['new-passphrase'].getDOMNode().value = '';
+					this.refs['confirm-new-passphrase'].getDOMNode().value = '';
+					this.setState({'error': ''});
+				})
+			],
+			[MochiKit.Base.bind(this.setState, this, {error: "Invalid password"})]
+		);
+		
+		deferredResult.callback();
+		
+		return deferredResult;
+
+//		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'changePassphrase', this.refs['new-passphrase'].getDOMNode().value);
+
 	},
 
 	//=========================================================================
 
 	render: function () {
+		var errorVisibility = (this.state.error) ? 'visible' : 'hidden';
+		
 		return	React.DOM.div({className:'extraFeature passphrase'}, [
 			React.DOM.h1({}, "Change Passphrase"),
 			React.DOM.form({'key':'form', 'className':'changePassphraseForm', 'onChange': this.handleFormChange, 'onSubmit':this.handleChangePassphrase}, [
 				React.DOM.div({'key':'fields'},[
-//					React.DOM.label({'key':'username-label', 'htmlFor' :'name'}, "username"),
-//					React.DOM.input({'key':'username', 'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'autoCapitalize':'none'}),
-//					React.DOM.label({'key':'old-passphrase-label', 'htmlFor' :'old-passphrase'}, "old passphrase"),
-//					React.DOM.input({'key':'old-passphrase', 'type':'password', 'name':'old-passphrase', 'ref':'old-passphrase', 'placeholder':"old passphrase"}),
+					React.DOM.label({'key':'username-label', 'htmlFor' :'name'}, "username"),
+					React.DOM.input({'key':'username', 'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'autoCapitalize':'none'}),
+					React.DOM.label({'key':'old-passphrase-label', 'htmlFor' :'old-passphrase'}, "old passphrase"),
+					React.DOM.input({'key':'old-passphrase', 'type':'password', 'name':'old-passphrase', 'ref':'old-passphrase', 'placeholder':"old passphrase"}),
 					React.DOM.label({'key':'new-passphrase-label', 'autoFocus': 'true', 'htmlFor' :'new-passphrase'}, "new passphrase"),
 					React.DOM.input({'key':'new-passphrase', 'type':'password', 'name':'new-passphrase', 'ref':'new-passphrase', 'placeholder':"new passphrase"}),
 					React.DOM.label({'key':'confirm-new-passphrase-label', 'htmlFor' :'confirm-new-passphrase'}, "confirm new passphrase"),
 					React.DOM.input({'key':'confirm-new-passphrase', 'type':'password', 'name':'confirm-new-passphrase', 'ref':'confirm-new-passphrase', 'placeholder':"confirm new passphrase"})
 				]),
-				React.DOM.button({'key':'button', 'type':'submit', 'disabled':!this.shouldEnableChangePassphraseButton(), 'className':'button'}, "Change")
+				React.DOM.button({'key':'button', 'type':'submit', 'disabled':!this.shouldEnableChangePassphraseButton(), 'className':'button'}, "Change"),
+				React.DOM.div({ref: 'errorMessage', className: 'errorMessage', style: {visibility: errorVisibility} }, this.state.error)
 			]),
 		]);
 	},
