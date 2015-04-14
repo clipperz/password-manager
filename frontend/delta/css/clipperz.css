@@ -128,6 +128,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -141,6 +142,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -154,6 +156,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -167,6 +170,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -469,61 +473,73 @@ div.overlay {
 @-webkit-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-moz-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-ms-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-webkit-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-moz-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-ms-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-webkit-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @-moz-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @-ms-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 /*
@@ -1206,7 +1222,7 @@ div.dialogBox {
     z-index: 10;
     background-color: rgba(0, 0, 0, 0.5); }
   div.dialogBox .mask {
-    z-index: 12; }
+    z-index: 25; }
   div.dialogBox div.dialog {
     -webkit-box-flex: none;
     -webkit-flex: none;
@@ -1494,11 +1510,11 @@ div.dialogBox {
         flex: 1;
         font-size: 8pt; }
         #loginPage div.loginForm footer .applicationVersion span {
-          color: #999; }
+          color: #999999; }
           #loginPage div.loginForm footer .applicationVersion span:after {
             content: ":"; }
         #loginPage div.loginForm footer .applicationVersion a {
-          color: #999;
+          color: #999999;
           text-decoration: none;
           padding-left: 5px;
           font-weight: bold; }
@@ -1983,20 +1999,22 @@ span.count {
     border-top: 1px solid white; }
     #extraFeaturesPanel .extraFeatureIndex > div > ul > li {
       border-bottom: 1px solid white; }
-      #extraFeaturesPanel .extraFeatureIndex > div > ul > li > ul {
-        padding-left: 10px; }
+      #extraFeaturesPanel .extraFeatureIndex > div > ul > li > h1 {
+        cursor: pointer;
+        font-size: 16pt;
+        padding: 10px; }
       #extraFeaturesPanel .extraFeatureIndex > div > ul > li.closed > ul {
         display: none;
         visibility: hidden; }
     #extraFeaturesPanel .extraFeatureIndex > div ul li > ul > li {
       padding: 10px;
-      padding-right: 0px; }
+      padding-left: 20px;
+      padding-right: 0px;
+      cursor: pointer; }
+      #extraFeaturesPanel .extraFeatureIndex > div ul li > ul > li.selected {
+        background-color: #333; }
       #extraFeaturesPanel .extraFeatureIndex > div ul li > ul > li > div {
         padding: 4px; }
-    #extraFeaturesPanel .extraFeatureIndex > div ul li h1 {
-      cursor: pointer;
-      font-size: 16pt;
-      padding: 10px; }
     #extraFeaturesPanel .extraFeatureIndex > div ul li h2 {
       font-weight: 300;
       font-size: 14pt; }
@@ -2024,46 +2042,114 @@ span.count {
   #extraFeaturesPanel .extraFeatureIndex footer {
     font-size: 8pt;
     padding: 5px 5px 5px 5px;
-    border-top: 1px solid #999; }
+    border-top: 1px solid #999999; }
     #extraFeaturesPanel .extraFeatureIndex footer span {
-      color: #999; }
+      color: #999999; }
       #extraFeaturesPanel .extraFeatureIndex footer span:after {
         content: ":"; }
     #extraFeaturesPanel .extraFeatureIndex footer a {
-      color: #999;
+      color: #999999;
       text-decoration: none;
       padding-left: 5px;
       font-weight: bold; }
 #extraFeaturesPanel .extraFeatureContent {
   border-right: 1px solid #222;
-  color: white; }
+  color: white;
+  /*
+  		.changePassphraseForm {
+  			label {
+  				display: block;
+  			}
+  			
+  			input {
+  				display: block;
+  			}
+  		}
+  		
+  		.deleteAccountForm {
+  			margin-top: 1em;
+  		
+  			label {
+  				display: block;
+  			}
+  			
+  			input {
+  				display: inline-block;
+  				margin-right: 1em;
+  				margin-bottom: 1em;
+  			}
+  			
+  			.confirmCheckbox {
+  				display: inline-block;
+  			}
+  		}
+  */ }
   #extraFeaturesPanel .extraFeatureContent header {
     display: none; }
-  #extraFeaturesPanel .extraFeatureContent .changePassphraseForm label {
-    display: block; }
-  #extraFeaturesPanel .extraFeatureContent .changePassphraseForm input {
-    display: block; }
-  #extraFeaturesPanel .extraFeatureContent .deleteAccountForm {
-    margin-top: 1em; }
-    #extraFeaturesPanel .extraFeatureContent .deleteAccountForm label {
-      display: block; }
-    #extraFeaturesPanel .extraFeatureContent .deleteAccountForm input {
-      display: inline-block;
-      margin-right: 1em;
-      margin-bottom: 1em; }
-    #extraFeaturesPanel .extraFeatureContent .deleteAccountForm .confirmCheckbox {
-      display: inline-block; }
-  #extraFeaturesPanel .extraFeatureContent form input.valid + .invalidMsg, #extraFeaturesPanel .extraFeatureContent form input.empty + .invalidMsg, #extraFeaturesPanel .extraFeatureContent form input:focus + .invalidMsg, #extraFeaturesPanel .extraFeatureContent form input.invalid:focus + .invalidMsg {
-    visibility: hidden; }
-  #extraFeaturesPanel .extraFeatureContent form input:focus {
-    border: 2px solid #ff9900; }
-  #extraFeaturesPanel .extraFeatureContent form input.valid:focus {
-    border: 2px solid #1863a1; }
-  #extraFeaturesPanel .extraFeatureContent form input.invalid + .invalidMsg {
-    visibility: visible; }
-  #extraFeaturesPanel .extraFeatureContent form .invalidMsg::before {
-    font-family: serif;
-    content: "\26A0 \0000a0"; }
+  #extraFeaturesPanel .extraFeatureContent .extraFeature {
+    padding: 20px; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature h1 {
+      font-size: 20pt;
+      padding-bottom: 20px; }
+  #extraFeaturesPanel .extraFeatureContent form label {
+    display: none; }
+  #extraFeaturesPanel .extraFeatureContent form input {
+    display: block;
+    font-size: 18pt;
+    margin-bottom: 8px;
+    padding: 6px 10px;
+    border: 0px solid white;
+    width: 350px;
+    color: black; }
+    #extraFeaturesPanel .extraFeatureContent form input.invalid {
+      border: 0px solid #ff9900;
+      color: gray; }
+  #extraFeaturesPanel .extraFeatureContent form p {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-direction: normal;
+    -webkit-box-orient: horizontal;
+    -webkit-flex-direction: row;
+    -moz-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row; }
+    #extraFeaturesPanel .extraFeatureContent form p input {
+      width: 30px;
+      -webkit-box-flex: auto;
+      -webkit-flex: auto;
+      -moz-box-flex: auto;
+      -moz-flex: auto;
+      -ms-flex: auto;
+      flex: auto; }
+    #extraFeaturesPanel .extraFeatureContent form p span {
+      -webkit-box-flex: auto;
+      -webkit-flex: auto;
+      -moz-box-flex: auto;
+      -moz-flex: auto;
+      -ms-flex: auto;
+      flex: auto;
+      font-size: 12pt; }
+  #extraFeaturesPanel .extraFeatureContent form button {
+    font-family: "clipperz-font";
+    color: white;
+    font-size: 14pt;
+    border: 0px;
+    margin-top: 20px;
+    padding: 6px 10px;
+    border: 1px solid white;
+    background-color: #ff9900;
+    -webkit-transition: background-color font-weight 0.2s linear;
+    -moz-transition: background-color font-weight 0.2s linear;
+    -o-transition: background-color font-weight 0.2s linear;
+    -ms-transition: background-color font-weight 0.2s linear;
+    transition: background-color font-weight 0.2s linear; }
+    #extraFeaturesPanel .extraFeatureContent form button:disabled {
+      font-weight: 100;
+      background-color: #c0c0c0;
+      cursor: default; }
 
 .mainPage.narrow #extraFeaturesPanel .extraFeatureContent header {
   display: block;
@@ -2145,7 +2231,7 @@ div.cardList ul {
       padding-right: 0px;
       box-shadow: -4px 0px 3px -1px rgba(0, 0, 0, 0.2); }
     div.cardList ul li.archived {
-      background-color: #eee;
+      background-color: #eeeeee;
       color: #999; }
     div.cardList ul li .favicon {
       width: 48px;
@@ -2231,7 +2317,7 @@ div.cardList.narrow {
     content: ""; }
 
 #cardDetailPage .view.archived, .cardDetail .view.archived {
-  background-color: #eee; }
+  background-color: #eeeeee; }
 #cardDetailPage .view .cardDetailToolbar, .cardDetail .view .cardDetailToolbar {
   background-color: #1863a1;
   color: white; }
@@ -2425,7 +2511,7 @@ div.cardList.narrow {
       cursor: grab;
       cursor: -moz-grab;
       cursor: -webkit-grab;
-      background: repeating-linear-gradient(0deg, white, white 2px, #ddd 2px, #ddd 3px);
+      background: repeating-linear-gradient(0deg, white, white 2px, #dddddd 2px, #dddddd 3px);
       width: 28px;
       height: 20px;
       margin-left: 6px;
@@ -2580,12 +2666,16 @@ div.dialog {
   -webkit-border-radius: 8px;
   -moz-border-radius: 8px;
   border-radius: 8px;
+  max-width: 70%;
   background-color: white;
-  padding: 30px; }
+  padding: 30px;
+  box-shadow: 4px 4px 6px 5px rgba(0, 0, 0, 0.3); }
   div.dialog h3.message {
     font-size: 18pt;
     font-weight: bold;
-    padding-bottom: 20px; }
+    padding-bottom: 20px;
+    white-space: pre-wrap;
+    word-wrap: break-word; }
   div.dialog div.answers div.button {
     -webkit-border-radius: 4;
     -moz-border-radius: 4;
@@ -2656,5 +2746,3 @@ This configuration is now located in the first script included in the index_temp
 	}
 }
 */
-
-/*# sourceMappingURL=clipperz.css.map */

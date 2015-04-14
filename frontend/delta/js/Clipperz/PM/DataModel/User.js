@@ -244,11 +244,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		return deferredResult;
 	},
 	
-	// TODO: test (taken straight from /beta)
 	'deleteAccount': function() {
-		
-console.log("deleting account from user");
-		
 		var deferredResult;
 		
 		deferredResult = new MochiKit.Async.Deferred("User.deleteAccount", {trace: true});
@@ -257,15 +253,9 @@ console.log("deleting account from user");
 		deferredResult.callback();
 
 		return deferredResult;
-		
-
 	},
 	
-	// TODO: check (I have half of an idea what i'm doing)
 	'resetAllLocalData': function() {
-		
-console.log("resetting all local data...");	
-		
 		var deferredResult;
 		
 		deferredResult = new MochiKit.Async.Deferred("User.resetAllLocalData", {trace: true});

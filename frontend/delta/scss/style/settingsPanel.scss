@@ -49,8 +49,14 @@ refer to http://www.clipperz.com.
 //				padding-right: 0px;
 				border-bottom: 1px solid white;
 
+				& > h1 {
+					cursor: pointer;
+					font-size: 16pt;
+					padding: 10px;
+				}
+
 				& > ul {
-					padding-left: 10px;
+//					padding-left: 10px;
 				}
 
 //				&:last-child {
@@ -68,8 +74,15 @@ refer to http://www.clipperz.com.
 				li {
 					& > ul > li {
 						padding: 10px;
+						padding-left: 20px;
 						padding-right: 0px;
+						cursor: pointer;
 					
+						&.selected {
+							background-color: #333;
+//							color: black;
+						}
+
 						& > div {
 							padding: 4px;
 						}
@@ -83,13 +96,14 @@ refer to http://www.clipperz.com.
 					
 					}
 
-					h1 {
-						cursor: pointer;
-						font-size: 16pt;
-						padding: 10px;
-					}
+//					h1 {
+//						cursor: pointer;
+//						font-size: 16pt;
+//						padding: 10px;
+//					}
 				
 					h2 {
+//						cursor: pointer;
 						font-weight: 300;
 						font-size: 14pt;
 					}
@@ -157,6 +171,17 @@ refer to http://www.clipperz.com.
 			display: none;
 		}
 		
+		.extraFeature {
+			padding: 20px;
+			
+			h1 {
+				font-size: 20pt;
+				padding-bottom: 20px;
+			}
+		}
+
+
+/*
 		.changePassphraseForm {
 			label {
 				display: block;
@@ -184,28 +209,79 @@ refer to http://www.clipperz.com.
 				display: inline-block;
 			}
 		}
+*/
 		
 		form {
-			input.valid + .invalidMsg, input.empty + .invalidMsg, input:focus + .invalidMsg, input.invalid:focus + .invalidMsg {
-				visibility: hidden;
+			
+			label {
+				display: none;
+			}
+
+			input {
+				$border-size: 0px; //	2px;
+
+				display: block;
+				font-size: 18pt;
+				margin-bottom: 8px;
+				padding: (6px - $border-size) (10px - $border-size);
+				border: $border-size solid white;
+				width: 350px;
+				color: black;
+
+				&.invalid {
+					border: $border-size solid $clipperz-orange;
+					color: gray;
+				}
 			}
 			
-			input:focus {
-				border: 2px solid $clipperz-orange;
+			p {
+				@include flexbox;
+				@include flex-direction(row);
+
+				input {
+					width: 30px;
+					@include flex(auto);
+				}
+				
+				span {
+					@include flex(auto);
+					font-size: 12pt;
+				}
 			}
-			
-			input.valid:focus {
-				border: 2px solid $clipperz-blue;
+
+			button {
+				font-family: "clipperz-font";
+//				min-height: 48px;
+//				min-width: 48px;
+
+				color: white;
+//				font-size: 24pt;
+				font-size: 14pt;
+//				font-weight: 500;
+				border: 0px;
+
+				margin-top: 20px;
+				padding: 6px 10px;
+
+				border: 1px solid white;
+				background-color: $main-color;
+				@include transition(background-color font-weight, 0.2s, linear);
+
+				&:hover {
+				};
+
+				&:disabled {
+					font-weight: 100;
+					background-color: #c0c0c0;
+					cursor: default;
+
+					&:hover {
+					};
+				}
 			}
-			
-			input.invalid + .invalidMsg {
-				visibility: visible;
-			}
-			
-			.invalidMsg::before {
-				font-family: serif;
-				content: "\26A0 \0000a0";
-			}
+//			input.valid:focus {
+//				border: 2px solid $clipperz-blue;
+//			}
 		}
 		
 	}

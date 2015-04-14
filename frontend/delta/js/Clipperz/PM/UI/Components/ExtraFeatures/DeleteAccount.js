@@ -36,7 +36,6 @@ Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 			'username': 'empty',
 			'passphrase': 'empty',
 			'confirm': '',
-			//~ 'error': ''
 		};
 	},
 
@@ -44,36 +43,10 @@ Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 	
 	handleDeleteAccount: function(event) {
 		event.preventDefault();
-		
-		//~ if (this.refs['username'].getDOMNode().value != this.props.userInfo['username']) {
-			//~ this.setState({error: "Invalid username"});
-			//~ return;
-		//~ }
-		//~ 
-		//~ var deferredResult;
-		//~ 
-		//~ deferredResult = new Clipperz.Async.Deferred("DeleteAccount.handleDeleteAccount", {trace: false});
-		//~ deferredResult.addCallback(this.props.userInfo['checkPassphraseCallback'], this.refs['passphrase'].getDOMNode().value);
-		//~ deferredResult.addIf(
-			//~ [MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'deleteAccount')],
-			//~ [MochiKit.Base.bind(this.setState, this, {error: "Invalid password"})]
-		//~ );
-		//~ 
-		//~ deferredResult.callback();
-		//~ 
-		//~ return deferredResult;
-		
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'deleteAccount');
 	},
 	
 	handleFormChange: function() {
-		
-		
-		//~ if (this.refs['username'].getDOMNode().value != this.props.userInfo['username']) {
-			//~ this.setState({error: "Invalid username"});
-			//~ return;
-		//~ }
-		
 		var deferredResult;
 		
 		deferredResult = new Clipperz.Async.Deferred("DeleteAccount.handleDeleteAccount", {trace: false});
@@ -92,14 +65,6 @@ Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 		deferredResult.callback();
 		
 		return deferredResult;
-		
-		
-		
-		//~ this.setState({
-			//~ 'username': this.refs['username'].getDOMNode().value,
-			//~ 'passphrase': this.refs['passphrase'].getDOMNode().value,
-			//~ 'confirm': this.refs['confirm'].getDOMNode().checked,
-		//~ });
 	},
 	
 	shouldEnableDeleteAccountButton: function() {
@@ -116,11 +81,9 @@ Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 			React.DOM.form({'key':'form', 'className':'deleteAccountForm', 'onChange': this.handleFormChange, 'onSubmit':this.handleDeleteAccount}, [
 				React.DOM.div({'key':'fields'},[
 					React.DOM.label({'key':'username-label', 'htmlFor' :'name'}, "username"),
-					React.DOM.input({'key':'username', 'className': this.state['username'], 'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'autoCapitalize':'none'}),
-					React.DOM.span({'className': 'invalidMsg'},'Invalid username!'),
+					React.DOM.input({'key':'username', 'className':this.state['username'], 'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'autoCapitalize':'none'}),
 					React.DOM.label({'key':'passphrase-label', 'autoFocus': 'true', 'htmlFor' :'passphrase'}, "passphrase"),
-					React.DOM.input({'key':'passphrase', 'className': this.state['passphrase'], 'type':'password', 'name':'passphrase', 'ref':'passphrase', 'placeholder':"passphrase"}),
-					React.DOM.span({'className': 'invalidMsg'},'Invalid passphrase!'),
+					React.DOM.input({'key':'passphrase', 'className':this.state['passphrase'], 'type':'password', 'name':'passphrase', 'ref':'passphrase', 'placeholder':"passphrase"}),
 					React.DOM.p({}, [
 						React.DOM.input({'key':'confirm', 'className':'confirmCheckbox', 'type':'checkbox', 'name':'confirm', 'ref':'confirm'}),
 						React.DOM.span({}, "I understand that all my data will be deleted and that this action is irreversible.")

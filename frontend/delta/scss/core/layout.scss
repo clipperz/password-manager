@@ -529,7 +529,7 @@ div.dialogBox {
 	height: 100%;
 
 	.mask {
-		z-index: 12;
+		z-index: 25;
 	}
 	div.dialog {
 		@include flex(none);

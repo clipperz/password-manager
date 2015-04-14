@@ -49,7 +49,9 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 				'subscription':	false,
 				'data':			false,
 			},
-			'isFullyOpen':	false
+			'isFullyOpen':	false,
+			'extraFeatureComponentName': null,
+			'extraFeatureContent': null
 		};
 	},
 
@@ -68,13 +70,9 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 
 	//=========================================================================
 
-//	showDevicePin: function () {
-//		this.showExtraFeatureContent(Clipperz.PM.UI.Components.ExtraFeatures.DevicePIN());
-//	},
-
 	showExtraFeatureComponent: function (aComponentName) {
 		return MochiKit.Base.bind(function () {
-			this.showExtraFeatureContent(Clipperz.PM.UI.Components.ExtraFeatures[aComponentName]);
+			this.showExtraFeatureContent(Clipperz.PM.UI.Components.ExtraFeatures[aComponentName], aComponentName);
 		}, this);
 	},
 
@@ -85,20 +83,21 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 	//-------------------------------------------------------------------------
 
 	hideExtraFeatureContent: function () {
-		this.setState({'isFullyOpen':false});
+		this.setState({
+			'isFullyOpen': false,
+			'extraFeatureComponentName': null,
+			'extraFeatureContent': null
+		});
 	},
 
-	showExtraFeatureContent: function (aComponent) {
+	showExtraFeatureContent: function (aComponent, aComponentName) {
 		this.setState({
 			'isFullyOpen':true,
+			'extraFeatureComponentName': aComponentName,
 			'extraFeatureContent': aComponent(this.extraFeaturesProps())
 		});
 	},
 	
-	toggleExtraFeatureContent: function () {
-		this.setState({'isFullyOpen':!this.state['isFullyOpen']});
-	},
-
 	//=========================================================================
 
 	renderIndex: function () {
@@ -119,10 +118,10 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 					React.DOM.li({'key':'account', 'className':this.state['index']['account'] ? 'open' : 'closed'}, [
 						React.DOM.h1({'key':'accountH1', 'onClick':this.toggleIndexState('account')}, "Account"),
 						React.DOM.ul({'key':'accountUL'}, [
-							React.DOM.li({'key':'account_1', 'onClick':this.showExtraFeatureComponent('Passphrase')}, [
+							React.DOM.li({'key':'account_1', 'onClick':this.showExtraFeatureComponent('Passphrase'), 'className':(this.state['extraFeatureComponentName'] == 'Passphrase') ? 'selected' : ''}, [
 								React.DOM.h2({'key':'account_1_h2'}, "Passphrase"),
 								React.DOM.div({'key':'account_1_div'}, [
-									React.DOM.p({'key':'account_1_p'}, "")
+									React.DOM.p({'key':'account_1_p'}, "Change your account passphrase.")
 								])
 							]),
 							React.DOM.li({'key':'account_2'}, [
@@ -143,10 +142,10 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 									React.DOM.p({}, "")
 								])
 							]),
-							React.DOM.li({'key':'account_5', 'onClick':this.showExtraFeatureComponent('DeleteAccount')}, [
+							React.DOM.li({'key':'account_5', 'onClick':this.showExtraFeatureComponent('DeleteAccount'), 'className':(this.state['extraFeatureComponentName'] == 'DeleteAccount') ? 'selected' : ''}, [
 								React.DOM.h2({}, "Delete account"),
 								React.DOM.div({}, [
-									React.DOM.p({}, "")
+									React.DOM.p({}, "Delete your account for good.")
 								])
 							])
 						])
