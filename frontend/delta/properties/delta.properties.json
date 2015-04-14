@@ -5,8 +5,8 @@
 		"mochikit.commit":				"6f26f745d5d915540aa0fc6c34fda24952891a9d",
 
 		"reactjs.repository":			"https://github.com/facebook/react.git",
-		"reactjs.version":				"0.11.0",
-		"reactjs.commit":				"95d82cacd6e9cc6a2fe6366d79510cc9133886cb",
+		"reactjs.version":				"0.13.1",
+		"reactjs.commit":				"f308c03455f07ec1c7f422220b411ff1c3b024de",
 
 		"modernizr.repository":			"https://github.com/Modernizr/Modernizr",
 		"modernizr.version":			"2.8.2",
