@@ -1170,6 +1170,65 @@ console.log("Record.hasPendingChanges RESULT", result);
 	},
 
 	//=========================================================================
+	
+	'exportDirectLogins': function() {
+		var result;
+		
+		var directLoginsObject = this.directLogins();
+		
+		if (Object.keys(directLoginsObject).length == 0) {
+			result = {};
+		} else {
+			var callbackObject = Object.keys(directLoginsObject).reduce(function(previous, current) {
+				previous[current] = MochiKit.Base.method( directLoginsObject[current], 'serializedData' );
+				return previous;
+			}, {});
+			
+			result = Clipperz.Async.collectResults("Record.exportDirectLogins",callbackObject,{trace:false})();
+		}
+		
+		return result;
+	},
+
+	'export': function() {
+		var deferredResult;
+		var label;
+		var data;
+		var currentVersion;
+		var directLogins;
+		var currentVersionObject;
+
+		data = {};
+		currentVersion = {};
+		directLogins = {};
+		deferredResult = new Clipperz.Async.Deferred('Record.export', {trace:false});
+		deferredResult.addMethod(this,'getCurrentRecordVersion');
+		deferredResult.addCallback(function(recordVersionIn) { currentVersionObject = recordVersionIn; })
+		deferredResult.addMethod(this,'fullLabel');
+		deferredResult.addMethod(this,function(labelIn) {label = labelIn});
+		deferredResult.addMethod(this,'exportDirectLogins');
+		deferredResult.addCallback(function(directLoginsIn) { data['directLogins'] = directLoginsIn; });
+		deferredResult.addCallback(function() { return currentVersionObject.getKey(); }),
+		deferredResult.addMethod(this,function(keyIn) { data['currentVersionKey'] = keyIn; });
+		deferredResult.addMethod(this,'notes');
+		deferredResult.addMethod(this,function(notesIn) { data['notes'] = notesIn; });
+		deferredResult.addMethod(this,function() { currentVersion['reference'] = this.currentVersionReference(); });
+		deferredResult.addCallback(function() { return currentVersionObject.exportFields(); }),
+		deferredResult.addCallback(function(fieldsIn) { currentVersion['fields'] = fieldsIn; });
+		deferredResult.addMethod(this,function() {
+			return {
+				'label': label,
+				'data': data,
+				'currentVersion': currentVersion
+			};
+		});
+		
+		deferredResult.callback();
+		
+		return deferredResult;
+	},
+	
+	//=========================================================================
 	__syntaxFix__: "syntax fix"
 });
 

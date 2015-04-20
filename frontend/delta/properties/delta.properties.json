@@ -170,6 +170,7 @@
 		"Clipperz/PM/UI/Components/ExtraFeatures/DevicePIN.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/Passphrase.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/DeleteAccount.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/DataExport.js",
 
 		"Clipperz/PM/UI/Components/Cards/FavIcon.js",
 		"Clipperz/PM/UI/Components/Cards/List.js",
@@ -186,6 +187,7 @@
 		"Clipperz/PM/UI/MainController.js",
 		"-- Clipperz/PM/UI/MainDesktopController.js",
 		"Clipperz/PM/UI/DirectLoginController.js",
+		"Clipperz/PM/UI/ExportController.js",
 		"main.js"
 	],
 

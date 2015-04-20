@@ -63,6 +63,7 @@ Clipperz.PM.UI.MainController = function() {
 	this.registerForNotificationCenterEvents([
 		'doLogin', 'registerNewUser', 'showRegistrationForm', 'goBack',
 		'changePassphrase', 'deleteAccount',
+		'export',
 		'toggleSelectionPanel', 'toggleSettingsPanel',
 		'matchMediaQuery', 'unmatchMediaQuery',
 		'selectAllCards', 'selectRecentCards', 'search', 'tagSelected', 'selectUntaggedCards',
@@ -499,6 +500,9 @@ console.log("THE BROWSER IS OFFLINE");
 
 			deferredResult = new Clipperz.Async.Deferred('MainController.updateSelectedCard', {trace:false});
 			deferredResult.addMethod(this.user(), 'getRecord', someInfo['reference']);
+
+// deferredResult.addMethod(this, function(d) {console.log(d); return d;});
+
 			deferredResult.addMethod(this, 'collectRecordInfo');
 
 			deferredResult.addMethod(this, 'setPageProperties', 'mainPage', 'selectedCard');
@@ -1234,6 +1238,12 @@ console.log("THE BROWSER IS OFFLINE");
 		this.updateSelectedCard({'reference':aRecordReference}, false, true);
 	},
 
+	//----------------------------------------------------------------------------
+	
+	export_handler: function(exportType) {
+		return Clipperz.PM.UI.ExportController.exportJSON( this.recordsInfo(), exportType );
+	},
+	
 	//----------------------------------------------------------------------------
 
 	changePassphrase_handler: function(newPassphrase) {

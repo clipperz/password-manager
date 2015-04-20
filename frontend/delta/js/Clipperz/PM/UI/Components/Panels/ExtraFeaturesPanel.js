@@ -195,7 +195,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 									React.DOM.p({}, "")
 								])
 							]),
-							React.DOM.li({'key':'data_3'}, [
+							React.DOM.li({'key':'data_3', 'onClick':this.showExtraFeatureComponent('DataExport')}, [
 								React.DOM.h2({}, "Export"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "")
