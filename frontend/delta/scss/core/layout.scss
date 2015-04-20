@@ -242,6 +242,7 @@ input {
 }
 
 .cardToolbarFrame {
+	width: 100%;
 	height: 100%;
 	
 	@include flexbox;
@@ -362,6 +363,7 @@ div.cardContent {
 		
 		div.cardList {
 			@include overflow-auto;
+			width: 100%;
 		}
 
 		$addButtonSize: 60px;

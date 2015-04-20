@@ -872,6 +872,7 @@ input {
   width: 100%; }
 
 .cardToolbarFrame {
+  width: 100%;
   height: 100%;
   display: -webkit-box;
   display: -webkit-flex;
@@ -996,7 +997,8 @@ div.cardContent {
       padding-bottom: 100px; }
     div.cardContent div.cardListColumn.column div.cardList {
       overflow: auto;
-      -webkit-overflow-scrolling: touch; }
+      -webkit-overflow-scrolling: touch;
+      width: 100%; }
     div.cardContent div.cardListColumn.column div.addCardButton {
       font-family: 'clipperz-icons';
       -webkit-font-feature-settings: "liga" 1, "dlig" 1;
@@ -2787,3 +2789,5 @@ This configuration is now located in the first script included in the index_temp
 	}
 }
 */
+
+/*# sourceMappingURL=clipperz.css.map */
