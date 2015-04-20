@@ -108,7 +108,7 @@ div.cardList {
 }
 
 div.cardList.narrow {
-	@include overflow-scroll;
+	@include overflow-auto;
 	
 	&.loadingCard {
 		li.selected {
@@ -328,6 +328,8 @@ $cardViewBasePadding: 10px;
 }
 
 .content {
+//	@include user-select(none);
+	
 	.cardLabel {
 		@include user-select(text);
 		
@@ -386,6 +388,7 @@ $cardViewBasePadding: 10px;
 	.cardField {
 		@include flexbox;
 		@include flex-direction(row);
+//		@include user-select(none);
 //		background-color: rgba(255, 255, 255, 0.75);
 //		border-bottom: 1px solid #eee;
 		
@@ -397,6 +400,7 @@ $cardViewBasePadding: 10px;
 		}
 		
 		.fieldEditAction {
+			@include user-select(text);
 			@include flex(none);
 			width: 32px;
 //			background-color: pink;
@@ -457,6 +461,7 @@ $cardViewBasePadding: 10px;
 			padding: $cardViewBasePadding;
 
 			.fieldLabel {
+				@include user-select(text);
 				color: $labelColor;
 //				border-bottom: 1px dotted #ddd;
 				padding-bottom: 4px;
@@ -501,6 +506,7 @@ $cardViewBasePadding: 10px;
 			@include flex(none);
 //			@include align-self(center);
 			@include align-self(flex-start);
+			@include user-select(text);
 
 			span {
 				display: block;

@@ -81,7 +81,7 @@ $transition-duration: 0.5s;
 @mixin sliding-panel ($side, $size) {
 	position: fixed;
 	z-index: 20;
-//	@include overflow-scroll;
+//	@include overflow-auto;
 
 	@if $side == left {
 		@include sliding-panel-left($size);

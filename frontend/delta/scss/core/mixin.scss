@@ -177,8 +177,8 @@ refer to http://www.clipperz.com.
 	user-select: $value;
 }
 
-@mixin overflow-scroll () {
-	overflow: scroll;
+@mixin overflow-auto () {
+	overflow: auto;
 	-webkit-overflow-scrolling: touch;
 }
 
