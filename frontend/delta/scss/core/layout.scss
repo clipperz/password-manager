@@ -31,7 +31,11 @@ html {
 
 .page {
 	@include pageElement();
-	@include user-select(none);
+//	@include user-select(none);
+}
+
+input {
+	-webkit-appearance: none;	
 }
 
 .mainPage {
@@ -40,7 +44,8 @@ html {
 
 .mainPage > #selectionPanel {
 	@include sliding-panel(left, $selectionPanelWidth);
-	overflow: auto;
+	@include overflow-auto;
+//	overflow: auto;
 
 	&.open {
 		@include sliding-panel-open(left, $selectionPanelWidth);
@@ -65,7 +70,8 @@ html {
 		@include flex(auto);
 		margin-left: 0px;
 //		overflow-y: scroll;
-		overflow:auto;
+//		overflow:auto;
+		@include overflow-auto;
 
 		li {
 //			@include flexbox();
@@ -103,7 +109,7 @@ html {
 			&.selection {
 				@include flex($selectionPanelFlexWidth, 0);
 //				height: 100%;
-//				@include overflow-scroll;
+//				@include overflow-auto;
 			}
 			
 			&.cardContent {
@@ -210,7 +216,8 @@ html {
 		& > div {
 			@include flex(auto);
 		
-			overflow: auto;
+			@include overflow-auto;
+//			overflow: auto;
 		
 		}
 
@@ -334,8 +341,12 @@ div.cardContent {
 
 	div.cardListColumn.column {
 		@include flex($cardListWidth, 0);
+		@include flexbox;
 //		overflow-y: scroll;
-		overflow:auto;
+//		overflow:auto;
+//		@include overflow-auto;
+		overflow: hidden;
+		
 
 		z-index: 5;
 		box-shadow: 2px 0 6px 0 rgba(0,0,0, 0.1);
@@ -349,6 +360,10 @@ div.cardContent {
 			}
 		}
 		
+		div.cardList {
+			@include overflow-auto;
+		}
+
 		$addButtonSize: 60px;
 		div.addCardButton {
 			@include icon-font();
@@ -426,7 +441,8 @@ div.cardContent {
 		.content {
 			@include flex(auto);
 //			overflow-y: scroll;
-			overflow:auto;
+//			overflow:auto;
+			@include overflow-auto;
 		}
 	}
 }

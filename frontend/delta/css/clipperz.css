@@ -606,16 +606,7 @@ html {
   -webkit-transform: translate3d(0, 0, 0);
   transform: translate3d(0, 0, 0);
   -webkit-transition-duration: 0.5s;
-  transition-duration: 0.5s;
-  -webkit-user-select: none;
-  /* Chrome all / Safari all */
-  -moz-user-select: none;
-  /* Firefox all */
-  -ms-user-select: none;
-  /* IE 10+ */
-  /* No support for these yet, use at own risk */
-  -o-user-select: none;
-  user-select: none; }
+  transition-duration: 0.5s; }
   .page.left {
     -webkit-transform: translate3d(-100%, 0, 0);
     transform: translate3d(-100%, 0, 0); }
@@ -628,6 +619,9 @@ html {
       visibility: visible;
       display: block; }
 
+input {
+  -webkit-appearance: none; }
+
 .mainPage > #selectionPanel {
   position: fixed;
   z-index: 20;
@@ -636,7 +630,8 @@ html {
   top: 0;
   left: -250px;
   transition: left 0.3s ease-in-out;
-  overflow: auto; }
+  overflow: auto;
+  -webkit-overflow-scrolling: touch; }
   .mainPage > #selectionPanel.open {
     left: 0px; }
 
@@ -675,7 +670,8 @@ html {
     -ms-flex: auto;
     flex: auto;
     margin-left: 0px;
-    overflow: auto; }
+    overflow: auto;
+    -webkit-overflow-scrolling: touch; }
   #selections .showArchivedCards {
     -webkit-box-flex: none;
     -webkit-flex: none;
@@ -851,7 +847,8 @@ html {
       -moz-flex: auto;
       -ms-flex: auto;
       flex: auto;
-      overflow: auto; }
+      overflow: auto;
+      -webkit-overflow-scrolling: touch; }
     #extraFeaturesPanel .extraFeatureIndex footer {
       -webkit-box-flex: none;
       -webkit-flex: none;
@@ -987,11 +984,19 @@ div.cardContent {
     -moz-flex: 1 0;
     -ms-flex: 1 0;
     flex: 1 0;
-    overflow: auto;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flexbox;
+    display: flex;
+    overflow: hidden;
     z-index: 5;
     box-shadow: 2px 0 6px 0 rgba(0, 0, 0, 0.1); }
     div.cardContent div.cardListColumn.column.addCard div.cardList {
       padding-bottom: 100px; }
+    div.cardContent div.cardListColumn.column div.cardList {
+      overflow: auto;
+      -webkit-overflow-scrolling: touch; }
     div.cardContent div.cardListColumn.column div.addCardButton {
       font-family: 'clipperz-icons';
       -webkit-font-feature-settings: "liga" 1, "dlig" 1;
@@ -1101,7 +1106,8 @@ div.cardContent {
       -moz-flex: auto;
       -ms-flex: auto;
       flex: auto;
-      overflow: auto; }
+      overflow: auto;
+      -webkit-overflow-scrolling: touch; }
 
 #cardDetailPage > .view, #cardDetailPage > .editWrapper > .edit {
   display: -webkit-box;
@@ -1362,7 +1368,7 @@ div.dialogBox {
       margin: 0px; }
 
 #loginPage {
-  overflow: scroll;
+  overflow: auto;
   -webkit-overflow-scrolling: touch; }
   #loginPage div.loginForm {
     display: -webkit-box;
@@ -1442,7 +1448,9 @@ div.dialogBox {
           margin-bottom: 10px;
           font-size: 100%;
           font-size: 24pt;
-          width: 100%; }
+          width: 100%;
+          border: 1px solid #ccc;
+          border-radius: 0px; }
         #loginPage div.loginForm div.form form button {
           font-family: "clipperz-font";
           min-height: 48px;
@@ -1518,6 +1526,12 @@ div.dialogBox {
           text-decoration: none;
           padding-left: 5px;
           font-weight: bold; }
+  #loginPage div.loginForm.narrow header {
+    font-size: 30pt;
+    line-height: 70px; }
+  #loginPage div.loginForm.narrow footer {
+    max-height: 25px;
+    line-height: 20pt; }
   #loginPage div.loginForm.extra-short header {
     font-size: 18pt; }
   #loginPage div.loginForm.extra-short div.form form {
@@ -2259,7 +2273,7 @@ div.cardList ul {
       padding-right: 8px; }
 
 div.cardList.narrow {
-  overflow: scroll;
+  overflow: auto;
   -webkit-overflow-scrolling: touch; }
   div.cardList.narrow.loadingCard li.selected:after {
     color: white;
@@ -2478,6 +2492,15 @@ div.cardList.narrow {
   .content .cardField.dragged {
     display: none; }
   .content .cardField .fieldEditAction {
+    -webkit-user-select: text;
+    /* Chrome all / Safari all */
+    -moz-user-select: text;
+    /* Firefox all */
+    -ms-user-select: text;
+    /* IE 10+ */
+    /* No support for these yet, use at own risk */
+    -o-user-select: text;
+    user-select: text;
     -webkit-box-flex: none;
     -webkit-flex: none;
     -moz-box-flex: none;
@@ -2537,6 +2560,15 @@ div.cardList.narrow {
     flex: 1;
     padding: 10px; }
     .content .cardField .fieldValues .fieldLabel {
+      -webkit-user-select: text;
+      /* Chrome all / Safari all */
+      -moz-user-select: text;
+      /* Firefox all */
+      -ms-user-select: text;
+      /* IE 10+ */
+      /* No support for these yet, use at own risk */
+      -o-user-select: text;
+      user-select: text;
       color: gray;
       padding-bottom: 4px;
       margin-bottom: 4px;
@@ -2587,7 +2619,16 @@ div.cardList.narrow {
     -webkit-align-self: flex-start;
     -moz-align-self: flex-start;
     -ms-flex-item-align: start;
-    align-self: flex-start; }
+    align-self: flex-start;
+    -webkit-user-select: text;
+    /* Chrome all / Safari all */
+    -moz-user-select: text;
+    /* Firefox all */
+    -ms-user-select: text;
+    /* IE 10+ */
+    /* No support for these yet, use at own risk */
+    -o-user-select: text;
+    user-select: text; }
     .content .cardField .fieldAction span {
       display: block; }
       .content .cardField .fieldAction span.action {

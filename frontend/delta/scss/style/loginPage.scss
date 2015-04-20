@@ -22,7 +22,7 @@ refer to http://www.clipperz.com.
 */
 
 #loginPage {
-	@include overflow-scroll;
+	@include overflow-auto;
 
 	div.loginForm {
 		@include flexbox;
@@ -87,6 +87,8 @@ refer to http://www.clipperz.com.
 //					box-shadow:inset 0 0 0;
 					font-size: 24pt;
 					width: 100%;
+					border: 1px solid #ccc;
+					border-radius: 0px;
 				}
 
 				button {
@@ -165,6 +167,17 @@ refer to http://www.clipperz.com.
 		}
 	}
 
+	div.loginForm.narrow {
+		header {
+			font-size: 30pt;
+			line-height: 70px;
+		}
+
+		footer {
+			max-height: 25px;
+			line-height: 20pt;
+		}
+	}
 
 	div.loginForm.extra-short {
 		header {
