@@ -63,7 +63,9 @@ Clipperz.PM.UI.MainController = function() {
 	this.registerForNotificationCenterEvents([
 		'doLogin', 'registerNewUser', 'showRegistrationForm', 'goBack',
 		'changePassphrase', 'deleteAccount',
-		'export',
+//		'export',
+		'downloadExport',
+		'updateProgress',
 		'toggleSelectionPanel', 'toggleSettingsPanel',
 		'matchMediaQuery', 'unmatchMediaQuery',
 		'selectAllCards', 'selectRecentCards', 'search', 'tagSelected', 'selectUntaggedCards',
@@ -104,6 +106,10 @@ MochiKit.Base.update(Clipperz.PM.UI.MainController.prototype, {
 
 	overlay: function () {
 		return this._overlay;
+	},
+
+	updateProgress_handler: function (aProgressPercentage) {
+		this.overlay().updateProgress(aProgressPercentage);
 	},
 
 	loginForm: function () {
@@ -1240,8 +1246,24 @@ console.log("THE BROWSER IS OFFLINE");
 
 	//----------------------------------------------------------------------------
 	
-	export_handler: function(exportType) {
-		return Clipperz.PM.UI.ExportController.exportJSON( this.recordsInfo(), exportType );
+//	export_handler: function(exportType) {
+//		return Clipperz.PM.UI.ExportController.exportJSON( this.recordsInfo(), exportType );
+//	},
+	
+	downloadExport_handler: function () {
+		var	exportController;
+		var deferredResult;
+
+		exportController = new Clipperz.PM.UI.ExportController({'recordsInfo': this.recordsInfo()});
+
+		deferredResult = new Clipperz.Async.Deferred("MainController.downloadExport_handler", {trace: false});
+		deferredResult.addMethod(this.overlay(), 'show', "exporting …", true, true);
+//		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel');
+		deferredResult.addMethod(exportController, 'run');
+		deferredResult.addMethod(this.overlay(), 'done', "", 1);
+		deferredResult.callback();
+
+		return deferredResult;
 	},
 	
 	//----------------------------------------------------------------------------

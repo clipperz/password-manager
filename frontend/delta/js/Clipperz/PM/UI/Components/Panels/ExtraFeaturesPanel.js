@@ -70,9 +70,13 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 
 	//=========================================================================
 
-	showExtraFeatureComponent: function (aComponentName) {
+	toggleExtraFeatureComponent: function (aComponentName) {
 		return MochiKit.Base.bind(function () {
-			this.showExtraFeatureContent(Clipperz.PM.UI.Components.ExtraFeatures[aComponentName], aComponentName);
+			if (this.state['extraFeatureComponentName'] != aComponentName) {
+				this.showExtraFeatureContent(Clipperz.PM.UI.Components.ExtraFeatures[aComponentName], aComponentName);
+			} else {
+				this.hideExtraFeatureContent();
+			}
 		}, this);
 	},
 
@@ -118,7 +122,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 					React.DOM.li({'key':'account', 'className':this.state['index']['account'] ? 'open' : 'closed'}, [
 						React.DOM.h1({'key':'accountH1', 'onClick':this.toggleIndexState('account')}, "Account"),
 						React.DOM.ul({'key':'accountUL'}, [
-							React.DOM.li({'key':'account_1', 'onClick':this.showExtraFeatureComponent('Passphrase'), 'className':(this.state['extraFeatureComponentName'] == 'Passphrase') ? 'selected' : ''}, [
+							React.DOM.li({'key':'account_1', 'onClick':this.toggleExtraFeatureComponent('Passphrase'), 'className':(this.state['extraFeatureComponentName'] == 'Passphrase') ? 'selected' : ''}, [
 								React.DOM.h2({'key':'account_1_h2'}, "Passphrase"),
 								React.DOM.div({'key':'account_1_div'}, [
 									React.DOM.p({'key':'account_1_p'}, "Change your account passphrase.")
@@ -130,7 +134,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 									React.DOM.p({}, "")
 								])
 							]),
-							React.DOM.li({'key':'account_3', 'onClick':this.showExtraFeatureComponent('DevicePIN')}, [
+							React.DOM.li({'key':'account_3', 'onClick':this.toggleExtraFeatureComponent('DevicePIN')}, [
 								React.DOM.h2({}, "Device PIN"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "Configure a PIN that will allow to get access to your cards, but only on this device.")
@@ -142,7 +146,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 									React.DOM.p({}, "")
 								])
 							]),
-							React.DOM.li({'key':'account_5', 'onClick':this.showExtraFeatureComponent('DeleteAccount'), 'className':(this.state['extraFeatureComponentName'] == 'DeleteAccount') ? 'selected' : ''}, [
+							React.DOM.li({'key':'account_5', 'onClick':this.toggleExtraFeatureComponent('DeleteAccount'), 'className':(this.state['extraFeatureComponentName'] == 'DeleteAccount') ? 'selected' : ''}, [
 								React.DOM.h2({}, "Delete account"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "Delete your account for good.")
@@ -182,29 +186,29 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 					React.DOM.li({'key':'data', 'className':this.state['index']['data'] ? 'open' : 'closed'}, [
 						React.DOM.h1({'onClick':this.toggleIndexState('data')}, "Data"),
 						React.DOM.ul({'key':'data'}, [
-							React.DOM.li({'key':'data_1'}, [
-								React.DOM.h2({}, "Offline copy"),
-								React.DOM.div({}, [
-									React.DOM.p({}, "With just one click you can dump all your encrypted data from Clipperz servers to your hard disk and create a read-only offline version of Clipperz to be used when you are not connected to the Internet."),
-									React.DOM.a({'className':Clipperz.PM.UI.Components.classNames(offlineCopyButtonClasses), 'onClick':this.handleDownloadOfflineCopyLink}, "Download")
-								])
-							]),
+//							React.DOM.li({'key':'data_1', 'className':'offlineCopy'}, [
+//								React.DOM.h2({}, "Offline copy"),
+//								React.DOM.div({}, [
+//									React.DOM.p({}, "With just one click you can dump all your encrypted data from Clipperz servers to your hard disk and create a read-only offline version of Clipperz to be used when you are not connected to the Internet."),
+//									React.DOM.a({'className':Clipperz.PM.UI.Components.classNames(offlineCopyButtonClasses), 'onClick':this.handleDownloadOfflineCopyLink}, "Download")
+//								])
+//							]),
 							React.DOM.li({'key':'data_2'}, [
 								React.DOM.h2({}, "Import"),
 								React.DOM.div({}, [
-									React.DOM.p({}, "")
+									React.DOM.p({}, "CSV, JSON, …")
 								])
 							]),
-							React.DOM.li({'key':'data_3', 'onClick':this.showExtraFeatureComponent('DataExport')}, [
+							React.DOM.li({'key':'data_3', 'onClick':this.toggleExtraFeatureComponent('DataExport'), 'className':(this.state['extraFeatureComponentName'] == 'DataExport') ? 'selected' : ''}, [
 								React.DOM.h2({}, "Export"),
 								React.DOM.div({}, [
-									React.DOM.p({}, "")
+									React.DOM.p({}, "Offline copy, printable version, JSON, …")
 								])
 							]),
 							React.DOM.li({'key':'data_4'}, [
 								React.DOM.h2({}, "Sharing"),
 								React.DOM.div({}, [
-									React.DOM.p({}, "")
+									React.DOM.p({}, "Securely share cards with other users")
 								])
 							])
 						])
@@ -229,17 +233,20 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 
 	render: function () {
 //console.log("ExtraFeaturesPanel props", this.props);
+		var isOpen = (this.props['settingsPanelStatus'] == 'OPEN');
+		var isFullyOpen = isOpen && this.state['isFullyOpen'];
+		
 		var	classes = {
 			'panel': true,
 			'right': true,
-			'open': this.props['settingsPanelStatus'] == 'OPEN',
-			'fullOpen': this.state['isFullyOpen']
+			'open': isOpen,
+			'fullOpen': isFullyOpen
 		}
-		
 
 		return	React.DOM.div({'key':'extraFeaturesPanel', 'id':'extraFeaturesPanel', 'className':Clipperz.PM.UI.Components.classNames(classes)}, [
 			this.renderIndex(),
 			this.renderContent(),
+//			(this.props['settingsPanelStatus'] == 'OPEN') ? this.renderContent() : null,
 		]);
 	}
 

@@ -58,6 +58,9 @@
 		"-- Modernizr/modernizr-2.8.2.js",
 		"OnMediaQuery/onmediaquery-0.2.0.js",
 
+		"FileSaver/Blob.js",
+		"FileSaver/FileSaver.js",
+
 		"-- IT WOULD BE NICE TO BE ABLE TO GET RID OF THESE IMPORTS",
 		"Clipperz/YUI/Utils.js",
 		"Clipperz/YUI/DomHelper.js",

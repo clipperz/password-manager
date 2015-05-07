@@ -45,9 +45,7 @@ Clipperz.PM.DataModel.Record = function(args) {
 	this._createNewDirectLoginFunction			= args.createNewDirectLoginFunction			|| null;
 	
 	this._tags = [];
-
 	this._directLogins = {};
-
 	this._versions = {};
 
 	this._currentRecordVersion = null;
@@ -163,34 +161,20 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 
 	//............................................................................
 
-	'tagRegExp': function () {
-		return new RegExp('\\' + Clipperz.PM.DataModel.Record.tagChar + '(' + Clipperz.PM.DataModel.Record.specialTagChar + '?\\w+)', 'g');
+	'extractLabelFromFullLabel': function (aValue) {
+		return Clipperz.PM.DataModel.Record.extractLabelFromFullLabel(aValue);
 	},
 
-	'trimSpacesRegExp': function () {
-		return new RegExp('^\\s+|\\s+$', 'g');
+	'extractTagsFromFullLabel': function (aLabel) {
+		return Clipperz.PM.DataModel.Record.extractTagsFromFullLabel(aLabel);
 	},
 
-//	'tagCleanupRegExp': function () {
-//		return new RegExp('\\' + Clipperz.PM.DataModel.Record.tagSpace, 'g');
-//	},
-	
 	//............................................................................
-
-	'filterOutTags': function (aValue) {
-		var value;
-
-		value = aValue;
-		value = value.replace(this.tagRegExp(), '');
-		value = value.replace(this.trimSpacesRegExp(), '');
-
-		return value;
-	},
 
 	'label': function () {
 		return Clipperz.Async.callbacks("Record.label", [
 			MochiKit.Base.method(this, 'fullLabel'),
-			MochiKit.Base.method(this, 'filterOutTags')
+			MochiKit.Base.method(this, 'extractLabelFromFullLabel')
 		], {trace:false});
 	},
 
@@ -211,22 +195,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 
 	//.........................................................................
 
-	'extractTagsFromFullLabel': function (aLabel) {
-		var	tagRegEx;
-		var	result;
-		var	match;
-		
-		result = {};
-		tagRegEx = this.tagRegExp();
-		match = tagRegEx.exec(aLabel);
-		while (match != null) {
-			result[match[1]] = true;
-			match = tagRegEx.exec(aLabel);
-		}		
-		
-		return result;
-	},
-	
 	'tags': function () {
 		return Clipperz.Async.callbacks("Record.label", [
 			MochiKit.Base.method(this, 'fullLabel'),
@@ -1173,10 +1141,9 @@ console.log("Record.hasPendingChanges RESULT", result);
 	
 	'exportDirectLogins': function() {
 		var result;
-		
 		var directLoginsObject = this.directLogins();
 		
-		if (Object.keys(directLoginsObject).length == 0) {
+		if (MochiKit.Base.keys(directLoginsObject).length == 0) {
 			result = {};
 		} else {
 			var callbackObject = Object.keys(directLoginsObject).reduce(function(previous, current) {
@@ -1184,7 +1151,7 @@ console.log("Record.hasPendingChanges RESULT", result);
 				return previous;
 			}, {});
 			
-			result = Clipperz.Async.collectResults("Record.exportDirectLogins",callbackObject,{trace:false})();
+			result = Clipperz.Async.collectResults("Record.exportDirectLogins", callbackObject,{trace:false})();
 		}
 		
 		return result;
@@ -1202,20 +1169,20 @@ console.log("Record.hasPendingChanges RESULT", result);
 		currentVersion = {};
 		directLogins = {};
 		deferredResult = new Clipperz.Async.Deferred('Record.export', {trace:false});
-		deferredResult.addMethod(this,'getCurrentRecordVersion');
+		deferredResult.addMethod(this, 'getCurrentRecordVersion');
 		deferredResult.addCallback(function(recordVersionIn) { currentVersionObject = recordVersionIn; })
-		deferredResult.addMethod(this,'fullLabel');
-		deferredResult.addMethod(this,function(labelIn) {label = labelIn});
-		deferredResult.addMethod(this,'exportDirectLogins');
+		deferredResult.addMethod(this, 'fullLabel');
+		deferredResult.addMethod(this, function(labelIn) {label = labelIn});
+		deferredResult.addMethod(this, 'exportDirectLogins');
 		deferredResult.addCallback(function(directLoginsIn) { data['directLogins'] = directLoginsIn; });
 		deferredResult.addCallback(function() { return currentVersionObject.getKey(); }),
-		deferredResult.addMethod(this,function(keyIn) { data['currentVersionKey'] = keyIn; });
-		deferredResult.addMethod(this,'notes');
-		deferredResult.addMethod(this,function(notesIn) { data['notes'] = notesIn; });
-		deferredResult.addMethod(this,function() { currentVersion['reference'] = this.currentVersionReference(); });
+//		deferredResult.addMethod(this,function(keyIn) { data['currentVersionKey'] = keyIn; });
+		deferredResult.addMethod(this, 'notes');
+		deferredResult.addMethod(this, function(notesIn) { data['notes'] = notesIn; });
+//		deferredResult.addMethod(this, function() { currentVersion['reference'] = this.currentVersionReference(); });
 		deferredResult.addCallback(function() { return currentVersionObject.exportFields(); }),
 		deferredResult.addCallback(function(fieldsIn) { currentVersion['fields'] = fieldsIn; });
-		deferredResult.addMethod(this,function() {
+		deferredResult.addMethod(this, function() {
 			return {
 				'label': label,
 				'data': data,
@@ -1266,4 +1233,35 @@ Clipperz.PM.DataModel.Record.isRegularTag = function (aTag) {
 };
 Clipperz.PM.DataModel.Record.regExpForSearch = function (aSearch) {
 	return new RegExp(aSearch.replace(/[^A-Za-z0-9]/g, '\\$&'), 'i');
+};
+
+
+
+Clipperz.PM.DataModel.Record.tagRegExp = new RegExp('\\' + Clipperz.PM.DataModel.Record.tagChar + '(' + Clipperz.PM.DataModel.Record.specialTagChar + '?\\w+)', 'g');
+Clipperz.PM.DataModel.Record.trimSpacesRegExp = new RegExp('^\\s+|\\s+$', 'g');
+
+Clipperz.PM.DataModel.Record.extractLabelFromFullLabel = function (aValue) {
+	var value;
+
+	value = aValue;
+	value = value.replace(Clipperz.PM.DataModel.Record.tagRegExp, '');
+	value = value.replace(Clipperz.PM.DataModel.Record.trimSpacesRegExp, '');
+
+	return value;
+};
+
+Clipperz.PM.DataModel.Record.extractTagsFromFullLabel = function (aLabel) {
+	var	tagRegEx;
+	var	result;
+	var	match;
+	
+	result = {};
+	tagRegEx = Clipperz.PM.DataModel.Record.tagRegExp;
+	match = tagRegEx.exec(aLabel);
+	while (match != null) {
+		result[match[1]] = true;
+		match = tagRegEx.exec(aLabel);
+	}		
+	
+	return result;
 };

@@ -21,87 +21,111 @@ refer to http://www.clipperz.com.
 
 */
 
+"use strict";
 Clipperz.Base.module('Clipperz.PM.UI');
 
+//	https://github.com/eligrey/FileSaver.js
+//	https://github.com/eligrey/Blob.js
+
 Clipperz.PM.UI.ExportController = function(args) {
-	this._type			= args['type']			|| Clipperz.Base.exception.raise('MandatoryParameter');
 	this._recordsInfo	= args['recordsInfo']	|| Clipperz.Base.exception.raise('MandatoryParameter');
-	this._target		= Clipperz.PM.Crypto.randomKey();
+	this._processedRecords = 0;
 	
-	this._style = "body {"+
-			"	margin: 0;"+
-			"	padding: 0;"+
-			"	font-family: monospace;"+
-			"}"+
-			""+
-			"p {"+
-			"	padding-left: 1em;"+
-			"}"+
-			""+
-			"h1 {"+
-			"	color: #ff9900;"+
-			"	background: black;"+
-			"	box-shadow: 0px 5px 6px 0 rgba(0, 0, 0, 0.15);"+
-			"	margin: 0;"+
-			"	padding:1em;"+
-			"}"+
-			""+
-			".progressBar {"+
-			"	position: absolute;"+
-			"	width: 100%;"+
-			"	margin-top: 0px;"+
-			"	"+
-			"}"+
-			""+
-			"#completed {"+
-			"	background: #ff9900;"+
-			"	color: white;"+
-			"	width: 0;"+
-			"	overflow: hidden;"+
-			"	font-size: 0.8em;"+
-			"	box-shadow: 0px 4px 6px 0 rgba(0, 0, 0, 0.15);"+
-			"}"+
-			""+
-			"#printableUl {"+
-			"	width:100%;"+
-			"	height:80%;"+
-			"	margin: 0;"+
-			"	padding: 0;"+
-			"	list-style-type: none;"+
-			"}"+
-			""+
-			"#printableUl li {"+
-			"	border: 1px solid #1863a1;"+
-			"	margin: 1em;"+
-			""+
-			"}"+
-			""+
-			"#printableUl li .label {"+
-			"	background: #1863a1;"+
-			"	color: white;"+
-			"	display: block;"+
-			"	padding: 1em;"+
-			"}"+
-			""+
-			"#printableUl li dl {"+
-			"	padding: 1em;"+
-			"}"+
-			""+
-			"#printableUl li dl dt {"+
-			"	color: darkgray;"+
-			"}"+
-			""+
-			"#printableUl li dl dd {"+
-			"	padding: 0;"+
-			"	margin: 0 0 .5em 0;"+
-			"}"+
-			""+
-			"#printableUl li .notes {"+
-			"	font-style: italic;"+
-			"	padding: 1em 0 0 1em;"+
-			"	display: block;"+
-			"}"+
-			"";
+	this._style =
+		"body {" +
+			"font-family: 'Dejavu Sans', monospace;" +
+			"margin: 0px;" +
+		"}" +
+
+		"header {" +
+			"padding: 10px;" +
+			"border-bottom: 2px solid black;" +
+		"}" +
+
+		"h1 {" +
+			"margin: 0px;" +
+		"}" +
+
+		"h2 {" +
+			"margin: 0px;" +
+			"padding-top: 10px;" +
+		"}" +
+
+		"h3 {" +
+			"margin: 0px;" +
+		"}" +
+
+		"h5 {" +
+			"margin: 0px;" +
+			"color: gray;" +
+		"}" +
+
+		"ul {" +
+			"margin: 0px;" +
+			"padding: 0px;" +
+		"}" +
+
+		"div > ul > li {" +
+			"border-bottom: 1px solid black;" +
+			"padding: 10px;" +
+		"}" +
+
+		"div > ul > li.archived {" +
+			"background-color: #ddd;" +
+		"}" +
+
+
+		"ul > li > ul > li {" +
+			"font-size: 9pt;" +
+			"display: inline-block;" +
+		"}" +
+
+		"ul > li > ul > li:after {" +
+			"content: \",\";" +
+			"padding-right: 5px;" +
+		"}" +
+
+		"ul > li > ul > li:last-child:after {" +
+			"content: \"\";" +
+			"padding-right: 0px;" +
+		"}" +
+
+		"dl {" +
+		"}" +
+
+		"dt {" +
+			"color: gray;" +
+			"font-size: 9pt;" +
+		"}" +
+
+		"dd {" +
+			"margin: 0px;" +
+			"margin-bottom: 5px;" +
+			"padding-left: 10px;" +
+		"}" +
+
+		"div > div {" +
+			"background-color: black;" +
+			"color: white;" +
+			"padding: 10px;" +
+		"}" +
+
+		"textarea {" +
+			"width: 100%;" +
+			"height: 200px;" +
+		"}" +
+
+		"@media print {" +
+			"div > div, header > div {" +
+				"display: none !important;" +
+			"}" +
+
+			"ul > li {" +
+				"page-break-inside: avoid;" +
+			"}	" +
+		"}" +
+	
+		"";
 	
 	return this;
 }
@@ -114,188 +138,141 @@ MochiKit.Base.update(Clipperz.PM.UI.ExportController.prototype, {
 
 	//-----------------------------------------------------------------------------
 
-	'type': function () {
-		return this._type;
-	},
-
 	'recordsInfo': function () {
 		return this._recordsInfo;
 	},
 
-	'target': function () {
-		return this._target;
+	//=============================================================================
+
+	'reportRecordExport': function (aRecordData) {
+		var percentage;
+		var	exportedCardsCount;
+		var totalCardsToExport;
+		
+		this._processedRecords = this._processedRecords + 1;
+
+		exportedCardsCount = this._processedRecords;
+		totalCardsToExport = this.recordsInfo().length;
+		percentage = Math.round(100 * exportedCardsCount / totalCardsToExport);
+
+//console.log("PROCESSING " + exportedCardsCount + "/" + totalCardsToExport + " - " + percentage + "%");
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'updateProgress', percentage);
+
+		return MochiKit.Async.succeed(aRecordData);
 	},
 
 	//=============================================================================
 
-	'setWindowTitle': function (aWindow, aTitle) {
-		aWindow.document.title = aTitle;
-	},
-	
-	'setWindowBody': function (aWindow, anHTML) {
-		aWindow.document.body.innerHTML = anHTML;
+	'renderCardToHtml': function (jsonCardData) {
+		var	label = Clipperz.PM.DataModel.Record.extractLabelFromFullLabel(jsonCardData.label);
+		var allTags = MochiKit.Base.keys(Clipperz.PM.DataModel.Record.extractTagsFromFullLabel(jsonCardData.label));
+		var regularTags = MochiKit.Base.filter(Clipperz.PM.DataModel.Record.isRegularTag, allTags);
+		var	isArchived = MochiKit.Iter.some(allTags, MochiKit.Base.partial(MochiKit.Base.objEqual, Clipperz.PM.DataModel.Record.archivedTag));
+
+		return MochiKit.DOM.LI({'class': isArchived ? 'archived' : ""},
+			MochiKit.DOM.H2({}, label),
+			(regularTags.length > 0) ? MochiKit.DOM.UL({}, MochiKit.Base.map(function (tag) { return MochiKit.DOM.LI({}, tag);}, regularTags)): null,
+			MochiKit.DOM.DIV({},
+				MochiKit.DOM.DL({},
+					MochiKit.Base.map(function(key) {
+						return [
+							MochiKit.DOM.DT(jsonCardData.currentVersion.fields[key].label),
+							MochiKit.DOM.DD(jsonCardData.currentVersion.fields[key].value),
+						];
+					}, MochiKit.Base.keys(jsonCardData.currentVersion.fields))
+				)
+			),
+			jsonCardData.data.notes ? MochiKit.DOM.P({}, jsonCardData.data.notes) : null
+		);
 	},
 
-	//=============================================================================
+	'renderToHtml': function (jsonData) {
+		var title;
+		var style;
+		var date;
+		var body;
 
-	'initialWindowSetup': function (aWindow) {
-		var dom = MochiKit.DOM.DIV({'id': 'main'},
-			MochiKit.DOM.H1("Clipperz Exported Data (loading...)"),
-			MochiKit.DOM.DIV({'class': 'progressBar'},
-				MochiKit.DOM.DIV({'id': 'completed'},
-					MochiKit.DOM.P({'style': 'margin:0; padding:0; text-align:center;'}, MochiKit.DOM.SPAN({'id': 'nCompleted'},"0"),"/",MochiKit.DOM.SPAN({'id': 'nTotal'},"") )
+		title = "Clipperz data";
+		style = this._style;
+		date  = "dd/mm/yyyy";
+
+		body = MochiKit.DOM.DIV({},
+			MochiKit.DOM.HEADER({},
+				MochiKit.DOM.H1({}, "Your data on Clipperz"),
+				MochiKit.DOM.H5({}, "Export date: " + date),
+				MochiKit.DOM.DIV({},
+					MochiKit.DOM.P({}, "Security warning - This file lists the content of all your cards in a printer-friendly format. At the very bottom, the same content is also available in JSON format."),
+					MochiKit.DOM.P({}, "Beware: all data are unencrypted! Therefore make sure to properly store and manage this file. We recommend to delete it as soon as it is no longer needed."),
+					MochiKit.DOM.P({}, "If you are going to print its content on paper, store the printout in a safe and private place!"),
+					MochiKit.DOM.P({}, "And, if you need to access your data when no Internet connection is available, please consider the much safer option of creating an offline copy.")
+				)
+			),
+
+			MochiKit.DOM.UL({}, MochiKit.Base.map(this.renderCardToHtml, jsonData)),
+			MochiKit.DOM.DIV({},
+				MochiKit.DOM.H3({}, "JSON content"),
+				MochiKit.DOM.DIV({},
+					MochiKit.DOM.P({}, "Instructions on how to use JSON content"),
+					MochiKit.DOM.P({}, "The JSON version of your data may be useful if you want to move the whole content of your Clipperz account to a new Clipperz account or recover a card that has been accidentally deleted. Just follow these instructions:"),
+					MochiKit.DOM.OL({},
+						MochiKit.DOM.LI({}, "Login to your Clipperz account and go to \"Data > Import\"."),
+						MochiKit.DOM.LI({}, "Select the JSON option."),
+						MochiKit.DOM.LI({}, "Copy and paste the JSON content in the form.")
+					),
+					MochiKit.DOM.P({}, "Of course, the unencrypted JSON content won't be transmitted to the Clipperz server.")
+				),
+				MochiKit.DOM.TEXTAREA({}, Clipperz.Base.serializeJSON(jsonData)),
+				MochiKit.DOM.FOOTER({},
+					MochiKit.DOM.P({},
+						"This file has been downloaded from clipperz.is, a service by Clipperz Srl. - ",
+						MochiKit.DOM.A({'href':'https://clipperz.is/terms_service/'}, "Terms of service"),
+						" - ",
+						MochiKit.DOM.A({'href':'https://clipperz.is/privacy_policy/'}, "Privacy policy")
+					),
+					MochiKit.DOM.H4({}, "Clipperz - keep it to yourself")
 				)
 			)
 		);
-		
-		aWindow.document.getElementsByTagName('head')[0].appendChild( MochiKit.DOM.STYLE(this._style) );
-		
-		this.setWindowTitle(aWindow, "Clipperz Exported Data (loading...)");
-		this.setWindowBody (aWindow, MochiKit.DOM.toHTML(dom));
+
+		return '<html><head><title>' + title + '</title><style type="text/css">' + style + '</style></head><body>' + MochiKit.DOM.toHTML(body) + '</body></html>';
 	},
 
-	//-----------------------------------------------------------------------------
-	
-	'updateWindowWithHTMLContent': function (aWindow, anHtml) {
-		this.setWindowBody(aWindow, anHtml);
-	},
-	
-	'updateWindowJSON': function (aWindow, exportedJSON) {
-		var dom = MochiKit.DOM.DIV({'id': 'main'},
-			MochiKit.DOM.H1("Clipperz Exported Data"),
-			MochiKit.DOM.P("You can now save the following data and load it at any time using the Clipperz import feature."),
-			MochiKit.DOM.TEXTAREA({'style': 'width:100%; height:80%'}, Clipperz.Base.serializeJSON(exportedJSON))
-		);
+	//----------------------------------------------------------------------------
+
+	'saveResult': function (exportedJSON) {
+		var blob;
+		var sortedJSON;
 		
-		this.setWindowTitle(aWindow, "Clipperz Exported Data");
-		this.setWindowBody(aWindow, MochiKit.DOM.toHTML(dom));
-	},
-	
-	'updateWindowPrintable': function (aWindow, exportedJSON) {
-		var dom = MochiKit.DOM.DIV({'id': 'main'},
-			MochiKit.DOM.H1("Clipperz Exported Data"),
-			MochiKit.DOM.P("You can now print this page and store it in a safe place."),
-			MochiKit.DOM.UL({'id': 'printableUl'},
-				exportedJSON.map(function(card){
-					var label = (card.label.indexOf('')>=0) ? card.label.slice(0,card.label.indexOf('')).trim() : card.label;
-					var notes = (card.data.notes) ? MochiKit.DOM.SPAN({'class': 'notes'}, card.data.notes) : "";
-					
-					return MochiKit.DOM.LI({},
-						MochiKit.DOM.SPAN({'class': 'label'}, label),
-						notes,
-						MochiKit.DOM.DL({},
-							Object.keys(card.currentVersion.fields).map(function(key) {
-								return [
-									MochiKit.DOM.DT(card.currentVersion.fields[key].label),
-									MochiKit.DOM.DD(card.currentVersion.fields[key].value),
-								];
-							})
-						)
-					);
-				})
-			)
-		);
-		
-		this.setWindowTitle(aWindow, "Clipperz Exported Data");
-		this.setWindowBody(aWindow, MochiKit.DOM.toHTML(dom));
-	},
-	
-	'updateWindowError': function (aWindow, errorMessage) {
-		this.setWindowBody(aWindow,
-			"<h3>Error</h3>"+
-			"<p>The following error occured while exporting your data:</p>"+
-			"<code>"+errorMessage+"</code>"
-		);
+		sortedJSON = MochiKit.Iter.sorted(exportedJSON, function(a,b) { return a.label.toUpperCase().localeCompare(b.label.toUpperCase()); } );
+
+		blob = new Blob([this.renderToHtml(sortedJSON)], {type: "text/html;charset=utf-8"});
+		saveAs(blob, "clipperz_data.html");
 	},
 
 	//=============================================================================
-
-	'runExportJSON': function (aWindow) {
+	
+	'run': function () {
 		var deferredResult;
-		var exportedRecords;
-		
-		var totalRecords = this.recordsInfo().length;
-		
-		exportedRecords = 0;
+		var self = this;
 
-		deferredResult = new Clipperz.Async.Deferred("DirectLoginRunner.exportJSON", {trace:false});
-		deferredResult.addMethod(this, 'initialWindowSetup', aWindow);
-		deferredResult.addCallback(function() { return "Export Data"});
-		deferredResult.addMethod(this, 'setWindowTitle', aWindow);
-		
-		deferredResult.addMethod( this, function() { return this.recordsInfo(); });
-		deferredResult.addCallback( MochiKit.Base.map, function(recordIn) {
-			var dr = new Clipperz.Async.Deferred("DirectLoginRunner.exportJSON__exportRecord", {trace:false});
-			dr.addMethod(recordIn._rowObject, 'export');
-			dr.addCallback(MochiKit.Base.method(this, function (exportedRecord) {
-				var percentage = Math.round(100*exportedRecords/totalRecords);
-				
-				aWindow.document.getElementById('nCompleted').innerText = ++exportedRecords;
-				aWindow.document.getElementById('nTotal').innerText = totalRecords;
-				aWindow.document.getElementById('completed').style.width = percentage+'%';
-				
-				return exportedRecord;
-			}));
-			dr.callback();
-			return dr;
+		deferredResult = new Clipperz.Async.Deferred("ExportController.run", {trace:false});
+		deferredResult.addCallback(MochiKit.Base.map, function(recordIn) {
+			var innerDeferredResult;
+			
+			innerDeferredResult = new Clipperz.Async.Deferred("ExportController.run__exportRecord", {trace:false});
+			innerDeferredResult.addMethod(recordIn._rowObject, 'export');
+			innerDeferredResult.addMethod(self, 'reportRecordExport');
+			innerDeferredResult.callback();
+
+			return innerDeferredResult;
 		});
-		
 		deferredResult.addCallback(Clipperz.Async.collectAll);
-		deferredResult.addMethod( this, function(exportedJSONIn) {
-// console.log('return',exportedJSONIn);
-
-			sortedJSON = exportedJSONIn.sort( function(a,b) { return a.label.toUpperCase().localeCompare(b.label.toUpperCase()); } );
-
-			switch (this.type()) {
-				case 'json':
-					this.updateWindowJSON(aWindow,exportedJSONIn);
-					break;
-				case 'printable':
-					this.updateWindowPrintable(aWindow,exportedJSONIn);
-					break;
-				default:
-					this.updateWindowError(aWindow,"ExportController.runExportJSON: invalid value '"+this.type()+"' for parameter 'type'.");
-			}
-		});
-		
-		deferredResult.callback();
+		deferredResult.addMethod(this, 'saveResult');
+		deferredResult.callback(this.recordsInfo());
 
 		return deferredResult;
-	},
-
-	//=============================================================================
-
-	'run': function () {
-		var newWindow;
-
-		newWindow = window.open("", this.target());
-
-		return this.runExportJSON(newWindow);
-	},
-	
-	//=============================================================================
-
-	'test': function () {
-		var iFrame;
-		var newWindow;
-
-		iFrame = MochiKit.DOM.createDOM('iframe');
-		MochiKit.DOM.appendChildNodes(MochiKit.DOM.currentDocument().body, iFrame);
-
-		newWindow = iFrame.contentWindow;
-
-		return this.runDirectLogin(newWindow);
 	},
 	
 	//=============================================================================
 	__syntaxFix__: "syntax fix"
 });
-
-//-----------------------------------------------------------------------------
-
-Clipperz.PM.UI.ExportController.exportJSON = function (recordsInfoIn, typeIn) {
-	var	runner;
-	
-	runner = new Clipperz.PM.UI.ExportController({type:typeIn, recordsInfo: recordsInfoIn});
-	return runner.run();
-};

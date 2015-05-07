@@ -332,12 +332,13 @@ console.log("Record.Version.hasPendingChanges");
 		});
 		deferredResult.addCallback(Clipperz.Async.collectAll);
 		deferredResult.addCallback(function(listIn) {
-			return listIn.reduce(function(result, field) {
+//			return listIn.reduce(function(result, field) {
+			return MochiKit.Iter.reduce(function(result, field) {
 				var ref = field.reference;
 				result[ref] = field;
 				delete result[ref].reference;
 				return result;
-			}, {});
+			}, listIn, {});
 		});
 		
 		deferredResult.callback();

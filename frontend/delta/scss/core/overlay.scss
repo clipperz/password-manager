@@ -126,6 +126,23 @@ div.overlay {
 		div.bar11 {@include transform(300deg, 0, -142%); @include animation-delay(-0.16670s);}
 		div.bar12 {@include transform(330deg, 0, -142%); @include animation-delay(-0.08330s);}
 	}
+
+	.progressBar {
+//		display: block;
+		width: 100%;
+		background-color: #222;
+		height: 4px;
+		margin-top: 86px;
+		@include border-radius(2px);
+	
+		.progress {
+			background-color: #999;
+//			width: 70%;
+			height: 4px;
+			display: block;
+			@include border-radius(2px);
+		}
+	}
 }
 
 //========================================================
