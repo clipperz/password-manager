@@ -62,7 +62,7 @@ Clipperz.PM.UI.MainController = function() {
 
 	this.registerForNotificationCenterEvents([
 		'doLogin', 'registerNewUser', 'showRegistrationForm', 'goBack',
-		'changePassphrase', 'deleteAccount',
+		'changePassphrase', 'deleteAccount', 'importCards',
 		'toggleSelectionPanel', 'toggleSettingsPanel',
 		'matchMediaQuery', 'unmatchMediaQuery',
 		'selectAllCards', 'selectRecentCards', 'search', 'tagSelected', 'selectUntaggedCards',
@@ -1270,6 +1270,31 @@ console.log("THE BROWSER IS OFFLINE");
 		deferredResult.callback();
 		
 		return deferredResult;
+	},
+	
+	importCards_handler: function(data) {
+		return Clipperz.Async.callbacks("MainController.importCards_handler", [
+			MochiKit.Base.method(this.overlay(), 'show', "importing …", true),
+			function() { return data; },
+			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, function(recordData) {
+				var newRecord;
+				// I have the feeling this should be done in a more elegant way
+				return Clipperz.Async.callbacks("MainController.importCards_handler-newRecord", [
+					MochiKit.Base.method(this.user(), 'createNewRecord'),
+					function (aValue) {
+						newRecord = aValue;
+						return newRecord;
+					},
+					MochiKit.Base.methodcaller('setUpWithJSON', recordData),
+				])
+			})),
+			Clipperz.Async.collectAll,
+			MochiKit.Base.method(this.user(), 'saveChanges'),
+			MochiKit.Base.partial(MochiKit.Base.method(this, 'resetRecordsInfo')),
+			MochiKit.Base.partial(MochiKit.Base.method(this, 'refreshUI', null)),
+			MochiKit.Base.method(this.overlay(), 'done', "finished", 1),
+			MochiKit.Base.method(this.pages()[this.currentPage()], 'setProps', {'mode':'view', 'showGlobalMask':false}),
+		], {trace:false});
 	},
 
 	//----------------------------------------------------------------------------

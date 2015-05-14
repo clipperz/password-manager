@@ -185,6 +185,40 @@ refer to http://www.clipperz.com.
 			}
 		}
 		
+		/* IMPORT */
+		.importForm {
+			textarea {
+				display: block;
+				width:100%;
+				min-height:400px;
+			}
+		}
+		
+		.jsonPreview {
+			width: 100%;
+			height:80%;
+			overflow: auto;
+			margin-top:1em;
+			
+			h3 {
+				font-weight:bold;
+			}
+			
+			ul {
+				margin-bottom:1em;
+				padding-left:1em;
+				
+				li {
+					.label {
+						font-weight:bold;
+					}
+				}
+			}
+		}
+		
+		/* /IMPORT */
+		
+		
 		form {
 			input.valid + .invalidMsg, input.empty + .invalidMsg, input:focus + .invalidMsg, input.invalid:focus + .invalidMsg {
 				visibility: hidden;

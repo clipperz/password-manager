@@ -163,30 +163,12 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 
 	//............................................................................
 
-	'tagRegExp': function () {
-		return new RegExp('\\' + Clipperz.PM.DataModel.Record.tagChar + '(' + Clipperz.PM.DataModel.Record.specialTagChar + '?\\w+)', 'g');
-	},
+	'tagRegExp': function () { return Clipperz.PM.DataModel.Record.tagRegExp(); },
+	'trimSpacesRegExp': function () { return Clipperz.PM.DataModel.Record.tagRegExp(); },
+	'filterOutTags': function (aValue) { return Clipperz.PM.DataModel.Record.filterOutTags(aValue); },
 
-	'trimSpacesRegExp': function () {
-		return new RegExp('^\\s+|\\s+$', 'g');
-	},
-
-//	'tagCleanupRegExp': function () {
-//		return new RegExp('\\' + Clipperz.PM.DataModel.Record.tagSpace, 'g');
-//	},
-	
 	//............................................................................
-
-	'filterOutTags': function (aValue) {
-		var value;
-
-		value = aValue;
-		value = value.replace(this.tagRegExp(), '');
-		value = value.replace(this.trimSpacesRegExp(), '');
-
-		return value;
-	},
-
+	
 	'label': function () {
 		return Clipperz.Async.callbacks("Record.label", [
 			MochiKit.Base.method(this, 'fullLabel'),
@@ -1168,6 +1150,18 @@ console.log("Record.hasPendingChanges RESULT", result);
 			MochiKit.Base.bind(function () { return this; }, this)
 		], {trace:false});
 	},
+	
+	'setUpWithJSON': function(data) {
+		return Clipperz.Async.callbacks("Record.setUpWithJSON", [
+			// TODO: proper tag handling
+			MochiKit.Base.method(this,'setLabel',data.label),
+			MochiKit.Base.method(this,'setNotes',data.data.notes),
+			// TODO: check whether fields' order is kept or not
+			function(){ return MochiKit.Base.values(data.currentVersion.fields); },
+			MochiKit.Base.partial(MochiKit.Base.map,MochiKit.Base.method(this, 'addField')),
+			Clipperz.Async.collectAll
+		], {trace:false});
+	},
 
 	//=========================================================================
 	__syntaxFix__: "syntax fix"
@@ -1207,4 +1201,22 @@ Clipperz.PM.DataModel.Record.isRegularTag = function (aTag) {
 };
 Clipperz.PM.DataModel.Record.regExpForSearch = function (aSearch) {
 	return new RegExp(aSearch.replace(/[^A-Za-z0-9]/g, '\\$&'), 'i');
+};
+
+Clipperz.PM.DataModel.Record.tagRegExp = function () {
+	return new RegExp('\\' + Clipperz.PM.DataModel.Record.tagChar + '(' + Clipperz.PM.DataModel.Record.specialTagChar + '?\\w+)', 'g');
+};
+
+Clipperz.PM.DataModel.Record.trimSpacesRegExp = function () {
+	return new RegExp('^\\s+|\\s+$', 'g');
+};
+
+Clipperz.PM.DataModel.Record.filterOutTags = function (aValue) {
+	var value;
+
+	value = aValue;
+	value = value.replace(Clipperz.PM.DataModel.Record.tagRegExp(), '');
+	value = value.replace(Clipperz.PM.DataModel.Record.trimSpacesRegExp(), '');
+
+	return value;
 };

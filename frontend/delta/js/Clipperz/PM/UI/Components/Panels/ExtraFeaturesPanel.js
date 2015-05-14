@@ -190,7 +190,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 									React.DOM.a({'className':Clipperz.PM.UI.Components.classNames(offlineCopyButtonClasses), 'onClick':this.handleDownloadOfflineCopyLink}, "Download")
 								])
 							]),
-							React.DOM.li({'key':'data_2'}, [
+							React.DOM.li({'key':'data_2', 'onClick':this.showExtraFeatureComponent('DataImport')}, [
 								React.DOM.h2({}, "Import"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "")

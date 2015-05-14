@@ -36,7 +36,6 @@ Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 			'username': 'empty',
 			'passphrase': 'empty',
 			'confirm': '',
-			//~ 'error': ''
 		};
 	},
 
@@ -45,35 +44,10 @@ Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 	handleDeleteAccount: function(event) {
 		event.preventDefault();
 		
-		//~ if (this.refs['username'].getDOMNode().value != this.props.userInfo['username']) {
-			//~ this.setState({error: "Invalid username"});
-			//~ return;
-		//~ }
-		//~ 
-		//~ var deferredResult;
-		//~ 
-		//~ deferredResult = new Clipperz.Async.Deferred("DeleteAccount.handleDeleteAccount", {trace: false});
-		//~ deferredResult.addCallback(this.props.userInfo['checkPassphraseCallback'], this.refs['passphrase'].getDOMNode().value);
-		//~ deferredResult.addIf(
-			//~ [MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'deleteAccount')],
-			//~ [MochiKit.Base.bind(this.setState, this, {error: "Invalid password"})]
-		//~ );
-		//~ 
-		//~ deferredResult.callback();
-		//~ 
-		//~ return deferredResult;
-		
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'deleteAccount');
 	},
 	
 	handleFormChange: function() {
-		
-		
-		//~ if (this.refs['username'].getDOMNode().value != this.props.userInfo['username']) {
-			//~ this.setState({error: "Invalid username"});
-			//~ return;
-		//~ }
-		
 		var deferredResult;
 		
 		deferredResult = new Clipperz.Async.Deferred("DeleteAccount.handleDeleteAccount", {trace: false});
@@ -92,14 +66,6 @@ Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 		deferredResult.callback();
 		
 		return deferredResult;
-		
-		
-		
-		//~ this.setState({
-			//~ 'username': this.refs['username'].getDOMNode().value,
-			//~ 'passphrase': this.refs['passphrase'].getDOMNode().value,
-			//~ 'confirm': this.refs['confirm'].getDOMNode().checked,
-		//~ });
 	},
 	
 	shouldEnableDeleteAccountButton: function() {
@@ -109,8 +75,6 @@ Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 	//=========================================================================
 
 	render: function () {
-		//~ var errorVisibility = (this.state.error) ? 'visible' : 'hidden';
-		
 		return	React.DOM.div({className:'extraFeature deleteAccount'}, [
 			React.DOM.h1({}, "Delete Account"),
 			React.DOM.form({'key':'form', 'className':'deleteAccountForm', 'onChange': this.handleFormChange, 'onSubmit':this.handleDeleteAccount}, [
@@ -127,7 +91,6 @@ Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 					]),
 				]),
 				React.DOM.button({'key':'button', 'type':'submit', 'disabled':!this.shouldEnableDeleteAccountButton(), 'className':'button'}, "Delete my account")
-				//~ React.DOM.div({ref: 'errorMessage', className: 'errorMessage', style: {visibility: errorVisibility} }, this.state.error)
 			])
 		]);
 	},

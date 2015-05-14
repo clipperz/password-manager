@@ -22,7 +22,11 @@
 		
 		"mousetrap.repository":			"https://github.com/ccampbell/mousetrap.git",
 		"mousetrap.version":			"1.4.6",
-		"mousetrap.commit":				"dcdf4d85b7d98dc2a141a7418f1bdf8987586b40"
+		"mousetrap.commit":				"dcdf4d85b7d98dc2a141a7418f1bdf8987586b40",
+		
+		"papaparse.repository":			"https://github.com/mholt/PapaParse",
+		"papaparse.version":			"4.1.1",
+		"papaparse.commit":				"1c64d5c098570f243911e920bf7cbe170f69a9eb"
 	},
 
 	"html.template": "index_template.html",
@@ -57,6 +61,9 @@
 		"-- Cubiq/add2home.js",
 		"-- Modernizr/modernizr-2.8.2.js",
 		"OnMediaQuery/onmediaquery-0.2.0.js",
+		
+		"PapaParse/papaparse.js",
+		"-- PapaParse/papaparse.min.js",
 
 		"-- IT WOULD BE NICE TO BE ABLE TO GET RID OF THESE IMPORTS",
 		"Clipperz/YUI/Utils.js",
@@ -170,6 +177,16 @@
 		"Clipperz/PM/UI/Components/ExtraFeatures/DevicePIN.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/Passphrase.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/DeleteAccount.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/Import.js",
+
+		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/StepsNavigation.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/Input.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CsvColumns.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CsvLabels.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CsvTitles.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CsvNotes.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CsvHidden.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/Preview.js",
 
 		"Clipperz/PM/UI/Components/Cards/FavIcon.js",
 		"Clipperz/PM/UI/Components/Cards/List.js",

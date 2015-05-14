@@ -2036,7 +2036,9 @@ span.count {
       font-weight: bold; }
 #extraFeaturesPanel .extraFeatureContent {
   border-right: 1px solid #222;
-  color: white; }
+  color: white;
+  /* IMPORT */
+  /* /IMPORT */ }
   #extraFeaturesPanel .extraFeatureContent header {
     display: none; }
   #extraFeaturesPanel .extraFeatureContent .changePassphraseForm label {
@@ -2053,6 +2055,22 @@ span.count {
       margin-bottom: 1em; }
     #extraFeaturesPanel .extraFeatureContent .deleteAccountForm .confirmCheckbox {
       display: inline-block; }
+  #extraFeaturesPanel .extraFeatureContent .importForm textarea {
+    display: block;
+    width: 100%;
+    min-height: 400px; }
+  #extraFeaturesPanel .extraFeatureContent .jsonPreview {
+    width: 100%;
+    height: 80%;
+    overflow: auto;
+    margin-top: 1em; }
+    #extraFeaturesPanel .extraFeatureContent .jsonPreview h3 {
+      font-weight: bold; }
+    #extraFeaturesPanel .extraFeatureContent .jsonPreview ul {
+      margin-bottom: 1em;
+      padding-left: 1em; }
+      #extraFeaturesPanel .extraFeatureContent .jsonPreview ul li .label {
+        font-weight: bold; }
   #extraFeaturesPanel .extraFeatureContent form input.valid + .invalidMsg, #extraFeaturesPanel .extraFeatureContent form input.empty + .invalidMsg, #extraFeaturesPanel .extraFeatureContent form input:focus + .invalidMsg, #extraFeaturesPanel .extraFeatureContent form input.invalid:focus + .invalidMsg {
     visibility: hidden; }
   #extraFeaturesPanel .extraFeatureContent form input:focus {
