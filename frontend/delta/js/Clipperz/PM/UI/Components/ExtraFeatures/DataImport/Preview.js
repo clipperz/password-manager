@@ -26,28 +26,81 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataImport.PreviewClass = React.createClass({
 
-//	UNCOMMENT AFTER MERGE (uses methods in Record that were added in another branch)	
-//	getTags: function (aTitle) {
-//		var result;
-//		var tagList;
-//		
-//		var tagObject = Clipperz.PM.DataModel.Record.extractTagsFromFullLabel(aTitle);
-//		
-//		tagList = MochiKit.Base.keys(tagObject);
-//		tagList = MochiKit.Base.filter(function(aTag) { return tagObject[aTag] }, tagList);
-//		
-//		if (tagList.length > 0) {
-//			result = React.DOM.ul({'className': 'tagList'},
-//				MochiKit.Base.map(function(aTag){
-//					return React.DOM.li({}, aTag);
-//				}, tagList)
-//			);
-//		} else {
-//			result = null;
-//		}
-//		
-//		return result;
-//	},
+	getInitialState: function() {
+		if (this.props.importContext.format == 'csv') {
+			return this.props.importContext.processCsv()
+		} else {
+			return {
+				'jsonToImport': this.props.importContext.jsonToImport,
+				'recordsToImport': this.props.importContext.recordsToImport,
+			}
+		}
+	},
+	
+	componentDidMount() {
+		this.props.setNextStepCallback(this.handleImport);
+	},
+	
+	//-------------------------------------------------------------------------
+
+	handleImport: function() {
+		MochiKit.Base.update(this.props.importContext, this.state);
+
+		var filteredImportData = MochiKit.Base.filter(
+			MochiKit.Base.bind(function(r) {
+				return this.isRecordToImport(r);
+			}, this),
+			this.state.jsonToImport
+		);
+		
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'importCards', filteredImportData);
+		
+		return true;
+	},
+	
+	//=========================================================================
+	
+	toggleRecordToImport: function(record) {
+		var newRecordsToImport;
+		var recordPosition;
+
+		newRecordsToImport = this.state.recordsToImport;
+		recordPosition = newRecordsToImport.indexOf(record._importId);
+		
+		if (recordPosition === -1) {
+			newRecordsToImport.push(record._importId);
+		} else {
+			newRecordsToImport.splice(recordPosition,1);
+		}
+		
+		this.setState({'recordsToImport': newRecordsToImport});
+	},
+	
+	isRecordToImport: function(record) {
+		return (this.state.recordsToImport.indexOf(record._importId)>=0) ? true : false;
+	},
+
+	getTags: function (aTitle) {
+		var result;
+		var tagList;
+		
+		var tagObject = Clipperz.PM.DataModel.Record.extractTagsFromFullLabel(aTitle);
+		
+		tagList = MochiKit.Base.keys(tagObject);
+		tagList = MochiKit.Base.filter(function(aTag) { return tagObject[aTag] }, tagList);
+		
+		if (tagList.length > 0) {
+			result = React.DOM.ul({'className': 'tagList'},
+				MochiKit.Base.map(function(aTag){
+					return React.DOM.li({}, aTag);
+				}, tagList)
+			);
+		} else {
+			result = null;
+		}
+		
+		return result;
+	},
 	
 	renderCardFields: function(someFields) {
 		return MochiKit.Base.map(function(key) {
@@ -65,13 +118,11 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.PreviewClass = React.createCl
 		return React.DOM.li({'className': 'card'}, [
 			React.DOM.input({
 				'type': 'checkbox',
-				'checked': this.props.isRecordToImportCallback(aCard),
-				'onChange': MochiKit.Base.partial(this.props.toggleRecordToImportCallback,aCard)
+				'checked': this.isRecordToImport(aCard),
+				'onChange': MochiKit.Base.partial(this.toggleRecordToImport,aCard)
 			}),
-			React.DOM.h3({}, Clipperz.PM.DataModel.Record.filterOutTags(aCard.label)),
-//			REMOVE THE PREVIOUS LINE AND UNCOMMENT THE FOLLOWING 2 AFTER MERGE
-//			React.DOM.h3({}, Clipperz.PM.DataModel.Record.extractLabelFromFullLabel(aCard.label)),
-//			this.getTags(aCard.label),
+			React.DOM.h3({}, Clipperz.PM.DataModel.Record.extractLabelFromFullLabel(aCard.label)),
+			this.getTags(aCard.label),
 			React.DOM.dl({'className': 'fields'}, this.renderCardFields(aCard.currentVersion.fields)),
 			notesParagraph
 		]);
@@ -80,38 +131,17 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.PreviewClass = React.createCl
 	render: function() {
 		var result;
 		
-		if (! this.props.importState.importData || typeof(this.props.importState.jsonToImport)=='undefined' || !this.props.importState.jsonToImport) {
+		if (typeof(this.state.jsonToImport)=='undefined' || !this.state.jsonToImport) {
 			result = "Error";
 		} else {
 			var renderedPreview = React.DOM.ul({},
-				MochiKit.Base.map(this.renderCard, this.props.importState.jsonToImport)
+				MochiKit.Base.map(this.renderCard, this.state.jsonToImport)
 			);
 			
-			result = [
-				React.DOM.h2({},"Preview"),
-				Clipperz.PM.UI.Components.ExtraFeatures.DataImport.StepsNavigation({
-					'format': this.props.importState.importData.format,
-					'stepId': 'preview'
-				}),
-				React.DOM.button({
-					'onClick': MochiKit.Base.partial(this.props.goToStepCallback, this.props.importState.previousStep)}, "Back"),
-				React.DOM.span({}, " - "),
-				React.DOM.button({
-					'onClick': MochiKit.Base.bind(function() {
-						var filteredImportData = MochiKit.Base.filter(
-							MochiKit.Base.bind(function(r) {
-								return this.props.isRecordToImportCallback(r);
-							}, this),
-							this.props.importState.jsonToImport
-						);
-						
-						MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'importCards', filteredImportData);
-						
-						this.props.resetImportStateCallback();
-					}, this)
-				}, "Import"),
-				React.DOM.div({'className': 'jsonPreview'},renderedPreview),
-			];
+			result =
+				React.DOM.div({'className': 'jsonPreview'}, React.DOM.ul({},
+					MochiKit.Base.map(this.renderCard, this.state.jsonToImport)
+				) );
 		}
 			
 		return React.DOM.div({},result);

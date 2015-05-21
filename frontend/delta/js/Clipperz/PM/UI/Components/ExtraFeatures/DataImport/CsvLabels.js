@@ -26,84 +26,153 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CsvLabelsClass = React.createClass({
 	
-	toggleFirstRow: function() {
-		var newState;
-		var cellCount;
+	getInitialState: function() {
+		return {
+			'firstRowAsLabels': this.props.importContext.firstRowAsLabels,
+			'columnLabels': this.props.importContext.columnLabels,
+			'columnLabelsFirstrow': this.props.importContext.columnLabelsFirstrow
+		};
+	},
+	
+	componentDidMount() {
+		this.props.setNextStepCallback((this.isNextDisabled()) ? null : this.handleNextStep);
+	},
+	
+	//-------------------------------------------------------------------------
 
-		newState = {'importData': this.props.importState.importData};
-		newState.importData.firstRowAsLabels = ! newState.importData.firstRowAsLabels;
-		
-		cellCount = 0;
-		MochiKit.Base.map(function(cell){
-			newState.importData.columnLabelsFirstrow[cellCount++] = cell;
-		}, this.props.importState.importData.parsedCSV[0]);
-		
-		this.props.setImportStateCallback(newState);
+	handleNextStep: function() {
+		return this.state;
+	},
+	
+	updateNextStatus: function() {
+		this.props.setNextStepCallback((! this.isNextDisabled()) ? this.handleNextStep : null);
 	},
 	
 	isNextDisabled: function() {
 		var result;
 		
-		var importData = this.props.importState.importData;
-		
-		var columnLabels = (importData.firstRowAsLabels) ? importData.columnLabelsFirstrow : importData.columnLabels;
+		var importContext = this.props.importContext;
+		var columnLabels = this.getLabels();
 		
 		result = false;
 		for (i in columnLabels) {
-			result = result || (columnLabels[i] == '');
+			result = result || ((columnLabels[i] == '')&&(importContext.selectedColumns[i]));
 		}
 		
 		return result;
 	},
 	
-	valueCallback: function(columnN) {
-		var columnLabels = this.props.csvGetColumnLabelsCallback();
-		return columnLabels[columnN];
+	//=========================================================================
+	
+	getLabels: function() {
+		return (this.state.firstRowAsLabels) ? this.state.columnLabelsFirstrow : this.state.columnLabels;
+	},
+	
+	toggleFirstRow: function() {
+		var newState;
+		var cellCount;
+
+		newState = this.state;
+		newState.firstRowAsLabels = ! newState.firstRowAsLabels;
+		
+		cellCount = 0;
+		MochiKit.Base.map(function(cell){
+			newState.columnLabelsFirstrow[cellCount++] = cell;
+		}, this.props.importContext.parsedCsv[0]);
+		
+		this.updateNextStatus();
+		
+		this.setState(newState);
 	},
 	
 	onChangeCallback: function(columnN) {
 		var newState;
 	
-		newState = {'importData': this.props.importState.importData};
-		if (this.props.importState.importData.firstRowAsLabels) {
-			newState.importData.columnLabelsFirstrow[columnN] = this.refs['csv-labels-input-'+columnN].getDOMNode().value;
+		newState = this.state;
+		if (newState.firstRowAsLabels) {
+			newState.columnLabelsFirstrow[columnN] = this.refs['csv-labels-input-' + columnN].getDOMNode().value;
 		} else {
-			newState.importData.columnLabels[columnN] = this.refs['csv-labels-input-'+columnN].getDOMNode().value;
+			newState.columnLabels[columnN] = this.refs['csv-labels-input-' + columnN].getDOMNode().value;
 		}
 	
-		this.props.setImportStateCallback(newState);
+		this.updateNextStatus();
+		
+		this.setState(newState);
 	},
 	
 	render: function() {
+//console.log("labels-render",this.props.importContext);
+//return React.DOM.p({}, "labels")
+		var rowCount, cellCount;
+
+		var importContext = this.props.importContext;
+		var columnLabels = this.getLabels();
 		
-		var importData = this.props.importState.importData;
-			
+		rowCount = 0;
+		cellCount = 0;
 		return React.DOM.div({},[
-			React.DOM.h2({},"Labels"),
-			
-			Clipperz.PM.UI.Components.ExtraFeatures.DataImport.StepsNavigation({
-				'format': 'csv',
-				'stepId': 'csv-labels',
-				'prevStep': 'csv-columns',
-				'nextStep': 'csv-titles',
-				'goToStepCallback': this.props.goToStepCallback,
-				'nextDisabled': this.isNextDisabled()
-			}),
-			
 			React.DOM.p({}, "Set a label for each field in your data. If the first row of the CSV file contains field labels, tick off the checkbox below."),
 			React.DOM.input({
 				'id': 'csv-labels-firstrow',
 				'type': 'checkbox',
-				'checked': this.props.importState.importData.firstRowAsLabels,
+				'checked': this.state.firstRowAsLabels,
 				'onChange': this.toggleFirstRow
 			}),
 			React.DOM.label({'htmlFor':'csv-labels-firstrow'}, "Use the first row as labels"),
-			React.DOM.table({'style': {'background': 'white'}},[
+			React.DOM.table({'className': 'csvTable'},[
 				React.DOM.thead({},
-					this.props.csvRenderTheadInputCallback('labels', 'text', this.valueCallback, this.onChangeCallback, null, false)
+					React.DOM.tr({},
+						MochiKit.Base.map(MochiKit.Base.bind(function(cell) {
+							var result;
+							
+							if (! importContext.selectedColumns[cellCount]) {
+								result = null;
+							} else {
+								result = React.DOM.th({'key': 'csv-labels-header-' + cellCount}, [
+									React.DOM.input({
+										'type': 'text',
+										'id': 'csv-labels-input-' + cellCount,
+										'key': 'csv-labels-input-' + cellCount,
+										'ref': 'csv-labels-input-' + cellCount,
+										'value': columnLabels[cellCount],
+										'onChange': MochiKit.Base.partial(this.onChangeCallback,cellCount)
+									})
+								]);
+							}
+							
+							cellCount++;
+							
+							return result;
+						}, this), this.props.importContext.parsedCsv[0])
+					)
 				),
 				React.DOM.tbody({},
-					this.props.csvRenderTbodyCallback()
+					MochiKit.Base.map(MochiKit.Base.bind(function(row){
+						var result;
+						
+						cellCount = 0;
+						
+						if (rowCount == 0 && this.state.firstRowAsLabels) {
+							result = null;
+						} else {							
+							result = React.DOM.tr({'key': 'csv-row-' + (rowCount)}, MochiKit.Base.map( function(cell) {
+								var result;
+								
+								if (importContext.selectedColumns[cellCount]) {
+									result = React.DOM.td({'key': 'csv-cell-' + rowCount + '-' + (cellCount)},cell);
+								} else{
+									result = null;
+								}
+								
+								cellCount++;
+								return  result;
+							}, row));
+						}
+						
+						rowCount++;
+						
+						return result;
+					},this), importContext.parsedCsv)
 				)
 		
 			])

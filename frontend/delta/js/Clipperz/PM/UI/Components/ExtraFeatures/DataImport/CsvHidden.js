@@ -25,53 +25,118 @@ refer to http://www.clipperz.com.
 Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CsvHiddenClass = React.createClass({
-	
-	checkedCallback: function(columnN) {
-		return this.props.importState.importData.hiddenColumns[columnN];
+
+	getInitialState: function() {
+		return {
+			'hiddenColumns': this.props.importContext.hiddenColumns
+		};
 	},
+	
+	componentDidMount() {
+		this.props.setNextStepCallback(this.handleNextStep);
+	},
+	
+	//-------------------------------------------------------------------------
+
+	handleNextStep: function() {
+		//var importData = this.props.importState.importData;
+		//var json = this.props.csvToJsonCallback();
+		//this.props.setImportStateCallback({
+		//	'importData': importData,
+		//	'jsonToImport': json,
+		//	'recordsToImport': MochiKit.Base.map(function(r){return r._importId},json),
+		//	'currentStep': 'preview',
+		//	'previousStep': 'csv-hidden'
+		//})
+		
+		MochiKit.Base.update(this.props.importContext, this.state);
+
+		return true;
+	},
+	
+	//=========================================================================
 	
 	onChangeCallback: function(columnN) {
-		var newState = {'importData': this.props.importState.importData};
+		var newHiddenColumns = this.state.hiddenColumns;
 	
-		newState.importData.hiddenColumns[columnN] = ! newState.importData.hiddenColumns[columnN];
+		newHiddenColumns[columnN] = ! newHiddenColumns[columnN];
 		
-		this.setState(newState);
-	},
-	
-	disabledCallback: function(columnN) {
-		return (columnN == this.props.importState.importData.titlesColumn || columnN == this.props.importState.importData.notesColumn)
+		this.setState({'hiddenColumns': newHiddenColumns});
 	},
 
 	render: function() {
-		var importData = this.props.importState.importData;
+		var cellCount, rowCount;
 		
+		var importContext = this.props.importContext;
+		
+		cellCount = 0;
+		rowCount = 0;
 		return React.DOM.div({},[
-			React.DOM.h2({},"Hidden"),
-			
-			Clipperz.PM.UI.Components.ExtraFeatures.DataImport.StepsNavigation({
-				'format': 'csv',
-				'stepId': 'csv-hidden'
-			}),
-			React.DOM.button({'onClick': MochiKit.Base.partial(this.props.goToStepCallback, 'csv-notes') }, "Back"),
-			React.DOM.span({}, " - "),
-			React.DOM.button({'onClick': MochiKit.Base.bind(function() {
-				var importData = this.props.importState.importData;
-				var json = this.props.csvToJsonCallback();
-				this.props.setImportStateCallback({
-					'importData': importData,
-					'jsonToImport': json,
-					'recordsToImport': MochiKit.Base.map(function(r){return r._importId},json),
-					'currentStep': 'preview',
-					'previousStep': 'csv-hidden'
-				});
-			}, this) }, "Preview"),
 			React.DOM.p({}, "Select the fields that should be hidden. (passwords, PINs, ...)"),
-			React.DOM.table({'style': {'background': 'white'}},[
+			React.DOM.table({'className': 'csvTable'},[
 				React.DOM.thead({},
-					this.props.csvRenderTheadInputCallback('hidden', 'checkbox', this.checkedCallback, this.onChangeCallback, this.disabledCallback, true)
+					
+					React.DOM.tr({},
+						MochiKit.Base.map(MochiKit.Base.bind(function(cell) {
+							var result;
+							
+							var thId = 'csv-notes-header-' + cellCount;
+							var inputId = 'csv-notes-input-' + cellCount;
+							
+							if (! importContext.selectedColumns[cellCount]) {
+								result = null;
+							} else {
+								result = React.DOM.th({'key': thId}, [
+									React.DOM.label({'htmlFor': inputId}, importContext.getCsvLabels()[cellCount]),
+									React.DOM.input({
+										'type': 'checkbox',
+										'id': inputId,
+										'key': inputId,
+										'ref': inputId,
+										'checked': this.state.hiddenColumns[cellCount],
+										'onChange': MochiKit.Base.partial(this.onChangeCallback,cellCount),
+										'disabled': (cellCount == importContext.titlesColumn || cellCount == importContext.notesColumn)
+									})
+								]);
+							}
+							
+							cellCount++;
+							
+							return result;
+						}, this), importContext.parsedCsv[0])
+					)
+					
 				),
 				React.DOM.tbody({},
-					this.props.csvRenderTbodyCallback()
+					
+					MochiKit.Base.map(MochiKit.Base.bind(function(row){
+						var result;
+						
+						cellCount = 0;
+						
+						if (rowCount == 0 && importContext.firstRowAsLabels) {
+							result = null;
+						} else {							
+							result = React.DOM.tr({'key': 'csv-row-' + (rowCount)}, MochiKit.Base.map( function(cell) {
+								var result;
+								
+								if (importContext.selectedColumns[cellCount]) {
+									result = React.DOM.td({'key': 'csv-cell-' + rowCount + '-' + (cellCount)},cell);
+								} else{
+									result = null;
+								}
+								
+								cellCount++;
+								
+								return  result;
+							}, row));
+						}
+						
+						rowCount++;
+						
+						return result;
+					},this), importContext.parsedCsv)
+					
 				)
 		
 			])

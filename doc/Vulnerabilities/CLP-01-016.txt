@@ -1,0 +1,20 @@
+CLP-01-016 SRP implementation vulnerable to known attacks (High)
+
+The Clipperz application implements the Secure Remote Password protocol
+for authentication. The implementation adheres to the original protocol
+specification from 1998 and is not standardized. The third revision
+(SRP-3) is described in RFC2459, and has since revised several times to
+prevent against attacks. Two attacks, ?two-for-one? guessing attack and
+message ordering attack, are detailed in the paper ?SRP-6 Improvements
+and Refinements of the Secure Remote Password Protocol?. The latest
+revision of the protocol SRP-6 is being standardized in IEEE P1363 and
+ISO/IEC 11770-4.
+
+Specifically, the implementation is missing the k value introduced in
+SRP-6 to prevent the ?two-for-one? attack. The k value is used on the
+server side to compute B=kv+gb and on the client side to compute
+S=(B-kgx)(a+ux). Also, the exchange of messages follows the SRP-3
+optimized ordering, not the standard or optimized message ordering of
+SRP-6, which was introduced to prevent a message ordering attack. Note
+also that the computation of M1=H(A | B | K) does not adhere to
+M1=H(H(N) XOR H(g) | H(I) | s | A | B | K) as specified by the standard.

@@ -43,7 +43,6 @@ Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 	
 	handleDeleteAccount: function(event) {
 		event.preventDefault();
-		
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'deleteAccount');
 	},
 	
@@ -77,20 +76,20 @@ Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 	render: function () {
 		return	React.DOM.div({className:'extraFeature deleteAccount'}, [
 			React.DOM.h1({}, "Delete Account"),
+			React.DOM.div({'className': 'content'}, [
 			React.DOM.form({'key':'form', 'className':'deleteAccountForm', 'onChange': this.handleFormChange, 'onSubmit':this.handleDeleteAccount}, [
 				React.DOM.div({'key':'fields'},[
 					React.DOM.label({'key':'username-label', 'htmlFor' :'name'}, "username"),
 					React.DOM.input({'key':'username', 'className': this.state['username'], 'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'autoCapitalize':'none'}),
-					React.DOM.span({'className': 'invalidMsg'},'Invalid username!'),
 					React.DOM.label({'key':'passphrase-label', 'autoFocus': 'true', 'htmlFor' :'passphrase'}, "passphrase"),
 					React.DOM.input({'key':'passphrase', 'className': this.state['passphrase'], 'type':'password', 'name':'passphrase', 'ref':'passphrase', 'placeholder':"passphrase"}),
-					React.DOM.span({'className': 'invalidMsg'},'Invalid passphrase!'),
 					React.DOM.p({}, [
 						React.DOM.input({'key':'confirm', 'className':'confirmCheckbox', 'type':'checkbox', 'name':'confirm', 'ref':'confirm'}),
 						React.DOM.span({}, "I understand that all my data will be deleted and that this action is irreversible.")
 					]),
 				]),
 				React.DOM.button({'key':'button', 'type':'submit', 'disabled':!this.shouldEnableDeleteAccountButton(), 'className':'button'}, "Delete my account")
+			])
 			])
 		]);
 	},

@@ -26,26 +26,44 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CsvColumnsClass = React.createClass({
 	
-	toggleColumn: function(columnN) {
-		var newState;
+	getInitialState: function() {
+		return {
+			'selectedColumns': this.props.importContext.selectedColumns
+		};
+	},
 	
-		newState = {'importData': this.props.importState.importData};
-		newState.importData.selectedColumns[columnN] = ! newState.importData.selectedColumns[columnN];
+	componentDidMount() {
+		this.props.setNextStepCallback(this.handleNextStep);
+	},
+	
+	//-------------------------------------------------------------------------
+
+	handleNextStep: function() {
+		return this.state;
+	},
+	
+	//=========================================================================
+	
+	toggleColumn: function(columnN) {
+		var newSelectedColumns;
+	
+		newSelectedColumns = this.state.selectedColumns;
+		newSelectedColumns[columnN] = ! newSelectedColumns[columnN];
 		
-		this.props.setImportStateCallback(newState);
+		this.setState({'selectedColumns': newSelectedColumns});
 	},
 
 	render: function() {
-		
+//console.log(this.props.importContext);
 		var columnSelectors;
 		var rowCount;
 		var i;
 		
 		columnSelectors = [];
-		for (i=0; i<this.props.importState.importData.nColumns; i++) {
-			columnSelectors.push( React.DOM.td({'key': 'csv-colsel-'+i}, React.DOM.input({
+		for (i=0; i<this.props.importContext.nColumns; i++) {
+			columnSelectors.push( React.DOM.td({'key': 'csv-colsel-' + i}, React.DOM.input({
 				'type': 'checkbox',
-				'checked': this.props.importState.importData.selectedColumns[i],
+				'checked': this.state.selectedColumns[i],
 				'onChange': MochiKit.Base.partial(this.toggleColumn,i)
 			}) ) );
 		}
@@ -53,16 +71,8 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CsvColumnsClass = React.creat
 		rowCount = 0;
 		
 		return React.DOM.div({},[
-			React.DOM.h2({},"Columns"),
-			Clipperz.PM.UI.Components.ExtraFeatures.DataImport.StepsNavigation({
-				'format': 'csv',
-				'stepId': 'csv-columns',
-				'prevStep': 'input',
-				'nextStep': 'csv-labels',
-				'goToStepCallback': this.props.goToStepCallback,
-			}),
 			React.DOM.p({}, "Select the columns you want to import."),
-			React.DOM.table({'style': {'background': 'white'}},[
+			React.DOM.table({'className': 'csvTable'},[
 				React.DOM.thead({}, React.DOM.tr({'className': 'columnSelectors', 'key': 'csv-colsel'}, columnSelectors)),
 				React.DOM.tbody({},
 					MochiKit.Base.map(function(row){
@@ -70,13 +80,13 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CsvColumnsClass = React.creat
 						var result
 						
 						cellCount = 0;
-						result = React.DOM.tr({'key': 'csv-row-'+(rowCount++)}, MochiKit.Base.map(function(cell) {
-							return React.DOM.td({'key': 'csv-cell-'+rowCount+'-'+(cellCount++)},cell);
+						result = React.DOM.tr({'key': 'csv-row-' + (rowCount++)}, MochiKit.Base.map(function(cell) {
+							return React.DOM.td({'key': 'csv-cell-' + rowCount + '-' + (cellCount++)},cell);
 						}, row));
 						rowCount++;
 						
 						return result;
-					}, this.props.importState.importData.parsedCSV)
+					}, this.props.importContext.parsedCsv)
 				),
 			])
 		]);

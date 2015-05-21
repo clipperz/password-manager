@@ -465,6 +465,21 @@ div.overlay {
       -ms-animation-delay: -0.0833s;
       -o-animation-delay: -0.0833s;
       animation-delay: -0.0833s; }
+  div.overlay .progressBar {
+    width: 100%;
+    background-color: #222;
+    height: 4px;
+    margin-top: 86px;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px; }
+    div.overlay .progressBar .progress {
+      background-color: #999;
+      height: 4px;
+      display: block;
+      -webkit-border-radius: 2px;
+      -moz-border-radius: 2px;
+      border-radius: 2px; }
 
 @-webkit-keyframes overlay-spin {
   from {
@@ -835,7 +850,8 @@ html {
       -moz-flex: auto;
       -ms-flex: auto;
       flex: auto;
-      overflow: auto; }
+      overflow: auto;
+      -webkit-overflow-scrolling: touch; }
     #extraFeaturesPanel .extraFeatureIndex footer {
       -webkit-box-flex: none;
       -webkit-flex: none;
@@ -853,6 +869,12 @@ html {
     width: 100%;
     height: 100%;
     background-color: black; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature {
+      height: 100%; }
+      #extraFeaturesPanel .extraFeatureContent .extraFeature .content {
+        height: 100%;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch; }
 
 .container {
   height: 100%;
@@ -1206,7 +1228,7 @@ div.dialogBox {
     z-index: 10;
     background-color: rgba(0, 0, 0, 0.5); }
   div.dialogBox .mask {
-    z-index: 12; }
+    z-index: 25; }
   div.dialogBox div.dialog {
     -webkit-box-flex: none;
     -webkit-flex: none;
@@ -1346,7 +1368,7 @@ div.dialogBox {
       margin: 0px; }
 
 #loginPage {
-  overflow: scroll;
+  overflow: auto;
   -webkit-overflow-scrolling: touch; }
   #loginPage div.loginForm {
     display: -webkit-box;
@@ -1983,20 +2005,24 @@ span.count {
     border-top: 1px solid white; }
     #extraFeaturesPanel .extraFeatureIndex > div > ul > li {
       border-bottom: 1px solid white; }
-      #extraFeaturesPanel .extraFeatureIndex > div > ul > li > ul {
-        padding-left: 10px; }
+      #extraFeaturesPanel .extraFeatureIndex > div > ul > li > h1 {
+        cursor: pointer;
+        font-size: 16pt;
+        padding: 10px; }
       #extraFeaturesPanel .extraFeatureIndex > div > ul > li.closed > ul {
         display: none;
         visibility: hidden; }
     #extraFeaturesPanel .extraFeatureIndex > div ul li > ul > li {
       padding: 10px;
-      padding-right: 0px; }
+      padding-left: 20px;
+      padding-right: 0px;
+      cursor: pointer; }
+      #extraFeaturesPanel .extraFeatureIndex > div ul li > ul > li.selected {
+        background-color: #333; }
       #extraFeaturesPanel .extraFeatureIndex > div ul li > ul > li > div {
         padding: 4px; }
-    #extraFeaturesPanel .extraFeatureIndex > div ul li h1 {
-      cursor: pointer;
-      font-size: 16pt;
-      padding: 10px; }
+      #extraFeaturesPanel .extraFeatureIndex > div ul li > ul > li.offlineCopy {
+        cursor: default; }
     #extraFeaturesPanel .extraFeatureIndex > div ul li h2 {
       font-weight: 300;
       font-size: 14pt; }
@@ -2037,51 +2063,169 @@ span.count {
 #extraFeaturesPanel .extraFeatureContent {
   border-right: 1px solid #222;
   color: white;
-  /* IMPORT */
-  /* /IMPORT */ }
+  /*
+  		.changePassphraseForm {
+  			label {
+  				display: block;
+  			}
+  			
+  			input {
+  				display: block;
+  			}
+  		}
+  		
+  		.deleteAccountForm {
+  			margin-top: 1em;
+  		
+  			label {
+  				display: block;
+  			}
+  			
+  			input {
+  				display: inline-block;
+  				margin-right: 1em;
+  				margin-bottom: 1em;
+  			}
+  			
+  			.confirmCheckbox {
+  				display: inline-block;
+  			}
+  		}
+  */ }
   #extraFeaturesPanel .extraFeatureContent header {
     display: none; }
-  #extraFeaturesPanel .extraFeatureContent .changePassphraseForm label {
-    display: block; }
-  #extraFeaturesPanel .extraFeatureContent .changePassphraseForm input {
-    display: block; }
-  #extraFeaturesPanel .extraFeatureContent .deleteAccountForm {
-    margin-top: 1em; }
-    #extraFeaturesPanel .extraFeatureContent .deleteAccountForm label {
-      display: block; }
-    #extraFeaturesPanel .extraFeatureContent .deleteAccountForm input {
+  #extraFeaturesPanel .extraFeatureContent .extraFeature {
+    padding: 20px; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature h1 {
+      font-size: 20pt;
+      padding-bottom: 20px; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature form label {
+      display: none; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature form input {
+      display: block;
+      font-size: 18pt;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      border: 0px solid white;
+      width: 350px;
+      color: black; }
+      #extraFeaturesPanel .extraFeatureContent .extraFeature form input.invalid {
+        border: 0px solid #ff9900;
+        color: gray; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature form p {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-direction: normal;
+      -webkit-box-orient: horizontal;
+      -webkit-flex-direction: row;
+      -moz-flex-direction: row;
+      -ms-flex-direction: row;
+      flex-direction: row; }
+      #extraFeaturesPanel .extraFeatureContent .extraFeature form p input {
+        width: 30px;
+        -webkit-box-flex: auto;
+        -webkit-flex: auto;
+        -moz-box-flex: auto;
+        -moz-flex: auto;
+        -ms-flex: auto;
+        flex: auto; }
+      #extraFeaturesPanel .extraFeatureContent .extraFeature form p span {
+        -webkit-box-flex: auto;
+        -webkit-flex: auto;
+        -moz-box-flex: auto;
+        -moz-flex: auto;
+        -ms-flex: auto;
+        flex: auto;
+        font-size: 12pt; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature form button {
+      font-family: "clipperz-font";
+      color: white;
+      font-size: 14pt;
+      border: 0px;
+      margin-top: 20px;
+      padding: 6px 10px;
+      border: 1px solid white;
+      background-color: #ff9900;
+      -webkit-transition: background-color font-weight 0.2s linear;
+      -moz-transition: background-color font-weight 0.2s linear;
+      -o-transition: background-color font-weight 0.2s linear;
+      -ms-transition: background-color font-weight 0.2s linear;
+      transition: background-color font-weight 0.2s linear; }
+      #extraFeaturesPanel .extraFeatureContent .extraFeature form button:disabled {
+        font-weight: 100;
+        background-color: #c0c0c0;
+        cursor: default; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature ul {
+      color: white; }
+      #extraFeaturesPanel .extraFeatureContent .extraFeature ul li {
+        padding-bottom: 40px; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature h3 {
+      font-size: 18pt; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature .description {
+      max-width: 500px;
+      padding: 10px 0px 20px 0px; }
+      #extraFeaturesPanel .extraFeatureContent .extraFeature .description p {
+        font-size: 10pt;
+        margin-bottom: 7px;
+        line-height: 1.4em;
+        color: #bbb; }
+        #extraFeaturesPanel .extraFeatureContent .extraFeature .description p em {
+          text-decoration: underline; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature .button {
       display: inline-block;
-      margin-right: 1em;
-      margin-bottom: 1em; }
-    #extraFeaturesPanel .extraFeatureContent .deleteAccountForm .confirmCheckbox {
-      display: inline-block; }
-  #extraFeaturesPanel .extraFeatureContent .importForm textarea {
-    display: block;
+      color: white;
+      background-color: #ff9900;
+      font-size: 14pt;
+      border: 1px solid white;
+      padding: 6px 10px; }
+      #extraFeaturesPanel .extraFeatureContent .extraFeature .button.disabled {
+        background-color: #c0c0c0;
+        cursor: default; }
+  #extraFeaturesPanel .extraFeatureContent .dataImport .stepNavbar li {
+    display: inline-block;
+    margin-right: 1em; }
+    #extraFeaturesPanel .extraFeatureContent .dataImport .stepNavbar li.disabled {
+      color: gray; }
+    #extraFeaturesPanel .extraFeatureContent .dataImport .stepNavbar li.active {
+      text-decoration: underline; }
+  #extraFeaturesPanel .extraFeatureContent .dataImport .error {
+    margin: 1em 0; }
+  #extraFeaturesPanel .extraFeatureContent .dataImport textarea {
     width: 100%;
-    min-height: 400px; }
-  #extraFeaturesPanel .extraFeatureContent .jsonPreview {
+    min-height: 400px;
+    display: block;
+    margin: 1em 0;
+    border: 0; }
+  #extraFeaturesPanel .extraFeatureContent .dataImport .csvTable {
+    background: white;
+    margin: 1em 0; }
+  #extraFeaturesPanel .extraFeatureContent .dataImport .dropArea {
+    margin: 1em 0;
+    width: calc(100% - 6px);
+    text-align: center;
+    height: inherit;
+    line-height: 3em;
+    border: 3px dashed white;
+    background: black; }
+  #extraFeaturesPanel .extraFeatureContent .dataImport .button {
+    margin-right: 1em; }
+  #extraFeaturesPanel .extraFeatureContent .dataImport .jsonPreview {
     width: 100%;
     height: 80%;
     overflow: auto;
     margin-top: 1em; }
-    #extraFeaturesPanel .extraFeatureContent .jsonPreview h3 {
+    #extraFeaturesPanel .extraFeatureContent .dataImport .jsonPreview h3 {
       font-weight: bold; }
-    #extraFeaturesPanel .extraFeatureContent .jsonPreview ul {
+    #extraFeaturesPanel .extraFeatureContent .dataImport .jsonPreview ul {
       margin-bottom: 1em;
       padding-left: 1em; }
-      #extraFeaturesPanel .extraFeatureContent .jsonPreview ul li .label {
+      #extraFeaturesPanel .extraFeatureContent .dataImport .jsonPreview ul li .label {
         font-weight: bold; }
   #extraFeaturesPanel .extraFeatureContent form input.valid + .invalidMsg, #extraFeaturesPanel .extraFeatureContent form input.empty + .invalidMsg, #extraFeaturesPanel .extraFeatureContent form input:focus + .invalidMsg, #extraFeaturesPanel .extraFeatureContent form input.invalid:focus + .invalidMsg {
     visibility: hidden; }
-  #extraFeaturesPanel .extraFeatureContent form input:focus {
-    border: 2px solid #ff9900; }
-  #extraFeaturesPanel .extraFeatureContent form input.valid:focus {
-    border: 2px solid #1863a1; }
-  #extraFeaturesPanel .extraFeatureContent form input.invalid + .invalidMsg {
-    visibility: visible; }
-  #extraFeaturesPanel .extraFeatureContent form .invalidMsg::before {
-    font-family: serif;
-    content: "\26A0 \0000a0"; }
 
 .mainPage.narrow #extraFeaturesPanel .extraFeatureContent header {
   display: block;
@@ -2191,7 +2335,7 @@ div.cardList ul {
       padding-right: 8px; }
 
 div.cardList.narrow {
-  overflow: scroll;
+  overflow: auto;
   -webkit-overflow-scrolling: touch; }
   div.cardList.narrow.loadingCard li.selected:after {
     color: white;
@@ -2598,12 +2742,16 @@ div.dialog {
   -webkit-border-radius: 8px;
   -moz-border-radius: 8px;
   border-radius: 8px;
+  max-width: 70%;
   background-color: white;
-  padding: 30px; }
+  padding: 30px;
+  box-shadow: 4px 4px 6px 5px rgba(0, 0, 0, 0.3); }
   div.dialog h3.message {
     font-size: 18pt;
     font-weight: bold;
-    padding-bottom: 20px; }
+    padding-bottom: 20px;
+    white-space: pre-wrap;
+    word-wrap: break-word; }
   div.dialog div.answers div.button {
     -webkit-border-radius: 4;
     -moz-border-radius: 4;

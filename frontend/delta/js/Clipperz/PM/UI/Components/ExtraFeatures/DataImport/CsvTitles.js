@@ -26,45 +26,115 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CsvTitlesClass = React.createClass({
 
-	checkedCallback: function(columnN) {
-		return columnN == this.props.importState.importData.titlesColumn;
+	getInitialState: function() {
+		return {
+			'titlesColumn': this.props.importContext.titlesColumn,
+			'notesColumn': this.props.importContext.notesColumn
+		};
 	},
 	
-	onChangeCallback: function(columnN) {
-		var newState = {'importData': this.props.importState.importData};
+	componentDidMount() {
+		this.props.setNextStepCallback((this.isNextDisabled()) ? null : this.handleNextStep);
+	},
 	
-		if (this.props.importState.importData.notesColumn == columnN) {
-			newState.importData.notesColumn = null;
+	//-------------------------------------------------------------------------
+
+	handleNextStep: function() {
+		return this.state;
+	},
+	
+	updateNextStatus: function() {
+		this.props.setNextStepCallback((! this.isNextDisabled()) ? this.handleNextStep : null);
+	},
+	
+	isNextDisabled: function() {
+		return (this.state.titlesColumn != 0 && ! this.state.titlesColumn );
+	},
+	
+	//=========================================================================
+	
+	onChangeCallback: function(columnN) {
+		var newState = this.state;
+	
+		if (newState.notesColumn == columnN) {
+			newState.notesColumn = null;
 		}
-		newState.importData.titlesColumn = columnN;
+		newState.titlesColumn = columnN;
 		
-		this.props.setImportStateCallback(newState);
+		this.updateNextStatus();
+		
+		this.setState(newState);
 	},
 
 	render: function() {
+		var rowCount, cellCount;
 		
-		var importData = this.props.importState.importData;
-		
+		var importContext = this.props.importContext;		
+		var columnLabels = importContext.getCsvLabels();
+
+		rowCount = 0;
+		cellCount = 0;
 		return React.DOM.div({},[
-			React.DOM.h2({},"Titles"),
-			
-			
-			Clipperz.PM.UI.Components.ExtraFeatures.DataImport.StepsNavigation({
-				'format': 'csv',
-				'stepId': 'csv-titles',
-				'prevStep': 'csv-labels',
-				'nextStep': 'csv-notes',
-				'goToStepCallback': this.props.goToStepCallback,
-				'nextDisabled': (importData.titlesColumn != 0 && ! importData.titlesColumn )
-			}),
-			
 			React.DOM.p({}, "Select the column that contains titles of the cards you are importing. (mandatory)"),
-			React.DOM.table({'style': {'background': 'white'}},[
+			React.DOM.table({'className': 'csvTable'},[
 				React.DOM.thead({},
-					this.props.csvRenderTheadInputCallback('titles', 'radio', this.checkedCallback, this.onChangeCallback, null, true)
+					React.DOM.tr({},
+						MochiKit.Base.map(MochiKit.Base.bind(function(cell) {
+							var result;
+							
+							var thId = 'csv-titles-header-' + cellCount;
+							var inputId = 'csv-titles-input-' + cellCount;
+							
+							if (! importContext.selectedColumns[cellCount]) {
+								result = null;
+							} else {
+								result = React.DOM.th({'key': thId}, [
+									React.DOM.label({'htmlFor': inputId}, columnLabels[cellCount]),
+									React.DOM.input({
+										'type': 'radio',
+										'id': inputId,
+										'key': inputId,
+										'ref': inputId,
+										'checked': cellCount == this.state.titlesColumn,
+										'onChange': MochiKit.Base.partial(this.onChangeCallback,cellCount)
+									})
+								]);
+							}
+							
+							cellCount++;
+							
+							return result;
+						}, this), this.props.importContext.parsedCsv[0])
+					)
 				),
 				React.DOM.tbody({},
-					this.props.csvRenderTbodyCallback()
+					MochiKit.Base.map(MochiKit.Base.bind(function(row){
+						var result;
+						
+						cellCount = 0;
+						
+						if (rowCount == 0 && importContext.firstRowAsLabels) {
+							result = null;
+						} else {							
+							result = React.DOM.tr({'key': 'csv-row-'+(rowCount)}, MochiKit.Base.map( function(cell) {
+								var result;
+								
+								if (importContext.selectedColumns[cellCount]) {
+									result = React.DOM.td({'key': 'csv-cell-' + rowCount + '-' + (cellCount)},cell);
+								} else{
+									result = null;
+								}
+								
+								cellCount++;
+								
+								return  result;
+							}, row));
+						}
+						
+						rowCount++;
+						
+						return result;
+					},this), importContext.parsedCsv)
 				)
 		
 			])

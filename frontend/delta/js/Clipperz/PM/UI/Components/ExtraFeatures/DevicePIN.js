@@ -36,7 +36,9 @@ Clipperz.PM.UI.Components.ExtraFeatures.DevicePINClass = React.createClass({
 	render: function () {
 		return	React.DOM.div({className:'extraFeature devicePIN'}, [
 			React.DOM.h1({}, "Device PIN"),
-			React.DOM.h3({}, this.props['PIN'])
+			React.DOM.div({'className': 'content'}, [
+				React.DOM.h3({}, this.props['PIN'])
+			])
 		]);
 	},
 

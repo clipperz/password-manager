@@ -178,7 +178,7 @@ refer to http://www.clipperz.com.
 }
 
 @mixin overflow-scroll () {
-	overflow: scroll;
+	overflow: auto;
 	-webkit-overflow-scrolling: touch;
 }
 

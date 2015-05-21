@@ -62,7 +62,11 @@ Clipperz.PM.UI.MainController = function() {
 
 	this.registerForNotificationCenterEvents([
 		'doLogin', 'registerNewUser', 'showRegistrationForm', 'goBack',
-		'changePassphrase', 'deleteAccount', 'importCards',
+		'changePassphrase', 'deleteAccount',
+//		'export',
+		'importCards',
+		'downloadExport',
+		'updateProgress',
 		'toggleSelectionPanel', 'toggleSettingsPanel',
 		'matchMediaQuery', 'unmatchMediaQuery',
 		'selectAllCards', 'selectRecentCards', 'search', 'tagSelected', 'selectUntaggedCards',
@@ -103,6 +107,10 @@ MochiKit.Base.update(Clipperz.PM.UI.MainController.prototype, {
 
 	overlay: function () {
 		return this._overlay;
+	},
+
+	updateProgress_handler: function (aProgressPercentage) {
+		this.overlay().updateProgress(aProgressPercentage);
 	},
 
 	loginForm: function () {
@@ -257,7 +265,7 @@ console.log("THE BROWSER IS OFFLINE");
 	checkPassphrase: function( passphraseIn ) {
 		var deferredResult;
 		
-		deferredResult = new Clipperz.Async.Deferred("MainController.deleteAccount_handler", {trace: false});
+		deferredResult = new Clipperz.Async.Deferred("MainController.checkPassphrase", {trace: false});
 		deferredResult.addMethod(this.user(), 'getPassphrase');
 		deferredResult.addCallback(function (candidatePassphrase, realPassphrase) { return candidatePassphrase == realPassphrase; }, passphraseIn );
 
@@ -499,6 +507,9 @@ console.log("THE BROWSER IS OFFLINE");
 
 			deferredResult = new Clipperz.Async.Deferred('MainController.updateSelectedCard', {trace:false});
 			deferredResult.addMethod(this.user(), 'getRecord', someInfo['reference']);
+
+// deferredResult.addMethod(this, function(d) {console.log(d); return d;});
+
 			deferredResult.addMethod(this, 'collectRecordInfo');
 
 			deferredResult.addMethod(this, 'setPageProperties', 'mainPage', 'selectedCard');
@@ -1236,6 +1247,28 @@ console.log("THE BROWSER IS OFFLINE");
 
 	//----------------------------------------------------------------------------
 
+//	export_handler: function(exportType) {
+//		return Clipperz.PM.UI.ExportController.exportJSON( this.recordsInfo(), exportType );
+//	},
+	
+	downloadExport_handler: function () {
+		var	exportController;
+		var deferredResult;
+
+		exportController = new Clipperz.PM.UI.ExportController({'recordsInfo': this.recordsInfo()});
+
+		deferredResult = new Clipperz.Async.Deferred("MainController.downloadExport_handler", {trace: false});
+		deferredResult.addMethod(this.overlay(), 'show', "exporting …", true, true);
+//		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel');
+		deferredResult.addMethod(exportController, 'run');
+		deferredResult.addMethod(this.overlay(), 'done', "", 1);
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+	
+	//----------------------------------------------------------------------------
+
 	changePassphrase_handler: function(newPassphrase) {
 		var	currentPage = this.pages()[this.currentPage()];
 		var deferredResult;
@@ -1261,11 +1294,20 @@ console.log("THE BROWSER IS OFFLINE");
 	
 	deleteAccount_handler: function() {
 		var deferredResult;
+		var doneMessageDelay = 2;
 		
 		deferredResult = new Clipperz.Async.Deferred("MainController.deleteAccount_handler", {trace: false});
+		deferredResult.addCallback(MochiKit.Base.method(this, 'ask', {
+			'question': "Do you really want to permanently delete your account?",
+			'possibleAnswers':{
+				'cancel':	{'label':"No",	'isDefault':true,	'answer':MochiKit.Base.methodcaller('cancel', new MochiKit.Async.CancelledError())},
+				'revert':	{'label':"Yes",	'isDefault':false,	'answer':MochiKit.Base.methodcaller('callback')}
+			}
+		})),
 		deferredResult.addMethod(this.overlay(), 'show', "deleting …", true);
 		deferredResult.addMethod(this.user(), 'deleteAccount');
-		deferredResult.addCallback(function() { window.location.href = '/'; });
+		deferredResult.addMethod(this.overlay(), 'done', "deleted", doneMessageDelay);
+		deferredResult.addCallback(MochiKit.Async.callLater, doneMessageDelay, function() { window.location.href = '/'; });
 		
 		deferredResult.callback();
 		

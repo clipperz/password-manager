@@ -1,0 +1,75 @@
+CLP-01-003 SQL Injection in PHP Backend (High)
+
+The PHP backend is vulnerable to SQL injection attacks. The method
+GetList() of the object class user, record, recordversion,
+onetimepasswordstatus, and onetimepassword does not sanitize its
+parameters sufficiently before adding these to a dynamically constructed
+SQL query. Affected are the $sortBy and $limit parameter.
+
+function GetList($fcv_array = array(), $sortBy='', $ascending=true,
+$limit='') {
+$sqlLimit = ($limit != '' ? "LIMIT $limit" : '');
+$this->pog_query = "select * from `onetimepassword` ";
+[...]
+$this->pog_query .= " order by ".$sortBy." ".($ascending ? "asc" :
+"desc")." $sqlLimit";
+$cursor = Database::Reader($this->pog_query, $connection);
+[...]
+}
+
+A vulnerable call of this method can be found in the function
+RefreshTree() of the file setup/rpc.php. Its first parameter is passed
+to the $sortBy parameter and the two last parameters are passed
+concatenated to the $limit parameter of the vulnerable GetList() method.
+
+function RefreshTree($objectName, $root, $offset = '', $limit = '') {
+     $sqlLimit = "$offset, $limit";
+$instanceList = $instance->GetList(
+array(array(strtolower($objectName)."Id",">",0)),
+     strtolower($objectName)."Id",
+false,
+$sqlLimit
+);
+}
+
+The function RefreshTree() is called with unsanitized parameters when
+the GET parameter action is set to Refresh.
+
+$objectName = isset($_REQUEST['objectname']) ? $_REQUEST['objectname'] : '';
+$limit = isset($_REQUEST['limit']) ? $_REQUEST['limit'] : '';
+$offset = isset($_REQUEST['offset']) ? $_REQUEST['offset'] : '';
+$action = $_GET['action'];
+switch($action) {
+case 'Refresh':
+   RefreshTree($objectName, $root, $offset, $limit);
+}
+
+An attacker is able to extract arbitrary data from the database,
+including user data and OTP keys.
+
+/setup/rpc.php?action=Refresh&objectname=user&offset=1&limit=1 union
+select onetimepasswordid,userid,reference,key,key_checksum,data,7,8,9
+from clipperz.onetimepassword
+
+The construction of the WHERE clause from the parameter $fcv_array in
+the GetList() method is also potentially affected by SQL injection.
+Here, expected numeric values are added to the SQL query without
+escaping or type-casting.
+
+if(isset($this->pog_attribute_type[$fcv_array[$i][0]]['db_attributes'])
+&& $this->pog_attribute_type[$fcv_array[$i][0]]['db_attributes'][0] !=
+'NUMERIC'
+&& $this->pog_attribute_type[$fcv_array[$i][0]]['db_attributes'][0] !=
+'SET') {
+}
+else {
+value = POG_Base::IsColumn($fcv_array[$i][2]) ? $fcv_array[$i][2] :
+"'".$fcv_array[$i][2]."'";
+$this->pog_query .= "`".$fcv_array[$i][0]."` ".$fcv_array[$i][1]." ".$value;
+}
+
+Expected numeric values should be converted to integer before embedding
+them into the SQL query. Otherwise, an attacker is able to break out of
+the single quotes and inject her own SQL syntax. For more security it is
+highly recommended to use prepared statements, as done in the Python and
+Java backend.

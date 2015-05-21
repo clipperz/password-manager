@@ -26,50 +26,109 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CsvNotesClass = React.createClass({
 	
-	checkedCallback: function(columnN) {
-		return columnN == this.props.importState.importData.notesColumn;
+	getInitialState: function() {
+		return {
+			'notesColumn': this.props.importContext.notesColumn
+		};
 	},
+	
+	componentDidMount() {
+		this.props.setNextStepCallback(this.handleNextStep);
+	},
+	
+	//-------------------------------------------------------------------------
+
+	handleNextStep: function() {
+		return this.state;
+	},
+	
+	//=========================================================================
 	
 	onChangeCallback: function(columnN) {
-		var newState = {'importData': this.props.importState.importData};
-	
-		newState.importData.notesColumn = columnN;
-		
-		this.setState(newState);
-	},
-	
-	disabledCallback: function(columnN) {
-		return columnN == this.props.importState.importData.titlesColumn;
+		this.setState({'notesColumn': columnN});
 	},
 
 	render: function() {
+		var cellCount, rowCount;
+		
+		var importContext = this.props.importContext;
+		
+		cellCount = 0;
+		rowCount = 0;
 		return React.DOM.div({},[
-			React.DOM.h2({},"Notes"),
-			
-			Clipperz.PM.UI.Components.ExtraFeatures.DataImport.StepsNavigation({
-				'format': 'csv',
-				'stepId': 'csv-notes',
-				'prevStep': 'csv-titles',
-				'nextStep': 'csv-hidden',
-				'goToStepCallback': this.props.goToStepCallback
-			}),
-			
 			React.DOM.p({}, "Select the column that represents a \"notes\" field. (optional)"),
 			React.DOM.input({
 				'id': 'csv-notes-nonotes',
 				'type': 'radio',
-				'checked': ! this.props.importState.importData.notesColumn,
+				'checked': ! this.state.notesColumn,
 				'onChange': MochiKit.Base.partial(this.onChangeCallback, null)
 			}),
 			React.DOM.label({'htmlFor': 'csv-notes-nonotes'}, "\"notes\" field not present"),
-			React.DOM.table({'style': {'background': 'white'}},[
+			React.DOM.table({'className': 'csvTable'},[
 				React.DOM.thead({},
-					this.props.csvRenderTheadInputCallback('notes', 'radio', this.checkedCallback, this.onChangeCallback, this.disabledCallback, true)
+
+				React.DOM.tr({},
+						MochiKit.Base.map(MochiKit.Base.bind(function(cell) {
+							var result;
+							
+							var thId = 'csv-notes-header-' + cellCount;
+							var inputId = 'csv-notes-input-' + cellCount;
+							
+							if (! importContext.selectedColumns[cellCount]) {
+								result = null;
+							} else {
+								result = React.DOM.th({'key': thId}, [
+									React.DOM.label({'htmlFor': inputId}, importContext.getCsvLabels()[cellCount]),
+									React.DOM.input({
+										'type': 'radio',
+										'id': inputId,
+										'key': inputId,
+										'ref': inputId,
+										'checked': cellCount == this.state.notesColumn,
+										'onChange': MochiKit.Base.partial(this.onChangeCallback,cellCount),
+										'disabled': cellCount == importContext.titlesColumn
+									})
+								]);
+							}
+							
+							cellCount++;
+							
+							return result;
+						}, this), importContext.parsedCsv[0])
+					)
+
 				),
 				React.DOM.tbody({},
-					this.props.csvRenderTbodyCallback()
+					
+					MochiKit.Base.map(MochiKit.Base.bind(function(row){
+						var result;
+						
+						cellCount = 0;
+						
+						if (rowCount == 0 && importContext.firstRowAsLabels) {
+							result = null;
+						} else {							
+							result = React.DOM.tr({'key': 'csv-row-' + (rowCount)}, MochiKit.Base.map( function(cell) {
+								var result;
+								
+								if (importContext.selectedColumns[cellCount]) {
+									result = React.DOM.td({'key': 'csv-cell-' + rowCount + '-' + (cellCount)},cell);
+								} else{
+									result = null;
+								}
+								
+								cellCount++;
+								
+								return  result;
+							}, row));
+						}
+						
+						rowCount++;
+						
+						return result;
+					},this), importContext.parsedCsv)
 				)
-		
+					
 			])
 		]);
 	}
