@@ -170,7 +170,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	},
 
 	//............................................................................
-
+	
 	'label': function () {
 		return Clipperz.Async.callbacks("Record.label", [
 			MochiKit.Base.method(this, 'fullLabel'),
@@ -1128,7 +1128,8 @@ console.log("Record.hasPendingChanges RESULT", result);
 			Clipperz.Async.collectAll,
 
 			MochiKit.Base.method(aRecord, 'directLogins'), MochiKit.Base.values,
-//function (aValue) { console.log("-> DirectLogin Values", aValue); return aValue; },
+//function (aValue) { console.log("-> SETUP WITH RECORD: DirectLogin Values", aValue); return aValue; },
+			//	TODO: possibly broken implementation of direct login cloning
 			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, 'addDirectLogin')),
 //function (aValue) { console.log("-> DirectLogin Values", aValue); return aValue; },
 //			Clipperz.Async.collectAll,
@@ -1136,16 +1137,25 @@ console.log("Record.hasPendingChanges RESULT", result);
 			MochiKit.Base.bind(function () { return this; }, this)
 		], {trace:false});
 	},
+	
+	'directLoginWithJsonData': function (someData) {
+		var	result;
 
-	'setUpWithJSON': function(data) {
+		result = new Clipperz.PM.DataModel.DirectLogin({'record': this});
+
+		return result;
+	},
+
+	'setUpWithJSON': function(data, labelPostfix) {
 		return Clipperz.Async.callbacks("Record.setUpWithJSON", [
 			// TODO: proper tag handling
-			MochiKit.Base.method(this,'setLabel',data.label),
-			MochiKit.Base.method(this,'setNotes',data.data.notes),
+			MochiKit.Base.method(this,'setLabel', data['label'] + ((labelPostfix) ? labelPostfix : '')),
+			MochiKit.Base.method(this,'setNotes', data['data']['notes']),
 			// TODO: check whether fields' order is kept or not
-			function(){ return MochiKit.Base.values(data.currentVersion.fields); },
-			MochiKit.Base.partial(MochiKit.Base.map,MochiKit.Base.method(this, 'addField')),
-			Clipperz.Async.collectAll
+			MochiKit.Base.partial(MochiKit.Base.values, data['currentVersion']['fields']),
+			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, 'addField')),
+			Clipperz.Async.collectAll,
+			MochiKit.Base.partial(MochiKit.Async.succeed, this),
 		], {trace:false});
 	},
 
@@ -1174,12 +1184,12 @@ console.log("Record.hasPendingChanges RESULT", result);
 		var label;
 		var data;
 		var currentVersion;
-		var directLogins;
+//		var directLogins;
 		var currentVersionObject;
 
 		data = {};
 		currentVersion = {};
-		directLogins = {};
+//		directLogins = {};
 		deferredResult = new Clipperz.Async.Deferred('Record.export', {trace:false});
 		deferredResult.addMethod(this, 'getCurrentRecordVersion');
 		deferredResult.addCallback(function(recordVersionIn) { currentVersionObject = recordVersionIn; })
@@ -1210,7 +1220,6 @@ console.log("Record.hasPendingChanges RESULT", result);
 	//=========================================================================
 	__syntaxFix__: "syntax fix"
 });
-
 
 Clipperz.PM.DataModel.Record.defaultCardInfo = {
 	'_rowObject':			MochiKit.Async.succeed,
@@ -1277,3 +1286,14 @@ Clipperz.PM.DataModel.Record.extractTagsFromFullLabel = function (aLabel) {
 	
 	return result;
 };
+
+Clipperz.PM.DataModel.Record.labelContainsTag = function (aLabel, aTag) {
+	return MochiKit.Iter.some(
+		MochiKit.Base.keys(Clipperz.PM.DataModel.Record.extractTagsFromFullLabel(aLabel)),
+		MochiKit.Base.partial(MochiKit.Base.operator.eq, aTag)
+	);
+}
+
+Clipperz.PM.DataModel.Record.labelContainsArchiveTag = function (aLabel) {
+	return Clipperz.PM.DataModel.Record.labelContainsTag(aLabel, Clipperz.PM.DataModel.Record.archivedTag);
+}

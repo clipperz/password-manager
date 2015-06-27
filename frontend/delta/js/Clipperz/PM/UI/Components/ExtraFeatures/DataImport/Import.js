@@ -22,29 +22,24 @@ refer to http://www.clipperz.com.
 */
 
 "use strict";
-Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures');
+Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport');
 
-Clipperz.PM.UI.Components.ExtraFeatures.DevicePINClass = React.createClass({
-
-	propTypes: {
-//		featureSet:			React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
-//		'level':	React.PropTypes.oneOf(['hide', 'info', 'warning', 'error']).isRequired
-	},
-
+Clipperz.PM.UI.Components.ExtraFeatures.DataImport.ImportClass = React.createClass({
 	//=========================================================================
 
-	render: function () {
-		return	React.DOM.div({className:'extraFeature devicePIN'}, [
-			React.DOM.div({'className':'header'}, [
-				React.DOM.h1({}, "Device PIN"),
-			]),
-			React.DOM.div({'className': 'content'}, [
-				React.DOM.h3({}, this.props['PIN'])
-			])
+	importHandler: function (anEvent) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'importCards', this.props.importContext.state('recordsToImport'));
+	},
+
+	render: function() {
+		return React.DOM.div({}, [
+			React.DOM.h5({}, "Cards to import: " + this.props.importContext.state('recordsToImport').length + " (of " + this.props.importContext.state('jsonData').length + ")"),
+			React.DOM.a({'className': 'button import', 'onClick': this.importHandler}, "Import")
+			
 		]);
+		
 	},
 
-	//=========================================================================
 });
 
-Clipperz.PM.UI.Components.ExtraFeatures.DevicePIN = React.createFactory(Clipperz.PM.UI.Components.ExtraFeatures.DevicePINClass);
+Clipperz.PM.UI.Components.ExtraFeatures.DataImport.Import = React.createFactory(Clipperz.PM.UI.Components.ExtraFeatures.DataImport.ImportClass);

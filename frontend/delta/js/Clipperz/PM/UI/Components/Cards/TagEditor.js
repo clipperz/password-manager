@@ -72,8 +72,10 @@ Clipperz.PM.UI.Components.Cards.TagEditorClass = React.createClass({
 	//----------------------------------------------------------------------------
 
 	addTagValue: function (anEvent) {
-		this.addTag(anEvent.currentTarget.value);
-		anEvent.currentTarget.value = "";
+		if (anEvent.currentTarget.value) {
+			this.addTag(anEvent.currentTarget.value);
+			anEvent.currentTarget.value = "";
+		}
 	},
 
 	handleKeyDown: function (anEvent) {

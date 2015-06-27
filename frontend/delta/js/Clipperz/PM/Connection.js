@@ -240,13 +240,13 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 
 	//-------------------------------------------------------------------------
 
-	'updateCredentials': function (aUsername, aPassphrase, someUserData) {
+	'updateCredentials': function (someData) {
 		var	deferredResult;
 
 		deferredResult = new Clipperz.Async.Deferred("Connection.updateCredentials", {trace:false});
 		deferredResult.collectResults({
 			'credentials': [
-				MochiKit.Base.method(this, 'normalizedCredentials', {username:aUsername, password:aPassphrase}),
+				MochiKit.Base.method(this, 'normalizedCredentials', {username:someData['newUsername'], password:someData['newPassphrase']}),
 				MochiKit.Base.bind(function(someCredentials) {
 					var srpConnection;
 					var result;
@@ -258,15 +258,13 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 					return result;
 				}, this)
 			],
-			'user':		MochiKit.Base.partial(MochiKit.Async.succeed, someUserData)
+			'user':		MochiKit.Base.partial(MochiKit.Async.succeed, someData['user']),
+			'oneTimePasswords': MochiKit.Base.partial(MochiKit.Async.succeed, someData['oneTimePasswords'])
 		});
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'advanceProgress');
 		deferredResult.addMethod(this, 'message', 'upgradeUserCredentials');
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'advanceProgress');
 		deferredResult.callback();
 		
 		return deferredResult;
-		
 	},
 
 	//=========================================================================
@@ -309,12 +307,12 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 			'message': 'oneTimePassword',
 			'version': Clipperz.PM.Connection.communicationProtocol.currentVersion,
 			'parameters': {
-				'oneTimePasswordKey':			Clipperz.PM.DataModel.OneTimePassword.computeKeyWithUsernameAndPassword(someParameters['username'], normalizedOTP),
+				'oneTimePasswordKey':			Clipperz.PM.DataModel.OneTimePassword.computeKeyWithPassword(normalizedOTP),
 				'oneTimePasswordKeyChecksum':	Clipperz.PM.DataModel.OneTimePassword.computeKeyChecksumWithUsernameAndPassword(someParameters['username'], normalizedOTP)
 			}
 		}
 
-		return Clipperz.Async.callbacks("Connction.redeemOTP", [
+		return Clipperz.Async.callbacks("Connction.redeemOneTimePassword", [
 			MochiKit.Base.method(this.proxy(), 'handshake', args),
 			function(aResult) {
 				return Clipperz.PM.Crypto.deferredDecrypt({
@@ -364,8 +362,6 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 			return result;
 		});
 		deferredResult.addMethod(this.proxy(), 'handshake');
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal, this, 'updatedProgressState', 'connection_credentialVerification');
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'advanceProgress');
 		deferredResult.addCallback(function(someParameters) {
 			var result;
 
@@ -415,10 +411,6 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 
 			return someParameters;
 		}, this));
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal, this, 'updatedProgressState', 'connection_loggedIn');
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'advanceProgress');
-//		deferredResult.addCallback(MochiKit.Async.succeed, {result:"done"});
-
 		deferredResult.callback();
 		
 		return deferredResult;

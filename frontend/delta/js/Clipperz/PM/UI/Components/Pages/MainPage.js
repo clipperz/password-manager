@@ -34,16 +34,16 @@ Clipperz.PM.UI.Components.Pages.MainPageClass = React.createClass({
 	},
 
 	propTypes: {
-		'tags':						React.PropTypes.object,
-		'allTags':					React.PropTypes.array,
-		'messageBox':				React.PropTypes.object.isRequired,
-		'featureSet':				React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
-		'features':					React.PropTypes.array.isRequired,
-		'userInfo':					React.PropTypes.object.isRequired,
-		'accountInfo':				React.PropTypes.object.isRequired,
-//		'mediaQueryStyle':	React.PropTypes.oneOf(['extra-short', 'narrow', 'wide', 'extra-wide']).isRequired,
+		'tags':				React.PropTypes.object,
+		'allTags':			React.PropTypes.array,
+		'messageBox':		React.PropTypes.object.isRequired,
+		'featureSet':		React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
+		'features':			React.PropTypes.array.isRequired,
+		'userInfo':			React.PropTypes.object.isRequired,
+		'accountInfo':		React.PropTypes.object.isRequired,
 		'style':			React.PropTypes.oneOf(Clipperz_PM_UI_availableStyles).isRequired,
-		//		'cards':			React.PropTypes.deferred.isRequired
+//		'mediaQueryStyle':	React.PropTypes.oneOf(['extra-short', 'narrow', 'wide', 'extra-wide']).isRequired,
+//		'cards':			React.PropTypes.deferred.isRequired
 	},
 
 	getInitialState: function () {
@@ -60,8 +60,7 @@ Clipperz.PM.UI.Components.Pages.MainPageClass = React.createClass({
 		};
 		classes[this.props['style']] = true;
 
-//console.log("MAIN PAGE", this.props['showGlobalMask']);
-		return	React.DOM.div({'key':'mainPage', 'className':Clipperz.PM.UI.Components.classNames(classes)/*Clipperz.PM.UI.Components.classNames(classes)*/}, [
+		return	React.DOM.div({'key':'mainPage', 'className':Clipperz.PM.UI.Components.classNames(classes)}, [
 			this.props['style'] != 'extra-wide' ? Clipperz.PM.UI.Components.Panels.SelectionPanel(this.props) : null,
 			Clipperz.PM.UI.Components.Panels.MainPanel(this.props),
 			Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel(this.props),

@@ -175,7 +175,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record.Version.Field, Object, {
 		deferredResult.addMethod(this, 'actionType');
 		deferredResult.addCallback(function (aValue) { fieldValues['actionType'] = aValue; });
 		deferredResult.addMethod(this, 'isHidden');
-		deferredResult.addCallback(function (aValue) { fieldValues['isHidden'] = aValue; });
+		deferredResult.addCallback(function (aValue) { fieldValues['hidden'] = aValue; });
 		deferredResult.addCallback(function () { return fieldValues; });
 		deferredResult.callback();
 

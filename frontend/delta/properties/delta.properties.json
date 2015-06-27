@@ -26,7 +26,11 @@
 		
 		"papaparse.repository":			"https://github.com/mholt/PapaParse",
 		"papaparse.version":			"4.1.1",
-		"papaparse.commit":				"1c64d5c098570f243911e920bf7cbe170f69a9eb"
+		"papaparse.commit":				"1c64d5c098570f243911e920bf7cbe170f69a9eb",
+		
+		"xDate.repository":				"https://github.com/arshaw/xdate",
+		"xDate.version":				"0.8",
+		"xDate.commit":					"f83cd8d63fab8cfe6f00ccba9041d2591daedb74"
 	},
 
 	"html.template": "index_template.html",
@@ -61,12 +65,14 @@
 		"-- Cubiq/add2home.js",
 		"-- Modernizr/modernizr-2.8.2.js",
 		"OnMediaQuery/onmediaquery-0.2.0.js",
-
+		
 		"FileSaver/Blob.js",
 		"FileSaver/FileSaver.js",
 
 		"PapaParse/papaparse.js",
 		"-- PapaParse/papaparse.min.js",
+
+		"xDate/xdate.js",
 
 		"-- IT WOULD BE NICE TO BE ABLE TO GET RID OF THESE IMPORTS",
 		"Clipperz/YUI/Utils.js",
@@ -158,7 +164,7 @@
 		"Clipperz/PM/UI/Components.js",
 		"Clipperz/PM/UI/Components/Overlay.js",
 		"Clipperz/PM/UI/Components/Button.js",
-		"Clipperz/PM/UI/Components/Checkbox.js",
+		"-- Clipperz/PM/UI/Components/Checkbox.js",
 		"Clipperz/PM/UI/Components/CardToolbar.js",
 		"Clipperz/PM/UI/Components/MessageBox.js",
 		"Clipperz/PM/UI/Components/DialogBox.js",
@@ -179,17 +185,20 @@
 
 		"Clipperz/PM/UI/Components/ExtraFeatures/DevicePIN.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/Passphrase.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/OTP.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/DeleteAccount.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/DataExport.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport.js",
 
 		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/Input.js",
-		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CsvColumns.js",
-		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CsvLabels.js",
-		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CsvTitles.js",
-		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CsvNotes.js",
-		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CsvHidden.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/Import.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/Preview.js",
+		
+		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CSV/Columns.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CSV/Labels.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CSV/Titles.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CSV/Notes.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CSV/Hidden.js",
 
 		"Clipperz/PM/UI/Components/Cards/FavIcon.js",
 		"Clipperz/PM/UI/Components/Cards/List.js",
@@ -207,7 +216,6 @@
 		"-- Clipperz/PM/UI/MainDesktopController.js",
 		"Clipperz/PM/UI/DirectLoginController.js",
 		"Clipperz/PM/UI/ExportController.js",
-		"Clipperz/PM/UI/ImportController.js",
 		"Clipperz/PM/UI/ImportContext.js",
 		"main.js"
 	],

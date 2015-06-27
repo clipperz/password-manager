@@ -59,6 +59,8 @@ Clipperz.PM.DataModel.User = function (args) {
 		'__syntaxFix__': 'syntax fix'
 	};
 
+	this._usedOTP = null;
+
 	return this;
 }
 
@@ -76,6 +78,40 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 
 	'setUsername': function (aValue) {
 		this._username = aValue;
+	},
+
+	//-------------------------------------------------------------------------
+
+	'setUsedOTP': function(aOTP) {
+		this._usedOTP = aOTP;
+
+		return aOTP;
+	},
+
+	'resetUsedOTP': function(aOTP) {
+		this._usedOTP = null;
+	},
+
+	'markUsedOTP': function(aOTP) {
+		var result;
+		var oneTimePasswordKey;
+
+		if (this._usedOTP) {
+			oneTimePasswordKey = Clipperz.PM.DataModel.OneTimePassword.computeKeyWithPassword(
+				Clipperz.PM.DataModel.OneTimePassword.normalizedOneTimePassword(this._usedOTP)
+			);
+
+			result = Clipperz.Async.callbacks("User.markUsedOTP", [ // NOTE: fired also when passphrase looks exactly like OTP
+				MochiKit.Base.method(this, 'getHeaderIndex', 'oneTimePasswords'),
+				MochiKit.Base.methodcaller('markOTPAsUsed', oneTimePasswordKey),
+				MochiKit.Base.method(this,'saveChanges'), // Too 'heavy'?
+				MochiKit.Base.method(this, 'resetUsedOTP')
+			], {'trace': false});
+		} else {
+			result = MochiKit.Async.succeed();
+		}
+
+		return result;
 	},
 
 	//-------------------------------------------------------------------------
@@ -138,19 +174,15 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 	//-------------------------------------------------------------------------
 
 	'getPassphrase': function() {
-		var deferredResult;
-
-		deferredResult = new Clipperz.Async.Deferred("User.getPassphrase", {trace:false});
-		deferredResult.acquireLock(this.deferredLockForSection('passphrase'));
-		deferredResult.addMethod(this.data(), 'deferredGetOrSet', 'passphrase', this.getPassphraseFunction());
-		deferredResult.releaseLock(this.deferredLockForSection('passphrase'));
-		deferredResult.callback();
-
-		return deferredResult;
+		return this._getPassphraseFunction();
 	},
 
 	'getPassphraseFunction': function () {
 		return this._getPassphraseFunction;
+	},
+
+	'setPassphraseFunction': function(aFunction) {
+		this._getPassphraseFunction = aFunction;
 	},
 
 	//-------------------------------------------------------------------------
@@ -164,26 +196,44 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 
 	//-------------------------------------------------------------------------
 
-	'changePassphrase': function (aNewValue) {
-		return this.updateCredentials(this.username(), aNewValue);
+	'changePassphrase': function (aNewValueCallback) {
+		return this.updateCredentials(this.username(), aNewValueCallback);
 	},
 
 	//.........................................................................
 
-	'updateCredentials': function (aUsername, aPassphrase) {
+	'updateCredentials': function (aUsername, aPassphraseCallback) {
 		var	deferredResult;
 
 		deferredResult = new Clipperz.Async.Deferred("User.updateCredentials", {trace:false});
-//		deferredResult.addMethod(this, 'getPassphrase');
-//		deferredResult.setValue('currentPassphrase');
 		deferredResult.addMethod(this.connection(), 'ping');
-		deferredResult.addMethod(this, 'setUsername', aUsername)
-		deferredResult.acquireLock(this.deferredLockForSection('passphrase'));
-		deferredResult.addMethod(this.data(), 'deferredGetOrSet', 'passphrase', aPassphrase);
-		deferredResult.releaseLock(this.deferredLockForSection('passphrase'));
-//		deferredResult.getValue('currentPassphrase');
-		deferredResult.addMethod(this, 'prepareRemoteDataWithKey', aPassphrase);
-		deferredResult.addMethod(this.connection(), 'updateCredentials', aUsername, aPassphrase);
+		deferredResult.collectResults({
+			'newUsername': MochiKit.Base.partial(MochiKit.Async.succeed, aUsername),
+			'newPassphrase': aPassphraseCallback,
+			'user': MochiKit.Base.method(this, 'prepareRemoteDataWithKeyFunction', aPassphraseCallback),
+			'oneTimePasswords': [
+				MochiKit.Base.method(this, 'getHeaderIndex', 'oneTimePasswords'),
+				MochiKit.Base.methodcaller('getEncryptedOTPData', aPassphraseCallback),
+				function (otps) {
+					var result;
+					var otpRefs;
+					var i, c;
+
+					result = {};
+					otpRefs = MochiKit.Base.keys(otps);
+					c = otpRefs.length;
+					for (i=0; i<c; i++) {
+						result[otpRefs[i]] = {}
+						result[otpRefs[i]]['data'] = otps[otpRefs[i]]['data'];
+						result[otpRefs[i]]['version'] = otps[otpRefs[i]]['version'];
+					}
+
+					return result;
+				}
+			]
+		});
+
+		deferredResult.addMethod(this.connection(), 'updateCredentials');
 		deferredResult.callback();
 		
 		return deferredResult;
@@ -212,8 +262,10 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 					'retrieveKeyFunction': MochiKit.Base.method(this, 'getPassphrase')
 				}),
 				'oneTimePasswords': new Clipperz.PM.DataModel.User.Header.OneTimePasswords({
-					'name':	'preferences',
-					'retrieveKeyFunction': MochiKit.Base.method(this, 'getPassphrase')
+					'connection': this.connection(),
+					'name':	'oneTimePasswords',
+					'username': this.username(),
+					'passphraseCallback': MochiKit.Base.method(this, 'getPassphrase')
 				})
 			}
 		};
@@ -227,18 +279,10 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		var deferredResult;
 
 		deferredResult = new Clipperz.Async.Deferred("User.registerAsNewAccount", {trace:false});
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'updateProgress', {'extraSteps':3});
 		deferredResult.addMethod(this, 'initialSetupWithNoData')
 		deferredResult.addMethod(this, 'getPassphrase');
 		deferredResult.addMethod(this, 'prepareRemoteDataWithKey');
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'advanceProgress');
 		deferredResult.addMethod(this.connection(), 'register');
-//		deferredResult.addCallback(MochiKit.Base.itemgetter('lock'));
-//		deferredResult.addMethod(this, 'setServerLockValue');
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal,	Clipperz.Signal.NotificationCenter, 'userSuccessfullyRegistered');
-
-//		deferredResult.addErrback (MochiKit.Base.method(this, 'handleRegistrationFailure'));
-
 		deferredResult.callback();
 		
 		return deferredResult;
@@ -276,22 +320,44 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 
 	'login': function () {
 		var deferredResult;
+		var oneTimePasswordReference;
 
 		deferredResult = new Clipperz.Async.Deferred("User.login", {trace:false});
 		deferredResult.addMethod(this, 'getPassphrase');
 		deferredResult.addCallback(Clipperz.PM.DataModel.OneTimePassword.isValidOneTimePasswordValue);
+
 		deferredResult.addCallback(Clipperz.Async.deferredIf("Is the passphrase an OTP", [
+			MochiKit.Base.method(this,'getPassphrase'),
+			MochiKit.Base.method(this,'setUsedOTP'),
 			MochiKit.Base.method(this, 'getCredentials'),
 			MochiKit.Base.method(this.connection(), 'redeemOneTimePassword'),
-			MochiKit.Base.method(this.data(), 'setValue', 'passphrase')
+			function (aPassphrase) {
+				return MochiKit.Base.partial(MochiKit.Async.succeed, aPassphrase);
+			},
+			MochiKit.Base.method(this, 'setPassphraseFunction')
 		], []));
-		deferredResult.addErrback(MochiKit.Base.method(this, 'getPassphrase'));
+
+		deferredResult.addBoth(MochiKit.Base.method(this, 'loginWithPassphrase'));
+		deferredResult.addBoth(MochiKit.Base.method(this, 'resetUsedOTP'));
+		
+		deferredResult.callback();
+		
+		return deferredResult;
+	},
+
+	'loginWithPassphrase': function () {
+		var deferredResult;
+
+		deferredResult = new Clipperz.Async.Deferred("User.loginWithPassphrase", {trace:false});
+
+		deferredResult.addMethod(this, 'getPassphrase');
 		deferredResult.addMethod(this.connection(), 'login', false);
 		deferredResult.addMethod(this, 'setupAccountInfo');
+		deferredResult.addMethod(this, 'markUsedOTP');
 		deferredResult.addErrback (MochiKit.Base.method(this, 'handleConnectionFallback'));
 
 		deferredResult.callback();
-		
+
 		return deferredResult;
 	},
 
@@ -300,21 +366,18 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 	'handleConnectionFallback': function(aValue) {
 		var result;
 
-//console.log("USER - handleConnectionFallback", aValue, aValue['isPermanent']);
 		if (aValue instanceof MochiKit.Async.CancelledError) {
 			result = aValue;
 		} else if ((aValue['isPermanent'] === true) || (Clipperz.PM.Connection.communicationProtocol.fallbackVersions[this.connectionVersion()] == null)) {
 			result = Clipperz.Async.callbacks("User.handleConnectionFallback - failed", [
 				MochiKit.Base.method(this.data(), 'removeValue', 'passphrase'),
 				MochiKit.Base.method(this, 'setConnectionVersion', 'current'),
-//				MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'userLoginFailed'),
-//				MochiKit.Base.partial(MochiKit.Async.fail, Clipperz.PM.DataModel.User.exception.LoginFailed)
 				MochiKit.Base.partial(MochiKit.Async.fail, aValue)
 			], {trace:false});
 		} else {
 			this.setConnectionVersion(Clipperz.PM.Connection.communicationProtocol.fallbackVersions[this.connectionVersion()]);
 			result = new Clipperz.Async.Deferred("User.handleConnectionFallback - retry");
-			result.addMethod(this, 'login');
+			result.addMethod(this, 'loginWithPassphrase');
 			result.callback();
 		}
 
@@ -324,8 +387,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 	//-------------------------------------------------------------------------
 
 	'setupAccountInfo': function (aValue) {
-//console.log("User.setupAccountInfo", aValue, aValue['accountInfo']);
-//		this.setLoginInfo(aValue['loginInfo']);
 		this.setAccountInfo(new Clipperz.PM.DataModel.User.AccountInfo(aValue['accountInfo']));
 	},
 
@@ -372,8 +433,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		var	recordsIndex;
 		var preferences;
 		var oneTimePasswords;
-
-//		this.setServerLockValue(someServerData['lock']);
 
 		headerVersion = this.headerFormatVersion(someServerData['header']);
 		switch (headerVersion) {
@@ -429,7 +488,9 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 
 				if (typeof(headerData['oneTimePasswords']) != 'undefined') {
 					oneTimePasswords = new Clipperz.PM.DataModel.User.Header.OneTimePasswords({
-						'name':	'preferences',
+						'name':	'oneTimePasswords',
+						'connection': this.connection(),
+						'username': this.username(),
 						'retrieveKeyFunction': MochiKit.Base.method(this, 'getPassphrase'),
 						'remoteData': {
 							'data': headerData['oneTimePasswords']['data'],
@@ -438,7 +499,9 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 					});
 				} else {
 					oneTimePasswords = new Clipperz.PM.DataModel.User.Header.OneTimePasswords({
-						'name':	'preferences',
+						'name':	'OneTimePasswords',
+						'connection': this.connection(),
+						'username': this.username(),
 						'retrieveKeyFunction': MochiKit.Base.method(this, 'getPassphrase')
 					});
 				}
@@ -595,7 +658,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 */			
 		], {trace:false});
 	},
-	
 /*
 	'filterRecordsInfo': function (someArgs) {
 		var	info			= (someArgs.info			? someArgs.info				: Clipperz.PM.DataModel.Record.defaultCardInfo);
@@ -688,8 +750,47 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		], {trace:false});
 	},
 
+	//.........................................................................
+
+	'createNewRecordFromJSON': function(someJSON) {
+		var deferredResult;
+
+		deferredResult = new Clipperz.Async.Deferred("User.createNewRecordFromJSON", {trace:false});
+		deferredResult.collectResults({
+			'recordIndex': MochiKit.Base.method(this, 'getHeaderIndex', 'recordsIndex'),
+			'newRecord': [
+				MochiKit.Base.method(this, 'createNewRecord'),
+				MochiKit.Base.methodcaller('setUpWithJSON', someJSON),
+			]
+		});
+		deferredResult.addCallback(function (someInfo) {
+			var	record = someInfo['newRecord'];
+			var	recordIndex = someInfo['recordIndex'];
+			
+			return MochiKit.Base.map(function (aDirectLogin) {
+				var	configuration = JSON.stringify({
+					'page': {'title': aDirectLogin['label']},
+					'form': aDirectLogin['formData'],
+					'version': '0.2' // correct?
+				});
+
+				return Clipperz.Async.callbacks("User.createNewRecordFromJSON__inner", [
+					MochiKit.Base.method(recordIndex, 'createNewDirectLogin', record),
+					MochiKit.Base.methodcaller('setLabel', aDirectLogin['label']),
+					MochiKit.Base.methodcaller('setBookmarkletConfiguration', configuration),
+					MochiKit.Base.methodcaller('setBindings', aDirectLogin['bindingData'], someJSON['currentVersion']['fields']),
+				], {'trace': false});
+			}, MochiKit.Base.values(someJSON.data.directLogins));
+		});
+		deferredResult.addCallback(Clipperz.Async.collectAll);
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+
+	//-------------------------------------------------------------------------
+
 	'cloneRecord': function (aRecord) {
-//console.log("USER.cloneRecord", aRecord);
 		var	result;
 		var	user = this;
 		
@@ -700,9 +801,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 			], [
 				MochiKit.Base.method(user, 'createNewRecord'),
 				MochiKit.Base.methodcaller('setUpWithRecord', aRecord),
-//				function (aValue) { result = aValue; return aValue; },
-//				MochiKit.Base.method(user, 'saveChanges'),
-//				function () { return result; }
 			])
 		], {trace:false});
 	},
@@ -728,6 +826,62 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 			MochiKit.Base.method(this, 'getHeaderIndex', 'oneTimePasswords'),
 			MochiKit.Base.methodcaller('oneTimePasswords'),
 			MochiKit.Base.values
+		], {trace:false});
+	},
+
+	'getOneTimePasswordsDetails': function() {
+		return Clipperz.Async.callbacks("User.getOneTimePasswords", [
+			MochiKit.Base.method(this, 'getHeaderIndex', 'oneTimePasswords'),
+			MochiKit.Base.methodcaller('oneTimePasswordsDetails', this.connection()),
+		], {trace:false});
+	},
+
+	//-------------------------------------------------------------------------
+
+	'createNewOTP': function () {
+		var messageParameters;
+
+		messageParameters = {};
+		return Clipperz.Async.callbacks("User.createNewOTP", [
+			MochiKit.Base.method(this, 'getHeaderIndex', 'oneTimePasswords'),
+			MochiKit.Base.methodcaller('createNewOTP', this.username(), MochiKit.Base.method(this, 'getPassphrase')),
+			MochiKit.Base.methodcaller('encryptedData'),
+			MochiKit.Base.partial(function(someParameters, someOTPEncryptedData) {
+				someParameters['oneTimePassword'] = someOTPEncryptedData;
+			}, messageParameters),
+			MochiKit.Base.method(this, 'getPassphrase'),
+			MochiKit.Base.method(this, 'prepareRemoteDataWithKey'),
+			MochiKit.Base.partial(function(someParameters, someEncryptedRemoteData) {
+				someParameters['user'] = someEncryptedRemoteData;
+			}, messageParameters),
+			MochiKit.Base.method(this.connection(), 'message', 'addNewOneTimePassword', messageParameters)
+		], {trace:false});
+	},
+
+	'deleteOTPs': function (aList) {
+		var messageParameters;
+
+		messageParameters = {};
+		return Clipperz.Async.callbacks("User.deleteOTPs", [
+			MochiKit.Base.method(this, 'getHeaderIndex', 'oneTimePasswords'),
+			MochiKit.Base.methodcaller('deleteOTPs', aList),
+			MochiKit.Base.partial(function(someParameters, aList) {
+				someParameters['oneTimePasswords'] = aList
+			}, messageParameters),
+			MochiKit.Base.method(this, 'getPassphrase'),
+			MochiKit.Base.method(this, 'prepareRemoteDataWithKey'),
+			MochiKit.Base.partial(function(someParameters, someEncryptedRemoteData) {
+				someParameters['user'] = someEncryptedRemoteData;
+			}, messageParameters),
+			MochiKit.Base.method(this.connection(), 'message', 'updateOneTimePasswords', messageParameters)			
+		], {trace:false});
+	},
+
+	'changeOTPLabel': function (aReference, aLabel) {
+		return Clipperz.Async.callbacks("User.changeOTPLabel", [
+			MochiKit.Base.method(this, 'getHeaderIndex', 'oneTimePasswords'),
+			MochiKit.Base.methodcaller('changeOTPLabel', aReference, aLabel),
+			MochiKit.Base.method(this,'saveChanges') // Too 'heavy'? Should be moved to MainController to prevent glitch in the UI? 
 		], {trace:false});
 	},
 
@@ -804,13 +958,9 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 
 	'revertChanges': function () {
 		return Clipperz.Async.callbacks("User.revertChanges", [
-//function (aValue) { console.log("User.revertChanges - 1"); return aValue; },
 			MochiKit.Base.method(this, 'invokeMethodNamedOnHeader', 'revertChanges'),
-//function (aValue) { console.log("User.revertChanges - 2"); return aValue; },
 			MochiKit.Base.method(this, 'invokeMethodNamedOnRecords', 'revertChanges'),
-//function (aValue) { console.log("User.revertChanges - 3"); return aValue; },
 			MochiKit.Base.method(this, 'resetTransientState', false),
-//function (aValue) { console.log("User.revertChanges - 4"); return aValue; },
 		], {trace:false});
 	},
 
@@ -882,6 +1032,13 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		return deferredResult;
 	},
 
+	'prepareRemoteDataWithKeyFunction': function(aKeyFunction) {
+		return new Clipperz.Async.callbacks("User.prepareRemoteDataWithKeyFunction", [
+			aKeyFunction,
+			MochiKit.Base.method(this, 'prepareRemoteDataWithKey')
+		], {'trace': false})
+	},
+
 	//=========================================================================
 
 	'saveChanges': function () {
@@ -895,24 +1052,17 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		deferredResult.addMethod(this, 'getHeaderIndex', 'recordsIndex');
 		deferredResult.addCallback(MochiKit.Base.methodcaller('prepareRemoteDataForChangedRecords'));
 		deferredResult.addCallback(Clipperz.Async.setItem, messageParameters, 'records');
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'advanceProgress');
 
 		deferredResult.addMethod(this, 'getPassphrase');
 		deferredResult.addMethod(this, 'prepareRemoteDataWithKey');
 		deferredResult.addCallback(Clipperz.Async.setItem, messageParameters, 'user');
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'advanceProgress');
 
 		deferredResult.addCallback(MochiKit.Async.succeed, messageParameters);
 		deferredResult.addMethod(this.connection(), 'message', 'saveChanges');
 		deferredResult.addCallback(MochiKit.Base.update, this.transientState())
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'advanceProgress');
 
 		deferredResult.addMethod(this, 'commitTransientState');
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'advanceProgress');
-//		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'userDataSuccessfullySaved');
-
 		deferredResult.addErrbackPass(MochiKit.Base.method(this, 'revertChanges'));
-//		deferredResult.addErrbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'failureWhileSavingUserData');
 
 		deferredResult.callback();
 

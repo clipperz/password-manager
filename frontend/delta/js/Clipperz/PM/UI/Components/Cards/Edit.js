@@ -226,7 +226,9 @@ console.log("DROP");	//, anEvent);
 
 	handleKeyDown: function (aField) {
 		var	self = this;
+
 		return function (anEvent) {
+
 			switch (anEvent.keyCode) {
 				case 9: // tab
 					var	fieldReferences = MochiKit.Base.map(function (aValue) { return aValue['_reference']}, self.fields());
@@ -236,12 +238,14 @@ console.log("DROP");	//, anEvent);
 							MochiKit.Base.method(aField, 'isEmpty'),
 							Clipperz.Async.deferredIf('isEmpty',[
 							], [
-								MochiKit.Base.method(self, 'addNewField')
+								MochiKit.Base.method(anEvent, 'preventDefault'),
+								MochiKit.Base.method(self, 'addNewField'),
 //	TODO: set the focus to the newly created field
 //	hints: http://stackoverflow.com/questions/24248234/react-js-set-input-value-from-sibling-component
 							])
 						], {trace:false});
 					}
+
 					break;
 			}
 		};
@@ -393,6 +397,7 @@ console.log("DROP");	//, anEvent);
 		if (this.state['draggedFieldReference'] != null) {
 			renderedFields = this.updateRenderedFieldsWithDropArea(renderedFields);
 		}
+		
 		return	React.DOM.div({'className':'cardFields' /*, 'dropzone':'move'*/}, renderedFields);
 	},
 

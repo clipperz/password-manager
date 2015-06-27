@@ -327,16 +327,15 @@ console.log("Record.Version.hasPendingChanges");
 		deferredResult = new Clipperz.Async.Deferred('Record.Version.export', {trace:false});
 		deferredResult.addMethod(this,'fields');
 		deferredResult.addCallback(MochiKit.Base.values);
-		deferredResult.addCallback(MochiKit.Base.map, function(fieldIn) {
+		deferredResult.addCallback(MochiKit.Base.map, function (fieldIn) {
 			return fieldIn.content();
 		});
 		deferredResult.addCallback(Clipperz.Async.collectAll);
 		deferredResult.addCallback(function(listIn) {
-//			return listIn.reduce(function(result, field) {
 			return MochiKit.Iter.reduce(function(result, field) {
-				var ref = field.reference;
+				var ref = field['reference'];
 				result[ref] = field;
-				delete result[ref].reference;
+				delete result[ref]['reference'];
 				return result;
 			}, listIn, {});
 		});

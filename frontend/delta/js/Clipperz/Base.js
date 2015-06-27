@@ -82,6 +82,7 @@ MochiKit.Base.update(Clipperz.Base, {
 			return MochiKit.Base.compare(a[aKey].toLowerCase(), b[aKey].toLowerCase());
 		}
 	},
+
 	//-------------------------------------------------------------------------
 /*
 	'dependsOn': function(module, deps) {
@@ -109,6 +110,10 @@ MochiKit.Base.update(Clipperz.Base, {
 
 	'trim': function (aValue) {
 		return aValue.replace(/^\s+|\s+$/g, "");
+	},
+
+	'zipWithRange': function (anArray) {
+		return MochiKit.Base.zip(MochiKit.Iter.range(anArray.length), anArray);
 	},
 
 	//-------------------------------------------------------------------------

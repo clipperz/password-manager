@@ -89,7 +89,7 @@ refer to http://www.clipperz.com.
 						
 						&.offlineCopy {
 							cursor: default;
-						}
+					}
 					}
 
 					&.open {
@@ -170,19 +170,25 @@ refer to http://www.clipperz.com.
 	.extraFeatureContent {
 		border-right: 1px solid #222;
 		color: white;
+//		padding: 20px;
 
 		header {
 			display: none;
 		}
 		
 		.extraFeature {
-			padding: 20px;
+			.header {
+//				padding-bottom: 20px;
+
+				h1 {
+					font-size: 20pt;
+				}
 			
-			h1 {
-				font-size: 20pt;
-				padding-bottom: 20px;
+				p {
+					padding: 10px 0px;
+				}
 			}
-			
+
 			form {
 			
 				label {
@@ -209,15 +215,19 @@ refer to http://www.clipperz.com.
 				p {
 					@include flexbox;
 					@include flex-direction(row);
+					padding-top: 8px;
 
 					input {
 						width: 30px;
 						@include flex(auto);
 					}
-				
-					span {
+
+					label {
 						@include flex(auto);
 						font-size: 12pt;
+						display: block;
+						cursor: pointer;
+						line-height: 1.5em;
 					}
 				}
 
@@ -256,7 +266,7 @@ refer to http://www.clipperz.com.
 				color: white;
 				
 				li {
-					padding-bottom: 40px;
+					padding-bottom: 30px;
 				}
 			}
 			
@@ -265,8 +275,9 @@ refer to http://www.clipperz.com.
 			}
 			
 			.description {
-				max-width: 500px;
+//				max-width: 500px;
 				padding: 10px 0px 20px 0px;
+//				padding-bottom: 20px;
 				
 				p {
 					font-size: 10pt;
@@ -277,11 +288,16 @@ refer to http://www.clipperz.com.
 					em {
 						text-decoration: underline;
 					}
+					
+					&.warning {
+						font-weight: bold;
+						color: white;
+					}
 				}
 			}
 
 			.button {
-				display: inline;
+				display: inline-block;
 
 				color: white;
 				background-color: $main-color;
@@ -289,13 +305,461 @@ refer to http://www.clipperz.com.
 				font-size: 14pt;
 
 				border: 1px solid white;
-				padding: 6px 10px;
+				padding: 10px 14px;
 				
 				&:after {
 				};
+				
+				&.disabled {
+					background-color: #c0c0c0;
+					cursor: default;
+				}
 			}
 		}
 
+
+		.OTP {
+			height: 100%;
+
+			.header {
+				.description {
+					padding-bottom: 0px;
+					
+					p {
+						margin-bottom: 0px;
+						padding-bottom: 0px;
+					}
+				}
+			}
+
+			.actions {
+				padding-left: 9px;
+				padding-top: 6px;
+
+				a {
+					@include icon-font();
+					cursor: pointer;
+					font-size: 18pt;
+					line-height: 1.1em;
+					
+					&:hover {
+						color: green;
+					};
+				}
+			}
+			.selectMenu {
+				margin-top: 1em;
+
+				li {
+					display: inline-block;
+					margin-right: 1em;
+					padding:1em 0;
+
+					//					a {
+//						text-decoration: underline;
+//						cursor: pointer;
+//					}
+				}
+			}
+
+			.otpList {
+
+				.otpDetail {
+					$detailPadding: 5px;
+					$detailMargin: 4px;
+					$labelPadding: 5px;
+					
+					@include flexbox;
+					@include flex-direction(row);
+
+					border: 1px solid #222;
+					@include border-radius(5px);
+
+					padding: $detailPadding 0;
+					margin: $detailMargin 0;
+
+					.otpAction {
+						width: 40px;
+						text-align: center;
+//						@include align-self(center);
+
+						a {
+							@include icon-font();
+							cursor: pointer;
+							font-size: 16pt;
+							line-height: 1.1em;
+							
+							&:hover {
+								color: red;
+							};
+						}
+					}
+
+					.otpInfo {
+						.otpPassword {
+							font-size: 14pt;
+							line-height: 1.3em;
+							@include user-select(text);
+						}
+
+						.otpLabel {
+							
+							span {
+								font-size: 12pt;
+								color: gray;
+								padding: 4px 0px 4px 0px;
+								line-height: 1.3em;
+								cursor:pointer;
+								display: block;
+							}
+
+							input {
+								font-size: 12pt;
+								color: gray;
+								width: 100%;
+								border: 0px;
+								padding: 2px;
+								padding-left: 0px;
+								margin: 0px;
+								margin-bottom: 1px;
+								background-color: #333;
+							}
+//							.undefinedLabel {
+//								color: gray;
+//							}
+						}
+						
+						.otpStatusInfo {
+							font-size: 8pt;
+							color: gray;
+							
+							span {
+								padding-right: 10px;
+							}
+						}
+					}
+
+					&.REQUESTED, &.USED {
+						background-color: #222;
+
+						.otpPassword {
+//							color: gray;
+						}
+					}
+					
+				}
+			}
+			.button {
+				margin:1em 1em 0 0;
+			}
+
+			table {
+				tr {
+					td {
+						a {
+							font-size: small;
+							padding: 0 1em;
+							text-decoration: underline;
+							cursor: pointer;
+						}
+					}
+				}
+			}
+		}
+		
+		.dataImport {
+			
+			.content {
+				display: block;
+				height: 100%;
+				@include flexbox;
+				@include flex-direction(column);
+
+				ul.stepNavbar {
+					@include flex(none);
+					padding-top: 5px;
+					padding-bottom: 5px;
+					text-align: center;
+					font-size: 24pt;
+
+					&.Input {
+						display: none;
+					}
+				
+					li {
+						display: inline-block;
+						padding: 0px;
+						padding-right: 10px;
+//						margin-right:1em;
+					
+						&.disabled {
+							color: gray;
+						}
+					
+						&.active {
+//							text-decoration: underline;
+						}
+					}
+				}
+			
+				.step {
+					@include flex(auto);
+					@include overflow-auto();
+
+					&.Input {
+
+						.description {
+							
+							p {
+								width: 100%;
+							}
+						}
+
+						form {
+							.dropArea {
+								width: calc(100% - 6px);
+								text-align: center;
+								height: inherit;
+								line-height: 2em;
+				
+								border: 3px dashed white;
+								background: black;
+							}
+
+							p {
+								margin: 10px 50%;
+						
+								&.error {
+									color: red;
+									font-size: 10pt;
+									font-style: italic;
+									margin: 0px 0px 10px 0px;
+								}
+							}
+						
+
+							textarea {
+								width:100%;
+								min-height:100px;
+								display: block;
+								margin: 1em 0;
+								border: 0;
+							}
+						}
+					}
+
+					&.Preview {
+						li.card {
+							@include flexbox;
+							@include flex-direction(row);
+							padding-top: 15px;
+							padding-bottom: 0px;
+							border-bottom: 1px solid #333;
+						
+							&.archived {
+								background-color: #333;
+							}
+
+							input {
+								width: 30px;
+								margin-top: 6px;
+								@include flex(none);
+							}
+						
+							div.cardContent {
+								@include flex(auto);
+								@include flexbox;
+								@include flex-direction(column);
+								height: auto;
+							
+								h3 {
+									font-size: 24pt;
+									padding-bottom: 6px;
+								}
+								
+								ul.tagList {
+									li {
+										display: inline-block;
+										padding-right: 10px;
+										padding-bottom: 5px;
+
+										&:before {
+											content: 'tag';
+											@include icon-font();
+											font-size: 10pt;
+											padding-right: 5px;
+											line-height: 28px;
+											color: #ccc;
+										}
+									}
+								}
+								
+								dl {
+									dt {
+										font-size: 12pt;
+										color: gray;
+										line-height: 16pt;
+									}
+									
+									dd {
+										font-size: 16pt;
+										color: white;
+										line-height: 24pt;
+										padding-bottom: 6pt;
+										
+										&.PASSWORD {
+											font-family: clipperz-password;
+//											color: red;
+										}
+									}
+								}
+
+								p {
+									font-size: 10pt;
+									padding-top: 10px;
+									padding-bottom: 10px;
+								}
+							}
+						}
+					}
+					
+					&.Import {
+						h5 {
+							padding-bottom: 15px;
+						}
+					}
+					table.csvTable {
+						width: 100%;
+						color: white;
+						border-collapse: collapse;
+						
+						thead {
+							background-color: gray;
+							
+							th {
+								align: left;
+							}
+						}
+						
+						tbody {
+							td {
+								align: right;
+							}
+						}
+						
+						td, th {
+							border: 1px solid #999;
+							padding: 0.5rem;
+							
+							&.PASSWORD {
+								font-family: clipperz-password;
+								font-size: 14.9pt;
+								line-height: 10pt;
+							}
+						}
+						
+						th {
+							background-color: #666;
+
+							&.title {
+								background-color: #888;
+							}
+
+							&.notes {
+								background-color: #aaa;
+							}
+
+							input {
+								color: white;
+								border: 0px;
+								padding: 0px;
+								font-size: 12pt;
+								font-weight: bold;
+								background-color: inherit;
+							}
+						}
+					}
+				
+				}
+			
+				.buttons {
+					@include flex(none);
+					text-align: center;
+					padding-top: 10px;
+				
+					&.Input {
+						.button.back {
+							visibility: hidden;
+						}
+					}
+
+					&.Import {
+						.button.next {
+							visibility: hidden;
+						}
+					}
+
+					.button {
+//						border: 0px;
+						margin: 0px 5px;
+						span {
+							display: none;
+						}
+					
+						&.back {
+							background-color: #c0c0c0;
+							&:before {
+								content: '<<';
+							}
+						}
+					
+						&.next {
+
+							&.DISABLED {
+								background-color: #d3d3d3;
+							}
+
+							&:after {
+								content: '>>';
+							}
+						}
+					}
+				}
+/*
+				.csvTable {
+					background: white;
+					margin: 1em 0;
+				}
+			
+			
+				.button {
+					margin-right:1em;
+				}
+			
+				.jsonPreview {
+					width: 100%;
+					height:80%;
+					overflow: auto;
+					margin-top:1em;
+				
+					h3 {
+						font-weight:bold;
+					}
+				
+					ul {
+						margin-bottom:1em;
+						padding-left:1em;
+					
+						li {
+							.label {
+								font-weight:bold;
+							}
+						}
+					}
+				}
+*/
+			}
+		}
 
 /*
 		.changePassphraseForm {
@@ -327,11 +791,15 @@ refer to http://www.clipperz.com.
 		}
 */
 		
-		
+		form {
+			input.valid + .invalidMsg, input.empty + .invalidMsg, input:focus + .invalidMsg, input.invalid:focus + .invalidMsg {
+				visibility: hidden;
+			}
+			
+		}
 	}
-}
-
-
+}			
+			
 .mainPage.narrow {
 	#extraFeaturesPanel {
 		.extraFeatureContent {

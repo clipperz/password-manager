@@ -72,7 +72,7 @@ Clipperz.PM.DataModel.EncryptedRemoteObject = function(args) {
 //
 //	getRemoteData
 //		unpackRemoteData
-//			getDecryptData [encryptedDataKeypath, encryptedVersionKeypath]
+//			getDecryptedData [encryptedDataKeypath, encryptedVersionKeypath]
 //				unpackData
 //				
 //				

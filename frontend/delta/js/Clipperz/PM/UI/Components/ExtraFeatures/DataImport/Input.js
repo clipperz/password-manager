@@ -25,15 +25,16 @@ refer to http://www.clipperz.com.
 Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataImport.InputClass = React.createClass({
-	
+
 	getInitialState: function() {
 		return {
-			'inputString': (this.props.importContext.inputString) ? this.props.importContext.inputString : null,
-			'format': (this.props.importContext.format) ? this.props.importContext.format : null,
+			'inputString': this.props.importContext.inputString(),
+//			'inputString': (this.props.importContext.inputString) ? this.props.importContext.inputString : null,
+//			'format': (this.props.importContext.format) ? this.props.importContext.format : null,
 			//'parsedInput': (this.props.importContext.parsedInput) ? this.props.importContext.parsedInput : null,
 		};
 	},
-	
+/*	
 	componentDidMount: function() {
 		this.updateNextStatus(this.state.inputString);
 	},
@@ -46,12 +47,13 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.InputClass = React.createClas
 		var parsedInput;
 		
 		var inputString = this.refs['input-textarea'].getDOMNode().value.trim();
-		
+//		this.props.importContext.setData(inputString);
+
 		result = {'inputString': inputString};
-		
+/*		
 		parsedInput = this.parseJson(inputString);
 		if (parsedInput) {
-			MochiKit.Base.update(result,this.props.importContext.getInitialJsonContext(parsedInput));
+			MochiKit.Base.update(result, this.props.importContext.getInitialJsonContext(parsedInput));
 		} else {
 			parsedInput = this.parseCsv(inputString);
 			if (parsedInput) {
@@ -60,12 +62,12 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.InputClass = React.createClas
 				result = false;
 			}
 		}
-		
+* /		
 		return result;
 	},
 	
 	updateNextStatus: function(newInputString) {
-		this.props.setNextStepCallback((newInputString) ? this.handleNextStep : null);
+//		this.props.setNextStepCallback((newInputString) ? this.handleNextStep : null);
 	},
 	
 	//=========================================================================
@@ -145,69 +147,87 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.InputClass = React.createClas
 		
 		return result;
 	},
-	
+*/
 	//=========================================================================
-	
-	handleUploadFiles: function(someFiles) {
+
+	updateTextAreaContent: function (aValue, shouldMoveForwardToo) {
+		var	value;
+		value = this.props.importContext.setInputString(aValue, shouldMoveForwardToo);
+		this.setState({'inputString': value});
+	},
+
+	handleUploadFiles: function (someFiles) {
 		var file;
 		var reader;
 		
 		if (someFiles.length == 1) {
 			file = someFiles[0];
-				reader = new FileReader();
+			reader = new FileReader();
+			
+			// Binary files are just thrown in the textarea as weird UTF-8 characters: should we do something about it?
+			reader.onloadend = MochiKit.Base.bind(function() {
+/*
+				var	extractedJson = this.extractJsonFromClipperzExport(reader.result);
+				var newInputString;
 				
-				// Binary files are just thrown in the textarea as weird UTF-8 characters: should we do something about it?
-				reader.onloadend = MochiKit.Base.bind(function() {
-					var extractedJson = this.extractJsonFromClipperzExport(reader.result);
-					var newInputString;
-					
-					if (extractedJson) {
-						newInputString = extractedJson;
-					} else {
-						newInputString = reader.result;
-					}
+				if (extractedJson) {
+					newInputString = extractedJson;
+				} else {
+					newInputString = reader.result;
+				}
 
-					this.setState({'inputString': newInputString});
-					this.updateNextStatus(newInputString);
-				},this,reader);
-				
-				reader.readAsText(file);
+				this.setState({'inputString': newInputString});
+				this.updateNextStatus(newInputString);
+*/
+//console.log("handleUploadFiles", this.props.importContext, this.state, this);
+//				this.props.importContext.setInputString(reader.result);
+				this.updateTextAreaContent(reader.result, true);
+			}, this);
+			
+			reader.readAsText(file);
 		} else {
 			// Should this be removed?
 			alert("Error: expecting a file as input.");
 		}
 	},
 	
-	handleOnDrop: function(e) {
-		e.preventDefault();
+	handleOnDrop: function (anEvent) {
+		anEvent.preventDefault();
 		
-		this.handleUploadFiles(e.dataTransfer.files)
+		this.handleUploadFiles(anEvent.dataTransfer.files)
 	},
 	
-	handleInputFiles: function(e) {
-		e.preventDefault();
+	handleInputFiles: function (anEvent) {
+		anEvent.preventDefault();
 		
-		this.handleUploadFiles(e.target.files)
+		this.handleUploadFiles(anEvent.target.files)
 	},
 	
-	handleOnDragOver: function(e) {
+	handleOnDragOver: function (anEvent) {
 		// Somehow necessary:
 		// http://enome.github.io/javascript/2014/03/24/drag-and-drop-with-react-js.html
 		// https://code.google.com/p/chromium/issues/detail?id=168387
 		// http://www.quirksmode.org/blog/archives/2009/09/the_html5_drag.html
-		e.preventDefault();
+		anEvent.preventDefault();
 	},
 	
-	handleTextareaChange: function() {
-		var newInputString = this.refs['input-textarea'].getDOMNode().value;
-		this.setState({'inputString': newInputString});
-		this.updateNextStatus(newInputString);
+	handleTextareaChange: function () {
+//		var newInputString;
+//		
+//		newInputString = this.refs['input-textarea'].getDOMNode().value;
+//		this.setState({'inputString': newInputString});
+//		this.props.importContext.setInputString(newInputString);
+
+		this.updateTextAreaContent(this.refs['input-textarea'].getDOMNode().value, false);
 	},
 
 	//=========================================================================
 	
 	render: function() {
 		return React.DOM.div({},[
+			React.DOM.div({'className':'description'}, [
+				React.DOM.p({}, "You can import either CSV data, or Clipperz data exported in JSON"),
+			]),
 			React.DOM.form({'key':'form', 'className':'importForm' }, [
 				React.DOM.input({
 					'type': 'file',
@@ -228,7 +248,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.InputClass = React.createClas
 						'key':'input-textarea',
 						'name':'input-textarea',
 						'ref':'input-textarea',
-						'placeholder':"Open the JSON file exported from Clipperz in a text editor. Then copy and paste its content here.",
+						'placeholder':"Copy or type your data here",
 						'value': this.state.inputString,
 						'onChange': this.handleTextareaChange,
 						'onDragOver': this.handleOnDragOver,

@@ -58,7 +58,7 @@ table {
   font-family: "clipperz-icons";
   font-style: normal;
   font-weight: normal;
-  src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAABRIAAwAAAAAE/gAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABHU1VCAAABHAAAAs4AAALO7TLxLU9TLzIAAAPsAAAAYAAAAGAIYwCFY21hcAAABEwAAACEAAAAhNFx0aZnYXNwAAAE0AAAAAgAAAAIAAAAEGdseWYAAATYAAAMLAAADCwzNy3OaGVhZAAAEQQAAAA2AAAANgO5wZ9oaGVhAAARPAAAACQAAAAkA/kCMWhtdHgAABFgAAAAwAAAAMApygKpbG9jYQAAEiAAAABiAAAAYi/cLURtYXhwAAAShAAAACAAAAAgADkAfG5hbWUAABKkAAABhAAAAYSH7XEQcG9zdAAAFCgAAAAgAAAAIAADAAAAAQAAAAoAHgAsAAFsYXRuAAgABAAAAAAAAAABAAAAAWxpZ2EACAAAAAEAAAABAAQABAAAAAEACgAAAAEAJgAQAEoAfgCMAOIBHAEsAVABeAGcAaoBtAH6AjICSgJqAooAAQAQAAQABQAGAAcACAAJAAoADgAPABEAEwAUABUAFgAXAC8AAgAGACIAKAANAAcABwADABAACAAYAAMACQAMAAgADgAHACIACAAHAAcAAwAGAAQAEwAHAAEABAAlAAQABAAGAA0ABQAMAB4AKgA8AEgALAAIABEADwAPAAQAEAAHABQAHAAFAA4AEQAUAAgAHgAIAA4ADAASABIACAATABkAHAAFAA4ACAAEABMAHAAGAAQAEAAGAAgADgADAAgAEgAsAB0ABAARABAACAAjAAwADAATAAgABgAVAAMADgARAAoADAAQABwABgAIAA4ACAAVAAgAAQAEACcABQAPAAQADAAOAAIABgAWABwABwAEAAwADgAWABMACAAcAAYABAAMAA4ACAAHAAEABAAtABEACAAQAAgAEwAEABUACAADABIABAAUABQAGAARABMABwACAAYAFAApAAYAEQAGAA0ACAAHACQABwARAAQABwAMABAACgABAAQAGwAEAAgAEAAWAAEABAAdAAIADQADAAgAHgA4ACsACgAIAA8AEQAXAAgAAwAVAAQACgArAAwACAAPABEAFwAIAAMACQAMAAgADgAHACEABgAIAAYACAAQABUAAwAIACAALgAmAAsACwARABgAAwAHAAgAFQAEAAwADgAgAAYACAAEABMABgALAB0ABAAE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) format("woff"); }
+  src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAABU8AAwAAAAAFOwAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABHU1VCAAABHAAAAwYAAAMG8Kr0309TLzIAAAQkAAAAYAAAAGAIYwBrY21hcAAABIQAAACcAAAAnNHb0kxnYXNwAAAFIAAAAAgAAAAIAAAAEGdseWYAAAUoAAAMaAAADGg2OtN/aGVhZAAAEZAAAAA2AAAANgSXPhtoaGVhAAARyAAAACQAAAAkA/kCNGhtdHgAABHsAAAAzAAAAMwrygKpbG9jYQAAErgAAABoAAAAaDAeMsBtYXhwAAATIAAAACAAAAAgADwAfG5hbWUAABNAAAAB2gAAAdo7wz5qcG9zdAAAFRwAAAAgAAAAIAADAAAAAQAAAAoAHgAsAAFsYXRuAAgABAAAAAAAAAABAAAAAWxpZ2EACAAAAAEAAAABAAQABAAAAAEACgAAAAEAJgAQAEoAfgCMAQIBPAFMAXABmAG8AcoB1AIyAmoCggKiAsIAAQAQAAcACAAJAAoACwAMAA0AEQASABQAFgAXABgAGQAaADIAAgAGACIAKwANAAoACgADABMACwAbAAMADAAPAAsAEQAKACUACAAKAAoAAwAJAAcAFgAKAAEABAAoAAQABwAJABAABgAOACwAPgBKAFwAaAArAA4AFgALAAcAGAALAAMAEwALABsAAwAEAAYABQAvAAgAFAASABIABwATAAoAFwAfAAUAEQAUABcACwAhAAgAEQAPABUAFQALABYAHAAfAAUAEQALAAcAFgAfAAYABwATAAkACwARAAMACAASACwAIAAEABQAEwALACYADAAPABYACwAJABgAAwARABQADQAPABMAHwAGAAsAEQALABgACwABAAQAKgAFABIABwAPABEAAgAGABYAHwAHAAcADwARABkAFgALAB8ABgAHAA8AEQALAAoAAQAEADAAEQALABMACwAWAAcAGAALAAMAFQAHABcAFwAbABQAFgAKAAIABgAUACwABgAUAAkAEAALAAoAJwAHABQABwAKAA8AEwANAAEABAAeAAQACwATABkAAQAEACAAAgAQAAQACgAgADoAUAAuAAoACwASABQAGgALAAMAGAAHAA0ALgAMAAsAEgAUABoACwADAAwADwALABEACgAuAAoACwASABQAGgALAAMABAAGAAUAJAAGAAsACQAL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) format("woff"); }
 /*
 @font-face {
 	font-family: "clipperz-password";
@@ -469,6 +469,21 @@ div.overlay {
       -ms-animation-delay: -0.0833s;
       -o-animation-delay: -0.0833s;
       animation-delay: -0.0833s; }
+  div.overlay .progressBar {
+    width: 100%;
+    background-color: #222;
+    height: 4px;
+    margin-top: 86px;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px; }
+    div.overlay .progressBar .progress {
+      background-color: #999;
+      height: 4px;
+      display: block;
+      -webkit-border-radius: 2px;
+      -moz-border-radius: 2px;
+      border-radius: 2px; }
 
 @-webkit-keyframes overlay-spin {
   from {
@@ -619,7 +634,7 @@ html {
       visibility: visible;
       display: block; }
 
-input {
+input[type=text] {
   -webkit-appearance: none; }
 
 .mainPage > #selectionPanel {
@@ -866,6 +881,37 @@ input {
     width: 100%;
     height: 100%;
     background-color: black; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-direction: normal;
+      -webkit-box-orient: vertical;
+      -webkit-flex-direction: column;
+      -moz-flex-direction: column;
+      -ms-flex-direction: column;
+      flex-direction: column;
+      height: 100%; }
+      #extraFeaturesPanel .extraFeatureContent .extraFeature .header {
+        -webkit-box-flex: none;
+        -webkit-flex: none;
+        -moz-box-flex: none;
+        -moz-flex: none;
+        -ms-flex: none;
+        flex: none;
+        padding: 20px; }
+      #extraFeaturesPanel .extraFeatureContent .extraFeature .content {
+        -webkit-box-flex: auto;
+        -webkit-flex: auto;
+        -moz-box-flex: auto;
+        -moz-flex: auto;
+        -ms-flex: auto;
+        flex: auto;
+        padding: 0px 20px 20px 20px;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch; }
 
 .container {
   height: 100%;
@@ -2031,6 +2077,8 @@ span.count {
         background-color: #333; }
       #extraFeaturesPanel .extraFeatureIndex > div ul li > ul > li > div {
         padding: 4px; }
+      #extraFeaturesPanel .extraFeatureIndex > div ul li > ul > li.offlineCopy {
+        cursor: default; }
     #extraFeaturesPanel .extraFeatureIndex > div ul li h2 {
       font-weight: 300;
       font-size: 14pt; }
@@ -2102,14 +2150,13 @@ span.count {
   */ }
   #extraFeaturesPanel .extraFeatureContent header {
     display: none; }
-  #extraFeaturesPanel .extraFeatureContent .extraFeature {
-    padding: 20px; }
-    #extraFeaturesPanel .extraFeatureContent .extraFeature h1 {
-      font-size: 20pt;
-      padding-bottom: 20px; }
-  #extraFeaturesPanel .extraFeatureContent form label {
+  #extraFeaturesPanel .extraFeatureContent .extraFeature .header h1 {
+    font-size: 20pt; }
+  #extraFeaturesPanel .extraFeatureContent .extraFeature .header p {
+    padding: 10px 0px; }
+  #extraFeaturesPanel .extraFeatureContent .extraFeature form label {
     display: none; }
-  #extraFeaturesPanel .extraFeatureContent form input {
+  #extraFeaturesPanel .extraFeatureContent .extraFeature form input {
     display: block;
     font-size: 18pt;
     margin-bottom: 8px;
@@ -2117,10 +2164,10 @@ span.count {
     border: 0px solid white;
     width: 350px;
     color: black; }
-    #extraFeaturesPanel .extraFeatureContent form input.invalid {
+    #extraFeaturesPanel .extraFeatureContent .extraFeature form input.invalid {
       border: 0px solid #ff9900;
       color: gray; }
-  #extraFeaturesPanel .extraFeatureContent form p {
+  #extraFeaturesPanel .extraFeatureContent .extraFeature form p {
     display: -webkit-box;
     display: -webkit-flex;
     display: -moz-flex;
@@ -2131,8 +2178,9 @@ span.count {
     -webkit-flex-direction: row;
     -moz-flex-direction: row;
     -ms-flex-direction: row;
-    flex-direction: row; }
-    #extraFeaturesPanel .extraFeatureContent form p input {
+    flex-direction: row;
+    padding-top: 8px; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature form p input {
       width: 30px;
       -webkit-box-flex: auto;
       -webkit-flex: auto;
@@ -2140,15 +2188,18 @@ span.count {
       -moz-flex: auto;
       -ms-flex: auto;
       flex: auto; }
-    #extraFeaturesPanel .extraFeatureContent form p span {
+    #extraFeaturesPanel .extraFeatureContent .extraFeature form p label {
       -webkit-box-flex: auto;
       -webkit-flex: auto;
       -moz-box-flex: auto;
       -moz-flex: auto;
       -ms-flex: auto;
       flex: auto;
-      font-size: 12pt; }
-  #extraFeaturesPanel .extraFeatureContent form button {
+      font-size: 12pt;
+      display: block;
+      cursor: pointer;
+      line-height: 1.5em; }
+  #extraFeaturesPanel .extraFeatureContent .extraFeature form button {
     font-family: "clipperz-font";
     color: white;
     font-size: 14pt;
@@ -2162,10 +2213,383 @@ span.count {
     -o-transition: background-color font-weight 0.2s linear;
     -ms-transition: background-color font-weight 0.2s linear;
     transition: background-color font-weight 0.2s linear; }
-    #extraFeaturesPanel .extraFeatureContent form button:disabled {
+    #extraFeaturesPanel .extraFeatureContent .extraFeature form button:disabled {
       font-weight: 100;
       background-color: #c0c0c0;
       cursor: default; }
+  #extraFeaturesPanel .extraFeatureContent .extraFeature ul {
+    color: white; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature ul li {
+      padding-bottom: 30px; }
+  #extraFeaturesPanel .extraFeatureContent .extraFeature h3 {
+    font-size: 18pt; }
+  #extraFeaturesPanel .extraFeatureContent .extraFeature .description {
+    padding: 10px 0px 20px 0px; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature .description p {
+      font-size: 10pt;
+      margin-bottom: 7px;
+      line-height: 1.4em;
+      color: #bbb; }
+      #extraFeaturesPanel .extraFeatureContent .extraFeature .description p em {
+        text-decoration: underline; }
+      #extraFeaturesPanel .extraFeatureContent .extraFeature .description p.warning {
+        font-weight: bold;
+        color: white; }
+  #extraFeaturesPanel .extraFeatureContent .extraFeature .button {
+    display: inline-block;
+    color: white;
+    background-color: #ff9900;
+    font-size: 14pt;
+    border: 1px solid white;
+    padding: 10px 14px; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature .button.disabled {
+      background-color: #c0c0c0;
+      cursor: default; }
+  #extraFeaturesPanel .extraFeatureContent .OTP {
+    height: 100%; }
+    #extraFeaturesPanel .extraFeatureContent .OTP .header .description {
+      padding-bottom: 0px; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .header .description p {
+        margin-bottom: 0px;
+        padding-bottom: 0px; }
+    #extraFeaturesPanel .extraFeatureContent .OTP .actions {
+      padding-left: 9px;
+      padding-top: 6px; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .actions a {
+        font-family: 'clipperz-icons';
+        -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+        -moz-font-feature-settings: "liga" 1, "dlig" 1;
+        -ms-font-feature-settings: "liga" 1, "dlig" 1;
+        -o-font-feature-settings: "liga" 1, "dlig" 1;
+        font-feature-settings: "liga" 1, "dlig" 1;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        cursor: pointer;
+        font-size: 18pt;
+        line-height: 1.1em; }
+        #extraFeaturesPanel .extraFeatureContent .OTP .actions a:hover {
+          color: green; }
+    #extraFeaturesPanel .extraFeatureContent .OTP .selectMenu {
+      margin-top: 1em; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .selectMenu li {
+        display: inline-block;
+        margin-right: 1em;
+        padding: 1em 0; }
+    #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-direction: normal;
+      -webkit-box-orient: horizontal;
+      -webkit-flex-direction: row;
+      -moz-flex-direction: row;
+      -ms-flex-direction: row;
+      flex-direction: row;
+      border: 1px solid #222;
+      -webkit-border-radius: 5px;
+      -moz-border-radius: 5px;
+      border-radius: 5px;
+      padding: 5px 0;
+      margin: 4px 0; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpAction {
+        width: 40px;
+        text-align: center; }
+        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpAction a {
+          font-family: 'clipperz-icons';
+          -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+          -moz-font-feature-settings: "liga" 1, "dlig" 1;
+          -ms-font-feature-settings: "liga" 1, "dlig" 1;
+          -o-font-feature-settings: "liga" 1, "dlig" 1;
+          font-feature-settings: "liga" 1, "dlig" 1;
+          -webkit-font-smoothing: antialiased;
+          text-rendering: optimizeLegibility;
+          cursor: pointer;
+          font-size: 16pt;
+          line-height: 1.1em; }
+          #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpAction a:hover {
+            color: red; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpPassword {
+        font-size: 14pt;
+        line-height: 1.3em;
+        -webkit-user-select: text;
+        /* Chrome all / Safari all */
+        -moz-user-select: text;
+        /* Firefox all */
+        -ms-user-select: text;
+        /* IE 10+ */
+        /* No support for these yet, use at own risk */
+        -o-user-select: text;
+        user-select: text; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel span {
+        font-size: 12pt;
+        color: gray;
+        padding: 4px 0px 4px 0px;
+        line-height: 1.3em;
+        cursor: pointer;
+        display: block; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input {
+        font-size: 12pt;
+        color: gray;
+        width: 100%;
+        border: 0px;
+        padding: 2px;
+        padding-left: 0px;
+        margin: 0px;
+        margin-bottom: 1px;
+        background-color: #333; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpStatusInfo {
+        font-size: 8pt;
+        color: gray; }
+        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpStatusInfo span {
+          padding-right: 10px; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail.REQUESTED, #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail.USED {
+        background-color: #222; }
+    #extraFeaturesPanel .extraFeatureContent .OTP .button {
+      margin: 1em 1em 0 0; }
+    #extraFeaturesPanel .extraFeatureContent .OTP table tr td a {
+      font-size: small;
+      padding: 0 1em;
+      text-decoration: underline;
+      cursor: pointer; }
+  #extraFeaturesPanel .extraFeatureContent .dataImport .content {
+    display: block;
+    height: 100%;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-direction: normal;
+    -webkit-box-orient: vertical;
+    -webkit-flex-direction: column;
+    -moz-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    /*
+    				.csvTable {
+    					background: white;
+    					margin: 1em 0;
+    				}
+    			
+    			
+    				.button {
+    					margin-right:1em;
+    				}
+    			
+    				.jsonPreview {
+    					width: 100%;
+    					height:80%;
+    					overflow: auto;
+    					margin-top:1em;
+    				
+    					h3 {
+    						font-weight:bold;
+    					}
+    				
+    					ul {
+    						margin-bottom:1em;
+    						padding-left:1em;
+    					
+    						li {
+    							.label {
+    								font-weight:bold;
+    							}
+    						}
+    					}
+    				}
+    */ }
+    #extraFeaturesPanel .extraFeatureContent .dataImport .content ul.stepNavbar {
+      -webkit-box-flex: none;
+      -webkit-flex: none;
+      -moz-box-flex: none;
+      -moz-flex: none;
+      -ms-flex: none;
+      flex: none;
+      padding-top: 5px;
+      padding-bottom: 5px;
+      text-align: center;
+      font-size: 24pt; }
+      #extraFeaturesPanel .extraFeatureContent .dataImport .content ul.stepNavbar.Input {
+        display: none; }
+      #extraFeaturesPanel .extraFeatureContent .dataImport .content ul.stepNavbar li {
+        display: inline-block;
+        padding: 0px;
+        padding-right: 10px; }
+        #extraFeaturesPanel .extraFeatureContent .dataImport .content ul.stepNavbar li.disabled {
+          color: gray; }
+    #extraFeaturesPanel .extraFeatureContent .dataImport .content .step {
+      -webkit-box-flex: auto;
+      -webkit-flex: auto;
+      -moz-box-flex: auto;
+      -moz-flex: auto;
+      -ms-flex: auto;
+      flex: auto;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch; }
+      #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Input .description p {
+        width: 100%; }
+      #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Input form .dropArea {
+        width: calc(100% - 6px);
+        text-align: center;
+        height: inherit;
+        line-height: 2em;
+        border: 3px dashed white;
+        background: black; }
+      #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Input form p {
+        margin: 10px 50%; }
+        #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Input form p.error {
+          color: red;
+          font-size: 10pt;
+          font-style: italic;
+          margin: 0px 0px 10px 0px; }
+      #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Input form textarea {
+        width: 100%;
+        min-height: 100px;
+        display: block;
+        margin: 1em 0;
+        border: 0; }
+      #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card {
+        display: -webkit-box;
+        display: -webkit-flex;
+        display: -moz-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-direction: normal;
+        -webkit-box-orient: horizontal;
+        -webkit-flex-direction: row;
+        -moz-flex-direction: row;
+        -ms-flex-direction: row;
+        flex-direction: row;
+        padding-top: 15px;
+        padding-bottom: 0px;
+        border-bottom: 1px solid #333; }
+        #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card.archived {
+          background-color: #333; }
+        #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card input {
+          width: 30px;
+          margin-top: 6px;
+          -webkit-box-flex: none;
+          -webkit-flex: none;
+          -moz-box-flex: none;
+          -moz-flex: none;
+          -ms-flex: none;
+          flex: none; }
+        #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent {
+          -webkit-box-flex: auto;
+          -webkit-flex: auto;
+          -moz-box-flex: auto;
+          -moz-flex: auto;
+          -ms-flex: auto;
+          flex: auto;
+          display: -webkit-box;
+          display: -webkit-flex;
+          display: -moz-flex;
+          display: -ms-flexbox;
+          display: flex;
+          -webkit-box-direction: normal;
+          -webkit-box-orient: vertical;
+          -webkit-flex-direction: column;
+          -moz-flex-direction: column;
+          -ms-flex-direction: column;
+          flex-direction: column;
+          height: auto; }
+          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent h3 {
+            font-size: 24pt;
+            padding-bottom: 6px; }
+          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent ul.tagList li {
+            display: inline-block;
+            padding-right: 10px;
+            padding-bottom: 5px; }
+            #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent ul.tagList li:before {
+              content: 'tag';
+              font-family: 'clipperz-icons';
+              -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+              -moz-font-feature-settings: "liga" 1, "dlig" 1;
+              -ms-font-feature-settings: "liga" 1, "dlig" 1;
+              -o-font-feature-settings: "liga" 1, "dlig" 1;
+              font-feature-settings: "liga" 1, "dlig" 1;
+              -webkit-font-smoothing: antialiased;
+              text-rendering: optimizeLegibility;
+              font-size: 10pt;
+              padding-right: 5px;
+              line-height: 28px;
+              color: #ccc; }
+          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent dl dt {
+            font-size: 12pt;
+            color: gray;
+            line-height: 16pt; }
+          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent dl dd {
+            font-size: 16pt;
+            color: white;
+            line-height: 24pt;
+            padding-bottom: 6pt; }
+            #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent dl dd.PASSWORD {
+              font-family: clipperz-password; }
+          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent p {
+            font-size: 10pt;
+            padding-top: 10px;
+            padding-bottom: 10px; }
+      #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Import h5 {
+        padding-bottom: 15px; }
+      #extraFeaturesPanel .extraFeatureContent .dataImport .content .step table.csvTable {
+        width: 100%;
+        color: white;
+        border-collapse: collapse; }
+        #extraFeaturesPanel .extraFeatureContent .dataImport .content .step table.csvTable thead {
+          background-color: gray; }
+          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step table.csvTable thead th {
+            align: left; }
+        #extraFeaturesPanel .extraFeatureContent .dataImport .content .step table.csvTable tbody td {
+          align: right; }
+        #extraFeaturesPanel .extraFeatureContent .dataImport .content .step table.csvTable td, #extraFeaturesPanel .extraFeatureContent .dataImport .content .step table.csvTable th {
+          border: 1px solid #999;
+          padding: 0.5rem; }
+          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step table.csvTable td.PASSWORD, #extraFeaturesPanel .extraFeatureContent .dataImport .content .step table.csvTable th.PASSWORD {
+            font-family: clipperz-password;
+            font-size: 14.9pt;
+            line-height: 10pt; }
+        #extraFeaturesPanel .extraFeatureContent .dataImport .content .step table.csvTable th {
+          background-color: #666; }
+          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step table.csvTable th.title {
+            background-color: #888; }
+          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step table.csvTable th.notes {
+            background-color: #aaa; }
+          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step table.csvTable th input {
+            color: white;
+            border: 0px;
+            padding: 0px;
+            font-size: 12pt;
+            font-weight: bold;
+            background-color: inherit; }
+    #extraFeaturesPanel .extraFeatureContent .dataImport .content .buttons {
+      -webkit-box-flex: none;
+      -webkit-flex: none;
+      -moz-box-flex: none;
+      -moz-flex: none;
+      -ms-flex: none;
+      flex: none;
+      text-align: center;
+      padding-top: 10px; }
+      #extraFeaturesPanel .extraFeatureContent .dataImport .content .buttons.Input .button.back {
+        visibility: hidden; }
+      #extraFeaturesPanel .extraFeatureContent .dataImport .content .buttons.Import .button.next {
+        visibility: hidden; }
+      #extraFeaturesPanel .extraFeatureContent .dataImport .content .buttons .button {
+        margin: 0px 5px; }
+        #extraFeaturesPanel .extraFeatureContent .dataImport .content .buttons .button span {
+          display: none; }
+        #extraFeaturesPanel .extraFeatureContent .dataImport .content .buttons .button.back {
+          background-color: #c0c0c0; }
+          #extraFeaturesPanel .extraFeatureContent .dataImport .content .buttons .button.back:before {
+            content: '<<'; }
+        #extraFeaturesPanel .extraFeatureContent .dataImport .content .buttons .button.next.DISABLED {
+          background-color: #d3d3d3; }
+        #extraFeaturesPanel .extraFeatureContent .dataImport .content .buttons .button.next:after {
+          content: '>>'; }
+  #extraFeaturesPanel .extraFeatureContent form input.valid + .invalidMsg, #extraFeaturesPanel .extraFeatureContent form input.empty + .invalidMsg, #extraFeaturesPanel .extraFeatureContent form input:focus + .invalidMsg, #extraFeaturesPanel .extraFeatureContent form input.invalid:focus + .invalidMsg {
+    visibility: hidden; }
 
 .mainPage.narrow #extraFeaturesPanel .extraFeatureContent header {
   display: block;

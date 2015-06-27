@@ -26,7 +26,7 @@
 				"ligatures": "generate password",
 				"name": "key"
 			},
-			"setIdx": 1,
+			"setIdx": 2,
 			"setId": 7,
 			"iconIdx": 141
 		},
@@ -55,7 +55,7 @@
 				"ligatures": "view password",
 				"name": "eye"
 			},
-			"setIdx": 1,
+			"setIdx": 2,
 			"setId": 7,
 			"iconIdx": 206
 		},
@@ -81,7 +81,7 @@
 				"name": "tag",
 				"ligatures": "tag"
 			},
-			"setIdx": 2,
+			"setIdx": 3,
 			"setId": 6,
 			"iconIdx": 0
 		},
@@ -108,7 +108,7 @@
 				"name": "tags",
 				"ligatures": "tags"
 			},
-			"setIdx": 2,
+			"setIdx": 3,
 			"setId": 6,
 			"iconIdx": 1
 		},
@@ -135,7 +135,7 @@
 				"name": "clock",
 				"ligatures": "recent"
 			},
-			"setIdx": 2,
+			"setIdx": 3,
 			"setId": 6,
 			"iconIdx": 2
 		},
@@ -164,7 +164,7 @@
 				"name": "spinner",
 				"ligatures": "loading"
 			},
-			"setIdx": 2,
+			"setIdx": 3,
 			"setId": 6,
 			"iconIdx": 3
 		},
@@ -192,7 +192,7 @@
 				"name": "search",
 				"ligatures": "search"
 			},
-			"setIdx": 2,
+			"setIdx": 3,
 			"setId": 6,
 			"iconIdx": 4
 		},
@@ -220,7 +220,7 @@
 				"name": "locked",
 				"ligatures": "locked"
 			},
-			"setIdx": 2,
+			"setIdx": 3,
 			"setId": 6,
 			"iconIdx": 6
 		},
@@ -246,7 +246,7 @@
 				"name": "unlocked",
 				"ligatures": "unlocked"
 			},
-			"setIdx": 2,
+			"setIdx": 3,
 			"setId": 6,
 			"iconIdx": 7
 		},
@@ -275,7 +275,7 @@
 				"name": "menu",
 				"ligatures": "menu"
 			},
-			"setIdx": 2,
+			"setIdx": 3,
 			"setId": 6,
 			"iconIdx": 8
 		},
@@ -304,7 +304,7 @@
 				"name": "close",
 				"ligatures": "failure, failed, delete, clear, cancel, close"
 			},
-			"setIdx": 2,
+			"setIdx": 3,
 			"setId": 6,
 			"iconIdx": 9
 		},
@@ -333,7 +333,7 @@
 				"name": "checkmark",
 				"ligatures": "done, ok, save"
 			},
-			"setIdx": 2,
+			"setIdx": 3,
 			"setId": 6,
 			"iconIdx": 10
 		},
@@ -348,8 +348,10 @@
 				"grid": 0,
 				"tags": [
 					"commands"
-				]
+				],
+				"attrs": []
 			},
+			"attrs": [],
 			"properties": {
 				"order": 18,
 				"id": 1,
@@ -358,7 +360,7 @@
 				"name": "commands",
 				"ligatures": "commands"
 			},
-			"setIdx": 3,
+			"setIdx": 4,
 			"setId": 4,
 			"iconIdx": 0
 		},
@@ -371,8 +373,10 @@
 				"grid": 0,
 				"tags": [
 					"logo"
-				]
+				],
+				"attrs": []
 			},
+			"attrs": [],
 			"properties": {
 				"order": 4,
 				"id": 0,
@@ -381,7 +385,7 @@
 				"name": "logo",
 				"ligatures": "clipperz"
 			},
-			"setIdx": 3,
+			"setIdx": 4,
 			"setId": 4,
 			"iconIdx": 1
 		},
@@ -398,8 +402,10 @@
 					"envelope",
 					"contact"
 				],
-				"grid": 20
+				"grid": 20,
+				"attrs": []
 			},
+			"attrs": [],
 			"properties": {
 				"id": 4,
 				"order": 19,
@@ -408,7 +414,7 @@
 				"name": "mail",
 				"ligatures": "email"
 			},
-			"setIdx": 6,
+			"setIdx": 7,
 			"setId": 0,
 			"iconIdx": 4
 		},
@@ -422,8 +428,10 @@
 					"popout",
 					"new window"
 				],
-				"grid": 20
+				"grid": 20,
+				"attrs": []
 			},
+			"attrs": [],
 			"properties": {
 				"id": 35,
 				"order": 9,
@@ -432,7 +440,7 @@
 				"name": "popup",
 				"ligatures": "url, direct login"
 			},
-			"setIdx": 6,
+			"setIdx": 7,
 			"setId": 0,
 			"iconIdx": 35
 		},
@@ -446,17 +454,19 @@
 					"add",
 					"sum"
 				],
-				"grid": 20
+				"grid": 20,
+				"attrs": []
 			},
+			"attrs": [],
 			"properties": {
 				"id": 125,
 				"order": 14,
 				"prevSize": 32,
 				"code": 58895,
 				"name": "plus",
-				"ligatures": "add new field"
+				"ligatures": "add new field, create new OTP"
 			},
-			"setIdx": 6,
+			"setIdx": 7,
 			"setId": 0,
 			"iconIdx": 125
 		},
@@ -472,17 +482,19 @@
 					"remove",
 					"delete"
 				],
-				"grid": 20
+				"grid": 20,
+				"attrs": []
 			},
+			"attrs": [],
 			"properties": {
 				"id": 126,
 				"order": 17,
 				"prevSize": 32,
 				"code": 58898,
 				"name": "cross",
-				"ligatures": "remove field, remove tag"
+				"ligatures": "remove field, remove tag, remove OTP"
 			},
-			"setIdx": 6,
+			"setIdx": 7,
 			"setId": 0,
 			"iconIdx": 126
 		},
@@ -496,8 +508,10 @@
 					"add",
 					"sum"
 				],
-				"grid": 20
+				"grid": 20,
+				"attrs": []
 			},
+			"attrs": [],
 			"properties": {
 				"id": 128,
 				"order": 20,
@@ -506,7 +520,7 @@
 				"name": "plus3",
 				"ligatures": "add card"
 			},
-			"setIdx": 6,
+			"setIdx": 7,
 			"setId": 0,
 			"iconIdx": 128
 		},
@@ -520,8 +534,10 @@
 					"left",
 					"previous"
 				],
-				"grid": 20
+				"grid": 20,
+				"attrs": []
 			},
+			"attrs": [],
 			"properties": {
 				"id": 205,
 				"order": 11,
@@ -530,7 +546,7 @@
 				"name": "arrow-left",
 				"ligatures": "back"
 			},
-			"setIdx": 6,
+			"setIdx": 7,
 			"setId": 0,
 			"iconIdx": 205
 		},
@@ -544,8 +560,10 @@
 					"right",
 					"next"
 				],
-				"grid": 20
+				"grid": 20,
+				"attrs": []
 			},
+			"attrs": [],
 			"properties": {
 				"id": 208,
 				"order": 12,
@@ -554,7 +572,7 @@
 				"name": "arrow-right",
 				"ligatures": "show detail"
 			},
-			"setIdx": 6,
+			"setIdx": 7,
 			"setId": 0,
 			"iconIdx": 208
 		}
@@ -584,7 +602,8 @@
 			"showMetadata": false,
 			"autoHost": false,
 			"embed": true,
-			"showVersion": true
+			"showVersion": true,
+			"ligaReset": "tags"
 		},
 		"imagePref": {
 			"color": 0,

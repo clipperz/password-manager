@@ -41,6 +41,11 @@ Clipperz.PM.UI.ExportController = function(args) {
 			"padding: 10px;" +
 			"border-bottom: 2px solid black;" +
 		"}" +
+	
+		"header p span {" +
+//			"padding: 0px 4px;" +
+			"font-weight: bold;" +
+		"}" +
 
 		"h1 {" +
 			"margin: 0px;" +
@@ -102,6 +107,7 @@ Clipperz.PM.UI.ExportController = function(args) {
 			"margin: 0px;" +
 			"margin-bottom: 5px;" +
 			"padding-left: 10px;" +
+			"font-size: 13pt;" +
 		"}" +
 
 		"div > div {" +
@@ -110,14 +116,29 @@ Clipperz.PM.UI.ExportController = function(args) {
 			"padding: 10px;" +
 		"}" +
 
+		"li p, dd.hidden {" +
+			"white-space: pre-wrap;" +
+			"word-wrap: break-word;" +
+			"font-family: monospace;" +
+		"}" +
+	
 		"textarea {" +
-			"width: 100%;" +
-			"height: 200px;" +
+			"display: none" +
+//			"width: 100%;" +
+//			"height: 200px;" +
+		"}" +
+
+		"a {" +
+			"color: white;" +
 		"}" +
 
 		"@media print {" +
 			"div > div, header > div {" +
 				"display: none !important;" +
+			"}" +
+
+			"div > ul > li.archived {" +
+				"color: #ddd;" +
 			"}" +
 
 			"ul > li {" +
@@ -175,9 +196,11 @@ MochiKit.Base.update(Clipperz.PM.UI.ExportController.prototype, {
 			MochiKit.DOM.DIV({},
 				MochiKit.DOM.DL({},
 					MochiKit.Base.map(function(key) {
+						var	isHiddenField = jsonCardData.currentVersion.fields[key]['hidden'];
+
 						return [
-							MochiKit.DOM.DT(jsonCardData.currentVersion.fields[key].label),
-							MochiKit.DOM.DD(jsonCardData.currentVersion.fields[key].value),
+							MochiKit.DOM.DT({}, jsonCardData.currentVersion.fields[key]['label']),
+							MochiKit.DOM.DD((isHiddenField ? {'class':'hidden'} : {}), jsonCardData.currentVersion.fields[key]['value']),
 						];
 					}, MochiKit.Base.keys(jsonCardData.currentVersion.fields))
 				)
@@ -187,22 +210,30 @@ MochiKit.Base.update(Clipperz.PM.UI.ExportController.prototype, {
 	},
 
 	'renderToHtml': function (jsonData) {
-		var title;
-		var style;
-		var date;
-		var body;
+		var	title;
+		var	style;
+		var	now;
+		var	dateString;
+		var	timeString
+		var	body;
 
 		title = "Clipperz data";
 		style = this._style;
-		date  = "dd/mm/yyyy";
+		now  = new XDate();
+		dateString = now.toString("MMM d, yyyy");
+		timeString = now.toString("HH:mm");
 
 		body = MochiKit.DOM.DIV({},
 			MochiKit.DOM.HEADER({},
 				MochiKit.DOM.H1({}, "Your data on Clipperz"),
-				MochiKit.DOM.H5({}, "Export date: " + date),
+				MochiKit.DOM.H5({}, "Export generated on " + dateString + " at " + timeString),
 				MochiKit.DOM.DIV({},
-					MochiKit.DOM.P({}, "Security warning - This file lists the content of all your cards in a printer-friendly format. At the very bottom, the same content is also available in JSON format."),
-					MochiKit.DOM.P({}, "Beware: all data are unencrypted! Therefore make sure to properly store and manage this file. We recommend to delete it as soon as it is no longer needed."),
+					MochiKit.DOM.P({}, "Security warning - This file lists the content of all your cards in a printer-friendly format"),
+					MochiKit.DOM.P({}, [
+						"Beware: ",
+						MochiKit.DOM.SPAN({'class':'warning'}, "all data are unencrypted!"),
+						" Therefore make sure to properly store and manage this file. We recommend to delete it as soon as it is no longer needed."
+					]),
 					MochiKit.DOM.P({}, "If you are going to print its content on paper, store the printout in a safe and private place!"),
 					MochiKit.DOM.P({}, "And, if you need to access your data when no Internet connection is available, please consider the much safer option of creating an offline copy.")
 				)
@@ -210,31 +241,33 @@ MochiKit.Base.update(Clipperz.PM.UI.ExportController.prototype, {
 
 			MochiKit.DOM.UL({}, MochiKit.Base.map(this.renderCardToHtml, jsonData)),
 			MochiKit.DOM.DIV({},
-				MochiKit.DOM.H3({}, "JSON content"),
-				MochiKit.DOM.DIV({},
-					MochiKit.DOM.P({}, "Instructions on how to use JSON content"),
-					MochiKit.DOM.P({}, "The JSON version of your data may be useful if you want to move the whole content of your Clipperz account to a new Clipperz account or recover a card that has been accidentally deleted. Just follow these instructions:"),
-					MochiKit.DOM.OL({},
-						MochiKit.DOM.LI({}, "Login to your Clipperz account and go to \"Data > Import\"."),
-						MochiKit.DOM.LI({}, "Select the JSON option."),
-						MochiKit.DOM.LI({}, "Copy and paste the JSON content in the form.")
-					),
-					MochiKit.DOM.P({}, "Of course, the unencrypted JSON content won't be transmitted to the Clipperz server.")
-				),
+//				MochiKit.DOM.H3({}, "JSON content"),
+//				MochiKit.DOM.DIV({},
+//					MochiKit.DOM.P({}, "Instructions on how to use JSON content"),
+//					MochiKit.DOM.P({}, "The JSON version of your data may be useful if you want to move the whole content of your Clipperz account to a new Clipperz account or recover a card that has been accidentally deleted. Just follow these instructions:"),
+//					MochiKit.DOM.OL({},
+//						MochiKit.DOM.LI({}, "Login to your Clipperz account and go to \"Data > Import\"."),
+//						MochiKit.DOM.LI({}, "Select the JSON option."),
+//						MochiKit.DOM.LI({}, "Copy and paste the JSON content in the form.")
+//					),
+//					MochiKit.DOM.P({}, "Of course, the unencrypted JSON content won't be transmitted to the Clipperz server.")
+//				),
 				MochiKit.DOM.TEXTAREA({}, Clipperz.Base.serializeJSON(jsonData)),
 				MochiKit.DOM.FOOTER({},
 					MochiKit.DOM.P({},
-						"This file has been downloaded from clipperz.is, a service by Clipperz Srl. - ",
+						"This file has been downloaded from ",
+						MochiKit.DOM.A({'href':'https://clipperz.is'} ,"clipperz.is"),
+						", a service by Clipperz Srl. - ",
 						MochiKit.DOM.A({'href':'https://clipperz.is/terms_service/'}, "Terms of service"),
 						" - ",
 						MochiKit.DOM.A({'href':'https://clipperz.is/privacy_policy/'}, "Privacy policy")
-					),
-					MochiKit.DOM.H4({}, "Clipperz - keep it to yourself")
+					)
+//					MochiKit.DOM.H4({}, "Clipperz - keep it to yourself")
 				)
 			)
 		);
 
-		return '<html><head><title>' + title + '</title><style type="text/css">' + style + '</style></head><body>' + MochiKit.DOM.toHTML(body) + '</body></html>';
+		return '<html><head><title>' + title + '</title><style type="text/css">' + style + '</style><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head><body>' + MochiKit.DOM.toHTML(body) + '</body></html>';
 	},
 
 	//----------------------------------------------------------------------------

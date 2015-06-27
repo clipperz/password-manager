@@ -1832,14 +1832,14 @@ testData = {
 		},
 		'onetimePasswords': {
 			//	OTP: 'yaxx k7ww - f8y6 tqz5 - 58b6 th44 - 9cwv q0fg',
-			'7074103e8ce35f813dbfb9c90665bd66ba3f5b1c9e4fa7a3d8aee679b7a38102': {	// reference
+			'c3664af5744319c6d3b874895f803df19cb0492acf27cb51912110d023ba9b38': {	// key
 				'reference': "c3664af5744319c6d3b874895f803df19cb0492acf27cb51912110d023ba9b38",
 				'user': "9a984e219b07f9b645ef35f4de938b4741abe2e0b4adc88b40e9367170c91cc8",
 				'status': 'ACTIVE',	//	1: 'ACTIVE', 2: 'REQUESTED', 3: 'USED', 4: 'DISABLED'
 				'creation_date': "2010-02-09 17:57:14",
 				'request_date': "4001-01-01 09:00:00",
 				'usage_date': "4001-01-01 09:00:00",
-//				'key': "7074103e8ce35f813dbfb9c90665bd66ba3f5b1c9e4fa7a3d8aee679b7a38102",
+				'key': "7074103e8ce35f813dbfb9c90665bd66ba3f5b1c9e4fa7a3d8aee679b7a38102",
 				"key_checksum": "53739910c97d74c80c6028eb3293ffbc652def811d9aa11725fefa3139dfcf29",
 				"data": "aN3rPl5rusBWXveUpjKqZNFLRPWJgH2Zs8HYQIaS65QObQFWFTZ8lRpBXFoPlvSOHcHQpEavZUuq31Y/2Y9sI/scvmZjQ8UEaT2GY9NiWJVswGq1W3AX8zs32jOgf1L5iBVxK54mfig2vXFoL8lG0JGGY1zHZXlkCvFPWuvwuCcH+uRE0oP3it0FvNFBV4+TiiGnGYgD9LPAVevzr/Doq5UXjn9VplVU+upeDTWY+7rlOdIOnZG/A9P9/dQtsyMb5c5zABD2FNpQQ40JDfG/nHt5WvfuWmPwUisW1181oBAd5BwF9LgVHdrhcSh8OuUL7rdbKTPTlWT826I6JNrFMzYGMY+NV6gllDvc6eCNrgI98ABhL1AoZNpAXXuCy4uQhEYmj+O71C/eXEDw+crMAXiCn6SZrbTM8GT5TQ5yF2NcxhudopO4qoILjnwEHZZ+i37kRDFg6oCBccCD67oHTPexUkSqnKIIYLli5CdmE7UdvX6LuVG/VYJKevOUgMf0UzHDPgvtlp3gsSo09TfNPOtoeAiogL6cAHb1seZwv+6E8Pz7WqkkOTsBQYeHIfPE0OnQPDtUjVRA5MTTX5zt6rCCNDKNbqfkPu8V4am26ykaWOSTXZYIcfnywkG0TfPzdAyQvyxdUyl/r1b36bclQFiXcRzkz9zS9xx14Il3QjYXRbIFWcwm/mEFltBFPdATKo5Zh+wcTLiFh56YEUVa9/h6oN8281X6zxH4DOw=",
 				'version': "0.3"
@@ -1900,126 +1900,228 @@ testData = {
 			},
 			//	username: 'tag', passphrase: 'tag'
 			"38d2354c878a06fbdcccc493a23fc6d9be06eebb4f66952bbc1b736824b123f9": {
-				"s": "e332fc34a678a6be7f025403c8007c1dff962cbae8acd1a490018ffb7477536d",
-				"v": "afa4836f22b8a1fbfb0b6a563c2356c0438ef9a9dd56877af8e8421d0706e300",
-				"version": "0.2",
-				"maxNumberOfRecords": "100",
-				"userDetails": '{"records":{"index":{"021c1512cd4eb8e05fd82d4b0d86cb6edcc7be0c06e32bc21ed74beafefdb33d":"0","ae9bf2d068fe27ee0922371ec519c8a75b30e0bf88d72a8606a74f97a69badb8":"1","bdf315d1c65c1de200a384cfc23fb0b6e140905830c9d42f25585165fb8851fb":"2","5358946680c0ea40e36bbb9f2f62a0f5f2aabb66efe643ee26d3715c2c17feee":"3","501e451d5e3f4d5d69c5e9430fcee63800bae551ff4ebd89c46d3d5c654c083f":"4","b869b4b928e26b8c669d7e39da1df55406336b259edf19b032ee2e475347e8fa":"5"},"data":"EPB52oY8PC/GYaSORI9ytiiPIoDrIQrgu02OpI168mnT0BRtonqfvMUxejJ/nvgWCNgx7lCYMmGzaDCQtvmAj7q8DQHjgcG1HJS/BjaEJdlK+mIa0WmVED1nGi7HzZDP8XgeR6FSAS0MsIXqBI1BtOhPizWaQxQ7q/wiZpGwSMu4R8I/16u6bWNSdsIR52GkI2RXrXxit0BSs/ZHefCAEQVprygBJYTAsuBlI9UdOrtOG3ODCMGzzY69kC10YBPxEHgVdsJ8xGlM4QxrDoYcAXdqmHVNc8X3fsOSN6CdC+TPOYQ7kp7RsiWlAy/a26ASmfDioXikiEqSZ/m7Hz5EYBfdPIKzTf1HaTaj1EXPFwQ16Kkdyjlrc3OKl79Pe2JZ5lAfmf2aqHXxRFGk4aedDvwhMENdZYgea8IwBmmnalF+5U67gSY0YYe2ZixTnFKg1MRHAaGZSCJhZlbmcTKRzI4crNrRs03F9V10EfaUyIQdktRBNsKexQaJr1dxq524XJDSdIzu3A++8ks/khLFzrAQySWcjv2PmaFq/wf19HzVLOwJAkYv7Kp8AGpXpdNrtm2wNTiQ84a6KOuV8YW3jz8/m0VrsVe8wImHrih58lWi7SOHZ1y/ZjtSXwa8OEo/vdR3+SOFJujgYaoDcxLknMxXvjYjSUViLmAcHkM3SRx4ucGPlL9EOTFHhJJI3pynhubXYME/ujlkLRZEPQoSRKUWHAQ5X+O+1SwgPVPcSKqeEhM6kWhnXXpBWmUE+sSXfC4CC4Jqw+Mfrx6Mdx9ayep8ssge4ZIaDIVDUu3p2aEAQehwOvGzYec9jZfvhdODO0MK9cCV6D3iv8I="},"directLogins":{"index":{},"data":"VXRt7prFeG9+iLmWhkJVGKi9"},"preferences":{"data":"xPvWlbPo8iwq4OiL6BhiHWCg"},"oneTimePasswords":{"data":"UFam/MJzsuh7hiMUXruQrI94"},"version":"0.1"}',
-				"statistics": "Pf9V+hgwcEUMUbiYj7lhOvy/",
-				"userDetailsVersion": "0.4",
-				"records": {
-					"021c1512cd4eb8e05fd82d4b0d86cb6edcc7be0c06e32bc21ed74beafefdb33d": {
-						"data": "coBU7HDciqWdtPrGoRE8x307+S0fXZPjdxCypClm9qXdQIJCTEohg8E3OHWydsZMI852VNgoIfhjv5+E8qzxCAwb+eh/2Lsv4+VWTi7MxVAgsqHk+NGOlpTzlBOtq/V86lZHuZajy4UWsLhoJvQxMNlV4Gryk+9G+MQv/ITYi/d6mRNMNQ==",
-						"version": "0.4",
-						"creationDate": "Thu Jul 03 13:44:30 GMT 2014",
-						"updateDate": "Thu Jul 03 13:44:30 GMT 2014",
-						"accessDate": "Thu Jul 03 13:44:30 GMT 2014",
-						"currentVersion": "d29b343b00ef60309365c2a7ff2dee750271c86cbe9671c19de184c5b7cfd71a",
-						"versions": {
-							"d29b343b00ef60309365c2a7ff2dee750271c86cbe9671c19de184c5b7cfd71a": {
-								"header": "####",
-								"data": "NXmNUj/dXJImYLfqLmCFJeJh7GI51jzCitJBZS6bDoD1YzNj98weM4fW7AweTpvloojR1/1bzrvuEk13YKRYeDqD3WLKDC1QpAhmBj7EPkYfmOFizPRTpb3i0CkH2HQ2+OqCi27BdrMbU2VTNgBAtGl2RLQYa9yLJpz6wD1Bone192X3BuxWp2/9h8gYVqrmfT/aN5UGZlGHtJscjoqQME0=",
-								"version": "0.4",
-								"creationDate": "Thu Jul 03 13:44:30 GMT 2014",
-								"updateDate": "Thu Jul 03 13:44:30 GMT 2014",
-								"accessDate": "Thu Jul 03 13:44:30 GMT 2014"
-							}
-						}
-					},
-					"ae9bf2d068fe27ee0922371ec519c8a75b30e0bf88d72a8606a74f97a69badb8": {
-						"data": "+vz60IxhoBYTxnCKoiEVmr9BVBKQ2vFtDyJqvpA468m6+ngCQZUAuyRvuTy7HGtHh/8Fc+VHZy6sjy6z5noVIhSG8uQnOpMj7lIxr471DC2suKgYzM3buiHehmzF8W+eNIOumyysAgQxvIXF/12zYVGiYUKBw9s9NgayeCXWZCktGyKp/w==",
-						"version": "0.4",
-						"creationDate": "Thu Jul 03 13:44:54 GMT 2014",
-						"updateDate": "Thu Jul 03 13:44:54 GMT 2014",
-						"accessDate": "Thu Jul 03 13:44:54 GMT 2014",
-						"currentVersion": "23ed84136b59b351c10a1f608c84af426651755180ff3b0154eeedeb9f9d9efc",
-						"versions": {
-							"23ed84136b59b351c10a1f608c84af426651755180ff3b0154eeedeb9f9d9efc": {
-								"header": "####",
-								"data": "tw4PEJ2+bpv69m2JlKlUo2TXTSWzhd5qVuuEXa78Fzz2TAA+SLIAn/0YMLMZqJpT9/UX2A5llYIg4tasSTiScdKduvLqTwjZ/wQL9zkWw9vlb5DwUboLHYTD24rLQDKtEuZtQzkds7cKmTS8JocHiePtOnw4WYav7d1mNrEFFz6RJU4RklG5T0ATN59UTg9uRseN4zSSIl21Np3kb7/QSEI=",
-								"version": "0.4",
-								"creationDate": "Thu Jul 03 13:44:54 GMT 2014",
-								"updateDate": "Thu Jul 03 13:44:54 GMT 2014",
-								"accessDate": "Thu Jul 03 13:44:54 GMT 2014"
-							}
-						}
-					},
-					"bdf315d1c65c1de200a384cfc23fb0b6e140905830c9d42f25585165fb8851fb": {
-						"data": "TGS6lm8w6OVFEnyQkjzJnS/FWx1h0LgrdpJwRKMz+/o5pJi0S9KGSzihtc6iek2/Dqixqh/Nxi8fZY2tNsB6n50aNHR+gVX4LHhgQOpw/3aYcWMd9WIuwdMPKDY6RiCBDLwxCDuhtKDCsGkd105+v58h08wYeCc8WDEg2vsR1bXQQZMYQw==",
-						"version": "0.4",
-						"creationDate": "Thu Jul 03 13:45:16 GMT 2014",
-						"updateDate": "Thu Jul 03 13:45:16 GMT 2014",
-						"accessDate": "Thu Jul 03 13:45:16 GMT 2014",
-						"currentVersion": "a7a90ac83249e6aeba78ebde4ba798a8c912975d55c5315fec320f42ed67175d",
-						"versions": {
-							"a7a90ac83249e6aeba78ebde4ba798a8c912975d55c5315fec320f42ed67175d": {
-								"header": "####",
-								"data": "iNlrPeH/d9jtI91isY3r8n1QUtUYXVT1mhrRisyGwrpQo+4XCqMYattH31MrFh1hZCmplL0+vq8+bWo1JqA1HclSpAetyDIQ7NnlqGlnZYMBII3GgBfknHJRIlnm+RNFFQeOHWjhyL7YQVpmmC0ONJ++HaAmPxvOWzP1g/rKbsEoQyIBqqG32H3nxSU/bUVo+F5K5sfSNWnayPsDlEv5pNM=",
-								"version": "0.4",
-								"creationDate": "Thu Jul 03 13:45:16 GMT 2014",
-								"updateDate": "Thu Jul 03 13:45:16 GMT 2014",
-								"accessDate": "Thu Jul 03 13:45:16 GMT 2014"
-							}
-						}
-					},
-					"5358946680c0ea40e36bbb9f2f62a0f5f2aabb66efe643ee26d3715c2c17feee": {
-						"data": "vEEFjeDfMPr1ahbjPA56Su31uJvyXcOAfJ2SfCdd0xTld6tj7iRsh81g1UYw8W1nvyRg4ymSiXIwEmx5cyOa/lj7eWRM0AqFy3qfqSUJze8Xn8u9RYiE0rt4LZLSDk9FogvvMIXKDbCvUbmyPSA83bmjCvDkiCvhqY4MhwGE8Jk/liE3YQ==",
-						"version": "0.4",
-						"creationDate": "Thu Jul 03 13:45:38 GMT 2014",
-						"updateDate": "Thu Jul 03 13:45:38 GMT 2014",
-						"accessDate": "Thu Jul 03 13:45:38 GMT 2014",
-						"currentVersion": "211175a91451fa30b3c989ebe46ec2e7593b88e74bbe9ccb0578315750e31626",
-						"versions": {
-							"211175a91451fa30b3c989ebe46ec2e7593b88e74bbe9ccb0578315750e31626": {
-								"header": "####",
-								"data": "Ouu/BSyDHstyLcddZd1EsSQRWKTjQUt9kFNSYoxQOUBXWw+ukqDPPMXYZWggjrGAbT5hFf4yoEqi2VCCAdZT5juwmMrSEGZjoFSSw/e5OYH3ptoZAQ4ThNo75R2oJfI7/kUMKBeeXE4zykRYWv4aEOGHtSKpnzydGHnvDFfpxInFx2MH1eIYH+BpCujMDN0aDNFLRWl9isZ070DioTNgvI8=",
-								"version": "0.4",
-								"creationDate": "Thu Jul 03 13:45:38 GMT 2014",
-								"updateDate": "Thu Jul 03 13:45:38 GMT 2014",
-								"accessDate": "Thu Jul 03 13:45:38 GMT 2014"
-							}
-						}
-					},
-					"501e451d5e3f4d5d69c5e9430fcee63800bae551ff4ebd89c46d3d5c654c083f": {
-						"data": "7aTkEoBButGoPiXCpAfn+CrJpzfw5zau1kEBY2uWBJ3cAT3XbkDgAodPmU/HDTV1pb7+2a2sAnwThDWCSkJfMGG6i3eRlQJj9WZfIEIv0W7UDMGbZdhuweSEPTf7GMR4BtHPMgVgLToSn+YOc0tasavVGz3+rV9qNFf9Rf2PrGKFQkY7Kg==",
-						"version": "0.4",
-						"creationDate": "Thu Jul 03 13:46:07 GMT 2014",
-						"updateDate": "Thu Jul 03 13:46:07 GMT 2014",
-						"accessDate": "Thu Jul 03 13:46:07 GMT 2014",
-						"currentVersion": "a03817cced057a4bc693db014eb356277d9b91df6a08c55f45c97b5d4b08003b",
-						"versions": {
-							"a03817cced057a4bc693db014eb356277d9b91df6a08c55f45c97b5d4b08003b": {
-								"header": "####",
-								"data": "blB9bmxoEh//V40FoD9tLbQGyHiFAcLn9Rj4KDOp5DQRiLLlxqgvShShXEVtjUmiTjnHGlkNm6RQtZTaJrG84nV29QncBxLKMNnZKmqW2fXp2uyd4k+zzg4r7ilC29Vh1WP6bNxapwivDUw1n1Y9bEsX8LSAtCSIseIXszciSnLQ6ktyzBGzuDppc/cQ94TfGFKTSwZdts3d34Kxh8q0NTE=",
-								"version": "0.4",
-								"creationDate": "Thu Jul 03 13:46:07 GMT 2014",
-								"updateDate": "Thu Jul 03 13:46:07 GMT 2014",
-								"accessDate": "Thu Jul 03 13:46:07 GMT 2014"
-							}
-						}
-					},
-					"b869b4b928e26b8c669d7e39da1df55406336b259edf19b032ee2e475347e8fa": {
-						"data": "cZQZboAoipwpOdCuvyXfS1T0ul0FnoWBAB0jqwQ282mWHjOBM/JI/7jk4z20qaYp/3XTGpVvbYPqvQn/+KyYiLT8aR/JkiFQ38wioaaq6X0Qg38Y2itPXMZjTnSGnf0boPf6mP8s9k8GGubuk4Gi1n4uJECLESX4In3VGq02hHcoxfZwMQ==",
-						"version": "0.4",
-						"creationDate": "Thu Jul 03 13:46:28 GMT 2014",
-						"updateDate": "Thu Jul 03 13:46:28 GMT 2014",
-						"accessDate": "Thu Jul 03 13:46:28 GMT 2014",
-						"currentVersion": "b29e478ce7352c85234a4040514255a0162f62ab60880d5d959d86c365f0f088",
-						"versions": {
-							"b29e478ce7352c85234a4040514255a0162f62ab60880d5d959d86c365f0f088": {
-								"header": "####",
-								"data": "zOv15MnYpRcPyUoig13mGdWktiSLStCla0RVOp3laAEBBxplEao1RXWd/FOjKRmf2rx1Ma+s1s+CB1r2Z8t8VFRLDLQQk+m4LuGzY/QvHXbvcWMtNFxb8Ax464lX2w8FHZDBbcN29nfroeMX0Cq9oD6BKVrRdouUESHpX/oMDZ6VJRfZhv7ZIqdEET3+6u8Ub+OHdYyktYH4OHJTpW5eRc8=",
-								"version": "0.4",
-								"creationDate": "Thu Jul 03 13:46:28 GMT 2014",
-								"updateDate": "Thu Jul 03 13:46:28 GMT 2014",
-								"accessDate": "Thu Jul 03 13:46:28 GMT 2014"
-							}
-						}
-					}
-				}
+			    "userDetailsVersion": "0.4",
+			    "accountInfo": {
+			        "features": [
+			            "UPDATE_CREDENTIALS",
+			            "EDIT_CARD",
+			            "CARD_DETAILS",
+			            "ADD_CARD",
+			            "DELETE_CARD",
+			            "OFFLINE_COPY",
+			            "LIST_CARDS"
+			        ],
+			        "paymentVerificationPending": false,
+			        "currentSubscriptionType": "EARLY_ADOPTER",
+			        "isExpiring": false,
+			        "latestActiveLevel": "EARLY_ADOPTER",
+			        "payments": [],
+			        "featureSet": "FULL",
+			        "latestActiveThreshold": "-1.00000000",
+			        "referenceDate": "Wed, 17 June 2015 12:44:29 UTC",
+			        "isExpired": false,
+			        "expirationDate": "Mon, 01 January 4001 00:00:00 UTC"
+			    },
+			    "s": "e332fc34a678a6be7f025403c8007c1dff962cbae8acd1a490018ffb7477536d",
+			    "records": {
+			        "501e451d5e3f4d5d69c5e9430fcee63800bae551ff4ebd89c46d3d5c654c083f": {
+			            "reference": "501e451d5e3f4d5d69c5e9430fcee63800bae551ff4ebd89c46d3d5c654c083f",
+			            "updateDate": "Thu, 03 July 2014 13:46:07 UTC",
+			            "data": "7aTkEoBButGoPiXCpAfn+CrJpzfw5zau1kEBY2uWBJ3cAT3XbkDgAodPmU/HDTV1pb7+2a2sAnwThDWCSkJfMGG6i3eRlQJj9WZfIEIv0W7UDMGbZdhuweSEPTf7GMR4BtHPMgVgLToSn+YOc0tasavVGz3+rV9qNFf9Rf2PrGKFQkY7Kg==",
+			            "accessDate": "Wed, 17 June 2015 12:44:07 UTC",
+			            "versions": {"a03817cced057a4bc693db014eb356277d9b91df6a08c55f45c97b5d4b08003b": {
+			                "reference": "a03817cced057a4bc693db014eb356277d9b91df6a08c55f45c97b5d4b08003b",
+			                "updateDate": "Thu, 03 July 2014 13:46:07 UTC",
+			                "data": "blB9bmxoEh//V40FoD9tLbQGyHiFAcLn9Rj4KDOp5DQRiLLlxqgvShShXEVtjUmiTjnHGlkNm6RQtZTaJrG84nV29QncBxLKMNnZKmqW2fXp2uyd4k+zzg4r7ilC29Vh1WP6bNxapwivDUw1n1Y9bEsX8LSAtCSIseIXszciSnLQ6ktyzBGzuDppc/cQ94TfGFKTSwZdts3d34Kxh8q0NTE=",
+			                "accessDate": "Wed, 17 June 2015 12:44:07 UTC",
+			                "header": "####",
+			                "creationDate": "Thu, 03 July 2014 13:46:07 UTC",
+			                "version": "0.4"
+			            }},
+			            "creationDate": "Thu, 03 July 2014 13:46:07 UTC",
+			            "version": "0.4",
+			            "currentVersion": "a03817cced057a4bc693db014eb356277d9b91df6a08c55f45c97b5d4b08003b",
+			            "oldestUsedEncryptedVersion": "0.4"
+			        },
+			        "5358946680c0ea40e36bbb9f2f62a0f5f2aabb66efe643ee26d3715c2c17feee": {
+			            "reference": "5358946680c0ea40e36bbb9f2f62a0f5f2aabb66efe643ee26d3715c2c17feee",
+			            "updateDate": "Thu, 03 July 2014 13:45:38 UTC",
+			            "data": "vEEFjeDfMPr1ahbjPA56Su31uJvyXcOAfJ2SfCdd0xTld6tj7iRsh81g1UYw8W1nvyRg4ymSiXIwEmx5cyOa/lj7eWRM0AqFy3qfqSUJze8Xn8u9RYiE0rt4LZLSDk9FogvvMIXKDbCvUbmyPSA83bmjCvDkiCvhqY4MhwGE8Jk/liE3YQ==",
+			            "accessDate": "Wed, 17 June 2015 12:43:49 UTC",
+			            "versions": {"211175a91451fa30b3c989ebe46ec2e7593b88e74bbe9ccb0578315750e31626": {
+			                "reference": "211175a91451fa30b3c989ebe46ec2e7593b88e74bbe9ccb0578315750e31626",
+			                "updateDate": "Thu, 03 July 2014 13:45:38 UTC",
+			                "data": "Ouu/BSyDHstyLcddZd1EsSQRWKTjQUt9kFNSYoxQOUBXWw+ukqDPPMXYZWggjrGAbT5hFf4yoEqi2VCCAdZT5juwmMrSEGZjoFSSw/e5OYH3ptoZAQ4ThNo75R2oJfI7/kUMKBeeXE4zykRYWv4aEOGHtSKpnzydGHnvDFfpxInFx2MH1eIYH+BpCujMDN0aDNFLRWl9isZ070DioTNgvI8=",
+			                "accessDate": "Wed, 17 June 2015 12:43:49 UTC",
+			                "header": "####",
+			                "creationDate": "Thu, 03 July 2014 13:45:38 UTC",
+			                "version": "0.4"
+			            }},
+			            "creationDate": "Thu, 03 July 2014 13:45:38 UTC",
+			            "version": "0.4",
+			            "currentVersion": "211175a91451fa30b3c989ebe46ec2e7593b88e74bbe9ccb0578315750e31626",
+			            "oldestUsedEncryptedVersion": "0.4"
+			        },
+			        "b869b4b928e26b8c669d7e39da1df55406336b259edf19b032ee2e475347e8fa": {
+			            "reference": "b869b4b928e26b8c669d7e39da1df55406336b259edf19b032ee2e475347e8fa",
+			            "updateDate": "Thu, 03 July 2014 13:46:28 UTC",
+			            "data": "cZQZboAoipwpOdCuvyXfS1T0ul0FnoWBAB0jqwQ282mWHjOBM/JI/7jk4z20qaYp/3XTGpVvbYPqvQn/+KyYiLT8aR/JkiFQ38wioaaq6X0Qg38Y2itPXMZjTnSGnf0boPf6mP8s9k8GGubuk4Gi1n4uJECLESX4In3VGq02hHcoxfZwMQ==",
+			            "accessDate": "Fri, 10 April 2015 09:27:54 UTC",
+			            "versions": {"b29e478ce7352c85234a4040514255a0162f62ab60880d5d959d86c365f0f088": {
+			                "reference": "b29e478ce7352c85234a4040514255a0162f62ab60880d5d959d86c365f0f088",
+			                "updateDate": "Thu, 03 July 2014 13:46:28 UTC",
+			                "data": "zOv15MnYpRcPyUoig13mGdWktiSLStCla0RVOp3laAEBBxplEao1RXWd/FOjKRmf2rx1Ma+s1s+CB1r2Z8t8VFRLDLQQk+m4LuGzY/QvHXbvcWMtNFxb8Ax464lX2w8FHZDBbcN29nfroeMX0Cq9oD6BKVrRdouUESHpX/oMDZ6VJRfZhv7ZIqdEET3+6u8Ub+OHdYyktYH4OHJTpW5eRc8=",
+			                "accessDate": "Fri, 10 April 2015 09:27:54 UTC",
+			                "header": "####",
+			                "creationDate": "Thu, 03 July 2014 13:46:28 UTC",
+			                "version": "0.4"
+			            }},
+			            "creationDate": "Thu, 03 July 2014 13:46:28 UTC",
+			            "version": "0.4",
+			            "currentVersion": "b29e478ce7352c85234a4040514255a0162f62ab60880d5d959d86c365f0f088",
+			            "oldestUsedEncryptedVersion": "0.4"
+			        },
+			        "ae9bf2d068fe27ee0922371ec519c8a75b30e0bf88d72a8606a74f97a69badb8": {
+			            "reference": "ae9bf2d068fe27ee0922371ec519c8a75b30e0bf88d72a8606a74f97a69badb8",
+			            "updateDate": "Thu, 03 July 2014 13:44:54 UTC",
+			            "data": "+vz60IxhoBYTxnCKoiEVmr9BVBKQ2vFtDyJqvpA468m6+ngCQZUAuyRvuTy7HGtHh/8Fc+VHZy6sjy6z5noVIhSG8uQnOpMj7lIxr471DC2suKgYzM3buiHehmzF8W+eNIOumyysAgQxvIXF/12zYVGiYUKBw9s9NgayeCXWZCktGyKp/w==",
+			            "accessDate": "Wed, 17 June 2015 12:43:13 UTC",
+			            "versions": {"23ed84136b59b351c10a1f608c84af426651755180ff3b0154eeedeb9f9d9efc": {
+			                "reference": "23ed84136b59b351c10a1f608c84af426651755180ff3b0154eeedeb9f9d9efc",
+			                "updateDate": "Thu, 03 July 2014 13:44:54 UTC",
+			                "data": "tw4PEJ2+bpv69m2JlKlUo2TXTSWzhd5qVuuEXa78Fzz2TAA+SLIAn/0YMLMZqJpT9/UX2A5llYIg4tasSTiScdKduvLqTwjZ/wQL9zkWw9vlb5DwUboLHYTD24rLQDKtEuZtQzkds7cKmTS8JocHiePtOnw4WYav7d1mNrEFFz6RJU4RklG5T0ATN59UTg9uRseN4zSSIl21Np3kb7/QSEI=",
+			                "accessDate": "Wed, 17 June 2015 12:43:13 UTC",
+			                "header": "####",
+			                "creationDate": "Thu, 03 July 2014 13:44:54 UTC",
+			                "version": "0.4"
+			            }},
+			            "creationDate": "Thu, 03 July 2014 13:44:54 UTC",
+			            "version": "0.4",
+			            "currentVersion": "23ed84136b59b351c10a1f608c84af426651755180ff3b0154eeedeb9f9d9efc",
+			            "oldestUsedEncryptedVersion": "0.4"
+			        },
+			        "bdf315d1c65c1de200a384cfc23fb0b6e140905830c9d42f25585165fb8851fb": {
+			            "reference": "bdf315d1c65c1de200a384cfc23fb0b6e140905830c9d42f25585165fb8851fb",
+			            "updateDate": "Thu, 03 July 2014 13:45:16 UTC",
+			            "data": "TGS6lm8w6OVFEnyQkjzJnS/FWx1h0LgrdpJwRKMz+/o5pJi0S9KGSzihtc6iek2/Dqixqh/Nxi8fZY2tNsB6n50aNHR+gVX4LHhgQOpw/3aYcWMd9WIuwdMPKDY6RiCBDLwxCDuhtKDCsGkd105+v58h08wYeCc8WDEg2vsR1bXQQZMYQw==",
+			            "accessDate": "Wed, 17 June 2015 12:43:36 UTC",
+			            "versions": {"a7a90ac83249e6aeba78ebde4ba798a8c912975d55c5315fec320f42ed67175d": {
+			                "reference": "a7a90ac83249e6aeba78ebde4ba798a8c912975d55c5315fec320f42ed67175d",
+			                "updateDate": "Thu, 03 July 2014 13:45:16 UTC",
+			                "data": "iNlrPeH/d9jtI91isY3r8n1QUtUYXVT1mhrRisyGwrpQo+4XCqMYattH31MrFh1hZCmplL0+vq8+bWo1JqA1HclSpAetyDIQ7NnlqGlnZYMBII3GgBfknHJRIlnm+RNFFQeOHWjhyL7YQVpmmC0ONJ++HaAmPxvOWzP1g/rKbsEoQyIBqqG32H3nxSU/bUVo+F5K5sfSNWnayPsDlEv5pNM=",
+			                "accessDate": "Wed, 17 June 2015 12:43:36 UTC",
+			                "header": "####",
+			                "creationDate": "Thu, 03 July 2014 13:45:16 UTC",
+			                "version": "0.4"
+			            }},
+			            "creationDate": "Thu, 03 July 2014 13:45:16 UTC",
+			            "version": "0.4",
+			            "currentVersion": "a7a90ac83249e6aeba78ebde4ba798a8c912975d55c5315fec320f42ed67175d",
+			            "oldestUsedEncryptedVersion": "0.4"
+			        },
+			        "021c1512cd4eb8e05fd82d4b0d86cb6edcc7be0c06e32bc21ed74beafefdb33d": {
+			            "reference": "021c1512cd4eb8e05fd82d4b0d86cb6edcc7be0c06e32bc21ed74beafefdb33d",
+			            "updateDate": "Thu, 03 July 2014 13:44:30 UTC",
+			            "data": "coBU7HDciqWdtPrGoRE8x307+S0fXZPjdxCypClm9qXdQIJCTEohg8E3OHWydsZMI852VNgoIfhjv5+E8qzxCAwb+eh/2Lsv4+VWTi7MxVAgsqHk+NGOlpTzlBOtq/V86lZHuZajy4UWsLhoJvQxMNlV4Gryk+9G+MQv/ITYi/d6mRNMNQ==",
+			            "accessDate": "Wed, 17 June 2015 12:42:51 UTC",
+			            "versions": {"d29b343b00ef60309365c2a7ff2dee750271c86cbe9671c19de184c5b7cfd71a": {
+			                "reference": "d29b343b00ef60309365c2a7ff2dee750271c86cbe9671c19de184c5b7cfd71a",
+			                "updateDate": "Thu, 03 July 2014 13:44:30 UTC",
+			                "data": "NXmNUj/dXJImYLfqLmCFJeJh7GI51jzCitJBZS6bDoD1YzNj98weM4fW7AweTpvloojR1/1bzrvuEk13YKRYeDqD3WLKDC1QpAhmBj7EPkYfmOFizPRTpb3i0CkH2HQ2+OqCi27BdrMbU2VTNgBAtGl2RLQYa9yLJpz6wD1Bone192X3BuxWp2/9h8gYVqrmfT/aN5UGZlGHtJscjoqQME0=",
+			                "accessDate": "Wed, 17 June 2015 12:42:51 UTC",
+			                "header": "####",
+			                "creationDate": "Thu, 03 July 2014 13:44:30 UTC",
+			                "version": "0.4"
+			            }},
+			            "creationDate": "Thu, 03 July 2014 13:44:30 UTC",
+			            "version": "0.4",
+			            "currentVersion": "d29b343b00ef60309365c2a7ff2dee750271c86cbe9671c19de184c5b7cfd71a",
+			            "oldestUsedEncryptedVersion": "0.4"
+			        }
+			    },
+			    "v": "afa4836f22b8a1fbfb0b6a563c2356c0438ef9a9dd56877af8e8421d0706e300",
+			    "version": "0.2",
+			    "userDetails": "{\"records\":{\"index\":{\"021c1512cd4eb8e05fd82d4b0d86cb6edcc7be0c06e32bc21ed74beafefdb33d\":\"0\",\"ae9bf2d068fe27ee0922371ec519c8a75b30e0bf88d72a8606a74f97a69badb8\":\"1\",\"bdf315d1c65c1de200a384cfc23fb0b6e140905830c9d42f25585165fb8851fb\":\"2\",\"5358946680c0ea40e36bbb9f2f62a0f5f2aabb66efe643ee26d3715c2c17feee\":\"3\",\"501e451d5e3f4d5d69c5e9430fcee63800bae551ff4ebd89c46d3d5c654c083f\":\"4\",\"b869b4b928e26b8c669d7e39da1df55406336b259edf19b032ee2e475347e8fa\":\"5\"},\"data\":\"5oWOZGW\/lnLtQ\/JzAiZCP6gDN8A3Vpnona1uCdNl5j2n8Q5JHOrxG2hYbIpO1pQ0H3PrKsYrMqstuHggaTB0\/Rzm\/ficHaUWhRJqmQrrqu3S14UQ6Ts7ZE+me+JHC67dEMBxxSRvw9DMErR2ph1O1AUWlEqjqDt99UU6T\/mA\/0aqfJu9fsFC5AVk\/QH6Pzp8xMK1oX4AhB9H3hVZzWvIr2jYFTyVRldSfD5h1HKNt2cCyEWvAzSvBmIsTcTJIyah7Uv8ZVRk1zFTvdD2eWgNkKrQo8fMdCalw1cT7lQ3esccKllp1ydQZSNZ6365HYu1fC4negehCzMz5eu3Y\/Q236F2rZo63cXHQgDi38GWM+cdXL7JgXdPMfMudyCKIxJnFVFK5VzghMU\/n7i\/nYZD1K04Q\/E6fKP4kKkJlNd3JEpr\/nM9cVpWXB5ghrI4pvo3kxNy9DWVL5mD8eANmqZyNZqii2jTpPF+oZS8NtKWPSwLs8HbcnS\/eRVgv0pE8mLCp0nPxqfBHrlORX5phzSURONZZIvqxh\/s0uxYEQFuzFl2G+NhtbhL25Q4rLLUZrFAnlp1qgoH1sUl0B4WzEN8qw56uOtNesRv63NoETIhvOYNU89t4CsCnRznuWm774KWNnbuBXTiDw\/rreQU59PgXgr7BPuJFvzonqiDTiqRHVWDYnTP5YSWBwtEEr24vfCjWx1BmoxytH0hRhWcJOqJGW3rhLHkBTLg9rDUFBKR5HJbjzW1Htw\/Yhq9PzhRVbkTNdvVzVv6cMiFNeuJG2LyBeSe2ioDcyWSYmHedEYnn3PRXEJhD3AAdpANj2MGP5yvZ7dHNXGXz2DgkhRO24PoiHuehe2jMx9Zkw==\"},\"directLogins\":{\"index\":{},\"data\":\"Ud\/RyTy7CT291MeUshmhjoT6\"},\"preferences\":{\"data\":\"hseSN5pYGCAs144bQVlVHtop\"},\"oneTimePasswords\":{\"data\":\"2GS0OVjaU42kt4yinfQUXK6c\"},\"version\":\"0.1\"}",
+			    "maxNumberOfRecords": 100,
+			    "statistics": "Pf9V+hgwcEUMUbiYj7lhOvy/"
 			}
 		}
 	};}(),
+	
+	
+
+	
+	//-------------------------------------------------------------------------
+
+	'1/1_data': function () { return {
+		users:{
+			'catchAllUser': {
+				__masterkey_test_value__: 'masterkey',
+				s: '112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00',
+				v: '112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00'
+			},
+			//	username: '1', passphrase: '1'
+			"3073058ba04e7d35a161af27f07ddb24d603d2a6418b4140010b7cdb24ff4774": {
+				"userDetailsVersion": "0.4",
+				"accountInfo": {
+					"features": [
+						"UPDATE_CREDENTIALS",
+						"EDIT_CARD",
+						"CARD_DETAILS",
+						"ADD_CARD",
+						"DELETE_CARD",
+						"OFFLINE_COPY",
+						"LIST_CARDS"
+					],
+					"paymentVerificationPending": false,
+					"currentSubscriptionType": "EARLY_ADOPTER",
+					"isExpiring": false,
+					"latestActiveLevel": "EARLY_ADOPTER",
+					"payments": [],
+					"featureSet": "FULL",
+					"latestActiveThreshold": "-1.00000000",
+					"referenceDate": "Wed, 17 June 2015 13:43:24 UTC",
+					"isExpired": false,
+					"expirationDate": "Mon, 01 January 4001 00:00:00 UTC"
+				},
+				"s": "a363479cf2f229466e01f32bfb783800745c740b4a955a83c0fbf561028bdba7",
+				"records": {
+					"327139a4d4cfbdb61c06b4cfa009f9cb05ef2f3e3703b6b071bcdb4213b2ca83": {
+						"reference": "327139a4d4cfbdb61c06b4cfa009f9cb05ef2f3e3703b6b071bcdb4213b2ca83",
+						"updateDate": "Wed, 17 June 2015 13:42:54 UTC",
+						"data": "SPU205djKKDJ7mg6txo5B9z0myET/8lcwjuT+IEMJVIw4JdBq+gXQ9cxESKQjvuuGnZyNRPzOKgfXlJTtgUwtPSwmpigrnUMilxcBtcpOkVe+kZXe+N1J7iMli1xVHfpmrhSEA8E+zZ4OEnGuHiJgX9qzNix15rbeZLX7bXBsWUowHuIvw==",
+						"accessDate": "Wed, 17 June 2015 13:42:54 UTC",
+						"versions": {
+							"eb9a01d0094fcd8f3cbf4f875b7f4c43afa2bb796b5787badf75fba1b3e77c01": {
+								"reference": "eb9a01d0094fcd8f3cbf4f875b7f4c43afa2bb796b5787badf75fba1b3e77c01",
+								"updateDate": "Wed, 17 June 2015 13:42:54 UTC",
+								"data": "Em0rLpHXv9IKtyVLWPGXeM6erk52v/1nYyh0DqT/UnL2pZjU4PRAPvKYZa5yhkx7QqgfWJNtdMUKbGN4DAfmKYcaAZZl0fcYRddAAduWUdG4Zuwk41hJ5gzomf0oqAtQU8lPK4VQFo1iyOctWVJ19h+/fZbUvLVzWOWXBMvItu054w+jHMDWF/hFuL09HQoyMz1JeXJroRTVx47pLbVVkUYNBOCz5FSTIRUqdmeSkaSiLtrLI0349SVrvPEXWPghGgKdWBiJCn/lFivmRKenJtGpxJwiV1CfQIS00JeyEFg+zqWBg31A8cp70NSHXVuprYbruWaMRdwZlI4PNl5JuzGdhL/z3iR+3TevcOIrHkvgH4/zVV+BHYlIPMpwj1zs4C0XNr+DF7F3FX3gCuU4CbMdzt6GoPYJnKAAfM+bZGQpAZp2sdzuZWdGi2EuHNicjLhdZF/TcbeGNjVG6RdliFvrqC+o0wet3OO7MRyHDU1AqWNPTgAo7gIp33DH0lf2HOtXJH8HjOXNSa7fgW5JhyfUxyddEONJwXUOL9KbkXsSElJjk+W0/QiWqw==",
+								"accessDate": "Wed, 17 June 2015 13:42:54 UTC",
+								"header": "####",
+								"creationDate": "Wed, 17 June 2015 13:42:54 UTC",
+								"version": "0.4"
+							}
+						},
+						"creationDate": "Wed, 17 June 2015 13:42:54 UTC",
+						"version": "0.4",
+						"currentVersion": "eb9a01d0094fcd8f3cbf4f875b7f4c43afa2bb796b5787badf75fba1b3e77c01",
+						"oldestUsedEncryptedVersion": "0.4"
+					}
+				},
+				"v": "baef74012d85813dca18ab0218bb27c63ffabc414223f05c015b4b73485b8fed",
+				"version": "0.2",
+				"userDetails": "{\"records\":{\"index\":{\"327139a4d4cfbdb61c06b4cfa009f9cb05ef2f3e3703b6b071bcdb4213b2ca83\":\"0\"},\"data\":\"HF+LSoX668EqFNltHvK7vaiO4srKLI5AzxXmlTssJNUCgSoWcvyE3psARFbnRamrUKHsFXipQypQjLH3W9eHNCt1im4GnxLGJskFJx0IjfYwrIJP1MNThUoz2EMMGAJiZS4WAFxnpMj3pD1JpFvNVtC+5B1NNQ==\"},\"directLogins\":{\"index\":{},\"data\":\"AJvILR1GywXePCwZd6HE27im\"},\"preferences\":{\"data\":\"5sK4mjoBQ3ONd4oKpxB9yWcV\"},\"oneTimePasswords\":{\"data\":\"J1yST9vO+PGreat6f8W7McqF\"},\"version\":\"0.1\"}",
+				"maxNumberOfRecords": 100,
+				"statistics": "h4SscRLQf8X+q5+Qhfs6MG44"
+			}
+		}
+	};}(),	
+	
+	
+	
+	
+	
+	
 	
 	//-------------------------------------------------------------------------
 /*

@@ -100,7 +100,9 @@ Clipperz.PM.UI.Components.ExtraFeatures.PassphraseClass = React.createClass({
 
 	render: function () {
 		return	React.DOM.div({className:'extraFeature passphrase'}, [
-			React.DOM.h1({}, "Change Passphrase"),
+			React.DOM.div({'className':'header'}, [
+				React.DOM.h1({}, "Change Passphrase"),
+			]),
 			React.DOM.div({'className': 'content'}, [
 				React.DOM.form({'key':'form', 'className':'changePassphraseForm', 'onChange': this.handleFormChange, 'onSubmit':this.handleChangePassphrase}, [
 					React.DOM.div({'key':'fields'},[
@@ -117,8 +119,8 @@ Clipperz.PM.UI.Components.ExtraFeatures.PassphraseClass = React.createClass({
 						React.DOM.input({'key':'confirm-new-passphrase', 'className':this.state['confirm-new-passphrase'], 'type':'password', 'name':'confirm-new-passphrase', 'ref':'confirm-new-passphrase', 'placeholder':"confirm new passphrase"}),
 
 						React.DOM.p({}, [
-							React.DOM.input({'key':'confirm', 'className':'confirmCheckbox', 'type':'checkbox', 'name':'confirm', 'ref':'confirm'}),
-							React.DOM.span({}, "I understand that Clipperz will not be able to recover a lost passphrase.")
+							React.DOM.input({'key':'confirm', 'id':'changePassphraseConfirmCheckbox', 'className':'confirmCheckbox', 'type':'checkbox', 'name':'confirm', 'ref':'confirm'}),
+							React.DOM.label({'htmlFor':'changePassphraseConfirmCheckbox'}, "I understand that Clipperz will not be able to help me recovering a lost passphrase.")
 						]),
 					]),
 					React.DOM.button({'key':'button', 'type':'submit', 'disabled':!this.shouldEnableChangePassphraseButton(), 'className':'button'}, "Change passphrase"),

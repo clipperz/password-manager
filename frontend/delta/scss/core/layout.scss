@@ -34,7 +34,7 @@ html {
 //	@include user-select(none);
 }
 
-input {
+input[type=text] {
 	-webkit-appearance: none;	
 }
 
@@ -216,7 +216,7 @@ input {
 		& > div {
 			@include flex(auto);
 		
-			@include overflow-auto;
+			@include overflow-auto();
 //			overflow: auto;
 		
 		}
@@ -233,6 +233,23 @@ input {
 		height: 100%;
 //		background-color: rgba( 0, 0, 0, 0.95);
 		background-color: black;
+
+		.extraFeature {
+			@include flexbox();
+			@include flex-direction(column);
+			height: 100%;
+		
+			.header {
+				@include flex(none);
+				padding: 20px;
+			}
+			.content {
+				@include flex(auto);
+//				height: 100%;
+				padding: 0px 20px 20px 20px;
+				@include overflow-auto();
+			}
+		}
 	}
 }
 
@@ -444,7 +461,7 @@ div.cardContent {
 			@include flex(auto);
 //			overflow-y: scroll;
 //			overflow:auto;
-			@include overflow-auto;
+			@include overflow-auto();
 		}
 	}
 }

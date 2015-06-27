@@ -1,0 +1,229 @@
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
+
+"use strict";
+Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures');
+
+Clipperz.PM.UI.Components.ExtraFeatures.OTPClass = React.createClass({
+
+	//	TODO: add print button!!!!
+
+	getInitialState: function() {
+		return {
+//			'selectedOTPs': [],
+			'labelBeingEdited': null,
+			'otpLabel': '',
+		};
+	},
+
+	propTypes: {
+	},
+
+	//=========================================================================
+
+	handleNew: function() {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'createNewOTP');
+	},
+	
+	handleDelete: function (anOtpReference) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'deleteOTPs', [anOtpReference]);
+	},
+
+	//-------------------------------------------------------------------------
+
+	enableOtpLabelEditing: function(anOTP) {
+		var newState = this.state;
+
+		newState['labelBeingEdited'] = anOTP.reference();
+		newState['otpLabel'] = anOTP.label();
+
+		this.setState(newState);
+	},
+	
+	updateOtpLabel: function (anOTP, anEvent) {
+		var newState = this.state;
+		var	newLabel = anEvent.target.value
+
+		newState['otpLabel'] = newLabel;
+
+		this.setState(newState);
+	},
+	
+	handleKeyPressed: function (anOTP, anEvent) {
+		switch (anEvent.keyCode) {
+			case  9: // tab
+				this.handleLabelSave(anOTP);
+				//	TODO: edit label of next OTP
+				break;
+			case 13: // enter
+				this.handleLabelSave(anOTP);
+			case 27: // escape
+				this.handleLabelCancel(anOTP);
+				break;
+		}
+	},
+
+	handleLabelSave: function (anOTP) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'changeOTPLabel', anOTP.reference(), this.state['otpLabel']);
+		this.handleLabelCancel()
+	},
+
+	handleLabelCancel: function() {
+		var newState;
+
+		newState = this.state;
+		newState['labelBeingEdited'] = null;
+
+		this.setState(newState);
+	},
+
+	//=========================================================================
+
+	handlePrint: function () {
+		this.printOneTimePasswords();
+	},
+
+	printOneTimePasswords: function () {
+		var newWindow;
+
+		var filteredOtpList = MochiKit.Base.filter(MochiKit.Base.bind(function (anOTP) {
+			return (this.props.userInfo.otpsDetails[anOTP.reference()]['status'] == 'ACTIVE');
+		}, this), this.props.userInfo.otpList);
+
+		newWindow = window.open("", "");
+		newWindow.document.write(
+			'<!DOCTYPE html>' +
+			'<html lang="en">' +
+				'<head>' +
+					'<meta charset="utf-8">' +
+					'<title>Active One Time Passwords - Clipperz</title>' +
+					'<style>' +
+						'li { padding-bottom: 10px; }' +
+						'li span { display: block; }' +
+						'span.password { font-family: monospace; font-size: 16pt; padding-bottom: 5px; }' +
+						'span.label { font-family: sans-serif; font-size: 12pt; }' +
+					'</style>' +
+				'</head>' +
+				'<body>' +
+					'<ul>' +
+						MochiKit.Base.map(function (anOTP) {
+							return	'<li>' +
+										'<span class="password">' + anOTP.password() + '</span>' +
+										'<span class="label">' + anOTP.label() + '</span>' +
+									'</li>';
+						}, filteredOtpList).join('') +
+					'</ul>' +
+				'</body>' +
+			'</html>'
+		);
+
+		newWindow.document.close();
+		newWindow.focus();
+		newWindow.print();
+		newWindow.close();
+	},
+
+	//=========================================================================
+
+	renderOtpRows: function() {
+		var result;
+
+		if (this.props.userInfo.otpList) {
+			result = MochiKit.Base.map(MochiKit.Base.bind(function (anOTP) {
+				var	reference = anOTP.reference();
+				var	otpDetailInfo = this.props.userInfo.otpsDetails[reference];
+				var	labelComponent;
+				var	otpStatusInfo;
+				var	otpClasses;
+				var	optLabel;
+
+				otpClasses = {
+					'otpDetail': true,
+				};
+				otpClasses[otpDetailInfo['status']] = true;
+
+				if (otpDetailInfo['status'] != 'ACTIVE') {
+					otpStatusInfo = React.DOM.div({'className':'otpStatusInfo'}, [
+						React.DOM.span({'className':'otpStatus'}, otpDetailInfo['status']),
+						React.DOM.span({'className':'requestDate'}, otpDetailInfo['requestDate']),
+						React.DOM.span({'className':'connectionIp'}, otpDetailInfo['connection']['ip']),
+						React.DOM.span({'className':'connectionBrowser'}, otpDetailInfo['connection']['browser']),
+					])
+				} else {
+					otpStatusInfo = null;
+				}
+
+				if (reference == this.state.labelBeingEdited) {
+					labelComponent = React.DOM.input({
+						'autoFocus':true,
+						'value':this.state.otpLabel,
+						'onChange':MochiKit.Base.partial(this.updateOtpLabel, anOTP),
+						'onKeyDown':MochiKit.Base.partial(this.handleKeyPressed, anOTP),
+					});
+				} else {
+					labelComponent = React.DOM.span({'onClick':MochiKit.Base.partial(this.enableOtpLabelEditing, anOTP)}, (anOTP.label()) ? anOTP.label() : "---")
+				}
+
+				return React.DOM.li({
+					'key':'otp-' + reference,
+					'className':Clipperz.PM.UI.Components.classNames(otpClasses)
+				}, [
+					React.DOM.div({'className':'otpAction'}, [
+						React.DOM.a({'onClick':MochiKit.Base.partial(this.handleDelete, reference)}, 'remove OTP'),
+					]),
+					React.DOM.div({'className':'otpInfo'}, [
+						React.DOM.div({'className':'otpPassword'}, anOTP.password()),
+						React.DOM.div({'className':'otpLabel'}, labelComponent),
+						otpStatusInfo,
+					]),
+				]);
+			}, this), this.props.userInfo.otpList);
+		} else {
+			result = React.DOM.li({}, React.DOM.div({}, "..."));
+		}
+
+		return result;
+	},
+
+	render: function () {
+		return	React.DOM.div({'className':'extraFeature OTP'}, [
+			React.DOM.div({'className':'header'}, [
+				React.DOM.h1({}, "One Time Passwords"),
+				React.DOM.div({'className':'description'}, [
+					React.DOM.p({}, "A one-time passphrase works like your regular passphrase, but can be used only once. This makes it expecially useful for using it in places where keyloggers may be installed."),
+				]),
+				React.DOM.a({'className':'button', 'onClick':this.handlePrint}, "Print")
+			]),
+			React.DOM.div({'className':'content'}, [
+				React.DOM.ul({'className':'otpList'}, this.renderOtpRows()),
+				React.DOM.div({'className':'actions'}, [
+					React.DOM.a({'onClick': this.handleNew}, "create new OTP"),
+				]),
+			])
+		]);
+	},
+
+	//=========================================================================
+});
+
+Clipperz.PM.UI.Components.ExtraFeatures.OTP = React.createFactory(Clipperz.PM.UI.Components.ExtraFeatures.OTPClass);

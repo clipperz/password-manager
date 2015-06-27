@@ -23,7 +23,7 @@ refer to http://www.clipperz.com.
 
 "use strict";
 
-Clipperz.PM.DataModel.Record.tagChar = '#';	//	Simplify tests using a 'regular' char instead of an UTF-8 reserved one
+// Clipperz.PM.DataModel.Record.tagChar = '#';	//	Simplify tests using a 'regular' char instead of an UTF-8 reserved one
 Clipperz.Crypto.PRNG.defaultRandomGenerator().fastEntropyAccumulationForTestingPurpose();
 
 var tests = {
@@ -79,6 +79,33 @@ var tests = {
 		
 		return deferredResult;
 	},
+
+    //-------------------------------------------------------------------------
+    'createNewRecord_test': function(someTestArgs) {
+    	var deferredResult;
+    	var proxy;
+    	var user;
+
+    	proxy =	new Clipperz.PM.Proxy.Test({shouldPayTolls:true, isDefault:true, readOnly:false});
+    	user =	new Clipperz.PM.DataModel.User({username:"1", getPassphraseFunction:MochiKit.Base.partial(MochiKit.Async.succeed, "1")});
+
+    	deferredResult = new Clipperz.Async.Deferred("deleteOTP_test", someTestArgs);
+    	deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['1/1_data']);
+
+    	deferredResult.addMethod(user, 'login');
+    	deferredResult.addMethod(user, 'createNewRecord');
+    	deferredResult.setValue('newRecord');
+    	deferredResult.addMethodcaller('setLabel', "A record");
+    	deferredResult.getValue('newRecord');
+    	deferredResult.addMethodcaller('addField', {'label':"Field 1", 'value':"Value 1", 'isHidden':false});
+    	deferredResult.getValue('newRecord');
+    	deferredResult.addMethodcaller('label');
+    	deferredResult.addTest("A record", "Record returns the right value for label");
+
+    	deferredResult.callback();
+
+    	return deferredResult;
+    },
 
     //-------------------------------------------------------------------------
 
@@ -1434,6 +1461,8 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 			return filterRecordsWithRegExp(aUser, Clipperz.PM.DataModel.Record.regExpForSearch(aSearchTerm));
 		}
 
+		var tagChar = Clipperz.PM.DataModel.Record.tagChar;
+
 		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:false, isDefault:true, readOnly:false});
 		user  = new Clipperz.PM.DataModel.User({username:'tag', getPassphraseFunction:function () { return 'tag';}});
 
@@ -1452,11 +1481,11 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult.addMethod(user, 'getRecordsInfo', Clipperz.PM.DataModel.Record.defaultCardInfo);
 		deferredResult.addCallback(MochiKit.Base.map, Clipperz.Base.itemgetter('_searchableContent'));
 		deferredResult.addCallback(SimpleTest.eq, [
-			'Card 1 #Tag1 #Tag2 ',
-			'Card 2 #Tag1 #Tag3 ',
-			'Card 3 #Tag1 ',
-			'Card 4 #Tag3 ',
-			'Card 5 #Tag4 ',
+			'Card 1 '+tagChar+'Tag1 '+tagChar+'Tag2 ',
+			'Card 2 '+tagChar+'Tag1 '+tagChar+'Tag3 ',
+			'Card 3 '+tagChar+'Tag1 ',
+			'Card 4 '+tagChar+'Tag3 ',
+			'Card 5 '+tagChar+'Tag4 ',
 			'Card 6 '
 		]);
 
@@ -1920,7 +1949,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		var	deferredResult;
 		var	proxy;
 		var	user;
-		var recordID =		'eb9a01d0094fcd8f3cbf4f875b7f4c43afa2bb796b5787badf75fba1b3e77c01'
+		var recordID =		'327139a4d4cfbdb61c06b4cfa009f9cb05ef2f3e3703b6b071bcdb4213b2ca83'
 		var originalFieldReference = 'bfd7624054e1eb6f1849082714f4016e300bce66645c7a7370276d82767cf125';
 
 		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:false, isDefault:true, readOnly:false});
@@ -2002,7 +2031,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		var	deferredResult;
 		var	proxy;
 		var	user;
-		var recordID =		'eb9a01d0094fcd8f3cbf4f875b7f4c43afa2bb796b5787badf75fba1b3e77c01'
+		var recordID =		'327139a4d4cfbdb61c06b4cfa009f9cb05ef2f3e3703b6b071bcdb4213b2ca83'
 		var originalFieldReference = 'bfd7624054e1eb6f1849082714f4016e300bce66645c7a7370276d82767cf125';
 
 		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:false, isDefault:true, readOnly:false});
@@ -2066,7 +2095,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		var	deferredResult;
 		var	proxy;
 		var	user;
-		var recordID =		'eb9a01d0094fcd8f3cbf4f875b7f4c43afa2bb796b5787badf75fba1b3e77c01'
+		var recordID =		'327139a4d4cfbdb61c06b4cfa009f9cb05ef2f3e3703b6b071bcdb4213b2ca83'
 //		var originalFieldReference = 'bfd7624054e1eb6f1849082714f4016e300bce66645c7a7370276d82767cf125';
 
 		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:false, isDefault:true, readOnly:false});
@@ -2132,7 +2161,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		var	deferredResult;
 		var	proxy;
 		var	user;
-		var recordID =		'eb9a01d0094fcd8f3cbf4f875b7f4c43afa2bb796b5787badf75fba1b3e77c01'
+		var recordID =		'327139a4d4cfbdb61c06b4cfa009f9cb05ef2f3e3703b6b071bcdb4213b2ca83'
 //		var originalFieldReference = 'bfd7624054e1eb6f1849082714f4016e300bce66645c7a7370276d82767cf125';
 
 		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:false, isDefault:true, readOnly:false});

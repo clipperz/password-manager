@@ -31,18 +31,13 @@ if (typeof(Clipperz.PM.DataModel) == 'undefined') { Clipperz.PM.DataModel = {}; 
 Clipperz.PM.DataModel.OneTimePassword = function(args) {
 	args = args || {};
 
-//	this._user = args['user'];
+	this._username		= args['username'];
+	this._passphraseCallback = args['passphraseCallback'];
 	this._reference		= args['reference']	|| Clipperz.PM.Crypto.randomKey();
 	this._password		= args['password'];
 	this._passwordValue = Clipperz.PM.DataModel.OneTimePassword.normalizedOneTimePassword(args['password']);
-	this._creationDate	= args['created']	? Clipperz.PM.Date.parseDateWithUTCFormat(args['created'])		: new Date();
-	this._usageDate		= args['used']		? Clipperz.PM.Date.parseDateWithUTCFormat(args['used'])			: null;
-		
-	this._status		= args['status']	|| 'ACTIVE';	//	'REQUESTED', 'USED', 'DISABLED'
-	this._connectionInfo= null;
-	
-	this._key			= null;
-	this._keyChecksum	= null;
+	this._label			= args['label'] || "";
+	this._usageDate		= args['usageDate'] || null; // Usage date is stored when the client is sure that the otp was used
 
 	return this;
 }
@@ -52,29 +47,39 @@ Clipperz.PM.DataModel.OneTimePassword.prototype = MochiKit.Base.update(null, {
 	'toString': function() {
 		return "Clipperz.PM.DataModel.OneTimePassword";
 	},
-/*
-	//-------------------------------------------------------------------------
 
-	'user': function() {
-		return this._user;
+	'username': function() {
+		return this._username;
 	},
 
-	//-------------------------------------------------------------------------
+	'passphraseCallback': function () {
+		return this._passphraseCallback;
+	},
+
+	'setPassphraseCallback': function(aPassphraseCallback) {
+		this._passphraseCallback = aPassphraseCallback;
+	},
 
 	'password': function() {
 		return this._password;
 	},
 
+	'label': function() {
+		return this._label;
+	},
+
+	'usageDate': function() {
+		return this._usageDate;
+	},
+
+	'setUsageDate': function(aDate) {
+		this._usageDate = aDate;
+	},
+	
 	//-------------------------------------------------------------------------
 
 	'passwordValue': function() {
 		return this._passwordValue;
-	},
-
-	//-------------------------------------------------------------------------
-
-	'creationDate': function() {
-		return this._creationDate;
 	},
 
 	//-------------------------------------------------------------------------
@@ -86,51 +91,18 @@ Clipperz.PM.DataModel.OneTimePassword.prototype = MochiKit.Base.update(null, {
 	//-------------------------------------------------------------------------
 
 	'key': function() {
-		if (this._key == null) {
-			this._key = Clipperz.PM.DataModel.OneTimePassword.computeKeyWithUsernameAndPassword(this.user().username(), this.passwordValue());
-		}
-		
-		return this._key;
+		return Clipperz.PM.DataModel.OneTimePassword.computeKeyWithPassword(this.passwordValue());
 	},
-	
+
 	//-------------------------------------------------------------------------
 
 	'keyChecksum': function() {
-		if (this._keyChecksum == null) {
-			this._keyChecksum = Clipperz.PM.DataModel.OneTimePassword.computeKeyChecksumWithUsernameAndPassword(this.user().username(), this.passwordValue());
-		}
-		
-		return this._keyChecksum;
-	},
-*/
-	//-------------------------------------------------------------------------
-
-	'status': function() {
-		return this._status;
-	},
-	
-	'setStatus': function(aValue) {
-		this._status = aValue;
-	},
-	
-	//-------------------------------------------------------------------------
-/*
-	'serializedData': function() {
-		var result;
-		
-		result = {
-			'password': 	this.password(),
-			'created':		this.creationDate()		? Clipperz.PM.Date.formatDateWithUTCFormat(this.creationDate())		: null,
-			'used':			this.usageDate()		? Clipperz.PM.Date.formatDateWithUTCFormat(this.usageDate())		: null,
-			'status':	 	this.status()
-		};
-		
-		return result;
+		return Clipperz.PM.DataModel.OneTimePassword.computeKeyChecksumWithUsernameAndPassword(this.username(), this.passwordValue());
 	},
 	
 	//-------------------------------------------------------------------------
 
-	'packedPassphrase': function() {
+	'packedPassphrase': function(aPassphrase) {
 		var result;
 		var packedPassphrase;
 		var encodedPassphrase;
@@ -140,32 +112,29 @@ Clipperz.PM.DataModel.OneTimePassword.prototype = MochiKit.Base.update(null, {
 		
 		getRandomBytes = MochiKit.Base.method(Clipperz.Crypto.PRNG.defaultRandomGenerator(), 'getRandomBytes');
 		
-		encodedPassphrase = new Clipperz.ByteArray(this.user().passphrase()).toBase64String();
-//Clipperz.logDebug("--- encodedPassphrase.length: " + encodedPassphrase.length);
+		encodedPassphrase = new Clipperz.ByteArray(aPassphrase).toBase64String();
 		prefixPadding = getRandomBytes(getRandomBytes(1).byteAtIndex(0)).toBase64String();
-//Clipperz.logDebug("--- prefixPadding.length: " + prefixPadding.length);
 		suffixPadding = getRandomBytes((500 - prefixPadding.length - encodedPassphrase.length) * 6 / 8).toBase64String();
-//Clipperz.logDebug("--- suffixPadding.length: " + suffixPadding.length);
-//Clipperz.logDebug("--- total.length: " + (prefixPadding.length + encodedPassphrase.length + suffixPadding.length));
-	
+
 		packedPassphrase = {
 			'prefix': prefixPadding,
 			'passphrase': encodedPassphrase,
 			'suffix': suffixPadding
 		};
 		
-//		result = Clipperz.Base.serializeJSON(packedPassphrase);
 		result = packedPassphrase;
-//Clipperz.logDebug("===== OTP packedPassprase: [" + result.length + "]" + result);
-//Clipperz.logDebug("<<< OneTimePassword.packedPassphrase");
 
 		return result;
 	},
 	
 	//-------------------------------------------------------------------------
 
-	'encryptedPackedPassphrase': function() {
-		return Clipperz.PM.Crypto.deferredEncryptWithCurrentVersion(this.passwordValue(), this.packedPassphrase())
+	'encryptedPackedPassphrase': function(aPassphrase) {
+		return Clipperz.PM.Crypto.deferredEncrypt({
+			'key':		this.passwordValue(),
+			'value':	this.packedPassphrase(aPassphrase),
+			'version':	Clipperz.PM.Crypto.encryptingFunctions.currentVersion
+		})
 	},
 
 	//-------------------------------------------------------------------------
@@ -174,8 +143,6 @@ Clipperz.PM.DataModel.OneTimePassword.prototype = MochiKit.Base.update(null, {
 		var deferredResult;
 		var	result;
 
-//Clipperz.logDebug(">>> OneTimePassword.encryptedData");
-//Clipperz.logDebug("--- OneTimePassword.encryptedData - id: " + this.reference());
 		result = {
 			'reference': this.reference(),
 			'key': this.key(),
@@ -183,116 +150,26 @@ Clipperz.PM.DataModel.OneTimePassword.prototype = MochiKit.Base.update(null, {
 			'data': "",
 			'version': Clipperz.PM.Crypto.encryptingFunctions.currentVersion
 		}
-//Clipperz.logDebug("--- OneTimePassword.encryptedData - 2: " + Clipperz.Base.serializeJSON(result));
-		deferredResult = new MochiKit.Async.Deferred();
-//Clipperz.logDebug("--- OneTimePassword.encryptedData - 3");
-//deferredResult.addBoth(function(res) {Clipperz.logDebug("OneTimePassword.encryptedData - 1: " + res); return res;});
-//#		deferredResult.addCallback(Clipperz.PM.Crypto.deferredEncryptWithCurrentVersion, this.passwordValue(), this.packedPassphrase());
+		deferredResult = new Clipperz.Async.Deferred("OneTimePassword.encryptedData", {trace: false});
+		deferredResult.addCallback(this.passphraseCallback());
 		deferredResult.addCallback(MochiKit.Base.method(this, 'encryptedPackedPassphrase'));
-//Clipperz.logDebug("--- OneTimePassword.encryptedData - 4");
-//deferredResult.addBoth(function(res) {Clipperz.logDebug("OneTimePassword.encryptedData - 2: [" + res.length + "]" + res); return res;});
 		deferredResult.addCallback(function(aResult, res) {
 			aResult['data'] = res;
 			return aResult;
 		}, result);
-//Clipperz.logDebug("--- OneTimePassword.encryptedData - 5");
-//deferredResult.addBoth(function(res) {Clipperz.logDebug("OneTimePassword.encryptedData - 3: " + Clipperz.Base.serializeJSON(res)); return res;});
+
 		deferredResult.callback();
-//Clipperz.logDebug("--- OneTimePassword.encryptedData - 6");
 		
 		return deferredResult;
 	},
 
-	//-------------------------------------------------------------------------
-
-	'saveChanges': function() {
-		var deferredResult;
-		var	result;
-
-//Clipperz.logDebug(">>> OneTimePassword.saveChanges");
-		result = {};
-		deferredResult = new MochiKit.Async.Deferred();
-
-		deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'updatedProgressState', 'saveOTP_encryptUserData');
-		deferredResult.addCallback(MochiKit.Base.method(this.user(), 'encryptedData'));
-		deferredResult.addCallback(function(aResult, res) {
-			aResult['user'] = res;
-			return aResult;
-		}, result);
-
-		deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'updatedProgressState', 'saveOTP_encryptOTPData');
-		deferredResult.addCallback(MochiKit.Base.method(this, 'encryptedData'));
-		deferredResult.addCallback(function(aResult, res) {
-			aResult['oneTimePassword'] = res;
-			return aResult;
-		}, result);
-
-		deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'updatedProgressState', 'saveOTP_sendingData');
-//deferredResult.addBoth(function(res) {Clipperz.logDebug("OneTimePassword.saveChanges - 1: " + Clipperz.Base.serializeJSON(res)); return res;});
-		deferredResult.addCallback(MochiKit.Base.method(this.user().connection(), 'message'), 'addNewOneTimePassword');
-
-		deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'updatedProgressState', 'saveOTP_updatingInterface');
-//deferredResult.addBoth(function(res) {Clipperz.logDebug("OneTimePassword.saveChanges - 2: " + res); return res;});
-		deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'notify', 'OTPUpdated');
-		deferredResult.addCallback(Clipperz.NotificationCenter.deferredNotification, this, 'oneTimePassword_saveChanges_done', null);
-//deferredResult.addBoth(function(res) {Clipperz.logDebug("OneTimePassword.saveChanges - 2: " + res); return res;});
-		deferredResult.callback();
-//Clipperz.logDebug("<<< OneTimePassword.saveChanges");
-		
-		return deferredResult;
-	},
-
-	//-------------------------------------------------------------------------
-
-	'usageDate': function() {
-		return this._usageDate;
-	},
-
-	'setUsageDate': function(aValue) {
-		this._usageDate = aValue;
-	},
-
-	//-------------------------------------------------------------------------
-
-	'connectionInfo': function() {
-		return this._connectionInfo;
-	},
-
-	'setConnectionInfo': function(aValue) {
-		this._connectionInfo = aValue;
-	},
-	
-	//-------------------------------------------------------------------------
-
-	'isExpired': function() {
-		return (this.usageDate() != null);
-	},
-
-	//-------------------------------------------------------------------------
-
-	'updateStatusWithValues': function(someValues) {
-		var result;
-
-		result = false;
-		
-		if (someValues['status'] != this.status()) {
-			result = true;
-		}
-		
-		this.setStatus(someValues['status']);
-		this.setUsageDate(Clipperz.PM.Date.parseDateWithUTCFormat(someValues['requestDate']));
-		this.setConnectionInfo(someValues['connection']);
-
-		return result;
-	},
-*/	
 	//-------------------------------------------------------------------------
 	__syntaxFix__: "syntax fix"
 });
 
 //#############################################################################
 
-Clipperz.PM.DataModel.OneTimePassword.computeKeyWithUsernameAndPassword = function(anUsername, aPassword) {
+Clipperz.PM.DataModel.OneTimePassword.computeKeyWithPassword = function(aPassword) {
 	return Clipperz.Crypto.SHA.sha_d256(new Clipperz.ByteArray(aPassword)).toHexString().substring(2);
 }
 
@@ -348,3 +225,32 @@ Clipperz.PM.DataModel.OneTimePassword.normalizedOneTimePassword = function(aPass
 };
 
 //#############################################################################
+
+Clipperz.PM.DataModel.OneTimePassword.generateRandomBase32OTPValue = function() {
+		var randomValue;
+		var	result;
+
+		randomValue = Clipperz.Crypto.PRNG.defaultRandomGenerator().getRandomBytes(160/8);
+		result = randomValue.toBase32String();
+		result = result.replace(/.{4}\B/g, '$&' + ' ');
+		result = result.replace(/(.{4} ){2}/g, '$&' + '- ');
+
+		return result;
+	},
+
+//#############################################################################
+
+Clipperz.PM.DataModel.OneTimePassword.createNewOneTimePassword = function(aUsername, aPassphraseCallback) {
+	var result;
+	var password;
+	
+	password = Clipperz.PM.DataModel.OneTimePassword.generateRandomBase32OTPValue();
+	result = new Clipperz.PM.DataModel.OneTimePassword({
+		'username':	aUsername,
+		'passphraseCallback': aPassphraseCallback,
+		'password': password,
+		'label': ""
+	});
+
+	return result;
+}

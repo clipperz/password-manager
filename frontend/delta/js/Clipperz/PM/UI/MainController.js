@@ -63,6 +63,7 @@ Clipperz.PM.UI.MainController = function() {
 	this.registerForNotificationCenterEvents([
 		'doLogin', 'registerNewUser', 'showRegistrationForm', 'goBack',
 		'changePassphrase', 'deleteAccount',
+		'updateOTPListAndDetails', 'createNewOTP', 'deleteOTPs', 'changeOTPLabel',
 //		'export',
 		'importCards',
 		'downloadExport',
@@ -121,6 +122,16 @@ MochiKit.Base.update(Clipperz.PM.UI.MainController.prototype, {
 		return this._registrationWizard;
 	},
 
+	//=========================================================================
+/*
+	proxy: function () {
+		return this._proxy;
+	},
+
+	setProxy: function (aValue) {
+		this._proxy = aValue;
+	},
+*/
 	//=========================================================================
 
 	isOnline: function() {
@@ -246,10 +257,8 @@ console.log("THE BROWSER IS OFFLINE");
 		var	canRegisterNewUsers;
 
 		canRegisterNewUsers = Clipperz.PM.Proxy.defaultProxy.canRegisterNewUsers();
-//console.log("CAN REGISTER NEW USERS", canRegisterNewUsers);
 		this.selectInitialProxy();
 		shouldShowRegistrationForm = parameters['shouldShowRegistrationForm'] && canRegisterNewUsers;
-//		this.pages()['loginPage'].setProps({'mode':this.loginMode(), 'isNewUserRegistrationAvailable':canRegisterNewUsers});
 
 		this.showLoginForm();
 		if (shouldShowRegistrationForm) {
@@ -262,7 +271,7 @@ console.log("THE BROWSER IS OFFLINE");
 
 	//-------------------------------------------------------------------------
 	
-	checkPassphrase: function (passphraseIn) {
+	checkPassphrase: function( passphraseIn ) {
 		var deferredResult;
 		
 		deferredResult = new Clipperz.Async.Deferred("MainController.checkPassphrase", {trace: false});
@@ -931,13 +940,12 @@ console.log("THE BROWSER IS OFFLINE");
 
 	//.........................................................................
 	
-	userInfo: function() {
+		userInfo: function () {
 		var result;
 		
-		result = {
-			'checkPassphraseCallback':	MochiKit.Base.bind(this.checkPassphrase,this)
-		};
+		result = {};
 		
+		result['checkPassphraseCallback'] = MochiKit.Base.bind(this.checkPassphrase,this);
 		if (this.user() != null) {
 			result['username'] = this.user().username();
 		}
@@ -1116,6 +1124,9 @@ console.log("THE BROWSER IS OFFLINE");
 	toggleSettingsPanel_handler: function (anEvent) {
 		this._isSettingsPanelOpen = !this._isSettingsPanelOpen;
 		this.setCloseMaskAction(MochiKit.Base.method(this, 'toggleSettingsPanel_handler'));
+		if (this._isSettingsPanelOpen == false) {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'closeSettingsPanel');
+		}
 		this.refreshCurrentPage();
 	},
 
@@ -1246,7 +1257,7 @@ console.log("THE BROWSER IS OFFLINE");
 	},
 
 	//----------------------------------------------------------------------------
-	
+
 //	export_handler: function(exportType) {
 //		return Clipperz.PM.UI.ExportController.exportJSON( this.recordsInfo(), exportType );
 //	},
@@ -1274,14 +1285,14 @@ console.log("THE BROWSER IS OFFLINE");
 		var deferredResult;
 		var getPassphraseDelegate;
 		var user;
-
+		
 		getPassphraseDelegate = MochiKit.Base.partial(MochiKit.Async.succeed, newPassphrase);
 		user = new Clipperz.PM.DataModel.User({'username':this.user().username(), 'getPassphraseFunction':getPassphraseDelegate});
 		
 		deferredResult = new Clipperz.Async.Deferred("MainController.changePassphrase_handler", {trace: false});
 //		deferredResult.addMethod(currentPage, 'setProps', {'showGlobalMask':true});
 		deferredResult.addMethod(this.overlay(), 'show', "changing …", true);
-		deferredResult.addMethod(this.user(), 'changePassphrase', newPassphrase);
+		deferredResult.addMethod(this.user(), 'changePassphrase', getPassphraseDelegate);
 		deferredResult.addMethod(user, 'login');
 		deferredResult.addMethod(this, 'setUser', user);
 //		deferredResult.addMethod(currentPage, 'setProps', {'mode':'view', 'showGlobalMask':false});
@@ -1290,12 +1301,12 @@ console.log("THE BROWSER IS OFFLINE");
 		deferredResult.callback();
 		
 		return deferredResult;
-	}, 
+	},
 	
 	deleteAccount_handler: function() {
 		var deferredResult;
 		var doneMessageDelay = 2;
-
+		
 		deferredResult = new Clipperz.Async.Deferred("MainController.deleteAccount_handler", {trace: false});
 		deferredResult.addCallback(MochiKit.Base.method(this, 'ask', {
 			'question': "Do you really want to permanently delete your account?",
@@ -1313,23 +1324,22 @@ console.log("THE BROWSER IS OFFLINE");
 		
 		return deferredResult;
 	},
-
+	
 	importCards_handler: function(data) {
 		return Clipperz.Async.callbacks("MainController.importCards_handler", [
 			MochiKit.Base.method(this.overlay(), 'show', "importing …", true),
-			function() { return data; },
-			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, function(recordData) {
-				var newRecord;
-				// I have the feeling this should be done in a more elegant way
-				return Clipperz.Async.callbacks("MainController.importCards_handler-newRecord", [
-					MochiKit.Base.method(this.user(), 'createNewRecord'),
-					function (aValue) {
-						newRecord = aValue;
-						return newRecord;
-					},
-					MochiKit.Base.methodcaller('setUpWithJSON', recordData),
-				])
-			})),
+			MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel'),
+//			MochiKit.Base.method(this.pages()[this.currentPage()], 'setProps', {'mode':'view', 'showGlobalMask':false}),
+			function () { return data; },
+			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this.user(), 'createNewRecordFromJSON')),
+
+			// MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.bind(function (recordData) {
+			// 	return Clipperz.Async.callbacks("MainController.importCards_handler-newRecord", [
+			// 		MochiKit.Base.method(this.user(), 'createNewRecord'),
+			// 		MochiKit.Base.methodcaller('setUpWithJSON', recordData),
+			// 	], {trace:false})
+			// }, this)),
+			
 			Clipperz.Async.collectAll,
 			MochiKit.Base.method(this.user(), 'saveChanges'),
 			MochiKit.Base.partial(MochiKit.Base.method(this, 'resetRecordsInfo')),
@@ -1339,6 +1349,61 @@ console.log("THE BROWSER IS OFFLINE");
 		], {trace:false});
 	},
 
+	//----------------------------------------------------------------------------
+	
+	updateOTPListAndDetails: function() {
+
+		return Clipperz.Async.callbacks("MainController.updateOTPListAndDetails", [
+			Clipperz.Async.collectResults("User.updateOTPListAndDetails <inner results>", {
+				'userInfo':		MochiKit.Base.method(this, 'userInfo'),
+				'otpDetails':	Clipperz.Async.collectResults("User.updateOTPListAndDetails <otpDetails>", {
+					'otpList':		MochiKit.Base.method(this.user(),'getOneTimePasswords'),
+					'otpsDetails':	MochiKit.Base.method(this.user(),'getOneTimePasswordsDetails'),
+				}),
+			}, {trace:false}),
+			function (someData) {
+				return MochiKit.Base.update(someData['userInfo'], someData['otpDetails']);
+			},
+			MochiKit.Base.bind(function(someUserInfo) {
+				this.setPageProperties('mainPage', 'userInfo', someUserInfo);
+			}, this)
+		], {trace:false});
+	},
+	
+	/* Used only one time (the first time the OTP ExtraFeature loads), other times
+	the list update is triggered by other operations. Maybe the first OTP list retrieval
+	could be done during init, so that this would not be necessary. */
+	updateOTPListAndDetails_handler: function () {
+		return this.updateOTPListAndDetails();
+	},
+	
+	createNewOTP_handler: function () {
+		return Clipperz.Async.callbacks("MainController.createNewOTP_handler", [
+			MochiKit.Base.method(this.overlay(), 'show', "", true),
+			MochiKit.Base.method(this.user(), 'createNewOTP'),
+			MochiKit.Base.method(this, 'updateOTPListAndDetails'),
+			MochiKit.Base.method(this.overlay(), 'done', "", 0.5),
+		], {trace:false});
+	},
+	
+	deleteOTPs_handler: function (aList) {
+		return Clipperz.Async.callbacks("MainController.deleteOTPs_handler", [
+			MochiKit.Base.method(this.overlay(), 'show', "", true),
+			MochiKit.Base.method(this.user(), 'deleteOTPs', aList),
+			MochiKit.Base.method(this, 'updateOTPListAndDetails'),
+			MochiKit.Base.method(this.overlay(), 'done', "", 0.5),
+		], {trace:false});
+	},
+	
+	changeOTPLabel_handler: function (aReference, aLabel) {
+		return Clipperz.Async.callbacks("MainController.changeOTPLabel_handler", [
+			MochiKit.Base.method(this.overlay(), 'show', "", true),
+			MochiKit.Base.method(this.user(), 'changeOTPLabel', aReference, aLabel),
+			MochiKit.Base.method(this, 'updateOTPListAndDetails'),
+			MochiKit.Base.method(this.overlay(), 'done', "", 0.5),
+		], {trace:false});
+	},
+	
 	//----------------------------------------------------------------------------
 
 	saveChanges: function () {

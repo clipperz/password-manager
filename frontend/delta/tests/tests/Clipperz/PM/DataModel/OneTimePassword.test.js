@@ -95,8 +95,8 @@ var tests = {
 
 		newPassphrase = 'tset';
 		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:true, isDefault:true, readOnly:false});
-		user = new Clipperz.PM.DataModel.User({username:'test', getPassphraseFunction:function () { return 'test';}});
-		user2 = new Clipperz.PM.DataModel.User({username:'test', getPassphraseFunction:function () { return otp;}});
+		user = new Clipperz.PM.DataModel.User({username:'test', getPassphraseFunction: MochiKit.Base.partial(MochiKit.Async.succeed, 'test')});
+		user2 = new Clipperz.PM.DataModel.User({username:'test', getPassphraseFunction: MochiKit.Base.partial(MochiKit.Async.succeed, otp)});
 
 		deferredResult = new Clipperz.Async.Deferred("changePassphraseAndLoginUsingOtp_test", someTestArgs);
 		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['test_test_with_otps']);
@@ -107,7 +107,7 @@ var tests = {
 		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
 		deferredResult.addTest(1, "This account has only a single card");
 
-		deferredResult.addMethod(user, 'changePassphrase', newPassphrase);
+		deferredResult.addMethod(user, 'changePassphrase', MochiKit.Base.partial(MochiKit.Async.succeed, newPassphrase));
 		deferredResult.addMethod(user, 'logout');
 
 		deferredResult.addMethod(user2, 'login');
@@ -181,7 +181,145 @@ var tests = {
 		return deferredResult;
 	},
 
-    //-------------------------------------------------------------------------
+	'loginWithANewOTP_test': function(someTestArgs) {
+		var deferredResult;
+		var proxy;
+		var user;
+		var user2;
+		var user3;
+		var username;
+		var passphrase;
+		
+		username = "1";
+		passphrase = "1";
+
+		proxy =	new Clipperz.PM.Proxy.Test({shouldPayTolls:true, isDefault:true, readOnly:false});
+		user =	new Clipperz.PM.DataModel.User({username:username, getPassphraseFunction:MochiKit.Base.partial(MochiKit.Async.succeed, passphrase)});
+		user2 =	new Clipperz.PM.DataModel.User({username:username, getPassphraseFunction:function () { return "WILL_BE_CHANGED_WITH_OTP";}});
+		user3 =	new Clipperz.PM.DataModel.User({username:username, getPassphraseFunction:function () { return "WILL_BE_CHANGED_WITH_OTP";}});
+
+		deferredResult = new Clipperz.Async.Deferred("loginUserWithANewOTP_test", someTestArgs);
+		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['1/1_data']);
+
+		deferredResult.addMethod(user, 'login');
+		deferredResult.addMethod(user, 'getRecords');
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(1, "This account has one single card");
+
+		deferredResult.addMethod(user, 'getOneTimePasswords');
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(0, "There should be no OTPs initially");
+
+		deferredResult.addMethod(user, 'createNewOTP');
+		deferredResult.addMethod(user, 'getOneTimePasswords');
+		deferredResult.setValue('otpList');
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(1, "There should be one single OTP now");
+
+		deferredResult.getValue('otpList');
+		deferredResult.addCallback(function(aList) {return MochiKit.Base.partial(MochiKit.Async.succeed, aList[0].password()); });
+		deferredResult.addMethod(user2, 'setPassphraseFunction'),
+		deferredResult.addMethod(user, 'logout');
+		deferredResult.addMethod(user2, 'login');
+
+		deferredResult.addMethod(user2, 'getRecords');
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(1, "This account has one single card");
+
+		deferredResult.getValue('otpList');
+		deferredResult.addCallback(function(aList) {return MochiKit.Base.partial(MochiKit.Async.succeed, aList[0].password()); });
+		deferredResult.addMethod(user3, 'setPassphraseFunction'),
+		deferredResult.addMethod(user2, 'logout');
+		deferredResult.addMethod(user3, 'login');
+		deferredResult.shouldFail("Second login with the same OTP should fail");
+
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+
+	'deleteOTP_test': function(someTestArgs) {
+		var deferredResult;
+		var proxy;
+		var user;
+		var user2;
+		var username;
+		var passphrase;
+		
+		username = "1";
+		passphrase = "1";
+
+		proxy =	new Clipperz.PM.Proxy.Test({shouldPayTolls:true, isDefault:true, readOnly:false});
+		user =	new Clipperz.PM.DataModel.User({username:username, getPassphraseFunction:MochiKit.Base.partial(MochiKit.Async.succeed, passphrase)});
+		user2 =	new Clipperz.PM.DataModel.User({username:username, getPassphraseFunction:function () { return "WILL_BE_CHANGED_WITH_OTP";}});
+
+		deferredResult = new Clipperz.Async.Deferred("deleteOTP_test", someTestArgs);
+		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['1/1_data']);
+
+		deferredResult.addMethod(user, 'login');
+		deferredResult.addMethod(user, 'getOneTimePasswords');
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(0, "There should be no OTPs initially");
+
+		deferredResult.addMethod(user, 'createNewOTP');
+		deferredResult.addMethod(user, 'createNewOTP');
+		deferredResult.addMethod(user, 'createNewOTP');
+		deferredResult.addMethod(user, 'createNewOTP');
+		deferredResult.addMethod(user, 'createNewOTP');
+		deferredResult.addMethod(user, 'createNewOTP');
+
+		deferredResult.addMethod(user, 'getOneTimePasswords');
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(6, "There should be 6 OTPs now");
+
+		deferredResult.addMethod(user, 'getOneTimePasswords');
+		deferredResult.addCallback(function(aList) {return [aList[0].reference(), aList[1].reference()];});
+		deferredResult.addMethod(user, 'deleteOTPs');
+		deferredResult.addMethod(user, 'getOneTimePasswords');
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(4, "There should be 4 OTPs now");
+
+		deferredResult.addMethod(user, 'getOneTimePasswords');
+		deferredResult.addCallback(function(aList) {return [aList[0].reference(), aList[1].reference(), aList[2].reference()];});
+		deferredResult.addMethod(user, 'deleteOTPs');
+		deferredResult.addMethod(user, 'getOneTimePasswords');
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(1, "There should be 1 OTP now");
+
+		deferredResult.addMethod(user, 'getOneTimePasswords');
+		deferredResult.addCallback(function(aList) {return MochiKit.Base.partial(MochiKit.Async.succeed, aList[0].password()); });
+		deferredResult.addMethod(user2, 'setPassphraseFunction');
+		deferredResult.addMethod(user, 'logout');
+		deferredResult.addMethod(user2, 'login');
+		deferredResult.addMethod(user2, 'getRecords');
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(1, "Login with the remaining OTP should work");
+
+		deferredResult.addMethod(user2, 'getOneTimePasswords');
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(1, "There should be 1 remaining OTP now");
+
+		deferredResult.collectResults({
+			'oneTimePasswords': MochiKit.Base.method(user2, 'getOneTimePasswords'),
+			'oneTimePasswordsDetails': MochiKit.Base.method(user2, 'getOneTimePasswordsDetails')
+		});
+		deferredResult.addCallback(function(someData) {
+			return someData['oneTimePasswordsDetails'][someData['oneTimePasswords'][0].reference()]['status'];
+		});
+		deferredResult.addTest('USED', "The remaining OTP should have 'USED' status");
+
+		deferredResult.addMethod(user2, 'getOneTimePasswords');
+		deferredResult.addCallback(function(aList) {return [aList[0].reference()];});
+		deferredResult.addMethod(user2, 'deleteOTPs');
+		deferredResult.addMethod(user2, 'getOneTimePasswords');
+		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+		deferredResult.addTest(0, "There should be no OTPs left after the deletion of the last one");
+
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+
     //-------------------------------------------------------------------------
     'syntaxFix': MochiKit.Base.noop
 };
@@ -190,4 +328,4 @@ var tests = {
 
 //#############################################################################
 
-SimpleTest.runDeferredTests("Clipperz.PM.DataModel.OneTimePassword", tests, {trace:false});
+SimpleTest.runDeferredTests("Clipperz.PM.DataModel.OneTimePassword", tests, {trace:true});

@@ -26,6 +26,10 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.Panels');
 
 Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 
+	componentDidMount: function () {
+		MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, 'closeSettingsPanel', MochiKit.Base.method(this, 'hideExtraFeatureContent'));
+	},
+
 	settingsToggleHandler: function (anEvent) {
 //console.log("settingsToggleHandler");
 		this.hideExtraFeatureContent();
@@ -40,6 +44,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 
 	propTypes: {
 		'accountInfo':	React.PropTypes.object.isRequired,
+		'userInfo':		React.PropTypes.object.isRequired
 	},
 
 	getInitialState: function() {
@@ -81,6 +86,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 	},
 
 	extraFeaturesProps: function () {
+// console.log("ExtraFeaturesPanel, extraFeaturesProps:",this.props);
 		return this.props;
 	},
 
@@ -95,10 +101,16 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 	},
 
 	showExtraFeatureContent: function (aComponent, aComponentName) {
+// console.log("ExtraFeaturesPanel, showExtraFeatureContent")
+		if (aComponentName == 'OTP') {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'updateOTPListAndDetails');
+		}
+		
 		this.setState({
 			'isFullyOpen':true,
 			'extraFeatureComponentName': aComponentName,
-			'extraFeatureContent': aComponent(this.extraFeaturesProps())
+			// 'extraFeatureContent': aComponent(this.extraFeaturesProps()),
+			'extraFeatureContentComponent': aComponent // Trying to instantiate the component at every render
 		});
 	},
 	
@@ -124,16 +136,17 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 						React.DOM.ul({'key':'accountUL'}, [
 							React.DOM.li({'key':'account_1', 'onClick':this.toggleExtraFeatureComponent('Passphrase'), 'className':(this.state['extraFeatureComponentName'] == 'Passphrase') ? 'selected' : ''}, [
 								React.DOM.h2({'key':'account_1_h2'}, "Passphrase"),
-								React.DOM.div({'key':'account_1_div'}, [
-									React.DOM.p({'key':'account_1_p'}, "Change your account passphrase.")
-								])
+//								React.DOM.div({'key':'account_1_div'}, [
+//									React.DOM.p({'key':'account_1_p'}, "Change your account passphrase.")
+//								])
 							]),
-							React.DOM.li({'key':'account_2'}, [
+							React.DOM.li({'key':'account_2', 'onClick':this.toggleExtraFeatureComponent('OTP')}, [
 								React.DOM.h2({}, "One Time Passwords"),
-								React.DOM.div({}, [
-									React.DOM.p({}, "")
-								])
+//								React.DOM.div({}, [
+//									React.DOM.p({}, "Manage your OTPs.")
+//								])
 							]),
+/*
 							React.DOM.li({'key':'account_3', 'onClick':this.toggleExtraFeatureComponent('DevicePIN')}, [
 								React.DOM.h2({}, "Device PIN"),
 								React.DOM.div({}, [
@@ -146,14 +159,16 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 									React.DOM.p({}, "")
 								])
 							]),
+*/
 							React.DOM.li({'key':'account_5', 'onClick':this.toggleExtraFeatureComponent('DeleteAccount'), 'className':(this.state['extraFeatureComponentName'] == 'DeleteAccount') ? 'selected' : ''}, [
 								React.DOM.h2({}, "Delete account"),
-								React.DOM.div({}, [
-									React.DOM.p({}, "Delete your account for good.")
-								])
+//								React.DOM.div({}, [
+//									React.DOM.p({}, "Delete your account for good.")
+//								])
 							])
 						])
 					]),
+/*
 					React.DOM.li({'key':'subscription', 'className':this.state['index']['subscription'] ? 'open' : 'closed'}, [
 						React.DOM.h1({'onClick':this.toggleIndexState('subscription')}, "Subscription"),
 						React.DOM.ul({'key':'subscription'}, [
@@ -183,6 +198,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 							])
 						])
 					]),
+*/
 					React.DOM.li({'key':'data', 'className':this.state['index']['data'] ? 'open' : 'closed'}, [
 						React.DOM.h1({'onClick':this.toggleIndexState('data')}, "Data"),
 						React.DOM.ul({'key':'data'}, [
@@ -195,22 +211,24 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 //							]),
 							React.DOM.li({'key':'data_2', 'onClick':this.toggleExtraFeatureComponent('DataImport'), 'className':(this.state['extraFeatureComponentName'] == 'DataImport') ? 'selected' : ''}, [
 								React.DOM.h2({}, "Import"),
-								React.DOM.div({}, [
-									React.DOM.p({}, "CSV, JSON, …")
-								])
+//								React.DOM.div({}, [
+//									React.DOM.p({}, "CSV, JSON, …")
+//								])
 							]),
 							React.DOM.li({'key':'data_3', 'onClick':this.toggleExtraFeatureComponent('DataExport'), 'className':(this.state['extraFeatureComponentName'] == 'DataExport') ? 'selected' : ''}, [
 								React.DOM.h2({}, "Export"),
-								React.DOM.div({}, [
-									React.DOM.p({}, "Offline copy, printable version, JSON, …")
-								])
+//								React.DOM.div({}, [
+//									React.DOM.p({}, "Offline copy, printable version, JSON, …")
+//								])
 							]),
+/*
 							React.DOM.li({'key':'data_4'}, [
 								React.DOM.h2({}, "Sharing"),
 								React.DOM.div({}, [
 									React.DOM.p({}, "Securely share cards with other users")
 								])
 							])
+*/
 						])
 					])
 				])
@@ -227,7 +245,8 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 			React.DOM.header({}, [
 				React.DOM.div({'className':'button', 'onClick':this.hideExtraFeatureContent}, "close")
 			]),
-			this.state['extraFeatureContent']
+			// this.state['extraFeatureContent']
+			this.state['extraFeatureContentComponent'] ? this.state['extraFeatureContentComponent'](this.props) : null
 		]);
 	},
 
@@ -242,7 +261,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 			'open': isOpen,
 			'fullOpen': isFullyOpen
 		}
-
+		
 		return	React.DOM.div({'key':'extraFeaturesPanel', 'id':'extraFeaturesPanel', 'className':Clipperz.PM.UI.Components.classNames(classes)}, [
 			this.renderIndex(),
 			this.renderContent(),

@@ -36,9 +36,9 @@ Clipperz.PM.UI.Components.CheckboxClass = React.createClass({
 
 	render: function () {
 		return	React.DOM.div({className:'checkbox', onClick:this.props['eventHandler']}, [
-					React.DOM.input({name:this.props['id'], id:this.props['id'], value:this.props['id'], type:'checkbox', checked:this.props['checked']}),
-					React.DOM.label({className:'check', 'for':this.props['id']}),
-					React.DOM.label({className:'info', 'for':this.props['id']}, "enable local storage")
+					React.DOM.input({'name':this.props['id'], 'id':this.props['id'], 'value':this.props['id'], 'type':'checkbox', 'checked':this.props['checked']}),
+					React.DOM.label({'className':'check', 'htmlFor':this.props['id']}),
+					React.DOM.label({'className':'info', 'htmlFor':this.props['id']}, "enable local storage")
 				]);
 	}
 

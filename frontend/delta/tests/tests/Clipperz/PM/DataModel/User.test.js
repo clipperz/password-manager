@@ -2022,8 +2022,8 @@ console.log("PROXY", proxy);
 		
 		newPassphrase = 'zreppilc';
 		proxy = new Clipperz.PM.Proxy.Test({shouldPayTolls:true, isDefault:true, readOnly:false});
-		user = new Clipperz.PM.DataModel.User({username:'joe', getPassphraseFunction:function () { return 'clipperz';}});
-		user2 = new Clipperz.PM.DataModel.User({username:'joe', getPassphraseFunction:function () { return newPassphrase;}});
+		user = new Clipperz.PM.DataModel.User({username:'joe', getPassphraseFunction: MochiKit.Base.partial(MochiKit.Async.succeed, 'clipperz')});
+		user2 = new Clipperz.PM.DataModel.User({username:'joe', getPassphraseFunction: MochiKit.Base.partial(MochiKit.Async.succeed, newPassphrase)});
 
 		deferredResult = new Clipperz.Async.Deferred("changePassphrase_test", someTestArgs);
 		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['joe_clipperz_offline_copy_data']);
@@ -2034,7 +2034,7 @@ console.log("PROXY", proxy);
 		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
 		deferredResult.addTest(20, "This account has oly a single card");
 
-		deferredResult.addMethod(user, 'changePassphrase', newPassphrase);
+		deferredResult.addMethod(user, 'changePassphrase', MochiKit.Base.partial(MochiKit.Async.succeed, newPassphrase));
 		deferredResult.addMethod(user, 'logout');
 
 		deferredResult.addMethod(user2, 'login');

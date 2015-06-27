@@ -120,7 +120,8 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.DirectLogin, Object, {
 	'setLabelKeepingBackwardCompatibilityWithBeta': function (aValue) {
 		return Clipperz.Async.callbacks("DirectLogin.setLabelKeepingBackwardCompatibilityWithBeta", [
 			MochiKit.Base.method(this, 'setIndexDataForKey', 'label', aValue),
-			MochiKit.Base.method(this, 'setValue', 'label', aValue)
+			MochiKit.Base.method(this, 'setValue', 'label', aValue),
+			MochiKit.Base.partial(MochiKit.Async.succeed, this),
 		], {trace:false});
 	},
 
@@ -497,7 +498,8 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.DirectLogin, Object, {
 			MochiKit.Base.method(this, 'updateFormValuesAfterChangingBookmarkletConfiguration'),
 			MochiKit.Base.method(this, 'updateBindingsAfterChangingBookmarkletConfiguration'),
 			
-			MochiKit.Base.noop
+//			MochiKit.Base.noop
+			MochiKit.Base.partial(MochiKit.Async.succeed, this),
 		], {trace:false});
 	},
 
@@ -604,6 +606,20 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.DirectLogin, Object, {
 			function (someValues) {
 				someValues['binding'].setField(someValues['field'])
 			}
+		], {trace:false});
+	},
+
+	'setBindings': function (someBindings, originalFields) {
+		var	self = this;
+
+		return Clipperz.Async.callbacks("DirectLogin.setBindings", [
+			function () {
+				return MochiKit.Base.map(function (aBindingInfo) {
+					return self.bindFormFieldWithLabelToRecordFieldWithLabel(aBindingInfo[0], originalFields[aBindingInfo[1]]['label']);
+				}, MochiKit.Base.zip(MochiKit.Base.keys(someBindings), MochiKit.Base.values(someBindings)));
+			},
+			Clipperz.Async.collectAll,
+			MochiKit.Base.partial(MochiKit.Async.succeed, this),
 		], {trace:false});
 	},
 

@@ -59,7 +59,9 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataExportClass = React.createClass({
 
 	render: function () {
 		return	React.DOM.div({className:'extraFeature devicePIN'}, [
-			React.DOM.h1({}, "Export"),
+			React.DOM.div({'className':'header'}, [
+				React.DOM.h1({}, "Export"),
+			]),
 			React.DOM.div({'className': 'content'}, [
 				React.DOM.ul({}, [
 					React.DOM.li({}, [
@@ -76,7 +78,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataExportClass = React.createClass({
 						React.DOM.div({'className':'description'}, [
 							React.DOM.p({}, "Download a printer-friendly HTML file that lists the content of all your cards."),
 							React.DOM.p({}, "This same file also contains all your data in JSON format."),
-							React.DOM.p({}, "Beware: all data are unencrypted! Therefore make sure to properly store and manage this file.")
+							React.DOM.p({'className':'warning'}, "Beware: all data are unencrypted! Therefore make sure to properly store and manage this file.")
 						]),
 						React.DOM.a({'className':'button', 'onClick':this.handleExportLink}, "download HTML+JSON")
 					]),
