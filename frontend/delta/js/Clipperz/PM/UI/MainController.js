@@ -262,7 +262,7 @@ console.log("THE BROWSER IS OFFLINE");
 
 	//-------------------------------------------------------------------------
 	
-	checkPassphrase: function( passphraseIn ) {
+	checkPassphrase: function (passphraseIn) {
 		var deferredResult;
 		
 		deferredResult = new Clipperz.Async.Deferred("MainController.checkPassphrase", {trace: false});
@@ -1246,7 +1246,7 @@ console.log("THE BROWSER IS OFFLINE");
 	},
 
 	//----------------------------------------------------------------------------
-
+	
 //	export_handler: function(exportType) {
 //		return Clipperz.PM.UI.ExportController.exportJSON( this.recordsInfo(), exportType );
 //	},
@@ -1274,7 +1274,7 @@ console.log("THE BROWSER IS OFFLINE");
 		var deferredResult;
 		var getPassphraseDelegate;
 		var user;
-		
+
 		getPassphraseDelegate = MochiKit.Base.partial(MochiKit.Async.succeed, newPassphrase);
 		user = new Clipperz.PM.DataModel.User({'username':this.user().username(), 'getPassphraseFunction':getPassphraseDelegate});
 		
@@ -1295,7 +1295,7 @@ console.log("THE BROWSER IS OFFLINE");
 	deleteAccount_handler: function() {
 		var deferredResult;
 		var doneMessageDelay = 2;
-		
+
 		deferredResult = new Clipperz.Async.Deferred("MainController.deleteAccount_handler", {trace: false});
 		deferredResult.addCallback(MochiKit.Base.method(this, 'ask', {
 			'question': "Do you really want to permanently delete your account?",
@@ -1313,7 +1313,7 @@ console.log("THE BROWSER IS OFFLINE");
 		
 		return deferredResult;
 	},
-	
+
 	importCards_handler: function(data) {
 		return Clipperz.Async.callbacks("MainController.importCards_handler", [
 			MochiKit.Base.method(this.overlay(), 'show', "importing …", true),

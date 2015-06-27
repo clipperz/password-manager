@@ -89,7 +89,7 @@ refer to http://www.clipperz.com.
 						
 						&.offlineCopy {
 							cursor: default;
-					}
+						}
 					}
 
 					&.open {
@@ -281,7 +281,7 @@ refer to http://www.clipperz.com.
 			}
 
 			.button {
-				display: inline-block;
+				display: inline;
 
 				color: white;
 				background-color: $main-color;
@@ -293,84 +293,9 @@ refer to http://www.clipperz.com.
 				
 				&:after {
 				};
-				
-				&.disabled {
-					background-color: #c0c0c0;
-					cursor: default;
-				}
 			}
 		}
-		
-		.dataImport {
-			.stepNavbar {
-				li {
-					display: inline-block;
-					margin-right:1em;
-					
-					&.disabled {
-						color: gray;
-					}
-					
-					&.active {
-						text-decoration: underline;
-					}
-				}
-			}
-			
-			.error {
-				margin: 1em 0;
-			}
-			
-			textarea {
-				width:100%;
-				min-height:400px;
-				display: block;
-				margin: 1em 0;
-				border: 0;
-			}
-			
-			.csvTable {
-				background: white;
-				margin: 1em 0;
-			}
-			
-			.dropArea {
-				margin: 1em 0;
-				width: calc(100% - 6px);
-				text-align: center;
-				height: inherit;
-				line-height: 3em;
-				
-				border: 3px dashed white;
-				background: black;
-			}
-			
-			.button {
-				margin-right:1em;
-			}
-			
-			.jsonPreview {
-				width: 100%;
-				height:80%;
-				overflow: auto;
-				margin-top:1em;
-				
-				h3 {
-					font-weight:bold;
-				}
-				
-				ul {
-					margin-bottom:1em;
-					padding-left:1em;
-					
-					li {
-						.label {
-							font-weight:bold;
-						}
-					}
-				}
-			}
-		}
+
 
 /*
 		.changePassphraseForm {
@@ -402,15 +327,11 @@ refer to http://www.clipperz.com.
 		}
 */
 		
-		form {
-			input.valid + .invalidMsg, input.empty + .invalidMsg, input:focus + .invalidMsg, input.invalid:focus + .invalidMsg {
-				visibility: hidden;
-			}
-			
-		}
+		
 	}
-}			
-			
+}
+
+
 .mainPage.narrow {
 	#extraFeaturesPanel {
 		.extraFeatureContent {

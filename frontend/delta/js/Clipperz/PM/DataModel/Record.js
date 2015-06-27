@@ -170,7 +170,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	},
 
 	//............................................................................
-	
+
 	'label': function () {
 		return Clipperz.Async.callbacks("Record.label", [
 			MochiKit.Base.method(this, 'fullLabel'),
@@ -1136,7 +1136,7 @@ console.log("Record.hasPendingChanges RESULT", result);
 			MochiKit.Base.bind(function () { return this; }, this)
 		], {trace:false});
 	},
-	
+
 	'setUpWithJSON': function(data) {
 		return Clipperz.Async.callbacks("Record.setUpWithJSON", [
 			// TODO: proper tag handling

@@ -242,7 +242,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 			'open': isOpen,
 			'fullOpen': isFullyOpen
 		}
-		
+
 		return	React.DOM.div({'key':'extraFeaturesPanel', 'id':'extraFeaturesPanel', 'className':Clipperz.PM.UI.Components.classNames(classes)}, [
 			this.renderIndex(),
 			this.renderContent(),
