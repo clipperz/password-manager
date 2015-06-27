@@ -53,9 +53,13 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 
 	//-------------------------------------------------------------------------
 
-	'show': function (aMessage, showMask) {
+	'show': function (aMessage, showMask, showProgress) {
 		if (showMask === true) {
 			this.showMask();
+		}
+
+		if (showProgress === true) {
+			this.showProgressBar();
 		}
 
 		this.resetStatus();
@@ -66,6 +70,7 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 	
 	'done': function (aMessage, aDelayBeforeHiding) {
 		this.hideMask();
+		this.hideProgressBar();
 		this.completed(this.showDoneIcon, aMessage, aDelayBeforeHiding);
 	},
 	
@@ -114,6 +119,7 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 
 	'hide': function () {
 		var element = this.element();
+		this.hideProgressBar();
 		MochiKit.DOM.removeElementClass(element, 'ios-overlay-show');
 		MochiKit.DOM.addElementClass(element, 'ios-overlay-hide');
 		return MochiKit.Async.callLater(1, MochiKit.Style.hideElement, element);
@@ -131,6 +137,21 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 		MochiKit.Style.showElement(this.getElement('failed'));
 	},
 	
+	//-------------------------------------------------------------------------
+
+	'showProgressBar': function () {
+		MochiKit.Style.showElement(this.getElement('progressBar'));
+	},
+
+	'hideProgressBar': function () {
+		MochiKit.Style.hideElement(this.getElement('progressBar'));
+	},
+
+	'updateProgress': function (aProgressPercentage) {
+		MochiKit.Style.setElementDimensions(this.getElement('progress'), {'w': aProgressPercentage}, '%');
+//console.log("OVERLAY - updating progress: " + aProgressPercentage + "%");
+	},
+
 	//-------------------------------------------------------------------------
 
 	'defaultDelay': function () {

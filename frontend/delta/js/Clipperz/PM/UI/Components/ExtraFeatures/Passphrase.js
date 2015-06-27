@@ -101,27 +101,29 @@ Clipperz.PM.UI.Components.ExtraFeatures.PassphraseClass = React.createClass({
 	render: function () {
 		return	React.DOM.div({className:'extraFeature passphrase'}, [
 			React.DOM.h1({}, "Change Passphrase"),
-			React.DOM.form({'key':'form', 'className':'changePassphraseForm', 'onChange': this.handleFormChange, 'onSubmit':this.handleChangePassphrase}, [
-				React.DOM.div({'key':'fields'},[
-					React.DOM.label({'key':'username-label', 'htmlFor' :'name'}, "username"),
-					React.DOM.input({'key':'username', 'className':this.state['username'], 'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'autoCapitalize':'none'}),
+			React.DOM.div({'className': 'content'}, [
+				React.DOM.form({'key':'form', 'className':'changePassphraseForm', 'onChange': this.handleFormChange, 'onSubmit':this.handleChangePassphrase}, [
+					React.DOM.div({'key':'fields'},[
+						React.DOM.label({'key':'username-label', 'htmlFor' :'name'}, "username"),
+						React.DOM.input({'key':'username', 'className':this.state['username'], 'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'autoCapitalize':'none'}),
 
-					React.DOM.label({'key':'old-passphrase-label', 'htmlFor' :'old-passphrase'}, "old passphrase"),
-					React.DOM.input({'key':'old-passphrase', 'className':this.state['old-passphrase'], 'type':'password', 'name':'old-passphrase', 'ref':'old-passphrase', 'placeholder':"old passphrase"}),
+						React.DOM.label({'key':'old-passphrase-label', 'htmlFor' :'old-passphrase'}, "old passphrase"),
+						React.DOM.input({'key':'old-passphrase', 'className':this.state['old-passphrase'], 'type':'password', 'name':'old-passphrase', 'ref':'old-passphrase', 'placeholder':"old passphrase"}),
 
-					React.DOM.label({'key':'new-passphrase-label', 'autoFocus': 'true', 'htmlFor' :'new-passphrase'}, "new passphrase"),
-					React.DOM.input({'key':'new-passphrase', 'className':this.state['new-passphrase'], 'type':'password', 'name':'new-passphrase', 'ref':'new-passphrase', 'placeholder':"new passphrase"}),
+						React.DOM.label({'key':'new-passphrase-label', 'autoFocus': 'true', 'htmlFor' :'new-passphrase'}, "new passphrase"),
+						React.DOM.input({'key':'new-passphrase', 'className':this.state['new-passphrase'], 'type':'password', 'name':'new-passphrase', 'ref':'new-passphrase', 'placeholder':"new passphrase"}),
 
-					React.DOM.label({'key':'confirm-new-passphrase-label', 'htmlFor' :'confirm-new-passphrase'}, "confirm new passphrase"),
-					React.DOM.input({'key':'confirm-new-passphrase', 'className':this.state['confirm-new-passphrase'], 'type':'password', 'name':'confirm-new-passphrase', 'ref':'confirm-new-passphrase', 'placeholder':"confirm new passphrase"}),
+						React.DOM.label({'key':'confirm-new-passphrase-label', 'htmlFor' :'confirm-new-passphrase'}, "confirm new passphrase"),
+						React.DOM.input({'key':'confirm-new-passphrase', 'className':this.state['confirm-new-passphrase'], 'type':'password', 'name':'confirm-new-passphrase', 'ref':'confirm-new-passphrase', 'placeholder':"confirm new passphrase"}),
 
-					React.DOM.p({}, [
-						React.DOM.input({'key':'confirm', 'className':'confirmCheckbox', 'type':'checkbox', 'name':'confirm', 'ref':'confirm'}),
-						React.DOM.span({}, "I understand that Clipperz will not be able to recover a lost passphrase.")
+						React.DOM.p({}, [
+							React.DOM.input({'key':'confirm', 'className':'confirmCheckbox', 'type':'checkbox', 'name':'confirm', 'ref':'confirm'}),
+							React.DOM.span({}, "I understand that Clipperz will not be able to recover a lost passphrase.")
+						]),
 					]),
-				]),
-				React.DOM.button({'key':'button', 'type':'submit', 'disabled':!this.shouldEnableChangePassphraseButton(), 'className':'button'}, "Change passphrase"),
-			]),
+					React.DOM.button({'key':'button', 'type':'submit', 'disabled':!this.shouldEnableChangePassphraseButton(), 'className':'button'}, "Change passphrase"),
+				])
+			])
 		]);
 	},
 

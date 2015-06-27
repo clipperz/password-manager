@@ -1,0 +1,63 @@
+CLP-01-001 DOMXSS in Clipperz Bookmarklet via benign HTML Injection (Medium)
+
+Insecure concatenation of HTML strings in the Clipperz bookmarklet core
+lead to possibilities for an attacker, to turn a harmless injection on a
+victim website into an XSS as soon as a user activates the bookmarklet.
+The bookmarklet contains injectable code that allows arbitrary
+JavaScript execution from a harmless injection as shown below:
+
+PoC:
+(run Clipperz Bookmarklet on this website)
+<body>
+<form action=''>
+<input name='username' type='text'>
+<input name='</textarea><img src=x onerror=alert(domain)>' type='password'>
+</form>
+
+Affected HTML:
+<textarea style="border:2px solid #333366; font-family:sans-serif;
+font-size:8pt; color:#336; width:240px; height:135px; padding:4px;
+background-color:white; margin:0px 10px;"
+id="bookmarklet_textarea">{"page": {"title": ""},
+"form": {"attributes": {"action": "http://0x0/Test/",
+"method": null},
+"inputs": [{"type": "text",
+"name": "username",
+"value": "root"},
+{"type": "password",
+"name": "</textarea><img onerror="alert(domain)" src="x">",
+"value": "k4n0n3!?"}]},
+"version": "0.2.3"}</div>
+
+Affected Code:
+innerHTML+="<textarea id=\"bookmarklet_textarea\" style=\"border:2px
+solid #333366; font-family:sans-serif; font-size:8pt; color:#336;
+width:240px; height:135px; padding:4px; background-color:white;
+margin:0px 10px;\">"+sj(someParameters)+"</textarea>";}
+
+...
+
+sj=function(o){var
+objtype=typeof(o);if(objtype=="number"||objtype=="boolean"){return
+o+"";}else if(o===null){return"null";} if(objtype=="string"){return
+rs(o);} var
+me=arguments.callee;if(objtype!="function"&&typeof(o.length)=="number"){var
+res=[];for(var i=0;i<o.length;i++){var
+val=me(o[i]);if(typeof(val)!="string"){val="undefined";} res.push(val);}
+return"["+res.join(",\n")+"]";}
+
+...
+
+rs=function(o){return("\""+o.replace(/([\"\\])/g,"\\$1")+"\"").replace(/[\f]/g,"\\f").replace(/[\b]/g,"\\b").replace(/[\n]/g,"\\n").replace(/[\t]/g,"\\t").replace(/[\r]/g,"\\r");}
+
+Any form of HTML, even content of HTML element attributes must be
+considered an attack vector. Currently, Clipperz does a good job in
+terms of encoding HTML element value attributes, yet other attribute
+types are not escaped, encoded or filtered at all. This lead to the
+identification of this and other bugs, specifically CLP-01-014 and
+CLP-01-015.
+
+It needs to be made sure, that any form of user controlled data is being
+processed safely before displaying the resulting data. HTML special
+characters need to be encoded to their respected entity representation
+before displaying them.

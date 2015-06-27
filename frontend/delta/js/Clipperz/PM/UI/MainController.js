@@ -63,6 +63,10 @@ Clipperz.PM.UI.MainController = function() {
 	this.registerForNotificationCenterEvents([
 		'doLogin', 'registerNewUser', 'showRegistrationForm', 'goBack',
 		'changePassphrase', 'deleteAccount',
+//		'export',
+		'importCards',
+		'downloadExport',
+		'updateProgress',
 		'toggleSelectionPanel', 'toggleSettingsPanel',
 		'matchMediaQuery', 'unmatchMediaQuery',
 		'selectAllCards', 'selectRecentCards', 'search', 'tagSelected', 'selectUntaggedCards',
@@ -103,6 +107,10 @@ MochiKit.Base.update(Clipperz.PM.UI.MainController.prototype, {
 
 	overlay: function () {
 		return this._overlay;
+	},
+
+	updateProgress_handler: function (aProgressPercentage) {
+		this.overlay().updateProgress(aProgressPercentage);
 	},
 
 	loginForm: function () {
@@ -499,6 +507,9 @@ console.log("THE BROWSER IS OFFLINE");
 
 			deferredResult = new Clipperz.Async.Deferred('MainController.updateSelectedCard', {trace:false});
 			deferredResult.addMethod(this.user(), 'getRecord', someInfo['reference']);
+
+// deferredResult.addMethod(this, function(d) {console.log(d); return d;});
+
 			deferredResult.addMethod(this, 'collectRecordInfo');
 
 			deferredResult.addMethod(this, 'setPageProperties', 'mainPage', 'selectedCard');
@@ -1235,6 +1246,28 @@ console.log("THE BROWSER IS OFFLINE");
 	},
 
 	//----------------------------------------------------------------------------
+	
+//	export_handler: function(exportType) {
+//		return Clipperz.PM.UI.ExportController.exportJSON( this.recordsInfo(), exportType );
+//	},
+	
+	downloadExport_handler: function () {
+		var	exportController;
+		var deferredResult;
+
+		exportController = new Clipperz.PM.UI.ExportController({'recordsInfo': this.recordsInfo()});
+
+		deferredResult = new Clipperz.Async.Deferred("MainController.downloadExport_handler", {trace: false});
+		deferredResult.addMethod(this.overlay(), 'show', "exporting …", true, true);
+//		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel');
+		deferredResult.addMethod(exportController, 'run');
+		deferredResult.addMethod(this.overlay(), 'done', "", 1);
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+	
+	//----------------------------------------------------------------------------
 
 	changePassphrase_handler: function(newPassphrase) {
 		var	currentPage = this.pages()[this.currentPage()];
@@ -1279,6 +1312,31 @@ console.log("THE BROWSER IS OFFLINE");
 		deferredResult.callback();
 		
 		return deferredResult;
+	},
+
+	importCards_handler: function(data) {
+		return Clipperz.Async.callbacks("MainController.importCards_handler", [
+			MochiKit.Base.method(this.overlay(), 'show', "importing …", true),
+			function() { return data; },
+			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, function(recordData) {
+				var newRecord;
+				// I have the feeling this should be done in a more elegant way
+				return Clipperz.Async.callbacks("MainController.importCards_handler-newRecord", [
+					MochiKit.Base.method(this.user(), 'createNewRecord'),
+					function (aValue) {
+						newRecord = aValue;
+						return newRecord;
+					},
+					MochiKit.Base.methodcaller('setUpWithJSON', recordData),
+				])
+			})),
+			Clipperz.Async.collectAll,
+			MochiKit.Base.method(this.user(), 'saveChanges'),
+			MochiKit.Base.partial(MochiKit.Base.method(this, 'resetRecordsInfo')),
+			MochiKit.Base.partial(MochiKit.Base.method(this, 'refreshUI', null)),
+			MochiKit.Base.method(this.overlay(), 'done', "finished", 1),
+			MochiKit.Base.method(this.pages()[this.currentPage()], 'setProps', {'mode':'view', 'showGlobalMask':false}),
+		], {trace:false});
 	},
 
 	//----------------------------------------------------------------------------

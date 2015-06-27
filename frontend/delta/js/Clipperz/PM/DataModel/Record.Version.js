@@ -316,6 +316,36 @@ console.log("Record.Version.hasPendingChanges");
 * /
 	},
 */
+
+	//=========================================================================
+	
+	// TODO: this function may mix up the order of the fields
+	'exportFields': function() {
+		var deferredResult;
+		var fields;
+		
+		deferredResult = new Clipperz.Async.Deferred('Record.Version.export', {trace:false});
+		deferredResult.addMethod(this,'fields');
+		deferredResult.addCallback(MochiKit.Base.values);
+		deferredResult.addCallback(MochiKit.Base.map, function(fieldIn) {
+			return fieldIn.content();
+		});
+		deferredResult.addCallback(Clipperz.Async.collectAll);
+		deferredResult.addCallback(function(listIn) {
+//			return listIn.reduce(function(result, field) {
+			return MochiKit.Iter.reduce(function(result, field) {
+				var ref = field.reference;
+				result[ref] = field;
+				delete result[ref].reference;
+				return result;
+			}, listIn, {});
+		});
+		
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+	
 	//=========================================================================
 	__syntaxFix__: "syntax fix"
 });

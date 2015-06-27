@@ -1,0 +1,52 @@
+CLP-01-002 Remote Code Execution in PHP Backend (Critical)
+
+The PHP backend is vulnerable to Remote Code Execution attacks. In the
+file setup/rpc.php, the name of a class can be specified in the
+parameter objectname of which an object is later instantiated within an
+eval() statement.
+
+$objectName = isset($_REQUEST['objectname']) ? $_REQUEST['objectname'] : '';
+[...]
+eval ('$instance = new '.$objectName.'();');
+[...]
+switch($action)
+{
+    case 'Add':
+        eval ('$instance = new '.$objectName.'();');
+[...]
+    case 'Delete':
+        eval ('$instance = new '.$objectName.'();');
+[...]
+    case 'Update':
+        eval ('$instance = new '.$objectName.'();');
+
+function RefreshTree($objectName, $root, $offset = '', $limit = '')
+{
+[...]
+eval ('$instance = new '.$objectName.'();');
+
+An attacker can add arbitrary PHP code to the objectname parameter that
+is then executed on the web server. This allows to fully compromise the
+web server and its data.
+
+/setup/rpc.php?objectname=stdClass();system(?whoami?);phpinfo
+
+Note that the setup routine can be protected by a password (empty by
+default) but the affected file setup/rpc.php does not include the file
+setup_library/authentication.php that performs the actual authentication
+check. Thus, the attack can be executed by any user as long as the setup
+directory exists.
+
+PHP allows to dynamically call methods and constructors without using
+the eval() operator by using reflection. Here, no execution of arbitrary
+PHP code is possible.
+
+$instance = new $objectName();
+
+However, arbitrary constructors can be accessed that can lead to
+unwanted behavior. Thus, the objectName parameter should be validated
+against a whitelist which is already available in the $objects array
+filled in line 28. Other names should be rejected by the application.
+
+if(!in_array($objectName, $objects))
+    exit;

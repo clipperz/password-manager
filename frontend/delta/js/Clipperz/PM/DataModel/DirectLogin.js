@@ -233,6 +233,8 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.DirectLogin, Object, {
 
 	'serializedData': function () {
 		return Clipperz.Async.collectResults("DirectLogin.serializedData", {
+			'favicon': MochiKit.Base.method(this,'favicon'),
+			'label': MochiKit.Base.method(this,'label'),
 			'bookmarkletVersion': MochiKit.Base.method(this, 'getValue', 'bookmarkletVersion'),
 			'formData': MochiKit.Base.method(this, 'getValue', 'formData'),
 			'formValues': MochiKit.Base.method(this, 'getValue', 'formValues'),

