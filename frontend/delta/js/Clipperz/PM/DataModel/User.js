@@ -338,7 +338,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		], []));
 
 		deferredResult.addBoth(MochiKit.Base.method(this, 'loginWithPassphrase'));
-		deferredResult.addBoth(MochiKit.Base.method(this, 'resetUsedOTP'));
+		deferredResult.addBothPass(MochiKit.Base.method(this, 'resetUsedOTP'));
 		
 		deferredResult.callback();
 		
