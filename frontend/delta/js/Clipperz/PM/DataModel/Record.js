@@ -1292,8 +1292,8 @@ Clipperz.PM.DataModel.Record.labelContainsTag = function (aLabel, aTag) {
 		MochiKit.Base.keys(Clipperz.PM.DataModel.Record.extractTagsFromFullLabel(aLabel)),
 		MochiKit.Base.partial(MochiKit.Base.operator.eq, aTag)
 	);
-}
+};
 
 Clipperz.PM.DataModel.Record.labelContainsArchiveTag = function (aLabel) {
 	return Clipperz.PM.DataModel.Record.labelContainsTag(aLabel, Clipperz.PM.DataModel.Record.archivedTag);
-}
+};
