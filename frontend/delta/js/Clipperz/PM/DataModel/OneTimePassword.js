@@ -227,16 +227,16 @@ Clipperz.PM.DataModel.OneTimePassword.normalizedOneTimePassword = function(aPass
 //#############################################################################
 
 Clipperz.PM.DataModel.OneTimePassword.generateRandomBase32OTPValue = function() {
-		var randomValue;
-		var	result;
+	var randomValue;
+	var	result;
 
-		randomValue = Clipperz.Crypto.PRNG.defaultRandomGenerator().getRandomBytes(160/8);
-		result = randomValue.toBase32String();
-		result = result.replace(/.{4}\B/g, '$&' + ' ');
-		result = result.replace(/(.{4} ){2}/g, '$&' + '- ');
+	randomValue = Clipperz.Crypto.PRNG.defaultRandomGenerator().getRandomBytes(160/8);
+	result = randomValue.toBase32String();
+	result = result.replace(/.{4}\B/g, '$&' + ' ');
+	result = result.replace(/(.{4} ){2}/g, '$&' + '- ');
 
-		return result;
-	},
+	return result;
+};
 
 //#############################################################################
 
@@ -253,4 +253,4 @@ Clipperz.PM.DataModel.OneTimePassword.createNewOneTimePassword = function(aUsern
 	});
 
 	return result;
-}
+};
