@@ -147,7 +147,10 @@ Clipperz.PM.UI.Components.ExtraFeatures.OTPClass = React.createClass({
 
 	renderOtpRows: function() {
 		var result;
+		var	defaultOtpLabel;
 
+		defaultOtpLabel = "…";
+		
 		if (this.props.userInfo.otpList) {
 			result = MochiKit.Base.map(MochiKit.Base.bind(function (anOTP) {
 				var	reference = anOTP.reference();
@@ -177,11 +180,15 @@ Clipperz.PM.UI.Components.ExtraFeatures.OTPClass = React.createClass({
 					labelComponent = React.DOM.input({
 						'autoFocus':true,
 						'value':this.state.otpLabel,
+						'placeholder': "custom label",
 						'onChange':MochiKit.Base.partial(this.updateOtpLabel, anOTP),
 						'onKeyDown':MochiKit.Base.partial(this.handleKeyPressed, anOTP),
 					});
 				} else {
-					labelComponent = React.DOM.span({'onClick':MochiKit.Base.partial(this.enableOtpLabelEditing, anOTP)}, (anOTP.label()) ? anOTP.label() : "---")
+					labelComponent = React.DOM.span({
+						'onClick':MochiKit.Base.partial(this.enableOtpLabelEditing, anOTP),
+						'className': Clipperz.PM.UI.Components.classNames({'customLabel':anOTP.label()})
+					}, (anOTP.label()) ? anOTP.label() : defaultOtpLabel)
 				}
 
 				return React.DOM.li({
@@ -208,9 +215,9 @@ Clipperz.PM.UI.Components.ExtraFeatures.OTPClass = React.createClass({
 	render: function () {
 		return	React.DOM.div({'className':'extraFeature OTP'}, [
 			React.DOM.div({'className':'header'}, [
-				React.DOM.h1({}, "One Time Passwords"),
+				React.DOM.h1({}, "One-Time Passwords"),
 				React.DOM.div({'className':'description'}, [
-					React.DOM.p({}, "A one-time passphrase works like your regular passphrase, but can be used only once. This makes it expecially useful for using it in places where keyloggers may be installed."),
+					React.DOM.p({}, "A one-time password works like your regular passphrase, but can be used only once. This makes it expecially useful for using it in places where keyloggers may be installed."),
 				]),
 				React.DOM.a({'className':'button', 'onClick':this.handlePrint}, "Print")
 			]),

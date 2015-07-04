@@ -593,6 +593,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.DirectLogin, Object, {
 	},
 
 	'bindFormFieldWithLabelToRecordFieldWithLabel': function (aFormFieldLabel, aRecordFieldLabel) {
+//console.log("DirectLogin.bindFormFieldWithLabelToCardFieldWithLabel", aFormFieldLabel, aRecordFieldLabel);
 		return Clipperz.Async.callbacks("DirectLogin.bindFormFieldWithLabelToCardFieldWithLabel", [
 			Clipperz.Async.collectResults("DirectLogin.bindFormFieldWithLabelToCardFieldWithLabel - collect results", {
 				'binding': [
@@ -604,7 +605,9 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.DirectLogin, Object, {
 				]
 			}),
 			function (someValues) {
-				someValues['binding'].setField(someValues['field'])
+				if (typeof(someValues['binding']) != 'undefined') {
+					someValues['binding'].setField(someValues['field']);
+				}
 			}
 		], {trace:false});
 	},
@@ -615,7 +618,15 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.DirectLogin, Object, {
 		return Clipperz.Async.callbacks("DirectLogin.setBindings", [
 			function () {
 				return MochiKit.Base.map(function (aBindingInfo) {
-					return self.bindFormFieldWithLabelToRecordFieldWithLabel(aBindingInfo[0], originalFields[aBindingInfo[1]]['label']);
+					var	result;
+					
+					try {
+						result = self.bindFormFieldWithLabelToRecordFieldWithLabel(aBindingInfo[0], originalFields[aBindingInfo[1]]['label']);
+					} catch (exception) {
+						result = MochiKit.Async.succeed();
+					}
+					
+					return result;
 				}, MochiKit.Base.zip(MochiKit.Base.keys(someBindings), MochiKit.Base.values(someBindings)));
 			},
 			Clipperz.Async.collectAll,

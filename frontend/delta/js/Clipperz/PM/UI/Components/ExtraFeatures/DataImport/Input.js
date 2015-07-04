@@ -226,7 +226,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.InputClass = React.createClas
 	render: function() {
 		return React.DOM.div({},[
 			React.DOM.div({'className':'description'}, [
-				React.DOM.p({}, "You can import either CSV data, or Clipperz data exported in JSON"),
+				React.DOM.p({}, "Import data from a CSV file (like those produced by most password managers) or copy data from another Clipperz account using a JSON/HTML export file created by Clipperz."),
 			]),
 			React.DOM.form({'key':'form', 'className':'importForm' }, [
 				React.DOM.input({
@@ -239,16 +239,26 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.InputClass = React.createClas
 				React.DOM.div({
 					'onDragOver': this.handleOnDragOver,
 					'onDrop': this.handleOnDrop,
-					'onClick': MochiKit.Base.bind(function() { this.refs['upload-input'].getDOMNode().click() }, this),
 					'className': 'dropArea'
-				}, "Drag your Clipperz export file here or click select it manually."),
-				React.DOM.p({}, "or"),
+				}, [
+					React.DOM.span({}, "Drag your CSV or Clipperz export file here"),
+					React.DOM.br({}),
+					React.DOM.span({}, "or"),
+					React.DOM.br({}),
+					React.DOM.a({
+						'className': 'button',
+						'onClick': MochiKit.Base.bind(function() { this.refs['upload-input'].getDOMNode().click() }, this),
+					}, "select it manually")
+				]),
+				React.DOM.div({'className': 'description'},
+					React.DOM.p({}, "Alternatively you may type or paste any properly formatted CSV or JSON data.")
+				),
 				React.DOM.div({'key':'fields'},[
 					React.DOM.textarea({
 						'key':'input-textarea',
 						'name':'input-textarea',
 						'ref':'input-textarea',
-						'placeholder':"Copy or type your data here",
+						'placeholder':"Type or copy your data here",
 						'value': this.state.inputString,
 						'onChange': this.handleTextareaChange,
 						'onDragOver': this.handleOnDragOver,

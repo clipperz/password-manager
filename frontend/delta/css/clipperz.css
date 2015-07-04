@@ -58,7 +58,7 @@ table {
   font-family: "clipperz-icons";
   font-style: normal;
   font-weight: normal;
-  src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAABU8AAwAAAAAFOwAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABHU1VCAAABHAAAAwYAAAMG8Kr0309TLzIAAAQkAAAAYAAAAGAIYwBrY21hcAAABIQAAACcAAAAnNHb0kxnYXNwAAAFIAAAAAgAAAAIAAAAEGdseWYAAAUoAAAMaAAADGg2OtN/aGVhZAAAEZAAAAA2AAAANgSXPhtoaGVhAAARyAAAACQAAAAkA/kCNGhtdHgAABHsAAAAzAAAAMwrygKpbG9jYQAAErgAAABoAAAAaDAeMsBtYXhwAAATIAAAACAAAAAgADwAfG5hbWUAABNAAAAB2gAAAdo7wz5qcG9zdAAAFRwAAAAgAAAAIAADAAAAAQAAAAoAHgAsAAFsYXRuAAgABAAAAAAAAAABAAAAAWxpZ2EACAAAAAEAAAABAAQABAAAAAEACgAAAAEAJgAQAEoAfgCMAQIBPAFMAXABmAG8AcoB1AIyAmoCggKiAsIAAQAQAAcACAAJAAoACwAMAA0AEQASABQAFgAXABgAGQAaADIAAgAGACIAKwANAAoACgADABMACwAbAAMADAAPAAsAEQAKACUACAAKAAoAAwAJAAcAFgAKAAEABAAoAAQABwAJABAABgAOACwAPgBKAFwAaAArAA4AFgALAAcAGAALAAMAEwALABsAAwAEAAYABQAvAAgAFAASABIABwATAAoAFwAfAAUAEQAUABcACwAhAAgAEQAPABUAFQALABYAHAAfAAUAEQALAAcAFgAfAAYABwATAAkACwARAAMACAASACwAIAAEABQAEwALACYADAAPABYACwAJABgAAwARABQADQAPABMAHwAGAAsAEQALABgACwABAAQAKgAFABIABwAPABEAAgAGABYAHwAHAAcADwARABkAFgALAB8ABgAHAA8AEQALAAoAAQAEADAAEQALABMACwAWAAcAGAALAAMAFQAHABcAFwAbABQAFgAKAAIABgAUACwABgAUAAkAEAALAAoAJwAHABQABwAKAA8AEwANAAEABAAeAAQACwATABkAAQAEACAAAgAQAAQACgAgADoAUAAuAAoACwASABQAGgALAAMAGAAHAA0ALgAMAAsAEgAUABoACwADAAwADwALABEACgAuAAoACwASABQAGgALAAMABAAGAAUAJAAGAAsACQAL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) format("woff"); }
+  src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAABWYAAwAAAAAFUgAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABHU1VCAAABHAAAAxQAAAMU8Kj17E9TLzIAAAQwAAAAYAAAAGAIYwBsY21hcAAABJAAAACkAAAApO79l/9nYXNwAAAFNAAAAAgAAAAIAAAAEGdseWYAAAU8AAAMqAAADKjGRZhvaGVhZAAAEeQAAAA2AAAANgSwezloaGVhAAASHAAAACQAAAAkA/kCNWhtdHgAABJAAAAA0AAAANAtygLpbG9jYQAAExAAAABqAAAAajTMMgptYXhwAAATfAAAACAAAAAgAD0AfG5hbWUAABOcAAAB2gAAAdo7wz5qcG9zdAAAFXgAAAAgAAAAIAADAAAAAQAAAAoAHgAsAAFsYXRuAAgABAAAAAAAAAABAAAAAWxpZ2EACAAAAAEAAAABAAQABAAAAAEACgAAAAEAJgAQAEoAfgCMAQIBPAFMAXABmAHKAdgB4gJAAngCkAKwAtAAAQAQAAcACAAJAAoACwAMAA0AEQASABQAFgAXABgAGQAaADMAAgAGACIALAANAAoACgADABMACwAbAAMADAAPAAsAEQAKACYACAAKAAoAAwAJAAcAFgAKAAEABAApAAQABwAJABAABgAOACwAPgBKAFwAaAAsAA4AFgALAAcAGAALAAMAEwALABsAAwAEAAYABQAwAAgAFAASABIABwATAAoAFwAgAAUAEQAUABcACwAiAAgAEQAPABUAFQALABYAHAAgAAUAEQALAAcAFgAgAAYABwATAAkACwARAAMACAASACwAIQAEABQAEwALACcADAAPABYACwAJABgAAwARABQADQAPABMAIAAGAAsAEQALABgACwABAAQAKwAFABIABwAPABEAAgAGABYAIAAHAAcADwARABkAFgALACAABgAHAA8AEQALAAoAAQAEADEAEQALABMACwAWAAcAGAALAAMAFQAHABcAFwAbABQAFgAKAAMACAAWACYALQAGABQACQAQAAsACgAoAAcAFAAHAAoADwATAA0AHQAFAAcACAALABEAAQAEAB8ABAALABMAGQABAAQAIQACABAABAAKACAAOgBQAC8ACgALABIAFAAaAAsAAwAYAAcADQAvAAwACwASABQAGgALAAMADAAPAAsAEQAKAC8ACgALABIAFAAaAAsAAwAE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) format("woff"); }
 @font-face {
   font-family: "clipperz-password";
   font-style: normal;
@@ -791,6 +791,8 @@ input[type=text] {
 
 .mainPage.narrow #extraFeaturesPanel.fullOpen .extraFeatureIndex {
   width: 0px; }
+.mainPage.narrow #extraFeaturesPanel .extraFeatureContent .extraFeature {
+  height: calc(100% - 50px); }
 
 #extraFeaturesPanel {
   position: fixed;
@@ -1436,17 +1438,16 @@ div.dialogBox {
       -moz-flex: 1;
       -ms-flex: 1;
       flex: 1;
-      font-family: 'clipperz-icons';
-      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
-      -moz-font-feature-settings: "liga" 1, "dlig" 1;
-      -ms-font-feature-settings: "liga" 1, "dlig" 1;
-      -o-font-feature-settings: "liga" 1, "dlig" 1;
-      font-feature-settings: "liga" 1, "dlig" 1;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
       font-size: 48pt;
       line-height: 90pt;
       color: white; }
+      #loginPage div.loginForm header h3 {
+        font-weight: bold;
+        font-size: 38pt;
+        line-height: 1.7em; }
+      #loginPage div.loginForm header h5 {
+        font-size: 16pt;
+        line-height: 1.0em; }
     #loginPage div.loginForm div.form {
       -webkit-box-flex: 4;
       -webkit-flex: 4;
@@ -1510,6 +1511,8 @@ div.dialogBox {
             font-weight: 100;
             background-color: #c0c0c0;
             cursor: default; }
+    #loginPage div.loginForm div.links ul li {
+      display: inline-block; }
     #loginPage div.loginForm footer {
       -webkit-box-flex: 1;
       -webkit-flex: 1;
@@ -1588,6 +1591,18 @@ div.dialogBox {
       border: 1px solid white; }
   #loginPage div.loginForm.extra-short footer {
     font-size: 14pt; }
+
+.links ul li {
+  color: white;
+  cursor: pointer; }
+  .links ul li:after {
+    content: '-';
+    padding-left: 4px;
+    padding-right: 4px; }
+  .links ul li:last-child:after {
+    content: '';
+    padding-left: 0px;
+    padding-right: 0px; }
 
 #registrationPage {
   background-color: black;
@@ -2052,6 +2067,10 @@ span.count {
     border-top: 1px solid white; }
     #extraFeaturesPanel .extraFeatureIndex > div > ul > li {
       border-bottom: 1px solid white; }
+      #extraFeaturesPanel .extraFeatureIndex > div > ul > li.link {
+        border-bottom: 0px;
+        padding: 10px;
+        cursor: pointer; }
       #extraFeaturesPanel .extraFeatureIndex > div > ul > li > h1 {
         cursor: pointer;
         font-size: 16pt;
@@ -2059,6 +2078,8 @@ span.count {
       #extraFeaturesPanel .extraFeatureIndex > div > ul > li.closed > ul {
         display: none;
         visibility: hidden; }
+      #extraFeaturesPanel .extraFeatureIndex > div > ul > li.closed .address {
+        display: none; }
     #extraFeaturesPanel .extraFeatureIndex > div ul li > ul > li {
       padding: 10px;
       padding-left: 20px;
@@ -2080,6 +2101,13 @@ span.count {
       font-weight: 100;
       padding-bottom: 5px;
       line-height: 1.2em; }
+    #extraFeaturesPanel .extraFeatureIndex > div ul li .address {
+      padding-bottom: 10px; }
+      #extraFeaturesPanel .extraFeatureIndex > div ul li .address span {
+        display: block;
+        font-size: 12pt;
+        padding-left: 14pt;
+        line-height: 1.3em; }
     #extraFeaturesPanel .extraFeatureIndex > div ul li a.button {
       -webkit-border-radius: 2;
       -moz-border-radius: 2;
@@ -2094,6 +2122,18 @@ span.count {
         background-color: #999; }
         #extraFeaturesPanel .extraFeatureIndex > div ul li a.button.disabled:hover {
           color: white; }
+    #extraFeaturesPanel .extraFeatureIndex > div ul li.link h2:after {
+      font-family: 'clipperz-icons';
+      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+      -moz-font-feature-settings: "liga" 1, "dlig" 1;
+      -ms-font-feature-settings: "liga" 1, "dlig" 1;
+      -o-font-feature-settings: "liga" 1, "dlig" 1;
+      font-feature-settings: "liga" 1, "dlig" 1;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      content: "url";
+      padding-left: 4px;
+      color: gray; }
   #extraFeaturesPanel .extraFeatureIndex footer {
     font-size: 8pt;
     padding: 5px 5px 5px 5px;
@@ -2179,6 +2219,8 @@ span.count {
       -moz-flex: auto;
       -ms-flex: auto;
       flex: auto; }
+    #extraFeaturesPanel .extraFeatureContent .extraFeature form p input[type="checkbox"] {
+      flex-grow: 0; }
     #extraFeaturesPanel .extraFeatureContent .extraFeature form p label {
       -webkit-box-flex: auto;
       -webkit-flex: auto;
@@ -2244,7 +2286,7 @@ span.count {
         margin-bottom: 0px;
         padding-bottom: 0px; }
     #extraFeaturesPanel .extraFeatureContent .OTP .actions {
-      padding-left: 9px;
+      padding-left: 6px;
       padding-top: 6px; }
       #extraFeaturesPanel .extraFeatureContent .OTP .actions a {
         font-family: 'clipperz-icons';
@@ -2313,23 +2355,83 @@ span.count {
         /* No support for these yet, use at own risk */
         -o-user-select: text;
         user-select: text; }
-      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel span {
-        font-size: 12pt;
-        color: gray;
-        padding: 4px 0px 4px 0px;
-        line-height: 1.3em;
-        cursor: pointer;
-        display: block; }
-      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input {
-        font-size: 12pt;
-        color: gray;
-        width: 100%;
-        border: 0px;
-        padding: 2px;
-        padding-left: 0px;
-        margin: 0px;
-        margin-bottom: 1px;
-        background-color: #333; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel {
+        display: -webkit-box;
+        display: -webkit-flex;
+        display: -moz-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-direction: normal;
+        -webkit-box-orient: horizontal;
+        -webkit-flex-direction: row;
+        -moz-flex-direction: row;
+        -ms-flex-direction: row;
+        flex-direction: row;
+        margin-right: 5px; }
+        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel:before {
+          -webkit-box-flex: none;
+          -webkit-flex: none;
+          -moz-box-flex: none;
+          -moz-flex: none;
+          -ms-flex: none;
+          flex: none;
+          content: 'label';
+          font-family: 'clipperz-icons';
+          -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+          -moz-font-feature-settings: "liga" 1, "dlig" 1;
+          -ms-font-feature-settings: "liga" 1, "dlig" 1;
+          -o-font-feature-settings: "liga" 1, "dlig" 1;
+          font-feature-settings: "liga" 1, "dlig" 1;
+          -webkit-font-smoothing: antialiased;
+          text-rendering: optimizeLegibility;
+          font-style: normal;
+          padding-right: 4px;
+          color: gray;
+          line-height: 20pt; }
+        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel span {
+          -webkit-box-flex: auto;
+          -webkit-flex: auto;
+          -moz-box-flex: auto;
+          -moz-flex: auto;
+          -ms-flex: auto;
+          flex: auto;
+          font-size: 12pt;
+          color: #333;
+          padding: 4px 0px 4px 0px;
+          line-height: 1.3em;
+          cursor: pointer;
+          font-style: italic; }
+          #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel span.customLabel {
+            color: gray;
+            font-style: normal; }
+        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input {
+          -webkit-box-flex: auto;
+          -webkit-flex: auto;
+          -moz-box-flex: auto;
+          -moz-flex: auto;
+          -ms-flex: auto;
+          flex: auto;
+          font-size: 12pt;
+          color: gray;
+          width: 100%;
+          border: 0px;
+          padding: 2px;
+          padding-left: 0px;
+          margin: 0px;
+          margin-bottom: 1px;
+          background-color: #333; }
+          #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input::-webkit-input-placeholder {
+            font-style: italic;
+            color: #444; }
+          #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input:-moz-placeholder {
+            font-style: italic;
+            color: #444; }
+          #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input::-moz-placeholder {
+            font-style: italic;
+            color: #444; }
+          #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input:-ms-input-placeholder {
+            font-style: italic;
+            color: #444; }
       #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpStatusInfo {
         font-size: 8pt;
         color: gray; }
@@ -2420,14 +2522,21 @@ span.count {
       overflow: auto;
       -webkit-overflow-scrolling: touch; }
       #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Input .description p {
-        width: 100%; }
+        width: 100%;
+        margin: 0; }
       #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Input form .dropArea {
         width: calc(100% - 6px);
         text-align: center;
         height: inherit;
         line-height: 2em;
+        padding: 1em 0;
+        margin-bottom: .5em;
         border: 3px dashed white;
         background: black; }
+        #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Input form .dropArea .button {
+          margin: .5em 0;
+          padding: 0px 14px;
+          font-size: 12pt; }
       #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Input form p {
         margin: 10px 50%; }
         #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Input form p.error {

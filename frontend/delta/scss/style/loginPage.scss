@@ -36,11 +36,22 @@ refer to http://www.clipperz.com.
 
 		header {
 			@include flex(1);
-			@include icon-font();
+//			@include icon-font();
 
 			font-size: 48pt;
 			line-height: 90pt;
 			color: $main-alternate-text-color;
+			
+			h3 {
+				font-weight: bold;
+				font-size: 38pt;
+				line-height: 1.7em;
+			}
+			
+			h5 {
+				font-size: 16pt;
+				line-height: 1.0em;
+			}
 		}
 
 		div.form {
@@ -122,6 +133,13 @@ refer to http://www.clipperz.com.
 			}
 		}
 
+		div.links {
+			ul {
+				li {
+					display: inline-block;
+				}
+			}
+		}
 
 		footer {
 			@include flex(1);
@@ -213,4 +231,25 @@ refer to http://www.clipperz.com.
 		}
 	}
 
+}
+
+.links {
+	ul {
+		li {
+			color: white;
+			cursor: pointer;
+			
+			&:after {
+				content: '-';
+				padding-left: 4px;
+				padding-right: 4px;
+			};
+
+			&:last-child:after {
+				content: '';
+				padding-left: 0px;
+				padding-right: 0px;
+			}
+		}
+	}
 }

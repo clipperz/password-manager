@@ -62,6 +62,7 @@ Clipperz.PM.UI.MainController = function() {
 
 	this.registerForNotificationCenterEvents([
 		'doLogin', 'registerNewUser', 'showRegistrationForm', 'goBack',
+		'logout',
 		'changePassphrase', 'deleteAccount',
 		'updateOTPListAndDetails', 'createNewOTP', 'deleteOTPs', 'changeOTPLabel',
 //		'export',
@@ -348,6 +349,19 @@ console.log("THE BROWSER IS OFFLINE");
 			}
 			return anError;
 		}, this, someCredentials))
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+
+	logout_handler: function () {
+		var deferredResult;
+
+		deferredResult = new Clipperz.Async.Deferred('MainController.logout', {trace:false});
+		deferredResult.addMethod(this.user(), 'logout');
+		deferredResult.addCallback(function () {
+			window.location.href = '/';
+		})
 		deferredResult.callback();
 
 		return deferredResult;

@@ -185,9 +185,13 @@ MochiKit.Base.update(Clipperz.PM.UI.ImportContext.prototype, {
 	},
 
 	enhanceJsonDataWithCardReferences: function (someJsonData) {
+		var now  = new XDate();
+		var	dateString = now.toString('yyyyMMdd');
+
 		return MochiKit.Base.map(function (item) {
 			item['reference'] = Clipperz.PM.Crypto.randomKey();
-			item['label'] = "COPY - " + item['label'];
+//			item['label'] = "COPY - " + item['label'];
+			item['label'] = item['label'] + ' ' + Clipperz.PM.DataModel.Record.tagChar + "Import_" + dateString;
 			return item;
 		}, someJsonData);
 	},

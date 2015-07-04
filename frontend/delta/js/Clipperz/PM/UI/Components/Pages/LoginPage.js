@@ -139,6 +139,12 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 		}
 	},
 
+	showUrl: function (anUrl) {
+		return function () {
+			window.open(anUrl, 'clipperz_about');
+		}
+	},
+
 	render: function() {
 //console.log("LOGIN PAGE", this.props);
 //		var registrationLink =	React.DOM.footer({'key':'registrationLink', 'className':'registrationLink'}, [
@@ -148,9 +154,19 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 		var	registrationLink = React.DOM.a({'key':'signup', 'className':'registrationLink', 'onClick':this.handleRegistrationLinkClick}, "Sign up");
 
 		return React.DOM.div({'key':'loginForm', 'className':'loginForm ' + this.props['style']}, [
-			React.DOM.header({'key':'header'}, 'clipperz'),
+			React.DOM.header({'key':'header'}, [
+				React.DOM.h3({}, 'clipperz'),
+				React.DOM.h5({}, 'keep it to yourself'),
+			]),
 			React.DOM.div({'key':'formWrapper', 'className':'form'}, [
 				this.props.mode == 'PIN' ? this.pinForm() : this.loginForm(),
+			]),
+			React.DOM.div({'key':'links', 'className':'links'}, [
+				React.DOM.ul({}, [
+					React.DOM.li({'key':'about',   'onClick':this.showUrl('/about/')}, "About"),
+					React.DOM.li({'key':'terms',   'onClick':this.showUrl('/terms_service/')}, "Terms of service"),
+					React.DOM.li({'key':'privacy', 'onClick':this.showUrl('/privacy_policy/')}, "Privacy"),
+				])
 			]),
 			React.DOM.footer({'key':'footer'}, [
 				this.props['isNewUserRegistrationAvailable'] ? registrationLink : null,

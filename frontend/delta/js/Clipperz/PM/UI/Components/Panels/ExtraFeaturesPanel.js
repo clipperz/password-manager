@@ -53,6 +53,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 				'account':		false,
 				'subscription':	false,
 				'data':			false,
+				'about':		false,
 			},
 			'isFullyOpen':	false,
 			'extraFeatureComponentName': null,
@@ -71,6 +72,16 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 
 	isFeatureEnabled: function (aValue) {
 		return (this.props['features'].indexOf(aValue) > -1);
+	},
+
+	showUrl: function (anUrl) {
+		return function () {
+			window.open(anUrl, 'clipperz_about');
+		}
+	},
+
+	logout: function () {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'logout');
 	},
 
 	//=========================================================================
@@ -141,7 +152,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 //								])
 							]),
 							React.DOM.li({'key':'account_2', 'onClick':this.toggleExtraFeatureComponent('OTP')}, [
-								React.DOM.h2({}, "One Time Passwords"),
+								React.DOM.h2({}, "One-Time Passwords"),
 //								React.DOM.div({}, [
 //									React.DOM.p({}, "Manage your OTPs.")
 //								])
@@ -230,6 +241,41 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 							])
 */
 						])
+					]),
+					React.DOM.li({'key':'about', 'className':this.state['index']['about'] ? 'open' : 'closed'}, [
+						React.DOM.h1({'key':'aboutH1', 'onClick':this.toggleIndexState('about')}, "About"),
+						React.DOM.div({'key':'address', 'className':'address'}, [
+							"Clipperz Srl",
+							"Piazza Nuova, 10",
+							"48012 Bagnacavallo",
+							"Italy"
+						]),
+						React.DOM.ul({'key':'data'}, [
+							React.DOM.li({'key':'about_1', 'className':'link', 'onClick':this.showUrl('/')}, [
+								React.DOM.h2({}, "Website"),
+							]),
+							React.DOM.li({'key':'about_2', 'className':'link', 'onClick':this.showUrl('/forum/')}, [
+								React.DOM.h2({}, "Forum"),
+							]),
+//							React.DOM.li({'key':'about_3', 'className':'link', 'onClick':this.showUrl('/blog')}, [
+//								React.DOM.h2({}, "Blog"),
+//							]),
+							React.DOM.li({'key':'about_4', 'className':'link', 'onClick':this.showUrl('https://twitter.com/clipperz')}, [
+								React.DOM.h2({}, "Twitter"),
+							]),
+							React.DOM.li({'key':'about_5', 'className':'link', 'onClick':this.showUrl('/about/contacts/')}, [
+								React.DOM.h2({}, "Contacts"),
+							]),
+							React.DOM.li({'key':'about_6', 'className':'link', 'onClick':this.showUrl('/terms_service/')}, [
+								React.DOM.h2({}, "Terms of service"),
+							]),
+							React.DOM.li({'key':'about_7', 'className':'link', 'onClick':this.showUrl('/privacy_policy/')}, [
+								React.DOM.h2({}, "Privacy"),
+							]),
+						])
+					]),
+					React.DOM.li({'key':'logout', 'className':'link', 'onClick':this.logout}, [
+						React.DOM.h2({}, "Logout")
 					])
 				])
 			]),

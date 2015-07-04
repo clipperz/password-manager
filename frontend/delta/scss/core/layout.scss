@@ -173,6 +173,12 @@ input[type=text] {
 				width: 0px;
 			}
 		}
+
+		.extraFeatureContent {
+			.extraFeature {
+				height: calc(100% - 50px);
+			}
+		}
 		
 	}
 }

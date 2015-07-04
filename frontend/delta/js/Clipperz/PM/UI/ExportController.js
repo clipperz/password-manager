@@ -275,11 +275,12 @@ MochiKit.Base.update(Clipperz.PM.UI.ExportController.prototype, {
 	'saveResult': function (exportedJSON) {
 		var blob;
 		var sortedJSON;
+		var now  = new XDate();
+		var	dateString = now.toString('yyyyMMdd');
 		
 		sortedJSON = MochiKit.Iter.sorted(exportedJSON, function(a,b) { return a.label.toUpperCase().localeCompare(b.label.toUpperCase()); } );
-
 		blob = new Blob([this.renderToHtml(sortedJSON)], {type: "text/html;charset=utf-8"});
-		saveAs(blob, "clipperz_data.html");
+		saveAs(blob, dateString + '-Clipperz_Export.html');
 	},
 
 	//=============================================================================

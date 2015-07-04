@@ -214,12 +214,25 @@ Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 				]);
 	},
 
+	showUrl: function (anUrl) {
+		return function () {
+			window.open(anUrl, 'clipperz_about');
+		}
+	},
+
 	render: function () {
 		return	React.DOM.div({'className':'registrationForm'},[
 					React.DOM.header({'key':'header'}, 'clipperz'),
 					React.DOM.div({'key':'body', 'className':'form'}, [
 						React.DOM.form({'key':'registrationForm', 'autoComplete':'off', 'onChange': this.handleChange}, [
 							React.DOM.div({'key':'steps', 'className':'steps'}, MochiKit.Base.map(this.renderStep, this.props['steps']))
+						])
+					]),
+					React.DOM.div({'key':'links', 'className':'links'}, [
+						React.DOM.ul({}, [
+							React.DOM.li({'key':'about',   'onClick':this.showUrl('/about/')}, "About"),
+							React.DOM.li({'key':'terms',   'onClick':this.showUrl('/terms_service/')}, "Terms of service"),
+							React.DOM.li({'key':'privacy', 'onClick':this.showUrl('/privacy_policy/')}, "Privacy"),
 						])
 					]),
 					React.DOM.footer({'key':'footer'}, [

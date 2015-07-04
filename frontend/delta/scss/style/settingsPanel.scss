@@ -48,6 +48,12 @@ refer to http://www.clipperz.com.
 //				padding: 10px;
 //				padding-right: 0px;
 				border-bottom: 1px solid white;
+				
+				&.link {
+					border-bottom: 0px;
+					padding: 10px;
+					cursor: pointer;
+				}
 
 				& > h1 {
 					cursor: pointer;
@@ -66,6 +72,12 @@ refer to http://www.clipperz.com.
 				&.closed > ul {
 					display: none;
 					visibility: hidden;
+				}
+				
+				&.closed {
+					.address {
+						display: none;
+					}
 				}
 			}
 
@@ -89,7 +101,7 @@ refer to http://www.clipperz.com.
 						
 						&.offlineCopy {
 							cursor: default;
-					}
+						}
 					}
 
 					&.open {
@@ -122,6 +134,17 @@ refer to http://www.clipperz.com.
 						padding-bottom: 5px;
 						line-height: 1.2em;
 					}
+
+					.address {
+						padding-bottom: 10px;
+
+						span {
+							display: block;
+							font-size: 12pt;
+							padding-left: 14pt;
+							line-height: 1.3em;
+						}
+					}
 				
 					a.button {
 						@include border-radius(2);
@@ -141,6 +164,18 @@ refer to http://www.clipperz.com.
 								color: white;
 							};
 						}
+					}
+					
+					&.link {
+						
+						h2 {
+						 	&:after {
+								@include icon-font();
+								content: "url";
+								padding-left: 4px;
+								color: gray;
+							}
+						};
 					}
 				}
 			}
@@ -220,6 +255,10 @@ refer to http://www.clipperz.com.
 					input {
 						width: 30px;
 						@include flex(auto);
+					}
+
+					input[type="checkbox"] {
+						flex-grow: 0;
 					}
 
 					label {
@@ -333,7 +372,7 @@ refer to http://www.clipperz.com.
 			}
 
 			.actions {
-				padding-left: 9px;
+				padding-left: 6px;
 				padding-top: 6px;
 
 				a {
@@ -403,17 +442,40 @@ refer to http://www.clipperz.com.
 						}
 
 						.otpLabel {
-							
-							span {
-								font-size: 12pt;
+							@include flexbox;
+							@include flex-direction(row);
+							margin-right: 5px;
+
+							&:before {
+								@include flex(none);
+								content: 'label';
+								@include icon-font();
+								font-style: normal;
+								padding-right: 4px;
 								color: gray;
+								line-height: 20pt;
+//								display: inline-block;
+							};
+
+							span {
+								@include flex(auto);
+								font-size: 12pt;
+								color: #333;
 								padding: 4px 0px 4px 0px;
 								line-height: 1.3em;
 								cursor:pointer;
-								display: block;
+//								display: inline-block;
+								font-style: italic;
+								
+								&.customLabel {
+									color: gray;
+									font-style: normal;
+								}
 							}
 
+
 							input {
+								@include flex(auto);
 								font-size: 12pt;
 								color: gray;
 								width: 100%;
@@ -423,6 +485,13 @@ refer to http://www.clipperz.com.
 								margin: 0px;
 								margin-bottom: 1px;
 								background-color: #333;
+								
+								@include placeholder {
+									font-style: italic;
+									color: #444;
+								}
+								
+//								display: inline-block;
 							}
 //							.undefinedLabel {
 //								color: gray;
@@ -512,6 +581,7 @@ refer to http://www.clipperz.com.
 							
 							p {
 								width: 100%;
+								margin: 0;
 							}
 						}
 
@@ -521,9 +591,18 @@ refer to http://www.clipperz.com.
 								text-align: center;
 								height: inherit;
 								line-height: 2em;
+								padding: 1em 0;
+								margin-bottom: .5em;
 				
 								border: 3px dashed white;
 								background: black;
+
+								.button {
+									margin: .5em 0;
+									padding: 0px 14px;
+
+									font-size: 12pt;
+							}
 							}
 
 							p {
