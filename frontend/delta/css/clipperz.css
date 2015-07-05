@@ -1405,7 +1405,7 @@ div.dialogBox {
       margin-bottom: 5px; }
     #loadingPage div h3 {
       font-size: 18pt;
-      color: black;
+      color: white;
       margin: 0px; }
 
 #loginPage {
@@ -1634,17 +1634,16 @@ div.dialogBox {
       -moz-flex: 1;
       -ms-flex: 1;
       flex: 1;
-      font-family: 'clipperz-icons';
-      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
-      -moz-font-feature-settings: "liga" 1, "dlig" 1;
-      -ms-font-feature-settings: "liga" 1, "dlig" 1;
-      -o-font-feature-settings: "liga" 1, "dlig" 1;
-      font-feature-settings: "liga" 1, "dlig" 1;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
       font-size: 48pt;
       line-height: 90pt;
       color: white; }
+      #registrationPage .registrationForm header h3 {
+        font-weight: bold;
+        font-size: 38pt;
+        line-height: 1.7em; }
+      #registrationPage .registrationForm header h5 {
+        font-size: 16pt;
+        line-height: 1.0em; }
     #registrationPage .registrationForm div.form {
       -webkit-box-flex: 4;
       -webkit-flex: 4;
@@ -1738,6 +1737,8 @@ div.dialogBox {
                   cursor: default; }
                 #registrationPage .registrationForm div.form form .steps .step .buttons .button.enabled {
                   background-color: #ff9900; }
+    #registrationPage .registrationForm div.links ul li {
+      display: inline-block; }
     #registrationPage .registrationForm footer {
       -webkit-box-flex: 1;
       -webkit-flex: 1;
@@ -1753,6 +1754,23 @@ div.dialogBox {
         content: "< "; }
       #registrationPage .registrationForm footer a {
         line-height: 50pt; }
+      #registrationPage .registrationForm footer .applicationVersion {
+        -webkit-box-flex: 1;
+        -webkit-flex: 1;
+        -moz-box-flex: 1;
+        -moz-flex: 1;
+        -ms-flex: 1;
+        flex: 1;
+        font-size: 8pt; }
+        #registrationPage .registrationForm footer .applicationVersion span {
+          color: black; }
+          #registrationPage .registrationForm footer .applicationVersion span:after {
+            content: ":"; }
+        #registrationPage .registrationForm footer .applicationVersion a {
+          color: black;
+          text-decoration: none;
+          padding-left: 5px;
+          font-weight: bold; }
 
 #selections {
   background-color: black;
