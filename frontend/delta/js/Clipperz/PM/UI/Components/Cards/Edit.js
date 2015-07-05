@@ -71,6 +71,8 @@ Clipperz.PM.UI.Components.Cards.EditClass = React.createClass({
 //		anEvent.dataTransfer.setDragImage(anEvent.currentTarget, x, y);
 		anEvent.dataTransfer.setDragImage(dragElement, x, y);
 
+		anEvent.dataTransfer.setData('Text', ""); // Firefox wants this to be defined
+
 		MochiKit.Async.callLater(0.1, MochiKit.Base.bind(this.setState, this, {
 			'draggedFieldReference': fieldReference,
 			'fromFieldPosition': fieldPosition,

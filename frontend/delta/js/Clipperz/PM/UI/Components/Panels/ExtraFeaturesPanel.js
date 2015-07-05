@@ -107,7 +107,8 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 		this.setState({
 			'isFullyOpen': false,
 			'extraFeatureComponentName': null,
-			'extraFeatureContent': null
+			'extraFeatureContent': null,
+			'extraFeatureContentComponent': null
 		});
 	},
 

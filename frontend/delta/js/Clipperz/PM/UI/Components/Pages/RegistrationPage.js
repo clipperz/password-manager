@@ -149,10 +149,10 @@ Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 		var refName = MochiKit.Base.filter(function (aRefName) { return refs[aRefName].getDOMNode() == anEvent.target}, MochiKit.Base.keys(this.refs))[0];
 		var newState = {};
 
-		if ((event.target.type == 'checkbox') || (event.target.type == 'radio')) {
-			newState[refName] = event.target.checked;
+		if ((anEvent.target.type == 'checkbox') || (anEvent.target.type == 'radio')) {
+			newState[refName] = anEvent.target.checked;
 		} else {
-			newState[refName] = event.target.value;
+			newState[refName] = anEvent.target.value;
 		}
 	    this.setState(newState);
 	},

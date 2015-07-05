@@ -1456,7 +1456,7 @@ console.log("THE BROWSER IS OFFLINE");
 //function (aValue) { console.log("2- USER.hasPendingChanges()", aValue); return aValue; },
 			Clipperz.Async.deferredIf('HasPendingChanges',[
 				MochiKit.Base.method(self, 'ask', {
-					'question': "Lose pending changes?",
+					'question': "There are pending changes to your card. Ignore changes?",
 					'possibleAnswers':{
 						'cancel':	{'label':"No",	'isDefault':true,	'answer':MochiKit.Base.methodcaller('cancel', new MochiKit.Async.CancelledError())},
 						'revert':	{'label':"Yes",	'isDefault':false,	'answer':MochiKit.Base.methodcaller('callback')}

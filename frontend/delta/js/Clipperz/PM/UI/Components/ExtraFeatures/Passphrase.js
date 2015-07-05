@@ -101,7 +101,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.PassphraseClass = React.createClass({
 	render: function () {
 		return	React.DOM.div({className:'extraFeature passphrase'}, [
 			React.DOM.div({'className':'header'}, [
-				React.DOM.h1({}, "Change Passphrase"),
+				React.DOM.h1({}, "Change passphrase"),
 			]),
 			React.DOM.div({'className': 'content'}, [
 				React.DOM.form({'key':'form', 'className':'changePassphraseForm', 'onChange': this.handleFormChange, 'onSubmit':this.handleChangePassphrase}, [

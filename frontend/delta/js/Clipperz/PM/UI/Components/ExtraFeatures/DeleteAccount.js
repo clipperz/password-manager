@@ -76,7 +76,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 	render: function () {
 		return	React.DOM.div({className:'extraFeature deleteAccount'}, [
 			React.DOM.div({'className':'header'}, [
-				React.DOM.h1({}, "Delete Account"),
+				React.DOM.h1({}, "Delete account"),
 			]),
 			React.DOM.div({'className': 'content'}, [
 				React.DOM.form({'key':'form', 'className':'deleteAccountForm', 'onChange': this.handleFormChange, 'onSubmit':this.handleDeleteAccount}, [
@@ -87,7 +87,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 						React.DOM.input({'key':'passphrase', 'className': this.state['passphrase'], 'type':'password', 'name':'passphrase', 'ref':'passphrase', 'placeholder':"passphrase"}),
 						React.DOM.p({}, [
 							React.DOM.input({'key':'confirm', 'className':'confirmCheckbox', 'type':'checkbox', 'id':'deleteAccountConfirmCheckbox', 'name':'confirm', 'ref':'confirm'}),
-							React.DOM.label({'htmlFor':'deleteAccountConfirmCheckbox'}, "I understand that all my data will be deleted and that this action is not reversible.")
+							React.DOM.label({'htmlFor':'deleteAccountConfirmCheckbox'}, "All my data will be permanently deleted. I understand that this action cannot be undone or cancelled.")
 						]),
 					]),
 					React.DOM.button({'key':'button', 'type':'submit', 'disabled':!this.shouldEnableDeleteAccountButton(), 'className':'button'}, "Delete my account")
