@@ -58,10 +58,33 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 	handlePasswordFieldAction: function (aField) {
 		var	self = this;
 		var newState = {}
-		
+
 		newState[aField['_reference']] = !this.state[aField['_reference']];
-		
+
 		return function () {
+			var fieldReference = aField['_reference'];
+			var currentTimeout;
+
+			if (newState[fieldReference]) {
+				currentTimeout = setTimeout(function(){
+					var newState;
+
+					newState = {};
+					newState[fieldReference] = false;
+
+					self.setState(newState);
+				}, Clipperz.PM.UI.Components.Cards.ViewClass.automaticRescrambleTimeout);
+			}
+
+			if (self.state['currentTimeout']) {
+				clearTimeout(self.state['currentTimeout']);
+				delete self.state['currentTimeout'];
+			}
+
+			if (currentTimeout) {
+				newState['currentTimeout'] = currentTimeout;
+			}
+
 			self.setState(newState);
 		};
 	},
@@ -193,7 +216,12 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 			React.DOM.div({'className':'fieldEditAction'}, null),
 			React.DOM.div({'className':'fieldValues'}, [
 				React.DOM.div({'className':'fieldLabel'}, aField['label']),
-				React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(cardFieldValueClasses)}, aField['value']),
+				React.DOM.textarea({
+					'readOnly': true,
+					'onClick': function(e) { e.target.select(); },
+					'className':Clipperz.PM.UI.Components.classNames(cardFieldValueClasses),
+					'value': aField['value']
+				}),
 			]),
 			React.DOM.div({'className':'fieldAction'}, [
 				React.DOM.span({'className':Clipperz.PM.UI.Components.classNames(cardFieldActionClasses), 'onClick':this.handleFieldAction(aField)}, aField['actionType'].toLowerCase() == 'password' ? 'view password' : aField['actionType'].toLowerCase())
@@ -257,5 +285,7 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 
 	//=========================================================================
 });
+
+Clipperz.PM.UI.Components.Cards.ViewClass.automaticRescrambleTimeout = 5000;
 
 Clipperz.PM.UI.Components.Cards.View = React.createFactory(Clipperz.PM.UI.Components.Cards.ViewClass);

@@ -628,6 +628,9 @@ html {
 input[type=text] {
   -webkit-appearance: none; }
 
+.mainPage {
+  height: 100%; }
+
 .mainPage > #selectionPanel {
   position: fixed;
   z-index: 20;
@@ -687,6 +690,10 @@ input[type=text] {
     flex: none;
     cursor: pointer; }
 
+/* Firefox considers 100% respect to height of the whole window, this is rule is necessary to eliminate the card toolbar offset. */
+@-moz-document url-prefix() {
+  #mainPanel.extra-wide .subpanel.cardContent {
+    height: calc(100% - 50px); } }
 #mainPanel {
   left: 0px; }
   #mainPanel.extra-wide {
@@ -728,7 +735,8 @@ input[type=text] {
       display: none;
       visibility: hidden; }
     #mainPanel.extra-wide div.addCardButton {
-      margin-left: 20%; }
+      margin-left: 20%;
+      z-index: 5; }
   #mainPanel.wide {
     transition: left 0.3s ease-in-out; }
     #mainPanel.wide .container {
@@ -764,7 +772,8 @@ input[type=text] {
           visibility: visible;
           display: block; }
     #mainPanel.narrow div.addCardButton {
-      margin-left: 75%; }
+      margin-left: 75%;
+      z-index: 5; }
   #mainPanel.open.left {
     width: 100%;
     margin: 0 auto;
@@ -1050,7 +1059,7 @@ div.cardContent {
       -webkit-border-radius: 30px;
       -moz-border-radius: 30px;
       border-radius: 30px;
-      z-index: 1;
+      z-index: 5;
       position: relative;
       bottom: 0px;
       font-size: 45pt;
@@ -1119,7 +1128,8 @@ div.cardContent {
         position: relative;
         z-index: 11; }
         div.cardContent div.cardDetail.column div.editWrapper > div.edit .content {
-          background-color: white; }
+          background-color: white;
+          -webkit-transform: translate3d(0, 0, 0); }
       div.cardContent div.cardDetail.column div.editWrapper .mask {
         background-color: rgba(0, 0, 0, 0.6); }
     div.cardContent div.cardDetail.column > div.view {
@@ -1181,10 +1191,12 @@ div.cardContent {
   flex: none;
   height: 48px;
   line-height: 48px; }
-  .cardDetailToolbar.edit li.save {
-    cursor: default; }
-  .cardDetailToolbar.edit.hasPendingChanges li.save {
-    cursor: pointer; }
+  .cardDetailToolbar.edit {
+    -webkit-transform: translate3d(0, 0, 0); }
+    .cardDetailToolbar.edit li.save {
+      cursor: default; }
+    .cardDetailToolbar.edit.hasPendingChanges li.save {
+      cursor: pointer; }
   .cardDetailToolbar.commands > div {
     display: -webkit-box;
     display: -webkit-flex;
@@ -1572,7 +1584,7 @@ div.dialogBox {
     font-size: 30pt;
     line-height: 70px; }
   #loginPage div.loginForm.narrow footer {
-    max-height: 25px;
+    /* max-height: 25px; */
     line-height: 20pt; }
   #loginPage div.loginForm.extra-short header {
     font-size: 18pt; }
@@ -1592,17 +1604,19 @@ div.dialogBox {
   #loginPage div.loginForm.extra-short footer {
     font-size: 14pt; }
 
-.links ul li {
-  color: white;
-  cursor: pointer; }
-  .links ul li:after {
-    content: '-';
-    padding-left: 4px;
-    padding-right: 4px; }
-  .links ul li:last-child:after {
-    content: '';
-    padding-left: 0px;
-    padding-right: 0px; }
+.links ul {
+  margin-bottom: 1em; }
+  .links ul li {
+    color: white;
+    cursor: pointer; }
+    .links ul li:after {
+      content: '-';
+      padding-left: 4px;
+      padding-right: 4px; }
+    .links ul li:last-child:after {
+      content: '';
+      padding-left: 0px;
+      padding-right: 0px; }
 
 #registrationPage {
   background-color: black;
@@ -2568,33 +2582,19 @@ span.count {
         display: block;
         margin: 1em 0;
         border: 0; }
-      #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card {
+      #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview {
         display: -webkit-box;
         display: -webkit-flex;
         display: -moz-flex;
         display: -ms-flexbox;
         display: flex;
         -webkit-box-direction: normal;
-        -webkit-box-orient: horizontal;
-        -webkit-flex-direction: row;
-        -moz-flex-direction: row;
-        -ms-flex-direction: row;
-        flex-direction: row;
-        padding-top: 15px;
-        padding-bottom: 0px;
-        border-bottom: 1px solid #333; }
-        #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card.archived {
-          background-color: #333; }
-        #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card input {
-          width: 30px;
-          margin-top: 6px;
-          -webkit-box-flex: none;
-          -webkit-flex: none;
-          -moz-box-flex: none;
-          -moz-flex: none;
-          -ms-flex: none;
-          flex: none; }
-        #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent {
+        -webkit-box-orient: vertical;
+        -webkit-flex-direction: column;
+        -moz-flex-direction: column;
+        -ms-flex-direction: column;
+        flex-direction: column; }
+        #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview {
           -webkit-box-flex: auto;
           -webkit-flex: auto;
           -moz-box-flex: auto;
@@ -2611,44 +2611,140 @@ span.count {
           -webkit-flex-direction: column;
           -moz-flex-direction: column;
           -ms-flex-direction: column;
-          flex-direction: column;
-          height: auto; }
-          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent h3 {
-            font-size: 24pt;
-            padding-bottom: 6px; }
-          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent ul.tagList li {
-            display: inline-block;
-            padding-right: 10px;
-            padding-bottom: 5px; }
-            #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent ul.tagList li:before {
-              content: 'tag';
-              font-family: 'clipperz-icons';
-              -webkit-font-feature-settings: "liga" 1, "dlig" 1;
-              -moz-font-feature-settings: "liga" 1, "dlig" 1;
-              -ms-font-feature-settings: "liga" 1, "dlig" 1;
-              -o-font-feature-settings: "liga" 1, "dlig" 1;
-              font-feature-settings: "liga" 1, "dlig" 1;
-              -webkit-font-smoothing: antialiased;
-              text-rendering: optimizeLegibility;
-              font-size: 10pt;
-              padding-right: 5px;
-              line-height: 28px;
-              color: #ccc; }
-          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent dl dt {
-            font-size: 12pt;
+          flex-direction: column; }
+          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview div.selectButtons {
+            -webkit-box-flex: none;
+            -webkit-flex: none;
+            -moz-box-flex: none;
+            -moz-flex: none;
+            -ms-flex: none;
+            flex: none;
+            color: gray; }
+            #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview div.selectButtons span {
+              padding-right: 10px; }
+            #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview div.selectButtons a {
+              cursor: pointer;
+              color: white;
+              font-weight: bold; }
+              #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview div.selectButtons a:after {
+                font-weight: normal;
+                color: gray;
+                content: " - "; }
+              #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview div.selectButtons a:last-child:after {
+                content: ""; }
+          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview div.tagButtons {
+            -webkit-box-flex: none;
+            -webkit-flex: none;
+            -moz-box-flex: none;
+            -moz-flex: none;
+            -ms-flex: none;
+            flex: none;
             color: gray;
-            line-height: 16pt; }
-          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent dl dd {
-            font-size: 16pt;
-            color: white;
-            line-height: 24pt;
-            padding-bottom: 6pt; }
-            #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent dl dd.PASSWORD {
-              font-family: clipperz-password; }
-          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview li.card div.cardContent p {
-            font-size: 10pt;
-            padding-top: 10px;
-            padding-bottom: 10px; }
+            padding-top: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #333; }
+            #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview div.tagButtons label {
+              cursor: pointer;
+              line-height: 1.5em; }
+            #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview div.tagButtons input {
+              font-family: "clipperz-font";
+              font-size: 12pt;
+              color: white;
+              background-color: black;
+              border: 0px;
+              border-bottom: 1px solid #333;
+              outline: none;
+              margin-left: 5px; }
+          #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul {
+            -webkit-box-flex: auto;
+            -webkit-flex: auto;
+            -moz-box-flex: auto;
+            -moz-flex: auto;
+            -ms-flex: auto;
+            flex: auto;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch; }
+            #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul li.card {
+              display: -webkit-box;
+              display: -webkit-flex;
+              display: -moz-flex;
+              display: -ms-flexbox;
+              display: flex;
+              -webkit-box-direction: normal;
+              -webkit-box-orient: horizontal;
+              -webkit-flex-direction: row;
+              -moz-flex-direction: row;
+              -ms-flex-direction: row;
+              flex-direction: row;
+              padding-top: 15px;
+              padding-bottom: 0px;
+              border-bottom: 1px solid #333; }
+              #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul li.card.archived {
+                background-color: #333; }
+              #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul li.card input {
+                width: 30px;
+                margin-top: 6px;
+                -webkit-box-flex: none;
+                -webkit-flex: none;
+                -moz-box-flex: none;
+                -moz-flex: none;
+                -ms-flex: none;
+                flex: none; }
+              #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul li.card div.cardContent {
+                -webkit-box-flex: auto;
+                -webkit-flex: auto;
+                -moz-box-flex: auto;
+                -moz-flex: auto;
+                -ms-flex: auto;
+                flex: auto;
+                display: -webkit-box;
+                display: -webkit-flex;
+                display: -moz-flex;
+                display: -ms-flexbox;
+                display: flex;
+                -webkit-box-direction: normal;
+                -webkit-box-orient: vertical;
+                -webkit-flex-direction: column;
+                -moz-flex-direction: column;
+                -ms-flex-direction: column;
+                flex-direction: column;
+                height: auto; }
+                #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul li.card div.cardContent h3 {
+                  font-size: 24pt;
+                  padding-bottom: 6px; }
+                #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul li.card div.cardContent ul.tagList li {
+                  display: inline-block;
+                  padding-right: 10px;
+                  padding-bottom: 5px; }
+                  #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul li.card div.cardContent ul.tagList li:before {
+                    content: 'tag';
+                    font-family: 'clipperz-icons';
+                    -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+                    -moz-font-feature-settings: "liga" 1, "dlig" 1;
+                    -ms-font-feature-settings: "liga" 1, "dlig" 1;
+                    -o-font-feature-settings: "liga" 1, "dlig" 1;
+                    font-feature-settings: "liga" 1, "dlig" 1;
+                    -webkit-font-smoothing: antialiased;
+                    text-rendering: optimizeLegibility;
+                    font-size: 10pt;
+                    padding-right: 5px;
+                    line-height: 28px;
+                    color: #ccc; }
+                #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul li.card div.cardContent dl dt {
+                  font-size: 12pt;
+                  color: gray;
+                  line-height: 16pt; }
+                #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul li.card div.cardContent dl dd {
+                  font-size: 16pt;
+                  color: white;
+                  line-height: 24pt;
+                  padding-bottom: 6pt; }
+                  #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul li.card div.cardContent dl dd.PASSWORD {
+                    font-family: clipperz-password; }
+                #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul li.card div.cardContent p {
+                  font-size: 10pt;
+                  padding-top: 10px;
+                  padding-bottom: 10px; }
       #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Import h5 {
         padding-bottom: 15px; }
       #extraFeaturesPanel .extraFeatureContent .dataImport .content .step table.csvTable {
@@ -2942,6 +3038,10 @@ div.cardList.narrow {
           border-bottom: 1px solid black; }
           #cardDetailPage .view .cardDetailToolbar.narrow .commandMenu.show .commandMenu ul li.disabled, .cardDetail .view .cardDetailToolbar.narrow .commandMenu.show .commandMenu ul li.disabled {
             color: #ddd; }
+#cardDetailPage .view .cardField textarea.fieldValue, .cardDetail .view .cardField textarea.fieldValue {
+  line-height: 1em;
+  height: 1.3em;
+  outline: none; }
 #cardDetailPage .edit .cardDetailToolbar, .cardDetail .edit .cardDetailToolbar {
   background-color: #1863a1;
   color: white; }

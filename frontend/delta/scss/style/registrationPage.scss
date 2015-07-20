@@ -26,7 +26,7 @@ refer to http://www.clipperz.com.
 	color: $main-alternate-text-color;
 
 	.registrationForm {
-		@include flexbox;
+		@include flexbox();
 		@include flex-direction(column);
 		@include align-items(stretch);
 

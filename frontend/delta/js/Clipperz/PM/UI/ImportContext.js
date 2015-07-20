@@ -32,6 +32,8 @@ Clipperz.PM.UI.ImportContext = function(anInputComponent) {
 		'isInputStringValid': false,
 		'inputFormat': 'UNDEFINED',
 		'currentStep': 'Input',
+		'useImportTag': true,
+		'importTag': Clipperz.PM.UI.ImportContext.getDefaultImportTag()
 	};
 	
 	return this;
@@ -185,17 +187,20 @@ MochiKit.Base.update(Clipperz.PM.UI.ImportContext.prototype, {
 	},
 
 	enhanceJsonDataWithCardReferences: function (someJsonData) {
-		var now  = new XDate();
-		var	dateString = now.toString('yyyyMMdd');
-
 		return MochiKit.Base.map(function (item) {
 			item['reference'] = Clipperz.PM.Crypto.randomKey();
 //			item['label'] = "COPY - " + item['label'];
-			item['label'] = item['label'] + ' ' + Clipperz.PM.DataModel.Record.tagChar + "Import_" + dateString;
 			return item;
 		}, someJsonData);
 	},
 	
+	enhanceJsonDataWithImportTag: function(someJsonData, aTag) {
+		return MochiKit.Base.map(function (item) {
+			item['label'] = item['label'] + ' ' + Clipperz.PM.DataModel.Record.tagChar + aTag;
+			return item;
+		}, someJsonData);
+	},
+
 	//-----------------------------------------------------------------------------
 
 	startCsvWizard: function (csvData) {
@@ -447,3 +452,10 @@ MochiKit.Base.update(Clipperz.PM.UI.ImportContext.prototype, {
 	//=============================================================================
 	__syntaxFix__: "syntax fix"
 });
+
+Clipperz.PM.UI.ImportContext.getDefaultImportTag = function() {
+	var now  = new XDate();
+	var	dateString = now.toString('yyyyMMdd');
+
+	return "Import_" + dateString;
+}

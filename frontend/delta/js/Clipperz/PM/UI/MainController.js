@@ -341,7 +341,7 @@ console.log("THE BROWSER IS OFFLINE");
 		deferredResult.addMethod(this, 'setUser', user);
 		deferredResult.addMethod(this, 'runApplication');
 		deferredResult.addMethod(this.overlay(), 'done', "", 1);
-		deferredResult.addErrback(MochiKit.Base.method(this, 'genericErrorHandler', someCredentials));
+		deferredResult.addErrback(MochiKit.Base.method(this, 'genericErrorHandler', someCredentials, "login failed"));
 		deferredResult.addErrback(MochiKit.Base.bind(function (anEvent, anError) {
 			if (anError['isPermanent'] != true) {
 				this.pages()['loginPage'].setProps({disabled:false, 'mode':this.loginMode()});
@@ -381,7 +381,8 @@ console.log("THE BROWSER IS OFFLINE");
 			MochiKit.Base.partial(MochiKit.Async.succeed, credentials['passphrase'])
 		);
 		deferredResult.addMethod(this, 'doLogin', credentials);
-		deferredResult.addErrback(MochiKit.Base.method(this, 'genericErrorHandler', credentials));
+		deferredResult.addMethod(this,'importCards', Clipperz.PM.DefaultCards);
+		deferredResult.addErrback(MochiKit.Base.method(this, 'genericErrorHandler', credentials, "registration failed"));
 		deferredResult.addErrback(MochiKit.Base.bind(function (anError) {
 			if (anError['isPermanent'] != true) {
 				this.pages()['registrationPage'].setProps({disabled:false});
@@ -636,7 +637,7 @@ console.log("THE BROWSER IS OFFLINE");
 			rangeFilter = MochiKit.Base.operator.identity;
 		} else if (aFilter['type'] == 'RECENT') {
 			filterCriteria = MochiKit.Base.operator.truth;
-			sortCriteria = Clipperz.Base.reverseComparator(MochiKit.Base.keyComparator('accessDate'));
+			sortCriteria = Clipperz.Base.reverseComparator(MochiKit.Base.keyComparator('_accessDate'));
 			rangeFilter = function (someCards) { return someCards.slice(0, 10)};
 		} else if (aFilter['type'] == 'SEARCH') {
 			filterCriteria = this.regExpFilterGenerator(Clipperz.PM.DataModel.Record.regExpForSearch(aFilter['value']));
@@ -832,12 +833,13 @@ console.log("THE BROWSER IS OFFLINE");
 */
 	//=========================================================================
 
-	genericErrorHandler: function (anEvent, anError) {
+	genericErrorHandler: function (anEvent, aMessage, anError) {
 		var errorMessage;
 		var	result;
 
 		result = anError;
-		errorMessage = "login failed";
+//		errorMessage = "login failed";
+		errorMessage = aMessage;
 
 		if (anError['isPermanent'] === true) {
 			this.pages()['errorPage'].setProps({message:anError.message});
@@ -925,7 +927,7 @@ console.log("THE BROWSER IS OFFLINE");
 //console.log("ADD ITEM TO HISTORY");
 //console.log("ADD ITEM TO HISTORY - window", window);
 //console.log("ADD ITEM TO HISTORY - window.history", window.history);
-				window.history.pushState({'fromPage': fromPage, 'toPage': toPage});
+				window.history.pushState({'fromPage': fromPage, 'toPage': toPage}, "");
 //#				window.history.pushState();
 //console.log("ADDED ITEM TO HISTORY");
 			} else {
@@ -956,7 +958,6 @@ console.log("THE BROWSER IS OFFLINE");
 	
 		userInfo: function () {
 		var result;
-		
 		result = {};
 		
 		result['checkPassphraseCallback'] = MochiKit.Base.bind(this.checkPassphrase,this);
@@ -1011,7 +1012,7 @@ console.log("THE BROWSER IS OFFLINE");
 		
 //console.log("messageBox - this.user()", this.user());
 		if (this.featureSet() == 'EXPIRED') {
-			message = "Exprired subscription";
+			message = "Expired subscription";
 			level = 'ERROR';
 		}
 
@@ -1102,6 +1103,8 @@ console.log("THE BROWSER IS OFFLINE");
 	resetPanels: function () {
 		this._isSelectionPanelOpen = false;
 		this._isSettingsPanelOpen = false;
+
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'closeSettingsPanel');
 	},
 
 	featureAvailableForStyles: function (listOfSupportedStyles) {
@@ -1345,6 +1348,15 @@ console.log("THE BROWSER IS OFFLINE");
 			MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel'),
 //			MochiKit.Base.method(this.pages()[this.currentPage()], 'setProps', {'mode':'view', 'showGlobalMask':false}),
 			function () { return data; },
+			MochiKit.Base.method(this,'importCards'),
+			MochiKit.Base.method(this.overlay(), 'done', "finished", 1),
+			MochiKit.Base.method(this.pages()[this.currentPage()], 'setProps', {'mode':'view', 'showGlobalMask':false}),
+		], {trace:false});
+	},
+
+	importCards: function(data) {
+		return Clipperz.Async.callbacks("MainController.importCards", [
+			function () { return data; },
 			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this.user(), 'createNewRecordFromJSON')),
 
 			// MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.bind(function (recordData) {
@@ -1358,8 +1370,6 @@ console.log("THE BROWSER IS OFFLINE");
 			MochiKit.Base.method(this.user(), 'saveChanges'),
 			MochiKit.Base.partial(MochiKit.Base.method(this, 'resetRecordsInfo')),
 			MochiKit.Base.partial(MochiKit.Base.method(this, 'refreshUI', null)),
-			MochiKit.Base.method(this.overlay(), 'done', "finished", 1),
-			MochiKit.Base.method(this.pages()[this.currentPage()], 'setProps', {'mode':'view', 'showGlobalMask':false}),
 		], {trace:false});
 	},
 

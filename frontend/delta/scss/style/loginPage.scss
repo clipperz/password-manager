@@ -25,7 +25,7 @@ refer to http://www.clipperz.com.
 	@include overflow-auto;
 
 	div.loginForm {
-		@include flexbox;
+		@include flexbox();
 		@include flex-direction(column);
 		@include align-items(stretch);
 
@@ -144,7 +144,7 @@ refer to http://www.clipperz.com.
 		footer {
 			@include flex(1);
 
-			@include flexbox;
+			@include flexbox();
 			@include flex-direction(column);
 			@include align-items(stretch);
 
@@ -192,7 +192,7 @@ refer to http://www.clipperz.com.
 		}
 
 		footer {
-			max-height: 25px;
+			/* max-height: 25px; */
 			line-height: 20pt;
 		}
 	}
@@ -235,6 +235,9 @@ refer to http://www.clipperz.com.
 
 .links {
 	ul {
+
+		margin-bottom: 1em;
+		
 		li {
 			color: white;
 			cursor: pointer;

@@ -28,7 +28,13 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.ImportClass = React.createCla
 	//=========================================================================
 
 	importHandler: function (anEvent) {
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'importCards', this.props.importContext.state('recordsToImport'));
+		var recordsToImport = this.props.importContext.state('recordsToImport');
+
+		if (this.props.importContext.state('useImportTag') && this.props.importContext.state('importTag')) {
+			this.props.importContext.enhanceJsonDataWithImportTag(recordsToImport, this.props.importContext.state('importTag'))
+		}
+
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'importCards', recordsToImport);
 	},
 
 	render: function() {

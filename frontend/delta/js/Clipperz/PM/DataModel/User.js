@@ -291,7 +291,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 	'deleteAccount': function() {
 		var deferredResult;
 		
-		deferredResult = new MochiKit.Async.Deferred("User.deleteAccount", {trace: true});
+		deferredResult = new MochiKit.Async.Deferred("User.deleteAccount", {trace:false});
 		deferredResult.addCallback(MochiKit.Base.method(this.connection(), 'message'), 'deleteUser');
 		deferredResult.addCallback(MochiKit.Base.method(this, 'resetAllLocalData'));
 		deferredResult.callback();
@@ -302,7 +302,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 	'resetAllLocalData': function() {
 		var deferredResult;
 		
-		deferredResult = new MochiKit.Async.Deferred("User.resetAllLocalData", {trace: true});
+		deferredResult = new MochiKit.Async.Deferred("User.resetAllLocalData", {trace:false});
 		deferredResult.addCallback(MochiKit.Base.method(this, 'deleteAllCleanTextData'));
 		deferredResult.addCallback(MochiKit.Base.method(this, function() {
 			this.resetConnection();

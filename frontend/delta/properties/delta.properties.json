@@ -51,8 +51,8 @@
 		"MochiKit/Selector.js",
 		"-- MochiKit/Visual.js",
 
-		"React/react-0.13.1.js",
-		"-- React/react.min-0.13.1.js",
+		"-- React/react-0.13.1.js",
+		"React/react.min-0.13.1.js",
 		"-- #React/react-with-addons-0.13.1.js",
 		"-- #React/react-with-addons.min-0.13.1.js",
 
@@ -134,6 +134,8 @@
 		"Clipperz/PM/Crypto.js",
 		"Clipperz/PM/PIN.js",
 		"-- Clipperz/PM/BookmarkletProcessor.js",
+
+		"Clipperz/PM/DefaultCards.js",
 
 		"Clipperz/PM/DataModel/EncryptedRemoteObject.js",
 		"Clipperz/PM/DataModel/User.js",

@@ -248,7 +248,7 @@ refer to http://www.clipperz.com.
 				}
 			
 				p {
-					@include flexbox;
+					@include flexbox();
 					@include flex-direction(row);
 					padding-top: 8px;
 
@@ -408,7 +408,7 @@ refer to http://www.clipperz.com.
 					$detailMargin: 4px;
 					$labelPadding: 5px;
 					
-					@include flexbox;
+					@include flexbox();
 					@include flex-direction(row);
 
 					border: 1px solid #222;
@@ -442,7 +442,7 @@ refer to http://www.clipperz.com.
 						}
 
 						.otpLabel {
-							@include flexbox;
+							@include flexbox();
 							@include flex-direction(row);
 							margin-right: 5px;
 
@@ -541,7 +541,7 @@ refer to http://www.clipperz.com.
 			.content {
 				display: block;
 				height: 100%;
-				@include flexbox;
+				@include flexbox();
 				@include flex-direction(column);
 
 				ul.stepNavbar {
@@ -628,76 +628,142 @@ refer to http://www.clipperz.com.
 					}
 
 					&.Preview {
-						li.card {
-							@include flexbox;
-							@include flex-direction(row);
-							padding-top: 15px;
-							padding-bottom: 0px;
-							border-bottom: 1px solid #333;
+//						overflow: hidden;
+						@include flexbox();
+						@include flex-direction(column);
 						
-							&.archived {
-								background-color: #333;
-							}
+						div.preview {
+							@include flex(auto);
+							@include flexbox();
+							@include flex-direction(column);
 
-							input {
-								width: 30px;
-								margin-top: 6px;
+							div.selectButtons {
 								@include flex(none);
-							}
-						
-							div.cardContent {
-								@include flex(auto);
-								@include flexbox;
-								@include flex-direction(column);
-								height: auto;
-							
-								h3 {
-									font-size: 24pt;
-									padding-bottom: 6px;
+								color: gray;
+								
+								span {
+									padding-right: 10px;
 								}
 								
-								ul.tagList {
-									li {
-										display: inline-block;
-										padding-right: 10px;
-										padding-bottom: 5px;
-
-										&:before {
-											content: 'tag';
-											@include icon-font();
-											font-size: 10pt;
-											padding-right: 5px;
-											line-height: 28px;
-											color: #ccc;
-										}
-									}
-								}
-								
-								dl {
-									dt {
-										font-size: 12pt;
-										color: gray;
-										line-height: 16pt;
-									}
+								a {
+									cursor: pointer;
+//									padding-right: 4px;
+									color: white;
+									font-weight: bold;
 									
-									dd {
-										font-size: 16pt;
-										color: white;
-										line-height: 24pt;
-										padding-bottom: 6pt;
+									&:after {
+										font-weight: normal;
+										color: gray;
+										content: " - ";
+									};
+
+									&:last-child:after {
+										content: "";
+									}
+								}
+							}
+							
+							div.tagButtons {
+								@include flex(none);
+								color: gray;
+
+								padding-top: 5px;
+								padding-bottom: 5px;
+								border-bottom: 1px solid #333;
+
+								label {
+									cursor: pointer;
+									line-height: 1.5em;
+								}
+
+								input {
+									font-family: "clipperz-font";
+									font-size: 12pt;
+									color: white;
+									background-color: black;
+									border: 0px;
+									border-bottom: 1px solid #333;
+									outline: none;
+									margin-left: 5px;
+								}
+							}
+
+							ul {
+								@include flex(auto);
+								@include overflow-auto();
+
+								li.card {
+									@include flexbox();
+									@include flex-direction(row);
+									padding-top: 15px;
+									padding-bottom: 0px;
+									border-bottom: 1px solid #333;
+						
+									&.archived {
+										background-color: #333;
+									}
+
+									input {
+										width: 30px;
+										margin-top: 6px;
+										@include flex(none);
+									}
+						
+									div.cardContent {
+										@include flex(auto);
+										@include flexbox();
+										@include flex-direction(column);
+										height: auto;
+							
+										h3 {
+											font-size: 24pt;
+											padding-bottom: 6px;
+										}
+								
+										ul.tagList {
+											li {
+												display: inline-block;
+												padding-right: 10px;
+												padding-bottom: 5px;
+
+												&:before {
+													content: 'tag';
+													@include icon-font();
+													font-size: 10pt;
+													padding-right: 5px;
+													line-height: 28px;
+													color: #ccc;
+												}
+											}
+										}
+								
+										dl {
+											dt {
+												font-size: 12pt;
+												color: gray;
+												line-height: 16pt;
+											}
+									
+											dd {
+												font-size: 16pt;
+												color: white;
+												line-height: 24pt;
+												padding-bottom: 6pt;
 										
-										&.PASSWORD {
-											font-family: clipperz-password;
-//											color: red;
+												&.PASSWORD {
+													font-family: clipperz-password;
+												}
+											}
+										}
+
+										p {
+											font-size: 10pt;
+											padding-top: 10px;
+											padding-bottom: 10px;
 										}
 									}
 								}
-
-								p {
-									font-size: 10pt;
-									padding-top: 10px;
-									padding-bottom: 10px;
-								}
+							
 							}
 						}
 					}

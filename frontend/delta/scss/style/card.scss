@@ -245,7 +245,15 @@ $cardViewBasePadding: 10px;
 					
 				}
 			}
-		}		
+		}
+
+		.cardField {
+			textarea.fieldValue {
+				line-height: 1em;
+				height: 1.3em;
+				outline: none;
+			}
+		}
 	}
 	
 	.edit {
@@ -260,7 +268,7 @@ $cardViewBasePadding: 10px;
 		
 		.cardField {
 			border-top: 1px solid #eee;
-			
+		
 			&:last-child {
 				border-bottom: 1px solid #eee;
 			};
@@ -386,7 +394,7 @@ $cardViewBasePadding: 10px;
 	}
 
 	.cardField {
-		@include flexbox;
+		@include flexbox();
 		@include flex-direction(row);
 //		@include user-select(none);
 //		background-color: rgba(255, 255, 255, 0.75);
@@ -405,7 +413,7 @@ $cardViewBasePadding: 10px;
 			width: 32px;
 //			background-color: pink;
 
-//			@include flexbox;
+//			@include flexbox();
 //			@include flex-direction(column);
 
 			.removeField {
@@ -478,10 +486,12 @@ $cardViewBasePadding: 10px;
 
 			.fieldValue {
 				font-size: 18pt;
-//				line-height: 28px;
 				line-height: 1.2em;
+//				line-height: 1em;
+//				height: 1.3em;
+//				outline: none;
 				@include user-select(text);
-
+			
 				white-space: pre-wrap;
 				word-wrap: break-word;
 

@@ -182,6 +182,10 @@ refer to http://www.clipperz.com.
 	-webkit-overflow-scrolling: touch;
 }
 
+@mixin chromeFix () {
+	-webkit-transform: translate3d(0,0,0);
+}
+
 @mixin placeholder {
 	&::-webkit-input-placeholder {@content}
 	&:-moz-placeholder           {@content}

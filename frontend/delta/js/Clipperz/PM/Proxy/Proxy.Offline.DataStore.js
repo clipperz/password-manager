@@ -291,7 +291,8 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 					'userDetails':			someParameters['user']['header'],
 					'statistics':			someParameters['user']['statistics'],
 					'userDetailsVersion':	someParameters['user']['version'],
-					'records':	{}
+					'records':	{},
+					'accountInfo': Clipperz.PM.Proxy.Offline.DataStore.defaultAccountInfo
 				}
 			} else {
 				throw "user already exists";
@@ -882,4 +883,26 @@ console.log("Proxy.Offline.DataStore.updateOneTimePasswords: userOTPs:", aConnec
 
 Clipperz.PM.Proxy.Offline.DataStore['exception'] = {
 	'ReadOnly': 		new MochiKit.Base.NamedError("Clipperz.PM.Proxy.Offline.DataStore.exception.ReadOnly")
+};
+
+Clipperz.PM.Proxy.Offline.DataStore.defaultAccountInfo = {
+	'features': [
+		'UPDATE_CREDENTIALS',
+		'EDIT_CARD',
+		'CARD_DETAILS',
+		'ADD_CARD',
+		'DELETE_CARD',
+		'OFFLINE_COPY',
+		'LIST_CARDS'
+	],
+	'paymentVerificationPending': false,
+	'currentSubscriptionType': 'EARLY_ADOPTER',
+	'isExpiring': false,
+	'latestActiveLevel': 'EARLY_ADOPTER',
+	'payments': [],
+	'featureSet': 'FULL',
+	'latestActiveThreshold': '-1.00000000',
+	'referenceDate': 'Fri, 03 April 2015 08:17:46 UTC',
+	'isExpired': false,
+	'expirationDate': 'Mon, 01 January 4001 00:00:00 UTC'
 };

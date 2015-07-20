@@ -28,7 +28,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.PreviewClass = React.createCl
 
 	getInitialState: function() {
 		var	recordsToImport;
-		
+
 		recordsToImport = MochiKit.Iter.reduce(
 			function (acc, item) { acc[item['reference']] = item; return acc; },
 			MochiKit.Base.filter(
@@ -46,6 +46,53 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.PreviewClass = React.createCl
 	},
 
 	//=========================================================================
+
+	selectRecordsToImport: function(records) {
+		var newRecordsToImport;
+		var i;
+
+		newRecordsToImport = {};
+		for (i in records) {
+			newRecordsToImport[records[i]['reference']] = records[i];
+		}
+
+		this.setState({'recordsToImport': newRecordsToImport});
+		this.props.importContext.setState('recordsToImport', MochiKit.Base.values(newRecordsToImport));
+	},
+
+	selectAll: function() {
+		this.selectRecordsToImport(this.props.importContext.state('jsonData'));
+	},
+
+	selectNone: function() {
+		this.selectRecordsToImport({});
+	},
+
+	selectNotArchived: function() {
+		this.selectRecordsToImport(MochiKit.Base.filter(function (aRecord) {
+			return !Clipperz.PM.DataModel.Record.labelContainsArchiveTag(aRecord['label']);
+		}, this.props.importContext.state('jsonData')));
+	},
+
+	selectArchived: function() {
+		this.selectRecordsToImport(MochiKit.Base.filter(function (aRecord) {
+			return Clipperz.PM.DataModel.Record.labelContainsArchiveTag(aRecord['label']);
+		}, this.props.importContext.state('jsonData')));
+	},
+
+	//-------------------------------------------------------------------------
+
+	handleImportTagTextChange: function() {
+		var newTag = this.refs['importTagText'].getDOMNode().value;
+
+		this.props.importContext.setState('importTag', newTag);
+	},
+
+	handleImportTagCheckboxChange: function() {
+		this.props.importContext.setState('useImportTag', ! this.props.importContext.state('useImportTag'));
+	},
+
+	//-------------------------------------------------------------------------
 
 	toggleRecordToImport: function(record) {
 		var newRecordsToImport;
@@ -75,6 +122,10 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.PreviewClass = React.createCl
 
 		tagList = MochiKit.Base.keys(tagObject);
 		tagList = MochiKit.Base.filter(function(aTag) { return !Clipperz.PM.DataModel.Record.isSpecialTag(aTag); }, tagList);
+
+		if (this.props.importContext.state('useImportTag') && this.props.importContext.state('importTag')) {
+			tagList.push(this.props.importContext.state('importTag'));
+		}
 
 		if (tagList.length > 0) {
 			result = React.DOM.ul({'className': 'tagList'},
@@ -123,7 +174,32 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.PreviewClass = React.createCl
 	},
 
 	render: function() {
+		var inputFormat = this.props.importContext.inputFormat();
+
 		return React.DOM.div({'className': 'preview'},
+			React.DOM.div({'className': 'selectButtons'},
+				React.DOM.span({}, "Select:"),
+				React.DOM.a({'onClick': this.selectAll}, "All"),
+				React.DOM.a({'onClick': this.selectNone}, "None"),
+				(inputFormat == 'JSON') ? React.DOM.a({'onClick': this.selectNotArchived}, "Not Archived") : null,
+				(inputFormat == 'JSON') ? React.DOM.a({'onClick': this.selectArchived}, "Archived") : null
+			),
+			React.DOM.div({'className': 'tagButtons'},
+				React.DOM.input({
+					'type': 'checkbox',
+					'id': 'tagCheckbox',
+					'checked': this.props.importContext.state('useImportTag'),
+					'onChange': this.handleImportTagCheckboxChange
+				}),
+				React.DOM.label({'htmlFor': 'tagCheckbox'}, "Apply the following tag to imported cards:"),
+				React.DOM.input({
+					'ref': 'importTagText',
+					'type': 'text',
+					'value': this.props.importContext.state('importTag'),
+					'disabled': ! this.props.importContext.state('useImportTag'),
+					'onChange': this.handleImportTagTextChange
+				})
+			),
 			React.DOM.ul({}, MochiKit.Base.map(MochiKit.Base.method(this, 'renderCard'), this.props.importContext.state('jsonData')))
 		);
 	},

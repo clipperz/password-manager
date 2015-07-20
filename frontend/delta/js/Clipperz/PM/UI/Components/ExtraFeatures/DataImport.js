@@ -79,9 +79,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImportClass = React.createClass({
 			]),
 			React.DOM.div({'className': 'content' + ' ' + currentStep + ' ' + this.importContext().inputFormat()}, [
 				React.DOM.div({'className': 'step' + ' ' + currentStep}, [
-					new this.componentWithName(this.importContext().currentStep())({
-						'importContext': this.importContext(),
-					}),
+					new this.componentWithName(this.importContext().currentStep())({'importContext': this.importContext()}),
 				]),
 				this.renderNavbar(currentStep),
 				React.DOM.div({'className': 'buttons' + ' ' + currentStep}, [

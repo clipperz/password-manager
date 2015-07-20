@@ -120,7 +120,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.PassphraseClass = React.createClass({
 
 						React.DOM.p({}, [
 							React.DOM.input({'key':'confirm', 'id':'changePassphraseConfirmCheckbox', 'className':'confirmCheckbox', 'type':'checkbox', 'name':'confirm', 'ref':'confirm'}),
-							React.DOM.label({'htmlFor':'changePassphraseConfirmCheckbox'}, "I understand that Clipperz will not be able to help me recovering a lost passphrase.")
+							React.DOM.label({'htmlFor':'changePassphraseConfirmCheckbox'}, "I understand that Clipperz is unable to recover a lost passphrase.")
 						]),
 					]),
 					React.DOM.button({'key':'button', 'type':'submit', 'disabled':!this.shouldEnableChangePassphraseButton(), 'className':'button'}, "Change passphrase"),
