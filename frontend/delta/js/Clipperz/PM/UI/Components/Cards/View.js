@@ -216,7 +216,8 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 			React.DOM.div({'className':'fieldEditAction'}, null),
 			React.DOM.div({'className':'fieldValues'}, [
 				React.DOM.div({'className':'fieldLabel'}, aField['label']),
-				React.DOM.textarea({
+				Clipperz.PM.UI.Components.Cards.TextArea({
+//				React.DOM.textarea({
 					'readOnly': true,
 					'onClick': function(e) { e.target.select(); },
 					'className':Clipperz.PM.UI.Components.classNames(cardFieldValueClasses),
