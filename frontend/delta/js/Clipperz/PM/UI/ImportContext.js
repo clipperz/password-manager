@@ -458,4 +458,4 @@ Clipperz.PM.UI.ImportContext.getDefaultImportTag = function() {
 	var	dateString = now.toString('yyyyMMdd');
 
 	return "Import_" + dateString;
-}
+};
