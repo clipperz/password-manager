@@ -33,6 +33,10 @@ Clipperz.PM.UI.Components.Cards.TextAreaClass = React.createClass({
 		this.getDOMNode().addEventListener('input', this.recalculateSize, false);
 	},
 
+	componentDidUpdate: function () {
+		this.recalculateSize();
+	},
+
 	componentWillUnmount: function() {
 		this.getDOMNode().removeEventListener('input', this.recalculateSize, false);
 	},
@@ -65,7 +69,7 @@ Clipperz.PM.UI.Components.Cards.TextAreaClass = React.createClass({
 		var node = this.getDOMNode();
 
 		node.style.height = 'auto';
-		node.style.height = node.scrollHeight+'px';
+		node.style.height = node.scrollHeight + 'px';
 		window.scrollTo(window.scrollLeft, (node.scrollTop + node.scrollHeight));
 	},
 /*
