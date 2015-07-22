@@ -106,6 +106,12 @@ input[type=text] {
 				}
 			}
 		}
+
+		&.wide {
+				.cardContent {
+					height: calc(100% - 50px);
+				}
+		}
 	}
 
 }
