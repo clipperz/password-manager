@@ -1257,8 +1257,8 @@ Clipperz.PM.DataModel.Record.regExpForSearch = function (aSearch) {
 };
 
 
-
-Clipperz.PM.DataModel.Record.tagRegExp = new RegExp('\\' + Clipperz.PM.DataModel.Record.tagChar + '(' + Clipperz.PM.DataModel.Record.specialTagChar + '?\\w+)', 'g');
+// Slightly more readable: http://rubular.com/r/4O8xGEsLgw
+Clipperz.PM.DataModel.Record.tagRegExp = new RegExp('\\' + Clipperz.PM.DataModel.Record.tagChar + '(' + Clipperz.PM.DataModel.Record.specialTagChar + '?[^'+Clipperz.PM.DataModel.Record.tagChar+']+?)\\s*(?='+Clipperz.PM.DataModel.Record.tagChar+'|$)', 'g');
 Clipperz.PM.DataModel.Record.trimSpacesRegExp = new RegExp('^\\s+|\\s+$', 'g');
 
 Clipperz.PM.DataModel.Record.extractLabelFromFullLabel = function (aValue) {

@@ -1550,10 +1550,14 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult.addMethod(user, 'getRecord', recordID);
 //deferredResult.addCallback(function (aValue) { console.log("VALUE", aValue); return aValue; });
 		deferredResult.addMethodcaller('addTag', "TagX");
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('addTag', "A tag with spaces");
+		deferredResult.addMethod(user, 'getRecord', recordID);
+		deferredResult.addMethodcaller('addTag', "ετικέτα");
 
 		deferredResult.addMethod(user, 'getRecord', recordID);
 		deferredResult.addMethodcaller('tags');
-		deferredResult.addCallback(SimpleTest.eq, ['Tag1', 'Tag2', 'TagX']);
+		deferredResult.addCallback(SimpleTest.eq, ['Tag1', 'Tag2', 'TagX', 'A tag with spaces', 'ετικέτα']);
 
 		deferredResult.addMethod(user, 'getRecord', recordID);
 		deferredResult.addMethodcaller('setLabel', "Card 1 - edited");
@@ -1565,7 +1569,7 @@ deferredResult.addCallback(function (aValue) { console.log("FIELDS", aValue); re
 		deferredResult.addMethod(user_2, 'login');
 		deferredResult.addMethod(user_2, 'getRecord', recordID);
 		deferredResult.addMethodcaller('tags');
-		deferredResult.addCallback(SimpleTest.eq, ['Tag1', 'Tag2', 'TagX']);
+		deferredResult.addCallback(SimpleTest.eq, ['Tag1', 'Tag2', 'TagX', 'A tag with spaces', 'ετικέτα']);
 
 		deferredResult.callback();
 
