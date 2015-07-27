@@ -202,7 +202,7 @@
 		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CSV/Notes.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CSV/Hidden.js",
 
-		"Clipperz/PM/UI/Components/Cards/FavIcon.js",
+		"-- Clipperz/PM/UI/Components/Cards/FavIcon.js",
 		"Clipperz/PM/UI/Components/Cards/List.js",
 		"Clipperz/PM/UI/Components/Cards/Detail.js",
 		"Clipperz/PM/UI/Components/Cards/View.js",

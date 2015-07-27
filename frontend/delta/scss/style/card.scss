@@ -96,10 +96,13 @@ div.cardList {
 
 				font-size: 14pt;
 
-				padding-top: 0.8em;
-				padding-bottom: 0.8em;
-				padding-left: $padding;
+//				padding-top: 0.8em;
+				padding-top: 16px;
+//				padding-bottom: 0.8em;
+				padding-bottom: 14px;
+				padding-left: $padding * 2;
 				padding-right: $padding;
+				line-height: 1.2em;
 			}
 			
 		}
@@ -249,8 +252,8 @@ $cardViewBasePadding: 10px;
 
 		.cardField {
 			textarea.fieldValue {
-				line-height: 1em;
-				height: 1.3em;
+//				line-height: 1em;
+//				height: 1.3em;
 				outline: none;
 			}
 		}
