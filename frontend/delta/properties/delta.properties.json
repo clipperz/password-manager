@@ -51,8 +51,8 @@
 		"MochiKit/Selector.js",
 		"-- MochiKit/Visual.js",
 
-		"-- React/react-0.13.1.js",
-		"React/react.min-0.13.1.js",
+		"-- React/react-0.13.3.js",
+		"React/react.min-0.13.3.js",
 		"-- #React/react-with-addons-0.13.1.js",
 		"-- #React/react-with-addons.min-0.13.1.js",
 
