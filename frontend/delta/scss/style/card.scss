@@ -43,6 +43,7 @@ div.cardList {
 	&.loadingCard {
 		li.selected {
 			background-color: gray;
+			border-bottom: 1px solid gray;
 		}
 	}
 

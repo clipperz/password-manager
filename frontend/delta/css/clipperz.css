@@ -2861,7 +2861,8 @@ span.count {
     background-color: red; }
 
 div.cardList.loadingCard li.selected {
-  background-color: gray; }
+  background-color: gray;
+  border-bottom: 1px solid gray; }
 div.cardList ul {
   background-color: #1863a1; }
   div.cardList ul li {
