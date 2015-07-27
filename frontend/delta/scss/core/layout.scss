@@ -599,7 +599,9 @@ div.dialogBox {
 
 	.mask {
 		z-index: 25;
+		@include chromeFix();
 	}
+
 	div.dialog {
 		@include flex(none);
 		z-index: 99999;

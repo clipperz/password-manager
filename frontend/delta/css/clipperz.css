@@ -1283,7 +1283,8 @@ div.dialogBox {
     z-index: 10;
     background-color: rgba(0, 0, 0, 0.5); }
   div.dialogBox .mask {
-    z-index: 25; }
+    z-index: 25;
+    -webkit-transform: translate3d(0, 0, 0); }
   div.dialogBox div.dialog {
     -webkit-box-flex: none;
     -webkit-flex: none;
