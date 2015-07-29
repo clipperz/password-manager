@@ -690,12 +690,6 @@ input[type=text] {
     flex: none;
     cursor: pointer; }
 
-/* Firefox considers 100% respect to height of the whole window, this is rule is necessary to eliminate the card toolbar offset. */
-@-moz-document url-prefix() {
-  #mainPanel.extra-wide .subpanel.cardContent {
-    height: calc(100% - 50px); }
-  #mainPanel.wide .cardContent {
-    height: calc(100% - 50px); } }
 #mainPanel {
   left: 0px; }
   #mainPanel.extra-wide {
@@ -803,7 +797,7 @@ input[type=text] {
 .mainPage.narrow #extraFeaturesPanel.fullOpen .extraFeatureIndex {
   width: 0px; }
 .mainPage.narrow #extraFeaturesPanel .extraFeatureContent .extraFeature {
-  height: calc(100% - 50px); }
+  height: calc(100% - $mainCardToolbarHeight); }
 
 #extraFeaturesPanel {
   position: fixed;
@@ -1319,6 +1313,17 @@ div.dialogBox {
         flex: none;
         cursor: pointer; }
 
+/* Firefox considers 100% respect to height of the whole window, this is rule is necessary to eliminate the card toolbar offset. */
+@-moz-document url-prefix() {
+  #mainPanel.extra-wide .subpanel.cardContent {
+    height: calc(100% - 48px); }
+  #mainPanel.wide .cardContent {
+    height: calc(100% - 48px); } }
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  #mainPanel.extra-wide .subpanel.cardContent {
+    height: calc(100% - 48px); }
+  #mainPanel.wide .cardContent {
+    height: calc(100% - 48px); } }
 .tagEditor {
   display: -webkit-box;
   display: -webkit-flex;

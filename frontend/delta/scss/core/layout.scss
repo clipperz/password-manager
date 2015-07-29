@@ -94,28 +94,6 @@ input[type=text] {
 	}
 }
 
-
-/* Firefox considers 100% respect to height of the whole window, this is rule is necessary to eliminate the card toolbar offset. */
-@-moz-document url-prefix() {
-
-	#mainPanel {
-		&.extra-wide {
-			.subpanel {
-				&.cardContent {
-					height: calc(100% - 50px);
-				}
-			}
-		}
-
-		&.wide {
-				.cardContent {
-					height: calc(100% - 50px);
-				}
-		}
-	}
-
-}
-
 #mainPanel {
 //	background-color: $yellow;
 	left: 0px;
@@ -201,7 +179,7 @@ input[type=text] {
 
 		.extraFeatureContent {
 			.extraFeature {
-				height: calc(100% - 50px);
+				height: calc(100% - $mainCardToolbarHeight);
 			}
 		}
 		
@@ -298,9 +276,8 @@ input[type=text] {
 
 	.cardToolbar {
 		@include flex(none);
-		
 	}
-	
+
 	.cardContent {
 	}
 }
@@ -621,6 +598,44 @@ div.dialogBox {
 				&.isDefault {
 				}
 			}
+		}
+	}
+}
+
+
+/* Firefox considers 100% respect to height of the whole window, this is rule is necessary to eliminate the card toolbar offset. */
+@-moz-document url-prefix() {
+	#mainPanel {
+		&.extra-wide {
+			.subpanel {
+				&.cardContent {
+					height: calc(100% - #{$mainCardToolbarHeight});
+				}
+			}
+		}
+
+		&.wide {
+				.cardContent {
+					height: calc(100% - #{$mainCardToolbarHeight});
+				}
+		}
+	}
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) { 
+	#mainPanel {
+		&.extra-wide {
+			.subpanel {
+				&.cardContent {
+					height: calc(100% - #{$mainCardToolbarHeight});
+				}
+			}
+		}
+
+		&.wide {
+				.cardContent {
+					height: calc(100% - #{$mainCardToolbarHeight});
+				}
 		}
 	}
 }
