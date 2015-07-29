@@ -221,7 +221,8 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 					'readOnly': true,
 					'onClick': function(e) { e.target.select(); },
 					'className':Clipperz.PM.UI.Components.classNames(cardFieldValueClasses),
-					'value': aField['value']
+					'value': aField['value'],
+					'rows': 1
 				}),
 			]),
 			React.DOM.div({'className':'fieldAction'}, [

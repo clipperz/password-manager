@@ -30,7 +30,8 @@ Clipperz.PM.UI.Components.Cards.TextAreaClass = React.createClass({
 
 	componentDidMount: function() {
 		this.recalculateSize();
-		this.getDOMNode().addEventListener('input', this.recalculateSize, false);
+		this.getDOMNode().addEventListener('input', this.handleKeyDown, false);
+		this.getDOMNode().addEventListener('keydown', this.handleKeyDown, false);
 	},
 
 	componentDidUpdate: function () {
@@ -39,6 +40,7 @@ Clipperz.PM.UI.Components.Cards.TextAreaClass = React.createClass({
 
 	componentWillUnmount: function() {
 		this.getDOMNode().removeEventListener('input', this.recalculateSize, false);
+		this.getDOMNode().removeEventListener('keydown', this.handleKeyDown, false);
 	},
 
 //	componentDidUpdate: function(prevProps) {
@@ -57,6 +59,15 @@ Clipperz.PM.UI.Components.Cards.TextAreaClass = React.createClass({
 //			this.recalculateSize();
 //		}
 //	},
+
+	handleKeyDown: function (anEvent) {
+		switch (anEvent.keyCode) {
+			case 27: // escape
+				console.log("ESCAPE");
+				Mousetrap.trigger('esc');
+				break;
+		}
+	},
 
 	//----------------------------------------------------------------------------
 
@@ -102,10 +113,6 @@ Clipperz.PM.UI.Components.Cards.TextAreaClass = React.createClass({
 	},
 */
 	//----------------------------------------------------------------------------
-
-//	render: function () {
-//		return	React.DOM.textarea({'className':'cardNotes', /*'onChange':this.handleChange(this.record(), 'setNotes'), 'defaultValue':someNotes, 'key':this.props['_reference'] + '_notes',*/ 'placeholder': "notes"});
-//	},
 
 	render: function() {
 		return React.DOM.textarea(this.props, this.props.children);

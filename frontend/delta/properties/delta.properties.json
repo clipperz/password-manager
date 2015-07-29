@@ -51,8 +51,8 @@
 		"MochiKit/Selector.js",
 		"-- MochiKit/Visual.js",
 
-		"-- React/react-0.13.1.js",
-		"React/react.min-0.13.1.js",
+		"-- React/react-0.13.3.js",
+		"React/react.min-0.13.3.js",
 		"-- #React/react-with-addons-0.13.1.js",
 		"-- #React/react-with-addons.min-0.13.1.js",
 
@@ -202,7 +202,7 @@
 		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CSV/Notes.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/DataImport/CSV/Hidden.js",
 
-		"Clipperz/PM/UI/Components/Cards/FavIcon.js",
+		"-- Clipperz/PM/UI/Components/Cards/FavIcon.js",
 		"Clipperz/PM/UI/Components/Cards/List.js",
 		"Clipperz/PM/UI/Components/Cards/Detail.js",
 		"Clipperz/PM/UI/Components/Cards/View.js",

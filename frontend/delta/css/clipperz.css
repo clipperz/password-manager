@@ -690,12 +690,6 @@ input[type=text] {
     flex: none;
     cursor: pointer; }
 
-/* Firefox considers 100% respect to height of the whole window, this is rule is necessary to eliminate the card toolbar offset. */
-@-moz-document url-prefix() {
-  #mainPanel.extra-wide .subpanel.cardContent {
-    height: calc(100% - 50px); }
-  #mainPanel.wide .cardContent {
-    height: calc(100% - 50px); } }
 #mainPanel {
   left: 0px; }
   #mainPanel.extra-wide {
@@ -803,7 +797,7 @@ input[type=text] {
 .mainPage.narrow #extraFeaturesPanel.fullOpen .extraFeatureIndex {
   width: 0px; }
 .mainPage.narrow #extraFeaturesPanel .extraFeatureContent .extraFeature {
-  height: calc(100% - 50px); }
+  height: calc(100% - $mainCardToolbarHeight); }
 
 #extraFeaturesPanel {
   position: fixed;
@@ -1283,7 +1277,8 @@ div.dialogBox {
     z-index: 10;
     background-color: rgba(0, 0, 0, 0.5); }
   div.dialogBox .mask {
-    z-index: 25; }
+    z-index: 25;
+    -webkit-transform: translate3d(0, 0, 0); }
   div.dialogBox div.dialog {
     -webkit-box-flex: none;
     -webkit-flex: none;
@@ -1318,6 +1313,17 @@ div.dialogBox {
         flex: none;
         cursor: pointer; }
 
+/* Firefox considers 100% respect to height of the whole window, this is rule is necessary to eliminate the card toolbar offset. */
+@-moz-document url-prefix() {
+  #mainPanel.extra-wide .subpanel.cardContent {
+    height: calc(100% - 48px); }
+  #mainPanel.wide .cardContent {
+    height: calc(100% - 48px); } }
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  #mainPanel.extra-wide .subpanel.cardContent {
+    height: calc(100% - 48px); }
+  #mainPanel.wide .cardContent {
+    height: calc(100% - 48px); } }
 .tagEditor {
   display: -webkit-box;
   display: -webkit-flex;
@@ -2861,7 +2867,8 @@ span.count {
     background-color: red; }
 
 div.cardList.loadingCard li.selected {
-  background-color: gray; }
+  background-color: gray;
+  border-bottom: 1px solid gray; }
 div.cardList ul {
   background-color: #1863a1; }
   div.cardList ul li {
@@ -2909,10 +2916,11 @@ div.cardList ul {
       -ms-flex: auto;
       flex: auto;
       font-size: 14pt;
-      padding-top: 0.8em;
-      padding-bottom: 0.8em;
-      padding-left: 8px;
-      padding-right: 8px; }
+      padding-top: 16px;
+      padding-bottom: 14px;
+      padding-left: 16px;
+      padding-right: 8px;
+      line-height: 1.2em; }
 
 div.cardList.narrow {
   overflow: auto;
@@ -3041,8 +3049,6 @@ div.cardList.narrow {
           #cardDetailPage .view .cardDetailToolbar.narrow .commandMenu.show .commandMenu ul li.disabled, .cardDetail .view .cardDetailToolbar.narrow .commandMenu.show .commandMenu ul li.disabled {
             color: #ddd; }
 #cardDetailPage .view .cardField textarea.fieldValue, .cardDetail .view .cardField textarea.fieldValue {
-  line-height: 1em;
-  height: 1.3em;
   outline: none; }
 #cardDetailPage .edit .cardDetailToolbar, .cardDetail .edit .cardDetailToolbar {
   background-color: #1863a1;

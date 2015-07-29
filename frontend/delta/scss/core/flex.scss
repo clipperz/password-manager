@@ -91,6 +91,16 @@ http://jonibologna.com/flexbox-cheatsheet/
 //
 // (Placeholder selectors for each type, for those who rather @extend)
 
+// ------------------------------------------------------------------
+//
+//	F L E X B O X   d e b u g g i n g
+//
+//	http://philipwalton.com/articles/normalizing-cross-browser-flexbox-bugs/
+//	https://github.com/philipwalton/flexbugs
+//
+// ------------------------------------------------------------------
+
+
 @mixin flexbox {
 	display: -webkit-box;
 	display: -webkit-flex;
