@@ -581,7 +581,8 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 						result = someFilteredResults[0];
 						break;
 					default:
-						WTF = TODO;
+console.log("Warning: Record.fieldWithLabel('" + aLabel + "') is returning more than one result: " + someFilteredResults.length);
+						result = someFilteredResults[0];
 						break;
 				}
 				

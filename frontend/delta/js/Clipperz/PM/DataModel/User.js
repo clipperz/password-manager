@@ -681,6 +681,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		], {trace:false});
 	},
 */
+
 	'recordWithLabel': function (aLabel) {
 		return Clipperz.Async.callbacks("User.recordWithLabel", [
 			MochiKit.Base.method(this, 'getRecords'),
@@ -701,7 +702,8 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 						result = someFilteredResults[0];
 						break;
 					default:
-						WTF = TODO;
+console.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more than one result: " + someFilteredResults.length);
+						result = someFilteredResults[0];
 						break;
 				}
 				
