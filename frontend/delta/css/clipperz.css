@@ -1837,7 +1837,7 @@ div.dialogBox {
         content: "recent"; }
       #selections ul.defaultSet li.untaggedCards {
         padding-left: 35px; }
-  #selections .search form div {
+  #selections .search form div.form {
     display: -webkit-box;
     display: -webkit-flex;
     display: -moz-flex;
@@ -1848,41 +1848,13 @@ div.dialogBox {
     -webkit-flex-direction: row;
     -moz-flex-direction: row;
     -ms-flex-direction: row;
-    flex-direction: row; }
-    #selections .search form div input {
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
-      flex: auto;
-      -webkit-box-ordinal-group: 2;
-      -webkit-order: 1;
-      -moz-order: 1;
-      -ms-flex-order: 1;
-      order: 1;
-      font-family: "clipperz-font";
-      font-size: 14pt;
-      color: white;
-      background-color: black;
-      border: 0px;
-      border-bottom: 1px solid #333;
-      outline: none;
-      margin-right: 10px;
-      width: 210px; }
-      #selections .search form div input::-webkit-input-placeholder {
-        font-style: italic;
-        color: #ccc; }
-      #selections .search form div input:-moz-placeholder {
-        font-style: italic;
-        color: #ccc; }
-      #selections .search form div input::-moz-placeholder {
-        font-style: italic;
-        color: #ccc; }
-      #selections .search form div input:-ms-input-placeholder {
-        font-style: italic;
-        color: #ccc; }
-    #selections .search form div label {
+    flex-direction: row;
+    -webkit-box-align: stretch;
+    -ms-flex-align: stretch;
+    -webkit-align-items: stretch;
+    -moz-align-items: stretch;
+    align-items: stretch; }
+    #selections .search form div.form div.label {
       -webkit-box-flex: none;
       -webkit-flex: none;
       -moz-box-flex: none;
@@ -1893,22 +1865,57 @@ div.dialogBox {
       -webkit-order: 0;
       -moz-order: 0;
       -ms-flex-order: 0;
-      order: 0;
-      font-family: 'clipperz-icons';
-      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
-      -moz-font-feature-settings: "liga" 1, "dlig" 1;
-      -ms-font-feature-settings: "liga" 1, "dlig" 1;
-      -o-font-feature-settings: "liga" 1, "dlig" 1;
-      font-feature-settings: "liga" 1, "dlig" 1;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
-      font-weight: normal;
-      padding-left: 8px;
-      padding-right: 8px;
-      font-size: 14pt;
-      vertical-align: baseline;
-      margin-top: 10px; }
-    #selections .search form div .searchClear {
+      order: 0; }
+      #selections .search form div.form div.label label {
+        display: block;
+        font-family: 'clipperz-icons';
+        -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+        -moz-font-feature-settings: "liga" 1, "dlig" 1;
+        -ms-font-feature-settings: "liga" 1, "dlig" 1;
+        -o-font-feature-settings: "liga" 1, "dlig" 1;
+        font-feature-settings: "liga" 1, "dlig" 1;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        font-weight: normal;
+        padding: 4px 8px 0px 8px;
+        font-size: 14pt;
+        vertical-align: baseline; }
+    #selections .search form div.form div.input {
+      -webkit-box-flex: 1;
+      -webkit-flex: 1;
+      -moz-box-flex: 1;
+      -moz-flex: 1;
+      -ms-flex: 1;
+      flex: 1;
+      -webkit-box-ordinal-group: 2;
+      -webkit-order: 1;
+      -moz-order: 1;
+      -ms-flex-order: 1;
+      order: 1;
+      overflow: hidden; }
+      #selections .search form div.form div.input input {
+        font-family: "clipperz-font";
+        font-size: 14pt;
+        color: white;
+        background-color: black;
+        border: 0px;
+        border-bottom: 1px solid #333;
+        outline: none;
+        display: block;
+        width: 160px; }
+        #selections .search form div.form div.input input::-webkit-input-placeholder {
+          font-style: italic;
+          color: #ccc; }
+        #selections .search form div.form div.input input:-moz-placeholder {
+          font-style: italic;
+          color: #ccc; }
+        #selections .search form div.form div.input input::-moz-placeholder {
+          font-style: italic;
+          color: #ccc; }
+        #selections .search form div.form div.input input:-ms-input-placeholder {
+          font-style: italic;
+          color: #ccc; }
+    #selections .search form div.form .searchClear {
       -webkit-box-flex: none;
       -webkit-flex: none;
       -moz-box-flex: none;
@@ -1924,31 +1931,34 @@ div.dialogBox {
       -moz-align-self: flex-end;
       -ms-flex-item-align: end;
       align-self: flex-end;
-      cursor: pointer;
-      margin: 12px 12px 6px 0px; }
-      #selections .search form div .searchClear .count {
-        margin-right: 0px;
-        display: none; }
-      #selections .search form div .searchClear .clear {
-        font-family: 'clipperz-icons';
-        -webkit-font-feature-settings: "liga" 1, "dlig" 1;
-        -moz-font-feature-settings: "liga" 1, "dlig" 1;
-        -ms-font-feature-settings: "liga" 1, "dlig" 1;
-        -o-font-feature-settings: "liga" 1, "dlig" 1;
-        font-feature-settings: "liga" 1, "dlig" 1;
-        -webkit-font-smoothing: antialiased;
-        text-rendering: optimizeLegibility;
-        display: none;
-        -webkit-border-radius: 4px;
-        -moz-border-radius: 4px;
-        border-radius: 4px;
-        color: white;
-        background-color: gray;
+      padding-bottom: 4px; }
+      #selections .search form div.form .searchClear span {
         padding: 3px 5px;
-        font-size: 10pt; }
-      #selections .search form div .searchClear:hover .count {
+        cursor: pointer;
+        text-align: right;
+        display: block; }
+        #selections .search form div.form .searchClear span.count {
+          display: none; }
+        #selections .search form div.form .searchClear span.clear {
+          font-family: 'clipperz-icons';
+          -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+          -moz-font-feature-settings: "liga" 1, "dlig" 1;
+          -ms-font-feature-settings: "liga" 1, "dlig" 1;
+          -o-font-feature-settings: "liga" 1, "dlig" 1;
+          font-feature-settings: "liga" 1, "dlig" 1;
+          -webkit-font-smoothing: antialiased;
+          text-rendering: optimizeLegibility;
+          display: none;
+          -webkit-border-radius: 4px;
+          -moz-border-radius: 4px;
+          border-radius: 4px;
+          color: white;
+          background-color: gray;
+          font-size: 10pt;
+          margin-right: 12px; }
+      #selections .search form div.form .searchClear:hover .count {
         display: none; }
-      #selections .search form div .searchClear:hover .clear {
+      #selections .search form div.form .searchClear:hover .clear {
         background-color: #666;
         display: block; }
   #selections .search .searchResultInfo {
@@ -2074,11 +2084,11 @@ span.count {
 #selections.UNTAGGED li.untaggedCards {
   color: #ff9900; }
 
-#selections.SEARCH div.search form label {
+#selections.SEARCH div.search form div.form label {
   color: #ff9900; }
-#selections.SEARCH div.search form .searchClear .count {
+#selections.SEARCH div.search form div.form .searchClear span.count {
   display: block; }
-#selections.SEARCH div.search form .searchClear:hover .count {
+#selections.SEARCH div.search form div.form .searchClear:hover .count {
   display: none; }
 
 #selections.TAG ul.tagList li.selected {
