@@ -117,9 +117,13 @@ Clipperz.PM.UI.Components.SelectionsClass = React.createClass({
 */
 			React.DOM.div({'className':'search'}, [
 				React.DOM.form({'className':'searchForm'}, [
-					React.DOM.div({}, [
-						React.DOM.input({'type':'text', 'id':'searchValue', 'onFocus':this.handleSearchChange, 'onChange':this.handleSearchChange, 'onKeyDown':this.handleKeyDown, 'name':'search', 'value':this.props['searchTerm'] /*, 'placeholder':"search" */ }),
-						React.DOM.label({'htmlFor':'searchValue'}, 'search'),
+					React.DOM.div({'className':'form'}, [
+						React.DOM.div({'className':'input'}, [
+							React.DOM.input({'type':'text', 'id':'searchValue', 'onFocus':this.handleSearchChange, 'onChange':this.handleSearchChange, 'onKeyDown':this.handleKeyDown, 'name':'search', 'value':this.props['searchTerm'] /*, 'placeholder':"search" */ }),
+						]),
+						React.DOM.div({'className':'label'}, [
+							React.DOM.label({'htmlFor':'searchValue'}, 'search'),
+						]),
 						React.DOM.div({'className':'searchClear', 'onClick':this.clearSearch}, [
 							React.DOM.span({'className':'count'}, selectedCardCount),
 							React.DOM.span({'className':'clear'}, "clear")
