@@ -65,9 +65,10 @@ refer to http://www.clipperz.com.
 //					padding-left: 10px;
 				}
 
-//				&:last-child {
+				&:last-child {
 //					border-bottom: 1px solid white;
-//				}
+					border-bottom: 0px;
+				}
 			
 				&.closed > ul {
 					display: none;
@@ -167,7 +168,6 @@ refer to http://www.clipperz.com.
 					}
 					
 					&.link {
-						
 						h2 {
 						 	&:after {
 								@include icon-font();
@@ -176,6 +176,37 @@ refer to http://www.clipperz.com.
 								color: gray;
 							}
 						};
+					}
+
+					&.lock-logout {
+						h2	{
+							padding: 10px;
+							font-size: 16pt;
+							cursor: pointer;
+
+							&:after {
+								@include icon-font();
+								color: gray;
+								padding-left: 10px;
+							}
+
+							&:hover {
+								&:after {
+									color: white;
+								}
+							}
+
+							&.lock {
+								&:after {
+									content: "lock";
+								}
+							}
+							&.logout {
+								&:after {
+									content: "logout";
+								}
+							}
+						}
 					}
 				}
 			}
