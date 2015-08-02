@@ -1,3 +1,4 @@
+"""Clipperz API handler."""
 import json
 import random
 import hashlib
@@ -12,27 +13,36 @@ from .exceptions import InvalidUsage
 from .models import User, Record, RecordVersion, OneTimePassword
 
 
-#==============================================================================
+# ==============================================================================
 # Helpers
-#==============================================================================
+# ==============================================================================
 def randomSeed():
+    """Generate a random seed."""
     return hex(random.getrandbits(32*8))[2:-1]
 
 
 def clipperzHash(aString):
+    """Calculate a clipperz hash.
+
+    sha256(sha256(aString))
+    """
     firstRound = hashlib.sha256()
     firstRound.update(aString)
     result = hashlib.sha256()
     result.update(firstRound.digest())
 
     return result.hexdigest()
-#==============================================================================
+# ==============================================================================
 # Method handlers
-#==============================================================================
+# ==============================================================================
 
 
 class HandlerMixin:
+
+    """Mixin for handling requests."""
+
     def handle_request(self, request):
+        """Default method to handle a request."""
         parameters = json.loads(request.form['parameters'])
         app.logger.debug('raw parameters: %s', parameters)
         parameters = parameters['parameters']
@@ -50,7 +60,14 @@ class HandlerMixin:
 
 
 class registration(HandlerMixin):
+
+    """Registration handler."""
+
     def completeRegistration(self, parameters, request):
+        """Complete a registration.
+
+        Create a new user.
+        """
         credentials = parameters['credentials']
         data = parameters['user']
         user = User()
@@ -63,11 +80,21 @@ class registration(HandlerMixin):
 
 
 class handshake(HandlerMixin):
+
+    """Handshake handler.
+
+    This handles the logon process.
+    """
+
     srp_n = '115b8b692e0e045692cf280b436735c77a5a9e8a9e7ed56c965f87db5b2a2ece3'
     srp_g = 2
     srp_n = long(srp_n, 16)
 
     def connect(self, parameters, request):
+        """Process a connect request.
+
+        Attempt to log in by processing the parameters.
+        """
         result = {}
         session['C'] = parameters['parameters']['C']
         session['A'] = parameters['parameters']['A']
@@ -127,8 +154,12 @@ class handshake(HandlerMixin):
         return jsonify({'result': result})
 
     def credentialCheck(self, parameters, request):
+        """Check credentials.
+
+        Handles the SRP process.
+        """
         country = 'US'
-        # hard-coded for development
+        # hard-coded for development/personal use.
         result = {
             'accountInfo': {
                 'features': [
@@ -203,14 +234,15 @@ class handshake(HandlerMixin):
         return jsonify({'result': result})
 
     def oneTimePassword(self, parameters, request):
-        #"parameters": {
-        #"message": "oneTimePassword",
-        #"version": "0.2",
-        #"parameters": {
-        #  "oneTimePasswordKey": "03bd882...396082c",
-        #  "oneTimePasswordKeyChecksum": "f73f629...041031d"
-        #}
-        #}
+        """Handle one time password logins."""
+        # "parameters": {
+        # "message": "oneTimePassword",
+        # "version": "0.2",
+        # "parameters": {
+        #   "oneTimePasswordKey": "03bd882...396082c",
+        #   "oneTimePasswordKeyChecksum": "f73f629...041031d"
+        # }
+        # }
         result = {}
 
         try:
@@ -237,8 +269,12 @@ class handshake(HandlerMixin):
 
 
 class message(HandlerMixin):
+
+    """Handle messages once logged in."""
+
     @login_required
     def getUserDetails(self, parameters, request):
+        """Get a user's details."""
         app.logger.debug(parameters)
         if 'srpSharedSecret' not in parameters:
             raise InvalidUsage(
@@ -252,7 +288,7 @@ class message(HandlerMixin):
         # Online results
         # {"result":
         #     {
-        #         "header": "{\"records\":{\"index\":{\"383036...eeefbe48\":\"0\"},\"data\":\"zrhb3/791SDdb48v3vXfPzeDrv0Jhs4rAaOKHx+jDF6pwm/qi9DGSR0JwrprOgwv3bjYJgU2xHA8cuA0bPvABHSHK6fnGwvhSlyYjskY2Cy/WbRJhcA4kw+VUsOjZPRxtM8bSJnSxViAXsghTcya6+5M3MdMJHE=\"},\"directLogins\":{\"index\":{},\"data\":\"s7KYzHwKISmjYufv9h0mpTiM\"},\"preferences\":{\"data\":\"mf8fWjpOQjlV18ukEO9FN3LP\"},\"oneTimePasswords\":{\"data\":\"8tV1yRHv30lsl3FadG9YnTOo\"},\"version\":\"0.1\"}",
+        #         "header": "{\"records\":{\"index\":{\"383036...eeefbe48\":\"0\"},\"data\":\"zrhb3/791SDdb48v3vXfPzeDrv0Jhs4rAaOKHx+jDF6pwm/qi9DGSR0JwrprOgwv3bjYJgU2xHA8cuA0bPvABHSHK6fnGwvhSlyYjskY2Cy/WbRJhcA4kw+VUsOjZPRxtM8bSJnSxViAXsghTcya6+5M3MdMJHE=\"},\"directLogins\":{\"index\":{},\"data\":\"s7KYzHwKISmjYufv9h0mpTiM\"},\"preferences\":{\"data\":\"mf8fWjpOQjlV18ukEO9FN3LP\"},\"oneTimePasswords\":{\"data\":\"8tV1yRHv30lsl3FadG9YnTOo\"},\"version\":\"0.1\"}",  # NOQA
         #         "lock": "3D4B4501-D7A9-6E4F-A487-9428C0B6E79D",
         #         "version": "0.4",
         #         "recordsStats": {
@@ -266,8 +302,8 @@ class message(HandlerMixin):
         #     }
         # }
         # Dev results
-        #{"result":
-        #    {"header": "{\"records\":{\"index\":{\"843a95d8...5f734b\":\"1\"},\"data\":\"fKgc5Jt9JH/CibCIpcRmwyLuLIvufWchNJga7GoFcWT9K8LR+ai0BvzWBUxcPccivE9zPv2Swe5E8wPEIc+Lv0U73NobJEct7WqBcCdLxszBE1SokxPEZDUVdWVQtAiwgOS219inCFmI5CaB\"},\"directLogins\":{\"index\":{},\"data\":\"rnMQBB81ezh6JKNGXkDCyY+q\"},\"preferences\":{\"data\":\"9jzR9Goo5PGpXbAdmsXHuQGp\"},\"oneTimePasswords\":{\"data\":\"iXEUuQGskZhMyHEwU+3tRGQM\"},\"version\":\"0.1\"}",
+        # {"result":
+        #    {"header": "{\"records\":{\"index\":{\"843a95d8...5f734b\":\"1\"},\"data\":\"fKgc5Jt9JH/CibCIpcRmwyLuLIvufWchNJga7GoFcWT9K8LR+ai0BvzWBUxcPccivE9zPv2Swe5E8wPEIc+Lv0U73NobJEct7WqBcCdLxszBE1SokxPEZDUVdWVQtAiwgOS219inCFmI5CaB\"},\"directLogins\":{\"index\":{},\"data\":\"rnMQBB81ezh6JKNGXkDCyY+q\"},\"preferences\":{\"data\":\"9jzR9Goo5PGpXbAdmsXHuQGp\"},\"oneTimePasswords\":{\"data\":\"iXEUuQGskZhMyHEwU+3tRGQM\"},\"version\":\"0.1\"}",  # NOQA
         #     "recordStats": {
         #       "843a95d8...5f734b": {
         #           "updateDate": "Sun, 12 Apr 2015 13:08:44 GMT"
@@ -295,6 +331,7 @@ class message(HandlerMixin):
 
     @login_required
     def saveChanges(self, parameters, request):
+        """Save changes to a user's settings."""
         result = {}
         parameters = parameters['parameters']
         if ('user' not in parameters
@@ -340,7 +377,8 @@ class message(HandlerMixin):
 
     @login_required
     def getRecordDetail(self, parameters, request):
-        #{
+        """Get details about a record."""
+        # {
         #  "parameters": {
         #    "srpSharedSecret": "bf79ad3cf0c1...63462a9fb560",
         #    "message": "getRecordDetail",
@@ -348,7 +386,7 @@ class message(HandlerMixin):
         #      "reference": "e3a5856...20e080fc97f13c14c"
         #    }
         #  }
-        #}
+        # }
         app.logger.debug(parameters)
         if 'srpSharedSecret' not in parameters:
             raise InvalidUsage(
@@ -404,13 +442,14 @@ class message(HandlerMixin):
 
     @login_required
     def getOneTimePasswordsDetails(self, parameters, request):
-        #{
+        """Get details about a one time password."""
+        # {
         #  "parameters": {
         #    "srpSharedSecret": "bf79ad3cf0c1...63462a9fb560",
         #    "message": "getOneTimePasswordsDetails",
         #    "parameters": {}
         #  }
-        #}
+        # }
         if 'srpSharedSecret' not in parameters:
             raise InvalidUsage(
                 'Mal-formed message format.',
@@ -425,20 +464,24 @@ class message(HandlerMixin):
 
         otps = OneTimePassword().query.filter_by(user=current_user).all()
         for otp in otps:
-            #{"e8541...af0c6b951":{"status":"ACTIVE"}}
+            # {"e8541...af0c6b951":{"status":"ACTIVE"}}
             result[otp.reference] = {'status': otp.status}
 
         return jsonify({'result': result})
 
     @login_required
     def getLoginHistory(self, parameters, request):
-        #{
+        """Get login history.
+
+        Not currently fully implemented.
+        """
+        # {
         #  "parameters": {
         #    "srpSharedSecret": "bf79ad3cf0c1...63462a9fb560",
         #    "message": "getOneTimePasswordsDetails",
         #    "parameters": {}
         #  }
-        #}
+        # }
         if 'srpSharedSecret' not in parameters:
             raise InvalidUsage(
                 'Mal-formed message format.',
@@ -462,6 +505,7 @@ class message(HandlerMixin):
 
     @login_required
     def addNewOneTimePassword(self, parameters, request):
+        """Add a new one time password."""
         #  "parameters": {
         #    "message": "addNewOneTimePassword",
         #    "srpSharedSecret": "1e8e037a8...85680f931d45dfc20472cf9d1",
@@ -481,7 +525,7 @@ class message(HandlerMixin):
         #      }
         #    }
         #  }
-        #}
+        # }
         if 'srpSharedSecret' not in parameters:
             raise InvalidUsage(
                 'Mal-formed message format.',
@@ -524,6 +568,7 @@ class message(HandlerMixin):
         return jsonify({'result': result})
 
     def echo(self, parameters, request):
+        """Check the status of the session."""
         result = {}
         if 'srpSharedSecret' not in parameters:
             raise InvalidUsage(
@@ -549,6 +594,7 @@ class message(HandlerMixin):
 
     @login_required
     def deleteUser(self, parameters, request):
+        """Delete a user and all of its records."""
         result = {}
         if 'srpSharedSecret' not in parameters:
             raise InvalidUsage(
@@ -573,7 +619,8 @@ class message(HandlerMixin):
 
     @login_required
     def upgradeUserCredentials(self, parameters, request):
-        #{"parameters":{"message":"upgradeUserCredentials","srpSharedSecret":"36...d6","parameters":{"credentials":{"C":"59d02038fdb47cee5b7837a697bc8ff41cc66d8844c8fce844cdf45b0b08b1e4","s":"fe40513b99fbaca9bfe51b8d6e9b3eb42b1e01ce8b0ae32461bec0294c1030ed","v":"300b92f4a3e34034d78cd5081f8db36dbf2a4c5f7a41db6954518815a3554278","version":"0.2"},"user":{"header":"{\"records\":{\"index\":{},\"data\":\"VIIDc5vFNoIflyXF8syb8fRS\"},\"directLogins\":{\"index\":{},\"data\":\"9elg3tu2UqsJ0zbUAdQkLE69\"},\"preferences\":{\"data\":\"Sbwar35Ynd/XobuAm4K66lqj\"},\"oneTimePasswords\":{\"data\":\"tAcTsWVTwALSfxXvCChHi4FD\"},\"version\":\"0.1\"}","statistics":"","version":"0.4","lock":null}}}}
+        """Upgrade a user's credentials to a new password."""
+        # {"parameters":{"message":"upgradeUserCredentials","srpSharedSecret":"36...d6","parameters":{"credentials":{"C":"59d02038fdb47cee5b7837a697bc8ff41cc66d8844c8fce844cdf45b0b08b1e4","s":"fe40513b99fbaca9bfe51b8d6e9b3eb42b1e01ce8b0ae32461bec0294c1030ed","v":"300b92f4a3e34034d78cd5081f8db36dbf2a4c5f7a41db6954518815a3554278","version":"0.2"},"user":{"header":"{\"records\":{\"index\":{},\"data\":\"VIIDc5vFNoIflyXF8syb8fRS\"},\"directLogins\":{\"index\":{},\"data\":\"9elg3tu2UqsJ0zbUAdQkLE69\"},\"preferences\":{\"data\":\"Sbwar35Ynd/XobuAm4K66lqj\"},\"oneTimePasswords\":{\"data\":\"tAcTsWVTwALSfxXvCChHi4FD\"},\"version\":\"0.1\"}","statistics":"","version":"0.4","lock":null}}}}  # NOQA
         result = {}
         if 'srpSharedSecret' not in parameters:
             raise InvalidUsage(
@@ -614,7 +661,11 @@ class message(HandlerMixin):
 
 
 class logout(HandlerMixin):
+
+    """Logout handler."""
+
     def handle_request(self, request):
+        """Handle a logout request."""
         result = {}
         logout_user()
         session.clear()
