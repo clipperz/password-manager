@@ -59,9 +59,9 @@ class RecordVersion(db.Model):
     previous_version_key = db.Column(db.String())
     previous_version_id = db.Column(db.Integer(),
                                     db.ForeignKey('record_version.id'))
-    creation_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
-    update_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
-    access_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
+    creation_date = db.Column(db.DateTime())
+    update_date = db.Column(db.DateTime())
+    access_date = db.Column(db.DateTime())
 
     record_id = db.Column(db.Integer(),
                           db.ForeignKey('record.id'),
@@ -71,6 +71,10 @@ class RecordVersion(db.Model):
                              backref=db.backref('record_versions',
                                                 order_by=id,
                                                 cascade='all,delete'))
+
+    def __init__(self):
+        """Initialize a record version."""
+        self.creation_date = datetime.datetime.utcnow()
 
     def update(self, someData):
         app.logger.debug(someData)
@@ -93,14 +97,18 @@ class Record(db.Model):
     data = db.Column(db.Text())
     api_version = db.Column(db.String())
     version = db.Column(db.Integer(), default=0)
-    creation_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
-    update_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
-    access_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
+    creation_date = db.Column(db.DateTime())
+    update_date = db.Column(db.DateTime())
+    access_date = db.Column(db.DateTime())
 
     current_record_version = db.relationship(
         'RecordVersion',
         uselist=False,
         cascade='save-update, merge, delete, delete-orphan')
+
+    def __init__(self):
+        """Initialize a record."""
+        self.creation_date = datetime.datetime.utcnow()
 
     def update(self, data, record_version):
         self.reference = data['reference']
@@ -125,9 +133,13 @@ class OneTimePassword(db.Model):
     key_checksum = db.Column(db.String())
     data = db.Column(db.Text())
     version = db.Column(db.String())
-    creation_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
+    creation_date = db.Column(db.DateTime())
     request_date = db.Column(db.DateTime())
     usage_date = db.Column(db.DateTime())
+
+    def __init__(self):
+        """Initialize a OneTimePassword."""
+        self.creation_date = datetime.datetime.utcnow()
 
     def update(self, someParameters, aStatus):
         self.reference = someParameters['reference']
@@ -148,4 +160,8 @@ class OneTimePassword(db.Model):
 class Session(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     sessionId = db.Column(db.String())
-    access_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
+    access_date = db.Column(db.DateTime())
+
+    def __init__(self):
+        """Initialize a session."""
+        self.access_date = datetime.datetime.utcnow()

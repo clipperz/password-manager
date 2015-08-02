@@ -45,6 +45,7 @@ setup(
     install_requires=['Flask>=0.10.1',
                       'Flask-SQLAlchemy>=1.0',
                       'SQLAlchemy>=0.8.2',
+                      'SQLAlchemy-migrate',
                       'Flask-Login',
                       'Flask-KVSession',
                       ],
