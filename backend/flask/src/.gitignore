@@ -1,0 +1,6 @@
+bin/
+lib/
+include/
+clipperz.egg-info/
+.Python
+app.db
