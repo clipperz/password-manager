@@ -11,14 +11,14 @@ class User(db.Model, UserMixin):
     """Clipperz User model."""
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(), unique=True, index=True)
+    username = db.Column(db.String(255), unique=True, index=True)
     srp_s = db.Column(db.String(128))
     srp_v = db.Column(db.String(128))
     header = db.Column(db.Text())
     statistics = db.Column(db.Text())
-    auth_version = db.Column(db.String())
-    version = db.Column(db.String())
-    lock = db.Column(db.String())
+    auth_version = db.Column(db.String(255))
+    version = db.Column(db.String(255))
+    lock = db.Column(db.String(255))
     records = db.relationship(
         'Record',
         backref='user',
@@ -66,12 +66,12 @@ class RecordVersion(db.Model):
     """
 
     id = db.Column(db.Integer(), primary_key=True)
-    reference = db.Column(db.String(), unique=True, index=True)
+    reference = db.Column(db.String(255), unique=True, index=True)
     header = db.Column(db.Text())
     data = db.Column(db.Text())
-    api_version = db.Column(db.String())
+    api_version = db.Column(db.String(255))
     version = db.Column(db.Integer())
-    previous_version_key = db.Column(db.String())
+    previous_version_key = db.Column(db.String(255))
     previous_version_id = db.Column(db.Integer(),
                                     db.ForeignKey('record_version.id'))
     creation_date = db.Column(db.DateTime())
@@ -115,9 +115,9 @@ class Record(db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.ForeignKey('user.id'))
-    reference = db.Column(db.String(), unique=True, index=True)
+    reference = db.Column(db.String(255), unique=True, index=True)
     data = db.Column(db.Text())
-    api_version = db.Column(db.String())
+    api_version = db.Column(db.String(255))
     version = db.Column(db.Integer(), default=0)
     creation_date = db.Column(db.DateTime())
     update_date = db.Column(db.DateTime())
@@ -156,12 +156,12 @@ class OneTimePassword(db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.ForeignKey('user.id'))
-    status = db.Column(db.String())
-    reference = db.Column(db.String(), unique=True)
-    key_value = db.Column(db.String())
-    key_checksum = db.Column(db.String())
+    status = db.Column(db.String(255))
+    reference = db.Column(db.String(255), unique=True)
+    key_value = db.Column(db.String(255))
+    key_checksum = db.Column(db.String(255))
     data = db.Column(db.Text())
-    version = db.Column(db.String())
+    version = db.Column(db.String(255))
     creation_date = db.Column(db.DateTime())
     request_date = db.Column(db.DateTime())
     usage_date = db.Column(db.DateTime())
@@ -193,7 +193,7 @@ class Session(db.Model):
     """Model a session."""
 
     id = db.Column(db.Integer(), primary_key=True)
-    sessionId = db.Column(db.String())
+    sessionId = db.Column(db.String(255))
     access_date = db.Column(db.DateTime())
 
     def __init__(self):
