@@ -1,23 +1,30 @@
-from flask import session, request, g, jsonify
+"""Clipperz views."""
+from flask import session, request, g
 from clipperz import app, db, lm
 from .models import User
-from .api import *
+from .api import *  # NOQA
 from .exceptions import InvalidUsage
 from flask.ext.login import login_required
 
 
 @lm.user_loader
 def load_user(id):
+    """Load a user.
+
+    Converts a user id in to a User object.
+    """
     return User.query.get(int(id))
 
 
 @app.before_request
 def before_request():
+    """Store the current user."""
     g.user = current_user
 
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
+    """Remove the session from the database."""
     db.session.remove()
 
 
@@ -26,6 +33,7 @@ def shutdown_session(exception=None):
 @app.route('/delta/dump/<string:frontend_version>')
 @login_required
 def dump(frontend_version):
+    """Return JSON for a user's data."""
     user = User().query.filter_by(username=session['C']).one()
 
     if (user != g.user):
@@ -104,21 +112,25 @@ def dump(frontend_version):
 
 @app.route('/beta/<path:path>')
 def beta(path):
+    """Fallback for serving beta version."""
     return send_from_directory('beta', path)
 
 
 @app.route('/gamma/<path:path>')
 def gamma(path):
+    """Fallback for serving gamma version."""
     return send_from_directory('gamma', path)
 
 
 @app.route('/delta/<path:path>')
 def delta(path):
+    """Fallback for serving delta version."""
     return send_from_directory('delta', path)
 
 
 @app.route('/pm', methods=['GET', 'OPTIONS', 'POST'])
 def pm():
+    """Main request handler."""
     method = request.form['method']
     if method not in globals():
         raise InvalidUsage('This method is not yet implemented',

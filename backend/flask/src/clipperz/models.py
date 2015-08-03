@@ -1,3 +1,4 @@
+"""Clipperz models."""
 import datetime
 
 from flask.ext.login import UserMixin
@@ -6,15 +7,18 @@ from clipperz import app, db
 
 
 class User(db.Model, UserMixin):
+
+    """Clipperz User model."""
+
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(), unique=True, index=True)
+    username = db.Column(db.String(255), unique=True, index=True)
     srp_s = db.Column(db.String(128))
     srp_v = db.Column(db.String(128))
     header = db.Column(db.Text())
     statistics = db.Column(db.Text())
-    auth_version = db.Column(db.String())
-    version = db.Column(db.String())
-    lock = db.Column(db.String())
+    auth_version = db.Column(db.String(255))
+    version = db.Column(db.String(255))
+    lock = db.Column(db.String(255))
     records = db.relationship(
         'Record',
         backref='user',
@@ -29,12 +33,14 @@ class User(db.Model, UserMixin):
     update_date = db.Column(db.DateTime(), nullable=True)
 
     def updateCredentials(self, credentials):
+        """Update user credentials."""
         self.username = credentials['C']
         self.srp_s = credentials['s']
         self.srp_v = credentials['v']
         self.auth_version = credentials['version']
 
     def update(self, data):
+        """Update user object."""
         self.header = data['header']
         self.statistics = data['statistics']
         self.version = data['version']
@@ -44,24 +50,33 @@ class User(db.Model, UserMixin):
         self.offline_saved = False
 
     def __repr__(self):
+        """User representation."""
         return '<User %r>' % (self.username)
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 class RecordVersion(db.Model):
+
+    """
+    Model a RecordVersion.
+
+    RecordVersion store attributes associated with a specific version of a
+    record.
+    """
+
     id = db.Column(db.Integer(), primary_key=True)
-    reference = db.Column(db.String(), unique=True, index=True)
+    reference = db.Column(db.String(255), unique=True, index=True)
     header = db.Column(db.Text())
     data = db.Column(db.Text())
-    api_version = db.Column(db.String())
+    api_version = db.Column(db.String(255))
     version = db.Column(db.Integer())
-    previous_version_key = db.Column(db.String())
+    previous_version_key = db.Column(db.String(255))
     previous_version_id = db.Column(db.Integer(),
                                     db.ForeignKey('record_version.id'))
-    creation_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
-    update_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
-    access_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
+    creation_date = db.Column(db.DateTime())
+    update_date = db.Column(db.DateTime())
+    access_date = db.Column(db.DateTime())
 
     record_id = db.Column(db.Integer(),
                           db.ForeignKey('record.id'),
@@ -72,7 +87,12 @@ class RecordVersion(db.Model):
                                                 order_by=id,
                                                 cascade='all,delete'))
 
+    def __init__(self):
+        """Initialize a record version."""
+        self.creation_date = datetime.datetime.utcnow()
+
     def update(self, someData):
+        """Update a record version."""
         app.logger.debug(someData)
         recordVersionData = someData['currentRecordVersion']
         self.reference = recordVersionData['reference']
@@ -83,26 +103,37 @@ class RecordVersion(db.Model):
         self.update_date = datetime.datetime.utcnow()
 
         self.record.update(someData['record'], self)
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 class Record(db.Model):
+
+    """Model a record.
+
+    A Record has multiple record versions.
+    """
+
     id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.ForeignKey('user.id'))
-    reference = db.Column(db.String(), unique=True, index=True)
+    reference = db.Column(db.String(255), unique=True, index=True)
     data = db.Column(db.Text())
-    api_version = db.Column(db.String())
+    api_version = db.Column(db.String(255))
     version = db.Column(db.Integer(), default=0)
-    creation_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
-    update_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
-    access_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
+    creation_date = db.Column(db.DateTime())
+    update_date = db.Column(db.DateTime())
+    access_date = db.Column(db.DateTime())
 
     current_record_version = db.relationship(
         'RecordVersion',
         uselist=False,
         cascade='save-update, merge, delete, delete-orphan')
 
+    def __init__(self):
+        """Initialize a record."""
+        self.creation_date = datetime.datetime.utcnow()
+
     def update(self, data, record_version):
+        """Update a record."""
         self.reference = data['reference']
         self.data = data['data']
         self.api_version = data['version']
@@ -113,23 +144,34 @@ class Record(db.Model):
         else:
             self.version = 1
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 class OneTimePassword(db.Model):
+
+    """Model a OneTimePassword.
+
+    OneTimePasswords are used to log in to clipperz only once.
+    """
+
     id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.ForeignKey('user.id'))
-    status = db.Column(db.String())
-    reference = db.Column(db.String(), unique=True)
-    key_value = db.Column(db.String())
-    key_checksum = db.Column(db.String())
+    status = db.Column(db.String(255))
+    reference = db.Column(db.String(255), unique=True)
+    key_value = db.Column(db.String(255))
+    key_checksum = db.Column(db.String(255))
     data = db.Column(db.Text())
-    version = db.Column(db.String())
-    creation_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
+    version = db.Column(db.String(255))
+    creation_date = db.Column(db.DateTime())
     request_date = db.Column(db.DateTime())
     usage_date = db.Column(db.DateTime())
 
+    def __init__(self):
+        """Initialize a OneTimePassword."""
+        self.creation_date = datetime.datetime.utcnow()
+
     def update(self, someParameters, aStatus):
+        """Update a one time password."""
         self.reference = someParameters['reference']
         self.key_value = someParameters['key']
         self.key_checksum = someParameters['keyChecksum']
@@ -138,14 +180,22 @@ class OneTimePassword(db.Model):
         self.status = aStatus
 
     def reset(self, aStatus):
+        """Reset a one time password."""
         self.data = ""
         self.status = aStatus
         return self
 
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 class Session(db.Model):
+
+    """Model a session."""
+
     id = db.Column(db.Integer(), primary_key=True)
-    sessionId = db.Column(db.String())
-    access_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
+    sessionId = db.Column(db.String(255))
+    access_date = db.Column(db.DateTime())
+
+    def __init__(self):
+        """Initialize a session."""
+        self.access_date = datetime.datetime.utcnow()
