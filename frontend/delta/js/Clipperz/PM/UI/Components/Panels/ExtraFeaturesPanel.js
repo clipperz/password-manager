@@ -80,6 +80,10 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 		}
 	},
 
+	lock: function () {
+console.log("LOCK");
+	},
+
 	logout: function () {
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'logout');
 	},
@@ -275,8 +279,9 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 							]),
 						])
 					]),
-					React.DOM.li({'key':'logout', 'className':'link', 'onClick':this.logout}, [
-						React.DOM.h2({}, "Logout")
+					React.DOM.li({'key':'logout', 'className':'lock-logout'}, [
+//						React.DOM.h2({'className':'lock',   'onClick':this.lock},   "Lock"),
+						React.DOM.h2({'className':'logout', 'onClick':this.logout}, "Logout"),
 					])
 				])
 			]),

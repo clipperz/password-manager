@@ -1,6 +1,6 @@
 @clipperz.license@
 
-	==> This application is build using also the following libraries
+==> This application is build using also the following libraries
 
 # MochiKit (http://www.mochikit.com)
 	* Repository: @mochikit.repository@ (version: @mochikit.version@ - commit: @mochikit.commit@)
@@ -63,4 +63,3 @@
 	* License: http://opensource.org/licenses/BSD-3-Clause
 
 ===============================================================================
-

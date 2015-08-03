@@ -491,7 +491,7 @@ $cardViewBasePadding: 10px;
 			.fieldValue {
 				font-size: 18pt;
 				line-height: 1.2em;
-//				line-height: 1em;
+				line-height: 28px;
 //				height: 1.3em;
 //				outline: none;
 				@include user-select(text);
@@ -504,12 +504,15 @@ $cardViewBasePadding: 10px;
 
 				&.hidden {
 					font-family: clipperz-password;
-					font-size: 23pt;
+					font-size: 22pt;
 					line-height: 28px;
-					
+					margin-top: -2px;
+
 					&.visible {
 						font-family: "clipperz-font";
 						font-size: 18pt;
+						line-height: 28px;
+						margin-top: 0px;
 					}
 				}
 			}

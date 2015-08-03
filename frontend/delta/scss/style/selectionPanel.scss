@@ -65,88 +65,73 @@ refer to http://www.clipperz.com.
 
 	.search {
 		form {
-//			padding:2px;
-//			position:relative;
-//			box-sizing:border-box;
-//			width:95%;
-
-			div {
+			div.form {
 				@include flexbox();
 				@include flex-direction(row);
+				@include align-items(stretch);
 
-				input {
-					@include flex(auto);
-					@include order(1);
+				div.label {
+					@include flex(none);
+					@include order(0);
 
-					font-family: "clipperz-font";
-					font-size: 14pt;
-					color: white;
-					background-color: black;
-					border: 0px;
-					border-bottom: 1px solid #333;
-					outline: none;
-					margin-right: 10px;
-
-//					color: #999;
-//					padding: 0px 30px;
-//					margin: 0px 5px;
-//					width: 100%;
-//					box-sizing:border-box;
-
-					width: $selectionPanelWidth - $iconColumnWidth;
-
-					@include placeholder {
-						font-style: italic;
-						color: #ccc;
+					label {
+						display: block;
+						@include icon-font();
+						font-weight: normal;
+						padding: 4px 8px 0px 8px;
+						font-size: 14pt;
+						vertical-align: baseline;
 					}
 				}
 
-				label {
-					@include flex(none);
-					@include order(0);
-					@include icon-font();
+				div.input {
+					@include flex(1);
+					@include order(1);
+					overflow: hidden;
 
-					font-weight: normal;
-					padding-left: 8px;
-					padding-right: 8px;
-					font-size: 14pt;
-					vertical-align: baseline;
-					
-					margin-top: 10px;
+					input {
+						font-family: "clipperz-font";
+						font-size: 14pt;
+						color: white;
+						background-color: black;
+						border: 0px;
+						border-bottom: 1px solid #333;
+						outline: none;
+						display: block;
+						width: 160px;
 
-//					font-size: 18pt;
-//					padding-left: $spacing;
-//					padding-right:5px;
-//					position:absolute;
-//					top:9px;
-//					left:9px;
-//					color: #666;
+						@include placeholder {
+							font-style: italic;
+							color: #ccc;
+						}
+					}
 				}
 
 				.searchClear {
 					@include flex(none);
 					@include order(2);
 					@include align-self(flex-end);
-					cursor: pointer;
-					margin: 12px 12px 6px 0px;
+					padding-bottom: 4px;
 
-					.count {
-						margin-right: 0px;
-						display: none;
-					}
-					.clear {
-						@include icon-font();
-						display: none;
-
-//						@include border-radius(50%);
-						@include border-radius(4px);
-						color: white;
-						background-color: gray;
-//						right:9px;
-//						top:9px;
-//						padding: 5px;
+					span {
 						padding: 3px 5px;
-						font-size: 10pt;
+						cursor: pointer;
+						text-align: right;
+						display: block;
+
+						&.count {
+							display: none;
+						}
+						&.clear {
+							@include icon-font();
+							display: none;
+
+							@include border-radius(4px);
+							color: white;
+							background-color: gray;
+							font-size: 10pt;
+							margin-right: 12px;
+						}
 					}
 
 					&:hover {
@@ -163,7 +148,6 @@ refer to http://www.clipperz.com.
 		}
 
 		.searchResultInfo {
-//			color: #999;
 			font-size: 10pt;
 			padding: 2px 6px;
 			display: none;
@@ -291,17 +275,19 @@ $selectionColor: $clipperz-orange;
 //		}
 		
 		form {
-			label {
-				color: $selectionColor;
-			}
-			.searchClear {
-				.count {
-					display: block;
+			div.form {
+				label {
+					color: $selectionColor;
 				}
+				.searchClear {
+					span.count {
+						display: block;
+					}
 				
-				&:hover {
-					.count {
-						display: none;
+					&:hover {
+						.count {
+							display: none;
+						}
 					}
 				}
 			}
