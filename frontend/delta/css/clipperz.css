@@ -3215,7 +3215,7 @@ div.cardList.narrow {
       font-size: 20pt; }
       .content .cardField .fieldEditAction .removeField:hover {
         color: #9b0000; }
-    .content .cardField .fieldEditAction .dragHandler {
+    .content .cardField .fieldEditAction .dragHandler3 {
       cursor: grab;
       cursor: -moz-grab;
       cursor: -webkit-grab;
@@ -3223,19 +3223,52 @@ div.cardList.narrow {
       width: 28px;
       height: 20px;
       margin-left: 6px;
+      display: block; }
+      .content .cardField .fieldEditAction .dragHandler3:active {
+        cursor: grabbing;
+        cursor: -moz-grabbing;
+        cursor: -webkit-grabbing; }
+    .content .cardField .fieldEditAction .dragHandler {
       display: block;
-      /*
-      				@include icon-font();
-      				color: #aaa;
-      
-      				font-size: 15pt;
-      				margin: $iconMargin;
-      				margin-left: 10px;
-      */ }
+      box-sizing: border-box;
+      width: 5px;
+      height: 24px;
+      margin-left: 15px;
+      border: 1px solid #E8E8E8;
+      border-top: 0;
+      border-bottom: 0;
+      cursor: grab;
+      cursor: -moz-grab;
+      cursor: -webkit-grab; }
       .content .cardField .fieldEditAction .dragHandler:active {
         cursor: grabbing;
         cursor: -moz-grabbing;
         cursor: -webkit-grabbing; }
+      .content .cardField .fieldEditAction .dragHandler:before {
+        display: block;
+        box-sizing: border-box;
+        content: '';
+        position: relative;
+        left: -1px;
+        right: -2px;
+        height: 100%;
+        width: 5px;
+        border: 2px dotted #FFF;
+        border-top: 0;
+        border-bottom: 0;
+        z-index: 2; }
+      .content .cardField .fieldEditAction .dragHandler:after {
+        display: block;
+        box-sizing: border-box;
+        content: '';
+        position: relative;
+        top: -24px;
+        left: 0px;
+        right: 0px;
+        height: 100%;
+        border: 1px solid #EEE;
+        border-top: 0;
+        border-bottom: 0; }
   .content .cardField .fieldValues {
     -webkit-box-flex: 1;
     -webkit-flex: 1;

@@ -437,7 +437,9 @@ $cardViewBasePadding: 10px;
 				};
 			}
 
-			.dragHandler {
+
+
+			.dragHandler3 {
 //				@include dotted-background();
 				@include cursor-grab();
 				
@@ -453,19 +455,62 @@ $cardViewBasePadding: 10px;
 				height: 20px;
 				margin-left: 6px;
 				display: block;
-/*
-				@include icon-font();
-				color: #aaa;
 
-				font-size: 15pt;
-				margin: $iconMargin;
-				margin-left: 10px;
-*/				
 				&:active {
 					@include cursor-grabbing();
 				};
 			}
-			
+
+			$dragHandlerHeight: 24px;
+			$dragHandlerWidth: 5px;
+			.dragHandler {
+				display: block;
+				box-sizing: border-box;
+				width:  $dragHandlerWidth;
+				height: $dragHandlerHeight;
+
+				margin-left: 15px;
+				border:1px solid #E8E8E8;
+//				border:1px solid red;
+				border-top:0;
+				border-bottom:0;
+				@include cursor-grab();
+
+				&:active {
+					@include cursor-grabbing();
+				}
+
+				&:before {
+					display: block;
+					box-sizing: border-box;
+					content:'';
+					position: relative;
+					left:-1px;
+					right:-2px;
+					height: 100%;
+					width: $dragHandlerWidth;
+					border:2px dotted #FFF;
+//					border:2px dotted blue;
+					border-top:0;
+					border-bottom:0;
+					z-index:2;
+				}
+				&:after {
+					display: block;
+					box-sizing: border-box;
+					content:'';
+					position: relative;
+					top: -$dragHandlerHeight;
+					left:0px;
+					right:0px;
+					height:100%;
+					border:1px solid #EEE;
+//					border:1px solid green;
+					border-top:0;
+					border-bottom:0;
+				}
+				
+			}			
 		}
 		
 		.fieldValues {
