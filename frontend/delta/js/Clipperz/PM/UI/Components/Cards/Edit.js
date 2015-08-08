@@ -37,6 +37,7 @@ Clipperz.PM.UI.Components.Cards.EditClass = React.createClass({
 	getInitialState: function() {
 		return {
 			'draggedFieldReference': null,
+			'passwordGeneratorFieldReference': null,
 			'fromFieldPosition': -1,
 			'toFieldPosition': -1,
 			'dropPosition': -1,
@@ -216,6 +217,19 @@ console.log("DROP");	//, anEvent);
 
 	//============================================================================
 
+	setValueFromPasswordGenerator: function (aField, aTextAreaRef) {
+		var	reference = this.props['_reference'];
+		var	self = this;
+
+		return function (aValue) {
+			aField.setValue(aValue);
+			React.findDOMNode(self.refs[aTextAreaRef]).value = aValue;
+
+			self.setState({'passwordGeneratorFieldReference':null});
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', reference);
+		};
+	},
+
 	handleChange: function (anObject , aMethodName) {
 		var	reference = this.props['_reference'];
 		var	method = MochiKit.Base.method(anObject, aMethodName);
@@ -270,6 +284,23 @@ console.log("DROP");	//, anEvent);
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', reference);
 	},
 
+	showPasswordGenerator: function (aField) {
+		var result;
+
+		if (aField['actionType'] == 'PASSWORD') {
+			var	reference = this.props['_reference'];
+			var	self = this;
+
+			result = function (anEvent) {
+				self.setState({'passwordGeneratorFieldReference':aField['_reference']});
+			};
+		} else {
+			result = null;
+		}
+		
+		return result;
+	},
+
 	toggleLock: function (aField) {
 		var	reference = this.props['_reference'];
 		
@@ -288,6 +319,10 @@ console.log("DROP");	//, anEvent);
 			], {trace:false});
 
 		};
+	},
+
+	closePasswordGenerator: function () {
+		this.setState({'passwordGeneratorFieldReference': null});
 	},
 
 	//============================================================================
@@ -320,6 +355,7 @@ console.log("DROP");	//, anEvent);
 		var	cardFieldClasses = {};
 		var	cardFieldValueClasses = {};
 		var	field = aField['_field'];
+		var	fieldValueRef = ref + '_textarea';
 
 //console.log("RENDER FIELD", aField);
 		cardFieldClasses['cardField'] = true;
@@ -355,12 +391,12 @@ console.log("DROP");	//, anEvent);
 					React.DOM.input({'_className_':'_fieldLabel_', 'onChange':this.handleChange(field, 'setLabel'), 'defaultValue':aField['label'], 'placeholder': "label"}),
 				]),
 				React.DOM.div({'className':'fieldValue'}, [
-//					React.DOM.textarea({'className':Clipperz.PM.UI.Components.classNames(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'defaultValue':aField['value'], 'placeholder': "value"}),
-					Clipperz.PM.UI.Components.Cards.TextArea({'className':Clipperz.PM.UI.Components.classNames(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'onKeyDown':this.handleKeyDown(field), 'defaultValue':aField['value'], 'placeholder': "value"}),
+					(ref == this.state['passwordGeneratorFieldReference']) ? Clipperz.PM.UI.Components.Cards.PasswordGenerator({'field':aField, 'setValueCallback':this.setValueFromPasswordGenerator(field, fieldValueRef), 'closeClallback':this.closePasswordGenerator}) : null,
+					Clipperz.PM.UI.Components.Cards.TextArea({'className':Clipperz.PM.UI.Components.classNames(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'onKeyDown':this.handleKeyDown(field), 'defaultValue':aField['value'], 'placeholder': "value", 'ref':fieldValueRef}),
 				])
 			]),
 			React.DOM.div({'className':'fieldAction'}, [
-				React.DOM.span({'className':'action'}, aField['actionType'].toLowerCase() == 'password' ? 'generate password' : aField['actionType'].toLowerCase()),
+				React.DOM.span({'className':'action ' + aField['actionType'], 'onClick':this.showPasswordGenerator(aField)}, aField['actionType'].toLowerCase() == 'password' ? 'password generator' : aField['actionType'].toLowerCase()),
 				React.DOM.span({'className':'toggleLock', 'onClick':this.toggleLock(field)}, aField['isHidden'] ? "locked" : "unlocked")
 			])
 		]);

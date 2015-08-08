@@ -320,7 +320,6 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 						deferredResult.addCallback(MochiKit.Async.wait, 0.1);
 						deferredResult.addCallback(Clipperz.Base.evalJSON);
 						deferredResult.addErrback(function(anError) {
-console.log("PIPPO_1", anError)
 							Clipperz.logError("Error while decrypting data [4]");
 							throw Clipperz.Crypto.Base.exception.CorruptedMessage;
 						})
@@ -403,7 +402,6 @@ console.log("PIPPO_1", anError)
 						try {
 							result = Clipperz.Base.evalJSON(value);
 						} catch (exception) {
-							console.log("PIPPO_2", anError)
 							Clipperz.logError("Error while decrypting data [4]");
 							throw Clipperz.Crypto.Base.exception.CorruptedMessage;
 						}

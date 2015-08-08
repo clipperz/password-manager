@@ -211,6 +211,7 @@
 		"Clipperz/PM/UI/Components/Cards/CommandToolbar.js",
 		"Clipperz/PM/UI/Components/Cards/EditToolbar.js",
 		"Clipperz/PM/UI/Components/Cards/TagEditor.js",
+		"Clipperz/PM/UI/Components/Cards/PasswordGenerator.js",
 
 		"Clipperz/PM/UI/Components/AccountStatus.js",
 
