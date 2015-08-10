@@ -3579,7 +3579,7 @@ div.cardList.narrow {
     .passwordGenerator .passwordGeneratorBaloon form .setValue {
       background-color: #333333;
       height: 4px;
-      border-bottom: 6px solid #333333;
+      border-bottom: 6px solid #4d4d4d;
       border-bottom-left-radius: 6px;
       border-bottom-right-radius: 6px; }
       .passwordGenerator .passwordGeneratorBaloon form .setValue:after {
@@ -3587,19 +3587,20 @@ div.cardList.narrow {
         position: absolute;
         top: 100%;
         left: 10%;
+        margin-left: 0px;
         width: 0;
         height: 0;
-        border-top: 6px solid #333333;
+        border-top: 6px solid #4d4d4d;
         border-left: 6px solid transparent;
         border-right: 6px solid transparent; }
       .passwordGenerator .passwordGeneratorBaloon form .setValue:hover {
-        border-color: #aaaaaa;
+        border-color: #999999;
         box-shadow: 0 3px 3px 0 rgba(0, 0, 0, 0.4); }
         .passwordGenerator .passwordGeneratorBaloon form .setValue:hover:after {
-          border-top: 8px solid #aaaaaa;
-          border-left: 8px solid transparent;
-          border-right: 8px solid transparent;
-          margin-left: -1px; }
+          border-top: 10px solid #999999;
+          border-left: 10px solid transparent;
+          border-right: 10px solid transparent;
+          margin-left: -2px; }
 
 div.dialog {
   -webkit-box-shadow: 0px 2px 5px rgba(50, 50, 50, 0.75);

@@ -865,38 +865,38 @@ $cardViewBasePadding: 10px;
 				}
 			}
 			
+			$setValueColor: lighten($passwordBaloonColor, 10%);
+			$setValueHoverColor: lighten($passwordBaloonColor, 40%);
 			.setValue {
 				background-color: $passwordBaloonColor;
 //				height: $borderRadius;
 				height: 10px - $borderRadius;
-				border-bottom: $borderRadius solid $passwordBaloonColor;
+				border-bottom: $borderRadius solid $setValueColor;
 				border-bottom-left-radius: $borderRadius;
 				border-bottom-right-radius: $borderRadius;
 				
 				$arrowSize: 6px;
-				$hoverArrowSize: 8px;
-//				$hoverColor: $clipperz-blue;
-				$hoverColor: #aaa;
+				$hoverArrowSize: 10px;
 				&:after {
 					content:'';
 					position:absolute;
 					top:100%;
 	//				left:10px;
 					left:10%;
+					margin-left: 0px;
 					width:0;
 					height:0;
-					border-top:$arrowSize solid $passwordBaloonColor;
+					border-top:$arrowSize solid $setValueColor;
 					border-left:$arrowSize solid transparent;
 					border-right:$arrowSize solid transparent;
 				}
 
 				&:hover {
-					border-color: $hoverColor;
+					border-color: $setValueHoverColor;
 					box-shadow: 0 3px 3px 0 rgba(0, 0, 0, .4);
 
 					&:after {
-//						background-color: $hoverColor;
-						border-top:$hoverArrowSize solid $hoverColor;
+						border-top:$hoverArrowSize solid $setValueHoverColor;
 						border-left:$hoverArrowSize solid transparent;
 						border-right:$hoverArrowSize solid transparent;
 						margin-left: -($hoverArrowSize - $arrowSize) / 2;
