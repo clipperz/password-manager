@@ -1533,7 +1533,11 @@ console.log("THE BROWSER IS OFFLINE");
 				newRecord = aValue;
 				return newRecord;
 			},
-			MochiKit.Base.methodcaller('addField', {'label':"", 'value':"", 'isHidden':false}),
+//			MochiKit.Base.methodcaller('addField', {'label':"", 'value':"", 'isHidden':false}),
+//			function () { return newRecord; },
+			MochiKit.Base.methodcaller('addField', {'label':"username", 'value':"", 'hidden':false}),
+			function () { return newRecord; },
+			MochiKit.Base.methodcaller('addField', {'label':"password", 'value':"", 'hidden':true}),
 			function () { return newRecord; },
 			MochiKit.Base.methodcaller('reference'),
 			MochiKit.Base.method(this, 'refreshUI'),

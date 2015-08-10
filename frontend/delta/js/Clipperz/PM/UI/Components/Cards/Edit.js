@@ -392,7 +392,7 @@ console.log("DROP");	//, anEvent);
 				]),
 				React.DOM.div({'className':'fieldValue'}, [
 					(ref == this.state['passwordGeneratorFieldReference']) ? Clipperz.PM.UI.Components.Cards.PasswordGenerator({'field':aField, 'setValueCallback':this.setValueFromPasswordGenerator(field, fieldValueRef), 'closeClallback':this.closePasswordGenerator}) : null,
-					Clipperz.PM.UI.Components.Cards.TextArea({'className':Clipperz.PM.UI.Components.classNames(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'onKeyDown':this.handleKeyDown(field), 'defaultValue':aField['value'], 'placeholder': "value", 'ref':fieldValueRef}),
+					Clipperz.PM.UI.Components.Cards.TextArea({'className':Clipperz.PM.UI.Components.classNames(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'onKeyDown':this.handleKeyDown(field), 'defaultValue':aField['value'], 'placeholder':(aField['actionType'].toLowerCase() == 'password')?'':"value", 'ref':fieldValueRef}),
 				])
 			]),
 			React.DOM.div({'className':'fieldAction'}, [
