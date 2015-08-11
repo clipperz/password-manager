@@ -3439,6 +3439,7 @@ div.cardList.narrow {
     left: 0;
     min-width: 220px;
     width: 80%;
+    max-width: 400px;
     background-color: #333333;
     color: #fff;
     -webkit-border-radius: 6px;
@@ -3533,7 +3534,8 @@ div.cardList.narrow {
       flex-direction: row;
       padding: 10px;
       padding-top: 3px;
-      padding-bottom: 0px; }
+      padding-bottom: 0px;
+      padding-right: 0px; }
       .passwordGenerator .passwordGeneratorBaloon form .passwordValue .passwordWrapper {
         -webkit-box-flex: auto;
         -webkit-flex: auto;
@@ -3569,11 +3571,13 @@ div.cardList.narrow {
         font-feature-settings: "liga" 1, "dlig" 1;
         -webkit-font-smoothing: antialiased;
         text-rendering: optimizeLegibility;
-        padding-left: 10px;
         font-size: 14pt;
         font-weight: bold;
+        text-align: center;
+        padding-left: 5px;
         color: #999;
-        width: 20px; }
+        width: 40px;
+        height: 30px; }
         .passwordGenerator .passwordGeneratorBaloon form .passwordValue .button:hover {
           color: white; }
     .passwordGenerator .passwordGeneratorBaloon form .setValue {

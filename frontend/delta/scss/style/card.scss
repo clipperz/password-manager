@@ -678,6 +678,7 @@ $cardViewBasePadding: 10px;
 			left: 0;
 			min-width: 220px;
 			width: 80%;
+			max-width: 400px;
 //			padding: 10px;
 			background-color: $passwordBaloonColor;
 			color: #fff;
@@ -824,6 +825,7 @@ $cardViewBasePadding: 10px;
 				padding-top: 3px;
 //				padding-bottom: $passwordBaloonBorder - $borderRadius;
 				padding-bottom: 0px;
+				padding-right: 0px;
 
 				.passwordWrapper {
 					@include flex(auto);
@@ -853,11 +855,18 @@ $cardViewBasePadding: 10px;
 				.button {
 					@include flex(none);
 					@include icon-font();
-					padding-left: 10px;
+//					@include align-self(flex-end);
+//					@include align-content(center);
+//					padding-left: 10px;
 					font-size: 14pt;
 					font-weight: bold;
+//					overflow: hidden;
+					text-align: center;
+					padding-left: 5px;
+//					background-color: green;
 					color: #999;
-					width: 20px;
+					width: 40px;
+					height: 30px;
 
 					&:hover {
 						color: white;
