@@ -753,6 +753,7 @@ $cardViewBasePadding: 10px;
 							font-size: 12pt;
 							border: 0px;
 							text-align: right;
+							max-width: 50px;
 
 							&::-webkit-outer-spin-button {
 								opacity: 1;
@@ -821,10 +822,12 @@ $cardViewBasePadding: 10px;
 			.passwordValue {
 				@include flexbox();
 				@include flex-direction(row);
+				@include align-content(stretch);
+
 				padding: $passwordBaloonBorder;
 				padding-top: 3px;
 //				padding-bottom: $passwordBaloonBorder - $borderRadius;
-				padding-bottom: 0px;
+//				padding-bottom: 0px;
 				padding-right: 0px;
 
 				.passwordWrapper {
@@ -855,25 +858,25 @@ $cardViewBasePadding: 10px;
 				.button {
 					@include flex(none);
 					@include icon-font();
-//					@include align-self(flex-end);
-//					@include align-content(center);
-//					padding-left: 10px;
 					font-size: 14pt;
 					font-weight: bold;
-//					overflow: hidden;
 					text-align: center;
-					padding-left: 5px;
-//					background-color: green;
+//					padding-left: 5px;
 					color: #999;
 					width: 40px;
-					height: 30px;
+//					height: 30px;
+					height: inherit;
+					
+					&.setPasswordValue {
+						background-color: lighten($passwordBaloonColor, 5%);
+					}
 
 					&:hover {
 						color: white;
 					};
 				}
 			}
-			
+/*			
 			$setValueColor: lighten($passwordBaloonColor, 10%);
 			$setValueHoverColor: lighten($passwordBaloonColor, 40%);
 			.setValue {
@@ -912,6 +915,7 @@ $cardViewBasePadding: 10px;
 					}
 				}
 			}
+*/
 		}
 	}
 }
