@@ -314,7 +314,7 @@ class FrontendBuilder(object):
 		if not self.processedFiles.has_key(processedFile):
 			#self.log("assembling copyright header")
 			copyrightValues = self.settings['copyright.values']
-			license = self.loadFilesContent('../../properties', ['license.AGPL.txt'])
+			license = self.loadFilesContent('../../properties', ['license.txt'])
 			result  = self.loadFilesContent('properties', ['creditsAndCopyrights.txt'])
 			
 			result = re.sub('@clipperz.license@', license, result)
