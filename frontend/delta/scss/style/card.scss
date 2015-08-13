@@ -674,7 +674,8 @@ $cardViewBasePadding: 10px;
 		
 		form {
 			position: absolute;
-			bottom: calc(100% + 4px);
+//			bottom: calc(100% + 4px);
+			bottom: 4px;
 			left: 0;
 			min-width: 220px;
 			width: 80%;
@@ -685,6 +686,20 @@ $cardViewBasePadding: 10px;
 			@include border-radius($borderRadius);
 			box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .2);
 			font-size: 9pt;
+
+			$arrowSize: 5px;
+			&:after {
+				content:'';
+				position:absolute;
+				top:100%;
+				left:10%;
+				margin-left: 0px;
+				width:0;
+				height:0;
+				border-top:$arrowSize solid $passwordBaloonColor;
+				border-left:$arrowSize solid transparent;
+				border-right:$arrowSize solid transparent;
+			}
 
 			span {
 				font-size: 8pt;

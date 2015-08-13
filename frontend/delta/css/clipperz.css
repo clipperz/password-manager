@@ -3435,7 +3435,7 @@ div.cardList.narrow {
   z-index: 101; }
   .passwordGenerator .passwordGeneratorBaloon form {
     position: absolute;
-    bottom: calc(100% + 4px);
+    bottom: 4px;
     left: 0;
     min-width: 220px;
     width: 80%;
@@ -3447,6 +3447,17 @@ div.cardList.narrow {
     border-radius: 6px;
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.2);
     font-size: 9pt; }
+    .passwordGenerator .passwordGeneratorBaloon form:after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 10%;
+      margin-left: 0px;
+      width: 0;
+      height: 0;
+      border-top: 5px solid #333333;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent; }
     .passwordGenerator .passwordGeneratorBaloon form span {
       font-size: 8pt;
       color: #ccc; }
