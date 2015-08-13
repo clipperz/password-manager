@@ -437,7 +437,9 @@ $cardViewBasePadding: 10px;
 				};
 			}
 
-			.dragHandler {
+
+
+			.dragHandler3 {
 //				@include dotted-background();
 				@include cursor-grab();
 				
@@ -453,19 +455,62 @@ $cardViewBasePadding: 10px;
 				height: 20px;
 				margin-left: 6px;
 				display: block;
-/*
-				@include icon-font();
-				color: #aaa;
 
-				font-size: 15pt;
-				margin: $iconMargin;
-				margin-left: 10px;
-*/				
 				&:active {
 					@include cursor-grabbing();
 				};
 			}
-			
+
+			$dragHandlerHeight: 24px;
+			$dragHandlerWidth: 4px;
+			.dragHandler {
+				display: block;
+				box-sizing: border-box;
+				width:  $dragHandlerWidth;
+				height: $dragHandlerHeight;
+
+				margin-left: 15px;
+				border:1px solid #E8E8E8;
+//				border:1px solid red;
+				border-top:0;
+				border-bottom:0;
+				@include cursor-grab();
+
+				&:active {
+					@include cursor-grabbing();
+				}
+
+				&:before {
+					display: block;
+					box-sizing: border-box;
+					content:'';
+					position: relative;
+					left:-1px;
+//					right:-2px;
+					height: 100%;
+					width: $dragHandlerWidth;
+					border:2px dotted #FFF;
+//					border:2px dotted blue;
+					border-top:0;
+					border-bottom:0;
+					z-index:2;
+				}
+				&:after {
+					display: block;
+					box-sizing: border-box;
+					content:'';
+					position: relative;
+					top: -$dragHandlerHeight;
+					left:0px;
+					right:0px;
+					height:100%;
+					border:1px solid #EEE;
+//					border:1px solid green;
+					border-top:0;
+					border-bottom:0;
+				}
+				
+			}			
 		}
 		
 		.fieldValues {
@@ -495,7 +540,8 @@ $cardViewBasePadding: 10px;
 //				height: 1.3em;
 //				outline: none;
 				@include user-select(text);
-			
+
+				resize: none;
 				white-space: pre-wrap;
 				word-wrap: break-word;
 
@@ -545,7 +591,11 @@ $cardViewBasePadding: 10px;
 
 					&.PASSWORD {
 						cursor: pointer;
-						
+
+						&:hover {
+							color: #888;
+						};
+
 						&.active {
 							color: #333;
 						}
@@ -597,6 +647,219 @@ $cardViewBasePadding: 10px;
 		
 		.directLoginLabel {
 			padding-left: 42px - $iconMargin;
+		}
+	}
+}
+
+//=============================================================================
+
+.passwordGenerator {
+	.passwordGeneratorMask {
+		position: fixed;
+		top: 0px;
+		left: 0px;
+		height: 100%;
+		width: 100%;
+		background-color: rgba(0, 0, 0, 0);
+		z-index: 100;
+		
+	}
+
+	.passwordGeneratorBaloon {
+		position: relative;
+		$passwordBaloonColor: #333;
+		$passwordBaloonBorder: 10px;
+		$borderRadius: 6px;
+		z-index: 101;
+		
+		form {
+			position: absolute;
+			bottom: calc(100% + 4px);
+			left: 0;
+			min-width: 220px;
+			width: 80%;
+			max-width: 400px;
+//			padding: 10px;
+			background-color: $passwordBaloonColor;
+			color: #fff;
+			@include border-radius($borderRadius);
+			box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .2);
+			font-size: 9pt;
+
+			span {
+				font-size: 8pt;
+				color: #ccc;
+			}
+		
+			textarea {
+				resize: none;
+				white-space: pre-wrap;
+				word-wrap: break-word;
+				width: 100%;
+			}
+
+			.optionsWrapper {
+				header {
+					height: 12px;
+					border-bottom: 1px solid #666;
+				
+					div {
+						content: "options";
+						@include icon-font();
+//						text-align: right;
+						font-size: 8pt;
+						line-height: 14px;
+						color: #999;
+						padding-left: 5px;
+					
+						&:hover {
+							color: white;
+						}
+					};
+				}
+
+				.options {
+//					height: inherit;
+					background-color: #888;
+					padding-left: $passwordBaloonBorder;
+					padding-right: $passwordBaloonBorder /* + 30px */;
+					padding-bottom: 3px;
+					border-bottom: 1px solid #aaa;
+//					@include transition(height, 0.5s, ease-in);
+
+					&.closed {
+						height: 0px;
+						padding-bottom: 0px;
+						border-bottom: 0px;
+
+						div {
+							visibility: hidden;
+						}
+					}
+
+					.length {
+						padding-top: 2px;
+
+						span {
+							margin-right: 3px;
+
+							&:after {
+								content: ':';
+							}
+						}
+
+						input {
+//							background-color: #888;
+//							color: white;
+
+							font-weight: bold;
+							font-size: 10pt;
+//							border: 0px;
+							text-align: right;
+							max-width: 50px;
+
+							&::-webkit-outer-spin-button {
+								opacity: 1;
+							}
+						}
+					}
+
+					.charList {
+						padding-top: 2px;
+
+						span {
+							display: inline-block;
+							line-height: 10px;
+							
+							&:after {
+								content: ':';
+							}
+						}
+
+						.charsetSets {
+							display: inline-block;
+							align: right;
+
+							label {
+								span {
+									font-size: 10pt;
+									color: #eee;
+
+									&:after {
+										content: '';
+									}
+								}
+
+								padding-right: 5px;
+								cursor: pointer;
+							}
+						}
+
+						textarea {
+							color: gray;
+							min-height: 34px;
+
+							&:focus {
+								outline: 0;
+							}
+						}
+					}
+				}
+			}
+	
+			.passwordValue {
+				@include flexbox();
+				@include flex-direction(row);
+				@include align-content(stretch);
+
+				padding: $passwordBaloonBorder;
+				padding-top: 3px;
+				padding-right: 0px;
+
+				.passwordWrapper {
+					@include flex(auto);
+
+					textarea {
+						font-size: 12pt;
+						font-weight: bold;
+						border: 0px;
+						
+						&:focus {
+							outline: 0;
+						}
+					}
+					
+					.entropyWrapper {
+						width: 100%;
+						height: 2px;
+
+						.entropy {
+							height: 100%;
+							background-color: white;
+							float: right;
+						}
+					}
+				}
+			
+				.button {
+					@include flex(none);
+					@include icon-font();
+					font-size: 14pt;
+					font-weight: bold;
+					text-align: center;
+					color: #999;
+					width: 40px;
+					height: inherit;
+					
+					&.setPasswordValue {
+						background-color: lighten($passwordBaloonColor, 5%);
+					}
+
+					&:hover {
+						color: white;
+					};
+				}
+			}
 		}
 	}
 }

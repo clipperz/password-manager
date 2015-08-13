@@ -21,6 +21,8 @@ refer to http://www.clipperz.com.
 
 */
 
+"use strict";
+
 try { if (typeof(Clipperz.ByteArray) == 'undefined') { throw ""; }} catch (e) {
 	throw "Clipperz.Crypto.AES_2 depends on Clipperz.ByteArray!";
 }  
@@ -804,10 +806,11 @@ MochiKit.Base.update(Clipperz.Crypto.AES_2, {
 	//-----------------------------------------------------------------------------
 
 	'deferredDecrypt': function(aKey, someData) {
-		var deferredResult
-		var nonce;
-		var message;
-		var key;
+		var	deferredResult
+		var	nonce;
+		var	message;
+		var	key;
+		var	executionContext;
 
 		key = new Clipperz.Crypto.AES_2.Key({key:aKey});
 		nonce = someData.split(0, (128/8));

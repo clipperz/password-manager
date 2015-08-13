@@ -21,6 +21,8 @@ refer to http://www.clipperz.com.
 
 */
 
+"use strict";
+
 try { if (typeof(Clipperz.ByteArray) == 'undefined') { throw ""; }} catch (e) {
 	throw "Clipperz.Crypto.AES depends on Clipperz.ByteArray!";
 }  
