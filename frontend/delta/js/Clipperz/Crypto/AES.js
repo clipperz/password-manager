@@ -25,7 +25,7 @@ refer to http://www.clipperz.com.
 
 try { if (typeof(Clipperz.ByteArray) == 'undefined') { throw ""; }} catch (e) {
 	throw "Clipperz.Crypto.AES depends on Clipperz.ByteArray!";
-}  
+}
 
 //	Dependency commented to avoid a circular reference
 //try { if (typeof(Clipperz.Crypto.PRNG) == 'undefined') { throw ""; }} catch (e) {
@@ -824,7 +824,8 @@ MochiKit.Base.update(Clipperz.Crypto.AES, {
 	//-----------------------------------------------------------------------------
 
 	'deferredDecrypt': function(aKey, someData) {
-		var deferredResult
+		var deferredResult;
+		var executionContext;
 		var nonce;
 		var message;
 		var key;
