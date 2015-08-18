@@ -21,7 +21,7 @@ refer to http://www.clipperz.com.
 
 */
 
-'use strict';
+"use strict";
 Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
 Clipperz.PM.UI.Components.Cards.EditClass = React.createClass({

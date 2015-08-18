@@ -60,6 +60,22 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 	    this.setState(newState);
 	},
 
+	pollForChanges: function() {
+		if (this.props.mode == 'CREDENTIALS') {
+			var newState;
+
+			var usernameValue = this.refs['username'].getDOMNode().value;
+			var passphraseValue = this.refs['passphrase'].getDOMNode().value;
+
+			newState = {};
+
+			newState['username'] = (usernameValue) ? usernameValue : "";
+			newState['passphrase'] = (passphraseValue) ? passphraseValue : "";
+
+			this.setState(newState);
+		}
+	},
+
 	//=========================================================================
 
 	handleCredentialSubmit: function (event) {

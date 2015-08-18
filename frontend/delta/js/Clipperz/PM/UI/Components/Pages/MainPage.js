@@ -21,7 +21,7 @@ refer to http://www.clipperz.com.
 
 */
 
-'use strict';
+"use strict";
 Clipperz.Base.module('Clipperz.PM.UI.Components.Pages');
 
 Clipperz.PM.UI.Components.Pages.MainPageClass = React.createClass({
