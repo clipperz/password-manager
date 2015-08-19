@@ -294,6 +294,15 @@ console.log("THE BROWSER IS OFFLINE");
 		loginFormPage.setProps({'mode':this.loginMode()});
 		this.moveInPage(this.currentPage(), 'loginPage');
 		MochiKit.Async.callLater(0.5, MochiKit.Base.method(loginFormPage, 'setInitialFocus'));
+		MochiKit.Async.callLater(0.5, MochiKit.Base.method(this, 'recursivelyPollLoginFormForChanges'));
+	},
+
+	recursivelyPollLoginFormForChanges: function () {
+		this.pages()['loginPage'].pollForChanges();
+
+		if (this.currentPage() == 'loginPage') {
+			MochiKit.Async.callLater(0.5, MochiKit.Base.method(this, 'recursivelyPollLoginFormForChanges'));
+		}
 	},
 
 	showRegistrationForm_handler: function () {

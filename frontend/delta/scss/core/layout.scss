@@ -179,7 +179,7 @@ input[type=text] {
 
 		.extraFeatureContent {
 			.extraFeature {
-				height: calc(100% - $mainCardToolbarHeight);
+//				height: calc(100% - $mainCardToolbarHeight);
 			}
 		}
 		
@@ -279,6 +279,8 @@ input[type=text] {
 	}
 
 	.cardContent {
+		@include flex(1);
+		@include overflow-auto();
 	}
 }
 
@@ -363,7 +365,7 @@ div.cardContent {
 
 	@include flexbox();
 	@include flex-direction(row);
-	height: 100%;
+//	height: 100%;
 
 	div.cardListColumn.column {
 		@include flex($cardListWidth, 0);
@@ -372,7 +374,7 @@ div.cardContent {
 //		overflow:auto;
 //		@include overflow-auto;
 		overflow: hidden;
-		
+//		height: 100%;
 
 		z-index: 5;
 		box-shadow: 2px 0 6px 0 rgba(0,0,0, 0.1);
@@ -382,7 +384,9 @@ div.cardContent {
 		
 		&.addCard {
 			div.cardList {
-				padding-bottom: 100px;
+				.cardListInnerWrapper {
+					padding-bottom: #{$cardListPadding};
+				}
 			}
 		}
 		
@@ -602,40 +606,20 @@ div.dialogBox {
 	}
 }
 
+div.helpBox {
+	
+}
 
-/* Firefox considers 100% respect to height of the whole window, this is rule is necessary to eliminate the card toolbar offset. */
+//@include fixHeighHack ($mainCardToolbarHeight /*, $cardListPadding*/)
+
+/*
+//	Firefox considers 100% respect to height of the whole window, this is rule is necessary to eliminate the card toolbar offset.
 @-moz-document url-prefix() {
-	#mainPanel {
-		&.extra-wide {
-			.subpanel {
-				&.cardContent {
-					height: calc(100% - #{$mainCardToolbarHeight});
-				}
-			}
-		}
-
-		&.wide {
-				.cardContent {
-					height: calc(100% - #{$mainCardToolbarHeight});
-				}
-		}
-	}
+	@include fixHeighHack ($mainCardToolbarHeight, $cardListPadding)
 }
 
-@media screen and (-webkit-min-device-pixel-ratio:0) { 
-	#mainPanel {
-		&.extra-wide {
-			.subpanel {
-				&.cardContent {
-					height: calc(100% - #{$mainCardToolbarHeight});
-				}
-			}
-		}
-
-		&.wide {
-				.cardContent {
-					height: calc(100% - #{$mainCardToolbarHeight});
-				}
-		}
-	}
+//	Chrome fix (without messing with Safari)
+@supports (-webkit-appearance:none) and (R:0) {
+	@include fixHeighHack ($mainCardToolbarHeight, $cardListPadding)
 }
+*/

@@ -216,4 +216,35 @@ refer to http://www.clipperz.com.
 	background-size: 3px 3px;
 }
 
+@mixin fixHeighHack ($offsetHeight /*, $padding*/) {
+/*
+	#mainPanel {
+		&.extra-wide {
+			.subpanel {
+				&.cardContent {
+					height: calc(100% - #{$offsetHeight});
+				}
+			}
+		}
 
+		&.wide {
+				.cardContent {
+					height: calc(100% - #{$offsetHeight});
+				}
+		}
+	}
+
+	div.cardContent {
+		div.cardListColumn.column {
+			&.addCard {
+				height: calc(100% + #{$offsetHeight});
+			}
+
+			div.cardList {
+//				height: calc(100% - #{$padding} - #{$offsetHeight});
+				height: calc(100% - #{$offsetHeight});
+			}
+		}
+	}
+*/
+}

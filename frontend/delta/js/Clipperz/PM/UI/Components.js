@@ -21,7 +21,7 @@ refer to http://www.clipperz.com.
 
 */
 
-'use strict';
+"use strict";
 Clipperz.Base.module('Clipperz.PM.UI');
 
 //	code snippet taken on March 23, 2015 from here: https://github.com/JedWatson/classnames/blob/master/index.js

@@ -21,6 +21,7 @@ refer to http://www.clipperz.com.
 
 */
 
+"use strict";
 if (typeof(Clipperz) == 'undefined') { Clipperz = {}; }
 if (typeof(Clipperz.PM) == 'undefined') { Clipperz.PM = {}; }
 if (typeof(Clipperz.PM.Crypto) == 'undefined') { Clipperz.PM.Crypto = {}; }
@@ -320,7 +321,7 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 						deferredResult.addCallback(MochiKit.Async.wait, 0.1);
 						deferredResult.addCallback(Clipperz.Base.evalJSON);
 						deferredResult.addErrback(function(anError) {
-							Clipperz.logError("Error while decrypting data [4]");
+							Clipperz.logError("Error while decrypting data [3]");
 							throw Clipperz.Crypto.Base.exception.CorruptedMessage;
 						})
 					} else {

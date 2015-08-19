@@ -21,7 +21,7 @@ refer to http://www.clipperz.com.
 
 */
 
-'use strict';
+"use strict";
 Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
 Clipperz.PM.UI.Components.Cards.ListClass = React.createClass({
@@ -79,7 +79,9 @@ Clipperz.PM.UI.Components.Cards.ListClass = React.createClass({
 		classes[this.props['style']] = true;
 
 		return	React.DOM.div({'key':'cardList', 'className':Clipperz.PM.UI.Components.classNames(classes)}, [
-					this.isFeatureEnabled('LIST_CARDS') ? React.DOM.ul({}, MochiKit.Base.map(this.renderItem, cards)) : null
+					React.DOM.div({'className':'cardListInnerWrapper'}, [
+						this.isFeatureEnabled('LIST_CARDS') ? React.DOM.ul({}, MochiKit.Base.map(this.renderItem, cards)) : null
+					])
 				]);
 	},
 	

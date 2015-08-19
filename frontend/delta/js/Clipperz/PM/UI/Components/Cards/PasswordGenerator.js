@@ -21,7 +21,7 @@ refer to http://www.clipperz.com.
 
 */
 
-'use strict';
+"use strict";
 Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
 Clipperz.PM.UI.Components.Cards.PasswordGeneratorClass = React.createClass({
@@ -38,16 +38,17 @@ Clipperz.PM.UI.Components.Cards.PasswordGeneratorClass = React.createClass({
 
 	getInitialState: function () {
 		return {
-			'length':	32,
-			'options':	'closed',
+			'length':		24,
+			'options':		'closed',
 			'chars_AZ':		true,
 			'chars_az':		true,
 			'chars_09':		true,
 			'chars_space':	false,
 			'chars_other':	true,
+
 			'charset':	'',
 			'password':	'',
-			'entropy': 0,
+			'entropy':	0,
 		};
 	},
 

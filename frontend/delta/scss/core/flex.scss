@@ -102,10 +102,10 @@ http://jonibologna.com/flexbox-cheatsheet/
 
 
 @mixin flexbox {
-	display: -webkit-box;
-	display: -webkit-flex;
-	display: -moz-flex;
-	display: -ms-flexbox;
+//	display: -webkit-box;
+//	display: -webkit-flex;
+//	display: -moz-flex;
+//	display: -ms-flexbox;
 	display: flex;
 }
 
@@ -114,10 +114,10 @@ http://jonibologna.com/flexbox-cheatsheet/
 //----------------------------------
 
 @mixin inline-flex {
-	display: -webkit-inline-box;
-	display: -webkit-inline-flex;
-	display: -moz-inline-flex;
-	display: -ms-inline-flexbox;
+//	display: -webkit-inline-box;
+//	display: -webkit-inline-flex;
+//	display: -moz-inline-flex;
+//	display: -ms-inline-flexbox;
 	display: inline-flex;
 }
 
@@ -137,22 +137,22 @@ http://jonibologna.com/flexbox-cheatsheet/
 // http://w3.org/tr/css3-flexbox/#flex-direction-property
 
 @mixin flex-direction($value: row) {
-	@if $value == row-reverse {
-		-webkit-box-direction: reverse;
-		-webkit-box-orient: horizontal;
-	} @else if $value == column {
-		-webkit-box-direction: normal;
-		-webkit-box-orient: vertical;
-	} @else if $value == column-reverse {
-		-webkit-box-direction: reverse;
-		-webkit-box-orient: vertical;
-	} @else {
-		-webkit-box-direction: normal;
-		-webkit-box-orient: horizontal;
-	}
-	-webkit-flex-direction: $value;
-	-moz-flex-direction: $value;
-	-ms-flex-direction: $value;
+//	@if $value == row-reverse {
+//		-webkit-box-direction: reverse;
+//		-webkit-box-orient: horizontal;
+//	} @else if $value == column {
+//		-webkit-box-direction: normal;
+//		-webkit-box-orient: vertical;
+//	} @else if $value == column-reverse {
+//		-webkit-box-direction: reverse;
+//		-webkit-box-orient: vertical;
+//	} @else {
+//		-webkit-box-direction: normal;
+//		-webkit-box-orient: horizontal;
+//	}
+//	-webkit-flex-direction: $value;
+//	-moz-flex-direction: $value;
+//	-ms-flex-direction: $value;
 	flex-direction: $value;
 }
 	// Shorter version:
@@ -173,13 +173,13 @@ http://jonibologna.com/flexbox-cheatsheet/
 
 @mixin flex-wrap($value: nowrap) {
 	// No Webkit Box fallback.
-	-webkit-flex-wrap: $value;
-	-moz-flex-wrap: $value;
-	@if $value == nowrap {
-		-ms-flex-wrap: none;
-	} @else { 
-		-ms-flex-wrap: $value; 
-	}
+//	-webkit-flex-wrap: $value;
+//	-moz-flex-wrap: $value;
+//	@if $value == nowrap {
+//		-ms-flex-wrap: none;
+//	} @else { 
+//		-ms-flex-wrap: $value; 
+//	}
 	flex-wrap: $value;
 }
 
@@ -198,9 +198,9 @@ http://jonibologna.com/flexbox-cheatsheet/
 
 @mixin flex-flow($values: (row nowrap)) {
 	// No Webkit Box fallback.
-	-webkit-flex-flow: $values;
-	-moz-flex-flow: $values;
-	-ms-flex-flow: $values;
+//	-webkit-flex-flow: $values;
+//	-moz-flex-flow: $values;
+//	-ms-flex-flow: $values;
 	flex-flow: $values;
 }
 
@@ -216,10 +216,10 @@ http://jonibologna.com/flexbox-cheatsheet/
 // http://w3.org/tr/css3-flexbox/#order-property
 
 @mixin order($int: 0) {
-	-webkit-box-ordinal-group: $int + 1;
-	-webkit-order: $int;
-	-moz-order: $int;
-	-ms-flex-order: $int;
+//	-webkit-box-ordinal-group: $int + 1;
+//	-webkit-order: $int;
+//	-moz-order: $int;
+//	-ms-flex-order: $int;
 	order: $int;
 }
 
@@ -235,10 +235,10 @@ http://jonibologna.com/flexbox-cheatsheet/
 // http://w3.org/tr/css3-flexbox/#flex-grow-property
 
 @mixin flex-grow($int: 0) {
-	-webkit-box-flex: $int;
-	-webkit-flex-grow: $int;
-	-moz-flex-grow: $int;
-	-ms-flex-positive: $int;
+//	-webkit-box-flex: $int;
+//	-webkit-flex-grow: $int;
+//	-moz-flex-grow: $int;
+//	-ms-flex-positive: $int;
 	flex-grow: $int;
 }
 
@@ -254,9 +254,9 @@ http://jonibologna.com/flexbox-cheatsheet/
 // http://w3.org/tr/css3-flexbox/#flex-shrink-property
 
 @mixin flex-shrink($int: 1) {
-	-webkit-flex-shrink: $int;
-	-moz-flex-shrink: $int;
-	-ms-flex-negative: $int;
+//	-webkit-flex-shrink: $int;
+//	-moz-flex-shrink: $int;
+//	-ms-flex-negative: $int;
 	flex-shrink: $int;
 }
 
@@ -272,9 +272,9 @@ http://jonibologna.com/flexbox-cheatsheet/
 // http://www.w3.org/TR/css3-flexbox/#flex-basis-property
 
 @mixin flex-basis($value: auto) {
-	-webkit-flex-basis: $value;
-	-moz-flex-basis: $value;
-	-ms-flex-preferred-size: $value;
+//	-webkit-flex-basis: $value;
+//	-moz-flex-basis: $value;
+//	-ms-flex-preferred-size: $value;
 	flex-basis: $value;
 }
 
@@ -304,11 +304,11 @@ http://jonibologna.com/flexbox-cheatsheet/
 		$fg-boxflex: nth($fg, 1);
 	}
 
-	-webkit-box-flex: $fg-boxflex;
-	-webkit-flex: $fg $fs $fb;
-	-moz-box-flex: $fg-boxflex;
-	-moz-flex: $fg $fs $fb;
-	-ms-flex: $fg $fs $fb;
+//	-webkit-box-flex: $fg-boxflex;
+//	-webkit-flex: $fg $fs $fb;
+//	-moz-box-flex: $fg-boxflex;
+//	-moz-flex: $fg $fs $fb;
+//	-ms-flex: $fg $fs $fb;
 	flex: $fg $fs $fb;
 }
 
@@ -331,21 +331,21 @@ http://jonibologna.com/flexbox-cheatsheet/
 // http://w3.org/tr/css3-flexbox/#justify-content-property
 
 @mixin justify-content($value: flex-start) {
-	@if $value == flex-start {
-		-webkit-box-pack: start;
-		-ms-flex-pack: start;
-	} @else if $value == flex-end {
-		-webkit-box-pack: end;
-		-ms-flex-pack: end;
-	} @else if $value == space-between {
-		-webkit-box-pack: justify;
-		-ms-flex-pack: justify;
-	} @else {
-		-webkit-box-pack: $value;
-		-ms-flex-pack: $value;
-	}
-	-webkit-justify-content: $value;
-	-moz-justify-content: $value;
+//	@if $value == flex-start {
+//		-webkit-box-pack: start;
+//		-ms-flex-pack: start;
+//	} @else if $value == flex-end {
+//		-webkit-box-pack: end;
+//		-ms-flex-pack: end;
+//	} @else if $value == space-between {
+//		-webkit-box-pack: justify;
+//		-ms-flex-pack: justify;
+//	} @else {
+//		-webkit-box-pack: $value;
+//		-ms-flex-pack: $value;
+//	}
+//	-webkit-justify-content: $value;
+//	-moz-justify-content: $value;
 	justify-content: $value;
 }
 	// Shorter version:
@@ -369,18 +369,18 @@ http://jonibologna.com/flexbox-cheatsheet/
 // http://w3.org/tr/css3-flexbox/#align-items-property
 
 @mixin align-items($value: stretch) {
-	@if $value == flex-start {
-		-webkit-box-align: start;
-		-ms-flex-align: start;
-	} @else if $value == flex-end {
-		-webkit-box-align: end;
-		-ms-flex-align: end;
-	} @else {
-		-webkit-box-align: $value;
-		-ms-flex-align: $value;
-	}
-	-webkit-align-items: $value;
-	-moz-align-items: $value;
+//	@if $value == flex-start {
+//		-webkit-box-align: start;
+//		-ms-flex-align: start;
+//	} @else if $value == flex-end {
+//		-webkit-box-align: end;
+//		-ms-flex-align: end;
+//	} @else {
+//		-webkit-box-align: $value;
+//		-ms-flex-align: $value;
+//	}
+//	-webkit-align-items: $value;
+//	-moz-align-items: $value;
 	align-items: $value;
 }
 
@@ -393,15 +393,15 @@ http://jonibologna.com/flexbox-cheatsheet/
 
 @mixin align-self($value: auto) {
 	// No Webkit Box Fallback.
-	-webkit-align-self: $value;
-	-moz-align-self: $value;
-	@if $value == flex-start {
-		-ms-flex-item-align: start;
-	} @else if $value == flex-end {
-		-ms-flex-item-align: end;
-	} @else {
-		-ms-flex-item-align: $value;
-	}
+//	-webkit-align-self: $value;
+//	-moz-align-self: $value;
+//	@if $value == flex-start {
+//		-ms-flex-item-align: start;
+//	} @else if $value == flex-end {
+//		-ms-flex-item-align: end;
+//	} @else {
+//		-ms-flex-item-align: $value;
+//	}
 	align-self: $value;
 }
 
@@ -421,14 +421,14 @@ http://jonibologna.com/flexbox-cheatsheet/
 
 @mixin align-content($value: stretch) {
 	// No Webkit Box Fallback.
-	-webkit-align-content: $value;
-	-moz-align-content: $value;
-	@if $value == flex-start {
-		-ms-flex-line-pack: start;
-	} @else if $value == flex-end {
-		-ms-flex-line-pack: end;
-	} @else {
-		-ms-flex-line-pack: $value;
-	}
+//	-webkit-align-content: $value;
+//	-moz-align-content: $value;
+//	@if $value == flex-start {
+//		-ms-flex-line-pack: start;
+//	} @else if $value == flex-end {
+//		-ms-flex-line-pack: end;
+//	} @else {
+//		-ms-flex-line-pack: $value;
+//	}
 	align-content: $value;
 }

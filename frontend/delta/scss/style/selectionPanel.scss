@@ -209,6 +209,7 @@ refer to http://www.clipperz.com.
 	.showArchivedCards {
 		@include flexbox();
 		@include flex-direction(row);
+		border-top: 1px dotted #333;
 
 		padding: 10px;
 		font-size: 10pt;

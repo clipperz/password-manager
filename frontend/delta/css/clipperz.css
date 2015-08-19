@@ -645,48 +645,19 @@ input[type=text] {
     left: 0px; }
 
 #selections {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -moz-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-direction: normal;
-  -webkit-box-orient: vertical;
-  -webkit-flex-direction: column;
-  -moz-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column;
   height: 100%; }
   #selections ul.defaultSet {
-    -webkit-box-flex: none;
-    -webkit-flex: none;
-    -moz-box-flex: none;
-    -moz-flex: none;
-    -ms-flex: none;
     flex: none; }
   #selections .search {
-    -webkit-box-flex: none;
-    -webkit-flex: none;
-    -moz-box-flex: none;
-    -moz-flex: none;
-    -ms-flex: none;
     flex: none; }
   #selections ul.tagList {
-    -webkit-box-flex: auto;
-    -webkit-flex: auto;
-    -moz-box-flex: auto;
-    -moz-flex: auto;
-    -ms-flex: auto;
     flex: auto;
     margin-left: 0px;
     overflow: auto;
     -webkit-overflow-scrolling: touch; }
   #selections .showArchivedCards {
-    -webkit-box-flex: none;
-    -webkit-flex: none;
-    -moz-box-flex: none;
-    -moz-flex: none;
-    -ms-flex: none;
     flex: none;
     cursor: pointer; }
 
@@ -697,35 +668,12 @@ input[type=text] {
     height: 100%;
     margin: 0 auto; }
     #mainPanel.extra-wide .container {
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
       display: flex; }
     #mainPanel.extra-wide .subpanel.selection {
-      -webkit-box-flex: 1;
-      -webkit-flex: 1 0;
-      -moz-box-flex: 1;
-      -moz-flex: 1 0;
-      -ms-flex: 1 0;
       flex: 1 0; }
     #mainPanel.extra-wide .subpanel.cardContent {
-      -webkit-box-flex: 4;
-      -webkit-flex: 4;
-      -moz-box-flex: 4;
-      -moz-flex: 4;
-      -ms-flex: 4;
       flex: 4;
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
       display: flex;
-      -webkit-box-direction: normal;
-      -webkit-box-orient: vertical;
-      -webkit-flex-direction: column;
-      -moz-flex-direction: column;
-      -ms-flex-direction: column;
       flex-direction: column; }
     #mainPanel.extra-wide .selectionToggle .button {
       display: none;
@@ -796,8 +744,6 @@ input[type=text] {
 
 .mainPage.narrow #extraFeaturesPanel.fullOpen .extraFeatureIndex {
   width: 0px; }
-.mainPage.narrow #extraFeaturesPanel .extraFeatureContent .extraFeature {
-  height: calc(100% - $mainCardToolbarHeight); }
 
 #extraFeaturesPanel {
   position: fixed;
@@ -807,16 +753,7 @@ input[type=text] {
   top: 0;
   right: -300px;
   transition: right 0.3s ease-in-out;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -moz-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-direction: reverse;
-  -webkit-box-orient: horizontal;
-  -webkit-flex-direction: row-reverse;
-  -moz-flex-direction: row-reverse;
-  -ms-flex-direction: row-reverse;
   flex-direction: row-reverse; }
   #extraFeaturesPanel.open {
     right: 0px; }
@@ -827,85 +764,32 @@ input[type=text] {
     #extraFeaturesPanel.fullOpen .extraFeatureContent {
       display: block; }
   #extraFeaturesPanel .extraFeatureIndex {
-    -webkit-box-flex: none;
-    -webkit-flex: none;
-    -moz-box-flex: none;
-    -moz-flex: none;
-    -ms-flex: none;
     flex: none;
     width: 300px;
     height: 100%;
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-box-direction: normal;
-    -webkit-box-orient: vertical;
-    -webkit-flex-direction: column;
-    -moz-flex-direction: column;
-    -ms-flex-direction: column;
     flex-direction: column; }
     #extraFeaturesPanel .extraFeatureIndex header {
-      -webkit-box-flex: none;
-      -webkit-flex: none;
-      -moz-box-flex: none;
-      -moz-flex: none;
-      -ms-flex: none;
       flex: none; }
     #extraFeaturesPanel .extraFeatureIndex > div {
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
       flex: auto;
       overflow: auto;
       -webkit-overflow-scrolling: touch; }
     #extraFeaturesPanel .extraFeatureIndex footer {
-      -webkit-box-flex: none;
-      -webkit-flex: none;
-      -moz-box-flex: none;
-      -moz-flex: none;
-      -ms-flex: none;
       flex: none; }
   #extraFeaturesPanel .extraFeatureContent {
-    -webkit-box-flex: auto;
-    -webkit-flex: auto;
-    -moz-box-flex: auto;
-    -moz-flex: auto;
-    -ms-flex: auto;
     flex: auto;
     width: 100%;
     height: 100%;
     background-color: black; }
     #extraFeaturesPanel .extraFeatureContent .extraFeature {
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
       display: flex;
-      -webkit-box-direction: normal;
-      -webkit-box-orient: vertical;
-      -webkit-flex-direction: column;
-      -moz-flex-direction: column;
-      -ms-flex-direction: column;
       flex-direction: column;
       height: 100%; }
       #extraFeaturesPanel .extraFeatureContent .extraFeature .header {
-        -webkit-box-flex: none;
-        -webkit-flex: none;
-        -moz-box-flex: none;
-        -moz-flex: none;
-        -ms-flex: none;
         flex: none;
         padding: 20px; }
       #extraFeaturesPanel .extraFeatureContent .extraFeature .content {
-        -webkit-box-flex: auto;
-        -webkit-flex: auto;
-        -moz-box-flex: auto;
-        -moz-flex: auto;
-        -ms-flex: auto;
         flex: auto;
         padding: 0px 20px 20px 20px;
         overflow: auto;
@@ -918,30 +802,16 @@ input[type=text] {
 .cardToolbarFrame {
   width: 100%;
   height: 100%;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -moz-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-direction: normal;
-  -webkit-box-orient: vertical;
-  -webkit-flex-direction: column;
-  -moz-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column; }
   .cardToolbarFrame .cardToolbar {
-    -webkit-box-flex: none;
-    -webkit-flex: none;
-    -moz-box-flex: none;
-    -moz-flex: none;
-    -ms-flex: none;
     flex: none; }
+  .cardToolbarFrame .cardContent {
+    flex: 1;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch; }
 
 div.cardToolbar header {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -moz-flex;
-  display: -ms-flexbox;
   display: flex;
   height: 48px;
   line-height: 48px;
@@ -957,15 +827,7 @@ div.cardToolbar header {
     font-feature-settings: "liga" 1, "dlig" 1;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    -webkit-align-self: center;
-    -moz-align-self: center;
-    -ms-flex-item-align: center;
     align-self: center;
-    -webkit-box-flex: 4;
-    -webkit-flex: 4;
-    -moz-box-flex: 4;
-    -moz-flex: 4;
-    -ms-flex: 4;
     flex: 4;
     text-align: center; }
     div.cardToolbar header div.clipperz span.logo.tag, div.cardToolbar header div.clipperz span.logo.search {
@@ -975,22 +837,12 @@ div.cardToolbar header {
     padding-left: 5px;
     font-size: 18pt; }
   div.cardToolbar header div.selectionToggle {
-    -webkit-box-flex: 1;
-    -webkit-flex: 1;
-    -moz-box-flex: 1;
-    -moz-flex: 1;
-    -ms-flex: 1;
     flex: 1; }
     div.cardToolbar header div.selectionToggle .button {
       text-align: left; }
       div.cardToolbar header div.selectionToggle .button .label {
         padding-left: 8px; }
   div.cardToolbar header div.settingsToggle {
-    -webkit-box-flex: 1;
-    -webkit-flex: 1;
-    -moz-box-flex: 1;
-    -moz-flex: 1;
-    -ms-flex: 1;
     flex: 1; }
     div.cardToolbar header div.settingsToggle .button {
       text-align: right; }
@@ -1010,34 +862,15 @@ div.cardToolbar header {
     vertical-align: center; }
 
 div.cardContent {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -moz-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-direction: normal;
-  -webkit-box-orient: horizontal;
-  -webkit-flex-direction: row;
-  -moz-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  height: 100%; }
+  flex-direction: row; }
   div.cardContent div.cardListColumn.column {
-    -webkit-box-flex: 1;
-    -webkit-flex: 1 0;
-    -moz-box-flex: 1;
-    -moz-flex: 1 0;
-    -ms-flex: 1 0;
     flex: 1 0;
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
     display: flex;
     overflow: hidden;
     z-index: 5;
     box-shadow: 2px 0 6px 0 rgba(0, 0, 0, 0.1); }
-    div.cardContent div.cardListColumn.column.addCard div.cardList {
+    div.cardContent div.cardListColumn.column.addCard div.cardList .cardListInnerWrapper {
       padding-bottom: 100px; }
     div.cardContent div.cardListColumn.column div.cardList {
       overflow: auto;
@@ -1071,28 +904,10 @@ div.cardContent {
       div.cardContent div.cardListColumn.column div.addCardButton:hover {
         background-color: #114875; }
   div.cardContent div.cardDetail.column {
-    -webkit-box-flex: 2;
-    -webkit-flex: 2;
-    -moz-box-flex: 2;
-    -moz-flex: 2;
-    -ms-flex: 2;
     flex: 2;
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
     display: flex; }
     div.cardContent div.cardDetail.column div.editWrapper {
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
       flex: auto;
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
       display: flex; }
       div.cardContent div.cardDetail.column div.editWrapper .mask {
         position: absolute;
@@ -1103,22 +918,8 @@ div.cardContent {
         z-index: 10;
         background-color: rgba(0, 0, 0, 0.5); }
       div.cardContent div.cardDetail.column div.editWrapper > div.edit {
-        -webkit-box-flex: auto;
-        -webkit-flex: auto;
-        -moz-box-flex: auto;
-        -moz-flex: auto;
-        -ms-flex: auto;
         flex: auto;
-        display: -webkit-box;
-        display: -webkit-flex;
-        display: -moz-flex;
-        display: -ms-flexbox;
         display: flex;
-        -webkit-box-direction: normal;
-        -webkit-box-orient: vertical;
-        -webkit-flex-direction: column;
-        -moz-flex-direction: column;
-        -ms-flex-direction: column;
         flex-direction: column;
         box-shadow: 0px 0px 10px 2px rgba(0, 0, 0, 0.75);
         position: relative;
@@ -1129,61 +930,23 @@ div.cardContent {
       div.cardContent div.cardDetail.column div.editWrapper .mask {
         background-color: rgba(0, 0, 0, 0.6); }
     div.cardContent div.cardDetail.column > div.view {
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
       flex: auto;
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
       display: flex;
-      -webkit-box-direction: normal;
-      -webkit-box-orient: vertical;
-      -webkit-flex-direction: column;
-      -moz-flex-direction: column;
-      -ms-flex-direction: column;
       flex-direction: column; }
     div.cardContent div.cardDetail.column .content {
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
       flex: auto;
       overflow: auto;
       -webkit-overflow-scrolling: touch; }
 
 #cardDetailPage > .view, #cardDetailPage > .editWrapper > .edit {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -moz-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-direction: normal;
-  -webkit-box-orient: vertical;
-  -webkit-flex-direction: column;
-  -moz-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column;
   height: 100%; }
   #cardDetailPage > .view .content, #cardDetailPage > .editWrapper > .edit .content {
-    -webkit-box-flex: auto;
-    -webkit-flex: auto;
-    -moz-box-flex: auto;
-    -moz-flex: auto;
-    -ms-flex: auto;
     flex: auto;
     overflow-y: scroll; }
 
 .cardDetailToolbar {
-  -webkit-box-flex: none;
-  -webkit-flex: none;
-  -moz-box-flex: none;
-  -moz-flex: none;
-  -ms-flex: none;
   flex: none;
   height: 48px;
   line-height: 48px; }
@@ -1194,51 +957,18 @@ div.cardContent {
     .cardDetailToolbar.edit.hasPendingChanges li.save {
       cursor: pointer; }
   .cardDetailToolbar.commands > div {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-box-direction: normal;
-    -webkit-box-orient: horizontal;
-    -webkit-flex-direction: row;
-    -moz-flex-direction: row;
-    -ms-flex-direction: row;
     flex-direction: row; }
     .cardDetailToolbar.commands > div .back {
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
       flex: auto;
       cursor: pointer; }
     .cardDetailToolbar.commands > div .cardMenuOptions {
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
       flex: auto;
       cursor: pointer; }
   .cardDetailToolbar ul {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-box-direction: reverse;
-    -webkit-box-orient: horizontal;
-    -webkit-flex-direction: row-reverse;
-    -moz-flex-direction: row-reverse;
-    -ms-flex-direction: row-reverse;
     flex-direction: row-reverse; }
     .cardDetailToolbar ul li {
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
       flex: auto;
       cursor: pointer; }
 
@@ -1248,20 +978,8 @@ div.cardContent {
     cursor: default; }
 
 div.dialogBox {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -moz-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  -webkit-align-items: center;
-  -moz-align-items: center;
   align-items: center;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  -webkit-justify-content: center;
-  -moz-justify-content: center;
   justify-content: center;
   position: absolute;
   left: 0px;
@@ -1280,84 +998,34 @@ div.dialogBox {
     z-index: 25;
     -webkit-transform: translate3d(0, 0, 0); }
   div.dialogBox div.dialog {
-    -webkit-box-flex: none;
-    -webkit-flex: none;
-    -moz-box-flex: none;
-    -moz-flex: none;
-    -ms-flex: none;
     flex: none;
     z-index: 99999; }
     div.dialogBox div.dialog div.answers {
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
       display: flex;
-      -webkit-box-direction: normal;
-      -webkit-box-orient: horizontal;
-      -webkit-flex-direction: row;
-      -moz-flex-direction: row;
-      -ms-flex-direction: row;
       flex-direction: row;
-      -webkit-box-pack: end;
-      -ms-flex-pack: end;
-      -webkit-justify-content: flex-end;
-      -moz-justify-content: flex-end;
       justify-content: flex-end; }
       div.dialogBox div.dialog div.answers div.button {
-        -webkit-box-flex: none;
-        -webkit-flex: none;
-        -moz-box-flex: none;
-        -moz-flex: none;
-        -ms-flex: none;
         flex: none;
         cursor: pointer; }
 
-/* Firefox considers 100% respect to height of the whole window, this is rule is necessary to eliminate the card toolbar offset. */
+/*
+//	Firefox considers 100% respect to height of the whole window, this is rule is necessary to eliminate the card toolbar offset.
 @-moz-document url-prefix() {
-  #mainPanel.extra-wide .subpanel.cardContent {
-    height: calc(100% - 48px); }
-  #mainPanel.wide .cardContent {
-    height: calc(100% - 48px); } }
-@media screen and (-webkit-min-device-pixel-ratio: 0) {
-  #mainPanel.extra-wide .subpanel.cardContent {
-    height: calc(100% - 48px); }
-  #mainPanel.wide .cardContent {
-    height: calc(100% - 48px); } }
+	@include fixHeighHack ($mainCardToolbarHeight, $cardListPadding)
+}
+
+//	Chrome fix (without messing with Safari)
+@supports (-webkit-appearance:none) and (R:0) {
+	@include fixHeighHack ($mainCardToolbarHeight, $cardListPadding)
+}
+*/
 .tagEditor {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -moz-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-direction: normal;
-  -webkit-box-orient: horizontal;
-  -webkit-flex-direction: row;
-  -moz-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row; }
   .tagEditor ul {
-    -webkit-box-flex: none;
-    -webkit-flex: none;
-    -moz-box-flex: none;
-    -moz-flex: none;
-    -ms-flex: none;
     flex: none;
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-box-direction: normal;
-    -webkit-box-orient: horizontal;
-    -webkit-flex-direction: row;
-    -moz-flex-direction: row;
-    -ms-flex-direction: row;
     flex-direction: row;
-    -webkit-box-align: start;
-    -ms-flex-align: start;
-    -webkit-align-items: flex-start;
-    -moz-align-items: flex-start;
     align-items: flex-start; }
     .tagEditor ul:before {
       content: 'tag';
@@ -1374,11 +1042,6 @@ div.dialogBox {
       line-height: 27px;
       color: #ccc; }
     .tagEditor ul li.tag {
-      -webkit-box-flex: none;
-      -webkit-flex: none;
-      -moz-box-flex: none;
-      -moz-flex: none;
-      -ms-flex: none;
       flex: none;
       font-size: 13pt;
       font-weight: 100;
@@ -1400,11 +1063,6 @@ div.dialogBox {
         .tagEditor ul li.tag span.tagRemoveButton:hover {
           color: #9b0000; }
   .tagEditor input {
-    -webkit-box-flex: auto;
-    -webkit-flex: auto;
-    -moz-box-flex: auto;
-    -moz-flex: auto;
-    -ms-flex: auto;
     flex: auto;
     font-size: 13pt;
     font-weight: 100;
@@ -1432,31 +1090,13 @@ div.dialogBox {
   overflow: auto;
   -webkit-overflow-scrolling: touch; }
   #loginPage div.loginForm {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-box-direction: normal;
-    -webkit-box-orient: vertical;
-    -webkit-flex-direction: column;
-    -moz-flex-direction: column;
-    -ms-flex-direction: column;
     flex-direction: column;
-    -webkit-box-align: stretch;
-    -ms-flex-align: stretch;
-    -webkit-align-items: stretch;
-    -moz-align-items: stretch;
     align-items: stretch;
     height: 100%;
     text-align: center;
     background-color: #ff9900; }
     #loginPage div.loginForm header {
-      -webkit-box-flex: 1;
-      -webkit-flex: 1;
-      -moz-box-flex: 1;
-      -moz-flex: 1;
-      -ms-flex: 1;
       flex: 1;
       font-size: 48pt;
       line-height: 90pt;
@@ -1469,11 +1109,6 @@ div.dialogBox {
         font-size: 16pt;
         line-height: 1.0em; }
     #loginPage div.loginForm div.form {
-      -webkit-box-flex: 4;
-      -webkit-flex: 4;
-      -moz-box-flex: 4;
-      -moz-flex: 4;
-      -ms-flex: 4;
       flex: 4; }
       #loginPage div.loginForm div.form form {
         position: relative;
@@ -1534,27 +1169,9 @@ div.dialogBox {
     #loginPage div.loginForm div.links ul li {
       display: inline-block; }
     #loginPage div.loginForm footer {
-      -webkit-box-flex: 1;
-      -webkit-flex: 1;
-      -moz-box-flex: 1;
-      -moz-flex: 1;
-      -ms-flex: 1;
       flex: 1;
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
       display: flex;
-      -webkit-box-direction: normal;
-      -webkit-box-orient: vertical;
-      -webkit-flex-direction: column;
-      -moz-flex-direction: column;
-      -ms-flex-direction: column;
       flex-direction: column;
-      -webkit-box-align: stretch;
-      -ms-flex-align: stretch;
-      -webkit-align-items: stretch;
-      -moz-align-items: stretch;
       align-items: stretch;
       color: white;
       background-color: black;
@@ -1562,21 +1179,11 @@ div.dialogBox {
       cursor: default; }
       #loginPage div.loginForm footer a.registrationLink {
         cursor: pointer;
-        -webkit-box-flex: auto;
-        -webkit-flex: auto;
-        -moz-box-flex: auto;
-        -moz-flex: auto;
-        -ms-flex: auto;
         flex: auto;
         line-height: 50pt; }
         #loginPage div.loginForm footer a.registrationLink:before {
           content: "> "; }
       #loginPage div.loginForm footer .applicationVersion {
-        -webkit-box-flex: 1;
-        -webkit-flex: 1;
-        -moz-box-flex: 1;
-        -moz-flex: 1;
-        -ms-flex: 1;
         flex: 1;
         font-size: 8pt; }
         #loginPage div.loginForm footer .applicationVersion span {
@@ -1630,31 +1237,13 @@ div.dialogBox {
   background-color: black;
   color: white; }
   #registrationPage .registrationForm {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-box-direction: normal;
-    -webkit-box-orient: vertical;
-    -webkit-flex-direction: column;
-    -moz-flex-direction: column;
-    -ms-flex-direction: column;
     flex-direction: column;
-    -webkit-box-align: stretch;
-    -ms-flex-align: stretch;
-    -webkit-align-items: stretch;
-    -moz-align-items: stretch;
     align-items: stretch;
     height: 100%;
     text-align: center;
     background-color: black; }
     #registrationPage .registrationForm header {
-      -webkit-box-flex: 1;
-      -webkit-flex: 1;
-      -moz-box-flex: 1;
-      -moz-flex: 1;
-      -ms-flex: 1;
       flex: 1;
       font-size: 48pt;
       line-height: 90pt;
@@ -1667,11 +1256,6 @@ div.dialogBox {
         font-size: 16pt;
         line-height: 1.0em; }
     #registrationPage .registrationForm div.form {
-      -webkit-box-flex: 4;
-      -webkit-flex: 4;
-      -moz-box-flex: 4;
-      -moz-flex: 4;
-      -ms-flex: 4;
       flex: 4; }
       #registrationPage .registrationForm div.form form {
         background: white;
@@ -1762,11 +1346,6 @@ div.dialogBox {
     #registrationPage .registrationForm div.links ul li {
       display: inline-block; }
     #registrationPage .registrationForm footer {
-      -webkit-box-flex: 1;
-      -webkit-flex: 1;
-      -moz-box-flex: 1;
-      -moz-flex: 1;
-      -ms-flex: 1;
       flex: 1;
       color: black;
       background-color: #ff9900;
@@ -1777,11 +1356,6 @@ div.dialogBox {
       #registrationPage .registrationForm footer a {
         line-height: 50pt; }
       #registrationPage .registrationForm footer .applicationVersion {
-        -webkit-box-flex: 1;
-        -webkit-flex: 1;
-        -moz-box-flex: 1;
-        -moz-flex: 1;
-        -ms-flex: 1;
         flex: 1;
         font-size: 8pt; }
         #registrationPage .registrationForm footer .applicationVersion span {
@@ -1802,34 +1376,12 @@ div.dialogBox {
     padding-top: 10px;
     padding-bottom: 10px; }
     #selections ul.defaultSet li {
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
       display: flex;
-      -webkit-box-direction: normal;
-      -webkit-box-orient: horizontal;
-      -webkit-flex-direction: row;
-      -moz-flex-direction: row;
-      -ms-flex-direction: row;
       flex-direction: row; }
       #selections ul.defaultSet li span.label {
-        -webkit-box-flex: auto;
-        -webkit-flex: auto;
-        -moz-box-flex: auto;
-        -moz-flex: auto;
-        -ms-flex: auto;
         flex: auto; }
       #selections ul.defaultSet li span.count {
-        -webkit-box-flex: none;
-        -webkit-flex: none;
-        -moz-box-flex: none;
-        -moz-flex: none;
-        -ms-flex: none;
         flex: none;
-        -webkit-align-self: flex-end;
-        -moz-align-self: flex-end;
-        -ms-flex-item-align: end;
         align-self: flex-end; }
       #selections ul.defaultSet li.allCards:before {
         content: "clipperz"; }
@@ -1838,33 +1390,11 @@ div.dialogBox {
       #selections ul.defaultSet li.untaggedCards {
         padding-left: 35px; }
   #selections .search form div.form {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-box-direction: normal;
-    -webkit-box-orient: horizontal;
-    -webkit-flex-direction: row;
-    -moz-flex-direction: row;
-    -ms-flex-direction: row;
     flex-direction: row;
-    -webkit-box-align: stretch;
-    -ms-flex-align: stretch;
-    -webkit-align-items: stretch;
-    -moz-align-items: stretch;
     align-items: stretch; }
     #selections .search form div.form div.label {
-      -webkit-box-flex: none;
-      -webkit-flex: none;
-      -moz-box-flex: none;
-      -moz-flex: none;
-      -ms-flex: none;
       flex: none;
-      -webkit-box-ordinal-group: 1;
-      -webkit-order: 0;
-      -moz-order: 0;
-      -ms-flex-order: 0;
       order: 0; }
       #selections .search form div.form div.label label {
         display: block;
@@ -1881,16 +1411,7 @@ div.dialogBox {
         font-size: 14pt;
         vertical-align: baseline; }
     #selections .search form div.form div.input {
-      -webkit-box-flex: 1;
-      -webkit-flex: 1;
-      -moz-box-flex: 1;
-      -moz-flex: 1;
-      -ms-flex: 1;
       flex: 1;
-      -webkit-box-ordinal-group: 2;
-      -webkit-order: 1;
-      -moz-order: 1;
-      -ms-flex-order: 1;
       order: 1;
       overflow: hidden; }
       #selections .search form div.form div.input input {
@@ -1916,20 +1437,8 @@ div.dialogBox {
           font-style: italic;
           color: #ccc; }
     #selections .search form div.form .searchClear {
-      -webkit-box-flex: none;
-      -webkit-flex: none;
-      -moz-box-flex: none;
-      -moz-flex: none;
-      -ms-flex: none;
       flex: none;
-      -webkit-box-ordinal-group: 3;
-      -webkit-order: 2;
-      -moz-order: 2;
-      -ms-flex-order: 2;
       order: 2;
-      -webkit-align-self: flex-end;
-      -moz-align-self: flex-end;
-      -ms-flex-item-align: end;
       align-self: flex-end;
       padding-bottom: 4px; }
       #selections .search form div.form .searchClear span {
@@ -1970,37 +1479,15 @@ div.dialogBox {
   #selections ul.tagList {
     padding-top: 10px; }
     #selections ul.tagList li {
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
       display: flex;
-      -webkit-box-direction: normal;
-      -webkit-box-orient: horizontal;
-      -webkit-flex-direction: row;
-      -moz-flex-direction: row;
-      -ms-flex-direction: row;
       flex-direction: row; }
       #selections ul.tagList li:before {
         content: "tag"; }
       #selections ul.tagList li span.label {
         font-size: 14pt;
-        -webkit-box-flex: auto;
-        -webkit-flex: auto;
-        -moz-box-flex: auto;
-        -moz-flex: auto;
-        -ms-flex: auto;
         flex: auto; }
       #selections ul.tagList li span.count {
-        -webkit-box-flex: none;
-        -webkit-flex: none;
-        -moz-box-flex: none;
-        -moz-flex: none;
-        -ms-flex: none;
         flex: none;
-        -webkit-align-self: flex-end;
-        -moz-align-self: flex-end;
-        -ms-flex-item-align: end;
         align-self: flex-end; }
   #selections li {
     padding-top: 7px;
@@ -2021,45 +1508,19 @@ div.dialogBox {
       font-size: 14pt;
       vertical-align: baseline; }
   #selections .showArchivedCards {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-box-direction: normal;
-    -webkit-box-orient: horizontal;
-    -webkit-flex-direction: row;
-    -moz-flex-direction: row;
-    -ms-flex-direction: row;
     flex-direction: row;
+    border-top: 1px dotted #333;
     padding: 10px;
     font-size: 10pt; }
     #selections .showArchivedCards input {
-      -webkit-box-flex: none;
-      -webkit-flex: none;
-      -moz-box-flex: none;
-      -moz-flex: none;
-      -ms-flex: none;
       flex: none; }
     #selections .showArchivedCards .label {
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
       flex: auto;
       padding-left: 5px;
       line-height: initial; }
     #selections .showArchivedCards .count {
-      -webkit-box-flex: none;
-      -webkit-flex: none;
-      -moz-box-flex: none;
-      -moz-flex: none;
-      -ms-flex: none;
       flex: none;
-      -webkit-align-self: flex-end;
-      -moz-align-self: flex-end;
-      -ms-flex-item-align: end;
       align-self: flex-end;
       margin-right: 2px; }
 
@@ -2272,34 +1733,15 @@ span.count {
       border: 0px solid #ff9900;
       color: gray; }
   #extraFeaturesPanel .extraFeatureContent .extraFeature form p {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-box-direction: normal;
-    -webkit-box-orient: horizontal;
-    -webkit-flex-direction: row;
-    -moz-flex-direction: row;
-    -ms-flex-direction: row;
     flex-direction: row;
     padding-top: 8px; }
     #extraFeaturesPanel .extraFeatureContent .extraFeature form p input {
       width: 30px;
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
       flex: auto; }
     #extraFeaturesPanel .extraFeatureContent .extraFeature form p input[type="checkbox"] {
       flex-grow: 0; }
     #extraFeaturesPanel .extraFeatureContent .extraFeature form p label {
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
       flex: auto;
       font-size: 12pt;
       display: block;
@@ -2382,16 +1824,7 @@ span.count {
         margin-right: 1em;
         padding: 1em 0; }
     #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail {
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
       display: flex;
-      -webkit-box-direction: normal;
-      -webkit-box-orient: horizontal;
-      -webkit-flex-direction: row;
-      -moz-flex-direction: row;
-      -ms-flex-direction: row;
       flex-direction: row;
       border: 1px solid #222;
       -webkit-border-radius: 5px;
@@ -2429,24 +1862,10 @@ span.count {
         -o-user-select: text;
         user-select: text; }
       #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel {
-        display: -webkit-box;
-        display: -webkit-flex;
-        display: -moz-flex;
-        display: -ms-flexbox;
         display: flex;
-        -webkit-box-direction: normal;
-        -webkit-box-orient: horizontal;
-        -webkit-flex-direction: row;
-        -moz-flex-direction: row;
-        -ms-flex-direction: row;
         flex-direction: row;
         margin-right: 5px; }
         #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel:before {
-          -webkit-box-flex: none;
-          -webkit-flex: none;
-          -moz-box-flex: none;
-          -moz-flex: none;
-          -ms-flex: none;
           flex: none;
           content: 'label';
           font-family: 'clipperz-icons';
@@ -2462,11 +1881,6 @@ span.count {
           color: gray;
           line-height: 20pt; }
         #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel span {
-          -webkit-box-flex: auto;
-          -webkit-flex: auto;
-          -moz-box-flex: auto;
-          -moz-flex: auto;
-          -ms-flex: auto;
           flex: auto;
           font-size: 12pt;
           color: #333;
@@ -2478,11 +1892,6 @@ span.count {
             color: gray;
             font-style: normal; }
         #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input {
-          -webkit-box-flex: auto;
-          -webkit-flex: auto;
-          -moz-box-flex: auto;
-          -moz-flex: auto;
-          -ms-flex: auto;
           flex: auto;
           font-size: 12pt;
           color: gray;
@@ -2522,16 +1931,7 @@ span.count {
   #extraFeaturesPanel .extraFeatureContent .dataImport .content {
     display: block;
     height: 100%;
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-box-direction: normal;
-    -webkit-box-orient: vertical;
-    -webkit-flex-direction: column;
-    -moz-flex-direction: column;
-    -ms-flex-direction: column;
     flex-direction: column;
     /*
     				.csvTable {
@@ -2567,11 +1967,6 @@ span.count {
     				}
     */ }
     #extraFeaturesPanel .extraFeatureContent .dataImport .content ul.stepNavbar {
-      -webkit-box-flex: none;
-      -webkit-flex: none;
-      -moz-box-flex: none;
-      -moz-flex: none;
-      -ms-flex: none;
       flex: none;
       padding-top: 5px;
       padding-bottom: 5px;
@@ -2586,11 +1981,6 @@ span.count {
         #extraFeaturesPanel .extraFeatureContent .dataImport .content ul.stepNavbar li.disabled {
           color: gray; }
     #extraFeaturesPanel .extraFeatureContent .dataImport .content .step {
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
       flex: auto;
       overflow: auto;
       -webkit-overflow-scrolling: touch; }
@@ -2624,41 +2014,13 @@ span.count {
         margin: 1em 0;
         border: 0; }
       #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview {
-        display: -webkit-box;
-        display: -webkit-flex;
-        display: -moz-flex;
-        display: -ms-flexbox;
         display: flex;
-        -webkit-box-direction: normal;
-        -webkit-box-orient: vertical;
-        -webkit-flex-direction: column;
-        -moz-flex-direction: column;
-        -ms-flex-direction: column;
         flex-direction: column; }
         #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview {
-          -webkit-box-flex: auto;
-          -webkit-flex: auto;
-          -moz-box-flex: auto;
-          -moz-flex: auto;
-          -ms-flex: auto;
           flex: auto;
-          display: -webkit-box;
-          display: -webkit-flex;
-          display: -moz-flex;
-          display: -ms-flexbox;
           display: flex;
-          -webkit-box-direction: normal;
-          -webkit-box-orient: vertical;
-          -webkit-flex-direction: column;
-          -moz-flex-direction: column;
-          -ms-flex-direction: column;
           flex-direction: column; }
           #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview div.selectButtons {
-            -webkit-box-flex: none;
-            -webkit-flex: none;
-            -moz-box-flex: none;
-            -moz-flex: none;
-            -ms-flex: none;
             flex: none;
             color: gray; }
             #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview div.selectButtons span {
@@ -2674,11 +2036,6 @@ span.count {
               #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview div.selectButtons a:last-child:after {
                 content: ""; }
           #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview div.tagButtons {
-            -webkit-box-flex: none;
-            -webkit-flex: none;
-            -moz-box-flex: none;
-            -moz-flex: none;
-            -ms-flex: none;
             flex: none;
             color: gray;
             padding-top: 5px;
@@ -2697,25 +2054,11 @@ span.count {
               outline: none;
               margin-left: 5px; }
           #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul {
-            -webkit-box-flex: auto;
-            -webkit-flex: auto;
-            -moz-box-flex: auto;
-            -moz-flex: auto;
-            -ms-flex: auto;
             flex: auto;
             overflow: auto;
             -webkit-overflow-scrolling: touch; }
             #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul li.card {
-              display: -webkit-box;
-              display: -webkit-flex;
-              display: -moz-flex;
-              display: -ms-flexbox;
               display: flex;
-              -webkit-box-direction: normal;
-              -webkit-box-orient: horizontal;
-              -webkit-flex-direction: row;
-              -moz-flex-direction: row;
-              -ms-flex-direction: row;
               flex-direction: row;
               padding-top: 15px;
               padding-bottom: 0px;
@@ -2725,29 +2068,10 @@ span.count {
               #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul li.card input {
                 width: 30px;
                 margin-top: 6px;
-                -webkit-box-flex: none;
-                -webkit-flex: none;
-                -moz-box-flex: none;
-                -moz-flex: none;
-                -ms-flex: none;
                 flex: none; }
               #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul li.card div.cardContent {
-                -webkit-box-flex: auto;
-                -webkit-flex: auto;
-                -moz-box-flex: auto;
-                -moz-flex: auto;
-                -ms-flex: auto;
                 flex: auto;
-                display: -webkit-box;
-                display: -webkit-flex;
-                display: -moz-flex;
-                display: -ms-flexbox;
                 display: flex;
-                -webkit-box-direction: normal;
-                -webkit-box-orient: vertical;
-                -webkit-flex-direction: column;
-                -moz-flex-direction: column;
-                -ms-flex-direction: column;
                 flex-direction: column;
                 height: auto; }
                 #extraFeaturesPanel .extraFeatureContent .dataImport .content .step.Preview div.preview ul li.card div.cardContent h3 {
@@ -2819,11 +2143,6 @@ span.count {
             font-weight: bold;
             background-color: inherit; }
     #extraFeaturesPanel .extraFeatureContent .dataImport .content .buttons {
-      -webkit-box-flex: none;
-      -webkit-flex: none;
-      -moz-box-flex: none;
-      -moz-flex: none;
-      -ms-flex: none;
       flex: none;
       text-align: center;
       padding-top: 10px; }
@@ -2911,16 +2230,7 @@ div.cardList ul {
     transition: margin-left 0.1s ease-in-out, padding-right 0.1s ease-in-out;
     white-space: pre-wrap;
     word-wrap: break-word;
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-box-direction: normal;
-    -webkit-box-orient: horizontal;
-    -webkit-flex-direction: row;
-    -moz-flex-direction: row;
-    -ms-flex-direction: row;
     flex-direction: row; }
     div.cardList ul li.selected {
       margin-left: 40px;
@@ -2931,22 +2241,12 @@ div.cardList ul {
       color: #999; }
     div.cardList ul li .favicon {
       width: 48px;
-      -webkit-box-flex: none;
-      -webkit-flex: none;
-      -moz-box-flex: none;
-      -moz-flex: none;
-      -ms-flex: none;
       flex: none; }
       div.cardList ul li .favicon img {
         width: 32px;
         height: 32px;
         padding: 8px; }
     div.cardList ul li .label {
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
       flex: auto;
       font-size: 14pt;
       padding-top: 16px;
@@ -2989,11 +2289,6 @@ div.cardList.narrow {
     animation-fill-mode: none; }
   div.cardList.narrow ul li:after {
     content: "show detail";
-    -webkit-box-flex: none;
-    -webkit-flex: none;
-    -moz-box-flex: none;
-    -moz-flex: none;
-    -ms-flex: none;
     flex: none;
     font-family: 'clipperz-icons';
     -webkit-font-feature-settings: "liga" 1, "dlig" 1;
@@ -3068,11 +2363,6 @@ div.cardList.narrow {
       -o-box-shadow: 0px 2px 5px rgba(50, 50, 50, 0.75);
       box-shadow: 0px 2px 5px rgba(50, 50, 50, 0.75); }
       #cardDetailPage .view .cardDetailToolbar.narrow .commandMenu.show .commandMenu ul, .cardDetail .view .cardDetailToolbar.narrow .commandMenu.show .commandMenu ul {
-        -webkit-box-direction: normal;
-        -webkit-box-orient: vertical;
-        -webkit-flex-direction: column;
-        -moz-flex-direction: column;
-        -ms-flex-direction: column;
         flex-direction: column; }
         #cardDetailPage .view .cardDetailToolbar.narrow .commandMenu.show .commandMenu ul li, .cardDetail .view .cardDetailToolbar.narrow .commandMenu.show .commandMenu ul li {
           text-align: left;
@@ -3163,16 +2453,7 @@ div.cardList.narrow {
   width: 100%;
   height: 40px; }
 .content .cardField {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -moz-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-direction: normal;
-  -webkit-box-orient: horizontal;
-  -webkit-flex-direction: row;
-  -moz-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row; }
   .content .cardField.dragged {
     display: none; }
@@ -3186,17 +2467,9 @@ div.cardList.narrow {
     /* No support for these yet, use at own risk */
     -o-user-select: text;
     user-select: text;
-    -webkit-box-flex: none;
-    -webkit-flex: none;
-    -moz-box-flex: none;
-    -moz-flex: none;
-    -ms-flex: none;
     flex: none;
     width: 32px; }
     .content .cardField .fieldEditAction .removeField {
-      -webkit-align-self: flex-start;
-      -moz-align-self: flex-start;
-      -ms-flex-item-align: start;
       align-self: flex-start;
       font-family: 'clipperz-icons';
       -webkit-font-feature-settings: "liga" 1, "dlig" 1;
@@ -3269,11 +2542,6 @@ div.cardList.narrow {
         border-top: 0;
         border-bottom: 0; }
   .content .cardField .fieldValues {
-    -webkit-box-flex: 1;
-    -webkit-flex: 1;
-    -moz-box-flex: 1;
-    -moz-flex: 1;
-    -ms-flex: 1;
     flex: 1;
     padding: 10px; }
     .content .cardField .fieldValues .fieldLabel {
@@ -3332,15 +2600,7 @@ div.cardList.narrow {
           line-height: 28px;
           margin-top: 0px; }
   .content .cardField .fieldAction {
-    -webkit-box-flex: none;
-    -webkit-flex: none;
-    -moz-box-flex: none;
-    -moz-flex: none;
-    -ms-flex: none;
     flex: none;
-    -webkit-align-self: flex-start;
-    -moz-align-self: flex-start;
-    -ms-flex-item-align: start;
     align-self: flex-start;
     -webkit-user-select: text;
     /* Chrome all / Safari all */
@@ -3363,7 +2623,7 @@ div.cardList.narrow {
         -webkit-font-smoothing: antialiased;
         text-rendering: optimizeLegibility;
         color: #aaa;
-        width: 20px;
+        width: 21px;
         height: 20px;
         font-size: 15pt;
         margin: 6px;
@@ -3377,9 +2637,6 @@ div.cardList.narrow {
           .content .cardField .fieldAction span.action.PASSWORD.active {
             color: #333; }
       .content .cardField .fieldAction span.toggleLock {
-        -webkit-align-self: flex-end;
-        -moz-align-self: flex-end;
-        -ms-flex-item-align: end;
         align-self: flex-end;
         font-family: 'clipperz-icons';
         -webkit-font-feature-settings: "liga" 1, "dlig" 1;
@@ -3534,30 +2791,13 @@ div.cardList.narrow {
           .passwordGenerator .passwordGeneratorBaloon form .optionsWrapper .options .charList textarea:focus {
             outline: 0; }
     .passwordGenerator .passwordGeneratorBaloon form .passwordValue {
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
       display: flex;
-      -webkit-box-direction: normal;
-      -webkit-box-orient: horizontal;
-      -webkit-flex-direction: row;
-      -moz-flex-direction: row;
-      -ms-flex-direction: row;
       flex-direction: row;
-      -webkit-align-content: stretch;
-      -moz-align-content: stretch;
-      -ms-flex-line-pack: stretch;
       align-content: stretch;
       padding: 10px;
       padding-top: 3px;
       padding-right: 0px; }
       .passwordGenerator .passwordGeneratorBaloon form .passwordValue .passwordWrapper {
-        -webkit-box-flex: auto;
-        -webkit-flex: auto;
-        -moz-box-flex: auto;
-        -moz-flex: auto;
-        -ms-flex: auto;
         flex: auto; }
         .passwordGenerator .passwordGeneratorBaloon form .passwordValue .passwordWrapper textarea {
           font-size: 12pt;
@@ -3573,11 +2813,6 @@ div.cardList.narrow {
             background-color: white;
             float: right; }
       .passwordGenerator .passwordGeneratorBaloon form .passwordValue .button {
-        -webkit-box-flex: none;
-        -webkit-flex: none;
-        -moz-box-flex: none;
-        -moz-flex: none;
-        -ms-flex: none;
         flex: none;
         font-family: 'clipperz-icons';
         -webkit-font-feature-settings: "liga" 1, "dlig" 1;
