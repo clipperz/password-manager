@@ -411,6 +411,13 @@ $cardViewBasePadding: 10px;
 			display: none;
 		}
 		
+		&.draggedTouch {
+			position: absolute;
+			width: 100%;
+			background-color: white;
+			opacity: .8;
+		}
+		
 		.fieldEditAction {
 			@include user-select(text);
 			@include flex(none);
@@ -463,54 +470,64 @@ $cardViewBasePadding: 10px;
 
 			$dragHandlerHeight: 24px;
 			$dragHandlerWidth: 4px;
-			.dragHandler {
+
+			.dragHandlerContainer {
+				width: 40px;
+				height: 25px;
 				display: block;
-				box-sizing: border-box;
-				width:  $dragHandlerWidth;
-				height: $dragHandlerHeight;
 
-				margin-left: 15px;
-				border:1px solid #E8E8E8;
-//				border:1px solid red;
-				border-top:0;
-				border-bottom:0;
-				@include cursor-grab();
-
-				&:active {
-					@include cursor-grabbing();
-				}
-
-				&:before {
+				.dragHandler {
 					display: block;
 					box-sizing: border-box;
-					content:'';
-					position: relative;
-					left:-1px;
-//					right:-2px;
-					height: 100%;
-					width: $dragHandlerWidth;
-					border:2px dotted #FFF;
-//					border:2px dotted blue;
+					width:  $dragHandlerWidth;
+					height: $dragHandlerHeight;
+
+					margin-left: 15px;
+					border:1px solid #E8E8E8;
+	//				border:1px solid red;
 					border-top:0;
 					border-bottom:0;
-					z-index:2;
+					@include cursor-grab();
+
+					&:active {
+						@include cursor-grabbing();
+					}
+
+					&:before {
+						display: block;
+						box-sizing: border-box;
+						content:'';
+						position: relative;
+						left:-1px;
+	//					right:-2px;
+						height: 100%;
+						width: $dragHandlerWidth;
+						border:2px dotted #FFF;
+	//					border:2px dotted blue;
+						border-top:0;
+						border-bottom:0;
+						z-index:2;
+					}
+					&:after {
+						display: block;
+						box-sizing: border-box;
+						content:'';
+						position: relative;
+						top: -$dragHandlerHeight;
+						left:0px;
+						right:0px;
+						height:100%;
+						border:1px solid #EEE;
+	//					border:1px solid green;
+						border-top:0;
+						border-bottom:0;
+					}
+					
 				}
-				&:after {
-					display: block;
-					box-sizing: border-box;
-					content:'';
-					position: relative;
-					top: -$dragHandlerHeight;
-					left:0px;
-					right:0px;
-					height:100%;
-					border:1px solid #EEE;
-//					border:1px solid green;
-					border-top:0;
-					border-bottom:0;
-				}
-				
-			}			
+			}
+
+
+
 		}
 		
 		.fieldValues {

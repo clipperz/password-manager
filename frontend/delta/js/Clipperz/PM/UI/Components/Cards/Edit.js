@@ -62,6 +62,16 @@ Clipperz.PM.UI.Components.Cards.EditClass = React.createClass({
 	
 	//============================================================================
 
+	fieldMoveStart: function(aFieldReference, aFieldPosition, touchStyle) {
+		MochiKit.Async.callLater(0.1, MochiKit.Base.method(this, 'setState', {
+			'draggedFieldReference': aFieldReference,
+			'fromFieldPosition': aFieldPosition,
+			'touchStyle': touchStyle,
+			'toFieldPosition': -1,
+			'dropPosition': -1
+		}));
+	},
+
 	dragStart: function (anEvent) {
 		var	fieldReference = anEvent.currentTarget.dataset['reference'];
 		var fieldPosition = this.positionOfField(fieldReference);
@@ -74,13 +84,21 @@ Clipperz.PM.UI.Components.Cards.EditClass = React.createClass({
 
 		anEvent.dataTransfer.setData('Text', ""); // Firefox wants this to be defined
 
-		MochiKit.Async.callLater(0.1, MochiKit.Base.bind(this.setState, this, {
-			'draggedFieldReference': fieldReference,
-			'fromFieldPosition': fieldPosition,
-			'toFieldPosition': -1,
-			'dropPosition': -1
-		}));
+		this.fieldMoveStart(fieldReference, fieldPosition, false);
 	},
+
+	touchStart: function (anEvent) {
+		var fieldReference = anEvent.currentTarget.dataset['reference'];
+		var fieldPosition = this.positionOfField(fieldReference);
+		var dragElement = MochiKit.DOM.getElement(fieldReference);
+
+		this.fieldMoveStart(fieldReference, fieldPosition, true);
+
+		anEvent.preventDefault();
+		anEvent.stopPropagation();
+	},
+
+
 /*
 	drag: function (anEvent) {
 //console.log("DRAG", anEvent);
@@ -89,26 +107,32 @@ Clipperz.PM.UI.Components.Cards.EditClass = React.createClass({
 console.log("DROP");	//, anEvent);
 	},
 */
-	dragEnd: function (anEvent) {
+	fieldMoveEnd: function (anEvent) {
+		var draggedElement = MochiKit.DOM.getElement(anEvent.target.dataset['reference']);
 		var	dragPosition = this.state['dropPosition'];	//	this.state['toFieldPosition']
+
+		draggedElement.style.top = '';
 
 		if (dragPosition != -1) {
 			var	reference = this.props['_reference'];
 //console.log("MOVE FIELD POSITION", this.state['toFieldPosition'], this.state['draggedFieldReference']);
-			Clipperz.Async.callbacks("Clipperz.PM.UI.Components.Cards.Edit.dragEnd-moveFieldToPosition", [
+			Clipperz.Async.callbacks("Clipperz.PM.UI.Components.Cards.Edit.fieldMoveEnd-moveFieldToPosition", [
 				MochiKit.Base.method(this.record(), 'moveFieldToPosition', this.state['draggedFieldReference'], dragPosition),
 				MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', reference),
 			], {trace:false});
+
 		} else {
 //console.log("CANCELLED FIELD MOVE");
 		}
 
-		this.setState({
-			'draggedFieldReference': null,
-			'fromFieldPosition': -1,
-			'toFieldPosition': -1,
-			'dropPosition': -1
-		})
+		// Delayed because a quick touch would prevent the state to update correctly otherwise (don't know why)
+		MochiKit.Async.callLater(0.1, MochiKit.Base.method(this, 'setState', {
+				'draggedFieldReference': null,
+				'fromFieldPosition': -1,
+				'toFieldPosition': -1,
+				'dropPosition': -1
+			})
+		);
 	},
 
 	//............................................................................
@@ -118,6 +142,45 @@ console.log("DROP");	//, anEvent);
 //		this.setState({'toFieldPosition': this.positionOfField(anEvent.currentTarget.dataset['reference'])});
 	},
 */
+	handleOverField: function(aTarget, aClientY) {
+// console.log("OVER FIELD", aTarget.dataset['index']);
+
+		var	toFieldPosition;
+		var	dropPosition;
+
+		var dragElement = MochiKit.DOM.getElement(aTarget.dataset['reference']);
+// console.log('target', aTarget);
+// console.log('element', dragElement);
+		var	y = aClientY - dragElement.getBoundingClientRect().top;
+		var	h = dragElement.getBoundingClientRect().height;
+
+		var	hoveringIndex;
+		var	draggingIndex;
+		var	isHoveringTopPart;
+		
+		hoveringIndex = +aTarget.dataset['index'];
+		draggingIndex = +this.state['fromFieldPosition'];
+		
+		isHoveringTopPart = (y < h/2);
+		
+		if (isHoveringTopPart) {
+			dropPosition = hoveringIndex;
+		} else {
+			dropPosition = hoveringIndex + 1;
+		}
+		
+		if (hoveringIndex > draggingIndex) {
+			dropPosition = dropPosition - 1;
+		}
+		
+		toFieldPosition = -1;
+
+//console.log("-- ", dropPosition, this.state['dropPosition'], toFieldPosition, this.state['toFieldPosition']);
+		if ((dropPosition != this.state['dropPosition']) || (toFieldPosition != this.state['toFieldPosition'])) {
+			this.setState({'dropPosition': dropPosition, 'toFieldPosition': toFieldPosition});
+		}
+	},
+
 	dragOver: function (anEvent) {
 //console.log("DRAG OVER", anEvent);
 //console.log("DRAG OVER", anEvent.currentTarget.dataset['index']);
@@ -125,43 +188,95 @@ console.log("DROP");	//, anEvent);
 		var	dropPosition;
 
 		if (typeof(anEvent.currentTarget.dataset['index']) != 'undefined') {
-			var dragElement = MochiKit.DOM.getElement(anEvent.currentTarget.dataset['reference']);
-			var	y = anEvent.clientY - dragElement.getBoundingClientRect().top;
-			var	h = dragElement.getBoundingClientRect().height;
+			this.handleOverField(anEvent.currentTarget, anEvent.clientY);
 
-			var	hoveringIndex;
-			var	draggingIndex;
-			var	isHoveringTopPart;
-			
-			hoveringIndex = +anEvent.currentTarget.dataset['index'];
-			draggingIndex = +this.state['fromFieldPosition'];
-			
-			isHoveringTopPart = (y < h/2);
-			
-			if (isHoveringTopPart) {
-				dropPosition = hoveringIndex;
-			} else {
-				dropPosition = hoveringIndex + 1;
-			}
-			
-			if (hoveringIndex > draggingIndex) {
-				dropPosition = dropPosition - 1;
-			}
-			
-			toFieldPosition = -1;
 //console.log(hoveringIndex, draggingIndex, isHoveringTopPart, dropPosition);
 //console.log("isHoveringTopPart", isHoveringTopPart);
+
 		} else {
+			// TODO: this case is not handled by touch events
+			// (shouldn't this never happen anyway?)
+
 			dropPosition = anEvent.currentTarget.dataset['dropIndex'];
 			toFieldPosition = dropPosition;
+
+			//console.log("-- ", dropPosition, this.state['dropPosition'], toFieldPosition, this.state['toFieldPosition']);
+			if ((dropPosition != this.state['dropPosition']) || (toFieldPosition != this.state['toFieldPosition'])) {
+				this.setState({'dropPosition': dropPosition, 'toFieldPosition': toFieldPosition});
+			}
 		}
-//console.log("-- ", dropPosition, this.state['dropPosition'], toFieldPosition, this.state['toFieldPosition']);
-		if ((dropPosition != this.state['dropPosition']) || (toFieldPosition != this.state['toFieldPosition'])) {
-			this.setState({'dropPosition': dropPosition, 'toFieldPosition':toFieldPosition});
-		}
-		
+
 		anEvent.stopPropagation();
 	},
+
+	touchMove: function(anEvent) {
+		var hoveredElement;
+
+		var touch = anEvent.touches[0];
+		var draggedElement = MochiKit.DOM.getElement(anEvent.target.dataset['reference']);
+		
+		this.setDraggedElementTopValue(draggedElement, touch.clientY);
+
+		hoveredElement = this.getElementBelowDraggedElement(touch.clientX, touch.clientY, draggedElement);
+
+		if (hoveredElement) {
+			if (hoveredElement.className == 'dropArea') {
+				this.handleOverDropTarget(hoveredElement.dataset['dropIndex']);
+			} else {
+				var cardFieldElement = this.getCardFieldFromElement(hoveredElement);
+
+				if (cardFieldElement) {
+					this.handleOverField(cardFieldElement, anEvent.touches[0].clientY);
+				} else {
+					// console.log(hoveredElement);
+				}
+			}
+		}
+
+		anEvent.preventDefault();
+		anEvent.stopPropagation();
+	},
+
+	getElementBelowDraggedElement: function(aClientX, aClientY, aDraggedElement) {
+		var result;
+
+		aDraggedElement.style.display = 'none';
+		result = document.elementFromPoint(aClientX, aClientY);
+		aDraggedElement.style.display = '';
+
+		return result;
+	},
+
+	// TODO: This method uses empirical values, it could meke sense to reference actual
+	// elements' measures
+	setDraggedElementTopValue: function(aDraggedElement, aClientY) {
+		var topValue;
+		
+		topValue = aClientY - aDraggedElement.getBoundingClientRect().height;
+		topValue = (this.props.style != 'narrow') ? topValue-40 : topValue+54;
+		aDraggedElement.style.top = topValue+'px';
+	},
+
+	/** Returns anElement itself if it is a card field, or the closest ancestor of
+	 *  anElement holding the data-index property, or false if no such an ancestor
+	 *  exists. */
+	getCardFieldFromElement: function(anElement) {
+		var result;
+
+		if (typeof(anElement.dataset['index']) != 'undefined') {
+			result = anElement;
+		} else {
+			var parentElement = anElement.parentElement;
+			if (parentElement) {
+				result = this.getCardFieldFromElement(parentElement);
+			} else {
+				result = false;
+			}
+		}
+
+		return result;
+	},
+
 /*
 	dragLeave: function (anEvent) {
 //console.log("DRAG LEAVE", anEvent.currentTarget.dataset['reference'], this.positionOfField(anEvent.currentTarget.dataset['reference']));
@@ -192,14 +307,20 @@ console.log("DROP");	//, anEvent);
 //console.log("TARGET: DRAG ENTER");
 	},
 */
-	dragOverDropTarget: function (anEvent) {
-//console.log("DRAG OVER DROP TARGET", anEvent.currentTarget.dataset['dropIndex']/*, anEvent*/);
-		var	toFieldPosition = anEvent.currentTarget.dataset['dropIndex'];
-		
+	handleOverDropTarget: function(toFieldPosition) {
+//console.log("OVER DROP TARGET", toFieldPosition);
+
 		if (toFieldPosition != this.state['toFieldPosition']) {
 //console.log("TARGET: DRAG OVER - READY TO DROP", anEvent.currentTarget.dataset['dropIndex']);
 			this.setState({'toFieldPosition':toFieldPosition});
 		}
+	},
+
+	dragOverDropTarget: function (anEvent) {
+//console.log("DRAG OVER DROP TARGET", anEvent.currentTarget.dataset['dropIndex']/*, anEvent*/);
+		var	toFieldPosition = anEvent.currentTarget.dataset['dropIndex'];
+		
+		this.handleOverDropTarget(toFieldPosition);
 
 		anEvent.stopPropagation();
 	},
@@ -362,7 +483,11 @@ console.log("DROP");	//, anEvent);
 		cardFieldClasses[aField['actionType']] = true;
 		cardFieldClasses['hidden'] = aField['isHidden'];
 		if (this.state['draggedFieldReference'] == aField['_reference']) {
-			cardFieldClasses['dragged'] = true;
+			if (this.state.touchStyle) {
+				cardFieldClasses['draggedTouch'] = true;
+			} else {
+				cardFieldClasses['dragged'] = true;
+			}
 		}
 
 		cardFieldValueClasses['fieldValue'] = true;
@@ -376,15 +501,24 @@ console.log("DROP");	//, anEvent);
 		}, [
 			React.DOM.div({'className':'fieldEditAction'}, [
 				React.DOM.span({'className':'removeField', 'onClick':this.removeField(field)}, "remove field"),
-				React.DOM.span({'className':'dragHandler',
+				React.DOM.div({'className':'dragHandlerContainer',
 								'draggable':true, 
 								'data-reference':ref,
 								'data-document-id':ref,
 								'data-index':this.positionOfField(ref),
 
 								'onDragStart':this.dragStart,
-								'onDragEnd':this.dragEnd
-				}, ' ')
+								'onDragEnd':this.fieldMoveEnd,
+
+								'onTouchStart': this.touchStart,
+								'onTouchMove': this.touchMove,
+								'onTouchEnd': this.fieldMoveEnd,
+				}, React.DOM.span({
+					'className':'dragHandler',
+					'data-reference':ref,
+					'data-document-id':ref,
+					'data-index':this.positionOfField(ref),
+				}, ' '))
 			]),
 			React.DOM.div({'className':'fieldValues'}, [
 				React.DOM.div({'className':'fieldLabel'}, [
@@ -417,7 +551,6 @@ console.log("DROP");	//, anEvent);
 							'onDragLeave': this.dragLeaveDropTarget,
 //							'onDrop': this.dropDropTarget,
 //							'onDragEnd':this.dragEndDropTarget
-							
 						});
 
 		var dropAreaNodeIndex = (dropAreaPositionIndex < dragFrom) ? dropAreaPositionIndex : dropAreaPositionIndex + 1;
