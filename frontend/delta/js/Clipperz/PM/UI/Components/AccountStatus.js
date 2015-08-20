@@ -49,9 +49,10 @@ Clipperz.PM.UI.Components.AccountStatusClass = React.createClass({
 		accountInfoClasses[this.props['featureSet']] = true;
 		
 		var proxyInfoClasses = {
-			'proxyInfo':				true
+			'proxyInfo':	true
 		}
 		proxyInfoClasses[this.props['proxyType']] = true;
+		proxyInfoClasses['withReferenceDate'] = (this.props['referenceDate'] != null);
 
 		return	React.DOM.div({'className':'miscInfo'}, [
 			React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(proxyInfoClasses)}, [

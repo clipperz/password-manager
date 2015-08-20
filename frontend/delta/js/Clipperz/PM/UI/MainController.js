@@ -1011,8 +1011,8 @@ console.log("THE BROWSER IS OFFLINE");
 			'proxyType':			Clipperz.PM.Proxy.defaultProxy.type(),
 			'proxyTypeDescription':	Clipperz.PM.Proxy.defaultProxy.typeDescription()
 		}
-		
 	},
+
 	//-------------------------------------------------------------------------
 
 	messageBoxContent: function () {
@@ -1054,6 +1054,7 @@ console.log("THE BROWSER IS OFFLINE");
 				'mode':								'CREDENTIALS',
 				'isNewUserRegistrationAvailable':	Clipperz.PM.Proxy.defaultProxy.canRegisterNewUsers(),
 				'disabled':							false,
+				'proxyInfo':						this.proxyInfo(),
 			};
 		} else if (aPageName == 'registrationPage') {
 		} else if (aPageName == 'mainPage') {

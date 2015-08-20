@@ -168,8 +168,8 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 //								]);
 
 		var	registrationLink = React.DOM.a({'key':'signup', 'className':'registrationLink', 'onClick':this.handleRegistrationLinkClick}, "Sign up");
-
 		return React.DOM.div({'key':'loginForm', 'className':'loginForm ' + this.props['style']}, [
+			Clipperz.PM.UI.Components.AccountStatus(MochiKit.Base.update(this.props['proxyInfo'])),
 			React.DOM.header({'key':'header'}, [
 				React.DOM.h3({}, 'clipperz'),
 				React.DOM.h5({}, 'keep it to yourself'),

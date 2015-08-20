@@ -37,8 +37,10 @@ refer to http://www.clipperz.com.
 			padding: 8px 10px 6px 10px;
 			font-size: 9pt;
 
-			.proxyDescription:after {
-				content: ':';
+			&.withReferenceDate {
+				.proxyDescription:after {
+					content: ':';
+				}
 			}
 
 			.referenceDate {
@@ -53,6 +55,11 @@ refer to http://www.clipperz.com.
 		padding: 3px;
 		font-size: 10pt;
 	
+		&.undefined {
+			display: none;
+			visibility: hidden;
+		}
+
 		&.FULL {
 			display: none;
 			visibility: hidden;
