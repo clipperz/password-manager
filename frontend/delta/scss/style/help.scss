@@ -1,0 +1,190 @@
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
+
+.helpBox {
+	color: white;
+
+	margin: 20px;
+	padding: 30px;
+	@include border-radius(20px);
+	background-color: rgba(0, 0, 0, 0.75);
+	
+	header {
+		border-bottom: 1px solid white;
+		padding-bottom: 6px;
+		
+		h3 {
+			display: inline-block;
+		}
+		
+		.close {
+			float: right;
+			@include icon-font();
+		}
+	}
+	
+	.helpContent {
+		padding-top: 4px;
+
+		$shortcutWidth: 160px;
+		.helpBlock {
+			padding-top: 8px;
+
+			h4 {
+//				font-size: 10pt;
+				margin-left: $shortcutWidth;
+				color: yellow;
+				padding-bottom: 3px;
+			}
+			
+			dl {
+				dt {
+					float: left;
+					clear: left;
+					width: $shortcutWidth;
+
+					text-align: right;
+					padding-right: 4px;
+
+					&:after {
+//						font-size: 9pt;
+						content: ":";
+					};
+
+					span {
+//						font-size: 9pt;
+						vertical-align: middle;
+						&.operator {
+//							font-size: 7pt;
+							padding-left: 4px;
+							padding-right: 4px;
+						}
+						&.key {
+							color: yellow;
+						}
+					}
+				}
+				
+				dd {
+					margin-left: $shortcutWidth;
+//					font-size: 8pt;
+					padding-bottom: 4px;
+				}
+			}
+		}
+	}
+}
+
+
+.narrow {
+	.helpBox {
+		.helpContent {
+			.helpBlock {
+				h4 {
+					font-size: 9pt;
+				}
+				dl {
+					font-size: 8pt;
+					dt {
+						&:after {
+						};
+
+						span {
+							&.operator {
+								font-size: 6pt;
+							}
+							&.key {
+							}
+						}
+					}
+				
+					dd {
+					}
+				}
+			}
+		}
+	}
+}
+
+
+.wide {
+	.helpBox {
+		.helpContent {
+			.helpBlock {
+				h4 {
+					font-size: 10pt;
+				}
+				dl {
+					font-size: 9pt;
+					dt {
+						&:after {
+						};
+
+						span {
+							&.operator {
+								font-size: 7pt;
+							}
+							&.key {
+							}
+						}
+					}
+				
+					dd {
+					}
+				}
+			}
+		}
+	}
+}
+
+.extra-wide {
+	.helpBox {
+		margin-left: 23%;
+
+		.helpContent {
+			.helpBlock {
+				h4 {
+					font-size: 10pt;
+				}
+				dl {
+					font-size: 9pt;
+					dt {
+						&:after {
+						};
+
+						span {
+							&.operator {
+								font-size: 7pt;
+							}
+							&.key {
+							}
+						}
+					}
+				
+					dd {
+					}
+				}
+			}
+		}
+	}
+}

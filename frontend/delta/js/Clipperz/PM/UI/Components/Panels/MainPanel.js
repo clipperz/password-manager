@@ -184,7 +184,7 @@ Clipperz.PM.UI.Components.Panels.MainPanelClass = React.createClass({
 	},
 
 	render: function () {
-//console.log("MainPanel.render", this.props['showGlobalMask']);
+//console.log("MainPanel.render", this.props['showHelp']);
 		var	classes = {
 			'panel':	true,
 			'left':		this.props['selectionPanelStatus'] == 'OPEN',
@@ -193,9 +193,10 @@ Clipperz.PM.UI.Components.Panels.MainPanelClass = React.createClass({
 		};
 		classes[this.style()] = true;
 
-		return	React.DOM.div({'key':'mainPanel', 'id':'mainPanel', 'className':Clipperz.PM.UI.Components.classNames(classes)}, [
-			React.DOM.div({'className':'mask', 'onClick':this.handleMaskClick, 'onTouchEnd':this.handleMaskClick}),
-			React.DOM.div({'className':'container'},
+		return	React.DOM.div({'id':'mainPanel', 'className':Clipperz.PM.UI.Components.classNames(classes), 'key':'mainPanel'}, [
+			React.DOM.div({'className':'mask', 'onClick':this.handleMaskClick, 'onTouchEnd':this.handleMaskClick, 'key':'mask'}),
+			this.props['showHelp'] ? Clipperz.PM.UI.Components.Help(this.props) : null,
+			React.DOM.div({'className':'container', 'key':'container'},
 //				this.style() == 'extra-wide' ?  this.renderExtraWide() : this.renderOther()
 				this.renderLayout(this.style())
 			)

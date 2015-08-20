@@ -81,6 +81,7 @@ Clipperz.PM.UI.MainController = function() {
 		'showArchivedCards', 'hideArchivedCards',
 		'goBackToMainPage',
 		'maskClick',
+		'closeHelp',
 		'downloadOfflineCopy',
 		'runDirectLogin',
 		'exitSearch'
@@ -95,6 +96,8 @@ Clipperz.PM.UI.MainController = function() {
 	Mousetrap.bind(['down',  'j'],			MochiKit.Base.method(this, 'selectNextCard'));
 
 	Mousetrap.bind(['* a'],					MochiKit.Base.method(this, 'selectAllCards_handler'));
+
+	Mousetrap.bind(['?'],					MochiKit.Base.method(this, 'showHelp_handler'));
 
 	return this;
 }
@@ -1670,6 +1673,7 @@ console.log("THE BROWSER IS OFFLINE");
 	//============================================================================
 
 	selectAllCards_handler: function () {
+		this.setPageProperties('mainPage', 'searchTerm', '');
 		this.resetSelectedCard();
 		this.setFilter('ALL');
 		return this.refreshSelectedCards();
@@ -1727,6 +1731,22 @@ console.log("THE BROWSER IS OFFLINE");
 	maskClick_handler: function () {
 		this._closeMaskAction.apply(this);
 		this._closeMaskAction = null;
+	},
+
+	//............................................................................
+
+	showHelp_handler: function () {
+		if (this.currentPage() == 'mainPage') {
+			this.setPageProperties(this.currentPage(), 'showHelp', true);
+		}
+	},
+
+	closeHelp_handler: function () {
+		this.setPageProperties(this.currentPage(), 'showHelp', false);
+	},
+
+	isShowingHelp: function () {
+		return this.pages()[this.currentPage()].props['showHelp'];
 	},
 
 	//============================================================================
@@ -1837,10 +1857,14 @@ console.log("THE BROWSER IS OFFLINE");
 	},
 
 	exitCurrentSelection: function () {
-		if (this.currentPage() == 'cardDetailPage') {
-			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'goBackToMainPage', {'reference':this.selectedCardInfo()['reference']});
-		} else if (this.currentPage() == 'mainPage') {
-			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', null, true);
+		if (this.isShowingHelp()) {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'closeHelp');
+		} else {
+			if (this.currentPage() == 'cardDetailPage') {
+				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'goBackToMainPage', {'reference':this.selectedCardInfo()['reference']});
+			} else if (this.currentPage() == 'mainPage') {
+				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', null, true);
+			}
 		}
 	},
 	

@@ -172,6 +172,7 @@
 		"Clipperz/PM/UI/Components/DialogBox.js",
 		"Clipperz/PM/UI/Components/Selections.js",
 		"Clipperz/PM/UI/Components/TagIndexItem.js",
+		"Clipperz/PM/UI/Components/Help.js",
 
 		"Clipperz/PM/UI/Components/ExpiredPanel.js",
 
