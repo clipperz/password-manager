@@ -63,7 +63,7 @@ Clipperz.PM.UI.Components.Cards.EditClass = React.createClass({
 	//============================================================================
 
 	fieldMoveStart: function(aFieldReference, aFieldPosition, touchStyle) {
-		MochiKit.Async.callLater(0.1, MochiKit.Base.bind(this.setState, this, {
+		MochiKit.Async.callLater(0.1, MochiKit.Base.method(this, 'setState', {
 			'draggedFieldReference': aFieldReference,
 			'fromFieldPosition': aFieldPosition,
 			'touchStyle': touchStyle,
@@ -125,17 +125,14 @@ console.log("DROP");	//, anEvent);
 //console.log("CANCELLED FIELD MOVE");
 		}
 
-		// Delayed because
-		//  - A quick touch would prevent the state to update correctly otherwise (don't know why)
-		//  - It takes a little time to actually move the field
-		MochiKit.Async.callLater(0.1, MochiKit.Base.bind(function () {
-			this.setState({
+		// Delayed because a quick touch would prevent the state to update correctly otherwise (don't know why)
+		MochiKit.Async.callLater(0.1, MochiKit.Base.method(this, 'setState', {
 				'draggedFieldReference': null,
 				'fromFieldPosition': -1,
 				'toFieldPosition': -1,
 				'dropPosition': -1
-			});
-		}, this));
+			})
+		);
 	},
 
 	//............................................................................
