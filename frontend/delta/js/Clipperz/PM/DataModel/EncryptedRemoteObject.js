@@ -164,8 +164,17 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 	//-------------------------------------------------------------------------
 
 	'hasLoadedRemoteData': function () {
-//console.log("EncryptedRemoteObject.hasLoadedRemoteData", this._remoteData);
 		return (this._remoteData != null);
+	},
+
+	'setRemoteData': function (someData) {
+		return Clipperz.Async.callbacks("EncryptedRemoteObject.setRemoteData", [
+			MochiKit.Base.method(this, 'unpackRemoteData', someData),
+			MochiKit.Base.bind(function (unpackedData) {
+				this._remoteData = unpackedData;
+				return this._remoteData;
+			}, this)
+		], {trace:false});
 	},
 
 	'getRemoteData': function () {
@@ -184,17 +193,12 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 			} else {
 				innerDeferredResult = Clipperz.Async.callbacks("EncryptedRemoteObjects.getRemoteData <inner deferred>", [
 					MochiKit.Base.partial(this.retrieveRemoteDataFunction(), this.reference()),
-					MochiKit.Base.method(this, 'unpackRemoteData'),
-					MochiKit.Base.bind(function (someData) {
-						this._remoteData = someData;
-						return this._remoteData;
-					}, this)
+					MochiKit.Base.method(this, 'setRemoteData'),
 				], {trace:false});
 			}
 
 			return innerDeferredResult;
 		}, this))
-		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'advanceProgress');
 		deferredResult.releaseLock(deferredLock);
 		
 		deferredResult.callback();
@@ -259,7 +263,6 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 			innerDeferredResult = new Clipperz.Async.Deferred("EncryptedRemoteObject.getDecryptedData <inner deferred>", {trace:false});
 
 			innerDeferredResult.addMethod(this, 'getRemoteData');
-			innerDeferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'advanceProgress');
 			innerDeferredResult.collectResults({
 				'key':		MochiKit.Base.method(this, 'getKey'),
 				'value':	MochiKit.Base.itemgetter(this._encryptedDataKeypath),
@@ -267,14 +270,12 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 			});
 
 			innerDeferredResult.addCallback(Clipperz.PM.Crypto.deferredDecrypt);
-			innerDeferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'advanceProgress');
 			innerDeferredResult.addMethod(this, 'unpackData');
 			innerDeferredResult.callback();
 		
 			return innerDeferredResult;
 		}, this)));
 		deferredResult.releaseLock(deferredLock);
-		deferredResult.addCallbackPass(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'advanceProgress');
 		deferredResult.callback();
 		
 		return deferredResult;
@@ -534,10 +535,6 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 			},
 			MochiKit.Base.method(this, 'packRemoteData'),
 			MochiKit.Base.method(this.transientState(), 'setValue', 'packedRemoteData'),
-			function (someData) {
-				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'advanceProgress');
-				return someData;
-			}
 		], {trace:false});
 	},
 

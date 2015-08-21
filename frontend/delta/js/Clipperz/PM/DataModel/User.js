@@ -630,6 +630,19 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 
 	//=========================================================================
 
+	'recordWithData': function (recordData) {
+//console.log("recordWithData", recordData)
+		return Clipperz.Async.callbacks("User.recordWithData", [
+			MochiKit.Base.method(this, 'getHeaderIndex', 'recordsIndex'),
+			MochiKit.Base.methodcaller('records'),
+			MochiKit.Base.itemgetter(recordData['reference']),
+			MochiKit.Base.methodcaller('setRemoteData', recordData),
+		], {trace:false});
+		
+	},
+
+	//=========================================================================
+
 	'getRecords': function () {
 		return Clipperz.Async.callbacks("User.getRecords", [
 			MochiKit.Base.method(this, 'getHeaderIndex', 'recordsIndex'),
@@ -638,49 +651,22 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		], {trace:false});
 	},
 
-	'getRecordsInfo': function (someInfo /*, shouldIncludeArchivedCards */) {
+	'getRecordsLoadingAllData': function () {
+		return Clipperz.Async.callbacks("User.getRecordsLoadingAllData", [
+			MochiKit.Base.method(this.connection(), 'message', 'getAllRecordDetails'),
+			MochiKit.Base.values,
+			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, 'recordWithData')),
+			MochiKit.Base.method(this, 'getRecords'),
+		], {trace:false});
+	},
+
+	'getRecordsInfo': function (someInfo) {
 		return Clipperz.Async.callbacks("User.getRecordsInfo", [
 			MochiKit.Base.method(this, 'getRecords'),
 			MochiKit.Base.partial(MochiKit.Base.map, Clipperz.Async.collectResults("collectResults", someInfo, {trace:false})),
 			Clipperz.Async.collectAll,
-/*
-			function (aResult) {
-				var result;
-				
-				if (shouldIncludeArchivedCards == false) {
-					result = MochiKit.Base.filter(function (aRecordInfo) { return !aRecordInfo['_isArchived']; }, aResult);
-				} else {
-					result = aResult;
-				}
-				
-				return result;
-			}
-*/			
 		], {trace:false});
 	},
-/*
-	'filterRecordsInfo': function (someArgs) {
-		var	info			= (someArgs.info			? someArgs.info				: Clipperz.PM.DataModel.Record.defaultCardInfo);
-		var	searchField		= (someArgs.searchField		? someArgs.searchField		: Clipperz.PM.DataModel.Record.defaultSearchField);
-		var	includeArchived	= (someArgs.includeArchived	? someArgs.includeArchived	: false);
-		var	regExp			= (someArgs.regExp			? someArgs.regExp			: Clipperz.PM.DataModel.Record.regExpForSearch(''));
-		
-		if (someArgs.regExp) {
-			regExp = regExp;
-		} else if (someArgs.search) {
-			regExp = Clipperz.PM.DataModel.Record.regExpForSearch(someArgs.search);
-		} else if (someArgs.tag) {
-			regExp = Clipperz.PM.DataModel.Record.regExpForTag(someArgs.tag);
-		} else {
-			regExp = Clipperz.PM.DataModel.Record.regExpForSearch('');
-		};
-		
-		return Clipperz.Async.callbacks("User.filterRecordsInfo", [
-			MochiKit.Base.method(this, 'getRecordsInfo', info, includeArchived),
-			MochiKit.Base.partial(MochiKit.Base.filter, function (aCardInfo) { regExp.lastIndex = 0; return regExp.test(aCardInfo[searchField]);})
-		], {trace:false});
-	},
-*/
 
 	'recordWithLabel': function (aLabel) {
 		return Clipperz.Async.callbacks("User.recordWithLabel", [

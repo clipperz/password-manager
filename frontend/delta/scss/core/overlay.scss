@@ -129,10 +129,12 @@ div.overlay {
 
 	.progressBar {
 //		display: block;
-		width: 100%;
+//		width: 100%;
 		background-color: #222;
 		height: 4px;
 		margin-top: 86px;
+		margin-left: 10px;
+		margin-right: 10px;
 		@include border-radius(2px);
 	
 		.progress {

@@ -99,6 +99,8 @@ Clipperz.PM.UI.MainController = function() {
 
 	Mousetrap.bind(['?'],					MochiKit.Base.method(this, 'showHelp_handler'));
 
+//	Mousetrap.bind(['t e s t'],				MochiKit.Base.method(this, 'downloadExport_handler'));
+
 	return this;
 }
 
@@ -1288,19 +1290,16 @@ console.log("THE BROWSER IS OFFLINE");
 
 	//----------------------------------------------------------------------------
 
-//	export_handler: function(exportType) {
-//		return Clipperz.PM.UI.ExportController.exportJSON( this.recordsInfo(), exportType );
-//	},
-	
 	downloadExport_handler: function () {
 		var	exportController;
 		var deferredResult;
 
-		exportController = new Clipperz.PM.UI.ExportController({'recordsInfo': this.recordsInfo()});
+		exportController = new Clipperz.PM.UI.ExportController();
 
 		deferredResult = new Clipperz.Async.Deferred("MainController.downloadExport_handler", {trace: false});
-		deferredResult.addMethod(this.overlay(), 'show', "exporting …", true, true);
-//		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel');
+		deferredResult.addMethod(this.overlay(), 'show', "loading …", true, true);
+		deferredResult.addMethod(this.user(), 'getRecordsLoadingAllData');
+		deferredResult.addCallbackPass(MochiKit.Base.method(this.overlay(), 'show', "exporting …", true, true));
 		deferredResult.addMethod(exportController, 'run');
 		deferredResult.addMethod(this.overlay(), 'done', "", 1);
 		deferredResult.callback();
