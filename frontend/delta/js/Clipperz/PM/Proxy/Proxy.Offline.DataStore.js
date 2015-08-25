@@ -482,37 +482,11 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 
 		//=====================================================================
 		} else if (someParameters.message == 'getRecordDetail') {
-/*
-			var	recordData;
-			var currentVersionData;
-			
-			recordData = this.userData()['records'][someParameters['parameters']['reference']];
-			result['reference'] = someParameters['parameters']['reference'];
-			result['data'] = recordData['data'];
-			result['version'] = recordData['version'];
-			result['creationData'] = recordData['creationDate'];
-			result['updateDate'] = recordData['updateDate'];
-			result['accessDate'] = recordData['accessDate'];
-
-			currentVersionData = recordData['versions'][recordData['currentVersion']];
-
-			result['currentVersion'] = {};
-			result['currentVersion']['reference'] = recordData['currentVersion'];
-			result['currentVersion']['version'] = currentVersionData['version'];
-			result['currentVersion']['header'] = currentVersionData['header'];
-			result['currentVersion']['data'] = currentVersionData['data'];
-			result['currentVersion']['creationData'] = currentVersionData['creationDate'];
-			result['currentVersion']['updateDate'] = currentVersionData['updateDate'];
-			result['currentVersion']['accessDate'] = currentVersionData['accessDate'];
-			if (typeof(currentVersionData['previousVersion']) != 'undefined') {
-				result['currentVersion']['previousVersionKey'] = currentVersionData['previousVersionKey'];
-				result['currentVersion']['previousVersion'] = currentVersionData['previousVersion'];
-			}
-*/
 			MochiKit.Base.update(result, aConnection['userData']['records'][someParameters['parameters']['reference']]);
 			result['reference'] = someParameters['parameters']['reference'];
-
-		}  else if (someParameters.message == 'getOneTimePasswordsDetails') {
+		} else if (someParameters.message == 'getAllRecordDetails') {
+			MochiKit.Base.update(result, aConnection['userData']['records']);
+		} else if (someParameters.message == 'getOneTimePasswordsDetails') {
 			var result = MochiKit.Iter.reduce(function(prev, cur){
 				prev[cur.reference] = {
 					'status': cur.status,

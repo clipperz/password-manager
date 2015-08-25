@@ -461,10 +461,11 @@ div.overlay {
       -o-animation-delay: -0.0833s;
       animation-delay: -0.0833s; }
   div.overlay .progressBar {
-    width: 100%;
     background-color: #222;
     height: 4px;
     margin-top: 86px;
+    margin-left: 10px;
+    margin-right: 10px;
     -webkit-border-radius: 2px;
     -moz-border-radius: 2px;
     border-radius: 2px; }

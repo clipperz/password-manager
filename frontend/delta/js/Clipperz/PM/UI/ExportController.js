@@ -28,8 +28,8 @@ Clipperz.Base.module('Clipperz.PM.UI');
 //	https://github.com/eligrey/Blob.js
 
 Clipperz.PM.UI.ExportController = function(args) {
-	this._recordsInfo	= args['recordsInfo']	|| Clipperz.Base.exception.raise('MandatoryParameter');
 	this._processedRecords = 0;
+	this._totalCardsToExport = 0;
 	
 	this._style =
 		"body {" +
@@ -157,24 +157,13 @@ MochiKit.Base.update(Clipperz.PM.UI.ExportController.prototype, {
 		return "Clipperz.PM.UI.ExportController";
 	},
 
-	//-----------------------------------------------------------------------------
-
-	'recordsInfo': function () {
-		return this._recordsInfo;
-	},
-
 	//=============================================================================
 
 	'reportRecordExport': function (aRecordData) {
 		var percentage;
-		var	exportedCardsCount;
-		var totalCardsToExport;
 		
 		this._processedRecords = this._processedRecords + 1;
-
-		exportedCardsCount = this._processedRecords;
-		totalCardsToExport = this.recordsInfo().length;
-		percentage = Math.round(100 * exportedCardsCount / totalCardsToExport);
+		percentage = Math.round(100 * this._processedRecords / this._totalCardsToExport);
 
 //console.log("PROCESSING " + exportedCardsCount + "/" + totalCardsToExport + " - " + percentage + "%");
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'updateProgress', percentage);
@@ -285,16 +274,17 @@ MochiKit.Base.update(Clipperz.PM.UI.ExportController.prototype, {
 
 	//=============================================================================
 	
-	'run': function () {
+	'run': function (records) {
 		var deferredResult;
 		var self = this;
 
+		this._totalCardsToExport = records.length;
 		deferredResult = new Clipperz.Async.Deferred("ExportController.run", {trace:false});
-		deferredResult.addCallback(MochiKit.Base.map, function(recordIn) {
+		deferredResult.addCallback(MochiKit.Base.map, function(aRecord) {
 			var innerDeferredResult;
 			
 			innerDeferredResult = new Clipperz.Async.Deferred("ExportController.run__exportRecord", {trace:false});
-			innerDeferredResult.addMethod(recordIn._rowObject, 'export');
+			innerDeferredResult.addMethod(aRecord, 'export');
 			innerDeferredResult.addMethod(self, 'reportRecordExport');
 			innerDeferredResult.callback();
 
@@ -302,7 +292,7 @@ MochiKit.Base.update(Clipperz.PM.UI.ExportController.prototype, {
 		});
 		deferredResult.addCallback(Clipperz.Async.collectAll);
 		deferredResult.addMethod(this, 'saveResult');
-		deferredResult.callback(this.recordsInfo());
+		deferredResult.callback(records);
 
 		return deferredResult;
 	},
