@@ -105,7 +105,7 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 			
 				'hash': function(aValue) {
 					var result;
-					var strngResult;
+					var stringResult;
 				
 					stringResult = Clipperz.Crypto.Base.computeHashValue(aValue.asString());	//	!!!!!!!
 					result = new Clipperz.ByteArray("0x" + stringResult);

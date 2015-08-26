@@ -96,9 +96,7 @@ Clipperz.PM.UI.Components.CardToolbarClass = React.createClass({
 	},
 
 	render: function () {
-//console.log("CardToolbar props", this.props);
 		return	React.DOM.div({className:'cardToolbar ' + this.props['style']}, [
-//			React.DOM.div({className:'header'}, this.props['enableSidePanels'] ? this.renderWithSidePanels() : this.renderWithoutSidePanels()),
 			React.DOM.header({}, this.props['enableSidePanels'] ? this.renderWithSidePanels() : this.renderWithoutSidePanels()),
 			Clipperz.PM.UI.Components.AccountStatus(MochiKit.Base.update(this.props['accountInfo'], this.props['proxyInfo'])),
 			Clipperz.PM.UI.Components.MessageBox(this.props['messageBox']),

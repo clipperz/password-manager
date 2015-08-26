@@ -168,7 +168,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.OTPClass = React.createClass({
 				if (otpDetailInfo['status'] != 'ACTIVE') {
 					otpStatusInfo = React.DOM.div({'className':'otpStatusInfo'}, [
 						React.DOM.span({'className':'otpStatus'}, otpDetailInfo['status']),
-						React.DOM.span({'className':'requestDate'}, otpDetailInfo['requestDate']),
+						React.DOM.span({'className':'requestDate'}, otpDetailInfo['usageDate']),
 						React.DOM.span({'className':'connectionIp'}, otpDetailInfo['connection']['ip']),
 						React.DOM.span({'className':'connectionBrowser'}, otpDetailInfo['connection']['browser']),
 					])
