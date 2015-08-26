@@ -276,12 +276,12 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 
 		if (this.props['loading'] == true) {
 			result = this.renderLoading();
-		} else if (this.props['label']) {
+		} else if (this.props['_reference']) {
 			result = this.renderCard();
 		} else {
 			result = this.renderEmpty();
 		}
-		
+
 		return result;
 	},
 
