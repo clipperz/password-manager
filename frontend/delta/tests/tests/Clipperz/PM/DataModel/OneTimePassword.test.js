@@ -59,6 +59,8 @@ var tests = {
 		deferredResult = new Clipperz.Async.Deferred("loginUsingOtp_test", someTestArgs);
 		deferredResult.addMethod(proxy.dataStore(), 'setupWithEncryptedData', testData['test_test_with_otps']);
 
+		// TODO: Apparently these tests are skipped when they fail, not showing up in the results
+
 		deferredResult.addMethod(user, 'login');
 		deferredResult.addMethod(user, 'getRecords');
 		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));

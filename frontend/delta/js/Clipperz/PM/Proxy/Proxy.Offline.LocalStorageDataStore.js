@@ -140,13 +140,13 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.LocalStorageDataStore, Clipperz.P
 			try {
 				if (typeof(otpData) != 'undefined') {
 					if (otpData['status'] == 'ACTIVE') {
-						if (otpData['key_checksum'] == someParameters.parameters.oneTimePasswordKeyChecksum) {
+						if (otpData['keyChecksum'] == someParameters.parameters.oneTimePasswordKeyChecksum) {
 							result = {
 								'data':		otpData['data'],
 								'version':	otpData['version']
 							}
 
-							otpData['status'] = 'REQUESTED';
+							otpData['status'] = 'USED';
 						} else {
 							otpData['status'] = 'DISABLED';
 							throw "The requested One Time Password has been disabled, due to a wrong keyChecksum";

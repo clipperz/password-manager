@@ -152,9 +152,8 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.OneTimePasswords, Clipper
 		newOneTimePassword = Clipperz.PM.DataModel.OneTimePassword.createNewOneTimePassword(aUsername, aPassphraseCallback);
 
 		// TODO: this is deferred --> change everything to deferred
-		// TestData include 'created' and 'status'
+		// TODO: TestData include 'created' and 'status': check if status is necessary
 		this.setValue(newOneTimePassword.reference(), {
-			// 'created': newOneTimePassword.creationDate().toString(), // won't work: creation date is no more stored in OTP
 			'password': newOneTimePassword.password(),
 			'label': newOneTimePassword.label()
 			// 'status': newOneTimePassword.status()

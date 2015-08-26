@@ -325,8 +325,12 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 			var randomBytes;
 			var v;
 
+			if (typeof(this.data()['onetimePasswords']) == 'undefined') {
+				this.data()['onetimePasswords'] = {};
+			}
+
 			userData = this.data()['users'][someParameters.parameters.C];
-			otpsData = (typeof(this.data()['onetimePasswords']) != 'undefined') ? this.data()['onetimePasswords'] : {};
+			otpsData = this.data()['onetimePasswords'];
 
 //console.log("Proxy.Offline.DataStore._handshake: otpsData:", otpsData);
 
@@ -397,22 +401,21 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 
 			nextTollRequestType = 'MESSAGE';
 		} else if (someParameters.message == "oneTimePassword") {
-			var otpData;
-			
-			otpData = this.data()['onetimePasswords'][someParameters.parameters.oneTimePasswordKey];
+			var otpData = this.getOneTimePasswordFromKey(someParameters.parameters.oneTimePasswordKey);			
 
 			try {
 				if (typeof(otpData) != 'undefined') {
 					if (otpData['status'] == 'ACTIVE') {
-						if (otpData['key_checksum'] == someParameters.parameters.oneTimePasswordKeyChecksum) {
+						if (otpData['keyChecksum'] == someParameters.parameters.oneTimePasswordKeyChecksum) {
 							result = {
 								'data':		otpData['data'],
 								'version':	otpData['version']
 							}
 
-							otpData['status'] = 'REQUESTED';
+							otpData['status'] = 'USED';
 						} else {
 							otpData['status'] = 'DISABLED';
+
 							throw "The requested One Time Password has been disabled, due to a wrong keyChecksum";
 						}
 					} else {
@@ -422,6 +425,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 					throw "The requested One Time Password has not been found"
 				}
 			} catch (exception) {
+// console.log("connect.oneTimePassword: Exception!", exception);
 				result = {
 					'data':		Clipperz.PM.Crypto.randomKey(),
 					'version':	Clipperz.PM.Connection.communicationProtocol.currentVersion
@@ -490,7 +494,11 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 			var result = MochiKit.Iter.reduce(function(prev, cur){
 				prev[cur.reference] = {
 					'status': cur.status,
-					'usage_date': cur.usage_date
+					'usageDate': cur.usage_date,
+					'connection': {
+						'ip': 'n/a',
+						'browser': 'n/a'
+					}
 				};
 				return prev;
 			}, MochiKit.Base.values(aConnection['userOTPs']), {});
@@ -517,8 +525,9 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 				) {
 					result = Clipperz.PM.DataModel.User.exception.CredentialUpgradeFailed;
 				} else {
-					var	oldCValue;
-					oldCValue = aConnection['C'];
+					var key;
+					var onetimePasswords = this.data()['onetimePasswords'];
+					var oldCValue = aConnection['C'];
 
 					this.data()['users'][credentials['C']] = aConnection['userData'];
 					aConnection['C'] = credentials['C'];
@@ -532,6 +541,12 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 					aConnection['userData']['statistics'] = parameters['user']['statistics'];
 
 					aConnection['userData']['lock'] = parameters['user']['lock'];
+
+					for (key in onetimePasswords) {
+						onetimePasswords[key]['user']    = credentials['C'];
+						onetimePasswords[key]['data']    = parameters['oneTimePasswords'][key]['data'];
+						onetimePasswords[key]['version'] = parameters['oneTimePasswords'][key]['version'];
+					}
 					
 					delete this.data()['users'][oldCValue];
 
@@ -659,6 +674,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 //console.log("Proxy.Offline.DataStore.addNewOneTimePassword: someParameters:", someParameters);
 
 				var otpKey = someParameters['parameters']['oneTimePassword'].key;
+				var otpReference = someParameters['parameters']['oneTimePassword'].reference;
 
 				if (aConnection['userData']['lock']	!= someParameters['parameters']['user']['lock']) {
 					throw "the lock attribute is not processed correctly"
@@ -674,6 +690,8 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 				aConnection['userOTPs'][otpKey]['creation_date'] = new Date().toISOString().substr(0, 19).replace('T', ' '); // Not an elegant way to give the date the same format as the others
 				aConnection['userOTPs'][otpKey]['request_date'] = "4001-01-01 09:00:00";
 				aConnection['userOTPs'][otpKey]['usage_date'] = "4001-01-01 09:00:00";
+
+				this.data()['onetimePasswords'][otpReference] = aConnection['userOTPs'][otpKey];
 //console.log("Proxy.Offline.DataStore.addNewOneTimePassword: aConnection:", aConnection);
 			} else {
 				throw Clipperz.PM.Proxy.Offline.DataStore.exception.ReadOnly;
@@ -728,6 +746,22 @@ console.log("Proxy.Offline.DataStore.updateOneTimePasswords: userOTPs:", aConnec
 
 	//=========================================================================
 	//#########################################################################
+
+	'getOneTimePasswordFromKey': function(aKey) {
+		var result,i;
+
+		var onetimePasswordsValues = MochiKit.Base.values(this.data()['onetimePasswords']);
+
+		for (i = 0; i < onetimePasswordsValues.length; i++) {
+			if (onetimePasswordsValues[i]['key'] == aKey) {
+				result = onetimePasswordsValues[i];
+			}
+		}
+
+		return result;
+	},
+
+	//=========================================================================
 
 	'isTestData': function(aConnection) {
 		return (typeof(aConnection['userData']['__masterkey_test_value__']) != 'undefined');

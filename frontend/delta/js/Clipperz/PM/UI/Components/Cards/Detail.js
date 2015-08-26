@@ -46,6 +46,7 @@ Clipperz.PM.UI.Components.Cards.DetailClass = React.createClass({
 	
 	render: function () {
 		var	result;
+
 		if (this.props['mode'] == 'edit') {
 			result = Clipperz.PM.UI.Components.Cards.Edit(this.viewComponentProps());
 		} else {
