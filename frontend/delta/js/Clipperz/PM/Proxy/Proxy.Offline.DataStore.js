@@ -699,7 +699,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 			
 		} else if (someParameters.message == 'updateOneTimePasswords') {
 			if (this.isReadOnly() == false) {
-console.log("Proxy.Offline.DataStore.updateOneTimePasswords: someParameters:", someParameters);
+//console.log("Proxy.Offline.DataStore.updateOneTimePasswords: someParameters:", someParameters);
 
 				if (aConnection['userData']['lock']	!= someParameters['parameters']['user']['lock']) {
 					throw "the lock attribute is not processed correctly"
@@ -709,7 +709,7 @@ console.log("Proxy.Offline.DataStore.updateOneTimePasswords: someParameters:", s
 				aConnection['userData']['statistics']			= someParameters['parameters']['user']['statistics'];
 				aConnection['userData']['userDetailsVersion']	= someParameters['parameters']['user']['version'];
 
-console.log("Proxy.Offline.DataStore.updateOneTimePasswords: userOTPs:", aConnection['userOTPs']);
+//console.log("Proxy.Offline.DataStore.updateOneTimePasswords: userOTPs:", aConnection['userOTPs']);
 
 				MochiKit.Base.map(function(aOTP) {
 					if (someParameters['parameters']['oneTimePasswords'].indexOf(aOTP.reference) < 0) {

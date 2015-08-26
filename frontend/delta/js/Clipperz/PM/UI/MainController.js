@@ -83,7 +83,7 @@ Clipperz.PM.UI.MainController = function() {
 		'maskClick',
 		'closeHelp',
 		'downloadOfflineCopy',
-		'runDirectLogin',
+		'runDirectLogin', 'removeDirectLogin',
 		'exitSearch'
 	]);
 
@@ -822,6 +822,21 @@ console.log("THE BROWSER IS OFFLINE");
 		deferredResult.addMethodcaller('directLoginWithReference', someParameters['directLogin']);
 		deferredResult.addCallback(Clipperz.PM.UI.DirectLoginController.openDirectLogin);
 		deferredResult.callback();
+
+		return deferredResult;
+	},
+
+	removeDirectLogin_handler: function (aRecord, aDirectLoginReference) {
+		var deferredResult;
+
+		deferredResult = new Clipperz.Async.Deferred("MainController.removeDirectLogin_handler", {'trace': false});
+		
+		deferredResult.addMethodcaller('directLogins');
+		deferredResult.addCallback(MochiKit.Base.itemgetter(aDirectLoginReference));
+		deferredResult.addMethodcaller('remove');
+		deferredResult.addCallback(MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', aRecord.reference()));
+
+		deferredResult.callback(aRecord);
 
 		return deferredResult;
 	},

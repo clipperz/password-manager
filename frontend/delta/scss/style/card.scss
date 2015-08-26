@@ -289,6 +289,22 @@ $cardViewBasePadding: 10px;
 	//			font-weight:100;
 			}
 		}
+
+		.removeDirectLogin {
+			@include icon-font();
+
+			font-size: 20pt;
+
+			padding: 8px 20px 11px 8px;
+
+			&:hover {
+				color: rgb(155, 0, 0);
+			};
+		}
+
+		.directLoginLabel {
+			vertical-align: bottom;
+		}
 	}
 }	
 

@@ -54,6 +54,10 @@ Clipperz.PM.UI.Components.Cards.EditClass = React.createClass({
 		return this.props['fields'];
 	},
 
+	reference: function() {
+		return this.props['_reference'];
+	},
+
 	//============================================================================
 
 	positionOfField: function (aFieldReference) {
@@ -446,6 +450,10 @@ console.log("DROP");	//, anEvent);
 		this.setState({'passwordGeneratorFieldReference': null});
 	},
 
+	removeDirectLogin: function(aDirectLoginReference) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'removeDirectLogin', this.record(), aDirectLoginReference);
+	},
+
 	//============================================================================
 
 	renderLabel: function (aLabel) {
@@ -580,6 +588,10 @@ console.log("DROP");	//, anEvent);
 
 	renderDirectLogin: function (aDirectLogin) {
 		return	React.DOM.div({'className':'cardDirectLogin', 'key':aDirectLogin['_reference']}, [
+			React.DOM.a({
+				'className': 'removeDirectLogin',
+				'onClick': MochiKit.Base.method(this, 'removeDirectLogin', aDirectLogin['_reference'])
+			}, "remove field"),
 			React.DOM.span({'className':'directLoginLabel'}, aDirectLogin['label']),
 //			React.DOM.div({'className':'directLoginAction action'}, 'DIRECT LOGIN')
 		]);
