@@ -1835,7 +1835,7 @@ testData = {
 			'c3664af5744319c6d3b874895f803df19cb0492acf27cb51912110d023ba9b38': {	// key
 				'reference': "c3664af5744319c6d3b874895f803df19cb0492acf27cb51912110d023ba9b38",
 				'user': "9a984e219b07f9b645ef35f4de938b4741abe2e0b4adc88b40e9367170c91cc8",
-				'status': 'ACTIVE',	//	1: 'ACTIVE', 2: 'USED', 3: 'DISABLED'
+				'status': 'ACTIVE',	//	1: 'ACTIVE', 3: 'USED', 4: 'DISABLED'
 				'creation_date': "2010-02-09 17:57:14",
 				'request_date': "4001-01-01 09:00:00",
 				'usage_date': "4001-01-01 09:00:00",

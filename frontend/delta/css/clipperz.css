@@ -119,6 +119,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -132,6 +133,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -145,6 +147,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -158,6 +161,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -476,61 +480,73 @@ div.overlay {
 @-webkit-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-moz-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-ms-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-webkit-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-moz-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-ms-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-webkit-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @-moz-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @-ms-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 /*
@@ -1580,11 +1596,11 @@ div.help {
         flex: 1;
         font-size: 8pt; }
         #loginPage div.loginForm footer .applicationVersion span {
-          color: #999; }
+          color: #999999; }
           #loginPage div.loginForm footer .applicationVersion span:after {
             content: ":"; }
         #loginPage div.loginForm footer .applicationVersion a {
-          color: #999;
+          color: #999999;
           text-decoration: none;
           padding-left: 5px;
           font-weight: bold; }
@@ -2211,13 +2227,13 @@ span.count {
   #extraFeaturesPanel .extraFeatureIndex footer {
     font-size: 8pt;
     padding: 5px 5px 5px 5px;
-    border-top: 1px solid #999; }
+    border-top: 1px solid #999999; }
     #extraFeaturesPanel .extraFeatureIndex footer span {
-      color: #999; }
+      color: #999999; }
       #extraFeaturesPanel .extraFeatureIndex footer span:after {
         content: ":"; }
     #extraFeaturesPanel .extraFeatureIndex footer a {
-      color: #999;
+      color: #999999;
       text-decoration: none;
       padding-left: 5px;
       font-weight: bold; }
@@ -2931,7 +2947,7 @@ div.cardList ul {
       padding-right: 0px;
       box-shadow: -4px 0px 3px -1px rgba(0, 0, 0, 0.2); }
     div.cardList ul li.archived {
-      background-color: #eee;
+      background-color: #eeeeee;
       color: #999; }
     div.cardList ul li .favicon {
       width: 48px;
@@ -3018,7 +3034,7 @@ div.cardList.narrow {
     content: ""; }
 
 #cardDetailPage .view.archived, .cardDetail .view.archived {
-  background-color: #eee; }
+  background-color: #eeeeee; }
 #cardDetailPage .view .cardDetailToolbar, .cardDetail .view .cardDetailToolbar {
   background-color: #1863a1;
   color: white; }
@@ -3108,7 +3124,7 @@ div.cardList.narrow {
 #cardDetailPage .edit input:-ms-input-placeholder, #cardDetailPage .edit textarea:-ms-input-placeholder, .cardDetail .edit input:-ms-input-placeholder, .cardDetail .edit textarea:-ms-input-placeholder {
   font-style: italic;
   color: #ccc; }
-#cardDetailPage .edit .removeDirectLogin, .cardDetail .edit .removeDirectLogin {
+#cardDetailPage .edit .cardDirectLogin .removeDirectLogin, .cardDetail .edit .cardDirectLogin .removeDirectLogin {
   font-family: 'clipperz-icons';
   -webkit-font-feature-settings: "liga" 1, "dlig" 1;
   -moz-font-feature-settings: "liga" 1, "dlig" 1;
@@ -3117,12 +3133,17 @@ div.cardList.narrow {
   font-feature-settings: "liga" 1, "dlig" 1;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-size: 20pt;
-  padding: 8px 20px 11px 8px; }
-  #cardDetailPage .edit .removeDirectLogin:hover, .cardDetail .edit .removeDirectLogin:hover {
+  margin: 6px;
+  margin-top: 12px;
+  cursor: pointer;
+  color: white;
+  width: 40px;
+  font-size: 20pt; }
+  #cardDetailPage .edit .cardDirectLogin .removeDirectLogin:hover, .cardDetail .edit .cardDirectLogin .removeDirectLogin:hover {
     color: #9b0000; }
-#cardDetailPage .edit .directLoginLabel, .cardDetail .edit .directLoginLabel {
-  vertical-align: bottom; }
+#cardDetailPage .edit .cardDirectLogin .directLoginLabel, .cardDetail .edit .cardDirectLogin .directLoginLabel {
+  vertical-align: bottom;
+  padding-left: 4px; }
 
 .cardDetailToolbar.edit li {
   font-weight: 100; }
@@ -3243,7 +3264,7 @@ div.cardList.narrow {
       cursor: grab;
       cursor: -moz-grab;
       cursor: -webkit-grab;
-      background: repeating-linear-gradient(0deg, white, white 2px, #ddd 2px, #ddd 3px);
+      background: repeating-linear-gradient(0deg, white, white 2px, #dddddd 2px, #dddddd 3px);
       width: 28px;
       height: 20px;
       margin-left: 6px;
@@ -3444,11 +3465,12 @@ div.cardList.narrow {
 .content .cardDirectLogin {
   font-size: 18pt;
   padding: 10px;
+  padding-left: 0px;
   background-color: #ff9900;
   color: white;
   cursor: pointer; }
   .content .cardDirectLogin .directLoginLabel {
-    padding-left: 36px; }
+    padding-left: 42px; }
 
 .passwordGenerator .passwordGeneratorMask {
   position: fixed;
@@ -3468,7 +3490,7 @@ div.cardList.narrow {
     min-width: 220px;
     width: 80%;
     max-width: 400px;
-    background-color: #333;
+    background-color: #333333;
     color: #fff;
     -webkit-border-radius: 6px;
     -moz-border-radius: 6px;
@@ -3483,7 +3505,7 @@ div.cardList.narrow {
       margin-left: 0px;
       width: 0;
       height: 0;
-      border-top: 5px solid #333;
+      border-top: 5px solid #333333;
       border-left: 5px solid transparent;
       border-right: 5px solid transparent; }
     .passwordGenerator .passwordGeneratorBaloon form span {

@@ -834,7 +834,7 @@ console.log("THE BROWSER IS OFFLINE");
 		deferredResult.addMethodcaller('directLogins');
 		deferredResult.addCallback(MochiKit.Base.itemgetter(aDirectLoginReference));
 		deferredResult.addMethodcaller('remove');
-		deferredResult.addCallback(MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', aRecord.reference()));
+		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', aRecord.reference());
 
 		deferredResult.callback(aRecord);
 

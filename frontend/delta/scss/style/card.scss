@@ -290,20 +290,26 @@ $cardViewBasePadding: 10px;
 			}
 		}
 
-		.removeDirectLogin {
-			@include icon-font();
+		.cardDirectLogin {
+			.removeDirectLogin {
+				@include icon-font();
 
-			font-size: 20pt;
+				margin: $iconMargin;
+				margin-top: 12px;
+				cursor: pointer;
+				color: white;
+				width: 40px;
+				font-size: 20pt;
 
-			padding: 8px 20px 11px 8px;
+				&:hover {
+					color: rgb(155, 0, 0);
+				};
+			}
 
-			&:hover {
-				color: rgb(155, 0, 0);
-			};
-		}
-
-		.directLoginLabel {
-			vertical-align: bottom;
+			.directLoginLabel {
+				vertical-align: bottom;
+				padding-left: 4px;
+			}
 		}
 	}
 }	
@@ -673,13 +679,14 @@ $cardViewBasePadding: 10px;
 	.cardDirectLogin {
 		font-size: 18pt;
 		padding: $cardViewBasePadding;
+		padding-left: 0px;
 //		background-color: pink;
 		background-color: $clipperz-orange;
 		color: white;
 		cursor: pointer;
 		
 		.directLoginLabel {
-			padding-left: 42px - $iconMargin;
+			padding-left: 42px;
 		}
 	}
 }
