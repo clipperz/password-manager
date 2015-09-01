@@ -110,10 +110,10 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 	},
 
 	loginForm: function () {
-		return	React.DOM.form({'key':'form', 'className':'loginForm credentials', 'autoComplete':'off', 'onChange':this.handleChange, 'onSubmit':this.handleCredentialSubmit}, [
+		return	React.DOM.form({'key':'form', 'className':'loginForm credentials', 'autoComplete':'off', 'autoCorrect':'off', 'autoCapitalize':'off', 'onChange':this.handleChange, 'onSubmit':this.handleCredentialSubmit}, [
 					React.DOM.div({'key':'fields'},[
 						React.DOM.label({'key':'username-label', 'htmlFor' :'name'}, "username"),
-						React.DOM.input({'key':'username', 'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'autoCapitalize':'none'}),
+						React.DOM.input({'key':'username', 'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'autoComplete':'off', 'autoCorrect':'off', 'autoCapitalize':'off', 'spellCheck': false}),
 						React.DOM.label({'key':'passphrase-label', 'htmlFor' :'passphrase'}, "passphrase"),
 						React.DOM.input({'key':'passphrase', 'type':'password', 'name':'passphrase', 'ref':'passphrase', 'placeholder':"passphrase"})
 					]),
