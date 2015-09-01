@@ -125,6 +125,21 @@ MochiKit.Base.update(Clipperz.PM.PIN, {
 		localStorage.removeItem(this.FAILURE_COUNT);
 	},
 
+	'isLocalStorageSupported': function() {
+		var result;
+
+		var test = 'test';
+		try {
+		    localStorage.setItem(test, test);
+		    localStorage.removeItem(test);
+		    result = true;
+		} catch(e) {
+		    result = false;
+		}
+
+		return result;
+	},
+
 	//-------------------------------------------------------------------------
 	__syntaxFix__: "syntax fix"
 

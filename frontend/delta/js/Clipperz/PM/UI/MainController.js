@@ -154,7 +154,7 @@ MochiKit.Base.update(Clipperz.PM.UI.MainController.prototype, {
 		//	PIN is set using this command:
 		//	Clipperz.PM.PIN.setCredentialsWithPIN('1234', {'username':'joe', 'passphrase':'clipperz'});
 
-		return Clipperz.PM.PIN.isSet() ? 'PIN' : 'CREDENTIALS';
+		return (Clipperz.PM.PIN.isLocalStorageSupported() && Clipperz.PM.PIN.isSet()) ? 'PIN' : 'CREDENTIALS';
 	},
 
 	//=========================================================================
@@ -351,7 +351,9 @@ console.log("THE BROWSER IS OFFLINE");
 		deferredResult.addCallback(MochiKit.Async.wait, 0.1);
 		deferredResult.addMethod(Clipperz.Crypto.PRNG.defaultRandomGenerator(), 'deferredEntropyCollection');
 		deferredResult.addMethod(user, 'login');
-		deferredResult.addMethod(Clipperz.PM.PIN, 'resetFailedAttemptCount');
+		if (Clipperz.PM.PIN.isLocalStorageSupported()) {
+			deferredResult.addMethod(Clipperz.PM.PIN, 'resetFailedAttemptCount');
+		}
 		deferredResult.addMethod(this, 'setUser', user);
 		deferredResult.addMethod(this, 'runApplication');
 		deferredResult.addMethod(this.overlay(), 'done', "", 1);
