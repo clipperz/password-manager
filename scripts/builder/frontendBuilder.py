@@ -41,7 +41,7 @@ class FrontendBuilder(object):
 #	def copyStaticResources (self, targetFolder):
 #		raise NotImplementedError()
 
-	def copyResourcesToFolder (self, targetFolder):
+	def copyResourcesToFolder (self, targetFolder, backendSettings):
 		raise NotImplementedError()
 
 	def preprocessCSS (self, targetFile):
@@ -100,7 +100,7 @@ class FrontendBuilder(object):
 
 		
 
-#	def copyResourcesToFolder (self, targetFolder):
+#	def copyResourcesToFolder (self, targetFolder, backendSettings):
 #		for resoureceType in self.projectResourceTypes():
 #			self.copyResources(self.projectDir, targetFolder, resoureceType)
 #		self.copyStaticResources(targetFolder)

@@ -10,7 +10,7 @@ class BetaBuilder(FrontendBuilder):
 		return ['js', 'css', 'images']
 
 #	def copyStaticResources (self, targetFolder):
-	def copyResourcesToFolder (self, targetFolder):
+	def copyResourcesToFolder (self, targetFolder, backendSettings):
 		self.copyResources(self.projectDir, targetFolder, 'images')
 
 		for file in self.filterFiles(self.settings['staticResources']):

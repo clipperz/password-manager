@@ -17,7 +17,7 @@ class DeltaBuilder(FrontendBuilder):
 
 
 #	def copyStaticResources (self, targetFolder):
-	def copyResourcesToFolder (self, targetFolder):
+	def copyResourcesToFolder (self, targetFolder, backendSettings):
 		#print "DELTA - copyResourcesToFolder"
 		resourcesToCopy = [
 			{'folder': 'properties',	'source': 'manifest.appcache',	'target': 'manifest.appcache'}
@@ -27,6 +27,7 @@ class DeltaBuilder(FrontendBuilder):
 			#print "copying resource: " + str(resource['source'])
 			content = self.loadFilesContent(resource['folder'], [resource['source']])
 			content = content.replace('@application.version@',	self.repositoryVersion)
+			content = content.replace('@request.path@',			backendSettings['request.path'])
 
 			dst = self.absolutePathForTargetFile(targetFolder, '', resource['target'])
 			file = open(dst, 'w')

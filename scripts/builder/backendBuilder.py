@@ -113,7 +113,7 @@ class BackendBuilder(object):
 					submoduleExtension = '.' + frontend.submodule
 
 				main.createFolder(os.path.join(self.frontEndTempFolder(), frontend.module))
-				frontend.copyResourcesToFolder(self.frontEndTempFolder())
+				frontend.copyResourcesToFolder(self.frontEndTempFolder(), self.settings)
 
 				if 'debug' in self.versions:
 					frontend.copyDebugResourcesToFolder(self.frontEndTempFolder())
@@ -121,7 +121,7 @@ class BackendBuilder(object):
 					self.writeToFolder(self.frontEndTempFolder(), os.path.join(frontend.module, 'index_debug' + submoduleExtension + '.html'), index)
 
 				if 'install' in self.versions:
-#					frontend.copyResourcesToFolder(self.frontEndTempFolder())
+#					frontend.copyResourcesToFolder(self.frontEndTempFolder(), self.settings)
 					index = self.configureIndexContent(frontend.assemble())
 					self.writeToFolder(self.frontEndTempFolder(), os.path.join(frontend.module, 'index' + submoduleExtension + '.html'), index)
 
