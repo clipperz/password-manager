@@ -48,8 +48,8 @@ Clipperz.PM.UI.Components.HelpClass = React.createClass({
 							]), React.DOM.dd({}, "search cards"),
 							React.DOM.dt({}, [
 								React.DOM.span({'className':'key'}, '*'),
-								React.DOM.span({'className':'operator'}, 'then'),
-								React.DOM.span({'className':'key'}, 'a'),
+//								React.DOM.span({'className':'operator'}, 'then'),
+//								React.DOM.span({'className':'key'}, 'a'),
 							]), React.DOM.dd({}, "select all cards"),
 						])
 					]),

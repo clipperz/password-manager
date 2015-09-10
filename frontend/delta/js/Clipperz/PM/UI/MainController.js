@@ -95,7 +95,7 @@ Clipperz.PM.UI.MainController = function() {
 	Mousetrap.bind(['up',    'k'],			MochiKit.Base.method(this, 'selectPreviousCard'));
 	Mousetrap.bind(['down',  'j'],			MochiKit.Base.method(this, 'selectNextCard'));
 
-	Mousetrap.bind(['* a'],					MochiKit.Base.method(this, 'selectAllCards_handler'));
+	Mousetrap.bind(['*'],					MochiKit.Base.method(this, 'selectAllCards_handler'));
 
 	Mousetrap.bind(['?'],					MochiKit.Base.method(this, 'showHelp_handler'));
 
