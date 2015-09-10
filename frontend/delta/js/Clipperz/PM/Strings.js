@@ -272,7 +272,7 @@ Clipperz.PM.Strings.Languages.initSetup = function() {
 	var	language;
 	var	languageParser;
 
-	language = navigator.language || navigator.userLanguage;	//	en, en-US, .... "de", "nb-no"
+	language = navigator.language || navigator.userLanguage || 'en';	//	en, en-US, .... "de", "nb-no"
 	languageParser = new RegExp("language=([a-z]{2}(?:\-[a-z]{2})?)(\&|$)", "i");
 	if (languageParser.test(window.location.search)) {
 		language = RegExp.$1;
