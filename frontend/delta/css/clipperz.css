@@ -1329,17 +1329,107 @@ div.help {
   z-index: 10;
   background-color: transparent; }
 
-/*
-//	Firefox considers 100% respect to height of the whole window, this is rule is necessary to eliminate the card toolbar offset.
-@-moz-document url-prefix() {
-	@include fixHeighHack ($mainCardToolbarHeight, $cardListPadding)
-}
+#loginPage, #registrationPage {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch; }
+  #loginPage .content, #registrationPage .content {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-direction: normal;
+    -webkit-box-orient: vertical;
+    -webkit-flex-direction: column;
+    -moz-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    height: 100%; }
+    #loginPage .content .miscInfo, #registrationPage .content .miscInfo {
+      -webkit-box-flex: 0;
+      -webkit-flex: 0;
+      -moz-box-flex: 0;
+      -moz-flex: 0;
+      -ms-flex: 0;
+      flex: 0; }
+    #loginPage .content header, #registrationPage .content header {
+      -webkit-box-flex: auto;
+      -webkit-flex: auto;
+      -moz-box-flex: auto;
+      -moz-flex: auto;
+      -ms-flex: auto;
+      flex: auto;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-align: end;
+      -ms-flex-align: end;
+      -webkit-align-items: flex-end;
+      -moz-align-items: flex-end;
+      align-items: flex-end; }
+      #loginPage .content header .headerContent, #registrationPage .content header .headerContent {
+        width: 100%; }
+    #loginPage .content .body, #registrationPage .content .body {
+      -webkit-box-flex: auto;
+      -webkit-flex: auto;
+      -moz-box-flex: auto;
+      -moz-flex: auto;
+      -ms-flex: auto;
+      flex: auto;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-align: center;
+      -ms-flex-align: center;
+      -webkit-align-items: center;
+      -moz-align-items: center;
+      align-items: center; }
+      #loginPage .content .body .bodyContent, #registrationPage .content .body .bodyContent {
+        margin-left: auto;
+        margin-right: auto; }
+    #loginPage .content .other, #registrationPage .content .other {
+      -webkit-box-flex: auto;
+      -webkit-flex: auto;
+      -moz-box-flex: auto;
+      -moz-flex: auto;
+      -ms-flex: auto;
+      flex: auto;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-align: center;
+      -ms-flex-align: center;
+      -webkit-align-items: center;
+      -moz-align-items: center;
+      align-items: center; }
+      #loginPage .content .other .otherContent, #registrationPage .content .other .otherContent {
+        width: 100%; }
+    #loginPage .content footer, #registrationPage .content footer {
+      -webkit-box-flex: auto;
+      -webkit-flex: auto;
+      -moz-box-flex: auto;
+      -moz-flex: auto;
+      -ms-flex: auto;
+      flex: auto;
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-align: end;
+      -ms-flex-align: end;
+      -webkit-align-items: flex-end;
+      -moz-align-items: flex-end;
+      align-items: flex-end; }
+      #loginPage .content footer .footerContent, #registrationPage .content footer .footerContent {
+        width: 100%; }
 
-//	Chrome fix (without messing with Safari)
-@supports (-webkit-appearance:none) and (R:0) {
-	@include fixHeighHack ($mainCardToolbarHeight, $cardListPadding)
-}
-*/
 .tagEditor {
   display: -webkit-box;
   display: -webkit-flex;
@@ -1444,371 +1534,226 @@ div.help {
       color: white;
       margin: 0px; }
 
-#loginPage {
-  overflow: auto;
-  -webkit-overflow-scrolling: touch; }
-  #loginPage div.loginForm {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-box-direction: normal;
-    -webkit-box-orient: vertical;
-    -webkit-flex-direction: column;
-    -moz-flex-direction: column;
-    -ms-flex-direction: column;
-    flex-direction: column;
-    -webkit-box-align: stretch;
-    -ms-flex-align: stretch;
-    -webkit-align-items: stretch;
-    -moz-align-items: stretch;
-    align-items: stretch;
-    height: 100%;
-    text-align: center;
+#loginPage .content {
+  background-color: #ff9900; }
+  #loginPage .content .body {
     background-color: #ff9900; }
-    #loginPage div.loginForm header {
-      -webkit-box-flex: 1;
-      -webkit-flex: 1;
-      -moz-box-flex: 1;
-      -moz-flex: 1;
-      -ms-flex: 1;
-      flex: 1;
-      font-size: 48pt;
-      line-height: 90pt;
-      color: white; }
-      #loginPage div.loginForm header h3 {
-        font-weight: bold;
-        font-size: 38pt;
-        line-height: 1.7em; }
-      #loginPage div.loginForm header h5 {
-        font-size: 16pt;
-        line-height: 1.0em; }
-    #loginPage div.loginForm div.form {
-      -webkit-box-flex: 4;
-      -webkit-flex: 4;
-      -moz-box-flex: 4;
-      -moz-flex: 4;
-      -ms-flex: 4;
-      flex: 4; }
-      #loginPage div.loginForm div.form form {
-        position: relative;
-        background: white;
-        padding: 20px;
-        margin-bottom: 50px;
-        max-width: 400px;
-        margin-left: auto;
-        margin-right: auto;
-        /*			
-        				&:after {
-        					content: "";
-        					position: absolute;
-        					top: -15px;
-        					margin-left: 50%;
-        					left: -15px;
-        					border-style: solid;
-        					border-width: 0 15px 15px;
-        					border-color: $main-alternate-text-color transparent;
-        					display: block;
-        					width: 0;
-        					z-index: 1;
-        				}			
-        */ }
-        #loginPage div.loginForm div.form form label {
+  #loginPage .content .other {
+    color: white;
+    background-color: black; }
+    #loginPage .content .other a:before {
+      content: "> "; }
+  #loginPage .content footer {
+    color: white;
+    background-color: black; }
+
+#registrationPage .content {
+  background-color: black; }
+  #registrationPage .content .body {
+    background-color: black; }
+  #registrationPage .content .other {
+    color: black;
+    background-color: #ff9900; }
+    #registrationPage .content .other a:before {
+      content: "< "; }
+  #registrationPage .content footer {
+    color: black;
+    background-color: #ff9900; }
+
+#loginPage .content, #registrationPage .content {
+  text-align: center;
+  /*
+  		&.extra-short {
+  			header {
+  				font-size: 18pt;
+  			}
+  
+  			div.form {
+  				form {
+  					padding: 10px;
+  					margin-bottom: 20px;
+  
+  					input {
+  						padding: 3px;
+  						margin-top: 3px;
+  						margin-bottom: 5px;
+  						font-size: 16pt;
+  					}
+  
+  					button {
+  						min-height: 20px;
+  
+  						font-size: 12pt;
+  						padding: 3px 10px;
+  						border: 1px solid white;
+  					}
+  				}
+  			}
+  
+  			footer {
+  				font-size: 14pt;
+  			}
+  		}
+  */ }
+  #loginPage .content header, #registrationPage .content header {
+    max-height: 15%;
+    min-height: 70px;
+    padding: 10px;
+    color: white; }
+    #loginPage .content header h3, #registrationPage .content header h3 {
+      font-weight: bold;
+      font-size: 38pt; }
+    #loginPage .content header h5, #registrationPage .content header h5 {
+      font-size: 16pt; }
+  #loginPage .content .body form, #registrationPage .content .body form {
+    position: relative;
+    background: white;
+    padding: 20px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto; }
+    #loginPage .content .body form label, #registrationPage .content .body form label {
+      display: none; }
+    #loginPage .content .body form input, #registrationPage .content .body form input {
+      font-family: "clipperz-font";
+      display: block;
+      padding: 5px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      font-size: 100%;
+      font-size: 24pt;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 0px; }
+    #loginPage .content .body form .steps, #registrationPage .content .body form .steps {
+      text-align: center; }
+      #loginPage .content .body form .steps .step, #registrationPage .content .body form .steps .step {
+        display: none; }
+        #loginPage .content .body form .steps .step.center, #registrationPage .content .body form .steps .step.center {
+          display: block; }
+        #loginPage .content .body form .steps .step h1, #registrationPage .content .body form .steps .step h1 {
+          color: #268bd2;
+          font-size: 24pt;
+          font-weight: 700;
+          margin: 0px;
+          padding-top: 15px; }
+        #loginPage .content .body form .steps .step p, #registrationPage .content .body form .steps .step p {
+          color: #657b83;
+          font-size: 14pt;
+          font-weight: 100;
+          margin: 0px;
+          padding: 5px 0px; }
+        #loginPage .content .body form .steps .step label, #registrationPage .content .body form .steps .step label {
           display: none; }
-        #loginPage div.loginForm div.form form input {
+        #loginPage .content .body form .steps .step input, #registrationPage .content .body form .steps .step input {
           font-family: "clipperz-font";
           display: block;
           padding: 5px;
-          margin-top: 5px;
           margin-bottom: 10px;
           font-size: 100%;
           font-size: 24pt;
-          width: 100%;
-          border: 1px solid #ccc;
-          border-radius: 0px; }
-        #loginPage div.loginForm div.form form button {
-          font-family: "clipperz-font";
-          min-height: 48px;
-          min-width: 48px;
-          color: white;
-          font-size: 24pt;
+          width: 100%; }
+        #loginPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock input, #registrationPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock input {
+          display: block;
+          float: left;
+          margin-top: 10px;
+          width: 30px; }
+        #loginPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p, #registrationPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p {
+          font-size: 12pt;
           font-weight: 500;
-          border: 0px;
-          padding: 10px 25px;
-          border: 1px solid white;
-          background-color: #ff9900;
-          -webkit-transition: background-color font-weight 0.2s linear;
-          -moz-transition: background-color font-weight 0.2s linear;
-          -o-transition: background-color font-weight 0.2s linear;
-          -ms-transition: background-color font-weight 0.2s linear;
-          transition: background-color font-weight 0.2s linear; }
-          #loginPage div.loginForm div.form form button:disabled {
-            font-weight: 100;
-            background-color: #c0c0c0;
-            cursor: default; }
-    #loginPage div.loginForm div.links ul li {
-      display: inline-block; }
-    #loginPage div.loginForm footer {
-      -webkit-box-flex: 1;
-      -webkit-flex: 1;
-      -moz-box-flex: 1;
-      -moz-flex: 1;
-      -ms-flex: 1;
-      flex: 1;
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
-      display: flex;
-      -webkit-box-direction: normal;
-      -webkit-box-orient: vertical;
-      -webkit-flex-direction: column;
-      -moz-flex-direction: column;
-      -ms-flex-direction: column;
-      flex-direction: column;
-      -webkit-box-align: stretch;
-      -ms-flex-align: stretch;
-      -webkit-align-items: stretch;
-      -moz-align-items: stretch;
-      align-items: stretch;
-      color: white;
-      background-color: black;
-      font-size: 24pt;
-      cursor: default; }
-      #loginPage div.loginForm footer a.registrationLink {
-        cursor: pointer;
-        -webkit-box-flex: auto;
-        -webkit-flex: auto;
-        -moz-box-flex: auto;
-        -moz-flex: auto;
-        -ms-flex: auto;
-        flex: auto;
-        line-height: 50pt; }
-        #loginPage div.loginForm footer a.registrationLink:before {
-          content: "> "; }
-      #loginPage div.loginForm footer .applicationVersion {
-        -webkit-box-flex: 1;
-        -webkit-flex: 1;
-        -moz-box-flex: 1;
-        -moz-flex: 1;
-        -ms-flex: 1;
-        flex: 1;
-        font-size: 8pt; }
-        #loginPage div.loginForm footer .applicationVersion span {
-          color: #999999; }
-          #loginPage div.loginForm footer .applicationVersion span:after {
-            content: ":"; }
-        #loginPage div.loginForm footer .applicationVersion a {
-          color: #999999;
-          text-decoration: none;
-          padding-left: 5px;
-          font-weight: bold; }
-  #loginPage div.loginForm.narrow header {
-    font-size: 30pt;
-    line-height: 70px; }
-  #loginPage div.loginForm.narrow footer {
-    /* max-height: 25px; */
-    line-height: 20pt; }
-  #loginPage div.loginForm.extra-short header {
-    font-size: 18pt; }
-  #loginPage div.loginForm.extra-short div.form form {
-    padding: 10px;
-    margin-bottom: 20px; }
-    #loginPage div.loginForm.extra-short div.form form input {
-      padding: 3px;
-      margin-top: 3px;
-      margin-bottom: 5px;
-      font-size: 16pt; }
-    #loginPage div.loginForm.extra-short div.form form button {
-      min-height: 20px;
-      font-size: 12pt;
-      padding: 3px 10px;
-      border: 1px solid white; }
-  #loginPage div.loginForm.extra-short footer {
-    font-size: 14pt; }
-
-.links ul {
-  margin-bottom: 1em; }
-  .links ul li {
-    color: white;
-    cursor: pointer; }
-    .links ul li:after {
-      content: '-';
-      padding-left: 4px;
-      padding-right: 4px; }
-    .links ul li:last-child:after {
-      content: '';
-      padding-left: 0px;
-      padding-right: 0px; }
-
-#registrationPage {
-  background-color: black;
-  color: white; }
-  #registrationPage .registrationForm {
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: -moz-flex;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-box-direction: normal;
-    -webkit-box-orient: vertical;
-    -webkit-flex-direction: column;
-    -moz-flex-direction: column;
-    -ms-flex-direction: column;
-    flex-direction: column;
-    -webkit-box-align: stretch;
-    -ms-flex-align: stretch;
-    -webkit-align-items: stretch;
-    -moz-align-items: stretch;
-    align-items: stretch;
-    height: 100%;
-    text-align: center;
-    background-color: black; }
-    #registrationPage .registrationForm header {
-      -webkit-box-flex: 1;
-      -webkit-flex: 1;
-      -moz-box-flex: 1;
-      -moz-flex: 1;
-      -ms-flex: 1;
-      flex: 1;
-      font-size: 48pt;
-      line-height: 90pt;
-      color: white; }
-      #registrationPage .registrationForm header h3 {
-        font-weight: bold;
-        font-size: 38pt;
-        line-height: 1.7em; }
-      #registrationPage .registrationForm header h5 {
-        font-size: 16pt;
-        line-height: 1.0em; }
-    #registrationPage .registrationForm div.form {
-      -webkit-box-flex: 4;
-      -webkit-flex: 4;
-      -moz-box-flex: 4;
-      -moz-flex: 4;
-      -ms-flex: 4;
-      flex: 4; }
-      #registrationPage .registrationForm div.form form {
-        background: white;
-        padding: 20px;
-        margin-bottom: 50px;
-        max-width: 400px;
-        margin-left: auto;
-        margin-right: auto; }
-        #registrationPage .registrationForm div.form form .steps {
+          display: block;
+          text-align: left;
+          margin-left: 50px;
+          line-height: 1.5em; }
+          #loginPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p a, #registrationPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p a {
+            color: #dc322f; }
+        #loginPage .content .body form .steps .step.TERMS_OF_SERVICE .stepIndex, #registrationPage .content .body form .steps .step.TERMS_OF_SERVICE .stepIndex {
+          margin-top: 10px; }
+        #loginPage .content .body form .steps .step .stepBody, #registrationPage .content .body form .steps .step .stepBody {
+          min-height: 140px; }
+        #loginPage .content .body form .steps .step .stepIndex, #registrationPage .content .body form .steps .step .stepIndex {
+          text-align: center; }
+          #loginPage .content .body form .steps .step .stepIndex .stepIndexItem, #registrationPage .content .body form .steps .step .stepIndex .stepIndexItem {
+            font-weight: 900;
+            font-size: 28pt;
+            display: inline;
+            color: lightgrey; }
+            #loginPage .content .body form .steps .step .stepIndex .stepIndexItem.center, #registrationPage .content .body form .steps .step .stepIndex .stepIndexItem.center {
+              color: gray; }
+        #loginPage .content .body form .steps .step .buttons, #registrationPage .content .body form .steps .step .buttons {
           text-align: center;
-          margin-left: auto;
-          margin-right: auto;
-          width: 400px; }
-          #registrationPage .registrationForm div.form form .steps .step {
-            display: none; }
-            #registrationPage .registrationForm div.form form .steps .step.center {
-              display: block; }
-            #registrationPage .registrationForm div.form form .steps .step h1 {
-              color: #268bd2;
-              font-size: 24pt;
-              font-weight: 700;
-              margin: 0px;
-              padding-top: 15px; }
-            #registrationPage .registrationForm div.form form .steps .step p {
-              color: #657b83;
-              font-size: 14pt;
-              font-weight: 100;
-              margin: 0px;
-              padding: 5px 0px; }
-            #registrationPage .registrationForm div.form form .steps .step label {
-              display: none; }
-            #registrationPage .registrationForm div.form form .steps .step input {
-              font-family: "clipperz-font";
-              display: block;
-              padding: 5px;
-              margin-bottom: 10px;
-              font-size: 100%;
-              font-size: 24pt;
-              width: 100%; }
-            #registrationPage .registrationForm div.form form .steps .step.TERMS_OF_SERVICE .checkboxBlock input {
-              display: block;
-              float: left;
-              margin-top: 10px;
-              width: 30px; }
-            #registrationPage .registrationForm div.form form .steps .step.TERMS_OF_SERVICE .checkboxBlock p {
-              font-size: 12pt;
-              font-weight: 500;
-              display: block;
-              text-align: left;
-              margin-left: 50px;
-              line-height: 1.5em; }
-              #registrationPage .registrationForm div.form form .steps .step.TERMS_OF_SERVICE .checkboxBlock p a {
-                color: #dc322f; }
-            #registrationPage .registrationForm div.form form .steps .step.TERMS_OF_SERVICE .stepIndex {
-              margin-top: 10px; }
-            #registrationPage .registrationForm div.form form .steps .step .stepBody {
-              min-height: 140px; }
-            #registrationPage .registrationForm div.form form .steps .step .stepIndex {
-              text-align: center; }
-              #registrationPage .registrationForm div.form form .steps .step .stepIndex .stepIndexItem {
-                font-weight: 900;
-                font-size: 28pt;
-                display: inline;
-                color: lightgrey; }
-                #registrationPage .registrationForm div.form form .steps .step .stepIndex .stepIndexItem.center {
-                  color: gray; }
-            #registrationPage .registrationForm div.form form .steps .step .buttons {
-              text-align: center;
-              margin-top: 10px; }
-              #registrationPage .registrationForm div.form form .steps .step .buttons .button {
-                margin: 10px;
-                text-align: center;
-                vertical-align: middle;
-                display: inline-block;
-                width: 80px;
-                font-weight: 900;
-                line-height: 45px;
-                font-size: 24px; }
-                #registrationPage .registrationForm div.form form .steps .step .buttons .button.back {
-                  background-color: lightgrey; }
-                  #registrationPage .registrationForm div.form form .steps .step .buttons .button.back.step_-1 {
-                    visibility: hidden; }
-                #registrationPage .registrationForm div.form form .steps .step .buttons .button.disabled {
-                  background-color: #c0c0c0;
-                  cursor: default; }
-                #registrationPage .registrationForm div.form form .steps .step .buttons .button.enabled {
-                  background-color: #ff9900; }
-    #registrationPage .registrationForm div.links ul li {
-      display: inline-block; }
-    #registrationPage .registrationForm footer {
-      -webkit-box-flex: 1;
-      -webkit-flex: 1;
-      -moz-box-flex: 1;
-      -moz-flex: 1;
-      -ms-flex: 1;
-      flex: 1;
-      color: black;
+          margin-top: 10px; }
+          #loginPage .content .body form .steps .step .buttons .button, #registrationPage .content .body form .steps .step .buttons .button {
+            margin: 10px;
+            text-align: center;
+            vertical-align: middle;
+            display: inline-block;
+            width: 80px;
+            font-weight: 900;
+            line-height: 45px;
+            font-size: 24px; }
+            #loginPage .content .body form .steps .step .buttons .button.back, #registrationPage .content .body form .steps .step .buttons .button.back {
+              background-color: lightgrey; }
+              #loginPage .content .body form .steps .step .buttons .button.back.step_-1, #registrationPage .content .body form .steps .step .buttons .button.back.step_-1 {
+                visibility: hidden; }
+            #loginPage .content .body form .steps .step .buttons .button.disabled, #registrationPage .content .body form .steps .step .buttons .button.disabled {
+              background-color: #c0c0c0;
+              cursor: default; }
+            #loginPage .content .body form .steps .step .buttons .button.enabled, #registrationPage .content .body form .steps .step .buttons .button.enabled {
+              background-color: #ff9900; }
+    #loginPage .content .body form button, #registrationPage .content .body form button {
+      font-family: "clipperz-font";
+      min-height: 48px;
+      min-width: 48px;
+      color: white;
+      font-size: 24pt;
+      font-weight: 500;
+      border: 0px;
+      padding: 10px 25px;
+      border: 1px solid white;
       background-color: #ff9900;
-      cursor: pointer;
-      font-size: 24pt; }
-      #registrationPage .registrationForm footer:before {
-        content: "< "; }
-      #registrationPage .registrationForm footer a {
-        line-height: 50pt; }
-      #registrationPage .registrationForm footer .applicationVersion {
-        -webkit-box-flex: 1;
-        -webkit-flex: 1;
-        -moz-box-flex: 1;
-        -moz-flex: 1;
-        -ms-flex: 1;
-        flex: 1;
-        font-size: 8pt; }
-        #registrationPage .registrationForm footer .applicationVersion span {
-          color: black; }
-          #registrationPage .registrationForm footer .applicationVersion span:after {
-            content: ":"; }
-        #registrationPage .registrationForm footer .applicationVersion a {
-          color: black;
-          text-decoration: none;
-          padding-left: 5px;
-          font-weight: bold; }
+      -webkit-transition: background-color font-weight 0.2s linear;
+      -moz-transition: background-color font-weight 0.2s linear;
+      -o-transition: background-color font-weight 0.2s linear;
+      -ms-transition: background-color font-weight 0.2s linear;
+      transition: background-color font-weight 0.2s linear; }
+      #loginPage .content .body form button:disabled, #registrationPage .content .body form button:disabled {
+        font-weight: 100;
+        background-color: #c0c0c0;
+        cursor: default; }
+  #loginPage .content .other, #registrationPage .content .other {
+    font-size: 24pt;
+    padding: 20px;
+    max-height: 20%; }
+    #loginPage .content .other a, #registrationPage .content .other a {
+      cursor: pointer; }
+  #loginPage .content footer, #registrationPage .content footer {
+    max-height: 50px; }
+    #loginPage .content footer .links ul, #registrationPage .content footer .links ul {
+      padding: 3px;
+      padding-bottom: 6px; }
+      #loginPage .content footer .links ul li, #registrationPage .content footer .links ul li {
+        display: inline-block;
+        cursor: pointer; }
+        #loginPage .content footer .links ul li:after, #registrationPage .content footer .links ul li:after {
+          content: '-';
+          padding-left: 4px;
+          padding-right: 4px;
+          cursor: default; }
+        #loginPage .content footer .links ul li:last-child:after, #registrationPage .content footer .links ul li:last-child:after {
+          content: '';
+          padding-left: 0px;
+          padding-right: 0px; }
+    #loginPage .content footer .applicationVersion, #registrationPage .content footer .applicationVersion {
+      padding: 2px;
+      font-size: 8pt; }
+      #loginPage .content footer .applicationVersion span:after, #registrationPage .content footer .applicationVersion span:after {
+        content: ":"; }
+      #loginPage .content footer .applicationVersion a, #registrationPage .content footer .applicationVersion a {
+        color: inherit;
+        text-decoration: none;
+        padding-left: 5px;
+        font-weight: bold; }
 
 #selections {
   background-color: black;

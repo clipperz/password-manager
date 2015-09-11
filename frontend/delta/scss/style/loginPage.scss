@@ -22,67 +22,93 @@ refer to http://www.clipperz.com.
 */
 
 #loginPage {
-	@include overflow-auto;
-
-	div.loginForm {
-		@include flexbox();
-		@include flex-direction(column);
-		@include align-items(stretch);
-
-		height: 100%;
-		
-		text-align: center;
+	.content {
 		background-color: $main-color;
 
-		header {
-			@include flex(1);
-//			@include icon-font();
+		.body {
+			background-color: $main-color;
+		}
 
-			font-size: 48pt;
-			line-height: 90pt;
+		.other {
+			color: $main-alternate-text-color;
+			background-color: $main-alternate-color;
+
+			a {
+				&:before {
+					content: "> ";
+				};
+			}
+		}
+
+		footer {
+			color: $main-alternate-text-color;
+			background-color: $main-alternate-color;
+		}
+	}
+}
+
+#registrationPage {
+	.content {
+		background-color: $main-alternate-color;
+
+		.body {
+			background-color: $main-alternate-color;
+		}
+
+		.other {
+			color: $main-text-color;
+			background-color: $main-color;
+
+			a {
+				&:before {
+					content: "< ";
+				};
+			}
+		}
+		
+		footer {
+			color: $main-text-color;
+			background-color: $main-color;
+		}
+	}
+}
+
+//==============================================================
+
+#loginPage, #registrationPage {
+
+	.content {
+		text-align: center;
+//		background-color: $main-color;
+
+		header {
+			max-height: 15%;
+			min-height: 70px;
+			padding: 10px;
 			color: $main-alternate-text-color;
 			
 			h3 {
 				font-weight: bold;
 				font-size: 38pt;
-				line-height: 1.7em;
 			}
 			
 			h5 {
 				font-size: 16pt;
-				line-height: 1.0em;
 			}
 		}
 
-		div.form {
-			@include flex(4);
-
+		.body {
 			form {
 				position: relative;
 				background: $main-alternate-text-color;
 
-//				@include border-radius(10px);
 				padding: 20px;
-				margin-bottom: 50px;
+//				margin-bottom: 50px;
 				max-width: 400px;
 
 				margin-left: auto;
 				margin-right: auto;
-/*			
-				&:after {
-					content: "";
-					position: absolute;
-					top: -15px;
-					margin-left: 50%;
-					left: -15px;
-					border-style: solid;
-					border-width: 0 15px 15px;
-					border-color: $main-alternate-text-color transparent;
-					display: block;
-					width: 0;
-					z-index: 1;
-				}			
-*/
+
 				label {
 					display: none;
 				}
@@ -90,16 +116,144 @@ refer to http://www.clipperz.com.
 				input {
 					font-family: "clipperz-font";
 					display: block;
-//					@include border-radius(4px);
 					padding: 5px;
 					margin-top: 5px;
 					margin-bottom: 10px;
 					font-size: 100%;
-//					box-shadow:inset 0 0 0;
 					font-size: 24pt;
 					width: 100%;
 					border: 1px solid #ccc;
 					border-radius: 0px;
+				}
+
+				.steps {
+					text-align: center;
+//					margin-left: auto;
+//					margin-right: auto;
+
+					.step {
+						display: none;
+
+						&.center {
+							display: block;
+						}
+
+						h1 {
+							color: $solarize-Accent-Blue;
+							font-size: 24pt;
+							font-weight: 700;
+							margin: 0px;
+							padding-top: 15px;
+						}
+						p {
+							color: $solarize-Content-50;
+							font-size: 14pt;
+							font-weight: 100;
+							margin: 0px;
+							padding: 5px 0px;
+						}
+
+						label {
+							display: none;
+						}
+
+						input {
+							font-family: "clipperz-font";
+							display: block;
+							padding: 5px;
+		//					margin-top: 5px;
+							margin-bottom: 10px;
+							font-size: 100%;
+							font-size: 24pt;
+							width: 100%;
+						}
+
+						&.TERMS_OF_SERVICE {
+							.checkboxBlock {
+//								margin-top: 10px;
+//								margin-bottom: 10px;
+//								clear: both;
+
+								input {
+									display: block;
+									float: left;
+//									margin: 5px;
+									margin-top: 10px;
+									width: 30px;
+								}
+
+								p {
+									font-size: 12pt;
+									font-weight: 500;
+									display: block;
+									text-align: left;
+									margin-left: 50px;
+									line-height: 1.5em;
+
+									a {
+										color: $solarize-Accent-Red;
+									}
+								}
+							}
+							
+							.stepIndex {
+								margin-top: 10px;
+							}
+						}
+				
+						.stepBody {
+							min-height: 140px;
+						}
+
+						.stepIndex {
+							
+							text-align: center;
+							.stepIndexItem {
+								font-weight: 900;
+								font-size: 28pt;
+								display: inline;
+								color: lightgrey;
+
+								&.center {
+									color: gray;
+								}
+							}
+						}	
+
+						.buttons {
+							text-align: center;
+							margin-top: 10px;
+
+							.button {
+								margin: 10px;
+								text-align: center;
+								vertical-align: middle;
+								display: inline-block;
+								width: 80px;
+
+								font-weight: 900;
+								line-height: 45px;
+								font-size: 24px;
+
+								&.back {
+									background-color: lightgrey;
+
+									&.step_-1 {
+										visibility: hidden;
+									}
+								}
+
+								&.disabled {
+									background-color: #c0c0c0;
+									cursor: default;
+								}
+								
+								&.enabled {
+									background-color: $main-color;
+								}
+							}
+						}
+					}
 				}
 
 				button {
@@ -133,126 +287,118 @@ refer to http://www.clipperz.com.
 			}
 		}
 
-		div.links {
-			ul {
-				li {
-					display: inline-block;
-				}
+		.other {
+			font-size: 24pt;
+			padding: 20px;
+			max-height: 20%;
+
+			a {
+				cursor: pointer;
 			}
 		}
 
 		footer {
-			@include flex(1);
+			max-height: 50px;
 
-			@include flexbox();
-			@include flex-direction(column);
-			@include align-items(stretch);
+			.links {
+				ul {
+					padding: 3px;
+					padding-bottom: 6px;
+					li {
+						display: inline-block;
+//						color: white;
+						cursor: pointer;
+			
+						&:after {
+							content: '-';
+							padding-left: 4px;
+							padding-right: 4px;
+							cursor: default;
+						};
 
-			color: $main-alternate-text-color;
-			background-color: $main-alternate-color;
-			font-size: 24pt;
-			cursor: default;
-
-			a.registrationLink {
-				cursor: pointer;
-				@include flex(auto);
-				line-height: 50pt;
-
-				&:before {
-					content: "> ";
-				};
+						&:last-child:after {
+							content: '';
+							padding-left: 0px;
+							padding-right: 0px;
+						}
+					}
+				}
 			}
+
 			
 			.applicationVersion {
-				@include flex(1);
+				padding: 2px;
 				font-size: 8pt;
 				
 				$applicationVersionColor: #999;
 
 				span {
-					color: $applicationVersionColor;
+//					color: $applicationVersionColor;
 					&:after {
 						content: ":";
 					};
 				}
+
 				a {
-					color: $applicationVersionColor;
+//					color: $applicationVersionColor;
+					color: inherit;
 					text-decoration: none;
 					padding-left: 5px;
 					font-weight: bold;
 				}
 			}
 		}
-	}
 
-	div.loginForm.narrow {
-		header {
-			font-size: 30pt;
-			line-height: 70px;
-		}
+		//----------------------------------------------------------
 
-		footer {
-			/* max-height: 25px; */
-			line-height: 20pt;
-		}
-	}
+		&.narrow {
+			header {
+//				font-size: 30pt;
+//				line-height: 70px;
+			}
 
-	div.loginForm.extra-short {
-		header {
-//			@include flex(1);
-			font-size: 18pt;
-		}
-
-		div.form {
-//			@include flex(6);
-			form {
-				padding: 10px;
-				margin-bottom: 20px;
-
-				input {
-					padding: 3px;
-					margin-top: 3px;
-					margin-bottom: 5px;
-					font-size: 16pt;
-				}
-
-				button {
-					min-height: 20px;
-
-					font-size: 12pt;
-					padding: 3px 10px;
-					border: 1px solid white;
-				}
+			footer {
+//				line-height: 20pt;
 			}
 		}
 
-		footer {
-			font-size: 14pt;
-		}
-	}
+		//----------------------------------------------------------
+/*
+		&.extra-short {
+			header {
+				font-size: 18pt;
+			}
 
-}
+			div.form {
+				form {
+					padding: 10px;
+					margin-bottom: 20px;
 
-.links {
-	ul {
+					input {
+						padding: 3px;
+						margin-top: 3px;
+						margin-bottom: 5px;
+						font-size: 16pt;
+					}
 
-		margin-bottom: 1em;
-		
-		li {
-			color: white;
-			cursor: pointer;
-			
-			&:after {
-				content: '-';
-				padding-left: 4px;
-				padding-right: 4px;
-			};
+					button {
+						min-height: 20px;
 
-			&:last-child:after {
-				content: '';
-				padding-left: 0px;
-				padding-right: 0px;
+						font-size: 12pt;
+						padding: 3px 10px;
+						border: 1px solid white;
+					}
+				}
+			}
+
+			footer {
+				font-size: 14pt;
 			}
 		}
+*/
 	}
+
+	//==============================================================
+
+
 }

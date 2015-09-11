@@ -616,16 +616,71 @@ div.help {
 	background-color: rgba(0, 0, 0, 0);
 }
 
-//@include fixHeighHack ($mainCardToolbarHeight /*, $cardListPadding*/)
 
-/*
-//	Firefox considers 100% respect to height of the whole window, this is rule is necessary to eliminate the card toolbar offset.
-@-moz-document url-prefix() {
-	@include fixHeighHack ($mainCardToolbarHeight, $cardListPadding)
-}
+#loginPage, #registrationPage {
+	@include overflow-auto;
 
-//	Chrome fix (without messing with Safari)
-@supports (-webkit-appearance:none) and (R:0) {
-	@include fixHeighHack ($mainCardToolbarHeight, $cardListPadding)
+	.content {
+		@include flexbox();
+		@include flex-direction(column);
+//		@include align-items(stretch);
+
+		height: 100%;
+
+		.miscInfo {
+			@include flex(0);
+//			background-color: green;
+		}
+	
+		header {
+			@include flex(auto);
+//			background-color: yellow;
+
+			@include flexbox();
+			@include align-items(flex-end);
+			.headerContent {
+				width: 100%;
+			}
+		}
+	
+		.body {
+			@include flex(auto);
+//			background-color: green;
+
+			@include flexbox();
+			@include align-items(center);
+			.bodyContent {
+				margin-left: auto;
+				margin-right: auto;
+			}
+		}
+	
+		.other {
+			@include flex(auto);
+//			background-color: yellow;
+
+			@include flexbox();
+			@include align-items(center);
+			.otherContent {
+				width: 100%;
+			}
+		}
+
+		footer {
+			@include flex(auto);
+//			background-color: green;
+
+			@include flexbox();
+			@include align-items(flex-end);
+
+			.footerContent {
+				width: 100%;
+				.links {
+				}
+
+				.applicationVersion {
+				}
+			}
+		}
+	}
 }
-*/

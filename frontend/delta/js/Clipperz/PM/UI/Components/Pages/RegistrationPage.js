@@ -221,28 +221,39 @@ Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 	},
 
 	render: function () {
-		return	React.DOM.div({'className':'registrationForm'},[
+		return	React.DOM.div({'className':'registrationForm content'},[
+					Clipperz.PM.UI.Components.AccountStatus(MochiKit.Base.update(this.props['proxyInfo'])),
 					React.DOM.header({'key':'header'}, [
-						React.DOM.h3({}, 'clipperz'),
-						React.DOM.h5({}, 'keep it to yourself'),
-					]),
-					React.DOM.div({'key':'body', 'className':'form'}, [
-						React.DOM.form({'key':'registrationForm', 'autoComplete':'off', 'onChange': this.handleChange}, [
-							React.DOM.div({'key':'steps', 'className':'steps'}, MochiKit.Base.map(this.renderStep, this.props['steps']))
+						React.DOM.div({'className':'headerContent'}, [
+							React.DOM.h3({}, 'clipperz'),
+							React.DOM.h5({}, 'keep it to yourself'),
 						])
 					]),
-					React.DOM.div({'key':'links', 'className':'links'}, [
-						React.DOM.ul({}, [
-							React.DOM.li({'key':'about',   'onClick':this.showUrl('/about/')}, "About"),
-							React.DOM.li({'key':'terms',   'onClick':this.showUrl('/terms_service/')}, "Terms of service"),
-							React.DOM.li({'key':'privacy', 'onClick':this.showUrl('/privacy_policy/')}, "Privacy"),
+					React.DOM.div({'key':'body', 'className':'form  body'}, [
+						React.DOM.div({'className':'bodyContent'}, [
+							React.DOM.form({'key':'registrationForm', 'autoComplete':'off', 'onChange': this.handleChange}, [
+								React.DOM.div({'key':'steps', 'className':'steps'}, MochiKit.Base.map(this.renderStep, this.props['steps']))
+							])
+						])
+					]),
+					React.DOM.div({'className':'other', 'key':'other'}, [
+						React.DOM.div({'className':'otherContent'}, [
+							React.DOM.a({'key':'login', 'onClick':this.handleLoginLinkClick}, "Login"),
 						])
 					]),
 					React.DOM.footer({'key':'footer'}, [
-						React.DOM.a({'key':'login', 'onClick':this.handleLoginLinkClick}, "Login"),
-						React.DOM.div({'key':'applicationVersion', 'className':'applicationVersion'}, [
-							React.DOM.span({'key':'applicationVersionLabel'}, "application version"),
-							React.DOM.a({'key':'applicationVersionLink', 'href':'https://github.com/clipperz/password-manager/commit/' + Clipperz_version, 'target':'github'}, Clipperz_version)
+						React.DOM.div({'className':'footerContent'}, [
+							React.DOM.div({'key':'links', 'className':'links'}, [
+								React.DOM.ul({}, [
+									React.DOM.li({'key':'about',   'onClick':this.showUrl('/about/')}, "About"),
+									React.DOM.li({'key':'terms',   'onClick':this.showUrl('/terms_service/')}, "Terms of service"),
+									React.DOM.li({'key':'privacy', 'onClick':this.showUrl('/privacy_policy/')}, "Privacy"),
+								])
+							]),
+							React.DOM.div({'key':'applicationVersion', 'className':'applicationVersion'}, [
+								React.DOM.span({'key':'applicationVersionLabel'}, "application version"),
+								React.DOM.a({'key':'applicationVersionLink', 'href':'https://github.com/clipperz/password-manager/commit/' + Clipperz_version, 'target':'github'}, Clipperz_version)
+							])
 						])
 					])
 				]);
