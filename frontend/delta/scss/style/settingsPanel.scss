@@ -386,10 +386,34 @@ refer to http://www.clipperz.com.
 		}
 
 		.preferences {
+			$semicolonColor: gray;
+			$disabledTextColor: gray;
+
 			h3 {
 				border-bottom: 1px solid white;
 			}
 			
+			span.clickable, input[type='checkbox'] {
+				cursor: pointer;
+			}
+			
+			input[type='text'] {
+//				font-size: 18pt;
+				font-size: 14pt;
+//				padding: 6px 10px;
+				padding: 2px 4px;
+				border: 0px;
+				
+				color: white;
+				background-color: black;
+				border-bottom: 1px solid white;
+//				border: 0px solid white;
+			}
+			
+			select {
+				font-size: 12pt;
+			}
+
 			.row {
 				$firstColumnWidth: 40px;
 				padding-top: 4px;
@@ -412,7 +436,7 @@ refer to http://www.clipperz.com.
 					}
 				}
 
-				&.lockEnabled {
+				&.lockEnabled, &.donationReminder {
 					input {
 						margin-left: auto;
 						margin-right: auto;
@@ -421,14 +445,69 @@ refer to http://www.clipperz.com.
 				}
 
 				&.lockTimeout {
+					.disabled {
+						color: $disabledTextColor;
+						input {
+							color: $disabledTextColor;
+							pointer-events:none;
+							border-bottom: 1px solid $disabledTextColor;
+						}
+					}
+					
+					.timeUnit {
+						padding-left: 8px;
+						&:after {
+							content: "";
+						};
+					}
+				}
+
+				&.lockTimeout, &.passwordLength {
 					span {
 						&:after {
+							color: $semicolonColor;
 							content: ": ";
 						};
 					}
 					input {
 						width: 50px;
-						align: right;
+						text-align: right;
+					}
+					
+					.sizeUnit {
+						padding-left: 8px;
+						&:after {
+							content: "";
+						};
+					}
+				}
+				
+				&.passwordCharSets {
+					p {
+						padding-bottom: 2px;
+
+						&:after {
+							color: $semicolonColor;
+							content: ":";
+						};
+					}
+
+					ul {
+						li {
+							padding-bottom: 0px;
+							padding-left: 20px;
+							padding-top: 1px;
+							
+							span {
+								display: inline-block;
+								width: 58px;
+
+								&:after {
+									color: $semicolonColor;
+									content: ":";
+								};
+							}
+						}
 					}
 				}
 			}
@@ -989,36 +1068,6 @@ refer to http://www.clipperz.com.
 			}
 		}
 
-/*
-		.changePassphraseForm {
-			label {
-				display: block;
-			}
-			
-			input {
-				display: block;
-			}
-		}
-		
-		.deleteAccountForm {
-			margin-top: 1em;
-		
-			label {
-				display: block;
-			}
-			
-			input {
-				display: inline-block;
-				margin-right: 1em;
-				margin-bottom: 1em;
-			}
-			
-			.confirmCheckbox {
-				display: inline-block;
-			}
-		}
-*/
-		
 		form {
 			input.valid + .invalidMsg, input.empty + .invalidMsg, input:focus + .invalidMsg, input.invalid:focus + .invalidMsg {
 				visibility: hidden;

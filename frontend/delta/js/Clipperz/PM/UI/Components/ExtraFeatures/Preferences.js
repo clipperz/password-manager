@@ -26,117 +26,147 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures');
 
 Clipperz.PM.UI.Components.ExtraFeatures.PreferencesClass = React.createClass({
 
-	getInitialState: function() {
-		return {
-			'preferenceBeingEdited': null,
-			'preferenceValue': '',
-		};
-	},
-
 	propTypes: {
 	},
 
-	//=========================================================================
+	//============================================================================
 
-	setEditedPreference: function(aKey, aValue) {
-		this.setState({
-			'preferenceBeingEdited': aKey,
-			'preferenceValue': aValue
-		});
+	preference: function (aKeyPath) {
+		return this.props['userInfo']['preferences'].getValue(aKeyPath);
 	},
 
-	handleChange: function(anEvent) {
-		var newState = this.state;
+	setPreference: function (aKeyPath) {
+		return function (anEvent) {
+			var	value;
+			var	target;
+			
+			target = anEvent.target;
+			if (target.type == 'checkbox') {
+				value = target.checked;
+			} else if (target.type == 'text') {
+				value = target.value;
+			} else if (target.type == 'select-one') {
+				value = target.value;
+			}
 
-		newState['preferenceValue'] = anEvent.target.value;
-
-		this.setState(newState);
-	},
-
-	handleSave: function() {
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'setPreference', this.state['preferenceBeingEdited'], this.state['preferenceValue']);
-		this.setEditedPreference(null, '');
-	},
-
-	handleCancel: function() {
-		this.setEditedPreference(null, '');
-	},
-
-	handleKeyPressed: function(anEvent) {
-		switch (anEvent.keyCode) {
-			case  9: // tab
-				this.handleSave();
-				// TODO: edit next preference
-				break;
-			case 13: // enter
-				this.handleSave();
-				break;
-			case 27: // escape
-				this.handleCancel();
-				break;
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'setPreference', aKeyPath, value);
 		}
 	},
 
-	//=========================================================================
-
-	renderPreferenceValueElement: function(aKey) {
-		var result;
-
-		var preferenceValue = this.props.userInfo.preferences.getValue(aKey);
-
-		if (this.state.preferenceBeingEdited == aKey) {
-			result = React.DOM.input({
-				'autoFocus': true,
-				'key': aKey,
-				'type': 'text',
-				'value': this.state.preferenceValue,
-				'onChange': this.handleChange,
-				'onKeyDown': MochiKit.Base.method(this, 'handleKeyPressed'),
-			});
-		} else {
-			result = React.DOM.p({
-				'className': 'preferenceValue',
-				'onClick': MochiKit.Base.method(this, 'setEditedPreference', aKey, preferenceValue)
-			}, preferenceValue);
-		}
-
-		return result;
+	//============================================================================
+	
+	checkboxClick: function (aRef) {
+		return MochiKit.Base.bind(function (anEvent) {
+//console.log("CHECKBOX CLICK", this, this.refs, this.refs[aRef]);
+			this.refs[aRef].getDOMNode().click();
+		}, this);
 	},
 
-	renderPreferences: function() {
-		var result;
-		
-		result = [
-			React.DOM.li({'key': 'autoLockAfterMinutes'}, [
-				React.DOM.p({'className': 'preferenceName'}, "Automatic lock (minutes) - m"),
-				React.DOM.p({'className': 'preferenceDescription'}, "Automatically lock Clipperz after N minutes. (0 = auto lock disabled)"),
-				this.renderPreferenceValueElement('lock.timeoutInMinutes')
-			]),
-			React.DOM.li({'key': 'shouldShowDonationPanel'}, [
-				React.DOM.p({'className': 'preferenceName'}, "Donation Panel - m"),
-				React.DOM.p({'className': 'preferenceDescription'}, "Select whether to display the donation panel or not"),
-				this.renderPreferenceValueElement('shouldShowDonationPanel')
-			])
-		];
+	//----------------------------------------------------------------------------
 
-		return result;
+	handleKeyDown: function (aKeyPath) {
+		return MochiKit.Base.bind(function (anEvent) {
+			var	value = anEvent.target.value;
+
+console.log("HANDLE KEY DOWN", anEvent, anEvent.keyCode, value);
+			if (anEvent.target.defaultValue != value) {
+				switch (anEvent.keyCode) {
+					case  9: // tab
+					case 13: // enter	- TODO: edit next preference
+						MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'setPreference', aKeyPath, value);
+						anEvent.target.defaultValue = anEvent.target.value;
+						break;
+					case 27: // escape
+console.log("ESCAPE");
+						anEvent.target.value = anEvent.target.defaultValue;
+						break;
+				}
+			}
+		}, this);
 	},
+
+	//============================================================================
 
 	render: function () {
 		var result;
+//console.log("PREFERENCES", this.props['userInfo']['preferences']);
 
-		if (! this.props.userInfo.preferences) {
+		if (! this.props['userInfo']['preferences']) {
 			result = React.DOM.p({}, "spinner...");
 		} else {
 			result = React.DOM.div({'className':'extraFeature preferences'}, [
 				React.DOM.div({'className':'header'}, [
 					React.DOM.h1({}, "Preferences"),
-					React.DOM.div({'className':'description'}, [
-						React.DOM.p({}, "Insert copy here..."),
-					])
+//					React.DOM.div({'className':'description'}, [
+//						React.DOM.p({}, "Insert copy here..."),
+//					])
 				]),
 				React.DOM.div({'className':'content'}, [
-					React.DOM.ul({'className':'preferenceList'}, this.renderPreferences()),
+					React.DOM.ul({'className':'preferenceList'}, [
+						React.DOM.li({'key': 'lock'}, [
+							React.DOM.h3({'key':'1'}, "Lock"),
+							React.DOM.div({'key':'2', 'className':'row two lockEnabled'}, [
+								React.DOM.div({'className':'col one'}, [
+									React.DOM.input({'type':'checkbox', 'checked':this.preference('lock.enabled'), 'onChange':this.setPreference('lock.enabled'), 'ref':'lock-enabled'}),
+								]),
+								React.DOM.div({'className':'col two'}, [
+									React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('lock-enabled')}, "Enable auto-lock"),
+								]),
+							]),
+							React.DOM.div({'key':'3', 'className':'row one lockTimeout'}, [
+								React.DOM.p({'className':(this.preference('lock.enabled') ? 'enabled' : 'disabled')}, [
+									React.DOM.span({}, "Lock timeout"),
+									React.DOM.input({'type':'text', 'defaultValue':this.preference('lock.timeoutInMinutes'), 'onKeyDown':this.handleKeyDown('lock.timeoutInMinutes')}),
+									React.DOM.span({'className':'timeUnit'}, "minutes"),
+								])
+							]),
+						]),
+
+						React.DOM.li({'key': 'passwordGenerator'}, [
+							React.DOM.h3({'key':'1'}, "Password generator"),
+							React.DOM.div({'key':'2', 'className':'row one passwordLength'}, [
+								React.DOM.p({}, [
+									React.DOM.span({}, "Password length"),
+									React.DOM.input({'type':'text', 'defaultValue':this.preference('passwordGenerator.length'), 'onKeyDown':this.handleKeyDown('passwordGenerator.length')}),
+									React.DOM.span({'className':'sizeUnit'}, "characters"),
+								])
+							]),
+							React.DOM.div({'key':'3', 'className':'row one passwordCharSets'}, [
+								React.DOM.p({'key':'label'}, "Characters"),
+								React.DOM.ul({'key':'list'}, [
+									React.DOM.li({'key':'A-Z'},   [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('A-Z')},   "A-Z"),   React.DOM.input({'type':'checkbox', 'checked':this.preference('passwordGenerator.characters.A-Z'),   'onChange':this.setPreference('passwordGenerator.characters.A-Z'),   'ref':'A-Z'}) ]),
+									React.DOM.li({'key':'a-z'},   [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('a-z')},   "a-z"),   React.DOM.input({'type':'checkbox', 'checked':this.preference('passwordGenerator.characters.a-z'),   'onChange':this.setPreference('passwordGenerator.characters.a-z'),   'ref':'a-z'}) ]),
+									React.DOM.li({'key':'0-9'},   [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('0-9')},   "0-9"),   React.DOM.input({'type':'checkbox', 'checked':this.preference('passwordGenerator.characters.0-9'),   'onChange':this.setPreference('passwordGenerator.characters.0-9'),   'ref':'0-9'}) ]),
+									React.DOM.li({'key':'space'}, [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('space')}, "space"), React.DOM.input({'type':'checkbox', 'checked':this.preference('passwordGenerator.characters.space'), 'onChange':this.setPreference('passwordGenerator.characters.space'), 'ref':'space'}) ]),
+									React.DOM.li({'key':'!#?'},   [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('!#?')},   "!#?"),   React.DOM.input({'type':'checkbox', 'checked':this.preference('passwordGenerator.characters.!#?'),   'onChange':this.setPreference('passwordGenerator.characters.!#?'),   'ref':'!#?'}) ]),
+								])
+							]),
+						]),
+
+						React.DOM.li({'key': 'language'}, [
+							React.DOM.h3({'key':'1'}, "Language"),
+							React.DOM.div({'key':'2', 'className':'row one language'}, [
+								React.DOM.select({'value':this.preference('preferredLanguage'), 'onChange':this.setPreference('preferredLanguage')}, [
+									React.DOM.option({'value':'en'}, "English"),
+									React.DOM.option({'value':'fr'}, "Français"),
+									React.DOM.option({'value':'it'}, "Italiano"),
+								])
+							]),
+						]),
+
+						React.DOM.li({'key': 'donationReminder'}, [
+							React.DOM.h3({'key':'1'}, "Donation reminder"),
+							React.DOM.div({'key':'2', 'className':'row two donationReminder'}, [
+								React.DOM.div({'className':'col one'}, [
+									React.DOM.input({'type':'checkbox', 'checked':this.preference('shouldShowDonationPanel'), 'onChange':this.setPreference('shouldShowDonationPanel'), 'ref':'shouldShowDonationPanel'}),
+								]),
+								React.DOM.div({'className':'col two'}, [
+									React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('shouldShowDonationPanel')}, "Show donation reminder"),
+								]),
+							]),
+						]),
+						
+					]),
 				])
 			]);
 		}
@@ -144,7 +174,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.PreferencesClass = React.createClass({
 		return result;
 	},
 
-	//=========================================================================
+	//============================================================================
 });
 
 Clipperz.PM.UI.Components.ExtraFeatures.Preferences = React.createFactory(Clipperz.PM.UI.Components.ExtraFeatures.PreferencesClass);

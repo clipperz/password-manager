@@ -440,10 +440,10 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			return aValue;
 		});
 
-		deferredResult.addMethod(this, 'moveInPage', this.currentPage(), 'mainPage');	//	#ASK or cardDetailPage
+		deferredResult.addMethod(this, 'moveInPage', this.currentPage(), 'mainPage');
 		deferredResult.addMethod(this, 'refreshUI');
-		deferredResult.addMethod(unlockPage, 'setProps', {'disabled': false});	//	#ASK ?
-		deferredResult.addMethod(unlockPage, 'resetUnlockForm');				//	#ASK ?
+		deferredResult.addMethod(unlockPage, 'setProps', {'disabled': false});
+		deferredResult.addMethod(unlockPage, 'resetUnlockForm');
 //		deferredResult.addMethod(this, 'resetLockTimeout');
 		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'enableLock');
 		deferredResult.addMethod(overlay, 'done', "", 0.5);
@@ -819,24 +819,18 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		MochiKit.Signal.disconnectAll(Clipperz.Signal.NotificationCenter, 'lock');
 	},
 	
-//	clearLockTimeout: function () {
-//		clearTimeout(this._lockTimeout);
-//	},
-
 	resetLockTimeout: function () {
 		if (this.user()) {
 			return Clipperz.Async.callbacks("MainController.resetLockTimeout", [
-				MochiKit.Base.method(this.user(), 'getPreference', 'lock.timeoutInMinutes'),
-				MochiKit.Base.bind( function (aDelay) {
-					var aDelay = aDelay * 60*1000;
-
+				MochiKit.Base.method(this.user(), 'getPreference', 'lock'),
+				MochiKit.Base.bind(function (someLockInfo) {
 					if (this._lockTimeout) {
-// console.log("clearing previous lock timer");
 						clearTimeout(this._lockTimeout);
 					}
 
-					if (aDelay > 0) {
-// console.log("setting lock timer", aDelay);
+					if (someLockInfo['enabled'] == true) {
+						var aDelay = someLockInfo['timeoutInMinutes'] * 60 * 1000;
+
 						this._lockTimeout = setTimeout(function() {
 							MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'lock');
 						}, aDelay);
@@ -1512,13 +1506,12 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		this.updatePreferences();
 	},
 
-	setPreference_handler: function(aKey, aValue) {
-		// return this.user().setPreference(aKey, aValue);
-
+	setPreference_handler: function(aKeyPath, aValue) {
+console.log("MainController.setPrefence", aKeyPath, aValue);
 		return Clipperz.Async.callbacks("MainController.setPreference_handler", [
 			MochiKit.Base.method(this.overlay(), 'show', "", true),
-			MochiKit.Base.method(this.user(), 'setPreference', aKey, aValue),
-			MochiKit.Base.method(this, 'refreshCurrentPage'),
+			MochiKit.Base.method(this.user(), 'setPreference', aKeyPath, aValue),
+//			MochiKit.Base.method(this, 'refreshCurrentPage'),
 			MochiKit.Base.method(this, 'updatePreferences'),
 			MochiKit.Base.method(this.overlay(), 'done', "", 0.5),
 		], {trace:false});

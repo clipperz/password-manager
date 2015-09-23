@@ -183,7 +183,7 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 			]),
 			React.DOM.div({'key':'formWrapper', 'className':'form body'}, [
 				React.DOM.div({'className':'bodyContent'}, [
-					this.props.mode == 'PIN' ? this.pinForm() : this.loginForm(),
+					this.props['mode'] == 'PIN' ? this.pinForm() : this.loginForm(),
 				]),
 			]),
 			this.props['isNewUserRegistrationAvailable'] ? registrationLink : null,

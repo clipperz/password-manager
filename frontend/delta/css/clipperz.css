@@ -2218,36 +2218,7 @@ span.count {
       font-weight: bold; }
 #extraFeaturesPanel .extraFeatureContent {
   border-right: 1px solid #222;
-  color: white;
-  /*
-  		.changePassphraseForm {
-  			label {
-  				display: block;
-  			}
-  			
-  			input {
-  				display: block;
-  			}
-  		}
-  		
-  		.deleteAccountForm {
-  			margin-top: 1em;
-  		
-  			label {
-  				display: block;
-  			}
-  			
-  			input {
-  				display: inline-block;
-  				margin-right: 1em;
-  				margin-bottom: 1em;
-  			}
-  			
-  			.confirmCheckbox {
-  				display: inline-block;
-  			}
-  		}
-  */ }
+  color: white; }
   #extraFeaturesPanel .extraFeatureContent header {
     display: none; }
   #extraFeaturesPanel .extraFeatureContent .extraFeature .header h1 {
@@ -2349,6 +2320,17 @@ span.count {
       cursor: default; }
   #extraFeaturesPanel .extraFeatureContent .preferences h3 {
     border-bottom: 1px solid white; }
+  #extraFeaturesPanel .extraFeatureContent .preferences span.clickable, #extraFeaturesPanel .extraFeatureContent .preferences input[type='checkbox'] {
+    cursor: pointer; }
+  #extraFeaturesPanel .extraFeatureContent .preferences input[type='text'] {
+    font-size: 14pt;
+    padding: 2px 4px;
+    border: 0px;
+    color: white;
+    background-color: black;
+    border-bottom: 1px solid white; }
+  #extraFeaturesPanel .extraFeatureContent .preferences select {
+    font-size: 12pt; }
   #extraFeaturesPanel .extraFeatureContent .preferences .row {
     padding-top: 4px; }
     #extraFeaturesPanel .extraFeatureContent .preferences .row.one {
@@ -2380,15 +2362,45 @@ span.count {
         -moz-flex: auto;
         -ms-flex: auto;
         flex: auto; }
-    #extraFeaturesPanel .extraFeatureContent .preferences .row.lockEnabled input {
+    #extraFeaturesPanel .extraFeatureContent .preferences .row.lockEnabled input, #extraFeaturesPanel .extraFeatureContent .preferences .row.donationReminder input {
       margin-left: auto;
       margin-right: auto;
       display: block; }
-    #extraFeaturesPanel .extraFeatureContent .preferences .row.lockTimeout span:after {
+    #extraFeaturesPanel .extraFeatureContent .preferences .row.lockTimeout .disabled {
+      color: gray; }
+      #extraFeaturesPanel .extraFeatureContent .preferences .row.lockTimeout .disabled input {
+        color: gray;
+        pointer-events: none;
+        border-bottom: 1px solid gray; }
+    #extraFeaturesPanel .extraFeatureContent .preferences .row.lockTimeout .timeUnit {
+      padding-left: 8px; }
+      #extraFeaturesPanel .extraFeatureContent .preferences .row.lockTimeout .timeUnit:after {
+        content: ""; }
+    #extraFeaturesPanel .extraFeatureContent .preferences .row.lockTimeout span:after, #extraFeaturesPanel .extraFeatureContent .preferences .row.passwordLength span:after {
+      color: gray;
       content: ": "; }
-    #extraFeaturesPanel .extraFeatureContent .preferences .row.lockTimeout input {
+    #extraFeaturesPanel .extraFeatureContent .preferences .row.lockTimeout input, #extraFeaturesPanel .extraFeatureContent .preferences .row.passwordLength input {
       width: 50px;
-      align: right; }
+      text-align: right; }
+    #extraFeaturesPanel .extraFeatureContent .preferences .row.lockTimeout .sizeUnit, #extraFeaturesPanel .extraFeatureContent .preferences .row.passwordLength .sizeUnit {
+      padding-left: 8px; }
+      #extraFeaturesPanel .extraFeatureContent .preferences .row.lockTimeout .sizeUnit:after, #extraFeaturesPanel .extraFeatureContent .preferences .row.passwordLength .sizeUnit:after {
+        content: ""; }
+    #extraFeaturesPanel .extraFeatureContent .preferences .row.passwordCharSets p {
+      padding-bottom: 2px; }
+      #extraFeaturesPanel .extraFeatureContent .preferences .row.passwordCharSets p:after {
+        color: gray;
+        content: ":"; }
+    #extraFeaturesPanel .extraFeatureContent .preferences .row.passwordCharSets ul li {
+      padding-bottom: 0px;
+      padding-left: 20px;
+      padding-top: 1px; }
+      #extraFeaturesPanel .extraFeatureContent .preferences .row.passwordCharSets ul li span {
+        display: inline-block;
+        width: 58px; }
+        #extraFeaturesPanel .extraFeatureContent .preferences .row.passwordCharSets ul li span:after {
+          color: gray;
+          content: ":"; }
   #extraFeaturesPanel .extraFeatureContent .preferences span {
     vertical-align: middle; }
   #extraFeaturesPanel .extraFeatureContent .preferences input {
