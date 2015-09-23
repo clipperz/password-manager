@@ -75,7 +75,21 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.Preferences, Clipperz.PM.
 
 Clipperz.PM.DataModel.User.Header.Preferences.defaultPreferences = {
 	'lock': {
-		'timeoutInMinutes': 10
+		'enabled': false,
+		'timeoutInMinutes': 10,
 	},
-	'shouldShowDonationPanel': true
+	'passwordGenerator': {
+		'length': 24,
+		'characters': {
+			'A-Z':   true,
+			'a-z':   true,
+			'0-9':   true,
+			'space': false,
+			'!#?':   true,
+		},
+	},
+
+	//	legacy preferences
+	'preferredLanguage': 'en',
+	'shouldShowDonationPanel': true,
 };
