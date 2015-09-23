@@ -169,27 +169,10 @@ input[type=text] {
 
 }
 
-.mainPage.narrow {
-	#extraFeaturesPanel {
-		&.fullOpen {
-			.extraFeatureIndex {
-				width: 0px;
-			}
-		}
-
-		.extraFeatureContent {
-			.extraFeature {
-//				height: calc(100% - $mainCardToolbarHeight);
-			}
-		}
-		
-	}
-}
+//=============================================================================
 
 #extraFeaturesPanel {
 	@include sliding-panel(right, $settingsPanelWidth);
-
-//	transition: right 0.3s ease-in-out;
 
 	&.open {
 		@include sliding-panel-open(right, $settingsPanelWidth);
@@ -200,10 +183,11 @@ input[type=text] {
 	}
 
 	&.fullOpen {
-//		right: 0px;
 		width: 100%;
+
 		.extraFeatureContent {
-			display: block;
+			@include flexbox();
+			@include flex-direction(column);
 		}
 	}
 
@@ -224,10 +208,7 @@ input[type=text] {
 	
 		& > div {
 			@include flex(auto);
-		
 			@include overflow-auto();
-//			overflow: auto;
-		
 		}
 
 		footer {
@@ -236,31 +217,61 @@ input[type=text] {
 	}
 
 	.extraFeatureContent {
-//		display: none;
 		@include flex(auto);
-		width: 100%;
-		height: 100%;
-//		background-color: rgba( 0, 0, 0, 0.95);
 		background-color: black;
 
+		header {
+		}
+
 		.extraFeature {
+			@include flex(auto);
+			@include overflow-auto();
+
 			@include flexbox();
 			@include flex-direction(column);
-			height: 100%;
-		
 			.header {
 				@include flex(none);
 				padding: 20px;
 			}
 			.content {
 				@include flex(auto);
-//				height: 100%;
 				padding: 0px 20px 20px 20px;
 				@include overflow-auto();
 			}
 		}
+
+//		footer {
+//			@include flex(none);
+//			height: 48px;
+//			width: 100%;
+//		}
 	}
 }
+
+//.............................................................................
+
+.mainPage.narrow {
+	#extraFeaturesPanel.fullOpen {
+
+		.extraFeatureIndex {
+			width: 0px;
+		}
+
+		.extraFeatureContent {
+			header {
+				@include flex(none);
+				display: block;
+				height: 48px;
+			}
+			
+			.extraFeature {
+				
+			}
+		}
+	}
+}
+
+//=============================================================================
 
 .container {
 	height: 100%;

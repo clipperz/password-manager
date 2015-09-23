@@ -236,7 +236,6 @@ refer to http://www.clipperz.com.
 	.extraFeatureContent {
 		border-right: 1px solid #222;
 		color: white;
-//		padding: 20px;
 
 		header {
 			display: none;
@@ -244,7 +243,6 @@ refer to http://www.clipperz.com.
 		
 		.extraFeature {
 			.header {
-//				padding-bottom: 20px;
 
 				h1 {
 					font-size: 20pt;
@@ -387,10 +385,63 @@ refer to http://www.clipperz.com.
 			}
 		}
 
+		.preferences {
+			h3 {
+				border-bottom: 1px solid white;
+			}
+			
+			.row {
+				$firstColumnWidth: 40px;
+				padding-top: 4px;
+				
+				&.one {
+					padding-left: $firstColumnWidth;
+				}
+				
+				&.two {
+					@include flexbox();
+					@include flex-direction(row);
+
+					.col.one {
+						@include flex(none);
+						width: $firstColumnWidth;
+					}
+					
+					.col.two {
+						@include flex(auto);
+					}
+				}
+
+				&.lockEnabled {
+					input {
+						margin-left: auto;
+						margin-right: auto;
+						display: block;
+					}
+				}
+
+				&.lockTimeout {
+					span {
+						&:after {
+							content: ": ";
+						};
+					}
+					input {
+						width: 50px;
+						align: right;
+					}
+				}
+			}
+
+			span {
+				vertical-align: middle;
+			}
+			input {
+				vertical-align: middle;
+			}
+		}
 
 		.OTP {
-			height: 100%;
-
 			.header {
 				.description {
 					padding-bottom: 0px;
@@ -417,6 +468,7 @@ refer to http://www.clipperz.com.
 					};
 				}
 			}
+
 			.selectMenu {
 				margin-top: 1em;
 
@@ -550,7 +602,7 @@ refer to http://www.clipperz.com.
 				}
 			}
 			.button {
-				margin:1em 1em 0 0;
+//				margin:1em 1em 0 0;
 			}
 
 			table {
@@ -980,8 +1032,6 @@ refer to http://www.clipperz.com.
 	#extraFeaturesPanel {
 		.extraFeatureContent {
 			header {
-				display: block;
-				height: 48px;
 				border-bottom : 1px solid white;
 
 				.button {
@@ -993,6 +1043,14 @@ refer to http://www.clipperz.com.
 					padding-top: 15px;
 					padding-left: 10px;
 				}
+			}
+			
+			.extraFeature {
+			}
+		}
+		
+		&.fullOpen {
+			.extraFeatureContent {
 			}
 		}
 	}

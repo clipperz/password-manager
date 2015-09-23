@@ -214,16 +214,19 @@ Clipperz.PM.UI.Components.ExtraFeatures.OTPClass = React.createClass({
 		return	React.DOM.div({'className':'extraFeature OTP'}, [
 			React.DOM.div({'className':'header'}, [
 				React.DOM.h1({}, "One-Time Passwords"),
-				React.DOM.div({'className':'description'}, [
-					React.DOM.p({}, "A one-time password works like your regular passphrase, but it can be used only once. Strongly recommended when accessing your Clipperz account from unsecure devices where keyloggers may be installed."),
-				]),
-				React.DOM.a({'className':'button', 'onClick':this.handlePrint}, "Print")
 			]),
 			React.DOM.div({'className':'content'}, [
-				React.DOM.ul({'className':'otpList'}, this.renderOtpRows()),
-				React.DOM.div({'className':'actions'}, [
-					React.DOM.a({'onClick': this.handleNew}, "create new OTP"),
-				]),
+				React.DOM.div({},[
+					React.DOM.div({'className':'description'}, [
+						React.DOM.p({}, "A one-time password works like your regular passphrase, but it can be used only once. Strongly recommended when accessing your Clipperz account from unsecure devices where keyloggers may be installed."),
+					]),
+					React.DOM.a({'className':'button', 'onClick':this.handlePrint}, "Print"),
+
+					React.DOM.ul({'className':'otpList'}, this.renderOtpRows()),
+					React.DOM.div({'className':'actions'}, [
+						React.DOM.a({'onClick': this.handleNew}, "create new OTP"),
+					]),
+				])
 			])
 		]);
 	},

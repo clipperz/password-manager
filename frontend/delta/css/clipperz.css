@@ -795,9 +795,6 @@ input[type=text] {
     z-index: 10;
     background-color: rgba(0, 0, 0, 0.5); }
 
-.mainPage.narrow #extraFeaturesPanel.fullOpen .extraFeatureIndex {
-  width: 0px; }
-
 #extraFeaturesPanel {
   position: fixed;
   z-index: 20;
@@ -824,7 +821,17 @@ input[type=text] {
   #extraFeaturesPanel.fullOpen {
     width: 100%; }
     #extraFeaturesPanel.fullOpen .extraFeatureContent {
-      display: block; }
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-direction: normal;
+      -webkit-box-orient: vertical;
+      -webkit-flex-direction: column;
+      -moz-flex-direction: column;
+      -ms-flex-direction: column;
+      flex-direction: column; }
   #extraFeaturesPanel .extraFeatureIndex {
     -webkit-box-flex: none;
     -webkit-flex: none;
@@ -875,10 +882,16 @@ input[type=text] {
     -moz-flex: auto;
     -ms-flex: auto;
     flex: auto;
-    width: 100%;
-    height: 100%;
     background-color: black; }
     #extraFeaturesPanel .extraFeatureContent .extraFeature {
+      -webkit-box-flex: auto;
+      -webkit-flex: auto;
+      -moz-box-flex: auto;
+      -moz-flex: auto;
+      -ms-flex: auto;
+      flex: auto;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
       display: -webkit-box;
       display: -webkit-flex;
       display: -moz-flex;
@@ -889,8 +902,7 @@ input[type=text] {
       -webkit-flex-direction: column;
       -moz-flex-direction: column;
       -ms-flex-direction: column;
-      flex-direction: column;
-      height: 100%; }
+      flex-direction: column; }
       #extraFeaturesPanel .extraFeatureContent .extraFeature .header {
         -webkit-box-flex: none;
         -webkit-flex: none;
@@ -909,6 +921,18 @@ input[type=text] {
         padding: 0px 20px 20px 20px;
         overflow: auto;
         -webkit-overflow-scrolling: touch; }
+
+.mainPage.narrow #extraFeaturesPanel.fullOpen .extraFeatureIndex {
+  width: 0px; }
+.mainPage.narrow #extraFeaturesPanel.fullOpen .extraFeatureContent header {
+  -webkit-box-flex: none;
+  -webkit-flex: none;
+  -moz-box-flex: none;
+  -moz-flex: none;
+  -ms-flex: none;
+  flex: none;
+  display: block;
+  height: 48px; }
 
 .container {
   height: 100%;
@@ -2323,17 +2347,102 @@ span.count {
     #extraFeaturesPanel .extraFeatureContent .extraFeature .button.disabled {
       background-color: #c0c0c0;
       cursor: default; }
-  #extraFeaturesPanel .extraFeatureContent .OTP {
-    height: 100%; }
-    #extraFeaturesPanel .extraFeatureContent .OTP .header .description {
+  #extraFeaturesPanel .extraFeatureContent .preferences h3 {
+    border-bottom: 1px solid white; }
+  #extraFeaturesPanel .extraFeatureContent .preferences .row {
+    padding-top: 4px; }
+    #extraFeaturesPanel .extraFeatureContent .preferences .row.one {
+      padding-left: 40px; }
+    #extraFeaturesPanel .extraFeatureContent .preferences .row.two {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-direction: normal;
+      -webkit-box-orient: horizontal;
+      -webkit-flex-direction: row;
+      -moz-flex-direction: row;
+      -ms-flex-direction: row;
+      flex-direction: row; }
+      #extraFeaturesPanel .extraFeatureContent .preferences .row.two .col.one {
+        -webkit-box-flex: none;
+        -webkit-flex: none;
+        -moz-box-flex: none;
+        -moz-flex: none;
+        -ms-flex: none;
+        flex: none;
+        width: 40px; }
+      #extraFeaturesPanel .extraFeatureContent .preferences .row.two .col.two {
+        -webkit-box-flex: auto;
+        -webkit-flex: auto;
+        -moz-box-flex: auto;
+        -moz-flex: auto;
+        -ms-flex: auto;
+        flex: auto; }
+    #extraFeaturesPanel .extraFeatureContent .preferences .row.lockEnabled input {
+      margin-left: auto;
+      margin-right: auto;
+      display: block; }
+    #extraFeaturesPanel .extraFeatureContent .preferences .row.lockTimeout span:after {
+      content: ": "; }
+    #extraFeaturesPanel .extraFeatureContent .preferences .row.lockTimeout input {
+      width: 50px;
+      align: right; }
+  #extraFeaturesPanel .extraFeatureContent .preferences span {
+    vertical-align: middle; }
+  #extraFeaturesPanel .extraFeatureContent .preferences input {
+    vertical-align: middle; }
+  #extraFeaturesPanel .extraFeatureContent .OTP .header .description {
+    padding-bottom: 0px; }
+    #extraFeaturesPanel .extraFeatureContent .OTP .header .description p {
+      margin-bottom: 0px;
       padding-bottom: 0px; }
-      #extraFeaturesPanel .extraFeatureContent .OTP .header .description p {
-        margin-bottom: 0px;
-        padding-bottom: 0px; }
-    #extraFeaturesPanel .extraFeatureContent .OTP .actions {
-      padding-left: 6px;
-      padding-top: 6px; }
-      #extraFeaturesPanel .extraFeatureContent .OTP .actions a {
+  #extraFeaturesPanel .extraFeatureContent .OTP .actions {
+    padding-left: 6px;
+    padding-top: 6px; }
+    #extraFeaturesPanel .extraFeatureContent .OTP .actions a {
+      font-family: 'clipperz-icons';
+      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+      -moz-font-feature-settings: "liga" 1, "dlig" 1;
+      -ms-font-feature-settings: "liga" 1, "dlig" 1;
+      -o-font-feature-settings: "liga" 1, "dlig" 1;
+      font-feature-settings: "liga" 1, "dlig" 1;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      cursor: pointer;
+      font-size: 18pt;
+      line-height: 1.1em; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .actions a:hover {
+        color: green; }
+  #extraFeaturesPanel .extraFeatureContent .OTP .selectMenu {
+    margin-top: 1em; }
+    #extraFeaturesPanel .extraFeatureContent .OTP .selectMenu li {
+      display: inline-block;
+      margin-right: 1em;
+      padding: 1em 0; }
+  #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-direction: normal;
+    -webkit-box-orient: horizontal;
+    -webkit-flex-direction: row;
+    -moz-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
+    border: 1px solid #222;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    padding: 5px 0;
+    margin: 4px 0; }
+    #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpAction {
+      width: 40px;
+      text-align: center; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpAction a {
         font-family: 'clipperz-icons';
         -webkit-font-feature-settings: "liga" 1, "dlig" 1;
         -moz-font-feature-settings: "liga" 1, "dlig" 1;
@@ -2343,17 +2452,23 @@ span.count {
         -webkit-font-smoothing: antialiased;
         text-rendering: optimizeLegibility;
         cursor: pointer;
-        font-size: 18pt;
+        font-size: 16pt;
         line-height: 1.1em; }
-        #extraFeaturesPanel .extraFeatureContent .OTP .actions a:hover {
-          color: green; }
-    #extraFeaturesPanel .extraFeatureContent .OTP .selectMenu {
-      margin-top: 1em; }
-      #extraFeaturesPanel .extraFeatureContent .OTP .selectMenu li {
-        display: inline-block;
-        margin-right: 1em;
-        padding: 1em 0; }
-    #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail {
+        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpAction a:hover {
+          color: red; }
+    #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpPassword {
+      font-size: 14pt;
+      line-height: 1.3em;
+      -webkit-user-select: text;
+      /* Chrome all / Safari all */
+      -moz-user-select: text;
+      /* Firefox all */
+      -ms-user-select: text;
+      /* IE 10+ */
+      /* No support for these yet, use at own risk */
+      -o-user-select: text;
+      user-select: text; }
+    #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel {
       display: -webkit-box;
       display: -webkit-flex;
       display: -moz-flex;
@@ -2365,132 +2480,83 @@ span.count {
       -moz-flex-direction: row;
       -ms-flex-direction: row;
       flex-direction: row;
-      border: 1px solid #222;
-      -webkit-border-radius: 5px;
-      -moz-border-radius: 5px;
-      border-radius: 5px;
-      padding: 5px 0;
-      margin: 4px 0; }
-      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpAction {
-        width: 40px;
-        text-align: center; }
-        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpAction a {
-          font-family: 'clipperz-icons';
-          -webkit-font-feature-settings: "liga" 1, "dlig" 1;
-          -moz-font-feature-settings: "liga" 1, "dlig" 1;
-          -ms-font-feature-settings: "liga" 1, "dlig" 1;
-          -o-font-feature-settings: "liga" 1, "dlig" 1;
-          font-feature-settings: "liga" 1, "dlig" 1;
-          -webkit-font-smoothing: antialiased;
-          text-rendering: optimizeLegibility;
-          cursor: pointer;
-          font-size: 16pt;
-          line-height: 1.1em; }
-          #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpAction a:hover {
-            color: red; }
-      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpPassword {
-        font-size: 14pt;
+      margin-right: 5px; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel:before {
+        -webkit-box-flex: none;
+        -webkit-flex: none;
+        -moz-box-flex: none;
+        -moz-flex: none;
+        -ms-flex: none;
+        flex: none;
+        content: 'label';
+        font-family: 'clipperz-icons';
+        -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+        -moz-font-feature-settings: "liga" 1, "dlig" 1;
+        -ms-font-feature-settings: "liga" 1, "dlig" 1;
+        -o-font-feature-settings: "liga" 1, "dlig" 1;
+        font-feature-settings: "liga" 1, "dlig" 1;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        font-style: normal;
+        padding-right: 4px;
+        color: gray;
+        line-height: 20pt; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel span {
+        -webkit-box-flex: auto;
+        -webkit-flex: auto;
+        -moz-box-flex: auto;
+        -moz-flex: auto;
+        -ms-flex: auto;
+        flex: auto;
+        font-size: 12pt;
+        color: #333;
+        padding: 4px 0px 4px 0px;
         line-height: 1.3em;
-        -webkit-user-select: text;
-        /* Chrome all / Safari all */
-        -moz-user-select: text;
-        /* Firefox all */
-        -ms-user-select: text;
-        /* IE 10+ */
-        /* No support for these yet, use at own risk */
-        -o-user-select: text;
-        user-select: text; }
-      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel {
-        display: -webkit-box;
-        display: -webkit-flex;
-        display: -moz-flex;
-        display: -ms-flexbox;
-        display: flex;
-        -webkit-box-direction: normal;
-        -webkit-box-orient: horizontal;
-        -webkit-flex-direction: row;
-        -moz-flex-direction: row;
-        -ms-flex-direction: row;
-        flex-direction: row;
-        margin-right: 5px; }
-        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel:before {
-          -webkit-box-flex: none;
-          -webkit-flex: none;
-          -moz-box-flex: none;
-          -moz-flex: none;
-          -ms-flex: none;
-          flex: none;
-          content: 'label';
-          font-family: 'clipperz-icons';
-          -webkit-font-feature-settings: "liga" 1, "dlig" 1;
-          -moz-font-feature-settings: "liga" 1, "dlig" 1;
-          -ms-font-feature-settings: "liga" 1, "dlig" 1;
-          -o-font-feature-settings: "liga" 1, "dlig" 1;
-          font-feature-settings: "liga" 1, "dlig" 1;
-          -webkit-font-smoothing: antialiased;
-          text-rendering: optimizeLegibility;
-          font-style: normal;
-          padding-right: 4px;
+        cursor: pointer;
+        font-style: italic; }
+        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel span.customLabel {
           color: gray;
-          line-height: 20pt; }
-        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel span {
-          -webkit-box-flex: auto;
-          -webkit-flex: auto;
-          -moz-box-flex: auto;
-          -moz-flex: auto;
-          -ms-flex: auto;
-          flex: auto;
-          font-size: 12pt;
-          color: #333;
-          padding: 4px 0px 4px 0px;
-          line-height: 1.3em;
-          cursor: pointer;
-          font-style: italic; }
-          #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel span.customLabel {
-            color: gray;
-            font-style: normal; }
-        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input {
-          -webkit-box-flex: auto;
-          -webkit-flex: auto;
-          -moz-box-flex: auto;
-          -moz-flex: auto;
-          -ms-flex: auto;
-          flex: auto;
-          font-size: 12pt;
-          color: gray;
-          width: 100%;
-          border: 0px;
-          padding: 2px;
-          padding-left: 0px;
-          margin: 0px;
-          margin-bottom: 1px;
-          background-color: #333; }
-          #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input::-webkit-input-placeholder {
-            font-style: italic;
-            color: #444; }
-          #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input:-moz-placeholder {
-            font-style: italic;
-            color: #444; }
-          #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input::-moz-placeholder {
-            font-style: italic;
-            color: #444; }
-          #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input:-ms-input-placeholder {
-            font-style: italic;
-            color: #444; }
-      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpStatusInfo {
-        font-size: 8pt;
-        color: gray; }
-        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpStatusInfo span {
-          padding-right: 10px; }
-      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail.REQUESTED, #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail.USED {
-        background-color: #222; }
-    #extraFeaturesPanel .extraFeatureContent .OTP .button {
-      margin: 1em 1em 0 0; }
-    #extraFeaturesPanel .extraFeatureContent .OTP table tr td a {
-      font-size: small;
-      padding: 0 1em;
-      text-decoration: underline;
-      cursor: pointer; }
+          font-style: normal; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input {
+        -webkit-box-flex: auto;
+        -webkit-flex: auto;
+        -moz-box-flex: auto;
+        -moz-flex: auto;
+        -ms-flex: auto;
+        flex: auto;
+        font-size: 12pt;
+        color: gray;
+        width: 100%;
+        border: 0px;
+        padding: 2px;
+        padding-left: 0px;
+        margin: 0px;
+        margin-bottom: 1px;
+        background-color: #333; }
+        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input::-webkit-input-placeholder {
+          font-style: italic;
+          color: #444; }
+        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input:-moz-placeholder {
+          font-style: italic;
+          color: #444; }
+        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input::-moz-placeholder {
+          font-style: italic;
+          color: #444; }
+        #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpLabel input:-ms-input-placeholder {
+          font-style: italic;
+          color: #444; }
+    #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpStatusInfo {
+      font-size: 8pt;
+      color: gray; }
+      #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail .otpInfo .otpStatusInfo span {
+        padding-right: 10px; }
+    #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail.REQUESTED, #extraFeaturesPanel .extraFeatureContent .OTP .otpList .otpDetail.USED {
+      background-color: #222; }
+  #extraFeaturesPanel .extraFeatureContent .OTP table tr td a {
+    font-size: small;
+    padding: 0 1em;
+    text-decoration: underline;
+    cursor: pointer; }
   #extraFeaturesPanel .extraFeatureContent .dataImport .content {
     display: block;
     height: 100%;
@@ -2819,8 +2885,6 @@ span.count {
     visibility: hidden; }
 
 .mainPage.narrow #extraFeaturesPanel .extraFeatureContent header {
-  display: block;
-  height: 48px;
   border-bottom: 1px solid white; }
   .mainPage.narrow #extraFeaturesPanel .extraFeatureContent header .button {
     font-family: 'clipperz-icons';

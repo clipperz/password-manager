@@ -303,8 +303,8 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 			React.DOM.header({}, [
 				React.DOM.div({'className':'button', 'onClick':this.hideExtraFeatureContent}, "close")
 			]),
-			// this.state['extraFeatureContent']
-			this.state['extraFeatureContentComponent'] ? this.state['extraFeatureContentComponent'](this.props) : null
+			this.state['extraFeatureContentComponent'] ? this.state['extraFeatureContentComponent'](this.props) : null,
+//			React.DOM.footer({}, "")
 		]);
 	},
 
