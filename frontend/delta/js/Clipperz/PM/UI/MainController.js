@@ -422,15 +422,11 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		deferredResult = new Clipperz.Async.Deferred('MainController.unlock_handler', {trace:false});
 		deferredResult.addMethod(unlockPage, 'setProps', {'disabled': true});
 
-		deferredResult.addMethod(user, 'setPassphraseFunction', function() { return MochiKit.Async.succeed(aPassphrase); });
-		deferredResult.addMethod(user, 'getPreferences');		//	#ASK -> user.unlock
-//		deferredResult.addMethod(user, 'unlock', function() { return MochiKit.Async.succeed(aPassphrase); });
+		deferredResult.addMethod(user, 'unlock', function() { return MochiKit.Async.succeed(aPassphrase); });
 		deferredResult.addErrback(function (aValue) {
 			var innerDeferredResult;
 
 			innerDeferredResult = new Clipperz.Async.Deferred('MainController.unlock_handler <incorrect passphrase>', {trace:false});
-			innerDeferredResult.addMethod(user, 'getHeaderIndex', 'preferences');
-			innerDeferredResult.addMethodcaller('deleteAllCleanTextData');
 			innerDeferredResult.addMethod(unlockPage, 'setProps', {'disabled': false});
 			innerDeferredResult.addMethod(unlockPage, 'setInitialFocus');
 			innerDeferredResult.addMethod(overlay, 'failed', "", 1);
@@ -1195,6 +1191,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			extraProperties = {
 				'messageBox':					this.messageBoxContent(),
 				'userInfo':						this.userInfo(),
+//				'preferences':					...
 				'accountInfo':					this.userAccountInfo(),
 				'selectionPanelStatus':			this.isSelectionPanelOpen()	? 'OPEN' : 'CLOSED',
 				'settingsPanelStatus':			this.isSettingsPanelOpen()	? 'OPEN' : 'CLOSED',
@@ -1494,7 +1491,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			MochiKit.Base.bind(function(somePreferences) {
 				return MochiKit.Base.update(this.userInfo(), {'preferences': somePreferences})
 			}, this),
-			MochiKit.Base.bind(function(someUserInfo) {
+			MochiKit.Base.bind(function (someUserInfo) {
 				this.pages()['mainPage'].setProps({
 					'userInfo': someUserInfo
 				})
@@ -1507,7 +1504,6 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	},
 
 	setPreference_handler: function(aKeyPath, aValue) {
-console.log("MainController.setPrefence", aKeyPath, aValue);
 		return Clipperz.Async.callbacks("MainController.setPreference_handler", [
 			MochiKit.Base.method(this.overlay(), 'show', "", true),
 			MochiKit.Base.method(this.user(), 'setPreference', aKeyPath, aValue),

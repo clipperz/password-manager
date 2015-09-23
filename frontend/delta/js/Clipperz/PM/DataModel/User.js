@@ -181,7 +181,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		return this._getPassphraseFunction;
 	},
 
-	'setPassphraseFunction': function(aFunction) {
+	'setPassphraseFunction': function (aFunction) {
 		this._getPassphraseFunction = aFunction;
 	},
 
@@ -398,6 +398,11 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 			MochiKit.Base.method(this, 'deleteAllCleanTextData'),
 			MochiKit.Base.method(this, 'setPassphraseFunction', function() {throw("No passphrase set.")})
 		], {trace:false});
+	},
+
+	'unlock': function (aPassphraseDelegate) {
+		this.setPassphraseFunction(aPassphraseDelegate);
+		return this.getPreferences();	//	TODO: make this more explicit.
 	},
 
 	//-------------------------------------------------------------------------

@@ -275,6 +275,7 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 		
 			return innerDeferredResult;
 		}, this)));
+		deferredResult.addErrbackPass(MochiKit.Base.method(this, 'deleteAllCleanTextData'));
 		deferredResult.releaseLock(deferredLock);
 		deferredResult.callback();
 		
