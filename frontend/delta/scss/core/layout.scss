@@ -617,7 +617,7 @@ div.help {
 }
 
 
-#loginPage, #registrationPage {
+#loginPage, #registrationPage, #unlockPage {
 	@include overflow-auto;
 
 	.content {
@@ -637,7 +637,6 @@ div.help {
 //			background-color: yellow;
 
 			@include flexbox();
-			@include align-items(flex-end);
 			.headerContent {
 				width: 100%;
 			}
@@ -648,7 +647,6 @@ div.help {
 //			background-color: green;
 
 			@include flexbox();
-			@include align-items(center);
 			.bodyContent {
 				margin-left: auto;
 				margin-right: auto;

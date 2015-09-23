@@ -402,6 +402,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		deferredResult.addMethod(this, 'moveOutPage', this.currentPage(), 'unlockPage');
 		deferredResult.addMethod(this.user(), 'lock');
 		deferredResult.addMethod(this, 'deleteCleanTextData');
+		deferredResult.addMethod(this.pages()['unlockPage'], 'setProps', {'username': this.user().username()});
 		deferredResult.addMethod(this.pages()['unlockPage'], 'setInitialFocus');
 		deferredResult.addCallback(MochiKit.Async.callLater, 1, MochiKit.Base.method(this.pages()['mainPage'], 'replaceProps', {'locked': true}));
 		
@@ -415,7 +416,9 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 		var user = this.user();
 		var unlockPage = this.pages()['unlockPage'];
+		var overlay = this.overlay();
 		
+		overlay.show("validating…");
 		deferredResult = new Clipperz.Async.Deferred('MainController.unlock_handler', {trace:false});
 		deferredResult.addMethod(unlockPage, 'setProps', {'disabled': true});
 
@@ -430,6 +433,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			innerDeferredResult.addMethodcaller('deleteAllCleanTextData');
 			innerDeferredResult.addMethod(unlockPage, 'setProps', {'disabled': false});
 			innerDeferredResult.addMethod(unlockPage, 'setInitialFocus');
+			innerDeferredResult.addMethod(overlay, 'failed', "", 1);
 			innerDeferredResult.addCallback(MochiKit.Async.fail, aValue);
 			innerDeferredResult.callback();
 
@@ -442,6 +446,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		deferredResult.addMethod(unlockPage, 'resetUnlockForm');				//	#ASK ?
 //		deferredResult.addMethod(this, 'resetLockTimeout');
 		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'enableLock');
+		deferredResult.addMethod(overlay, 'done', "", 0.5);
 
 		deferredResult.callback();
 
@@ -1103,11 +1108,11 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 	//.........................................................................
 	
-		userInfo: function () {
+	userInfo: function () {
 		var result;
 		result = {};
 		
-		result['checkPassphraseCallback'] = MochiKit.Base.bind(this.checkPassphrase,this);
+		result['checkPassphraseCallback'] = MochiKit.Base.bind(this.checkPassphrase, this);
 		if (this.user() != null) {
 			result['username'] = this.user().username();
 		}

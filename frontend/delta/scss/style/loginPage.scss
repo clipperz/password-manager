@@ -73,15 +73,31 @@ refer to http://www.clipperz.com.
 	}
 }
 
+#unlockPage {
+	.content {
+		background-color: $main-color;
+
+		.body {
+			background-color: $main-color;
+		}
+
+		footer {
+			color: $main-alternate-text-color;
+			background-color: $main-alternate-color;
+		}
+	}
+}
 //==============================================================
 
-#loginPage, #registrationPage {
+#loginPage, #registrationPage, #unlockPage {
 
 	.content {
 		text-align: center;
 //		background-color: $main-color;
 
 		header {
+			@include align-items(flex-end);
+
 			max-height: 15%;
 			min-height: 70px;
 			padding: 10px;
@@ -98,6 +114,9 @@ refer to http://www.clipperz.com.
 		}
 
 		.body {
+//			@include align-items(center);
+			@include align-items(flex-start);
+
 			form {
 				position: relative;
 				background: $main-alternate-text-color;
@@ -189,6 +208,7 @@ refer to http://www.clipperz.com.
 									text-align: left;
 									margin-left: 50px;
 									line-height: 1.5em;
+									cursor: pointer;
 
 									a {
 										color: $solarize-Accent-Red;

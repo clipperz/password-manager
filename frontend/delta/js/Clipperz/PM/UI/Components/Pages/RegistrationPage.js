@@ -123,6 +123,14 @@ Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 		}
 	},
 
+	toggleCheckbox: function (aCheckboxRef, anEvent) {
+		var	newState = {};
+
+		this.refs[aCheckboxRef].getDOMNode().checked = ! this.refs[aCheckboxRef].getDOMNode().checked;
+		newState[aCheckboxRef] = this.refs[aCheckboxRef].getDOMNode().checked;
+		this.setState(newState);
+	},
+	
 	//-------------------------------------------------------------------------
 
 	canMoveForward: function () {
@@ -154,7 +162,7 @@ Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 		} else {
 			newState[refName] = anEvent.target.value;
 		}
-	    this.setState(newState);
+		this.setState(newState);
 	},
 
 	//=========================================================================
@@ -191,14 +199,14 @@ Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 					React.DOM.div({'key':'termsOfService_choice_1', 'className':'checkboxBlock'}, [
 						React.DOM.label({'key':'termsOfService_label_1', 'htmlFor':'no_password_recovery'}, "I understand that Clipperz is unable to recover a lost passphrase."),
 						React.DOM.input({'key':'no_password_recovery', 'type':'checkbox', 'name':'no_password_recovery', 'ref':'no_password_recovery', 'id':'no_password_recovery'}),
-						React.DOM.p({'key':'termsOfService_description_1'}, "I understand that Clipperz is unable to recover a lost passphrase.")
+						React.DOM.p({'key':'termsOfService_description_1', 'onClick':MochiKit.Base.method(this, 'toggleCheckbox', 'no_password_recovery')}, "I understand that Clipperz is unable to recover a lost passphrase.")
 					]),
 					React.DOM.div({'key':'termsOfService_choice_2', 'className':'checkboxBlock'}, [
 						React.DOM.label({'key':'termsOfService_label_2', 'htmlFor':'agree_terms_of_service'}, "I have read and agreed to the Terms of Service."),
 						React.DOM.input({'key':'agree_terms_of_service', 'type':'checkbox', 'name':'agree_terms_of_service', 'ref':'agree_terms_of_service', 'id':'agree_terms_of_service'}),
 						React.DOM.p({'key':'termsOfService_description_2'},  [
-							React.DOM.span({'key':'termsOfService_description_2_p1'}, "I have read and agreed to the "),
-							React.DOM.a({'key':'termsOfService_description_2_p2', 'href':'https://clipperz.com/terms_service/', target:'_blank'}, "Terms of Service.")
+							React.DOM.span({'key':'termsOfService_description_2_p1', 'onClick':MochiKit.Base.method(this, 'toggleCheckbox', 'agree_terms_of_service')}, "I have read and agreed to the "),
+							React.DOM.a({'key':'termsOfService_description_2_p2', 'onClick':this.showUrl('/terms_service/')}, "Terms of Service.")
 						])
 					])
 				]);
