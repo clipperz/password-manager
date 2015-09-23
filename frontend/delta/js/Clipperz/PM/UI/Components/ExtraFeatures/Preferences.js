@@ -43,10 +43,13 @@ Clipperz.PM.UI.Components.ExtraFeatures.PreferencesClass = React.createClass({
 			target = anEvent.target;
 			if (target.type == 'checkbox') {
 				value = target.checked;
-			} else if (target.type == 'text') {
-				value = target.value;
+				target.defaultChecked = value;
+//			} else if (target.type == 'text') {
+//				value = target.value;
+//				target.defaultValue = value;
 			} else if (target.type == 'select-one') {
 				value = target.value;
+				target.defaultValue = value;
 			}
 
 			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'setPreference', aKeyPath, value);
@@ -107,7 +110,7 @@ console.log("ESCAPE");
 							React.DOM.h3({'key':'1'}, "Lock"),
 							React.DOM.div({'key':'2', 'className':'row two lockEnabled'}, [
 								React.DOM.div({'className':'col one'}, [
-									React.DOM.input({'type':'checkbox', 'checked':this.preference('lock.enabled'), 'onChange':this.setPreference('lock.enabled'), 'ref':'lock-enabled'}),
+									React.DOM.input({'type':'checkbox', 'defaultChecked':this.preference('lock.enabled'), 'onChange':this.setPreference('lock.enabled'), 'ref':'lock-enabled'}),
 								]),
 								React.DOM.div({'className':'col two'}, [
 									React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('lock-enabled')}, "Enable auto-lock"),
@@ -134,11 +137,11 @@ console.log("ESCAPE");
 							React.DOM.div({'key':'3', 'className':'row one passwordCharSets'}, [
 								React.DOM.p({'key':'label'}, "Characters"),
 								React.DOM.ul({'key':'list'}, [
-									React.DOM.li({'key':'A-Z'},   [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('A-Z')},   "A-Z"),   React.DOM.input({'type':'checkbox', 'checked':this.preference('passwordGenerator.characters.A-Z'),   'onChange':this.setPreference('passwordGenerator.characters.A-Z'),   'ref':'A-Z'}) ]),
-									React.DOM.li({'key':'a-z'},   [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('a-z')},   "a-z"),   React.DOM.input({'type':'checkbox', 'checked':this.preference('passwordGenerator.characters.a-z'),   'onChange':this.setPreference('passwordGenerator.characters.a-z'),   'ref':'a-z'}) ]),
-									React.DOM.li({'key':'0-9'},   [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('0-9')},   "0-9"),   React.DOM.input({'type':'checkbox', 'checked':this.preference('passwordGenerator.characters.0-9'),   'onChange':this.setPreference('passwordGenerator.characters.0-9'),   'ref':'0-9'}) ]),
-									React.DOM.li({'key':'space'}, [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('space')}, "space"), React.DOM.input({'type':'checkbox', 'checked':this.preference('passwordGenerator.characters.space'), 'onChange':this.setPreference('passwordGenerator.characters.space'), 'ref':'space'}) ]),
-									React.DOM.li({'key':'!#?'},   [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('!#?')},   "!#?"),   React.DOM.input({'type':'checkbox', 'checked':this.preference('passwordGenerator.characters.!#?'),   'onChange':this.setPreference('passwordGenerator.characters.!#?'),   'ref':'!#?'}) ]),
+									React.DOM.li({'key':'A-Z'},   [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('A-Z')},   "A-Z"),   React.DOM.input({'type':'checkbox', 'defaultChecked':this.preference('passwordGenerator.characters.A-Z'),   'onChange':this.setPreference('passwordGenerator.characters.A-Z'),   'ref':'A-Z'}) ]),
+									React.DOM.li({'key':'a-z'},   [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('a-z')},   "a-z"),   React.DOM.input({'type':'checkbox', 'defaultChecked':this.preference('passwordGenerator.characters.a-z'),   'onChange':this.setPreference('passwordGenerator.characters.a-z'),   'ref':'a-z'}) ]),
+									React.DOM.li({'key':'0-9'},   [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('0-9')},   "0-9"),   React.DOM.input({'type':'checkbox', 'defaultChecked':this.preference('passwordGenerator.characters.0-9'),   'onChange':this.setPreference('passwordGenerator.characters.0-9'),   'ref':'0-9'}) ]),
+									React.DOM.li({'key':'space'}, [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('space')}, "space"), React.DOM.input({'type':'checkbox', 'defaultChecked':this.preference('passwordGenerator.characters.space'), 'onChange':this.setPreference('passwordGenerator.characters.space'), 'ref':'space'}) ]),
+									React.DOM.li({'key':'!#?'},   [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('!#?')},   "!#?"),   React.DOM.input({'type':'checkbox', 'defaultChecked':this.preference('passwordGenerator.characters.!#?'),   'onChange':this.setPreference('passwordGenerator.characters.!#?'),   'ref':'!#?'}) ]),
 								])
 							]),
 						]),
@@ -146,7 +149,7 @@ console.log("ESCAPE");
 						React.DOM.li({'key': 'language'}, [
 							React.DOM.h3({'key':'1'}, "Language"),
 							React.DOM.div({'key':'2', 'className':'row one language'}, [
-								React.DOM.select({'value':this.preference('preferredLanguage'), 'onChange':this.setPreference('preferredLanguage')}, [
+								React.DOM.select({'defaultValue':this.preference('preferredLanguage'), 'onChange':this.setPreference('preferredLanguage')}, [
 									React.DOM.option({'value':'en'}, "English"),
 									React.DOM.option({'value':'fr'}, "Français"),
 									React.DOM.option({'value':'it'}, "Italiano"),
@@ -158,7 +161,7 @@ console.log("ESCAPE");
 							React.DOM.h3({'key':'1'}, "Donation reminder"),
 							React.DOM.div({'key':'2', 'className':'row two donationReminder'}, [
 								React.DOM.div({'className':'col one'}, [
-									React.DOM.input({'type':'checkbox', 'checked':this.preference('shouldShowDonationPanel'), 'onChange':this.setPreference('shouldShowDonationPanel'), 'ref':'shouldShowDonationPanel'}),
+									React.DOM.input({'type':'checkbox', 'defaultChecked':this.preference('shouldShowDonationPanel'), 'onChange':this.setPreference('shouldShowDonationPanel'), 'ref':'shouldShowDonationPanel'}),
 								]),
 								React.DOM.div({'className':'col two'}, [
 									React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('shouldShowDonationPanel')}, "Show donation reminder"),
