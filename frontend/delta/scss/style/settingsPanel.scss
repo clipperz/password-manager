@@ -533,13 +533,13 @@ refer to http://www.clipperz.com.
 			}
 
 			.actions {
-				padding-left: 6px;
+				padding-left: 5px;
 				padding-top: 6px;
 
 				a {
 					@include icon-font();
 					cursor: pointer;
-					font-size: 18pt;
+					font-size: 22pt;
 					line-height: 1.1em;
 					
 					&:hover {
@@ -564,6 +564,7 @@ refer to http://www.clipperz.com.
 			}
 
 			.otpList {
+				padding-top: 10px;
 
 				.otpDetail {
 					$detailPadding: 5px;
@@ -580,8 +581,10 @@ refer to http://www.clipperz.com.
 					margin: $detailMargin 0;
 
 					.otpAction {
-						width: 40px;
-						text-align: center;
+						@include flex(none);
+
+						width: 36px;
+//						text-align: center;
 //						@include align-self(center);
 
 						a {
@@ -589,6 +592,9 @@ refer to http://www.clipperz.com.
 							cursor: pointer;
 							font-size: 16pt;
 							line-height: 1.1em;
+							display: inline-block;
+							padding-left: 7px;
+							width: inherit;
 							
 							&:hover {
 								color: red;
@@ -597,6 +603,8 @@ refer to http://www.clipperz.com.
 					}
 
 					.otpInfo {
+						@include flex(auto);
+
 						.otpPassword {
 							font-size: 14pt;
 							line-height: 1.3em;
