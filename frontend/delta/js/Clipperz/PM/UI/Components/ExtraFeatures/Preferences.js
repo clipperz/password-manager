@@ -147,7 +147,7 @@ console.log("ESCAPE");
 //								]),
 							]),
 						]),
-
+/*
 						React.DOM.li({'key': 'language'}, [
 							React.DOM.h3({'key':'1'}, "Language"),
 							React.DOM.div({'key':'2', 'className':'row one language'}, [
@@ -170,7 +170,7 @@ console.log("ESCAPE");
 								]),
 							]),
 						]),
-						
+*/
 					]),
 				])
 			]);
