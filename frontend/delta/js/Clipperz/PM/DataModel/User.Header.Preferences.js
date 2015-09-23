@@ -87,6 +87,7 @@ Clipperz.PM.DataModel.User.Header.Preferences.defaultPreferences = {
 			'space': false,
 			'!#?':   true,
 		},
+//		'charset': '',
 	},
 
 	//	legacy preferences

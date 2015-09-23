@@ -32,7 +32,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.PreferencesClass = React.createClass({
 	//============================================================================
 
 	preference: function (aKeyPath) {
-		return this.props['userInfo']['preferences'].getValue(aKeyPath);
+		return this.props['preferences'].getValue(aKeyPath);
 	},
 
 	setPreference: function (aKeyPath) {
@@ -92,10 +92,8 @@ console.log("ESCAPE");
 
 	render: function () {
 		var result;
-//console.log("PREFERENCES", this.props['userInfo']['preferences']);
-
-		if (! this.props['userInfo']['preferences']) {
-			result = React.DOM.p({}, "spinner...");
+		if (! this.props['preferences']) {
+			result = React.DOM.p({}, "spinner...");	//	TODO: replace with actual spinner (if actually needed)
 		} else {
 			result = React.DOM.div({'className':'extraFeature preferences'}, [
 				React.DOM.div({'className':'header'}, [
@@ -142,7 +140,11 @@ console.log("ESCAPE");
 									React.DOM.li({'key':'0-9'},   [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('0-9')},   "0-9"),   React.DOM.input({'type':'checkbox', 'defaultChecked':this.preference('passwordGenerator.characters.0-9'),   'onChange':this.setPreference('passwordGenerator.characters.0-9'),   'ref':'0-9'}) ]),
 									React.DOM.li({'key':'space'}, [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('space')}, "space"), React.DOM.input({'type':'checkbox', 'defaultChecked':this.preference('passwordGenerator.characters.space'), 'onChange':this.setPreference('passwordGenerator.characters.space'), 'ref':'space'}) ]),
 									React.DOM.li({'key':'!#?'},   [ React.DOM.span({'className':'clickable', 'onClick':this.checkboxClick('!#?')},   "!#?"),   React.DOM.input({'type':'checkbox', 'defaultChecked':this.preference('passwordGenerator.characters.!#?'),   'onChange':this.setPreference('passwordGenerator.characters.!#?'),   'ref':'!#?'}) ]),
-								])
+								]),
+//								React.DOM.p({}, [
+//									React.DOM.span({}, "Charset"),
+//									React.DOM.input({'type':'text', 'defaultValue':this.preference('passwordGenerator.charset'), 'onKeyDown':this.handleKeyDown('passwordGenerator.charset')}),
+//								]),
 							]),
 						]),
 

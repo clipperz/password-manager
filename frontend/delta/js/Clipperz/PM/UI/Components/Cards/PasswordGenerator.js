@@ -27,25 +27,26 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 Clipperz.PM.UI.Components.Cards.PasswordGeneratorClass = React.createClass({
 
 	charsetBlocks: {
-		'chars_AZ': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-		'chars_az': 'abcdefghijklmnopqrstuvwxyz',
-		'chars_09': '0123456789',
-		'chars_space': ' ',
-		'chars_other': '~`!@#$%^&*()-_=+,.<>/?[]{}\\|:;\'"'
+		'chars_AZ':		'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+		'chars_az':		'abcdefghijklmnopqrstuvwxyz',
+		'chars_09':		'0123456789',
+		'chars_space':	' ',
+		'chars_other':	'~`!@#$%^&*()-_=+,.<>/?[]{}\\|:;\'"'
 	},
 	
 	gradientColors: ['#ff3236', '#e74030', '#cf4e2a', '#b75c24', '#9f6a1e', '#877818', '#6f8612', '#57940c', '#3fa206', '#25ad00', '#25ad00'],
 
 	getInitialState: function () {
 		return {
-			'length':		24,
+			'length':		this.props['preferences'].getValue('passwordGenerator.length'),
 			'options':		'closed',
-			'chars_AZ':		true,
-			'chars_az':		true,
-			'chars_09':		true,
-			'chars_space':	false,
-			'chars_other':	true,
+			'chars_AZ':		this.props['preferences'].getValue('passwordGenerator.characters.A-Z'),
+			'chars_az':		this.props['preferences'].getValue('passwordGenerator.characters.a-z'),
+			'chars_09':		this.props['preferences'].getValue('passwordGenerator.characters.0-9'),
+			'chars_space':	this.props['preferences'].getValue('passwordGenerator.characters.space'),
+			'chars_other':	this.props['preferences'].getValue('passwordGenerator.characters.!#?'),
 
+//			'charset':		this.props['preferences'].getValue('passwordGenerator.charset'),
 			'charset':	'',
 			'password':	'',
 			'entropy':	0,
@@ -154,10 +155,6 @@ Clipperz.PM.UI.Components.Cards.PasswordGeneratorClass = React.createClass({
 		}
 	},
 
-//	isPasswordField: function () {
-//		return this.props['field']['actionType'] == 'PASSWORD';
-//	},
-
 	componentDidMount: function () {
 		this.updateCharset();
 		this.refreshPasswordValue();
@@ -208,7 +205,6 @@ Clipperz.PM.UI.Components.Cards.PasswordGeneratorClass = React.createClass({
 						React.DOM.div({'className':'button setPasswordValue', 'onClick':this.setPasswordValue},     "set password"),
 						React.DOM.div({'className':'button generatePassword', 'onClick':this.refreshPasswordValue}, "generate password"),
 					]),
-//					React.DOM.div({'className':'button setValue', 'onClick':this.setPasswordValue})
 				])
 			])
 		]);

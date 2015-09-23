@@ -406,7 +406,7 @@ refer to http://www.clipperz.com.
 				
 				color: white;
 				background-color: black;
-				border-bottom: 1px solid white;
+				border-bottom: 1px solid #333;
 //				border: 0px solid white;
 			}
 			
@@ -450,7 +450,7 @@ refer to http://www.clipperz.com.
 						input {
 							color: $disabledTextColor;
 							pointer-events:none;
-							border-bottom: 1px solid $disabledTextColor;
+//							border-bottom: 1px solid $disabledTextColor;
 						}
 					}
 					

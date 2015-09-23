@@ -25,7 +25,6 @@ refer to http://www.clipperz.com.
 Clipperz.Base.module('Clipperz.PM.UI');
 
 Clipperz.PM.UI.MainController = function() {
-	var	genericPageProperties;
 
 //	this._proxy		= null;
 	this._mediaQueryStyle = "narrow";
@@ -44,6 +43,7 @@ Clipperz.PM.UI.MainController = function() {
 	this._isDesktop = window.screenX != 0 && !this._isTouchDevice;
 	this._hasKeyboard = this._isDesktop;
 
+	this._userPreferences = null;
 	this._recordsInfo = null;
 	this._selectedCards = null;
 
@@ -66,11 +66,10 @@ Clipperz.PM.UI.MainController = function() {
 
 	this.registerForNotificationCenterEvents([
 		'doLogin', 'registerNewUser', 'showRegistrationForm', 'goBack',
-		'logout', 'unlock',
-		'enableLock', 'disableLock',
-//		'lock',
+		'logout',
+		'enableLock', 'disableLock', 'unlock',
 		'changePassphrase', 'deleteAccount',
-		'updatePreferences', 'setPreference',
+		/*'updateUserPreferences',*/ 'setPreference',
 		'updateOTPListAndDetails', 'createNewOTP', 'deleteOTPs', 'changeOTPLabel',
 		'importCards',
 		'downloadExport',
@@ -362,6 +361,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			deferredResult.addMethod(Clipperz.PM.PIN, 'resetFailedAttemptCount');
 		}
 		deferredResult.addMethod(this, 'setUser', user);
+		deferredResult.addMethod(this, 'updateUserPreferences');
 		deferredResult.addMethod(this, 'runApplication');
 		deferredResult.addMethod(this.overlay(), 'done', "", 1);
 		deferredResult.addErrback(MochiKit.Base.method(this, 'genericErrorHandler', someCredentials, "login failed"));
@@ -436,6 +436,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			return aValue;
 		});
 
+		deferredResult.addMethod(this, 'updateUserPreferences');
 		deferredResult.addMethod(this, 'moveInPage', this.currentPage(), 'mainPage');
 		deferredResult.addMethod(this, 'refreshUI');
 		deferredResult.addMethod(unlockPage, 'setProps', {'disabled': false});
@@ -458,6 +459,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		this._recordsInfo = null;
 		this._selectedCards = null;
 		this._selectedCardInfo = null;
+		this._userPreferences = null;
 	},
 
 	//-------------------------------------------------------------------------
@@ -1164,7 +1166,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		};
 	},
 
-	genericPageProperties: function () {
+	deviceProperties: function () {
 		return {
 			'style':			this.mediaQueryStyle(),
 			'isTouchDevice':	this.isTouchDevice(),
@@ -1177,7 +1179,11 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		var	result;
 		var	extraProperties = null;
 		
-		result = this.genericPageProperties();
+		result = this.deviceProperties();
+
+		if (this.user() != null) {
+			result = MochiKit.Base.update(result, {'preferences': this.userPreferences()});
+		}
 
 		if (aPageName == 'loginPage') {
 			extraProperties = {
@@ -1191,7 +1197,6 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			extraProperties = {
 				'messageBox':					this.messageBoxContent(),
 				'userInfo':						this.userInfo(),
-//				'preferences':					...
 				'accountInfo':					this.userAccountInfo(),
 				'selectionPanelStatus':			this.isSelectionPanelOpen()	? 'OPEN' : 'CLOSED',
 				'settingsPanelStatus':			this.isSettingsPanelOpen()	? 'OPEN' : 'CLOSED',
@@ -1203,6 +1208,9 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 //				'cards':				…,
 //				'tags':					…,
 //				'selectedCard':			…,
+			};
+		} else if (aPageName == 'cardDetailPage') {
+			extraProperties = {
 			};
 		} else if (aPageName == 'errorPage') {
 			extraProperties = {
@@ -1415,7 +1423,6 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	},
 
 	refreshCardEditDetail_handler: function (aRecordReference) {
-//console.log("refreshCardEditDetail_handler");
 		this.updateSelectedCard({'reference':aRecordReference}, false, true);
 	},
 
@@ -1450,14 +1457,11 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		user = new Clipperz.PM.DataModel.User({'username':this.user().username(), 'getPassphraseFunction':getPassphraseDelegate});
 		
 		deferredResult = new Clipperz.Async.Deferred("MainController.changePassphrase_handler", {trace: false});
-//		deferredResult.addMethod(currentPage, 'setProps', {'showGlobalMask':true});
 		deferredResult.addMethod(this.overlay(), 'show', "changing …", true);
 		deferredResult.addMethod(this.user(), 'changePassphrase', getPassphraseDelegate);
 		deferredResult.addMethod(user, 'login');
 		deferredResult.addMethod(this, 'setUser', user);
-//		deferredResult.addMethod(currentPage, 'setProps', {'mode':'view', 'showGlobalMask':false});
 		deferredResult.addMethod(this.overlay(), 'done', "saved", 1);
-		
 		deferredResult.callback();
 		
 		return deferredResult;
@@ -1484,40 +1488,48 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		
 		return deferredResult;
 	},
+
+	//----------------------------------------------------------------------------
 	
-	updatePreferences: function() {
-		return Clipperz.Async.callbacks("MainController.updatePreferences_handler", [
+	userPreferences: function () {
+		return this._userPreferences;
+	},
+
+	setUserPreferences: function (someValues) {
+		this._userPreferences = someValues;
+		return someValues;
+	},
+
+	updateUserPreferences: function() {
+		return Clipperz.Async.callbacks("MainController.updateUserPreferences", [
 			MochiKit.Base.method(this.user(), 'getPreferences'),
-			MochiKit.Base.bind(function(somePreferences) {
-				return MochiKit.Base.update(this.userInfo(), {'preferences': somePreferences})
-			}, this),
-			MochiKit.Base.bind(function (someUserInfo) {
-				this.pages()['mainPage'].setProps({
-					'userInfo': someUserInfo
-				})
-			}, this),
+			MochiKit.Base.method(this, 'setUserPreferences'),
 		], {trace:false});
 	},
 
-	updatePreferences_handler: function() {
-		this.updatePreferences();
-	},
+//	updateUserPreferences_handler: function() {
+//		return Clipperz.Async.callbacks("MainController.updateUserPreferences_handler", [
+//			MochiKit.Base.method(this, 'updateUserPreferences'),
+//			MochiKit.Base.method(this, 'refreshCurrentPage'),
+//		], {trace:false});
+//	},
 
 	setPreference_handler: function(aKeyPath, aValue) {
 		return Clipperz.Async.callbacks("MainController.setPreference_handler", [
 			MochiKit.Base.method(this.overlay(), 'show', "", true),
 			MochiKit.Base.method(this.user(), 'setPreference', aKeyPath, aValue),
-//			MochiKit.Base.method(this, 'refreshCurrentPage'),
-			MochiKit.Base.method(this, 'updatePreferences'),
+			MochiKit.Base.method(this, 'updateUserPreferences'),
+			MochiKit.Base.method(this, 'refreshCurrentPage'),
 			MochiKit.Base.method(this.overlay(), 'done', "", 0.5),
 		], {trace:false});
 	},
+
+	//----------------------------------------------------------------------------
 
 	importCards_handler: function(data) {
 		return Clipperz.Async.callbacks("MainController.importCards_handler", [
 			MochiKit.Base.method(this.overlay(), 'show', "importing …", true),
 			MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel'),
-//			MochiKit.Base.method(this.pages()[this.currentPage()], 'setProps', {'mode':'view', 'showGlobalMask':false}),
 			function () { return data; },
 			MochiKit.Base.method(this,'importCards'),
 			MochiKit.Base.method(this.overlay(), 'done', "finished", 1),
@@ -1529,14 +1541,6 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		return Clipperz.Async.callbacks("MainController.importCards", [
 			function () { return data; },
 			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this.user(), 'createNewRecordFromJSON')),
-
-			// MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.bind(function (recordData) {
-			// 	return Clipperz.Async.callbacks("MainController.importCards_handler-newRecord", [
-			// 		MochiKit.Base.method(this.user(), 'createNewRecord'),
-			// 		MochiKit.Base.methodcaller('setUpWithJSON', recordData),
-			// 	], {trace:false})
-			// }, this)),
-			
 			Clipperz.Async.collectAll,
 			MochiKit.Base.method(this.user(), 'saveChanges'),
 			MochiKit.Base.partial(MochiKit.Base.method(this, 'resetRecordsInfo')),
@@ -1671,17 +1675,6 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	},
 
 	//----------------------------------------------------------------------------
-/*
-	askConfirmation: function (aMessage) {
-		var	deferredResult;
-		
-		deferredResult = new Clipperz.Async.Deferred('MainController.askConfirmation', {trace:false});
-		deferredResult.callback();
-//		deferredResult.cancel();
-		
-		return deferredResult;
-	},
-*/
 	
 	ask: function (someInfo) {
 		var	deferredResult;
@@ -1706,8 +1699,6 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 				newRecord = aValue;
 				return newRecord;
 			},
-//			MochiKit.Base.methodcaller('addField', {'label':"", 'value':"", 'isHidden':false}),
-//			function () { return newRecord; },
 			MochiKit.Base.methodcaller('addField', {'label':"username", 'value':"", 'hidden':false}),
 			function () { return newRecord; },
 			MochiKit.Base.methodcaller('addField', {'label':"password", 'value':"", 'hidden':true}),

@@ -2328,7 +2328,7 @@ span.count {
     border: 0px;
     color: white;
     background-color: black;
-    border-bottom: 1px solid white; }
+    border-bottom: 1px solid #333; }
   #extraFeaturesPanel .extraFeatureContent .preferences select {
     font-size: 12pt; }
   #extraFeaturesPanel .extraFeatureContent .preferences .row {
@@ -2370,8 +2370,7 @@ span.count {
       color: gray; }
       #extraFeaturesPanel .extraFeatureContent .preferences .row.lockTimeout .disabled input {
         color: gray;
-        pointer-events: none;
-        border-bottom: 1px solid gray; }
+        pointer-events: none; }
     #extraFeaturesPanel .extraFeatureContent .preferences .row.lockTimeout .timeUnit {
       padding-left: 8px; }
       #extraFeaturesPanel .extraFeatureContent .preferences .row.lockTimeout .timeUnit:after {

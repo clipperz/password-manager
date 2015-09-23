@@ -101,7 +101,6 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 	},
 
 	extraFeaturesProps: function () {
-// console.log("ExtraFeaturesPanel, extraFeaturesProps:",this.props);
 		return this.props;
 	},
 
@@ -117,18 +116,13 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 	},
 
 	showExtraFeatureContent: function (aComponent, aComponentName) {
-// console.log("ExtraFeaturesPanel, showExtraFeatureContent")
 		if (aComponentName == 'OTP') {
 			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'updateOTPListAndDetails');
-		}
-		if (aComponentName == 'Preferences') {
-			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'updatePreferences');
 		}
 		
 		this.setState({
 			'isFullyOpen':true,
 			'extraFeatureComponentName': aComponentName,
-			// 'extraFeatureContent': aComponent(this.extraFeaturesProps()),
 			'extraFeatureContentComponent': aComponent // Trying to instantiate the component at every render
 		});
 	},

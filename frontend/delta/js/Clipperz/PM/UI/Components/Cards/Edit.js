@@ -533,7 +533,7 @@ console.log("DROP");	//, anEvent);
 					React.DOM.input({'_className_':'_fieldLabel_', 'onChange':this.handleChange(field, 'setLabel'), 'defaultValue':aField['label'], 'placeholder': "label"}),
 				]),
 				React.DOM.div({'className':'fieldValue'}, [
-					(ref == this.state['passwordGeneratorFieldReference']) ? Clipperz.PM.UI.Components.Cards.PasswordGenerator({'field':aField, 'setValueCallback':this.setValueFromPasswordGenerator(field, fieldValueRef), 'closeClallback':this.closePasswordGenerator}) : null,
+					(ref == this.state['passwordGeneratorFieldReference']) ? Clipperz.PM.UI.Components.Cards.PasswordGenerator({'field':aField, 'setValueCallback':this.setValueFromPasswordGenerator(field, fieldValueRef), 'closeClallback':this.closePasswordGenerator, 'preferences':this.props['preferences']}) : null,
 					Clipperz.PM.UI.Components.Cards.TextArea({'className':Clipperz.PM.UI.Components.classNames(cardFieldValueClasses), 'onChange':this.handleChange(field, 'setValue'), 'onKeyDown':this.handleKeyDown(field), 'defaultValue':aField['value'], 'placeholder':(aField['actionType'].toLowerCase() == 'password')?'':"value", 'ref':fieldValueRef}),
 				])
 			]),
@@ -608,7 +608,6 @@ console.log("DROP");	//, anEvent);
 			'edit':	true
 		}
 
-//console.log("RENDER CARD EDIT", this.props['showGlobalMask']);
 		return	React.DOM.div({'className':'editWrapper'}, [
 			this.props['showGlobalMask'] ? null : React.DOM.div({'className':'mask'}),
 			React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(classes)},[
