@@ -35,6 +35,8 @@ Clipperz.PM.DataModel.User.Header.Legacy = function(args) {
 	this._records = null;
 //	this._directLogins = null;
 
+Clipperz.log("Clipperz.PM.DataModel.User.Header.Legacy: Legacy header in use!");
+
 	return this;
 }
 

@@ -219,7 +219,8 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 				Clipperz.PM.UI.Components.Cards.TextArea({
 //				React.DOM.textarea({
 					'readOnly': true,
-					'onClick': function(e) { e.target.select(); },
+					// 'onMouseUp': function(e) { e.target.focus(); e.target.select(); e.stopPropagation(); e.preventDefault();},
+					'onClick': function(e) { e.target.focus(); e.target.select(); e.target.selectionStart = 0; e.target.selectionEnd = e.target.value.length; e.stopPropagation(); e.preventDefault(); },
 					'className':Clipperz.PM.UI.Components.classNames(cardFieldValueClasses),
 					'value': aField['value'],
 					'rows': 1

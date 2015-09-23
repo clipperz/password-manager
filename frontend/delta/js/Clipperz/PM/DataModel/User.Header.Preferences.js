@@ -29,10 +29,9 @@ if (typeof(Clipperz.PM.DataModel.User.Header) == 'undefined') { Clipperz.PM.Data
 
 Clipperz.PM.DataModel.User.Header.Preferences = function(args) {
 	Clipperz.PM.DataModel.User.Header.Preferences.superclass.constructor.apply(this, arguments);
-	
+
 	return this;
 }
-
 
 Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.Preferences, Clipperz.PM.DataModel.EncryptedRemoteObject, {
 
@@ -41,8 +40,42 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.Preferences, Clipperz.PM.
 	},
 
 	//-------------------------------------------------------------------------
+	
+	'mergeDefaultPreferences': function(somePreferences) {
+		var result;
+
+		result = new Clipperz.KeyValueObjectStore();
+
+		result.setValues(MochiKit.Base.updatetree(
+			Clipperz.Base.deepClone(Clipperz.PM.DataModel.User.Header.Preferences.defaultPreferences),
+			somePreferences
+		));
+
+		return result;
+	},
+
+	'getPreferences': function() {
+		return Clipperz.Async.callbacks("User.Header.Preferences.getPreferences", [
+			MochiKit.Base.method(this, 'values'),
+			MochiKit.Base.method(this, 'mergeDefaultPreferences')
+		], {trace:false});
+	},
+
+	'getPreference': function(aKey) {
+		return Clipperz.Async.callbacks("User.Header.Preferences.getPreference", [
+			MochiKit.Base.method(this, 'getPreferences'),
+			MochiKit.Base.methodcaller('getValue', aKey)
+		], {trace:false});
+	},
+
 	//=========================================================================
 	__syntaxFix__: "syntax fix"
 });
 
 
+Clipperz.PM.DataModel.User.Header.Preferences.defaultPreferences = {
+	'lock': {
+		'timeoutInMinutes': 10
+	},
+	'shouldShowDonationPanel': true
+};

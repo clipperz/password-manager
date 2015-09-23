@@ -394,7 +394,9 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 
 	'lock': function () {
 		return Clipperz.Async.callbacks("User.lock", [
-			MochiKit.Base.method(this, 'deleteAllCleanTextData')
+			MochiKit.Base.method(this.connection(), 'logout'),
+			MochiKit.Base.method(this, 'deleteAllCleanTextData'),
+			MochiKit.Base.method(this, 'setPassphraseFunction', function() {throw("No passphrase set.")})
 		], {trace:false});
 	},
 
@@ -903,6 +905,30 @@ console.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more t
 			MochiKit.Base.method(this, 'getRecords'),
 			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller(aMethodName, aValue)),
 			Clipperz.Async.collectAll
+		], {trace:false});
+	},
+
+	//-------------------------------------------------------------------------
+
+	'getPreferences': function() {
+		return Clipperz.Async.callbacks("User.getPreferences", [
+			MochiKit.Base.method(this, 'getHeaderIndex', 'preferences'),
+			MochiKit.Base.methodcaller('getPreferences')
+		], {trace:false});
+	},
+
+	'getPreference': function(aKey) {
+		return Clipperz.Async.callbacks("User.getPreference", [
+			MochiKit.Base.method(this, 'getHeaderIndex', 'preferences'),
+			MochiKit.Base.methodcaller('getPreference', aKey)
+		], {trace:false});
+	},
+
+	'setPreference': function(aKey, aValue) {
+		return Clipperz.Async.callbacks("User.setPreference", [
+			MochiKit.Base.method(this, 'getHeaderIndex', 'preferences'),
+			MochiKit.Base.methodcaller('setValue', aKey, aValue),
+			MochiKit.Base.method(this, 'saveChanges')
 		], {trace:false});
 	},
 

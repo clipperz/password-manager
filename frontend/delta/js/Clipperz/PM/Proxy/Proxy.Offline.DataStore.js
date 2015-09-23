@@ -234,36 +234,44 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 	//=========================================================================
 
 	'processMessage': function (aFunctionName, someParameters) {
-		var result;
-		var	connection;
+		var	deferredResult;
+		
+		try {
+			var result;
+			var	connection;
 
-		connection = this.getConnectionForRequest(aFunctionName, someParameters);
+			connection = this.getConnectionForRequest(aFunctionName, someParameters);
 
-		switch(aFunctionName) {
-			case 'knock':
-				result = this._knock(connection, someParameters);
-				break;
-			case 'registration':
-				this.checkToll(aFunctionName, someParameters);
-				result = this._registration(connection, someParameters.parameters);
-				break;
-			case 'handshake':
-				this.checkToll(aFunctionName, someParameters);
-				result = this._handshake(connection, someParameters.parameters);
-				break;
-			case 'message':
-				this.checkToll(aFunctionName, someParameters);
-				result = this._message(connection, someParameters.parameters);
-				break;
-			case 'logout':
-				this._currentStaticConnection = null;
-				result = this._logout(connection, someParameters.parameters);
-				break;
+			switch(aFunctionName) {
+				case 'knock':
+					result = this._knock(connection, someParameters);
+					break;
+				case 'registration':
+					this.checkToll(aFunctionName, someParameters);
+					result = this._registration(connection, someParameters.parameters);
+					break;
+				case 'handshake':
+					this.checkToll(aFunctionName, someParameters);
+					result = this._handshake(connection, someParameters.parameters);
+					break;
+				case 'message':
+					this.checkToll(aFunctionName, someParameters);
+					result = this._message(connection, someParameters.parameters);
+					break;
+				case 'logout':
+					this._currentStaticConnection = null;
+					result = this._logout(connection, someParameters.parameters);
+					break;
+			}
+
+			this.storeConnectionForRequestWithConnectionAndResponse(aFunctionName, someParameters, connection, result);
+
+			deferredResult = MochiKit.Async.succeed(result);
+		} catch (exception) {
+			deferredResult = MochiKit.Async.fail(exception);
 		}
-
-		this.storeConnectionForRequestWithConnectionAndResponse(aFunctionName, someParameters, connection, result);
-
-		return MochiKit.Async.succeed(result);
+		
+		return deferredResult;
 	},
 
 	//=========================================================================
@@ -395,6 +403,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 				);
 				result['M2'] = M2;
 				result['accountInfo'] = aConnection['userData']['accountInfo'];
+				result['lock'] = '<<LOCK>>';
 			} else {
 				throw new Error("Client checksum verification failed! Expected <" + M1 + ">, received <" + someParameters.parameters.M1 + ">.", "Error");
 			}
@@ -438,7 +447,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 
 		result = {
 			result: result,
-			toll:   this.getTollForRequestType(nextTollRequestType)
+			toll:   this.getTollForRequestType(nextTollRequestType),
 		}
 
 		return result;
@@ -448,6 +457,10 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 
 	'_message': function(aConnection, someParameters) {
 		var result;
+
+		if (MochiKit.Base.keys(aConnection).length==0) {
+			throw('Trying to communicate without an active connection');
+		}
 
 		result = {};
 

@@ -42,6 +42,7 @@ Clipperz.PM.UI.Components.Pages.MainPageClass = React.createClass({
 		'userInfo':			React.PropTypes.object.isRequired,
 		'accountInfo':		React.PropTypes.object.isRequired,
 		'style':			React.PropTypes.oneOf(Clipperz_PM_UI_availableStyles).isRequired,
+		'locked':			React.PropTypes.bool,
 //		'mediaQueryStyle':	React.PropTypes.oneOf(['extra-short', 'narrow', 'wide', 'extra-wide']).isRequired,
 //		'cards':			React.PropTypes.deferred.isRequired
 	},
@@ -55,17 +56,25 @@ Clipperz.PM.UI.Components.Pages.MainPageClass = React.createClass({
 	//=========================================================================
 
 	render: function () {
-		var	classes = {
-			'mainPage': true
-		};
-		classes[this.props['style']] = true;
+		var result;
 
-		return	React.DOM.div({'key':'mainPage', 'className':Clipperz.PM.UI.Components.classNames(classes)}, [
-			this.props['style'] != 'extra-wide' ? Clipperz.PM.UI.Components.Panels.SelectionPanel(this.props) : null,
-			Clipperz.PM.UI.Components.Panels.MainPanel(this.props),
-			Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel(this.props),
-			this.props['ask'] ? Clipperz.PM.UI.Components.DialogBox(this.props['ask']) : null
-		]);
+		if (this.props['locked']) {
+			result = null;
+		} else {
+			var	classes = {
+				'mainPage': true
+			};
+			classes[this.props['style']] = true;
+
+			result = React.DOM.div({'key':'mainPage', 'className':Clipperz.PM.UI.Components.classNames(classes)}, [
+				this.props['style'] != 'extra-wide' ? Clipperz.PM.UI.Components.Panels.SelectionPanel(this.props) : null,
+				Clipperz.PM.UI.Components.Panels.MainPanel(this.props),
+				Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel(this.props),
+				this.props['ask'] ? Clipperz.PM.UI.Components.DialogBox(this.props['ask']) : null
+			]);
+		}
+
+		return result;
 	}
 
 	//=========================================================================

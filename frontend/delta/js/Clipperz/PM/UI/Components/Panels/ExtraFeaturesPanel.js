@@ -81,7 +81,7 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 	},
 
 	lock: function () {
-console.log("LOCK");
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'lock');
 	},
 
 	logout: function () {
@@ -121,6 +121,9 @@ console.log("LOCK");
 		if (aComponentName == 'OTP') {
 			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'updateOTPListAndDetails');
 		}
+		if (aComponentName == 'Preferences') {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'updatePreferences');
+		}
 		
 		this.setState({
 			'isFullyOpen':true,
@@ -150,6 +153,9 @@ console.log("LOCK");
 					React.DOM.li({'key':'account', 'className':this.state['index']['account'] ? 'open' : 'closed'}, [
 						React.DOM.h1({'key':'accountH1', 'onClick':this.toggleIndexState('account')}, "Account"),
 						React.DOM.ul({'key':'accountUL'}, [
+							React.DOM.li({'key':'account_preferences', 'onClick':this.toggleExtraFeatureComponent('Preferences'), 'className':(this.state['extraFeatureComponentName'] == 'Preferences') ? 'selected' : ''}, [
+								React.DOM.h2({'key':'account_preferences_h2'}, "Preferences"),
+							]),
 							React.DOM.li({'key':'account_1', 'onClick':this.toggleExtraFeatureComponent('Passphrase'), 'className':(this.state['extraFeatureComponentName'] == 'Passphrase') ? 'selected' : ''}, [
 								React.DOM.h2({'key':'account_1_h2'}, "Passphrase"),
 //								React.DOM.div({'key':'account_1_div'}, [
@@ -280,7 +286,7 @@ console.log("LOCK");
 						])
 					]),
 					React.DOM.li({'key':'logout', 'className':'lock-logout'}, [
-//						React.DOM.h2({'className':'lock',   'onClick':this.lock},   "Lock"),
+						React.DOM.h2({'className':'lock',   'onClick':this.lock},   "Lock"),
 						React.DOM.h2({'className':'logout', 'onClick':this.logout}, "Logout"),
 					])
 				])

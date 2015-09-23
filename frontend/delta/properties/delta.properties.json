@@ -178,6 +178,7 @@
 
 		"Clipperz/PM/UI/Components/Pages/LoginPage.js",
 		"Clipperz/PM/UI/Components/Pages/RegistrationPage.js",
+		"Clipperz/PM/UI/Components/Pages/UnlockPage.js",
 		"Clipperz/PM/UI/Components/Pages/MainPage.js",
 		"Clipperz/PM/UI/Components/Pages/CardDetailPage.js",
 		"Clipperz/PM/UI/Components/Pages/ErrorPage.js",
@@ -187,6 +188,7 @@
 		"Clipperz/PM/UI/Components/Panels/ExtraFeaturesPanel.js",
 
 		"Clipperz/PM/UI/Components/ExtraFeatures/DevicePIN.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/Preferences.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/Passphrase.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/OTP.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/DeleteAccount.js",

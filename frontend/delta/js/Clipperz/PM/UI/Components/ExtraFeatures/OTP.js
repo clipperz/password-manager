@@ -26,8 +26,6 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures');
 
 Clipperz.PM.UI.Components.ExtraFeatures.OTPClass = React.createClass({
 
-	//	TODO: add print button!!!!
-
 	getInitialState: function() {
 		return {
 //			'selectedOTPs': [],
