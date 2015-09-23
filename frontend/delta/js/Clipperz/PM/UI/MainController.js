@@ -441,7 +441,6 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		deferredResult.addMethod(this, 'refreshUI');
 		deferredResult.addMethod(unlockPage, 'setProps', {'disabled': false});
 		deferredResult.addMethod(unlockPage, 'resetUnlockForm');
-//		deferredResult.addMethod(this, 'resetLockTimeout');
 		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'enableLock');
 		deferredResult.addMethod(overlay, 'done', "", 0.5);
 
@@ -1218,10 +1217,8 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			};
 		}
 		
-		if (extraProperties != null) {
-			result = MochiKit.Base.update(result, extraProperties);
-		}
-//console.log("MainController.pageProperties", result);
+		result = MochiKit.Base.update(result, extraProperties);
+
 		return result;
 	},
 	
