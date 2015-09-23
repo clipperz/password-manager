@@ -127,11 +127,15 @@ Clipperz.PM.UI.Components.Cards.PasswordGeneratorClass = React.createClass({
 		});
 	},
 	
+	handleFormSubmit: function (anEvent) {
+		anEvent.preventDefault();
+	},
+
 	changeStateWithTargetValue: function (aKey, shouldUpdatePasswordValue) {
 		var	self = this;
 		return function (anEvent) {
 			var	newState = {};
-			
+
 			newState[aKey] = anEvent.target.value;
 			self.setState(newState);
 			
@@ -174,7 +178,7 @@ Clipperz.PM.UI.Components.Cards.PasswordGeneratorClass = React.createClass({
 		result = React.DOM.div({'className':'passwordGenerator'}, [
 			React.DOM.div({'className':'passwordGeneratorMask', 'onClick':this.props['closeClallback']}),
 			React.DOM.div({'className':'passwordGeneratorBaloon'}, [
-				React.DOM.form({}, [
+				React.DOM.form({'onSubmit':this.handleFormSubmit}, [
 					React.DOM.div({'className':'optionsWrapper'}, [
 						React.DOM.header({}, [
 							React.DOM.div({'className':'button', 'onClick':this.toggleOptions}, "options")
