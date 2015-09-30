@@ -71,7 +71,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.PreferencesClass = React.createClass({
 		return MochiKit.Base.bind(function (anEvent) {
 			var	value = anEvent.target.value;
 
-console.log("HANDLE KEY DOWN", anEvent, anEvent.keyCode, value);
+// console.log("HANDLE KEY DOWN", anEvent, anEvent.keyCode, value);
 			if (anEvent.target.defaultValue != value) {
 				switch (anEvent.keyCode) {
 					case  9: // tab
@@ -80,7 +80,7 @@ console.log("HANDLE KEY DOWN", anEvent, anEvent.keyCode, value);
 						anEvent.target.defaultValue = anEvent.target.value;
 						break;
 					case 27: // escape
-console.log("ESCAPE");
+// console.log("ESCAPE");
 						anEvent.target.value = anEvent.target.defaultValue;
 						break;
 				}

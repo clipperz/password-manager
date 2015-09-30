@@ -68,6 +68,7 @@ Clipperz.PM.UI.MainController = function() {
 		'doLogin', 'registerNewUser', 'showRegistrationForm', 'goBack',
 		'logout',
 		'enableLock', 'disableLock', 'unlock',
+		'updatePIN', 'disablePIN', 'forcePassphraseLogin', 'forcePassphraseUnlock',
 		'changePassphrase', 'deleteAccount',
 		/*'updateUserPreferences',*/ 'setPreference',
 		'updateOTPListAndDetails', 'createNewOTP', 'deleteOTPs', 'changeOTPLabel',
@@ -328,6 +329,16 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		MochiKit.Async.callLater(0.5, MochiKit.Base.method(registrationPage, 'setInitialFocus'));
 	},
 
+	forcePassphraseLogin_handler: function() {
+		this.pages()['loginPage'].setProps({'forceCredentials': true});
+		MochiKit.Async.callLater(0.1, MochiKit.Base.method(this.pages()['loginPage'], 'setInitialFocus'));
+	},
+
+	forcePassphraseUnlock_handler: function() {
+		this.pages()['unlockPage'].setProps({'forceCredentials': true});
+		MochiKit.Async.callLater(0.1, MochiKit.Base.method(this.pages()['unlockPage'], 'setInitialFocus'));
+	},
+
 	//=========================================================================
 
 	doLogin_handler: function (event) {
@@ -411,35 +422,57 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		return deferredResult;
 	},
 
-	unlock_handler: function(aPassphrase) {
+	unlock_handler: function(aCredential, aCredentialType) {
 		var deferredResult;
+		var passphrase;
 
 		var user = this.user();
 		var unlockPage = this.pages()['unlockPage'];
 		var overlay = this.overlay();
-		
+
+		passphrase = (aCredentialType=='PIN') ? Clipperz.PM.PIN.credentialsWithPIN(aCredential)['passphrase'] : aCredential;
+
 		overlay.show("validating…");
 		deferredResult = new Clipperz.Async.Deferred('MainController.unlock_handler', {trace:false});
 		deferredResult.addMethod(unlockPage, 'setProps', {'disabled': true});
 
-		deferredResult.addMethod(user, 'unlock', function() { return MochiKit.Async.succeed(aPassphrase); });
-		deferredResult.addErrback(function (aValue) {
+		deferredResult.addMethod(user, 'unlock', function() { return MochiKit.Async.succeed(passphrase); });
+		deferredResult.addErrback(MochiKit.Base.bind(function (aValue) {
 			var innerDeferredResult;
+			var errorMessage;
+
+			errorMessage = 'failed';
+			if (aCredentialType=='PIN') {
+				var attemptsLeft = Clipperz.PM.PIN.recordFailedAttempt();
+
+				if (attemptsLeft == -1) {
+					errorMessage = 'PIN resetted';
+				}
+			}
 
 			innerDeferredResult = new Clipperz.Async.Deferred('MainController.unlock_handler <incorrect passphrase>', {trace:false});
-			innerDeferredResult.addMethod(unlockPage, 'setProps', {'disabled': false});
+			innerDeferredResult.addMethod(unlockPage, 'setProps', {
+				'disabled': false,
+				'mode': this.loginMode(),
+			});
 			innerDeferredResult.addMethod(unlockPage, 'setInitialFocus');
-			innerDeferredResult.addMethod(overlay, 'failed', "", 1);
+			innerDeferredResult.addMethod(overlay, 'failed', errorMessage, 1);
 			innerDeferredResult.addCallback(MochiKit.Async.fail, aValue);
 			innerDeferredResult.callback();
 
 			return aValue;
-		});
+		}, this));
 
+		if (aCredentialType=='PIN') {
+			deferredResult.addMethod(Clipperz.PM.PIN, 'resetFailedAttemptCount');
+		}
 		deferredResult.addMethod(this, 'updateUserPreferences');
 		deferredResult.addMethod(this, 'moveInPage', this.currentPage(), 'mainPage');
 		deferredResult.addMethod(this, 'refreshUI');
-		deferredResult.addMethod(unlockPage, 'setProps', {'disabled': false});
+		deferredResult.addMethod(unlockPage, 'setProps', {
+			'disabled': false,
+			'forceCredentials': false,
+		});
 		deferredResult.addMethod(unlockPage, 'resetUnlockForm');
 		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'enableLock');
 		deferredResult.addMethod(overlay, 'done', "", 0.5);
@@ -448,7 +481,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 		return deferredResult;
 
-		// this.user().setPassphraseFunction(function(){return aPassphrase;});
+		// this.user().setPassphraseFunction(function(){return passphrase;});
 // TODO: check if passphrase is correct by try/catch on decrypting something
 		// this.moveOutPage(this.currentPage(), 'mainPage');
 // TODO: check why the unlock form keeps the value stored (doesn't happen with the login form...)
@@ -816,12 +849,29 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		MochiKit.Signal.disconnectAll(Clipperz.Signal.NotificationCenter, 'lock');
 	},
 	
+	updatePIN_handler: function(aPIN) {
+		return Clipperz.Async.callbacks("MainController.updatePIN_handler", [
+			MochiKit.Base.method(this.overlay(), 'show', "updating …", true),
+			MochiKit.Base.method(Clipperz.PM.PIN, 'updatePin', this.user(), aPIN),
+			MochiKit.Base.method(this.overlay(), 'done', "saved", 1)
+		], {trace:false});
+	},
+
+	disablePIN_handler: function() {
+		return Clipperz.Async.callbacks("MainController.disablePIN_handler", [
+			MochiKit.Base.method(this.overlay(), 'show', "disabling …", true),
+			MochiKit.Base.method(Clipperz.PM.PIN, 'disablePin'),
+			MochiKit.Base.method(this.overlay(), 'done', "saved", 1)
+		], {trace:false});
+	},
+
 	resetLockTimeout: function () {
 		if (this.user()) {
 			return Clipperz.Async.callbacks("MainController.resetLockTimeout", [
 				MochiKit.Base.method(this.user(), 'getPreference', 'lock'),
 				MochiKit.Base.bind(function (someLockInfo) {
 					if (this._lockTimeout) {
+// console.log("clearing previous lock timer");
 						clearTimeout(this._lockTimeout);
 					}
 
@@ -990,7 +1040,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			errorMessage = "failure";
 		} else {
 			if ('pin' in anEvent) {
-				errorCount = Clipperz.PM.PIN.recordFailedAttempt();
+				var errorCount = Clipperz.PM.PIN.recordFailedAttempt();
 				if (errorCount == -1) {
 					errorMessage = "PIN resetted";
 				}
@@ -1170,7 +1220,8 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			'style':			this.mediaQueryStyle(),
 			'isTouchDevice':	this.isTouchDevice(),
 			'isDesktop':		this.isDesktop(),
-			'hasKeyboard':		this.hasKeyboard()
+			'hasKeyboard':		this.hasKeyboard(),
+			'PIN':				Clipperz.PM.PIN
 		};
 	},
 	
@@ -1186,11 +1237,15 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 		if (aPageName == 'loginPage') {
 			extraProperties = {
-				'mode':								'CREDENTIALS',
+				'mode':								this.loginMode(),
 				'isNewUserRegistrationAvailable':	Clipperz.PM.Proxy.defaultProxy.canRegisterNewUsers(),
 				'disabled':							false,
 				'proxyInfo':						this.proxyInfo(),
 			};
+		} else if (aPageName == 'unlockPage') {
+			extraProperties = {
+				'mode':	this.loginMode(),
+			}
 		} else if (aPageName == 'registrationPage') {
 		} else if (aPageName == 'mainPage') {
 			extraProperties = {

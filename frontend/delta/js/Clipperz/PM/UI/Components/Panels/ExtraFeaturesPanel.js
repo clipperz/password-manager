@@ -162,20 +162,14 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 //									React.DOM.p({}, "Manage your OTPs.")
 //								])
 							]),
-/*
+
 							React.DOM.li({'key':'account_3', 'onClick':this.toggleExtraFeatureComponent('DevicePIN')}, [
 								React.DOM.h2({}, "Device PIN"),
-								React.DOM.div({}, [
-									React.DOM.p({}, "Configure a PIN that will allow to get access to your cards, but only on this device.")
-								])
+//								React.DOM.div({}, [
+//									React.DOM.p({}, "Configure a PIN that will allow to get access to your cards, but only on this device.")
+//								])
 							]),
-							React.DOM.li({'key':'account_4'}, [
-								React.DOM.h2({}, "Preferences"),
-								React.DOM.div({}, [
-									React.DOM.p({}, "")
-								])
-							]),
-*/
+
 							React.DOM.li({'key':'account_5', 'onClick':this.toggleExtraFeatureComponent('DeleteAccount'), 'className':(this.state['extraFeatureComponentName'] == 'DeleteAccount') ? 'selected' : ''}, [
 								React.DOM.h2({}, "Delete account"),
 //								React.DOM.div({}, [

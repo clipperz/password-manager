@@ -41,6 +41,12 @@ Clipperz.PM.UI.Components.Pages.UnlockPageClass = React.createClass({
 
 	//=========================================================================
 
+	mode: function() {
+		return (this.props['mode'] == 'CREDENTIALS' || this.props['forceCredentials']) ? 'CREDENTIALS' : 'PIN';
+	},
+
+	//=========================================================================
+
 	handleChange: function (anEvent) {
 		var newState = {};
 
@@ -49,27 +55,58 @@ Clipperz.PM.UI.Components.Pages.UnlockPageClass = React.createClass({
 		this.setState(newState);
 	},
 
+	handlePinChange: function(anEvent) {
+		if (anEvent.target.value.length == this.props['PIN'].DEFAULT_PIN_LENGTH) {
+			this.submitPIN();
+		}
+
+		this.setState({
+			'pin': anEvent.target.value
+		})
+	},
+
 	//=========================================================================
 
 	handlePassphraseSubmit: function (event) {
 		event.preventDefault();
 
 		this.refs['passphrase'].getDOMNode().blur();
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'unlock', this.refs['passphrase'].getDOMNode().value);
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'unlock', this.refs['passphrase'].getDOMNode().value, 'PASSPHRASE');
+	
+		this.resetUnlockForm();
+	},
+
+	submitPIN: function() {
+		this.refs['pin'].getDOMNode().blur();
+
+		var pin = this.refs['pin'].getDOMNode().value;
+
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'unlock', pin, 'PIN');
+
+		this.resetUnlockForm();
 	},
 
 	resetUnlockForm: function() {
-		this.refs['passphrase'].getDOMNode().value = '';
-		this.replaceState(this.getInitialState());
+		if (this.mode() == 'CREDENTIALS') {
+			this.refs['passphrase'].getDOMNode().value = '';
+			this.refs['passphrase'].getDOMNode().blur();
+		} else if (this.mode() == 'PIN') {
+			this.refs['pin'].getDOMNode().value = '';
+			this.refs['pin'].getDOMNode().blur();
+		}
+	},
+
+	forcePassphraseUnlock: function() {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'forcePassphraseUnlock');
 	},
 
 	//-------------------------------------------------------------------------
 
 	setInitialFocus: function () {
-		if (this.props.mode == 'PIN') {
-			this.refs['pin'].getDOMNode().select();
+		if (this.mode() == 'PIN') {
+			this.refs['pin'].getDOMNode().focus();
 		} else {
-			this.refs['passphrase'].getDOMNode().select();
+			this.refs['passphrase'].getDOMNode().focus();
 		}
 	},
 
@@ -91,6 +128,35 @@ Clipperz.PM.UI.Components.Pages.UnlockPageClass = React.createClass({
 				]);
 	},
 
+	pinForm: function () {
+		return	React.DOM.form({
+			'className':'pinForm pin',
+			'autoComplete':'off',
+		}, [
+				React.DOM.div({'key':'pinFormDiv'},[
+					React.DOM.label({'htmlFor':'pin'}, "Enter your PIN"),
+					React.DOM.input({
+						'type':'tel',
+						'name':'pin',
+						'ref':'pin',
+						'id': 'pinValue',
+						'className': 'pinValue',
+						'placeholder':"PIN",
+						'key':'pin',
+						'autoCapitalize':'none',
+						'value': this.state['pin'],
+						'onChange': this.handlePinChange,
+					}),
+					// React.DOM.div({'className': 'pinContainer'}, this.pinFormDigits()),
+					React.DOM.a({
+						'className': 'passphraseLogin',
+						'onClick': this.forcePassphraseUnlock,
+					}, "Unlock with passphrase")
+				]),
+				// React.DOM.button({'key':'submitButton', 'type':'submit', 'disabled':this.props.disabled, 'className':'button'}, "login")
+			]);
+	},
+
 	shouldEnableUnlockButton: function () {
 		var result;
 
@@ -103,6 +169,10 @@ Clipperz.PM.UI.Components.Pages.UnlockPageClass = React.createClass({
 				!this.props['disabled'];
 	},
 
+	// componentDidUpdate: function() {
+	// 	this.setInitialFocus();
+	// },
+
 	render: function() {
 		return React.DOM.div({'key':'unlockForm', 'className':'unlockForm content ' + this.props['style']}, [
 			Clipperz.PM.UI.Components.AccountStatus(MochiKit.Base.update(this.props['proxyInfo'])),
@@ -114,7 +184,7 @@ Clipperz.PM.UI.Components.Pages.UnlockPageClass = React.createClass({
 			]),
 			React.DOM.div({'key':'formWrapper', 'className':'form body'}, [
 				React.DOM.div({'className':'bodyContent'}, [
-					this.props.mode == 'PIN' ? this.pinForm() : this.loginForm(),
+					this.mode() == 'PIN' ? this.pinForm() : this.loginForm(),
 				]),
 			]),
 			React.DOM.footer({'key':'footer'}, [

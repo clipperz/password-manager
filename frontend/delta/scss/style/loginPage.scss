@@ -305,6 +305,43 @@ refer to http://www.clipperz.com.
 					}
 				}
 			}
+
+
+			.pinForm {
+/*
+				.pinContainer {
+					display: flex;
+					flex-direction: row;
+					
+					justify-content: space-between;
+
+					.pinDigit {
+						width: 15%;
+					}
+				}
+*/
+				label {
+					display: inherit;
+					text-align: left;
+				}
+
+				.pinValue {
+					font-family: clipperz-password;
+
+					@include placeholder {
+						font-family: clipperz-font;
+					}
+				}
+
+				.passphraseLogin {
+					font-size: .9em;
+					color: $clipperz-orange;
+					text-decoration: underline;
+					cursor:pointer;
+				}
+
+			}
+
 		}
 
 		.other {

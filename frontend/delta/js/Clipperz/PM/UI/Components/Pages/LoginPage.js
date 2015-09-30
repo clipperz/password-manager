@@ -45,8 +45,14 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 		return {
 			username: '',
 			passphrase: '',
-			pin: ''
+			pin: '',
 		};
+	},
+
+	//=========================================================================
+
+	mode: function() {
+		return (this.props['mode'] == 'CREDENTIALS' || this.props['forceCredentials']) ? 'CREDENTIALS' : 'PIN';
 	},
 
 	//=========================================================================
@@ -61,7 +67,7 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 	},
 
 	pollForChanges: function() {
-		if (this.props.mode == 'CREDENTIALS') {
+		if (this.mode() == 'CREDENTIALS') {
 			var newState;
 
 			var usernameValue = this.refs['username'].getDOMNode().value;
@@ -102,8 +108,8 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 
 		return	(
 					((this.state['username'] != '') && (this.state['passphrase'] != '')) 
-					||
-					(this.state['pin'] != '')
+//					||
+//					(this.state['pin'] != '')
 				)
 				&&
 				!this.props['disabled'];
@@ -121,9 +127,7 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 				]);
 	},
 
-	handlePINSubmit: function (event) {
-		event.preventDefault();
-
+	submitPIN: function (event) {
 		this.refs['pin'].getDOMNode().blur();
 
 		var credentials = {
@@ -133,19 +137,82 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'doLogin', credentials);
 	},
 
+	forcePassphraseLogin: function() {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'forcePassphraseLogin');
+	},
+
+	handlePinChange: function(anEvent) {
+		if (anEvent.target.value.length == Clipperz.PM.PIN.DEFAULT_PIN_LENGTH) {
+			this.submitPIN();
+		}
+
+		this.setState({
+			'pin': anEvent.target.value
+		})
+	},
+
+	// handlePinFocus: function(anEvent) {
+	// 	// anEvent.preventDefault();
+	// 	this.refs['pin'].getDOMNode().focus();
+	// },
+
+	// pinFormDigits: function() {
+	// 	var i;
+	// 	var result;
+
+	// 	result = [];
+	// 	for (i = 0; i<Clipperz.PM.PIN.DEFAULT_PIN_LENGTH; i++) {
+	// 		result.push(React.DOM.input({
+	// 			'key': 'pin-digit-'+i,
+	// 			'ref': 'pin-digit-'+i,
+	// 			'name': 'pin-digit-'+i,
+	// 			'className': 'pinDigit',
+	// 			'readOnly': true,
+	// 			'type': 'text',
+	// 			'value': this.state['pin'][i],
+	// 			'onFocus': this.handlePinFocus,
+	// 		}));
+	// 	}
+
+	// 	return result;
+	// },
+
 	pinForm: function () {
-		return	React.DOM.form({'className':'pinForm pin', 'autoComplete':'off', 'onChange':this.handleChange, 'onSubmit':this.handlePINSubmit}, [
-					React.DOM.div({'key':'pinFormDiv'},[
-						React.DOM.label({'for':'pin'}, "pin"),
-						React.DOM.input({'type':'text', 'name':'pin', 'ref':'pin', placeholder:"PIN", 'key':'pin', 'autocapitalize':'none'})
-					]),
-					React.DOM.button({'key':'submitButton', 'type':'submit', 'disabled':this.props.disabled, 'className':'button'}, "login")
-				]);
+		return	React.DOM.form({
+			'className':'pinForm pin',
+			'autoComplete':'off',
+			'onSubmit': function(anEvent) {anEvent.preventDefault();},
+		}, [
+				React.DOM.div({'key':'pinFormDiv'},[
+					React.DOM.label({'htmlFor':'pin'}, "Enter your PIN"),
+					React.DOM.input({
+						'type':'tel',
+						'name':'pin',
+						'ref':'pin',
+						'id': 'pinValue',
+						'className': 'pinValue',
+						'placeholder':"PIN",
+						'key':'pin',
+						'autoCapitalize':'none',
+						'value': this.state['pin'],
+						'onChange': this.handlePinChange,
+					}),
+					// React.DOM.div({'className': 'pinContainer'}, this.pinFormDigits()),
+					React.DOM.a({
+						'className': 'passphraseLogin',
+						'onClick': this.forcePassphraseLogin,
+					}, "Login with passphrase")
+				]),
+				// React.DOM.button({'key':'submitButton', 'type':'submit', 'disabled':this.props.disabled, 'className':'button'}, "login")
+			]);
 	},
 
 	setInitialFocus: function () {
-		if (this.props.mode == 'PIN') {
-			this.refs['pin'].getDOMNode().select();
+		if (this.mode() == 'PIN') {
+			this.setState({
+				'pin': ''
+			})
+			this.refs['pin'].getDOMNode().focus();
 		} else {
 			if (this.refs['username'].getDOMNode().value == '') {
 				this.refs['username'].getDOMNode().focus();
@@ -162,7 +229,6 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 	},
 
 	render: function() {
-//console.log("LOGIN PAGE", this.props);
 //		var registrationLink =	React.DOM.footer({'key':'registrationLink', 'className':'registrationLink'}, [
 //									React.DOM.a({'key':'signup', 'onClick':this.handleRegistrationLinkClick}, "Sign up")
 //								]);
@@ -183,7 +249,7 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 			]),
 			React.DOM.div({'key':'formWrapper', 'className':'form body'}, [
 				React.DOM.div({'className':'bodyContent'}, [
-					this.props['mode'] == 'PIN' ? this.pinForm() : this.loginForm(),
+					this.mode() == 'PIN' ? this.pinForm() : this.loginForm(),
 				]),
 			]),
 			this.props['isNewUserRegistrationAvailable'] ? registrationLink : null,

@@ -4,32 +4,32 @@
 
 ##What does Clipperz do?
 
-Clipperz is an online vault where you can store confidential data without worrying about security. It can be used to save and manage passwords, private notes, burglar alarm codes, credit and debit card details, PINs, software keys, …
-Since passwords are the most common type of private information that you need to protect, we have added a great deal of functionality to make Clipperz a great [online password manager][home] thus solving the “password fatigue” problem.
+Clipperz is a smart online vault where you can store confidential data without worrying about security. It can be used to save and manage passwords, private notes, burglar alarm codes, credit and debit card details, PINs, software keys, …
+Since passwords are the most common type of private information that you need to protect, we have added a great deal of functionality to make Clipperz a great [online password manager][home]. Read more on the [Clipperz website][home].
 
 **Clipperz makes the Internet the most convenient and safe place to keep you most precious and sensitive data.**
-
-Read more on the [Clipperz website][home].
 
 [home]: https://clipperz.is
 
 ## Why an open source version of Clipperz?
 
-Because we want to enable as many people as possible to play with our code. So that they can start trusting it. The code, not its developers.
+Because we want to enable as many people as possible to play with the very same code that is powering [Clipperz online service][app]. The goal is building trust. Trust in the code, not in its developers!
 
-In order to allow anyone not just to inspect the source code, but also to analyze the traffic it generates between client and server, we made available this open source version as an easy way to locally deploy the whole password manager web app on your machine. You can choose among the available backends (PHP/MySQL, Python/AppEngine, …) or [contribute][CA] your own. 
-
+So we released the frontend code under an open source license. That was not enough. In order to allow anyone not just to inspect the code running in the user browser, but also to analyze the traffic it generates between the client (the user's browser) and the Clipperz server, we also made available several backends that are easy to deploy.  
+You can choose among the available backends (PHP/MySQL, Python/AppEngine, …) or [contribute][CA] your own.  
 Whatever is your motivation for playing with Clipperz code, we would love to hear from you: [get in contact][contact]!
 
-## Security warning
+# Security warning
 
-The open source version of Clipperz is suitable for **testing and educational purposes only**. Do not use it as an actual password management solution.
+The open source version of Clipperz is suitable for **testing and educational purposes only**.
 
 As an example, the current PHP backend lacks several critical capabilities such as bot protection and concurrent sessions management, moreover it could be vulnerable to serious threats (SQL injections, remote code execution, ...).
 
-[CA]: https://clipperz.is/open_source/contributor_agreement
-[contact]: https://clipperz.is/about/contacts
-[clipperz]: https://clipperz.is
+Please note: the actual Clipperz service use a far more robust backend, but the communication protocol between backend and frontend is of course identical.
+
+[app]: https://clipperz.is/app/
+[CA]: /open_source/contributor_agreement/
+[contact]: /about/contacts/
 
 
 ## Donations
@@ -64,8 +64,8 @@ In order to build the deployable version, you need to invoke the following comma
 
     git clone git@github.com:clipperz/password-manager.git
     cd password-manager
-    ./scripts/build install --backends php python --frontends beta gamma
-	
+    ./scripts/build install --backends php python --frontends delta
+  
 The output will be available in the `target` folder, with a separate folder for each backend (currently the available options are `php` and `python`).
 The script, invoked with these parameters, will build both the full version (`install` -> index.html) and the debug version (index_debug.html) of the specified frontends.
 
@@ -87,14 +87,12 @@ The only file that needs to be `build`, and not read directly from the file syst
 
 In order to build this file, the following command should be executed:
 
-	./scripts/build --frontends beta gamma gamma.mobile --backends dev
+  ./scripts/build --frontends delta --backends dev
 
 
-Once the index.html files have been built (one for each frontend) and a backend is running and has been correctly configured in the proxy script, it is possible to access the different versions of the application at the following URLs:
+Once the index.html file has been built and a backend is running and has been correctly configured in the proxy script, it is possible to access the application at the following URL:
 
-- `http://localhost:8888/beta/index.html`
-- `http://localhost:8888/gamma/index.html`
-- `http://localhost:8888/gamma/index.mobile.html`
+- `http://localhost:8888/delta/index.html`
 
 
 ## Installing

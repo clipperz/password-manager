@@ -251,6 +251,10 @@ refer to http://www.clipperz.com.
 				p {
 					padding: 10px 0px;
 				}
+
+				strong {
+					font-weight: bold;
+				}
 			}
 
 			form {
@@ -706,6 +710,25 @@ refer to http://www.clipperz.com.
 			}
 		}
 		
+		.devicePIN {
+			.pinDigit {
+				display: inline-block;
+				width: 2em;
+				margin-right: 0.5em;
+				text-align: center;
+			}
+
+			.pinValue {
+				display: inline-block;
+				width: 4em;
+				margin-right: 1em;
+			}
+
+			:enabled {
+				border:2px solid $clipperz-orange;
+			}
+		}
+
 		.dataImport {
 			
 			.content {

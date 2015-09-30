@@ -293,7 +293,7 @@ MochiKit.Base.update(Clipperz.PM.UI.ImportContext.prototype, {
 		if (isUploadingFile) {
 			var isExportContent;
 			
-			isExportContent = new RegExp('.*<textarea>(.*)<\/textarea>.*', 'g');
+			isExportContent = new RegExp('[\\s\\S]*<textarea>([\\s\\S]*)<\/textarea>[\\s\\S]*', 'g');
 			if (isExportContent.test(aValue)) {
 				textarea = MochiKit.DOM.TEXTAREA();
 				textarea.innerHTML = aValue.replace(isExportContent, '$1');

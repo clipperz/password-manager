@@ -39,18 +39,18 @@ MochiKit.Base.update(Clipperz.PM.PIN, {
 		return this.__repr__();
 	},
 
-	'CREDENTIALS':   'CLIPPERZ.CREDENTIALS',
-	'FAILURE_COUNT': 'CLIPPERZ.FAILED_LOGIN_COUNT',
+	'ENCRYPTED_PASSPHRASE_LENGTH': 1024,
+	'DEFAULT_PIN_LENGTH': 5,
 	'ALLOWED_RETRY': 3,
+
+	'LS_USERNAME':   'clipperz.pin.username',
+	'LS_PASSPHRASE':   'clipperz.pin.passphrase',
+	'LS_FAILURE_COUNT': 'clipperz.pin.failureCount',
 
 	//-------------------------------------------------------------------------
 
 	'isSet': function () {
-		return (this.storedCredentials() != null);
-	},
-
-	'storedCredentials': function () {
-		return localStorage[this.CREDENTIALS];
+		return (localStorage[this.LS_USERNAME] && localStorage[this.LS_PASSPHRASE]);
 	},
 
 	//-------------------------------------------------------------------------
@@ -59,7 +59,7 @@ MochiKit.Base.update(Clipperz.PM.PIN, {
 		var	failureCount;
 		var	result;
 
-		failureCount = localStorage[this.FAILURE_COUNT];
+		failureCount = localStorage[this.LS_FAILURE_COUNT];
 
 		if (failureCount == null) {
 			failureCount = 0
@@ -68,10 +68,10 @@ MochiKit.Base.update(Clipperz.PM.PIN, {
 		failureCount ++;
 
 		if (failureCount < this.ALLOWED_RETRY) {
-			localStorage[this.FAILURE_COUNT] = failureCount;
+			localStorage[this.LS_FAILURE_COUNT] = failureCount;
 			result = failureCount;
 		} else {
-			this.removeLocalCredentials();
+			this.disablePin();
 			result = -1;
 		}
 
@@ -79,11 +79,11 @@ MochiKit.Base.update(Clipperz.PM.PIN, {
 	},
 
 	'resetFailedAttemptCount': function () {
-		localStorage.removeItem(this.FAILURE_COUNT);
+		localStorage.removeItem(this.LS_FAILURE_COUNT);
 	},
 
 	'failureCount': function () {
-		return localStorage[this.FAILURE_COUNT];
+		return localStorage[this.LS_FAILURE_COUNT];
 	},
 
 	//-------------------------------------------------------------------------
@@ -92,37 +92,51 @@ MochiKit.Base.update(Clipperz.PM.PIN, {
 		return Clipperz.Crypto.SHA.sha256(new Clipperz.ByteArray(aPIN));
 	},
 
-	'credentialsWithPIN': function (aPIN) {
-		var	byteArrayValue;
-		var decryptedValue;
-		var	result;
-
-		byteArrayValue = (new Clipperz.ByteArray()).appendBase64String(localStorage[this.CREDENTIALS]);
-		decryptedValue = Clipperz.Crypto.AES.decrypt(this.deriveKeyFromPin(aPIN), byteArrayValue).asString();
-		try {
-			result = Clipperz.Base.evalJSON(decryptedValue);
-		} catch (error) {
-			result = {'username':'fakeusername', 'passphrase':'fakepassphrase'};
+	'credentialsWithPIN': function(aPIN) {
+		return {
+			'username': localStorage[this.LS_USERNAME],
+			'passphrase': this.decryptPassphraseWithPin(aPIN, localStorage[this.LS_PASSPHRASE]),
 		}
-
-		return result;
 	},
 
-	'setCredentialsWithPIN': function (aPIN, someCredentials) {
-		var	encodedValue;
-		var	byteArrayValue;
-		var encryptedValue;
+	'encryptPassphraseWithPin': function(aPIN, aPassphrase) {
+		var byteArrayPassphrase = new Clipperz.ByteArray(aPassphrase);
+//		var hashedPassphrase = Clipperz.Crypto.SHA.sha_d256(ba) // ??? why would i hash the passphrase???
+		var randomBytesLength = this.ENCRYPTED_PASSPHRASE_LENGTH-byteArrayPassphrase.length()-1;
+		var randomBytes = Clipperz.Crypto.PRNG.defaultRandomGenerator().getRandomBytes(randomBytesLength);
+		var derivedKey = this.deriveKeyFromPin(aPIN);
 
-		encodedValue = Clipperz.Base.serializeJSON(someCredentials);
-		byteArrayValue = new Clipperz.ByteArray(encodedValue);
-		encryptedValue = Clipperz.Crypto.AES.encrypt(this.deriveKeyFromPin(aPIN), byteArrayValue).toBase64String();
+		byteArrayPassphrase.appendByte(0);
+		byteArrayPassphrase.appendBytes(randomBytes.arrayValues());
 
-		localStorage[this.CREDENTIALS] = encryptedValue;
+		return Clipperz.Crypto.AES.encrypt(derivedKey, byteArrayPassphrase).toBase64String();
 	},
 
-	'removeLocalCredentials': function () {
-		localStorage.removeItem(this.CREDENTIALS);
-		localStorage.removeItem(this.FAILURE_COUNT);
+	'decryptPassphraseWithPin': function(aPIN, anEncryptedPassphrase) {
+		var byteArrayEncryptedPassphrase = (new Clipperz.ByteArray()).appendBase64String(anEncryptedPassphrase);
+		var derivedKey = this.deriveKeyFromPin(aPIN);
+		var byteArrayPassphrase = Clipperz.Crypto.AES.decrypt(derivedKey, byteArrayEncryptedPassphrase);
+		var arrayPassphrase = byteArrayPassphrase.arrayValues();
+		var slicedArrayPassphrase = arrayPassphrase.slice(0, arrayPassphrase.indexOf(0));
+
+		return new Clipperz.ByteArray(slicedArrayPassphrase).asString();
+	},
+
+	'updatePin': function(aUser, aPIN) {
+		return Clipperz.Async.callbacks("Clipperz.PM.PIN", [
+			MochiKit.Base.method(aUser, 'username'),
+			MochiKit.Base.method(localStorage, 'setItem', this.LS_USERNAME),
+			MochiKit.Base.method(aUser, 'getPassphrase'),
+			MochiKit.Base.method(this, 'encryptPassphraseWithPin', aPIN),
+			MochiKit.Base.method(localStorage, 'setItem', this.LS_PASSPHRASE),
+			MochiKit.Base.method(localStorage, 'setItem', this.LS_FAILURE_COUNT, 0),
+		], {trace:false});
+	},
+
+	'disablePin': function () {
+		localStorage.removeItem(this.LS_USERNAME);
+		localStorage.removeItem(this.LS_PASSPHRASE);
+		localStorage.removeItem(this.LS_FAILURE_COUNT);
 	},
 
 	'isLocalStorageSupported': function() {

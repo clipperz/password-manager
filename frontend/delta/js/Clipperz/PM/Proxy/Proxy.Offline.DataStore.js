@@ -403,7 +403,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 				);
 				result['M2'] = M2;
 				result['accountInfo'] = aConnection['userData']['accountInfo'];
-				result['lock'] = '<<LOCK>>';
+				result['lock'] = (aConnection['userData']['lock']) ? aConnection['userData']['lock'] : '<<LOCK>>';
 			} else {
 				throw new Error("Client checksum verification failed! Expected <" + M1 + ">, received <" + someParameters.parameters.M1 + ">.", "Error");
 			}
