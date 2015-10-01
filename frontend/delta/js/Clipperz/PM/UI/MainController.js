@@ -75,7 +75,7 @@ Clipperz.PM.UI.MainController = function() {
 		'importCards',
 		'downloadExport',
 		'updateProgress',
-		'toggleSelectionPanel', 'toggleSettingsPanel',
+		'toggleSelectionPanel', 'hideSelectionPanel', 'toggleSettingsPanel',
 		'matchMediaQuery', 'unmatchMediaQuery',
 		'selectAllCards', 'selectRecentCards', 'search', 'tagSelected', 'selectUntaggedCards',
 		'refreshCardEditDetail',
@@ -1339,6 +1339,12 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		}
 	},
 
+	hideSelectionPanel_handler: function (anEvent) {
+		if (this.isSelectionPanelOpen()) {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSelectionPanel');
+		}
+	},
+
 	isSettingsPanelOpen: function () {
 		return this._isSettingsPanelOpen;
 	},
@@ -1881,12 +1887,14 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		this.setPageProperties('mainPage', 'searchTerm', '');
 		this.resetSelectedCard();
 		this.setFilter('ALL');
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'hideSelectionPanel');
 		return this.refreshSelectedCards();
 	},
 	
 	selectRecentCards_handler: function () {
 		this.resetSelectedCard();
 		this.setFilter('RECENT');
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'hideSelectionPanel');
 		return this.refreshSelectedCards();
 	},
 
@@ -1906,12 +1914,14 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	tagSelected_handler: function (aTag) {
 		this.resetSelectedCard();
 		this.setFilter('TAG', aTag);
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'hideSelectionPanel');
 		return this.refreshSelectedCards();
 	},
 
 	selectUntaggedCards_handler: function () {
 		this.resetSelectedCard();
 		this.setFilter('UNTAGGED');
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'hideSelectionPanel');
 		return this.refreshSelectedCards();
 	},
 	
