@@ -63,7 +63,7 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 		var newState = {};
 
 		newState[refName] = anEvent.target.value;
-	    this.setState(newState);
+		this.setState(newState);
 	},
 
 	pollForChanges: function() {
@@ -233,11 +233,7 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 //									React.DOM.a({'key':'signup', 'onClick':this.handleRegistrationLinkClick}, "Sign up")
 //								]);
 
-		var	registrationLink = React.DOM.div({'className':'other', 'key':'other'}, [
-			React.DOM.div({'className':'otherContent'}, [
-				React.DOM.a({'key':'signup', 'className':'registrationLink', 'onClick':this.handleRegistrationLinkClick}, "Sign up")
-			])
-		]);
+		var	registrationLink = React.DOM.a({'key':'signup', 'className':'registrationLink', 'onClick':this.handleRegistrationLinkClick}, "sign up");
 
 		return React.DOM.div({'key':'loginForm', 'className':'loginForm content ' + this.props['style']}, [
 			Clipperz.PM.UI.Components.AccountStatus(MochiKit.Base.update(this.props['proxyInfo'])),
@@ -250,11 +246,12 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 			React.DOM.div({'key':'formWrapper', 'className':'form body'}, [
 				React.DOM.div({'className':'bodyContent'}, [
 					this.mode() == 'PIN' ? this.pinForm() : this.loginForm(),
+					this.props['isNewUserRegistrationAvailable'] ? registrationLink : null,
 				]),
 			]),
-			this.props['isNewUserRegistrationAvailable'] ? registrationLink : null,
-			React.DOM.footer({'key':'footer'}, [
-				React.DOM.div({'className':'footerContent'}, [
+			React.DOM.div({'key':'afterBody', 'className':'afterBody'}),
+			React.DOM.div({'className':'other', 'key':'other'}, [
+				React.DOM.div({'className':'otherContent'}, [
 					React.DOM.div({'key':'links', 'className':'links'}, [
 						React.DOM.ul({}, [
 							React.DOM.li({'key':'about',   'onClick':this.showUrl('/about/')}, "About"),
@@ -262,6 +259,10 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 							React.DOM.li({'key':'privacy', 'onClick':this.showUrl('/privacy_policy/')}, "Privacy"),
 						])
 					]),
+				])
+			]),
+			React.DOM.footer({'key':'footer'}, [
+				React.DOM.div({'className':'footerContent'}, [
 					React.DOM.div({'key':'applicationVersion', 'className':'applicationVersion'}, [
 						React.DOM.span({'key':'applicationVersionLabel'}, "application version"),
 						React.DOM.a({'key':'applicationVersionLink', 'href':'https://github.com/clipperz/password-manager/commit/' + Clipperz_version, 'target':'github'}, Clipperz_version)

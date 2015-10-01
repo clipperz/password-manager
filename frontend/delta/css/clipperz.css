@@ -119,6 +119,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -132,6 +133,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -145,6 +147,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -158,6 +161,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -476,61 +480,73 @@ div.overlay {
 @-webkit-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-moz-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-ms-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-webkit-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-moz-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-ms-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-webkit-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @-moz-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @-ms-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 /*
@@ -1337,96 +1353,104 @@ div.help {
   z-index: 10;
   background-color: transparent; }
 
-#loginPage, #registrationPage, #unlockPage {
+#loginPage .content, #registrationPage .content, #unlockPage .content {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-direction: normal;
+  -webkit-box-orient: vertical;
+  -webkit-flex-direction: column;
+  -moz-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
   overflow: auto;
-  -webkit-overflow-scrolling: touch; }
-  #loginPage .content, #registrationPage .content, #unlockPage .content {
+  -webkit-overflow-scrolling: touch;
+  height: 100%; }
+  #loginPage .content .miscInfo, #registrationPage .content .miscInfo, #unlockPage .content .miscInfo {
+    -webkit-box-flex: 0;
+    -webkit-flex: 0;
+    -moz-box-flex: 0;
+    -moz-flex: 0;
+    -ms-flex: 0;
+    flex: 0; }
+  #loginPage .content header, #registrationPage .content header, #unlockPage .content header {
+    -webkit-box-flex: auto;
+    -webkit-flex: auto;
+    -moz-box-flex: auto;
+    -moz-flex: auto;
+    -ms-flex: auto;
+    flex: auto;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flexbox;
+    display: flex; }
+    #loginPage .content header .headerContent, #registrationPage .content header .headerContent, #unlockPage .content header .headerContent {
+      width: 100%; }
+  #loginPage .content .body, #registrationPage .content .body, #unlockPage .content .body {
+    -webkit-box-flex: none;
+    -webkit-flex: none;
+    -moz-box-flex: none;
+    -moz-flex: none;
+    -ms-flex: none;
+    flex: none;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flexbox;
+    display: flex; }
+    #loginPage .content .body .bodyContent, #registrationPage .content .body .bodyContent, #unlockPage .content .body .bodyContent {
+      -webkit-box-flex: auto;
+      -webkit-flex: auto;
+      -moz-box-flex: auto;
+      -moz-flex: auto;
+      -ms-flex: auto;
+      flex: auto;
+      margin-left: auto;
+      margin-right: auto; }
+  #loginPage .content .afterBody, #registrationPage .content .afterBody, #unlockPage .content .afterBody {
+    -webkit-box-flex: auto;
+    -webkit-flex: auto;
+    -moz-box-flex: auto;
+    -moz-flex: auto;
+    -ms-flex: auto;
+    flex: auto; }
+  #loginPage .content .other, #registrationPage .content .other, #unlockPage .content .other {
+    -webkit-box-flex: none;
+    -webkit-flex: none;
+    -moz-box-flex: none;
+    -moz-flex: none;
+    -ms-flex: none;
+    flex: none;
     display: -webkit-box;
     display: -webkit-flex;
     display: -moz-flex;
     display: -ms-flexbox;
     display: flex;
-    -webkit-box-direction: normal;
-    -webkit-box-orient: vertical;
-    -webkit-flex-direction: column;
-    -moz-flex-direction: column;
-    -ms-flex-direction: column;
-    flex-direction: column;
-    height: 100%; }
-    #loginPage .content .miscInfo, #registrationPage .content .miscInfo, #unlockPage .content .miscInfo {
-      -webkit-box-flex: 0;
-      -webkit-flex: 0;
-      -moz-box-flex: 0;
-      -moz-flex: 0;
-      -ms-flex: 0;
-      flex: 0; }
-    #loginPage .content header, #registrationPage .content header, #unlockPage .content header {
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    -webkit-align-items: center;
+    -moz-align-items: center;
+    align-items: center; }
+    #loginPage .content .other .otherContent, #registrationPage .content .other .otherContent, #unlockPage .content .other .otherContent {
       -webkit-box-flex: auto;
       -webkit-flex: auto;
       -moz-box-flex: auto;
       -moz-flex: auto;
       -ms-flex: auto;
       flex: auto;
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
-      display: flex; }
-      #loginPage .content header .headerContent, #registrationPage .content header .headerContent, #unlockPage .content header .headerContent {
-        width: 100%; }
-    #loginPage .content .body, #registrationPage .content .body, #unlockPage .content .body {
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
-      flex: auto;
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
-      display: flex; }
-      #loginPage .content .body .bodyContent, #registrationPage .content .body .bodyContent, #unlockPage .content .body .bodyContent {
-        margin-left: auto;
-        margin-right: auto; }
-    #loginPage .content .other, #registrationPage .content .other, #unlockPage .content .other {
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
-      flex: auto;
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
-      display: flex;
-      -webkit-box-align: center;
-      -ms-flex-align: center;
-      -webkit-align-items: center;
-      -moz-align-items: center;
-      align-items: center; }
-      #loginPage .content .other .otherContent, #registrationPage .content .other .otherContent, #unlockPage .content .other .otherContent {
-        width: 100%; }
-    #loginPage .content footer, #registrationPage .content footer, #unlockPage .content footer {
-      -webkit-box-flex: auto;
-      -webkit-flex: auto;
-      -moz-box-flex: auto;
-      -moz-flex: auto;
-      -ms-flex: auto;
-      flex: auto;
-      display: -webkit-box;
-      display: -webkit-flex;
-      display: -moz-flex;
-      display: -ms-flexbox;
-      display: flex;
-      -webkit-box-align: end;
-      -ms-flex-align: end;
-      -webkit-align-items: flex-end;
-      -moz-align-items: flex-end;
-      align-items: flex-end; }
-      #loginPage .content footer .footerContent, #registrationPage .content footer .footerContent, #unlockPage .content footer .footerContent {
-        width: 100%; }
+      width: 100%; }
+  #loginPage .content footer, #registrationPage .content footer, #unlockPage .content footer {
+    -webkit-box-flex: none;
+    -webkit-flex: none;
+    -moz-box-flex: none;
+    -moz-flex: none;
+    -ms-flex: none;
+    flex: none; }
+    #loginPage .content footer .footerContent, #registrationPage .content footer .footerContent, #unlockPage .content footer .footerContent {
+      width: 100%; }
 
 .tagEditor {
   display: -webkit-box;
@@ -1537,10 +1561,7 @@ div.help {
   #loginPage .content .body {
     background-color: #ff9900; }
   #loginPage .content .other {
-    color: white;
-    background-color: black; }
-    #loginPage .content .other a:before {
-      content: "> "; }
+    color: white; }
   #loginPage .content footer {
     color: white;
     background-color: black; }
@@ -1550,10 +1571,7 @@ div.help {
   #registrationPage .content .body {
     background-color: black; }
   #registrationPage .content .other {
-    color: black;
-    background-color: #ff9900; }
-    #registrationPage .content .other a:before {
-      content: "< "; }
+    color: white; }
   #registrationPage .content footer {
     color: black;
     background-color: #ff9900; }
@@ -1566,243 +1584,270 @@ div.help {
     color: white;
     background-color: black; }
 
-#loginPage .content, #registrationPage .content, #unlockPage .content {
-  text-align: center;
-  /*
-  		&.extra-short {
-  			header {
-  				font-size: 18pt;
-  			}
-  
-  			div.form {
-  				form {
-  					padding: 10px;
-  					margin-bottom: 20px;
-  
-  					input {
-  						padding: 3px;
-  						margin-top: 3px;
-  						margin-bottom: 5px;
-  						font-size: 16pt;
-  					}
-  
-  					button {
-  						min-height: 20px;
-  
-  						font-size: 12pt;
-  						padding: 3px 10px;
-  						border: 1px solid white;
-  					}
-  				}
-  			}
-  
-  			footer {
-  				font-size: 14pt;
-  			}
-  		}
-  */ }
-  #loginPage .content header, #registrationPage .content header, #unlockPage .content header {
-    -webkit-box-align: end;
-    -ms-flex-align: end;
-    -webkit-align-items: flex-end;
-    -moz-align-items: flex-end;
-    align-items: flex-end;
-    max-height: 15%;
-    min-height: 70px;
-    padding: 10px;
-    color: white; }
-    #loginPage .content header h3, #registrationPage .content header h3, #unlockPage .content header h3 {
-      font-weight: bold;
-      font-size: 38pt; }
-    #loginPage .content header h5, #registrationPage .content header h5, #unlockPage .content header h5 {
-      font-size: 16pt; }
-  #loginPage .content .body, #registrationPage .content .body, #unlockPage .content .body {
-    -webkit-box-align: start;
-    -ms-flex-align: start;
-    -webkit-align-items: flex-start;
-    -moz-align-items: flex-start;
-    align-items: flex-start; }
-    #loginPage .content .body form, #registrationPage .content .body form, #unlockPage .content .body form {
-      position: relative;
-      background: white;
-      padding: 20px;
-      max-width: 400px;
-      margin-left: auto;
-      margin-right: auto; }
-      #loginPage .content .body form label, #registrationPage .content .body form label, #unlockPage .content .body form label {
-        display: none; }
-      #loginPage .content .body form input, #registrationPage .content .body form input, #unlockPage .content .body form input {
-        font-family: "clipperz-font";
-        display: block;
-        padding: 5px;
-        margin-top: 5px;
-        margin-bottom: 10px;
-        font-size: 100%;
-        font-size: 24pt;
-        width: 100%;
-        border: 1px solid #ccc;
-        border-radius: 0px; }
-      #loginPage .content .body form .steps, #registrationPage .content .body form .steps, #unlockPage .content .body form .steps {
-        text-align: center; }
-        #loginPage .content .body form .steps .step, #registrationPage .content .body form .steps .step, #unlockPage .content .body form .steps .step {
+#loginPage, #registrationPage, #unlockPage {
+  background-color: black; }
+  #loginPage .content, #registrationPage .content, #unlockPage .content {
+    text-align: center;
+    /*
+    		&.extra-short {
+    			header {
+    				font-size: 18pt;
+    			}
+    
+    			div.form {
+    				form {
+    					padding: 10px;
+    					margin-bottom: 20px;
+    
+    					input {
+    						padding: 3px;
+    						margin-top: 3px;
+    						margin-bottom: 5px;
+    						font-size: 16pt;
+    					}
+    
+    					button {
+    						min-height: 20px;
+    
+    						font-size: 12pt;
+    						padding: 3px 10px;
+    						border: 1px solid white;
+    					}
+    				}
+    			}
+    
+    			footer {
+    				font-size: 14pt;
+    			}
+    		}
+    */ }
+    #loginPage .content header, #registrationPage .content header, #unlockPage .content header {
+      -webkit-box-align: end;
+      -ms-flex-align: end;
+      -webkit-align-items: flex-end;
+      -moz-align-items: flex-end;
+      align-items: flex-end;
+      max-height: 15%;
+      min-height: 70px;
+      padding: 10px;
+      color: white; }
+      #loginPage .content header h3, #registrationPage .content header h3, #unlockPage .content header h3 {
+        font-weight: bold;
+        font-size: 38pt; }
+      #loginPage .content header h5, #registrationPage .content header h5, #unlockPage .content header h5 {
+        font-size: 16pt; }
+    #loginPage .content .body, #registrationPage .content .body, #unlockPage .content .body {
+      -webkit-box-align: start;
+      -ms-flex-align: start;
+      -webkit-align-items: flex-start;
+      -moz-align-items: flex-start;
+      align-items: flex-start; }
+      #loginPage .content .body form, #registrationPage .content .body form, #unlockPage .content .body form {
+        position: relative;
+        background: white;
+        padding: 20px;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto; }
+        #loginPage .content .body form label, #registrationPage .content .body form label, #unlockPage .content .body form label {
           display: none; }
-          #loginPage .content .body form .steps .step.center, #registrationPage .content .body form .steps .step.center, #unlockPage .content .body form .steps .step.center {
-            display: block; }
-          #loginPage .content .body form .steps .step h1, #registrationPage .content .body form .steps .step h1, #unlockPage .content .body form .steps .step h1 {
-            color: #268bd2;
-            font-size: 24pt;
-            font-weight: 700;
-            margin: 0px;
-            padding-top: 15px; }
-          #loginPage .content .body form .steps .step p, #registrationPage .content .body form .steps .step p, #unlockPage .content .body form .steps .step p {
-            color: #657b83;
-            font-size: 14pt;
-            font-weight: 100;
-            margin: 0px;
-            padding: 5px 0px; }
-          #loginPage .content .body form .steps .step label, #registrationPage .content .body form .steps .step label, #unlockPage .content .body form .steps .step label {
+        #loginPage .content .body form input, #registrationPage .content .body form input, #unlockPage .content .body form input {
+          font-family: "clipperz-font";
+          display: block;
+          padding: 5px;
+          margin-top: 5px;
+          margin-bottom: 10px;
+          font-size: 100%;
+          font-size: 24pt;
+          width: 100%;
+          border: 1px solid #ccc;
+          border-radius: 0px; }
+        #loginPage .content .body form .steps, #registrationPage .content .body form .steps, #unlockPage .content .body form .steps {
+          text-align: center; }
+          #loginPage .content .body form .steps .step, #registrationPage .content .body form .steps .step, #unlockPage .content .body form .steps .step {
             display: none; }
-          #loginPage .content .body form .steps .step input, #registrationPage .content .body form .steps .step input, #unlockPage .content .body form .steps .step input {
-            font-family: "clipperz-font";
-            display: block;
-            padding: 5px;
-            margin-bottom: 10px;
-            font-size: 100%;
-            font-size: 24pt;
-            width: 100%; }
-          #loginPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock input, #registrationPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock input, #unlockPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock input {
-            display: block;
-            float: left;
-            margin-top: 10px;
-            width: 30px; }
-          #loginPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p, #registrationPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p, #unlockPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p {
-            font-size: 12pt;
-            font-weight: 500;
-            display: block;
-            text-align: left;
-            margin-left: 50px;
-            line-height: 1.5em;
-            cursor: pointer; }
-            #loginPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p a, #registrationPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p a, #unlockPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p a {
-              color: #dc322f; }
-          #loginPage .content .body form .steps .step.TERMS_OF_SERVICE .stepIndex, #registrationPage .content .body form .steps .step.TERMS_OF_SERVICE .stepIndex, #unlockPage .content .body form .steps .step.TERMS_OF_SERVICE .stepIndex {
-            margin-top: 10px; }
-          #loginPage .content .body form .steps .step .stepBody, #registrationPage .content .body form .steps .step .stepBody, #unlockPage .content .body form .steps .step .stepBody {
-            min-height: 140px; }
-          #loginPage .content .body form .steps .step .stepIndex, #registrationPage .content .body form .steps .step .stepIndex, #unlockPage .content .body form .steps .step .stepIndex {
-            text-align: center; }
-            #loginPage .content .body form .steps .step .stepIndex .stepIndexItem, #registrationPage .content .body form .steps .step .stepIndex .stepIndexItem, #unlockPage .content .body form .steps .step .stepIndex .stepIndexItem {
-              font-weight: 900;
-              font-size: 28pt;
-              display: inline;
-              color: lightgrey; }
-              #loginPage .content .body form .steps .step .stepIndex .stepIndexItem.center, #registrationPage .content .body form .steps .step .stepIndex .stepIndexItem.center, #unlockPage .content .body form .steps .step .stepIndex .stepIndexItem.center {
-                color: gray; }
-          #loginPage .content .body form .steps .step .buttons, #registrationPage .content .body form .steps .step .buttons, #unlockPage .content .body form .steps .step .buttons {
-            text-align: center;
-            margin-top: 10px; }
-            #loginPage .content .body form .steps .step .buttons .button, #registrationPage .content .body form .steps .step .buttons .button, #unlockPage .content .body form .steps .step .buttons .button {
-              margin: 10px;
+            #loginPage .content .body form .steps .step.center, #registrationPage .content .body form .steps .step.center, #unlockPage .content .body form .steps .step.center {
+              display: block; }
+            #loginPage .content .body form .steps .step h1, #registrationPage .content .body form .steps .step h1, #unlockPage .content .body form .steps .step h1 {
+              color: #268bd2;
+              font-size: 24pt;
+              font-weight: 700;
+              margin: 0px;
+              padding-top: 15px; }
+            #loginPage .content .body form .steps .step p, #registrationPage .content .body form .steps .step p, #unlockPage .content .body form .steps .step p {
+              color: #657b83;
+              font-size: 14pt;
+              font-weight: 100;
+              margin: 0px;
+              padding: 5px 0px; }
+            #loginPage .content .body form .steps .step label, #registrationPage .content .body form .steps .step label, #unlockPage .content .body form .steps .step label {
+              display: none; }
+            #loginPage .content .body form .steps .step input, #registrationPage .content .body form .steps .step input, #unlockPage .content .body form .steps .step input {
+              font-family: "clipperz-font";
+              display: block;
+              padding: 5px;
+              margin-bottom: 10px;
+              font-size: 100%;
+              font-size: 24pt;
+              width: 100%; }
+            #loginPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock input, #registrationPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock input, #unlockPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock input {
+              display: block;
+              float: left;
+              margin-top: 10px;
+              width: 30px; }
+            #loginPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p, #registrationPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p, #unlockPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p {
+              font-size: 12pt;
+              font-weight: 500;
+              display: block;
+              text-align: left;
+              margin-left: 50px;
+              line-height: 1.5em;
+              cursor: pointer; }
+              #loginPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p a, #registrationPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p a, #unlockPage .content .body form .steps .step.TERMS_OF_SERVICE .checkboxBlock p a {
+                color: #dc322f; }
+            #loginPage .content .body form .steps .step.TERMS_OF_SERVICE .stepIndex, #registrationPage .content .body form .steps .step.TERMS_OF_SERVICE .stepIndex, #unlockPage .content .body form .steps .step.TERMS_OF_SERVICE .stepIndex {
+              margin-top: 10px; }
+            #loginPage .content .body form .steps .step .stepBody, #registrationPage .content .body form .steps .step .stepBody, #unlockPage .content .body form .steps .step .stepBody {
+              min-height: 140px; }
+            #loginPage .content .body form .steps .step .stepIndex, #registrationPage .content .body form .steps .step .stepIndex, #unlockPage .content .body form .steps .step .stepIndex {
+              text-align: center; }
+              #loginPage .content .body form .steps .step .stepIndex .stepIndexItem, #registrationPage .content .body form .steps .step .stepIndex .stepIndexItem, #unlockPage .content .body form .steps .step .stepIndex .stepIndexItem {
+                font-weight: 900;
+                font-size: 28pt;
+                display: inline;
+                color: lightgrey; }
+                #loginPage .content .body form .steps .step .stepIndex .stepIndexItem.center, #registrationPage .content .body form .steps .step .stepIndex .stepIndexItem.center, #unlockPage .content .body form .steps .step .stepIndex .stepIndexItem.center {
+                  color: gray; }
+            #loginPage .content .body form .steps .step .buttons, #registrationPage .content .body form .steps .step .buttons, #unlockPage .content .body form .steps .step .buttons {
               text-align: center;
-              vertical-align: middle;
-              display: inline-block;
-              width: 80px;
-              font-weight: 900;
-              line-height: 45px;
-              font-size: 24px; }
-              #loginPage .content .body form .steps .step .buttons .button.back, #registrationPage .content .body form .steps .step .buttons .button.back, #unlockPage .content .body form .steps .step .buttons .button.back {
-                background-color: lightgrey; }
-                #loginPage .content .body form .steps .step .buttons .button.back.step_-1, #registrationPage .content .body form .steps .step .buttons .button.back.step_-1, #unlockPage .content .body form .steps .step .buttons .button.back.step_-1 {
-                  visibility: hidden; }
-              #loginPage .content .body form .steps .step .buttons .button.disabled, #registrationPage .content .body form .steps .step .buttons .button.disabled, #unlockPage .content .body form .steps .step .buttons .button.disabled {
-                background-color: #c0c0c0;
-                cursor: default; }
-              #loginPage .content .body form .steps .step .buttons .button.enabled, #registrationPage .content .body form .steps .step .buttons .button.enabled, #unlockPage .content .body form .steps .step .buttons .button.enabled {
-                background-color: #ff9900; }
-      #loginPage .content .body form button, #registrationPage .content .body form button, #unlockPage .content .body form button {
+              margin-top: 10px; }
+              #loginPage .content .body form .steps .step .buttons .button, #registrationPage .content .body form .steps .step .buttons .button, #unlockPage .content .body form .steps .step .buttons .button {
+                margin: 10px;
+                text-align: center;
+                vertical-align: middle;
+                display: inline-block;
+                width: 80px;
+                font-weight: 900;
+                line-height: 45px;
+                font-size: 24px; }
+                #loginPage .content .body form .steps .step .buttons .button.back, #registrationPage .content .body form .steps .step .buttons .button.back, #unlockPage .content .body form .steps .step .buttons .button.back {
+                  background-color: lightgrey; }
+                  #loginPage .content .body form .steps .step .buttons .button.back.step_-1, #registrationPage .content .body form .steps .step .buttons .button.back.step_-1, #unlockPage .content .body form .steps .step .buttons .button.back.step_-1 {
+                    visibility: hidden; }
+                #loginPage .content .body form .steps .step .buttons .button.disabled, #registrationPage .content .body form .steps .step .buttons .button.disabled, #unlockPage .content .body form .steps .step .buttons .button.disabled {
+                  background-color: #c0c0c0;
+                  cursor: default; }
+                #loginPage .content .body form .steps .step .buttons .button.enabled, #registrationPage .content .body form .steps .step .buttons .button.enabled, #unlockPage .content .body form .steps .step .buttons .button.enabled {
+                  background-color: #ff9900; }
+        #loginPage .content .body form button, #registrationPage .content .body form button, #unlockPage .content .body form button {
+          font-family: "clipperz-font";
+          min-height: 48px;
+          min-width: 48px;
+          color: white;
+          font-size: 24pt;
+          font-weight: 500;
+          border: 0px;
+          padding: 10px 25px;
+          border: 1px solid white;
+          background-color: #ff9900;
+          -webkit-transition: background-color font-weight 0.2s linear;
+          -moz-transition: background-color font-weight 0.2s linear;
+          -o-transition: background-color font-weight 0.2s linear;
+          -ms-transition: background-color font-weight 0.2s linear;
+          transition: background-color font-weight 0.2s linear; }
+          #loginPage .content .body form button:disabled, #registrationPage .content .body form button:disabled, #unlockPage .content .body form button:disabled {
+            font-weight: 100;
+            background-color: #c0c0c0;
+            cursor: default; }
+      #loginPage .content .body .pinForm, #registrationPage .content .body .pinForm, #unlockPage .content .body .pinForm {
+        /*
+        				.pinContainer {
+        					display: flex;
+        					flex-direction: row;
+        					
+        					justify-content: space-between;
+        
+        					.pinDigit {
+        						width: 15%;
+        					}
+        				}
+        */ }
+        #loginPage .content .body .pinForm label, #registrationPage .content .body .pinForm label, #unlockPage .content .body .pinForm label {
+          display: inherit;
+          text-align: left;
+          color: #666; }
+        #loginPage .content .body .pinForm .pinValue, #registrationPage .content .body .pinForm .pinValue, #unlockPage .content .body .pinForm .pinValue {
+          font-family: clipperz-password; }
+          #loginPage .content .body .pinForm .pinValue::-webkit-input-placeholder, #registrationPage .content .body .pinForm .pinValue::-webkit-input-placeholder, #unlockPage .content .body .pinForm .pinValue::-webkit-input-placeholder {
+            font-family: clipperz-font; }
+          #loginPage .content .body .pinForm .pinValue:-moz-placeholder, #registrationPage .content .body .pinForm .pinValue:-moz-placeholder, #unlockPage .content .body .pinForm .pinValue:-moz-placeholder {
+            font-family: clipperz-font; }
+          #loginPage .content .body .pinForm .pinValue::-moz-placeholder, #registrationPage .content .body .pinForm .pinValue::-moz-placeholder, #unlockPage .content .body .pinForm .pinValue::-moz-placeholder {
+            font-family: clipperz-font; }
+          #loginPage .content .body .pinForm .pinValue:-ms-input-placeholder, #registrationPage .content .body .pinForm .pinValue:-ms-input-placeholder, #unlockPage .content .body .pinForm .pinValue:-ms-input-placeholder {
+            font-family: clipperz-font; }
+        #loginPage .content .body .pinForm .passphraseLogin, #registrationPage .content .body .pinForm .passphraseLogin, #unlockPage .content .body .pinForm .passphraseLogin {
+          font-size: .9em;
+          color: #ff9900;
+          text-decoration: underline;
+          cursor: pointer; }
+      #loginPage .content .body .registrationLink, #loginPage .content .body .loginLink, #registrationPage .content .body .registrationLink, #registrationPage .content .body .loginLink, #unlockPage .content .body .registrationLink, #unlockPage .content .body .loginLink {
+        display: inline-block;
+        margin-top: 25px;
+        margin-bottom: 25px;
+        line-height: 34pt;
         font-family: "clipperz-font";
-        min-height: 48px;
-        min-width: 48px;
+        min-height: 46px;
+        min-width: 46px;
         color: white;
         font-size: 24pt;
         font-weight: 500;
         border: 0px;
         padding: 10px 25px;
-        border: 1px solid white;
-        background-color: #ff9900;
-        -webkit-transition: background-color font-weight 0.2s linear;
-        -moz-transition: background-color font-weight 0.2s linear;
-        -o-transition: background-color font-weight 0.2s linear;
-        -ms-transition: background-color font-weight 0.2s linear;
-        transition: background-color font-weight 0.2s linear; }
-        #loginPage .content .body form button:disabled, #registrationPage .content .body form button:disabled, #unlockPage .content .body form button:disabled {
+        background-color: #c0c0c0;
+        -webkit-transition: background-color font-weight 0.5s linear;
+        -moz-transition: background-color font-weight 0.5s linear;
+        -o-transition: background-color font-weight 0.5s linear;
+        -ms-transition: background-color font-weight 0.5s linear;
+        transition: background-color font-weight 0.5s linear;
+        cursor: pointer; }
+        #loginPage .content .body .registrationLink:disabled, #loginPage .content .body .loginLink:disabled, #registrationPage .content .body .registrationLink:disabled, #registrationPage .content .body .loginLink:disabled, #unlockPage .content .body .registrationLink:disabled, #unlockPage .content .body .loginLink:disabled {
           font-weight: 100;
           background-color: #c0c0c0;
           cursor: default; }
-    #loginPage .content .body .pinForm, #registrationPage .content .body .pinForm, #unlockPage .content .body .pinForm {
-      /*
-      				.pinContainer {
-      					display: flex;
-      					flex-direction: row;
-      					
-      					justify-content: space-between;
-      
-      					.pinDigit {
-      						width: 15%;
-      					}
-      				}
-      */ }
-      #loginPage .content .body .pinForm label, #registrationPage .content .body .pinForm label, #unlockPage .content .body .pinForm label {
-        display: inherit;
-        text-align: left; }
-      #loginPage .content .body .pinForm .pinValue, #registrationPage .content .body .pinForm .pinValue, #unlockPage .content .body .pinForm .pinValue {
-        font-family: clipperz-password; }
-        #loginPage .content .body .pinForm .pinValue::-webkit-input-placeholder, #registrationPage .content .body .pinForm .pinValue::-webkit-input-placeholder, #unlockPage .content .body .pinForm .pinValue::-webkit-input-placeholder {
-          font-family: clipperz-font; }
-        #loginPage .content .body .pinForm .pinValue:-moz-placeholder, #registrationPage .content .body .pinForm .pinValue:-moz-placeholder, #unlockPage .content .body .pinForm .pinValue:-moz-placeholder {
-          font-family: clipperz-font; }
-        #loginPage .content .body .pinForm .pinValue::-moz-placeholder, #registrationPage .content .body .pinForm .pinValue::-moz-placeholder, #unlockPage .content .body .pinForm .pinValue::-moz-placeholder {
-          font-family: clipperz-font; }
-        #loginPage .content .body .pinForm .pinValue:-ms-input-placeholder, #registrationPage .content .body .pinForm .pinValue:-ms-input-placeholder, #unlockPage .content .body .pinForm .pinValue:-ms-input-placeholder {
-          font-family: clipperz-font; }
-      #loginPage .content .body .pinForm .passphraseLogin, #registrationPage .content .body .pinForm .passphraseLogin, #unlockPage .content .body .pinForm .passphraseLogin {
-        font-size: .9em;
-        color: #ff9900;
-        text-decoration: underline;
-        cursor: pointer; }
-  #loginPage .content .other, #registrationPage .content .other, #unlockPage .content .other {
-    font-size: 24pt;
-    padding: 20px;
-    max-height: 20%; }
+      #loginPage .content .body .registrationLink:hover, #registrationPage .content .body .registrationLink:hover, #unlockPage .content .body .registrationLink:hover {
+        background-color: black; }
+      #loginPage .content .body .loginLink:hover, #registrationPage .content .body .loginLink:hover, #unlockPage .content .body .loginLink:hover {
+        background-color: #ff9900; }
     #loginPage .content .other a, #registrationPage .content .other a, #unlockPage .content .other a {
       cursor: pointer; }
-  #loginPage .content footer, #registrationPage .content footer, #unlockPage .content footer {
-    max-height: 50px; }
-    #loginPage .content footer .links ul, #registrationPage .content footer .links ul, #unlockPage .content footer .links ul {
+    #loginPage .content .other .links ul, #registrationPage .content .other .links ul, #unlockPage .content .other .links ul {
       padding: 3px;
       padding-bottom: 6px; }
-      #loginPage .content footer .links ul li, #registrationPage .content footer .links ul li, #unlockPage .content footer .links ul li {
+      #loginPage .content .other .links ul li, #registrationPage .content .other .links ul li, #unlockPage .content .other .links ul li {
         display: inline-block;
         cursor: pointer; }
-        #loginPage .content footer .links ul li:after, #registrationPage .content footer .links ul li:after, #unlockPage .content footer .links ul li:after {
+        #loginPage .content .other .links ul li:after, #registrationPage .content .other .links ul li:after, #unlockPage .content .other .links ul li:after {
           content: '-';
           padding-left: 4px;
           padding-right: 4px;
           cursor: default; }
-        #loginPage .content footer .links ul li:last-child:after, #registrationPage .content footer .links ul li:last-child:after, #unlockPage .content footer .links ul li:last-child:after {
+        #loginPage .content .other .links ul li:last-child:after, #registrationPage .content .other .links ul li:last-child:after, #unlockPage .content .other .links ul li:last-child:after {
           content: '';
           padding-left: 0px;
           padding-right: 0px; }
-    #loginPage .content footer .applicationVersion, #registrationPage .content footer .applicationVersion, #unlockPage .content footer .applicationVersion {
-      padding: 2px;
-      font-size: 8pt; }
-      #loginPage .content footer .applicationVersion span:after, #registrationPage .content footer .applicationVersion span:after, #unlockPage .content footer .applicationVersion span:after {
-        content: ":"; }
-      #loginPage .content footer .applicationVersion a, #registrationPage .content footer .applicationVersion a, #unlockPage .content footer .applicationVersion a {
-        color: inherit;
-        text-decoration: none;
-        padding-left: 5px;
-        font-weight: bold; }
+    #loginPage .content footer, #registrationPage .content footer, #unlockPage .content footer {
+      max-height: 50px; }
+      #loginPage .content footer .applicationVersion, #registrationPage .content footer .applicationVersion, #unlockPage .content footer .applicationVersion {
+        padding: 2px;
+        font-size: 8pt; }
+        #loginPage .content footer .applicationVersion span:after, #registrationPage .content footer .applicationVersion span:after, #unlockPage .content footer .applicationVersion span:after {
+          content: ":"; }
+        #loginPage .content footer .applicationVersion a, #registrationPage .content footer .applicationVersion a, #unlockPage .content footer .applicationVersion a {
+          color: inherit;
+          text-decoration: none;
+          padding-left: 5px;
+          font-weight: bold; }
 
 #selections {
   background-color: black;
@@ -2221,13 +2266,13 @@ span.count {
   #extraFeaturesPanel .extraFeatureIndex footer {
     font-size: 8pt;
     padding: 5px 5px 5px 5px;
-    border-top: 1px solid #999; }
+    border-top: 1px solid #999999; }
     #extraFeaturesPanel .extraFeatureIndex footer span {
-      color: #999; }
+      color: #999999; }
       #extraFeaturesPanel .extraFeatureIndex footer span:after {
         content: ":"; }
     #extraFeaturesPanel .extraFeatureIndex footer a {
-      color: #999;
+      color: #999999;
       text-decoration: none;
       padding-left: 5px;
       font-weight: bold; }
@@ -2613,6 +2658,13 @@ span.count {
     margin-right: 1em; }
   #extraFeaturesPanel .extraFeatureContent .devicePIN :enabled {
     border: 2px solid #ff9900; }
+  #extraFeaturesPanel .extraFeatureContent .devicePIN .content {
+    -webkit-box-flex: none;
+    -webkit-flex: none;
+    -moz-box-flex: none;
+    -moz-flex: none;
+    -ms-flex: none;
+    flex: none; }
   #extraFeaturesPanel .extraFeatureContent .dataImport .content {
     display: block;
     height: 100%;
@@ -3022,7 +3074,7 @@ div.cardList ul {
       padding-right: 0px;
       box-shadow: -4px 0px 3px -1px rgba(0, 0, 0, 0.2); }
     div.cardList ul li.archived {
-      background-color: #eee;
+      background-color: #eeeeee;
       color: #999; }
     div.cardList ul li .favicon {
       width: 48px;
@@ -3109,7 +3161,7 @@ div.cardList.narrow {
     content: ""; }
 
 #cardDetailPage .view.archived, .cardDetail .view.archived {
-  background-color: #eee; }
+  background-color: #eeeeee; }
 #cardDetailPage .view .cardDetailToolbar, .cardDetail .view .cardDetailToolbar {
   background-color: #1863a1;
   color: white; }
@@ -3339,7 +3391,7 @@ div.cardList.narrow {
       cursor: grab;
       cursor: -moz-grab;
       cursor: -webkit-grab;
-      background: repeating-linear-gradient(0deg, white, white 2px, #ddd 2px, #ddd 3px);
+      background: repeating-linear-gradient(0deg, white, white 2px, #dddddd 2px, #dddddd 3px);
       width: 28px;
       height: 20px;
       margin-left: 6px;
@@ -3565,7 +3617,7 @@ div.cardList.narrow {
     min-width: 220px;
     width: 80%;
     max-width: 400px;
-    background-color: #333;
+    background-color: #333333;
     color: #fff;
     -webkit-border-radius: 6px;
     -moz-border-radius: 6px;
@@ -3580,7 +3632,7 @@ div.cardList.narrow {
       margin-left: 0px;
       width: 0;
       height: 0;
-      border-top: 5px solid #333;
+      border-top: 5px solid #333333;
       border-left: 5px solid transparent;
       border-right: 5px solid transparent; }
     .passwordGenerator .passwordGeneratorBaloon form span {

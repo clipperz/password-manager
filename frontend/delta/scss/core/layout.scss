@@ -629,23 +629,20 @@ div.help {
 
 
 #loginPage, #registrationPage, #unlockPage {
-	@include overflow-auto;
 
 	.content {
 		@include flexbox();
 		@include flex-direction(column);
-//		@include align-items(stretch);
 
+		@include overflow-auto;
 		height: 100%;
 
 		.miscInfo {
 			@include flex(0);
-//			background-color: green;
 		}
 	
 		header {
 			@include flex(auto);
-//			background-color: yellow;
 
 			@include flexbox();
 			.headerContent {
@@ -654,36 +651,38 @@ div.help {
 		}
 	
 		.body {
-			@include flex(auto);
-//			background-color: green;
-
+			@include flex(none);
+//			width: 100%;
 			@include flexbox();
+
 			.bodyContent {
+				@include flex(auto);
 				margin-left: auto;
 				margin-right: auto;
 			}
 		}
-	
-		.other {
+
+		.afterBody {
 			@include flex(auto);
-//			background-color: yellow;
+		}
+
+		.other {
+			@include flex(none);
 
 			@include flexbox();
 			@include align-items(center);
 			.otherContent {
+				@include flex(auto);
 				width: 100%;
 			}
 		}
 
 		footer {
-			@include flex(auto);
-//			background-color: green;
-
-			@include flexbox();
-			@include align-items(flex-end);
+			@include flex(none);
 
 			.footerContent {
 				width: 100%;
+
 				.links {
 				}
 

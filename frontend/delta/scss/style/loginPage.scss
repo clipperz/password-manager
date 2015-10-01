@@ -31,11 +31,11 @@ refer to http://www.clipperz.com.
 
 		.other {
 			color: $main-alternate-text-color;
-			background-color: $main-alternate-color;
+//			background-color: $main-alternate-color;
 
 			a {
 				&:before {
-					content: "> ";
+//					content: "> ";
 				};
 			}
 		}
@@ -56,12 +56,13 @@ refer to http://www.clipperz.com.
 		}
 
 		.other {
-			color: $main-text-color;
-			background-color: $main-color;
+			color: $main-alternate-text-color;
+//			color: $main-text-color;
+//			background-color: $main-color;
 
 			a {
 				&:before {
-					content: "< ";
+//					content: "< ";
 				};
 			}
 		}
@@ -90,6 +91,7 @@ refer to http://www.clipperz.com.
 //==============================================================
 
 #loginPage, #registrationPage, #unlockPage {
+	background-color: black;
 
 	.content {
 		text-align: center;
@@ -306,7 +308,6 @@ refer to http://www.clipperz.com.
 				}
 			}
 
-
 			.pinForm {
 /*
 				.pinContainer {
@@ -323,6 +324,7 @@ refer to http://www.clipperz.com.
 				label {
 					display: inherit;
 					text-align: left;
+					color: #666;
 				}
 
 				.pinValue {
@@ -342,20 +344,65 @@ refer to http://www.clipperz.com.
 
 			}
 
+			.registrationLink, .loginLink {
+				display: inline-block;
+				margin-top: 25px;
+				margin-bottom: 25px;
+				line-height: 34pt;
+
+				font-family: "clipperz-font";
+				min-height: 46px;
+				min-width: 46px;
+
+				color: white;
+				font-size: 24pt;
+				font-weight: 500;
+				border: 0px;
+
+				padding: 10px 25px;
+
+//				border: 1px solid white;
+				background-color: #c0c0c0;
+				@include transition(background-color font-weight, 0.5s, linear);
+
+				cursor: pointer;
+
+//				&:hover {
+//					background-color: black;
+//				};
+
+				&:disabled {
+					font-weight: 100;
+					background-color: #c0c0c0;
+					cursor: default;
+
+					&:hover {
+					};
+				}
+			}
+
+			.registrationLink {
+				&:hover {
+					background-color: black;
+				};
+			}
+
+			.loginLink {
+				&:hover {
+					background-color: $main-color;
+				};
+			}
+
 		}
 
 		.other {
-			font-size: 24pt;
-			padding: 20px;
-			max-height: 20%;
+//			font-size: 24pt;
+//			padding: 20px;
+//			max-height: 20%;
 
 			a {
 				cursor: pointer;
 			}
-		}
-
-		footer {
-			max-height: 50px;
 
 			.links {
 				ul {
@@ -381,8 +428,11 @@ refer to http://www.clipperz.com.
 					}
 				}
 			}
+		}
 
-			
+		footer {
+			max-height: 50px;
+
 			.applicationVersion {
 				padding: 2px;
 				font-size: 8pt;

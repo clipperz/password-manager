@@ -727,6 +727,10 @@ refer to http://www.clipperz.com.
 			:enabled {
 				border:2px solid $clipperz-orange;
 			}
+			
+			.content {
+				@include flex(none);
+			}
 		}
 
 		.dataImport {
