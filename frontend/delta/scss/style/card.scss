@@ -267,7 +267,18 @@ $cardViewBasePadding: 10px;
 			background-color: $cardToolbarBackgroundColor;
 			color: white;
 
-//			box-shadow: inset 2px 0 6px 0 rgba(0, 0, 0, 0.1);
+			&.narrow {
+				@include transition(height, 2.5s, ease-in);
+
+				&.commands {
+					height: 12px;
+
+					div {
+						display: none;
+						visibility: hidden;
+					}
+				}
+			}
 		}
 		
 		.cardField {
@@ -316,7 +327,16 @@ $cardViewBasePadding: 10px;
 
 
 
-
+.edit {
+	.cardDetailToolbar {
+		&.commands {
+			div, ul {
+				display: none;
+				visibility: hidden;
+			}
+		}
+	}
+}
 
 .cardDetailToolbar {
 	&.edit {
@@ -342,7 +362,7 @@ $cardViewBasePadding: 10px;
 			}
 		}
 	}
-	
+
 	ul {
 		li {
 			text-align: center;

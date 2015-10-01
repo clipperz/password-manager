@@ -611,6 +611,7 @@ console.log("DROP");	//, anEvent);
 		return	React.DOM.div({'className':'editWrapper'}, [
 			this.props['showGlobalMask'] ? null : React.DOM.div({'className':'mask'}),
 			React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(classes)},[
+				Clipperz.PM.UI.Components.Cards.CommandToolbar(this.props),
 				Clipperz.PM.UI.Components.Cards.EditToolbar(this.props),
 				React.DOM.div({'className':'content'}, [
 					this.renderLabel(this.props['label']),

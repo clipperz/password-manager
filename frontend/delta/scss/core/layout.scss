@@ -512,15 +512,38 @@ div.cardContent {
 	line-height: $mainCardToolbarHeight;
 	
 	&.edit {
+		@include order(1);
+
 		@include chromeFix();
 
 		li.save {
 			cursor: default;
+			background-color: #55aa55;
+		}
+		li.cancel {
+			background-color: #666666;
+
+			&:hover {
+				background-color: #444444;
+			};
 		}
 		
 		&.hasPendingChanges {
 			li.save {
 				cursor: pointer;
+				background-color: #22aa22;
+
+				&:hover {
+					background-color: #1a801a;
+				};
+			}
+
+			li.cancel {
+				background-color: #aa2222;
+
+				&:hover {
+					background-color: #dd1111;
+				};
 			}
 		}
 	}

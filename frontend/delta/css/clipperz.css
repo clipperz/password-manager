@@ -1221,11 +1221,28 @@ div.cardContent {
   height: 48px;
   line-height: 48px; }
   .cardDetailToolbar.edit {
+    -webkit-box-ordinal-group: 2;
+    -webkit-order: 1;
+    -moz-order: 1;
+    -ms-flex-order: 1;
+    order: 1;
     -webkit-transform: translate3d(0, 0, 0); }
     .cardDetailToolbar.edit li.save {
-      cursor: default; }
+      cursor: default;
+      background-color: #55aa55; }
+    .cardDetailToolbar.edit li.cancel {
+      background-color: #666666; }
+      .cardDetailToolbar.edit li.cancel:hover {
+        background-color: #444444; }
     .cardDetailToolbar.edit.hasPendingChanges li.save {
-      cursor: pointer; }
+      cursor: pointer;
+      background-color: #22aa22; }
+      .cardDetailToolbar.edit.hasPendingChanges li.save:hover {
+        background-color: #1a801a; }
+    .cardDetailToolbar.edit.hasPendingChanges li.cancel {
+      background-color: #aa2222; }
+      .cardDetailToolbar.edit.hasPendingChanges li.cancel:hover {
+        background-color: #dd1111; }
   .cardDetailToolbar.commands > div {
     display: -webkit-box;
     display: -webkit-flex;
@@ -3235,6 +3252,17 @@ div.cardList.narrow {
 #cardDetailPage .edit .cardDetailToolbar, .cardDetail .edit .cardDetailToolbar {
   background-color: #1863a1;
   color: white; }
+  #cardDetailPage .edit .cardDetailToolbar.narrow, .cardDetail .edit .cardDetailToolbar.narrow {
+    -webkit-transition: height 2.5s ease-in;
+    -moz-transition: height 2.5s ease-in;
+    -o-transition: height 2.5s ease-in;
+    -ms-transition: height 2.5s ease-in;
+    transition: height 2.5s ease-in; }
+    #cardDetailPage .edit .cardDetailToolbar.narrow.commands, .cardDetail .edit .cardDetailToolbar.narrow.commands {
+      height: 12px; }
+      #cardDetailPage .edit .cardDetailToolbar.narrow.commands div, .cardDetail .edit .cardDetailToolbar.narrow.commands div {
+        display: none;
+        visibility: hidden; }
 #cardDetailPage .edit .cardField, .cardDetail .edit .cardField {
   border-top: 1px solid #eee; }
   #cardDetailPage .edit .cardField:last-child, .cardDetail .edit .cardField:last-child {
@@ -3273,6 +3301,10 @@ div.cardList.narrow {
 #cardDetailPage .edit .cardDirectLogin .directLoginLabel, .cardDetail .edit .cardDirectLogin .directLoginLabel {
   vertical-align: bottom;
   padding-left: 17px; }
+
+.edit .cardDetailToolbar.commands div, .edit .cardDetailToolbar.commands ul {
+  display: none;
+  visibility: hidden; }
 
 .cardDetailToolbar.edit li {
   font-weight: 100; }
