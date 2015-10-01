@@ -167,6 +167,21 @@ Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 
 	//=========================================================================
 
+	handleKeyDown: function (anEvent) {
+		switch (anEvent.keyCode) {
+			case  9: // tab
+			case 13: // enter
+				if (this.canMoveForward()) {
+					this.handleForwardClick(anEvent);
+				};
+				break;
+			case 27: // escape
+				break;
+		}
+	},
+
+	//=========================================================================
+
 	renderIndexStep: function (aStep) {
 		return	React.DOM.div({'key':'indexStep' + aStep['name'], 'className':'stepIndexItem ' + this.statusClassForStep(aStep)}, '.');
 	},
@@ -181,16 +196,16 @@ Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 	render_CREDENTIALS: function () {
 		return	React.DOM.div({'key':'credentials'},[
 					React.DOM.label({'key':'usernameLabel', 'htmlFor':'name'}, "username"),
-					React.DOM.input({'key':'username', 'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'autoCapitalize':'none'/*, value:this.state.username*/}),
+					React.DOM.input({'key':'username', 'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'autoCapitalize':'none' /*, value:this.state.username*/}),
 					React.DOM.label({'key':'passphraseLabel', 'htmlFor':'passphrase'}, "passphrase"),
-					React.DOM.input({'key':'passphrase', 'type':'password', 'name':'passphrase', 'ref':'passphrase', 'placeholder':"passphrase"/*, value:this.state.passphrase*/})
+					React.DOM.input({'key':'passphrase', 'type':'password', 'name':'passphrase', 'ref':'passphrase', 'placeholder':"passphrase" /* , 'onKeyDown':this.handleKeyDown /*, value:this.state.passphrase*/})
 				]);
 	},
 
 	render_PASSWORD_VERIFICATION: function () {
 		return	React.DOM.div({'key':'passwordVerification'},[
 					React.DOM.label({'key':'verifyPassphraseLabel', 'htmlFor':'verify_passphrase'}, "passphrase"),
-					React.DOM.input({'key':'verifyPassphrase', 'type':'password', 'name':'verify_passphrase', 'ref':'verify_passphrase', 'placeholder':"verify passphrase"})
+					React.DOM.input({'key':'verifyPassphrase', 'type':'password', 'name':'verify_passphrase', 'ref':'verify_passphrase', 'placeholder':"verify passphrase" })
 				]);
 	},
 
@@ -198,12 +213,12 @@ Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 		return	React.DOM.div({'key':'termsOfService'}, [
 					React.DOM.div({'key':'termsOfService_choice_1', 'className':'checkboxBlock'}, [
 						React.DOM.label({'key':'termsOfService_label_1', 'htmlFor':'no_password_recovery'}, "I understand that Clipperz is unable to recover a lost passphrase."),
-						React.DOM.input({'key':'no_password_recovery', 'type':'checkbox', 'name':'no_password_recovery', 'ref':'no_password_recovery', 'id':'no_password_recovery'}),
+						React.DOM.input({'key':'no_password_recovery', 'type':'checkbox', 'name':'no_password_recovery', 'ref':'no_password_recovery', 'id':'no_password_recovery', 'tabindex':'0'}),
 						React.DOM.p({'key':'termsOfService_description_1', 'onClick':MochiKit.Base.method(this, 'toggleCheckbox', 'no_password_recovery')}, "I understand that Clipperz is unable to recover a lost passphrase.")
 					]),
 					React.DOM.div({'key':'termsOfService_choice_2', 'className':'checkboxBlock'}, [
 						React.DOM.label({'key':'termsOfService_label_2', 'htmlFor':'agree_terms_of_service'}, "I have read and agreed to the Terms of Service."),
-						React.DOM.input({'key':'agree_terms_of_service', 'type':'checkbox', 'name':'agree_terms_of_service', 'ref':'agree_terms_of_service', 'id':'agree_terms_of_service'}),
+						React.DOM.input({'key':'agree_terms_of_service', 'type':'checkbox', 'name':'agree_terms_of_service', 'ref':'agree_terms_of_service', 'id':'agree_terms_of_service', 'tabindex':'1'}),
 						React.DOM.p({'key':'termsOfService_description_2'},  [
 							React.DOM.span({'key':'termsOfService_description_2_p1', 'onClick':MochiKit.Base.method(this, 'toggleCheckbox', 'agree_terms_of_service')}, "I have read and agreed to the "),
 							React.DOM.a({'key':'termsOfService_description_2_p2', 'onClick':this.showUrl('/terms_service/')}, "Terms of Service.")
@@ -239,7 +254,7 @@ Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 					]),
 					React.DOM.div({'key':'body', 'className':'form  body'}, [
 						React.DOM.div({'className':'bodyContent'}, [
-							React.DOM.form({'key':'registrationForm', 'autoComplete':'off', 'onChange': this.handleChange}, [
+							React.DOM.form({'key':'registrationForm', 'autoComplete':'off', 'onChange':this.handleChange, 'onKeyDown':this.handleKeyDown }, [
 								React.DOM.div({'key':'steps', 'className':'steps'}, MochiKit.Base.map(this.renderStep, this.props['steps']))
 							]),
 							React.DOM.a({'key':'login', 'className':'loginLink', 'onClick':this.handleLoginLinkClick}, "login"),
