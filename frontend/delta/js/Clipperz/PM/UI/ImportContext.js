@@ -297,7 +297,7 @@ MochiKit.Base.update(Clipperz.PM.UI.ImportContext.prototype, {
 			if (isExportContent.test(aValue)) {
 				textarea = MochiKit.DOM.TEXTAREA();
 				textarea.innerHTML = aValue.replace(isExportContent, '$1');
-				result = textarea.innerHTML;
+				result = textarea.innerHTML.replace(/&amp;/g, '&');
 			}
 		}
 
