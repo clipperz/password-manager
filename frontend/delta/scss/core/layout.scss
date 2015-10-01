@@ -258,6 +258,8 @@ input[type=text] {
 		}
 
 		.extraFeatureContent {
+			width: 100%;
+
 			header {
 				@include flex(none);
 				display: block;

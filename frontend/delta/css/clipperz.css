@@ -924,15 +924,17 @@ input[type=text] {
 
 .mainPage.narrow #extraFeaturesPanel.fullOpen .extraFeatureIndex {
   width: 0px; }
-.mainPage.narrow #extraFeaturesPanel.fullOpen .extraFeatureContent header {
-  -webkit-box-flex: none;
-  -webkit-flex: none;
-  -moz-box-flex: none;
-  -moz-flex: none;
-  -ms-flex: none;
-  flex: none;
-  display: block;
-  height: 48px; }
+.mainPage.narrow #extraFeaturesPanel.fullOpen .extraFeatureContent {
+  width: 100%; }
+  .mainPage.narrow #extraFeaturesPanel.fullOpen .extraFeatureContent header {
+    -webkit-box-flex: none;
+    -webkit-flex: none;
+    -moz-box-flex: none;
+    -moz-flex: none;
+    -ms-flex: none;
+    flex: none;
+    display: block;
+    height: 48px; }
 
 .container {
   height: 100%;
