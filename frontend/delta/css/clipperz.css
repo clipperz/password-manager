@@ -3272,7 +3272,7 @@ div.cardList.narrow {
     color: #9b0000; }
 #cardDetailPage .edit .cardDirectLogin .directLoginLabel, .cardDetail .edit .cardDirectLogin .directLoginLabel {
   vertical-align: bottom;
-  padding-left: 4px; }
+  padding-left: 17px; }
 
 .cardDetailToolbar.edit li {
   font-weight: 100; }
