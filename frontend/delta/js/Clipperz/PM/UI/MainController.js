@@ -430,9 +430,9 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		var unlockPage = this.pages()['unlockPage'];
 		var overlay = this.overlay();
 
+		overlay.show("validating…");
 		passphrase = (aCredentialType=='PIN') ? Clipperz.PM.PIN.credentialsWithPIN(aCredential)['passphrase'] : aCredential;
 
-		overlay.show("validating…");
 		deferredResult = new Clipperz.Async.Deferred('MainController.unlock_handler', {trace:false});
 		deferredResult.addMethod(unlockPage, 'setProps', {'disabled': true});
 
@@ -853,7 +853,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		return Clipperz.Async.callbacks("MainController.updatePIN_handler", [
 			MochiKit.Base.method(this.overlay(), 'show', "updating …", true),
 			MochiKit.Base.method(Clipperz.PM.PIN, 'updatePin', this.user(), aPIN),
-			MochiKit.Base.method(this.overlay(), 'done', "saved", 1)
+			MochiKit.Base.method(this.overlay(), 'done', "", 1)
 		], {trace:false});
 	},
 
@@ -861,7 +861,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		return Clipperz.Async.callbacks("MainController.disablePIN_handler", [
 			MochiKit.Base.method(this.overlay(), 'show', "disabling …", true),
 			MochiKit.Base.method(Clipperz.PM.PIN, 'disablePin'),
-			MochiKit.Base.method(this.overlay(), 'done', "saved", 1)
+			MochiKit.Base.method(this.overlay(), 'done', "", 1)
 		], {trace:false});
 	},
 
@@ -1041,6 +1041,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		} else {
 			if ('pin' in anEvent) {
 				var errorCount = Clipperz.PM.PIN.recordFailedAttempt();
+
 				if (errorCount == -1) {
 					errorMessage = "PIN resetted";
 				}
@@ -1564,13 +1565,6 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			MochiKit.Base.method(this, 'setUserPreferences'),
 		], {trace:false});
 	},
-
-//	updateUserPreferences_handler: function() {
-//		return Clipperz.Async.callbacks("MainController.updateUserPreferences_handler", [
-//			MochiKit.Base.method(this, 'updateUserPreferences'),
-//			MochiKit.Base.method(this, 'refreshCurrentPage'),
-//		], {trace:false});
-//	},
 
 	setPreference_handler: function(aKeyPath, aValue) {
 		return Clipperz.Async.callbacks("MainController.setPreference_handler", [
