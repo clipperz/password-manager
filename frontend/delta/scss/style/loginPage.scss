@@ -21,7 +21,7 @@ refer to http://www.clipperz.com.
 
 */
 
-#loginPage {
+#loginPage, #unlockPage {
 	.content {
 		background-color: $main-color;
 
@@ -73,7 +73,7 @@ refer to http://www.clipperz.com.
 		}
 	}
 }
-
+/*
 #unlockPage {
 	.content {
 		background-color: $main-color;
@@ -88,6 +88,7 @@ refer to http://www.clipperz.com.
 		}
 	}
 }
+*/
 //==============================================================
 
 #loginPage, #registrationPage, #unlockPage {

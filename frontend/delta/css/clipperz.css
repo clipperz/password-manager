@@ -1575,13 +1575,13 @@ div.help {
       color: white;
       margin: 0px; }
 
-#loginPage .content {
+#loginPage .content, #unlockPage .content {
   background-color: #ff9900; }
-  #loginPage .content .body {
+  #loginPage .content .body, #unlockPage .content .body {
     background-color: #ff9900; }
-  #loginPage .content .other {
+  #loginPage .content .other, #unlockPage .content .other {
     color: white; }
-  #loginPage .content footer {
+  #loginPage .content footer, #unlockPage .content footer {
     color: white;
     background-color: black; }
 
@@ -1595,14 +1595,22 @@ div.help {
     color: black;
     background-color: #ff9900; }
 
-#unlockPage .content {
-  background-color: #ff9900; }
-  #unlockPage .content .body {
-    background-color: #ff9900; }
-  #unlockPage .content footer {
-    color: white;
-    background-color: black; }
+/*
+#unlockPage {
+	.content {
+		background-color: $main-color;
 
+		.body {
+			background-color: $main-color;
+		}
+
+		footer {
+			color: $main-alternate-text-color;
+			background-color: $main-alternate-color;
+		}
+	}
+}
+*/
 #loginPage, #registrationPage, #unlockPage {
   background-color: black; }
   #loginPage .content, #registrationPage .content, #unlockPage .content {
@@ -3335,7 +3343,7 @@ div.cardList.narrow {
   border: 0px; }
 .content input.cardLabel {
   width: 100%;
-  padding: 20px 20px 20px 42px; }
+  padding: 13px 20px 13px 42px; }
 .content .tagEditor {
   padding: 10px; }
 .content .cardNotes {
