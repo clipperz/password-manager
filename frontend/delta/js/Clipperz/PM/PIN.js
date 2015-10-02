@@ -101,7 +101,6 @@ MochiKit.Base.update(Clipperz.PM.PIN, {
 
 	'encryptPassphraseWithPin': function(aPIN, aPassphrase) {
 		var byteArrayPassphrase = new Clipperz.ByteArray(aPassphrase);
-//		var hashedPassphrase = Clipperz.Crypto.SHA.sha_d256(ba) // ??? why would i hash the passphrase???
 		var randomBytesLength = this.ENCRYPTED_PASSPHRASE_LENGTH-byteArrayPassphrase.length()-1;
 		var randomBytes = Clipperz.Crypto.PRNG.defaultRandomGenerator().getRandomBytes(randomBytesLength);
 		var derivedKey = this.deriveKeyFromPin(aPIN);
@@ -109,13 +108,13 @@ MochiKit.Base.update(Clipperz.PM.PIN, {
 		byteArrayPassphrase.appendByte(0);
 		byteArrayPassphrase.appendBytes(randomBytes.arrayValues());
 
-		return Clipperz.Crypto.AES.encrypt(derivedKey, byteArrayPassphrase).toBase64String();
+		return Clipperz.Crypto.AES_2.encrypt(derivedKey, byteArrayPassphrase).toBase64String();
 	},
 
 	'decryptPassphraseWithPin': function(aPIN, anEncryptedPassphrase) {
 		var byteArrayEncryptedPassphrase = (new Clipperz.ByteArray()).appendBase64String(anEncryptedPassphrase);
 		var derivedKey = this.deriveKeyFromPin(aPIN);
-		var byteArrayPassphrase = Clipperz.Crypto.AES.decrypt(derivedKey, byteArrayEncryptedPassphrase);
+		var byteArrayPassphrase = Clipperz.Crypto.AES_2.decrypt(derivedKey, byteArrayEncryptedPassphrase);
 		var arrayPassphrase = byteArrayPassphrase.arrayValues();
 		var slicedArrayPassphrase = arrayPassphrase.slice(0, arrayPassphrase.indexOf(0));
 
