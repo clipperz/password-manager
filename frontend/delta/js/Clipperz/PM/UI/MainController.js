@@ -1112,18 +1112,17 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		if (fromPage != toPage) {
 			var	shouldAddItemToHistory;
 
-			shouldAddItemToHistory = typeof(addToHistory) == 'undefined' ? false : addToHistory;
+			if (this.proxyInfo()['proxyType'] != 'OFFLINE_COPY') {
+				shouldAddItemToHistory = typeof(addToHistory) == 'undefined' ? false : addToHistory;
+			} else {
+				shouldAddItemToHistory = false;
+			}
 
 			this.slidePage(MochiKit.DOM.getElement(fromPage), MochiKit.DOM.getElement(toPage), 'LEFT');
 			this.setCurrentPage(toPage);
 
 			if (shouldAddItemToHistory) {
-//console.log("ADD ITEM TO HISTORY");
-//console.log("ADD ITEM TO HISTORY - window", window);
-//console.log("ADD ITEM TO HISTORY - window.history", window.history);
 				window.history.pushState({'fromPage': fromPage, 'toPage': toPage}, "");
-//#				window.history.pushState();
-//console.log("ADDED ITEM TO HISTORY");
 			} else {
 //console.log("Skip HISTORY");
 			}
@@ -1245,7 +1244,8 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			};
 		} else if (aPageName == 'unlockPage') {
 			extraProperties = {
-				'mode':	this.loginMode(),
+				'mode':			this.loginMode(),
+				'proxyInfo':	this.proxyInfo(),
 			}
 		} else if (aPageName == 'registrationPage') {
 		} else if (aPageName == 'mainPage') {
