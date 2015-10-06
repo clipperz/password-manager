@@ -40,18 +40,26 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.Preferences, Clipperz.PM.
 	},
 
 	//-------------------------------------------------------------------------
-	
-	'mergeDefaultPreferences': function(somePreferences) {
+
+	'mergePreferences': function(somePreferences, someOtherPreferences) {
 		var result;
 
 		result = new Clipperz.KeyValueObjectStore();
 
 		result.setValues(MochiKit.Base.updatetree(
-			Clipperz.Base.deepClone(Clipperz.PM.DataModel.User.Header.Preferences.defaultPreferences),
+			Clipperz.Base.deepClone(someOtherPreferences),
 			somePreferences
 		));
 
 		return result;
+	},
+	
+	'mergeDefaultPreferences': function(somePreferences) {
+		return this.mergePreferences(somePreferences, Clipperz.PM.DataModel.User.Header.Preferences.defaultPreferences);
+	},
+
+	'mergeUserPreferences': function(somePreferences) {
+		return this.mergePreferences(somePreferences, this._objectDataStore.values());
 	},
 
 	'getPreferences': function() {
@@ -65,6 +73,14 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.Preferences, Clipperz.PM.
 		return Clipperz.Async.callbacks("User.Header.Preferences.getPreference", [
 			MochiKit.Base.method(this, 'getPreferences'),
 			MochiKit.Base.methodcaller('getValue', aKey)
+		], {trace:false});
+	},
+
+	'setPreferences': function(anObject) {
+		return Clipperz.Async.callbacks("User.Header.Preferences.setPreferences", [
+			MochiKit.Base.method(this, 'mergeUserPreferences', anObject),
+			MochiKit.Base.methodcaller('values'),
+			MochiKit.Base.method(this, 'setValues')
 		], {trace:false});
 	},
 

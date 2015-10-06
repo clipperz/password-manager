@@ -70,7 +70,7 @@ Clipperz.PM.UI.MainController = function() {
 		'enableLock', 'disableLock', 'unlock',
 		'updatePIN', 'disablePIN', 'forcePassphraseLogin', 'forcePassphraseUnlock',
 		'changePassphrase', 'deleteAccount',
-		/*'updateUserPreferences',*/ 'setPreference',
+		/*'updateUserPreferences',*/ 'setPreferences',
 		'updateOTPListAndDetails', 'createNewOTP', 'deleteOTPs', 'changeOTPLabel',
 		'importCards',
 		'downloadExport',
@@ -1566,10 +1566,10 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		], {trace:false});
 	},
 
-	setPreference_handler: function(aKeyPath, aValue) {
-		return Clipperz.Async.callbacks("MainController.setPreference_handler", [
+	setPreferences_handler: function(anObject) {
+		return Clipperz.Async.callbacks("MainController.setPreferences_handler", [
 			MochiKit.Base.method(this.overlay(), 'show', "", true),
-			MochiKit.Base.method(this.user(), 'setPreference', aKeyPath, aValue),
+			MochiKit.Base.method(this.user(), 'setPreferences', anObject),
 			MochiKit.Base.method(this, 'updateUserPreferences'),
 			MochiKit.Base.method(this, 'refreshCurrentPage'),
 			MochiKit.Base.method(this.overlay(), 'done', "", 0.5),

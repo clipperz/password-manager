@@ -711,17 +711,11 @@ refer to http://www.clipperz.com.
 		}
 		
 		.devicePIN {
-			.pinDigit {
-				display: inline-block;
-				width: 2em;
-				margin-right: 0.5em;
-				text-align: center;
-			}
-
 			.pinValue {
-				display: inline-block;
+				display: block;
 				width: 4em;
 				margin-right: 1em;
+				margin-top:8px;
 			}
 
 			:enabled {

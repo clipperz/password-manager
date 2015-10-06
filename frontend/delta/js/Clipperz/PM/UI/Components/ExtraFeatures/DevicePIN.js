@@ -38,124 +38,47 @@ Clipperz.PM.UI.Components.ExtraFeatures.DevicePINClass = React.createClass({
 		}
 	},
 
-	_editModeLocked: false,
-
 	//=========================================================================
 
-	enterEditMode: function() {
-		this.setState({
-			'isEditing': true,
-			'pinValue': ''
-		});
-	},
-
-	exitEditMode: function() {
-		this.setState({
-			'isEditing': false,
-		});
-	},
-
-	lockEditMode: function() {
-		this._editModeLocked = true;
-	},
-
-	unlockEditMode: function() {
-		this._editModeLocked = false;
-	},
-
-	handleFocus: function(anEvent) {
-		anEvent.preventDefault();
-
-		this.refs['pinValue'].getDOMNode().focus();
-	},
-
-	handleBlur: function(anEvent) {
-		if (! this._editModeLocked) {
-			if (anEvent.target.value.length < this.props['PIN'].DEFAULT_PIN_LENGTH) {
-				this.exitEditMode();
-			}
-		}
-	},
-
-	handleKeyDown: function(anEvent) {
-		if (anEvent.keyCode == 27) {
-			this.refs['pinValue'].getDOMNode().blur();
-		}
-	},
-
 	handleChange: function(anEvent) {
-		if (anEvent.target.value.length == this.props['PIN'].DEFAULT_PIN_LENGTH) {
-			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'updatePIN', anEvent.target.value);
-			this.refs['pinValue'].getDOMNode().blur();
-			this.exitEditMode();
-		} else {
+		if (anEvent.target.value.length <= this.props['PIN'].DEFAULT_PIN_LENGTH) {
 			this.setState({
 				'pinValue': anEvent.target.value
 			});
 		}
 	},
 
-	handleCheckboxChange: function(anEvent) {
-		if (this.props['PIN'].isSet() || this.state['isEditing']) {
-			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'disablePIN', anEvent.target.value);
-			this.exitEditMode();
-		} else {
-			this.enterEditMode();
-		}
+	setFocus: function() {
+		this.refs['pinValue'].getDOMNode().focus();
 	},
 
-	handleResetPIN: function() {
-		this.enterEditMode();
+	resetPIN: function() {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'disablePIN');
+		MochiKit.Async.callLater(0.1, MochiKit.Base.method(this, 'setState', this.getInitialState()));
+		MochiKit.Async.callLater(0.1, MochiKit.Base.method(this, 'setFocus'));
+	},
+
+	savePIN: function() {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'updatePIN', this.state.pinValue);
+		MochiKit.Async.callLater(0.1, MochiKit.Base.method(this, 'setState', this.getInitialState()));
 	},
 
 	//=========================================================================
 
-	// renderDigitInputs: function() {
-	// 	var i;
-	// 	var result;
+	renderButton: function() {
+		var isButtonEnabled = (this.props['PIN'].isSet() || this.state['pinValue'].length == this.props['PIN'].DEFAULT_PIN_LENGTH);
+		var buttonText = this.props['PIN'].isSet() ? "Reset" : "Save";
+		var buttonOnClick = (this.props['PIN'].isSet()) ? this.resetPIN : this.savePIN;
 
-	// 	result = [];
-	// 	for (i = 0; i<this.props['PIN'].DEFAULT_PIN_LENGTH; i++) {
-	// 		var boxIsFull = (this.state['isEditing']&&this.state['pinValue'][i]) 
-	// 						||
-	// 						(!this.state['isEditing']&&this.props['PIN'].isSet())
-
-	// 		result.push(React.DOM.input({
-	// 			'key': 'pin-digit-'+i,
-	// 			'ref': 'pin-digit-'+i,
-	// 			'name': 'pin-digit-'+i,
-	// 			'className': 'pinDigit',
-	// 			'readOnly': true,
-	// 			'type': 'text',
-	// 			'value': boxIsFull ? '*' : '',
-	// 			'min': 0,
-	// 			'max': 9,
-	// 			'disabled': !this.state['isEditing'],
-	// 			'onFocus': this.handleFocus,
-	// 		}));
-	// 	}
-
-	// 	return result;
-	// },
-
-	//-------------------------------------------------------------------------
-
-	componentDidUpdate: function() {
-		if (this.state['isEditing']) {
-			this.refs['pinValue'].getDOMNode().focus();
-		}
+		return React.DOM.a({
+			'className': 'button' + ((isButtonEnabled) ? '' : ' disabled'),
+			'onClick': (isButtonEnabled) ? buttonOnClick : null,
+		}, buttonText);
 	},
 
 	render: function () {
-		var displayedPin;
-		var isFormEnabled = (this.props['PIN'].isSet() || this.state.isEditing);
-		var isResetButtonEnabled = (! this.state['isEditing'] && this.props['PIN'].isSet());
-
-		if (this.state.isEditing) {
-			displayedPin = this.state['pinValue'];
-		} else {
-			displayedPin = (this.props['PIN'].isSet()) ? '*****' : '';
-		}
+		var isInputEnabled = ! this.props['PIN'].isSet();
+		var displayedPin = (this.props['PIN'].isSet()) ? '*****' : this.state.pinValue;
 
 		return React.DOM.div({className:'extraFeature devicePIN'}, [
 			React.DOM.div({'className':'header'}, [
@@ -169,41 +92,19 @@ Clipperz.PM.UI.Components.ExtraFeatures.DevicePINClass = React.createClass({
 				]),
 			]),
 			React.DOM.div({'className': 'content'}, [
+				React.DOM.p({}, "PIN is "+((this.props['PIN'].isSet()) ? '' : 'not ')+"set on this device"),
 				React.DOM.form({},[
-					React.DOM.p({}, [
-						React.DOM.input({
-							'type': 'checkbox',
-							'key': 'pinEnabled',
-							'checked': isFormEnabled,
-							'onChange': this.handleCheckboxChange,
-							'onMouseDown': this.lockEditMode,
-							'onMouseUp': this.unlockEditMode,
-						}),
-						React.DOM.label({
-							'key': 'pinEnabledLabel', 
-							'htmlFor': 'pinEnabled',
-							'onClick': this.handleCheckboxChange,
-							'onMouseDown': this.lockEditMode,
-							'onMouseUp': this.unlockEditMode,
-						}, "Enable PIN on your device")
-					]),
-					// this.renderDigitInputs(),
 					React.DOM.input({
 						'type': 'tel',
 						'key': 'pinValue',
 						'ref': 'pinValue',
 						'className': 'pinValue',
-						'disabled': !this.state['isEditing'],
-						'onKeyDown': this.handleKeyDown,
+						'disabled': ! isInputEnabled,
 						'onChange': this.handleChange,
 						'onBlur': this.handleBlur,
 						'value': displayedPin,
-						// 'style': {'position': 'fixed', 'top': -1000}
 					}),
-					React.DOM.a({
-						'className': 'button'+(isResetButtonEnabled ? '' : ' disabled'),
-						'onClick': (isResetButtonEnabled) ? this.handleResetPIN : null
-					}, "Reset PIN"),
+					this.renderButton(),
 				])
 			])
 		]);

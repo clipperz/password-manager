@@ -929,10 +929,10 @@ console.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more t
 		], {trace:false});
 	},
 
-	'setPreference': function(aKey, aValue) {
-		return Clipperz.Async.callbacks("User.setPreference", [
+	setPreferences: function(anObject) {
+		return Clipperz.Async.callbacks("User.setPreferences", [
 			MochiKit.Base.method(this, 'getHeaderIndex', 'preferences'),
-			MochiKit.Base.methodcaller('setValue', aKey, aValue),
+			MochiKit.Base.methodcaller('setPreferences', anObject),
 			MochiKit.Base.method(this, 'saveChanges')
 		], {trace:false});
 	},
