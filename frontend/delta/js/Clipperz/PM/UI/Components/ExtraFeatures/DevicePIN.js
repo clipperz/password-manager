@@ -92,7 +92,8 @@ Clipperz.PM.UI.Components.ExtraFeatures.DevicePINClass = React.createClass({
 				]),
 			]),
 			React.DOM.div({'className': 'content'}, [
-				React.DOM.p({}, "PIN is "+((this.props['PIN'].isSet()) ? '' : 'not ')+"set on this device"),
+//				React.DOM.p({}, "PIN is "+((this.props['PIN'].isSet()) ? '' : 'not ')+"set on this device"),
+				React.DOM.p({}, ((this.props['PIN'].isSet()) ? "PIN is set on this device" : "PIN is not set on this device")),
 				React.DOM.form({},[
 					React.DOM.input({
 						'type': 'tel',
