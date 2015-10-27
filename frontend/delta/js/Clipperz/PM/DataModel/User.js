@@ -695,7 +695,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 						result = someFilteredResults[0];
 						break;
 					default:
-console.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more than one result: " + someFilteredResults.length);
+Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more than one result: " + someFilteredResults.length);
 						result = someFilteredResults[0];
 						break;
 				}

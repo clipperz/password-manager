@@ -295,7 +295,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 					's':		someParameters['credentials']['s'],
 					'v':		someParameters['credentials']['v'],
 					'version':	someParameters['credentials']['version'],
-//					'lock':		Clipperz.Crypto.Base.generateRandomSeed(),
+					'lock':		Clipperz.PM.Crypto.randomKey(),
 					'userDetails':			someParameters['user']['header'],
 					'statistics':			someParameters['user']['statistics'],
 					'userDetailsVersion':	someParameters['user']['version'],

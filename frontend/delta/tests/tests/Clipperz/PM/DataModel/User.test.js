@@ -1893,18 +1893,19 @@ var tests = {
 			SimpleTest.is(MochiKit.Base.keys(someDirectLogins).length, 22, "The user has 22 direct logins");
 		});
 
-		deferredResult.addMethod(proxy, 'shouldNotReceiveAnyFurtherRequest');
-		deferredResult.addCallback(function () { currentPasswordFunction = failPassword; });
+		// User.lock() actually sends a `logout` request.
+		// deferredResult.addMethod(proxy, 'shouldNotReceiveAnyFurtherRequest');
+		// deferredResult.addCallback(function () { currentPasswordFunction = failPassword; });
 
 		deferredResult.addMethod(user, 'lock');
 		deferredResult.shouldSucceed("Locking out should not trigger an exception");
 
-		deferredResult.addMethod(proxy, 'unexpectedRequests');
-		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
-		deferredResult.addTest(0, "The proxy should have not received any extra request");
-//deferredResult.addCallback(function (aValue) { console.log("PROXY.unexpectedRequests", Clipperz.Base.serializeJSON(proxy.unexpectedRequests())); return aValue; });
-		deferredResult.addMethod(proxy, 'mayReceiveMoreRequests');
-		deferredResult.addCallback(function () { currentPasswordFunction = returnPassword; });
+// 		deferredResult.addMethod(proxy, 'unexpectedRequests');
+// 		deferredResult.addCallback(MochiKit.Base.itemgetter('length'));
+// 		deferredResult.addTest(0, "The proxy should have not received any extra request");
+// deferredResult.addCallback(function (aValue) { console.log("PROXY.unexpectedRequests", Clipperz.Base.serializeJSON(proxy.unexpectedRequests())); return aValue; });
+// 		deferredResult.addMethod(proxy, 'mayReceiveMoreRequests');
+		// deferredResult.addCallback(function () { currentPasswordFunction = returnPassword; });
 
 		deferredResult.callback();
 		

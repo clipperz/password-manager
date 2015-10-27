@@ -581,7 +581,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 						result = someFilteredResults[0];
 						break;
 					default:
-console.log("Warning: Record.fieldWithLabel('" + aLabel + "') is returning more than one result: " + someFilteredResults.length);
+Clipperz.log("Warning: Record.fieldWithLabel('" + aLabel + "') is returning more than one result: " + someFilteredResults.length);
 						result = someFilteredResults[0];
 						break;
 				}
@@ -607,7 +607,7 @@ console.log("Warning: Record.fieldWithLabel('" + aLabel + "') is returning more 
 		var transientStateKey;
 
 		if (typeof(aVersionReference) == 'undefined') {
-			console.log("ERROR; getVersionKey aVersionReference is undefined");
+			Clipperz.log("ERROR; getVersionKey aVersionReference is undefined");
 		}
 
 		transientStateKey = 'versionKeys' + '.' + aVersionReference;

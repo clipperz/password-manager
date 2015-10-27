@@ -424,19 +424,27 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 	unlock_handler: function(aCredential, aCredentialType) {
 		var deferredResult;
-		var passphrase;
+		var user, passphrase, getPassphraseDelegate;
 
-		var user = this.user();
+		// var user = this.user();
+		var oldUser = this.user();
 		var unlockPage = this.pages()['unlockPage'];
 		var overlay = this.overlay();
 
 		overlay.show("validating…");
 		passphrase = (aCredentialType=='PIN') ? Clipperz.PM.PIN.credentialsWithPIN(aCredential)['passphrase'] : aCredential;
 
-		deferredResult = new Clipperz.Async.Deferred('MainController.unlock_handler', {trace:false});
+		getPassphraseDelegate = MochiKit.Base.partial(MochiKit.Async.succeed, passphrase);
+		user = new Clipperz.PM.DataModel.User({'username':oldUser.username(), 'getPassphraseFunction':getPassphraseDelegate});
+
+		deferredResult = new Clipperz.Async.Deferred('MainController.unlock_handler', {trace:true});
+
 		deferredResult.addMethod(unlockPage, 'setProps', {'disabled': true});
 
-		deferredResult.addMethod(user, 'unlock', function() { return MochiKit.Async.succeed(passphrase); });
+		deferredResult.addMethod(user, 'login');
+		deferredResult.addMethod(this, 'setUser', user);
+		// deferredResult.addMethod(user, 'unlock', MochiKit.Base.partial(MochiKit.Async.succeed, passphrase));
+
 		deferredResult.addErrback(MochiKit.Base.bind(function (aValue) {
 			var innerDeferredResult;
 			var errorMessage;
