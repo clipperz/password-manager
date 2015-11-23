@@ -248,3 +248,11 @@ refer to http://www.clipperz.com.
 	}
 */
 }
+
+@mixin userSelectNone () {
+	-moz-user-select: -moz-none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}

@@ -192,7 +192,7 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 				innerDeferredResult = MochiKit.Async.succeed(this._remoteData);
 			} else {
 				innerDeferredResult = Clipperz.Async.callbacks("EncryptedRemoteObjects.getRemoteData <inner deferred>", [
-					MochiKit.Base.partial(this.retrieveRemoteDataFunction(), this.reference()),
+					MochiKit.Base.partial(this.retrieveRemoteDataFunction(), this),
 					MochiKit.Base.method(this, 'setRemoteData'),
 				], {trace:false});
 			}
@@ -542,3 +542,19 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 	//-------------------------------------------------------------------------
 	__syntaxFix__: "syntax fix"
 });
+
+/*
+Clipperz.PM.DataModel.EncryptedRemoteObject.emptyObjectWithKey = function (aKey) {
+	var	key = "clipperz";
+	var	value = new Clipperz.ByteArray();
+	var	version = Clipperz.PM.Crypto.encryptingFunctions.currentVersion;
+//	var	remoteData = Clipperz.PM.Crypto.encrypt({'key':key, 'value':value, 'version':version});
+	var	remoteData = Clipperz.PM.Crypto.encryptingFunctions.versions[version].encrypt(key, value);
+	
+	return new Clipperz.PM.DataModel.EncryptedRemoteObject({
+		'reference':	Clipperz.PM.Crypto.randomKey(),
+		'remoteData':	remoteData,
+		'retrieveKeyFunction':	function () { return key; },
+	});
+};
+*/

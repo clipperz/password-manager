@@ -36,6 +36,8 @@ $cardArchivedColor: #eee;
 $cardToolbarBackgroundColor: $clipperz-blue;
 $iconMargin: 6px;
 $labelColor: gray;
+$lightRed: #dd1111;
+$darkRed: #aa2222;
 
 div.cardList {
 //	background-color: $yellow;
@@ -104,6 +106,14 @@ div.cardList {
 				padding-left: $padding * 2;
 				padding-right: $padding;
 				line-height: 1.2em;
+			}
+			
+			.attachmentsCount {
+				@include icon-font();
+				color: #aaa;
+				padding-right: 8px;
+				padding-left: 6px;
+				padding-top: 18px;
 			}
 			
 		}
@@ -267,6 +277,10 @@ $cardViewBasePadding: 10px;
 			background-color: $cardToolbarBackgroundColor;
 			color: white;
 
+			&.top {
+			 	display: none; /* Issue #203 */
+			}
+
 			&.narrow {
 				@include transition(height, 2.5s, ease-in);
 
@@ -305,8 +319,9 @@ $cardViewBasePadding: 10px;
 			.removeDirectLogin {
 				@include icon-font();
 
-				margin: $iconMargin;
-				margin-top: 12px;
+				display: inline-block;
+				margin-left: $iconMargin;
+//				margin-top: 12px;
 				cursor: pointer;
 				color: white;
 				width: 40px;
@@ -319,13 +334,206 @@ $cardViewBasePadding: 10px;
 
 			.directLoginLabel {
 				vertical-align: bottom;
-				padding-left: 17px;
+//				padding-left: 17px;
+				padding-left: 0px;
+			}
+		}
+
+		.cardUploadAttachments {
+			border: 2px dashed #ccc;
+			margin: 0 1em 1em 1em;
+			padding: 1em;
+			text-align: center;
+			margin-left: 44px;
+
+			p {
+				margin-bottom: 1em;
+			}
+
+			.attachmentInput {
+				display: none;
+			}
+
+			.button {
+				display: inline-block;
+				color: white;
+				background-color: #ff9900;
+				font-size: 14pt;
+				padding: 10px 14px;
 			}
 		}
 	}
 }	
 
+.cardAttachmentWrapper {
+	border-bottom: 3px double #eee;
+}
 
+.cardAttachments {
+
+	padding-bottom: 10px;
+
+	h3 {
+		padding-top: 14px;
+		padding-bottom: 14px;
+		color: gray;
+		font-size: 12pt;
+
+		&:before {
+			@include icon-font();
+			content: "attachment";
+			padding-left: 13px;
+			padding-right: 13px;
+			padding-top: 0px;
+			padding-bottom: 0px;
+			font-weight: bold;
+			font-size: 14pt;
+			display: inline-block;
+
+			transform: scaleX(-1);
+		};
+	}
+
+	.skippedFiles {
+		margin: 1em 1em 1em 44px;
+		color: white;
+		background: $clipperz-orange;
+		padding: 1em;
+		font-size: .8em;
+
+		ul {
+			padding: 1em 1em 1em 0;
+			list-style-type: none;
+
+			li {
+				.filename {
+					font-weight: bold;
+				}
+			}
+		}
+	}
+
+	.attachmentList {
+		margin-left: 44px;
+		padding-right: 8px;
+
+		li {
+			@include flexbox();
+			@include flex-direction(row);
+			padding-bottom: 6px;
+
+			&.broken {
+				span {
+					color: $lightRed !important;
+				}
+			}
+		
+			/*cursor: pointer;*/
+
+			.contentType {
+				@include flex(none);
+				width: 30px;
+				@include icon-font();
+				color: gray;
+			}
+		
+			span {
+				/*border:1px solid black;*/
+				line-height: 30px;
+				display: inline-block;
+			}
+
+			.meta {
+				@include flex(auto);
+				text-align: left;
+				font-size: 14pt;
+
+				width: 100%;	/* Hack to fix long names behaviour */
+				overflow: hidden;
+
+				.name {
+					overflow: hidden;
+					text-overflow: ellipsis;
+					width: 100%;
+					white-space: pre;
+				}
+
+				.size {
+					display: block;
+					color: #aaa;
+					font-size: 8pt;
+					line-height: 8pt;
+				}
+			}
+
+			.status {
+				width: 100px;
+				text-align: right;
+
+				.waiting {
+					font-size: 10pt;
+					color: #aaa;
+				}
+			}
+
+			.actions {
+				@include userSelectNone();
+
+				display: inline-block;
+				width:30px;
+
+				a {
+					display: inline-block;
+					width: 30px;
+					cursor:pointer;
+					font-size: 20pt;
+					color: #aaa;
+
+					&.cancel, &.remove {
+						@include icon-font();
+						&:hover {
+							color: $lightRed;
+						};
+					}
+
+					&.download {
+						&:hover {
+							color: $clipperz-blue;
+						};
+					}
+				}
+			}
+
+			.progress {
+				width: 30px;
+				text-align: center;
+
+				.radialProgressIndicator {
+					width: 25px;
+					height: 30px;
+
+					.background {
+						fill: white;
+					}
+
+					.progress {
+						fill: black;
+					}
+
+					.border {
+						fill: black;
+					}
+
+					&.waiting {
+						.border {
+							fill: #aaa;
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 .edit {
 	.cardDetailToolbar {
@@ -406,6 +614,64 @@ $cardViewBasePadding: 10px;
 	.tagEditor {
 		padding: $cardViewBasePadding;
 //		background-color: cyan;
+		flex-wrap: wrap;
+
+		/* I considered this specific to the card View/Edit page: should it go in tagEditor.scss instead? */
+		ul {
+			width: calc(100% - 31px);
+			flex-wrap: wrap;
+			padding-left: 31px;
+
+			&:before {
+				margin-left: -32px;
+			}
+
+			li {
+				.tagLabel {
+					max-width: 500px; // Hack: length computation breaks when the content is very long
+					overflow: hidden;
+					text-overflow: ellipsis;
+					white-space: pre;
+				}
+			}
+		}
+
+		&.readOnly {
+			ul {
+				li {
+					display: inline-block;
+					max-width: 30%;
+
+					.tagLabel {
+						display: inline-block;
+						width: 100%;
+					}
+				}
+			}
+		}
+
+		&.readWrite {
+			ul {
+				li {
+					// Uniform size
+					/*display: inline-flex;*/
+					/*width: 30%;*/
+
+					// Variable size
+					display: inline-block;
+					max-width: 30%;
+
+					.tagLabel {
+						width: calc(100% - 30px);
+						display: inline-block;
+					}
+
+					input {
+						width: 100%;
+					}
+				}
+			}
+		}
 	}
 
 	.cardNotes {
@@ -483,7 +749,7 @@ $cardViewBasePadding: 10px;
 				font-size: 20pt;
 
 				&:hover {
-					color: rgb(155, 0, 0);
+					color: $lightRed;
 				};
 			}
 
@@ -643,6 +909,8 @@ $cardViewBasePadding: 10px;
 					font-size: 15pt;
 					margin: $iconMargin;
 
+					margin-right: 16px;
+
 					cursor: default;
 
 					&.URL {
@@ -686,15 +954,60 @@ $cardViewBasePadding: 10px;
 	}
 
 	.newCardField {
-		@include icon-font();
-		margin: $iconMargin;
+		height: 115px;
+		border-bottom: 3px double #eee;
 		cursor: pointer;
-		color: #ccc;
-		font-size: 20pt;
+
+		.fieldGhostShadow {
+//			width: 100%;
+
+			padding-top: 11px;
+			padding-bottom: 11px;
+			padding-left: 42px;
+			padding-right: 49px;
+
+//			float: left;
+//			clear: both;
+
+			.label {
+				background-color: white;
+				height: 25px;
+				margin-bottom: 8px;
+			}
+			
+			.value {
+				background-color: white;
+				height: 58px;
+			}
+		}
+
+		.addNewFieldButton {
+			margin-top: -90px;
+			
+			width: 70px;
+			font-size: 50pt;
+
+			margin-left: auto;
+			margin-right: auto;
+
+			@include icon-font();
+//			margin: $iconMargin;
+			color: #eee;
+//			border-radius: 30px;
+
+		}
 
 		&:hover {
-			color: green;
+			background-color: #f5f5f5;
+
+			.fieldGhostShadow {
+			}
+
+			.addNewFieldButton {
+				color: #7c7;
+			}
 		};
+
 	}
 
 	.cardDirectLogin {

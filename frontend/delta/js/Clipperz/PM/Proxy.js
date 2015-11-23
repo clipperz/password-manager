@@ -95,6 +95,27 @@ Clipperz.PM.Proxy.prototype = MochiKit.Base.update(null, {
 		return deferredResult;
 	},
 
+	'justPayToll': function(aRequestType) {
+		var	deferredResult;
+
+		if (this.shouldPayTolls()) {
+			deferredResult = new Clipperz.Async.Deferred("Proxy.justPayToll", {trace:false});
+
+			if (this.tolls()[aRequestType].length == 0) {
+				deferredResult.addMethod(this, 'sendMessage', 'knock', {requestType:aRequestType});
+				deferredResult.addMethod(this, 'setTollCallback');
+			}
+			deferredResult.addMethod(this.tolls()[aRequestType], 'pop');
+			deferredResult.addCallback(MochiKit.Base.methodcaller('deferredPay'));
+		
+			deferredResult.callback();
+		} else {
+			deferredResult = MochiKit.Async.succeed(null);
+		}
+
+		return deferredResult;
+	},
+
 	//-------------------------------------------------------------------------
 
 	'addToll': function(aToll) {
@@ -108,7 +129,7 @@ Clipperz.PM.Proxy.prototype = MochiKit.Base.update(null, {
 			this.addToll(new Clipperz.PM.Toll(someParameters['toll']));
 		}
 
-		return someParameters['result'];
+		return someParameters['result'];	// <- This is what will be returned by the message call
 	},
 
 	//=========================================================================
@@ -121,8 +142,8 @@ Clipperz.PM.Proxy.prototype = MochiKit.Base.update(null, {
 		return this.processMessage('handshake', someParameters, 'CONNECT');
 	},
 
-	'message': function (someParameters) {
-		return this.processMessage('message', someParameters, 'MESSAGE');
+	'message': function (someParameters, someOptionalParameters) {
+		return this.processMessage('message', someParameters, 'MESSAGE', someOptionalParameters);
 	},
 
 	'logout': function (someParameters) {
@@ -145,33 +166,65 @@ Clipperz.PM.Proxy.prototype = MochiKit.Base.update(null, {
 
 	//=========================================================================
 
-	'processMessage': function (aFunctionName, someParameters, aRequestType) {
+	'processMessage': function (aFunctionName, someParameters, aRequestType, someOptionalParameters) {
 		var	deferredResult;
 
 		deferredResult = new Clipperz.Async.Deferred("Proxy.processMessage", {trace:false});
 		deferredResult.addMethod(this, 'payToll', aRequestType);
-		deferredResult.addMethod(this, 'sendMessage', aFunctionName);
+		// deferredResult.addMethod(this, 'sendMessage', aFunctionName);
+		deferredResult.addCallback(MochiKit.Base.bind(function(aResult){
+			return this.sendMessage(aFunctionName, aResult, someOptionalParameters);
+		}, this));
 		deferredResult.addMethod(this, 'setTollCallback');
 		deferredResult.callback(someParameters);
 		
 		return deferredResult;		
 	},
 
+	'processAttachmentMessage': function(aMessageCallback) {
+		var	deferredResult;
+
+		deferredResult = new Clipperz.Async.Deferred("Proxy.uploadAttachment", {trace:false});
+		deferredResult.addMethod(this, 'justPayToll', 'MESSAGE');
+		deferredResult.addCallback(aMessageCallback);
+		deferredResult.addErrback(MochiKit.Base.method(this, 'handleError'));
+		deferredResult.addMethod(this, 'setTollCallback');
+		deferredResult.callback();
+		
+		return deferredResult;		
+	},
+
+	'uploadAttachment': function(someArguments, aProgressCallback, aSharedSecret) {
+		var messageCallback = MochiKit.Base.method(this, '_uploadAttachment', someArguments, aProgressCallback, aSharedSecret);
+
+		return this.processAttachmentMessage(messageCallback);
+	},
+
+	'downloadAttachment': function(someArguments, aProgressCallback, aSharedSecret) {
+		var messageCallback = MochiKit.Base.method(this, '_downloadAttachment', someArguments, aProgressCallback, aSharedSecret);
+
+		return this.processAttachmentMessage(messageCallback);
+	},
+
 	//=========================================================================
 
-	'_sendMessage': function (aFunctionName, aVersion, someParameters) {
+	'_uploadAttachment': function (someArguments, aProgressCallback, aSharedSecret) {
 		throw Clipperz.Base.exception.AbstractMethod;		
 	},
 
-	'sendMessage': function (aFunctionName, someParameters) {
+	'_sendMessage': function (aFunctionName, aVersion, someParameters, someOptionalParameters) {
+		throw Clipperz.Base.exception.AbstractMethod;		
+	},
+
+	'sendMessage': function (aFunctionName, someParameters, someOptionalParameters) {
 		var deferredResult;
 
 //console.log("PROXY.sendMessage", aFunctionName, someParameters);
 //	TODO: read actual application version for a property set at build time
 		deferredResult = new Clipperz.Async.Deferred("Proxy.sendMessage", {trace:false});
-		deferredResult.addMethod(this, '_sendMessage', aFunctionName, 'fake-app-version');
+		deferredResult.addMethod(this, '_sendMessage', aFunctionName, 'fake-app-version', someParameters, someOptionalParameters);
 		deferredResult.addErrback(MochiKit.Base.method(this, 'handleError'));
-		deferredResult.callback(someParameters);
+		deferredResult.callback();
 		
 		return deferredResult;		
 	},

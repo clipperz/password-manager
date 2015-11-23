@@ -56,7 +56,13 @@ refer to http://www.clipperz.com.
 			&.recentCards:before {
 				content: "recent";
 			}
-			
+
+			&.withAttachmentCards:before {
+//				transform: scaleX(-1);
+				content: "attachment";
+				font-weight: bold;
+			}
+
 			&.untaggedCards {
 				padding-left: 35px;
 			}
@@ -253,18 +259,40 @@ $selectionColor: $clipperz-orange;
 #selections.ALL {
 	li.allCards {
 		color: $selectionColor;
+		
+		&:before {
+			color: white;
+		}
+	}
+}
+
+#selections.WITH_ATTACHMENTS {
+	li.withAttachmentCards {
+		color: $selectionColor;
+
+		&:before {
+			color: white;
+		}
 	}
 }
 
 #selections.RECENT {
 	li.recentCards {
 		color: $selectionColor;
+
+		&:before {
+			color: white;
+		}
 	}
 }
 
 #selections.UNTAGGED {
 	li.untaggedCards {
 		color: $selectionColor;
+
+		&:before {
+			color: white;
+		}
 	}
 }
 
@@ -278,8 +306,13 @@ $selectionColor: $clipperz-orange;
 		form {
 			div.form {
 				label {
+//					color: $selectionColor;
+				}
+				
+				input {
 					color: $selectionColor;
 				}
+
 				.searchClear {
 					span.count {
 						display: block;
@@ -300,6 +333,10 @@ $selectionColor: $clipperz-orange;
 	ul.tagList {
 		li.selected {
 			color: $selectionColor;
+
+			&:before {
+				color: white;
+			}
 		}
 	}
 }

@@ -40,6 +40,7 @@ Clipperz.PM.UI.Components.Cards.DetailClass = React.createClass({
 			result['showGlobalMask'] = this.props['showGlobalMask'];
 			result['allTags'] = this.props['allTags'];
 			result['preferences'] = this.props['preferences'];
+			result['attachmentQueueInfo'] = this.props['attachmentQueueInfo'];
 		}
 		
 		return result;

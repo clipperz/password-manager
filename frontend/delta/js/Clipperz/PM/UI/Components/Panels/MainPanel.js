@@ -29,11 +29,12 @@ Clipperz.PM.UI.Components.Panels.MainPanelClass = React.createClass({
 	//=========================================================================
 
 	propTypes: {
-		'allTags':		React.PropTypes.array,
-		'messageBox':	React.PropTypes.object.isRequired,
-		'featureSet':	React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
-		'features':		React.PropTypes.array.isRequired,
-		'style':		React.PropTypes.oneOf(Clipperz_PM_UI_availableStyles).isRequired,
+		'allTags':				React.PropTypes.array,
+		'messageBox':			React.PropTypes.object.isRequired,
+		'featureSet':			React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
+		'features':				React.PropTypes.array.isRequired,
+		'style':				React.PropTypes.oneOf(Clipperz_PM_UI_availableStyles).isRequired,
+		'attachmentQueueInfo':	React.PropTypes.object.isRequired,
 	},
 
 	style: function () {

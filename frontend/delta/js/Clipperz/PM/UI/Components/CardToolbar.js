@@ -32,7 +32,8 @@ Clipperz.PM.UI.Components.CardToolbarClass = React.createClass({
 		'accountInfo':		React.PropTypes.object.isRequired,
 		'proxyInfo':		React.PropTypes.object.isRequired,
 		'messageBox':		React.PropTypes.object.isRequired,
-		'filter':			React.PropTypes.object /*.isRequired */
+		'filter':			React.PropTypes.object /*.isRequired */,
+		'attachmentQueueInfo':	React.PropTypes.object.isRequired,
 	},
 
 	//----------------------------------------------------------------------------
@@ -48,15 +49,31 @@ Clipperz.PM.UI.Components.CardToolbarClass = React.createClass({
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel');
 	},
 	
+	attachmentQueueToggleHandler: function(anEvent) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleAttachmentQueueBox');
+	},
+
 	//============================================================================
 
 	renderWithSidePanels: function () {
+		var attachmentDownloadNotificationNumber = MochiKit.Base.filter(function(anElement) {
+			return anElement['queueElement']['process'] == 'DOWNLOAD';
+		}, this.props['attachmentQueueInfo']['notifications']).length;
+
+		var attachmentUploadNotificationNumber = this.props['attachmentQueueInfo']['notifications'].length - attachmentDownloadNotificationNumber;
+
 		return [
 			React.DOM.div({className:'selectionToggle'}, [
 				Clipperz.PM.UI.Components.Button({eventName:'selectionToggleButton', label:"tags", handler:this.selectionToggleHandler})
 			]),
 			this.renderWithoutSidePanels(),
+			// React.DOM.div({className:'attachmentToggle'}, [
+			// 	Clipperz.PM.UI.Components.Button({eventName:'attachmentQueueToggleButton', label:"clipperz", handler:this.attachmentQueueToggleHandler})
+			// ]),
+
+			// TODO: validate and adjust names
 			React.DOM.div({className:'settingsToggle'}, [
+				Clipperz.PM.UI.Components.Button({eventName:'attachmentQueueToggleButton', label:"\u2191\u2193", handler:this.attachmentQueueToggleHandler, badgeTopContent: attachmentDownloadNotificationNumber, badgeBottomContent: attachmentUploadNotificationNumber}),
 				Clipperz.PM.UI.Components.Button({eventName:'settingsToggleButton', label:"menu", handler:this.settingsToggleHandler})
 			])
 		];
@@ -70,6 +87,8 @@ Clipperz.PM.UI.Components.CardToolbarClass = React.createClass({
 
 			if (this.props['filter']['type'] == 'RECENT') {
 				result = [React.DOM.div({className:'clipperz'}, [React.DOM.span({className:'logo recent'}, "recent")])];
+			} else if (this.props['filter']['type'] == 'WITH_ATTACHMENTS') {
+					result = [React.DOM.div({className:'clipperz'}, [React.DOM.span({className:'logo withAttachments'}, "attachment")])];
 			} else if (this.props['filter']['type'] == 'TAG') {
 				result = [React.DOM.div({className:'clipperz'}, [
 					React.DOM.span({className:'logo tag'}, "tag"),

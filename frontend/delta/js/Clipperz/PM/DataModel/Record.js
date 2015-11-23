@@ -41,11 +41,18 @@ Clipperz.PM.DataModel.Record = function(args) {
 	this._retrieveDirectLoginIndexDataFunction	= args.retrieveDirectLoginIndexDataFunction	|| null;
 	this._setDirectLoginIndexDataFunction		= args.setDirectLoginIndexDataFunction		|| null;
 	this._removeDirectLoginIndexDataFunction	= args.removeDirectLoginIndexDataFunction	|| null;
-
 	this._createNewDirectLoginFunction			= args.createNewDirectLoginFunction			|| null;
+
+	this._retrieveAttachmentIndexDataFunction	= args.retrieveAttachmentIndexDataFunction	|| null;
+	this._setAttachmentIndexDataFunction		= args.setAttachmentIndexDataFunction		|| null;
+	this._removeAttachmentIndexDataFunction		= args.removeAttachmentIndexDataFunction	|| null;
+	this._createNewAttachmentFunction			= args.createNewAttachmentFunction			|| null;
 	
+	this._attachmentServerStatus = {};
+
 	this._tags = [];
 	this._directLogins = {};
+	this._attachments = {};
 	this._versions = {};
 
 	this._currentRecordVersion = null;
@@ -130,6 +137,16 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		deferredResult.callback();
 		
 		return deferredResult;
+	},
+
+	//----------------------------------------------------------------------------
+
+	setAttachmentServerStatus: function(anObject) {
+		this._attachmentServerStatus = anObject;
+	},
+
+	getAttachmentServerStatus: function() {
+		return this._attachmentServerStatus;
 	},
 
 	//============================================================================
@@ -284,6 +301,12 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	},
 
 	//=========================================================================
+	
+	attachmentsCount: function() {
+		return MochiKit.Base.keys(this.attachments()).length;
+	},
+
+	//=========================================================================
 
 	'favicon': function () {
 		var result;
@@ -374,6 +397,13 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		deferredResult.addCallback(MochiKit.Base.map, function (aValue) { result['directLogins'].push(aValue); });
 		deferredResult.addCallback(function () { return result; });
 
+		deferredResult.addMethod(this, 'attachments');
+		deferredResult.addCallback(MochiKit.Base.values);
+		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.methodcaller('content'));
+		deferredResult.addCallback(Clipperz.Async.collectAll);
+		deferredResult.addCallback(MochiKit.Base.map, function (aValue) { result['directLogins'].push(aValue); });
+		deferredResult.addCallback(function () { return result; });
+
 		deferredResult.callback();
 
 		return deferredResult;
@@ -385,7 +415,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		return this._directLogins;
 	},
 
-	'addDirectLogin': function (aDirectLogin) {
+	'bindDirectLogin': function (aDirectLogin) {
 		this._directLogins[aDirectLogin.reference()] = aDirectLogin;
 	},
 
@@ -400,12 +430,13 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	'saveOriginalDirectLoginStatusToTransientState': function () {
 		if (this.transientState().getValue('directLogins') == null) {
 //			this.transientState().setValue('directLogins', this._directLogins)
+			this.transientState().setValue('directLogins', {});
 			MochiKit.Iter.forEach(MochiKit.Base.keys(this._directLogins), MochiKit.Base.bind(function(aKey) {
 				this.transientState().setValue('directLogins' + '.' + aKey, this._directLogins[aKey])
 			}, this))
 		}
 	},
-	
+
 	'createNewDirectLogin': function () {
 		this.saveOriginalDirectLoginStatusToTransientState();
 
@@ -443,6 +474,81 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 						'label': MochiKit.Base.methodcaller('label'),
 						'favicon': MochiKit.Base.methodcaller('favicon')
 					}, {trace:false})(someDirectLogins[i]));
+				};
+				
+				return result;
+			},
+			Clipperz.Async.collectAll
+		], {trace:false});
+		
+		return result;
+	},
+
+	//=========================================================================
+	//	TODO: !!!!
+	'attachments': function () {
+		return this._attachments;
+	},
+
+	'bindAttachment': function (anAttachment) {
+		this._attachments[anAttachment.reference()] = anAttachment;
+	},
+
+	'attachmentWithReference': function (anAttachmentReference) {
+		return this._attachments[anAttachmentReference];
+	},
+
+	'createNewAttachmentFunction': function () {
+		return this._createNewAttachmentFunction;
+	},
+
+	'saveOriginalAttachmentStatusToTransientState': function () {
+		if (this.transientState().getValue('attachments') == null) {
+// console.log("saving attachments to transient state: ts:", this.transientState());
+			this.transientState().setValue('attachments', {});
+			MochiKit.Iter.forEach(MochiKit.Base.keys(this._attachments), MochiKit.Base.bind(function(aKey) {
+// console.log("saving attachment to transient state:", this._attachments[aKey]);
+				this.transientState().setValue('attachments' + '.' + aKey, this._attachments[aKey])
+			}, this))
+		}
+	},
+	
+	'createNewAttachment': function () {
+		this.saveOriginalAttachmentStatusToTransientState();
+		return this.createNewAttachmentFunction()(this);
+	},
+
+	'removeAttachment': function(anAttachment) {
+		this.saveOriginalAttachmentStatusToTransientState();
+		return Clipperz.Async.callbacks("Record.removeAttachment", [
+			MochiKit.Base.method(this, 'removeValue', 'attachments' + '.' + anAttachment.reference()),
+			MochiKit.Base.bind(function () {
+				this._removeAttachmentIndexDataFunction(anAttachment.reference());
+				delete this._attachments[anAttachment.reference()]
+			}, this)
+		], {trace:false});
+		
+	},
+
+	'attachmentReferences': function () {
+		var result;
+
+		result = Clipperz.Async.callbacks("Record.attachmentReferences", [
+			MochiKit.Base.method(this, 'attachments'),
+			MochiKit.Base.values,
+			function (someAttachments) {
+				var result;
+				var i,c;
+				
+				result = [];
+				c = someAttachments.length;
+				for (i=0; i<c; i++) {
+					result.push(Clipperz.Async.collectResults("Record.attachmentReferences - collectResults", {
+						'_rowObject': MochiKit.Async.succeed,
+						'_reference': MochiKit.Base.methodcaller('reference'),
+//						'label': MochiKit.Base.methodcaller('label'),
+//						'favicon': MochiKit.Base.methodcaller('favicon')
+					}, {trace:false})(someAttachments[i]));
 				};
 				
 				return result;
@@ -507,6 +613,8 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 
 		newVersionKey = Clipperz.PM.Crypto.randomKey();
 		result = {};
+
+		result['attachments'] = MochiKit.Base.keys(this.attachments());
 
 		deferredResult = new Clipperz.Async.Deferred("Record.prepareRemoteDataWithKey", {trace:false});
 		deferredResult.addCallbackList([
@@ -581,7 +689,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 						result = someFilteredResults[0];
 						break;
 					default:
-Clipperz.log("Warning: Record.fieldWithLabel('" + aLabel + "') is returning more than one result: " + someFilteredResults.length);
+//console.log("Warning: Record.fieldWithLabel('" + aLabel + "') is returning more than one result: " + someFilteredResults.length);
 						result = someFilteredResults[0];
 						break;
 				}
@@ -607,7 +715,7 @@ Clipperz.log("Warning: Record.fieldWithLabel('" + aLabel + "') is returning more
 		var transientStateKey;
 
 		if (typeof(aVersionReference) == 'undefined') {
-			Clipperz.log("ERROR; getVersionKey aVersionReference is undefined");
+			console.log("ERROR; getVersionKey aVersionReference is undefined");
 		}
 
 		transientStateKey = 'versionKeys' + '.' + aVersionReference;
@@ -757,60 +865,6 @@ Clipperz.log("Warning: Record.fieldWithLabel('" + aLabel + "') is returning more
 	},
 
 	//=========================================================================
-/*
-	'hasPendingChanges': function () {
-		var deferredResult;
-
-		if (this.hasInitiatedObjectDataStore()) {
-			deferredResult = new Clipperz.Async.Deferred("Clipperz.PM.DataModel.Record.hasPendingChanges", {trace:false});
-			deferredResult.collectResults({
-				'super': MochiKit.Base.bind(Clipperz.PM.DataModel.Record.superclass.hasPendingChanges, this),
-				'currentVersion': [
-//					MochiKit.Base.method(this, 'getCurrentRecordVersion'),
-//					MochiKit.Base.methodcaller('hasPendingChanges')
-					MochiKit.Base.method(this, 'invokeCurrentRecordVersionMethod', 'hasPendingChanges')
-				],
-				'directLogins': [
-					MochiKit.Base.method(this, 'directLogins'),
-					MochiKit.Base.values,
-					MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('hasPendingChanges')),
-					Clipperz.Async.collectAll,
-					Clipperz.Async.or
-//					function(someValues) {
-//						return MochiKit.Iter.some(someValues, MochiKit.Base.operator.identity);
-//					}
-				]
-			});
-deferredResult.addCallback(function (aValue) { console.log("Record.hasPendingChanges", aValue); return aValue; });
-			deferredResult.addCallback(MochiKit.Base.values);
-			deferredResult.addCallback(MochiKit.Base.bind(function(someValues) {
-				var result;
-				result = MochiKit.Iter.some(someValues, MochiKit.Base.operator.identity);
-
-				if ((result == false) && (this.isBrandNew() == false)) {
-					result = MochiKit.Iter.some(MochiKit.Base.values(this.transientState().getValue('hasPendingChanges.indexData')), MochiKit.Base.operator.identity);
-				}
-		
-				return result;
-			}, this));
-
-			deferredResult.callback();
-		} else {
-			deferredResult = Clipperz.Async.callbacks("Recrod.hasPendingChanges [hasInitiatedObjectDataStore == false]", [
-				MochiKit.Base.method(this, 'directLogins'),
-				MochiKit.Base.values,
-				MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('hasPendingChanges')),
-				Clipperz.Async.collectAll,
-				Clipperz.Async.or
-//				function(someValues) {
-//					return MochiKit.Iter.some(someValues, MochiKit.Base.operator.identity);
-//				}
-			], {trace:false})
-		}
-
-		return deferredResult;
-	},
-*/
 
 	'hasPendingChanges': function () {
 		var deferredResult;
@@ -836,27 +890,18 @@ deferredResult.addCallback(function (aValue) { console.log("Record.hasPendingCha
 				MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('hasPendingChanges')),
 				Clipperz.Async.collectAll,
 				Clipperz.Async.or
+			],
+			'attachments': [
+				MochiKit.Base.method(this, 'attachments'),
+				MochiKit.Base.values,
+				MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('hasPendingChanges')),
+				Clipperz.Async.collectAll,
+				Clipperz.Async.or
 			]
-		});
-//deferredResult.addCallback(function (someValues) {
-//	if (recordReference == 'd620764a656bfd4e1d3758500d5db72e460a0cf729d56ed1a7755b5725c50045') {
-//		console.log("Record.hasPendingChanges VALUES", someValues);
-//	}
-//	return someValues;
-//})
+		}, {trace:true});
 		deferredResult.addCallback(MochiKit.Base.values);
-		deferredResult.addCallback(MochiKit.Base.bind(function(someValues) {
-			var result;
-			result = MochiKit.Iter.some(someValues, MochiKit.Base.operator.identity);
-/*
-			if ((result == false) && (this.isBrandNew() == false)) {
-console.log("TRANSIENT STATE", this.transientState());
-console.log("TRANSIENT STATE - hasPendingChanges", this.transientState().getValue('hasPendingChanges.indexData'));
-				result = MochiKit.Iter.some(MochiKit.Base.values(this.transientState().getValue('hasPendingChanges.indexData')), MochiKit.Base.operator.identity);
-			}
-console.log("Record.hasPendingChanges RESULT", result);
-*/
-			return result;
+		deferredResult.addCallback(MochiKit.Base.bind(function (someValues) {
+			return MochiKit.Iter.some(someValues, MochiKit.Base.operator.identity);
 		}, this));
 
 		deferredResult.callback();
@@ -911,6 +956,8 @@ console.log("Record.hasPendingChanges RESULT", result);
 	//=========================================================================
 
 	'revertChanges': function () {
+// console.log("Revert changes: attachments in transient state", this.transientState().getValue('attachments'));
+
 		var deferredResult;
 //		var recordReference = this.reference();
 		
@@ -926,19 +973,19 @@ console.log("Record.hasPendingChanges RESULT", result);
 //	return true;
 //});
 			deferredResult.addIf([
-//function (aValue) { console.log("Record.revertChanges - 1"); return aValue; },
+				MochiKit.Base.method(this, 'cancelRevertedAttachmentsUpload'),
+
 				MochiKit.Base.method(this, 'invokeCurrentRecordVersionMethod', 'revertChanges'),
-//function (aValue) { console.log("Record.revertChanges - 2"); return aValue; },
 				
 				MochiKit.Base.method(this, 'directLogins'),
-//function (aValue) { console.log("Record.revertChanges - 3"); return aValue; },
 				MochiKit.Base.values,
-//function (aValue) { console.log("Record.revertChanges - 4"); return aValue; },
 				MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('revertChanges')),
-//function (aValue) { console.log("Record.revertChanges - 5"); return aValue; },
+				
+				MochiKit.Base.method(this, 'attachments'),
+				MochiKit.Base.values,
+				MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('revertChanges')),
 
 				MochiKit.Base.bind(Clipperz.PM.DataModel.Record.superclass.revertChanges, this),
-//function (aValue) { console.log("Record.revertChanges - 6"); return aValue; },
 				MochiKit.Base.method(this, '_getObjectDataStore'),
 			], [
 				MochiKit.Async.succeed
@@ -962,12 +1009,27 @@ console.log("Record.hasPendingChanges RESULT", result);
 		return deferredResult;
 	},
 
+	cancelRevertedAttachmentsUpload: function() {
+		var reference;
+
+		var transientStateAttachments = (this.transientState() ? this.transientState().values()['attachments'] : {}) || {};
+		var savedReferences = MochiKit.Base.keys(transientStateAttachments);
+
+		for (reference in this.attachments()) {
+			if (savedReferences.indexOf(reference) < 0) {
+				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'cancelAttachment', this.attachments()[reference]);
+			}
+		}
+	},
+
 	//-------------------------------------------------------------------------
 
 	'resetTransientState': function (isCommitting) {
 //		if ((isCommitting == false) && (this.transientState().getValue('directLogins') != null)) {
 //			this._directLogins = this.transientState().getValue('directLogins');
 //		}
+
+// console.log("Reset transient state: attachments:", this.transientState().getValue('directLogins'));
 
 		return Clipperz.Async.callbacks("Record.resetTransientState", [
 //-			MochiKit.Base.method(this, 'getCurrentRecordVersion'),
@@ -979,9 +1041,18 @@ console.log("Record.hasPendingChanges RESULT", result);
 			MochiKit.Base.values,
 			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('resetTransientState')),
 
+			MochiKit.Base.method(this, 'attachments'),
+			MochiKit.Base.values,
+			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('resetTransientState')),
+
 			MochiKit.Base.bind(function () {
-				if ((isCommitting == false) && (this.transientState().getValue('directLogins') != null)) {
-					this._directLogins = this.transientState().getValue('directLogins');
+				if (isCommitting == false) {
+					if (this.transientState().getValue('directLogins') != null) {
+						this._directLogins = this.transientState().getValue('directLogins');
+					}
+					if (this.transientState().getValue('attachments') != null) {
+						this._attachments = this.transientState().getValue('attachments');
+					}
 				}
 			}, this),
 
@@ -1002,6 +1073,10 @@ console.log("Record.hasPendingChanges RESULT", result);
 //			MochiKit.Base.methodcaller('commitTransientState'),
 			MochiKit.Base.method(this, 'invokeCurrentRecordVersionMethod', 'commitTransientState'),
 			MochiKit.Base.method(this, 'directLogins'),
+			MochiKit.Base.values,
+			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('commitTransientState')),
+
+			MochiKit.Base.method(this, 'attachments'),
 			MochiKit.Base.values,
 			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('commitTransientState'))
 		], [
@@ -1028,6 +1103,20 @@ console.log("Record.hasPendingChanges RESULT", result);
 
 	//=========================================================================
 
+	'retrieveAttachmentIndexDataFunction': function () {
+		return this._retrieveAttachmentIndexDataFunction;
+	},
+	
+	'setAttachmentIndexDataFunction': function () {
+		return this._setAttachmentIndexDataFunction;
+	},
+	
+	'removeAttachmentIndexDataFunction': function () {
+		return this._removeAttachmentIndexDataFunction;
+	},
+
+	//=========================================================================
+
 	'deleteAllCleanTextData': function () {
 //		return Clipperz.PM.DataModel.Record.superclass.deleteAllCleanTextData.apply(this, arguments);
 
@@ -1037,6 +1126,10 @@ console.log("Record.hasPendingChanges RESULT", result);
 			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('deleteAllCleanTextData')),
 
 			MochiKit.Base.method(this, 'directLogins'),
+			MochiKit.Base.values,
+			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('deleteAllCleanTextData')),
+
+			MochiKit.Base.method(this, 'attachments'),
 			MochiKit.Base.values,
 			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('deleteAllCleanTextData')),
 
@@ -1057,6 +1150,12 @@ console.log("Record.hasPendingChanges RESULT", result);
 				],
 				'directLogins': [
 					MochiKit.Base.method(this, 'directLogins'),
+					MochiKit.Base.values,
+					MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('hasAnyCleanTextData')),
+					Clipperz.Async.collectAll
+				],
+				'attachments': [
+					MochiKit.Base.method(this, 'attachments'),
 					MochiKit.Base.values,
 					MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('hasAnyCleanTextData')),
 					Clipperz.Async.collectAll
@@ -1131,9 +1230,11 @@ console.log("Record.hasPendingChanges RESULT", result);
 			MochiKit.Base.method(aRecord, 'directLogins'), MochiKit.Base.values,
 //function (aValue) { console.log("-> SETUP WITH RECORD: DirectLogin Values", aValue); return aValue; },
 			//	TODO: possibly broken implementation of direct login cloning
-			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, 'addDirectLogin')),
+			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, 'bindDirectLogin')),
 //function (aValue) { console.log("-> DirectLogin Values", aValue); return aValue; },
 //			Clipperz.Async.collectAll,
+
+			// TODO: attachments
 
 			MochiKit.Base.bind(function () { return this; }, this)
 		], {trace:false});
@@ -1230,7 +1331,8 @@ Clipperz.PM.DataModel.Record.defaultCardInfo = {
 	'_isArchived':			MochiKit.Base.methodcaller('isArchived'),
 	'_isBrandNew':			MochiKit.Base.methodcaller('isBrandNew'),
 	'label':				MochiKit.Base.methodcaller('label'),
-	'favicon':				MochiKit.Base.methodcaller('favicon')
+	'favicon':				MochiKit.Base.methodcaller('favicon'),
+	'attachmentsCount':		MochiKit.Base.methodcaller('attachmentsCount'),
 };
 Clipperz.PM.DataModel.Record.defaultSearchField = '_searchableContent';
 

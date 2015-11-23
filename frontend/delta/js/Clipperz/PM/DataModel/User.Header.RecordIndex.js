@@ -23,7 +23,7 @@ refer to http://www.clipperz.com.
 
 try { if (typeof(Clipperz.PM.DataModel.User) == 'undefined') { throw ""; }} catch (e) {
 	throw "Clipperz.PM.DataModel.User.Header.RecordIndex depends on Clipperz.PM.DataModel.User!";
-}  
+}
 
 if (typeof(Clipperz.PM.DataModel.User.Header) == 'undefined') { Clipperz.PM.DataModel.User.Header = {}; }
 
@@ -49,13 +49,25 @@ Clipperz.PM.DataModel.User.Header.RecordIndex = function(args) {
 		}
 	});
 
+//console.log("RECORD INDEX args", args);
+	this._attachmentsData = new Clipperz.PM.DataModel.EncryptedRemoteObject({
+		'name':	'attachmentsData',
+		'retrieveKeyFunction': args.retrieveKeyFunction,
+		'remoteData': {
+			'data': args.attachmentsData['data'],
+			'version': args.encryptedDataVersion,
+		}
+	});
+
 	this._tagsData = 
 	this._lock = new MochiKit.Async.DeferredLock();
 	this._transientState = null;
 
 	this._retrieveRecordDetailFunction	= args.retrieveRecordDetailFunction	|| Clipperz.Base.exception.raise('MandatoryParameter');
+
 	this._recordsIndex					= args.recordsData['index']			|| Clipperz.Base.exception.raise('MandatoryParameter');
 	this._directLoginsIndex				= args.directLoginsData['index']	|| Clipperz.Base.exception.raise('MandatoryParameter');
+	this._attachmentsIndex				= args.attachmentsData['index']		|| Clipperz.Base.exception.raise('MandatoryParameter');
 
 	this._records = null;
 
@@ -93,6 +105,16 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 
 	'directLoginsData': function () {
 		return this._directLoginsData;
+	},
+
+	//-------------------------------------------------------------------------
+
+	'attachmentsIndex': function () {
+		return this._attachmentsIndex;
+	},
+
+	'attachmentsData': function () {
+		return this._attachmentsData;
 	},
 
 	//-------------------------------------------------------------------------
@@ -164,6 +186,28 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 
 	//-------------------------------------------------------------------------
 
+	'getAttachmentIndexData': function (anAttachmentReference) {
+		//	TODO:
+		return this.attachmentsData().getValue(this.attachmentsIndex()[anAttachmentReference]);
+	},
+
+	'setAttachmentIndexData': function (anAttachmentReference, aKey, aValue) {
+		//	TODO:
+		return this.attachmentsData().setValue(this.attachmentsIndex()[anAttachmentReference] + '.' + aKey, aValue);
+	},
+
+	'addAttachmentIndexData': function (anAttachmentReference) {
+		//	TODO:
+		return this.attachmentsData().setValue(this.attachmentsIndex()[anAttachmentReference], {});
+	},
+	
+	'removeAttachmentIndexData': function (anAttachmentReference) {
+		//	TODO:
+		return this.attachmentsData().removeValue(this.attachmentsIndex()[anAttachmentReference])
+	},
+
+	//-------------------------------------------------------------------------
+
 	'records': function () {
 		var	deferredResult;
 
@@ -184,6 +228,9 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 					],
 					'directLogins': [
 						MochiKit.Base.method(this.directLoginsData(), 'values')
+					],
+					'attachments': [
+						MochiKit.Base.method(this.attachmentsData(), 'values')
 					]
 				})
 				innerDeferredResult.addCallback(MochiKit.Base.bind(function (someData) {
@@ -193,6 +240,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 					
 					recordsInvertedIndex		= Clipperz.PM.DataModel.User.Header.RecordIndex.invertIndex(this.recordsIndex());
 					directLoginsInvertedIndex	= Clipperz.PM.DataModel.User.Header.RecordIndex.invertIndex(this.directLoginsIndex());
+					attachmentsInvertedIndex	= Clipperz.PM.DataModel.User.Header.RecordIndex.invertIndex(this.attachmentsIndex());
 
 					this._records = {};
 
@@ -201,13 +249,15 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 						var reference;
 						var updateDate;
 						var accessDate;
+						var attachmentsCount;
 
 						reference = recordsInvertedIndex[indexReference];
 						
 						if (typeof(someData['recordsStats'][reference]) != 'undefined') {
 							updateDate = someData['recordsStats'][reference]['updateDate'];
 							accessDate = someData['recordsStats'][reference]['accessDate'];
-						
+//							attachmentsCount = (someData['attachmentsCount'][reference]) ? someData['attachmentsCount'][reference] : 0;
+
 							record = new Clipperz.PM.DataModel.Record({
 								'reference':					reference,
 								'retrieveKeyFunction':			MochiKit.Base.method(this, 'getRecordKey'),
@@ -221,8 +271,12 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User.Header.RecordIndex, Object, {
 								'retrieveDirectLoginIndexDataFunction':	MochiKit.Base.method(this, 'getDirectLoginIndexData'),
 								'setDirectLoginIndexDataFunction':		MochiKit.Base.method(this, 'setDirectLoginIndexData'),
 								'removeDirectLoginIndexDataFunction':	MochiKit.Base.method(this, 'removeDirectLoginIndexData'),
-							
-								'createNewDirectLoginFunction':			MochiKit.Base.method(this, 'createNewDirectLogin')
+								'createNewDirectLoginFunction':			MochiKit.Base.method(this, 'createNewDirectLogin'),
+
+								'retrieveAttachmentIndexDataFunction':	MochiKit.Base.method(this, 'getAttachmentIndexData'),
+								'setAttachmentIndexDataFunction':		MochiKit.Base.method(this, 'setAttachmentIndexData'),
+								'removeAttachmentIndexDataFunction':	MochiKit.Base.method(this, 'removeAttachmentIndexData'),
+								'createNewAttachmentFunction':			MochiKit.Base.method(this, 'createNewAttachment'),
 							});
 		
 							this._records[reference] = record;
@@ -245,6 +299,24 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stats associated
 							});
 						} else {
 							Clipperz.logWarning("WARNING: DIRECT LOGIN without a matching RECORD!!");
+						}
+					}
+
+//console.log("RecordIndex.Records: attachments data:", someData['attachments']);
+					for (indexReference in someData['attachments']) {
+						var reference;
+						var record;
+
+						reference = attachmentsInvertedIndex[indexReference];
+						record = this._records[recordsInvertedIndex[someData['attachments'][indexReference]['record']]];
+
+						if (record != null) {
+							new Clipperz.PM.DataModel.Attachment({
+								'reference':					reference,
+								'record':						record
+							});
+						} else {
+							Clipperz.logWarning("WARNING: Attachment without a matching RECORD!!");
 						}
 					}
 
@@ -295,8 +367,12 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stats associated
 			'retrieveDirectLoginIndexDataFunction':	MochiKit.Base.method(this, 'getDirectLoginIndexData'),
 			'setDirectLoginIndexDataFunction':		MochiKit.Base.method(this, 'setDirectLoginIndexData'),
 			'removeDirectLoginIndexDataFunction':	MochiKit.Base.method(this, 'removeDirectLoginIndexData'),
+			'createNewDirectLoginFunction':			MochiKit.Base.method(this, 'createNewDirectLogin'),
 
-			'createNewDirectLoginFunction':			MochiKit.Base.method(this, 'createNewDirectLogin')
+			'retrieveAttachmentIndexDataFunction':	MochiKit.Base.method(this, 'getAttachmentIndexData'),
+			'setAttachmentIndexDataFunction':		MochiKit.Base.method(this, 'setAttachmentIndexData'),
+			'removeAttachmentIndexDataFunction':	MochiKit.Base.method(this, 'removeAttachmentIndexData'),
+			'createNewAttachmentFunction':			MochiKit.Base.method(this, 'createNewAttachment'),
 		});
 
 		this.transientState().setValue('newRecordsReferences' + '.' + newRecord.reference(), newRecord);
@@ -372,6 +448,40 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stats associated
 
 	//=========================================================================
 
+	'removeAttachment': function (anAttachment) {
+		//	TODO:
+//		this.directLoginsData().removeValue(this.directLoginsIndex()[aDirectLogin.reference()]);
+	},
+	
+	//-------------------------------------------------------------------------
+
+	'createNewAttachment': function (aRecord) {
+		//	TODO:
+
+//		var newDirectLogin;
+		var	newAttachment;
+//		var	newDirectLoginIndexValue;
+		var newAttachmentIndexValue;
+
+//		newDirectLogin = new Clipperz.PM.DataModel.DirectLogin({record:aRecord});
+		newAttachment = new Clipperz.PM.DataModel.Attachment({'record':aRecord});
+//		newDirectLoginIndexValue = MochiKit.Base.listMax(MochiKit.Base.map(function (aValue) { return aValue * 1; }, MochiKit.Base.values(this.directLoginsIndex()))) + 1;
+		newAttachmentIndexValue = MochiKit.Base.listMax(MochiKit.Base.map(function (aValue) { return aValue * 1; }, MochiKit.Base.values(this.attachmentsIndex()))) + 1;
+
+//		this.transientState().setValue('newDirectLoginReferences' + '.' + newDirectLogin.reference(), newDirectLogin);
+		this.transientState().setValue('newAttachmentReferences' + '.' + newAttachment.reference(), newAttachment);
+
+//		this.directLoginsIndex()[newDirectLogin.reference()] = newDirectLoginIndexValue;
+		this.attachmentsIndex()[newAttachment.reference()] = newAttachmentIndexValue;
+//		this.directLoginsData().setValue(this.directLoginsIndex()[newDirectLogin.reference()], {'record': this.recordsIndex()[aRecord.reference()]});
+		this.attachmentsData().setValue(this.attachmentsIndex()[newAttachment.reference()], {'record': this.recordsIndex()[aRecord.reference()]});
+	
+//		return newDirectLogin;
+		return newAttachment;
+	},
+
+	//=========================================================================
+
 	'deleteAllCleanTextData': function () {
 		return Clipperz.Async.callbacks("User.Header.RecordIndex.deleteAllCleanTextData", [
 			MochiKit.Base.method(this, 'recordsData'),
@@ -396,6 +506,10 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stats associated
 				MochiKit.Base.method(this, 'directLoginsData'),
 				MochiKit.Base.methodcaller('hasAnyCleanTextData')
 			],
+			'attachmentsData':	[
+				MochiKit.Base.method(this, 'attachmentsData'),
+				MochiKit.Base.methodcaller('hasAnyCleanTextData')
+			],
 		});
 
 		deferredResult.addCallback(Clipperz.Async.or);
@@ -418,8 +532,13 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stats associated
 			'directLoginsData': [
 				MochiKit.Base.method(this, 'directLoginsData'),
 				MochiKit.Base.methodcaller('hasPendingChanges')
+			],
+			'attachments': [
+				MochiKit.Base.method(this, 'attachmentsData'),
+				MochiKit.Base.methodcaller('hasPendingChanges')
 			]
 		});
+//deferredResult.addCallback(function (aValue) { console.log("HAS PENDING CHANGES", aValue); return aValue; });
 		deferredResult.addCallback(Clipperz.Async.or);
 		deferredResult.callback();
 
@@ -436,6 +555,9 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stats associated
 			MochiKit.Base.methodcaller('commitTransientState'),
 
 			MochiKit.Base.method(this, 'directLoginsData'),
+			MochiKit.Base.methodcaller('commitTransientState'),
+
+			MochiKit.Base.method(this, 'attachmentsData'),
 			MochiKit.Base.methodcaller('commitTransientState'),
 			
 			MochiKit.Base.method(this, 'resetTransientState', true)
@@ -474,7 +596,19 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stats associated
 				}
 			}, this),
 
+			MochiKit.Base.bind(function () {
+				//	TODO:
+				var	attachmentReference;
+
+				for (attachmentReference in this.transientState().getValue('newAttachmentReferences')) {
+					delete this.attachmentsIndex()[attachmentReference];
+				}
+			}, this),
+
 			MochiKit.Base.method(this, 'directLoginsData'),
+			MochiKit.Base.methodcaller('revertChanges'),
+
+			MochiKit.Base.method(this, 'attachmentsData'),
 			MochiKit.Base.methodcaller('revertChanges'),
 
 			MochiKit.Base.method(this, 'resetTransientState', false)
@@ -528,6 +662,15 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stats associated
 			]
 		});
 		deferredResult.addCallback(Clipperz.Async.setItem, result, 'directLogins');
+
+		deferredResult.collectResults({
+			'index':	MochiKit.Base.partial(MochiKit.Async.succeed, this.attachmentsIndex()),
+			'data': [
+				MochiKit.Base.method(this.attachmentsData(), 'prepareRemoteDataWithKey', aKey),
+				MochiKit.Base.itemgetter('data')
+			]
+		});
+		deferredResult.addCallback(Clipperz.Async.setItem, result, 'attachments');
 		
 		deferredResult.addCallback(MochiKit.Async.succeed, result);
 

@@ -53,9 +53,18 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline, Clipperz.PM.Proxy, {
 
 	//-------------------------------------------------------------------------
 
-	'_sendMessage': function(aFunctionName, aVersion, someParameters) {
-		return this.dataStore().processMessage(aFunctionName, someParameters);
+	'_sendMessage': function(aFunctionName, aVersion, someParameters, someOptionalParameters) {
+		return this.dataStore().processMessage(aFunctionName, someParameters, someOptionalParameters);
 	},
+
+	'_uploadAttachment': function(someArguments, aProgressCallback, aSharedSecret, aToll) {
+		return this.dataStore().uploadAttachment(someArguments, aProgressCallback, aSharedSecret, aToll);
+	},
+
+	'_downloadAttachment': function(someArguments, aProgressCallback, aSharedSecret, aToll) {
+		return this.dataStore().downloadAttachment(someArguments, aProgressCallback, aSharedSecret, aToll);
+	},
+
 
 	//-------------------------------------------------------------------------
 

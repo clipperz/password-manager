@@ -36,6 +36,10 @@ Clipperz.PM.UI.Components.SelectionsClass = React.createClass({
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectRecentCards');
 	},
 
+	selectWithAttachments: function (anEvent) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCardsWithAttachments');
+	},
+
 	selectUntaggedCards: function (anEvent) {
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectUntaggedCards');
 	},
@@ -76,6 +80,7 @@ Clipperz.PM.UI.Components.SelectionsClass = React.createClass({
 		var	filterValue;
 
 //console.log("SELECTIONS PROPS", this.props);
+//console.log("withAttachmentCardsCount", this.props['withAttachmentCardsCount']);
 		tagInfo = this.props['tags'] ? this.props['tags'] : {};
 		tags = MochiKit.Base.filter(Clipperz.PM.DataModel.Record.isRegularTag, MochiKit.Base.keys(tagInfo)).sort(Clipperz.Base.caseInsensitiveCompare);
 		archivedCardsCount = this.props['archivedCardsCount'];
@@ -94,7 +99,10 @@ Clipperz.PM.UI.Components.SelectionsClass = React.createClass({
 					React.DOM.span({'className':'label'}, "Recent"),
 					React.DOM.span({'className':'count'}, this.props['allCardsCount'] ? '10' : '-')
 				]),
-//				React.DOM.li({'className':'untaggedCards', 'onClick': this.selectUntaggedCards}, "Untagged - " + this.props['untaggedCardsCount'])
+				React.DOM.li({'className':'withAttachmentCards', 'onClick': this.selectWithAttachments}, [
+					React.DOM.span({'className':'label'}, "With attachments"),
+					React.DOM.span({'className':'count'}, this.props['withAttachmentCardsCount'] ? this.props['withAttachmentCardsCount'] : '-')
+				]),
 				React.DOM.li({'className':'untaggedCards', 'onClick': this.selectUntaggedCards}, [
 					React.DOM.span({'className':'label'}, "Untagged"),
 					React.DOM.span({'className':'count'}, this.props['untaggedCardsCount'] ? this.props['untaggedCardsCount'] : '-')

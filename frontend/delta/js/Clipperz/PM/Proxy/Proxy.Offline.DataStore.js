@@ -37,6 +37,8 @@ Clipperz.PM.Proxy.Offline.DataStore = function(args) {
 	this._tolls = {};
 	this._currentStaticConnection = null;
 
+	this.NETWORK_SIMULATED_SPEED = 100*1024;
+
 	return this;
 }
 
@@ -233,9 +235,9 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 
 	//=========================================================================
 
-	'processMessage': function (aFunctionName, someParameters) {
+	'processMessage': function (aFunctionName, someParameters, someOptionalParameters) {
 		var	deferredResult;
-		
+
 		try {
 			var result;
 			var	connection;
@@ -266,12 +268,75 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 
 			this.storeConnectionForRequestWithConnectionAndResponse(aFunctionName, someParameters, connection, result);
 
-			deferredResult = MochiKit.Async.succeed(result);
+			deferredResult = MochiKit.Async.succeed(result)
 		} catch (exception) {
 			deferredResult = MochiKit.Async.fail(exception);
 		}
 		
 		return deferredResult;
+	},
+
+	//-------------------------------------------------------------------------
+
+	uploadAttachment: function(someArguments, aProgressCallback, aSharedSecret, aToll) {
+		var connection = this.currentStaticConnection();
+		var attachmentReference = someArguments['attachmentReference'];
+
+		if (this.isReadOnly() == false) {
+			connection['userData']['attachments'][attachmentReference] = {
+				'record': someArguments['recordReference'],
+				'status': 'AVAILABLE',
+				'data': someArguments['arrayBufferData'],
+				'version': someArguments['version'],
+			};
+
+			return this.simulateNetworkDelayResponse(someArguments['arrayBufferData'].length, aProgressCallback, {
+				result: {},
+				toll:   this.getTollForRequestType('MESSAGE')
+			});
+		} else {
+			throw Clipperz.PM.Proxy.Offline.DataStore.exception.ReadOnly;
+		}
+	},
+
+	downloadAttachment: function(someArguments, aProgressCallback, aSharedSecret, aToll) {
+		var connection = this.currentStaticConnection();
+		var reference = someArguments['reference'];
+		var result = connection['userData']['attachments'][reference]['data'];
+
+		return this.simulateNetworkDelayResponse(result.length, aProgressCallback, {
+				result: result,
+				// toll:   this.getTollForRequestType('MESSAGE')
+			});
+	},
+
+	simulateNetworkDelayResponse: function(payloadSize, progressCallback, aResponse) {
+		var deferredResult;
+		var i;
+
+		deferredResult = new Clipperz.Async.Deferred("Proxy.Offline.DataStore.simulateNetworkDelay", {trace:false});
+
+		for (i = 0; i < payloadSize/this.NETWORK_SIMULATED_SPEED; i++) {
+			var loaded = i*this.NETWORK_SIMULATED_SPEED;
+			deferredResult.addCallback(MochiKit.Async.wait, 1);
+			deferredResult.addMethod(this, 'runProgressCallback', progressCallback, loaded, payloadSize);
+		}
+
+		deferredResult.addCallback(MochiKit.Async.succeed, aResponse);
+
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+
+	runProgressCallback: function(aCallback, aLoadedValue, aTotalValue) {
+		var fakeProgressEvent = {
+			'lengthComputable': true,
+			'loaded': aLoadedValue,
+			'total': aTotalValue,
+		}
+
+		return aCallback(fakeProgressEvent);
 	},
 
 	//=========================================================================
@@ -340,7 +405,9 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 			userData = this.data()['users'][someParameters.parameters.C];
 			otpsData = this.data()['onetimePasswords'];
 
-//console.log("Proxy.Offline.DataStore._handshake: otpsData:", otpsData);
+			if (! userData['attachments']) {
+				userData['attachments'] = {};
+			}
 
 			userOTPs = {};
 			MochiKit.Base.map(function(aOTP) {
@@ -348,9 +415,6 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 					userOTPs[aOTP['key']] = aOTP;
 				}
 			},MochiKit.Base.values(otpsData));
-
-//console.log("Proxy.Offline.DataStore._handshake: userOTPs:", userOTPs);
-//console.log("Proxy.Offline.DataStore._handshake(): userOTPs:",userOTPs);
 
 			if ((typeof(userData) != 'undefined') && (userData['version'] == someParameters.version)) {
 				aConnection['userData'] = userData;
@@ -455,7 +519,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 
 	//-------------------------------------------------------------------------
 
-	'_message': function(aConnection, someParameters) {
+	'_message': function(aConnection, someParameters, someOptionalParameters) {
 		var result;
 
 		if (MochiKit.Base.keys(aConnection).length==0) {
@@ -499,8 +563,14 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 
 		//=====================================================================
 		} else if (someParameters.message == 'getRecordDetail') {
-			MochiKit.Base.update(result, aConnection['userData']['records'][someParameters['parameters']['reference']]);
-			result['reference'] = someParameters['parameters']['reference'];
+			var reference = someParameters['parameters']['reference'];
+
+			MochiKit.Base.update(result, aConnection['userData']['records'][reference]);
+			result['reference'] = reference;
+
+			result['attachmentStatus'] = this.attachmentStatus(aConnection, reference);
+
+//console.log('Proxy.getRecordDetail', result);
 		} else if (someParameters.message == 'getAllRecordDetails') {
 			MochiKit.Base.update(result, aConnection['userData']['records']);
 		} else if (someParameters.message == 'getOneTimePasswordsDetails') {
@@ -613,7 +683,9 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 */		//=====================================================================
 		} else if (someParameters.message == 'saveChanges') {
 			if (this.isReadOnly() == false) {
-				var i, c;
+//console.log("Proxy.Offline.DataStore.saveChanges: parameters:", someParameters);
+//console.log("Proxy.Offline.DataStore.saveChanges: attachments:", aConnection['userData']['attachments']);
+				var i, c, j, d;
 
 				if (aConnection['userData']['lock']	!= someParameters['parameters']['user']['lock']) {
 					throw "the lock attribute is not processed correctly"
@@ -664,7 +736,11 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 							'accessDate':	Clipperz.PM.Date.formatDateWithUTCFormat(new Date())
 						}
 					}
+
+					this.pruneAttachments(aConnection, currentRecordData['record']['reference'], currentRecordData['attachments']);
 				}
+
+//console.log("Proxy.Offline.DataStore.saveChanges: attachments:", aConnection['userData']['attachments']);
 
 				c = someParameters['parameters']['records']['deleted'].length;
 				for (i=0; i<c; i++) {
@@ -731,7 +807,7 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 				},MochiKit.Base.values(aConnection['userOTPs']));
 			} else {
 				throw Clipperz.PM.Proxy.Offline.DataStore.exception.ReadOnly;
-			}			
+			}
 		//=====================================================================
 		//
 		//		U	N	H	A	N	D	L	E	D		M e t h o d
@@ -816,8 +892,45 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 		} else {
 			result = null;
 		}
-		
+
 		return result;
+	},
+
+	'attachmentStatus': function(aConnection, aRecordReference) {
+		var result;
+
+//console.log("Proxy.attachmentStatus: data:", aConnection['userData']['attachments']);
+
+		result = {};
+		if (aConnection['userData']['attachments']) {
+			var reference;
+
+			for (reference in aConnection['userData']['attachments']) {
+//console.log("Proxy.attachmentStatus:  -> comparison: serverRecordReference, aRecordReference", aConnection['userData']['attachments'][reference]['record'], aRecordReference);
+				if (aConnection['userData']['attachments'][reference]['record'] == aRecordReference) {
+					result[reference] = aConnection['userData']['attachments'][reference]['status'];
+				}
+			}
+		}
+
+//console.log("Proxy.attachmentStatus: result:", result);
+
+		return result;
+	},
+
+	/** Removes all the stored attachments whose reference is not in the given list */
+	'pruneAttachments': function(aConnection, aRecordReference, someAttachmentReferences) {
+		if (aConnection['userData']['attachments']) {
+			var reference;
+			for (reference in aConnection['userData']['attachments']) {
+				var attachment = aConnection['userData']['attachments'][reference];
+				if ( (attachment['record'] == aRecordReference) &&
+				     (someAttachmentReferences.indexOf(reference) < 0)
+				) {
+					delete aConnection['userData']['attachments'][reference];
+				}
+			}
+		}
 	},
 
 /*

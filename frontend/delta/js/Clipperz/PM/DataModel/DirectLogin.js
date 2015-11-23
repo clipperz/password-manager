@@ -55,7 +55,7 @@ Clipperz.PM.DataModel.DirectLogin = function(args) {
 
 	this._isBrandNew = MochiKit.Base.isUndefinedOrNull(args.reference);
 	
-	this.record().addDirectLogin(this);
+	this.record().bindDirectLogin(this);
 
 	return this;
 }
@@ -1018,7 +1018,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.DirectLogin, Object, {
 	'removeValue': function (aValueKey) {
 //		return this.record().removeValue(this.actualKey(aValueKey));
 
-		return Clipperz.Async.callbacks("DirectLogin.setValue", [
+		return Clipperz.Async.callbacks("DirectLogin.removeValue", [
 			MochiKit.Base.method(this, 'originalConfiguration'),
 			Clipperz.Async.deferredIf("originalConfiguration has been set", [
 			], [

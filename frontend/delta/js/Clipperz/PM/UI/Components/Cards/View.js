@@ -117,6 +117,17 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 	},
 
 	//----------------------------------------------------------------------------
+	
+	handleGetAttachment: function (anAttachment) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'getAttachment', anAttachment);
+	},
+	
+	handleCancelDownload: function (anAttachment) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'cancelAttachment', anAttachment);
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'closeAttachment', anAttachment);
+	},
+
+	//----------------------------------------------------------------------------
 
 	renderEmpty: function () {
 //		return	React.DOM.h4({}, "EMPTY");
@@ -251,6 +262,132 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 	
 	//............................................................................
 
+	renderAttachmentProgress: function(aStatus, aServerStatus, aProgress) {
+		var result;
+
+		var broken = (! aServerStatus && (! aStatus || aStatus == 'CANCELED' || aStatus == 'FAILED' || aStatus == 'DONE'));
+
+		result = null;
+		if (aStatus == 'UPLOADING' || aStatus == 'DOWNLOADING') {
+			result = Clipperz.PM.UI.Components.RadialProgressIndicator({
+				'progress': aProgress,
+				'border': 1
+			});
+		} else if (! broken && aStatus != 'DONE' && aServerStatus != 'AVAILABLE') {
+			result = Clipperz.PM.UI.Components.RadialProgressIndicator({
+				'progress': 0,
+				'border': 1,
+				'additionalClasses': ['waiting'],
+			});
+		}
+
+		return result;
+	},
+
+	renderAttachmentStatus: function(aStatus, aServerStatus, aProgress) {
+		var result;
+
+		var status = aStatus ? aStatus : false;
+
+		result = null;
+
+		if (status == 'FAILED') {
+			result = React.DOM.span({'className': 'failed'}, "failed");
+		} else if (status == 'UPLOADING' || status == 'DOWNLOADING') {
+			var actionSymbol = (status == 'UPLOADING') ? "\u2b06" : "\u2b07";
+			result = React.DOM.span({'className': 'progressStatus'}, actionSymbol + Math.floor(aProgress*100) + '%');
+		} else if (aServerStatus != 'AVAILABLE') {
+			switch(status) {
+				case 'CANCELED':
+					result = React.DOM.span({'className': 'broken'}, "canceled");
+					break;
+				case 'DONE':
+					result = React.DOM.span({'className': 'broken'}, "failed");
+					break;
+				case false:
+					result = React.DOM.span({'className': 'broken'}, "failed");
+					break;
+				default:
+					result = React.DOM.span({'className': 'waiting'}, "waiting");
+			}
+		}
+
+		return result;
+	},
+
+	renderAttachmentActions: function(aStatus, aServerStatus, anAttachment) {
+		var result;
+
+		result = null;
+		if (aStatus  == 'DOWNLOADING') {
+			result = React.DOM.a({
+				'className': 'cancel',
+				'onClick': MochiKit.Base.method(this, 'handleCancelDownload', anAttachment)
+			}, "remove field");
+		} else if (aServerStatus == 'AVAILABLE') {
+			result = React.DOM.a({
+				'className': 'download',
+				'onClick': MochiKit.Base.method(this, 'handleGetAttachment', anAttachment),
+			}, "\u2b07");
+		}
+
+		return result;
+	},
+
+	renderAttachment: function (anAttachment) {
+		var	result;
+
+		if (this.props['attachmentQueueInfo'].elementFetchCallback != null) {
+			var queueInfo = this.props['attachmentQueueInfo'].elementFetchCallback(anAttachment._reference) || [];
+			var queueStatus = queueInfo['status'];
+			var serverStatus = this.props['attachmentServerStatus'][anAttachment._reference];
+			var broken = (! serverStatus && (! queueStatus || queueStatus == 'CANCELED'));
+
+			var status				= this.renderAttachmentStatus(queueStatus, serverStatus, queueInfo['requestProgress']);
+			var actions				= this.renderAttachmentActions(queueStatus, serverStatus, anAttachment['_attachment']);
+			var progressIndicator	= this.renderAttachmentProgress(queueStatus, serverStatus, queueInfo['requestProgress']);
+
+			result = React.DOM.li({
+				'className': (broken) ? 'broken' : '',
+				'key': anAttachment._reference
+			}, [
+				React.DOM.span({'className': 'contentType'}, Clipperz.PM.DataModel.Attachment.contentTypeIcon(anAttachment.contentType)),
+				React.DOM.span({'className': 'meta'}, [
+					React.DOM.span({'className': 'name'}, anAttachment.name),
+					React.DOM.span({'className': 'size'}, filesize(anAttachment.size)),
+				]),
+				React.DOM.span({'className': 'status'}, status),
+				React.DOM.span({'className': 'progress'}, progressIndicator),
+				React.DOM.span({'className': 'actions'}, actions),
+			])
+		} else {
+			result = null;
+		}
+		
+		return result;
+	},
+
+	renderAttachments: function(someAttachments) {
+		var result;
+
+//console.log("View props:", this.props, someAttachments);
+		if (someAttachments.length > 0) {
+			result = React.DOM.div({'className': 'cardAttachments'}, [
+				React.DOM.h3({'className': 'summaryText'}, "Attachments"),
+//				React.DOM.p({'className': 'summaryText'}, someAttachments.length + ' files attached'),
+				React.DOM.ul({'className': 'attachmentList'},
+					MochiKit.Base.map(MochiKit.Base.method(this, 'renderAttachment'), someAttachments)
+				)
+			]);
+		} else {
+			result = [];
+		}
+
+		return result;
+	},
+
+	//............................................................................
+
 	renderCard: function () {
 		var	classes = {
 			'view':		true,
@@ -263,8 +400,9 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 				this.renderLabel(this.props['label']),
 				this.renderTags(this.props['tags']),
 				this.renderFields(this.props['fields']),
+				this.renderAttachments(MochiKit.Base.values(this.props['attachments'])),
 				this.renderNotes(this.props['notes']),
-				this.renderDirectLogins(this.props['directLogins'])
+				this.renderDirectLogins(this.props['directLogins']),
 			]),
 			this.props['ask'] ? Clipperz.PM.UI.Components.DialogBox(this.props['ask']) : null
 		]);

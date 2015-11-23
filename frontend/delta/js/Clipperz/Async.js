@@ -704,6 +704,91 @@ MochiKit.Base.update(Clipperz.Async, {
 	'clearResult': function () {},
 	
 	//=========================================================================
+
+	'doXHR': function (url, opts) {
+		//	ALMOST COPYCAT OF MochiKit version
+		/*
+			Work around a Firefox bug by dealing with XHR during
+			the next event loop iteration. Maybe it's this one:
+			https://bugzilla.mozilla.org/show_bug.cgi?id=249843
+		*/
+		return MochiKit.Async.callLater(0, Clipperz.Async._doXHR, url, opts);
+	},
+
+	_doXHR: function (url, opts) {
+		//	ALMOST COPYCAT OF MochiKit version
+		var m = MochiKit.Base;
+		opts = m.update({
+			method: 'GET',
+			sendContent: ''
+			/*
+			queryString: undefined,
+			username: undefined,
+			password: undefined,
+			headers: undefined,
+			mimeType: undefined,
+			responseType: undefined,
+			withCredentials: undefined
+			*/
+		}, opts);
+
+		var self = MochiKit.Async;
+		var req = self.getXMLHttpRequest();
+
+		//	Extra options not handled by MochiKit
+		if (req.upload && opts.uploadProgress) {
+			req.upload.onprogress = opts.uploadProgress;
+		}
+		if (opts.downloadProgress) {
+			req.onprogress = opts.downloadProgress;
+		}
+		
+		if (opts.queryString) {
+			var qs = m.queryString(opts.queryString);
+			if (qs) {
+				url += "?" + qs;
+			}
+		}
+
+		// Safari will send undefined:undefined, so we have to check.
+		// We can't use apply, since the function is native.
+		if ('username' in opts) {
+			req.open(opts.method, url, true, opts.username, opts.password);
+		} else {
+			req.open(opts.method, url, true);
+		}
+
+		if (req.overrideMimeType && opts.mimeType) {
+			req.overrideMimeType(opts.mimeType);
+		}
+
+		req.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+		if (opts.headers) {
+			var headers = opts.headers;
+			if (!m.isArrayLike(headers)) {
+				headers = m.items(headers);
+			}
+
+			for (var i = 0; i < headers.length; i++) {
+				var header = headers[i];
+				var name = header[0];
+				var value = header[1];
+				req.setRequestHeader(name, value);
+			}
+		}
+
+		if ("responseType" in opts && "responseType" in req) {
+			req.responseType = opts.responseType;
+		}
+
+		if (opts.withCredentials) {
+			req.withCredentials = 'true';
+		}
+
+		return self.sendXMLHttpRequest(req, opts.sendContent);
+	},
+	
+	//=========================================================================
 	__syntaxFix__: "syntax fix"
 });
 

@@ -36,6 +36,44 @@ if (typeof(Clipperz.Crypto.AES_2) == 'undefined') { Clipperz.Crypto.AES_2 = {}; 
 
 //#############################################################################
 
+Clipperz.Crypto.AES_2.EncryptionStreamingExecutionContext = function(args) {
+	args = args || {};
+
+	this._key = args.key		|| Clipperz.Base.exception.raise('MandatoryParameter');
+	this._nonce = args.nonce	|| Clipperz.Base.exception.raise('MandatoryParameter');
+	
+	return this;
+}
+
+Clipperz.Crypto.AES_2.EncryptionStreamingExecutionContext.prototype = MochiKit.Base.update(null, {
+	key: function () {
+		return this._key;
+	},
+
+	nonce: function () {
+		return this._nonce;
+	},
+
+	deferredProcessBlock: function (someData) {
+		var	deferredResult
+		var	executionContext;
+
+		executionContext = new Clipperz.Crypto.AES_2.DeferredExecutionContext({key:this.key(), message:someData, nonce:this.nonce()});
+
+		deferredResult = new Clipperz.Async.Deferred("AES.deferredDecrypt", {trace:false});
+		deferredResult.addCallback(Clipperz.Crypto.AES_2.deferredEncryptBlocks);
+		deferredResult.addCallback(MochiKit.Base.bind(function (anExecutionContext) {
+			this._nonce = new Clipperz.ByteArray(anExecutionContext.nonceArray());
+			return anExecutionContext.result();
+		}, this));
+		deferredResult.callback(executionContext);
+
+		return deferredResult;
+	},
+});
+
+//#############################################################################
+
 Clipperz.Crypto.AES_2.DeferredExecutionContext = function(args) {
 	args = args || {};
 
@@ -110,8 +148,9 @@ Clipperz.Crypto.AES_2.DeferredExecutionContext.prototype = MochiKit.Base.update(
 //var originalChunks = this._elaborationChunks;
 		if (anElapsedTime > 0) {
 			this._elaborationChunks = Math.round(this._elaborationChunks * ((anElapsedTime + 1000)/(anElapsedTime * 2)));
+//console.log("tuneExecutionParameter", this._elaborationChunks);
 		}
-//Clipperz.log("tuneExecutionParameters - elapsedTime: " +  anElapsedTime + /*originalChunks,*/ " chunks # " + this._elaborationChunks + " [" + this._executionStep + " / " + this._messageLength + "]");
+//console.log("tuneExecutionParameters - elapsedTime: " +  anElapsedTime + /*originalChunks,*/ " chunks # " + this._elaborationChunks + " [" + this._executionStep + " / " + this._messageLength + "]");
 	},
 	
 	'pause': function(aValue) {
@@ -718,7 +757,8 @@ MochiKit.Base.update(Clipperz.Crypto.AES_2, {
 		self = Clipperz.Crypto.AES_2;
 		startTime = new Date();
 		blockSize = 128/8;
-		messageLength = anExecutionContext.messageArray().length;
+//		messageLength = anExecutionContext.messageArray().length;
+		messageLength = anExecutionContext.messageLength();
 		nonce = anExecutionContext.nonceArray();
 		result = anExecutionContext.resultArray();
 

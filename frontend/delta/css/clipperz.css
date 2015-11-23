@@ -58,7 +58,7 @@ table {
   font-family: "clipperz-icons";
   font-style: normal;
   font-weight: normal;
-  src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAABgcAAwAAAAAF8wAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABHU1VCAAABHAAAA4wAAAOM98f5K09TLzIAAASoAAAAYAAAAGAIYwbQY21hcAAABQgAAAC8AAAAvKjvnoJnYXNwAAAFxAAAAAgAAAAIAAAAEGdseWYAAAXMAAAOgAAADoAOtoyEaGVhZAAAFEwAAAA2AAAANgUXq5VoaGVhAAAUhAAAACQAAAAkA/kCOmhtdHgAABSoAAAA5AAAAOQ3igNTbG9jYQAAFYwAAAB0AAAAdEG6RPxtYXhwAAAWAAAAACAAAAAgAEIAfG5hbWUAABYgAAAB2gAAAdo7wz5qcG9zdAAAF/wAAAAgAAAAIAADAAAAAQAAAAoAHgAsAAFsYXRuAAgABAAAAAAAAAABAAAAAWxpZ2EACAAAAAEAAAABAAQABAAAAAEACgAAAAEAKAARAE4AggCQAQYBQAFQAXQBnAHqAfgCFAI+ApwC8AMIAygDSAABABEABwAIAAkACgALAAwADQARABIAFAAVABYAFwAYABkAGgA4AAIABgAiAC4ADQAKAAoAAwATAAsAGwADAAwADwALABEACgAnAAgACgAKAAMACQAHABYACgABAAQAKwAEAAcACQAQAAYADgAsAD4ASgBcAGgALgAOABYACwAHABgACwADABMACwAbAAMABAAGAAUAMgAIABQAEgASAAcAEwAKABcAIQAFABEAFAAXAAsAIwAIABEADwAVABUACwAWABwAIQAFABEACwAHABYAIQAGAAcAEwAJAAsAEQADAAgAEgAsACIABAAUABMACwApAAwADwAWAAsACQAYAAMAEQAUAA0ADwATACEABgALABEACwAYAAsAAQAEAC0ABQASAAcADwARAAIABgAWACEABwAHAA8AEQAZABYACwAhAAYABwAPABEACwAKAAEABAA1ABEACwATAAsAFgAHABgACwADABUABwAXABcAGwAUABYACgAFAAwAGgAoADIAQgAoAAYAFAANABQAGQAYAC8ABgAUAAkAEAALAAoAHQAEABQACQAQACoABwAUAAcACgAPABMADQAeAAUABwAIAAsAEQABAAQAIAAEAAsAEwAZAAIABgAWADcABwAVABgADwAUABMAFwAiAAIAEAABAAQAMwASAAcAFwAXABsAFAAWAAoAAwAN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) format("woff"); }
+  src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAACIoAAwAAAAAIdgAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAABHU1VCAAABHAAABFAAAARQ/jUEQE9TLzIAAAVsAAAAYAAAAGAIYwbVY21hcAAABcwAAADkAAAA5Ip/TMpnYXNwAAAGsAAAAAgAAAAIAAAAEGdseWYAAAa4AAAXaAAAF2iz8c/0aGVhZAAAHiAAAAA2AAAANgXWF1JoaGVhAAAeWAAAACQAAAAkA/kCQ2htdHgAAB58AAABCAAAAQhHigRZbG9jYQAAH4QAAACGAAAAhnNibdxtYXhwAAAgDAAAACAAAAAgAFAAxG5hbWUAACAsAAAB2gAAAdo7wz5qcG9zdAAAIggAAAAgAAAAIAADAAAAAQAAAAoAHgAsAAFsYXRuAAgABAAAAAAAAAABAAAAAWxpZ2EACAAAAAEAAAABAAQABAAAAAEACgAAAAEAKgASAFIA0gDgAVYBkAGgAcQB7AIGAlQCYgKWAtQDMgOGA7QD1AQMAAEAEgAHAAgACQAKAAsADAANAA8AEQASABQAFQAWABcAGAAZABoAQQAFAAwAIgA4AFIAbgA4AAoAGQAKAA8AFAADAAwADwARAAsANAAKABgAGAAHAAkADgASAAsAEwAYADoADAAWAAkADgAPABoACwADAAwADwARAAsALwANAAoACgADABMACwAbAAMADAAPAAsAEQAKACgACAAKAAoAAwAJAAcAFgAKAAEABAAsAAQABwAJABAABgAOACwAPgBKAFwAaAAvAA4AFgALAAcAGAALAAMAEwALABsAAwAEAAYABQAzAAgAFAASABIABwATAAoAFwAiAAUAEQAUABcACwAkAAgAEQAPABUAFQALABYAHQAiAAUAEQALAAcAFgAiAAYABwATAAkACwARAAMACAASACwAIwAEABQAEwALACoADAAPABYACwAJABgAAwARABQADQAPABMAIgAGAAsAEQALABgACwABAAQALgAFABIABwAPABEAAgAGABYAIgAHAAcADwARABkAFgALACIABgAHAA8AEQALAAoAAQAEAD0AEQALABMACwAWAAcAGAALAAMAFQAHABcAFwAbABQAFgAKAAEABAA3AAoAEgAHAA0ACwADAAwADwARAAsABQAMABoAKAAyAEIAKQAGABQADQAUABkAGAAwAAYAFAAJABAACwAKAB4ABAAUAAkAEAArAAcAFAAHAAoADwATAA0AHwAFAAcACAALABEAAQAEACEABAALABMAGQADAAgAHgAuADUACgAYAA4ACwAWAAMADAAPABEACwBAAAcAFQAYAA8AFAATABcAIwACABAAAgAGABgAPwAIAAoADAADAAwADwARAAsAOwASAAcAFwAXABsAFAAWAAoAAwANAAsAEwALABYABwAYABQAFgAEAAoAIAA6AFAAMgAKAAsAEgAUABoACwADABgABwANADIADAALABIAFAAaAAsAAwAMAA8ACwARAAoAMgAKAAsAEgAUABoACwADAAQABgAFACcABgALAAkACwATABgABAAKACIAPABKAC0ACwAOABQAGwADAAoACwAYAAcADwARAD4ADAALABgAAwAVAAcAFwAXABsAFAAWAAoAJgAGAAsABwAWAAkADgAjAAQABwAaAAsAAwAIABwAJgA2AAkACwAcABgAAwAMAA8AEQALACAABAAHAA0AFwAlAAMABwANAAIABgAOACoAAwAWABEAMQAIABMAEQAUAAkAEAALAAoAAgAGACIAPAANAA8ACwAbAAMAFQAHABcAFwAbABQAFgAKADkACgAPAAoACwAUAAMADAAPABEACwABAAQAQAACAEEAAwHvAZAABQAAAUwBZgAAAEcBTAFmAAAA9QAZAIQAAAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAAAAAAAABAAADwMAHg/+AAIAHgACAAAAABAAAAAAAAAAAAAAAgAAAAAAADAAAAAwAAABwAAQADAAAAHAADAAEAAAAcAAQAyAAAAC4AIAAEAA4AAQAgAFAAVABpAHAAeAB64SXipuYT6ADpJOko6SvpjenO6i7qNura8DD//f//AAAAAAAgAE8AVABhAGsAcgB64SXipuYA6ADpJOkm6SrpjenO6i7qNura8C///f//AAH/4/+1/7L/pv+l/6T/ox75HXkaIBg0FxEXEBcPFq4WbhYPFggVZRARAAMAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAB//8ADwABAAAAAAAAAAAAAgAANzkBAAAAAAEAAAAAAAAAAAACAAA3OQEAAAAAAQAAAAAAAAAAAAIAADc5AQAAAAABAAAAAAAAAAAAAgAANzkBAAAA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) format("woff"); }
 @font-face {
   font-family: "clipperz-password";
   font-style: normal;
@@ -119,7 +119,6 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
-
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -133,7 +132,6 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
-
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -147,7 +145,6 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
-
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -161,7 +158,6 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
-
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -480,73 +476,61 @@ div.overlay {
 @-webkit-keyframes overlay-spin {
   from {
     opacity: 1; }
-
   to {
     opacity: 0.25; } }
 @-moz-keyframes overlay-spin {
   from {
     opacity: 1; }
-
   to {
     opacity: 0.25; } }
 @-ms-keyframes overlay-spin {
   from {
     opacity: 1; }
-
   to {
     opacity: 0.25; } }
 @keyframes overlay-spin {
   from {
     opacity: 1; }
-
   to {
     opacity: 0.25; } }
 @-webkit-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
-
   100% {
     opacity: 1; } }
 @-moz-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
-
   100% {
     opacity: 1; } }
 @-ms-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
-
   100% {
     opacity: 1; } }
 @keyframes ios-overlay-show {
   0% {
     opacity: 0; }
-
   100% {
     opacity: 1; } }
 @-webkit-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
-
   100% {
     opacity: 0; } }
 @-moz-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
-
   100% {
     opacity: 0; } }
 @-ms-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
-
   100% {
     opacity: 0; } }
 @keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
-
   100% {
     opacity: 0; } }
 /*
@@ -1004,6 +988,8 @@ div.cardToolbar header {
     text-align: center; }
     div.cardToolbar header div.clipperz span.logo.tag, div.cardToolbar header div.clipperz span.logo.search {
       font-size: 14pt; }
+    div.cardToolbar header div.clipperz span.logo.withAttachments {
+      font-weight: bold; }
   div.cardToolbar header div.clipperz span.value {
     display: inline-block;
     padding-left: 5px;
@@ -1014,22 +1000,51 @@ div.cardToolbar header {
     -moz-box-flex: 1;
     -moz-flex: 1;
     -ms-flex: 1;
-    flex: 1; }
+    flex: 1;
+    text-align: left; }
     div.cardToolbar header div.selectionToggle .button {
-      text-align: left; }
+      display: inline-block; }
       div.cardToolbar header div.selectionToggle .button .label {
-        padding-left: 8px; }
+        padding-left: 8px;
+        padding-right: 8px; }
   div.cardToolbar header div.settingsToggle {
     -webkit-box-flex: 1;
     -webkit-flex: 1;
     -moz-box-flex: 1;
     -moz-flex: 1;
     -ms-flex: 1;
-    flex: 1; }
+    flex: 1;
+    text-align: right; }
     div.cardToolbar header div.settingsToggle .button {
-      text-align: right; }
+      display: inline-block; }
       div.cardToolbar header div.settingsToggle .button .label {
-        padding-right: 8px; }
+        padding-right: 8px;
+        padding-left: 8px; }
+      div.cardToolbar header div.settingsToggle .button .attachmentQueueToggleButton {
+        font-family: "clipperz-font";
+        margin-right: 10px; }
+        div.cardToolbar header div.settingsToggle .button .attachmentQueueToggleButton h3 {
+          font-weight: bold;
+          font-size: 33pt;
+          letter-spacing: -10px; }
+        div.cardToolbar header div.settingsToggle .button .attachmentQueueToggleButton .badge {
+          position: absolute;
+          margin-left: -12px;
+          width: auto;
+          height: 16px;
+          line-height: 17px;
+          background-color: #1863a1;
+          color: white;
+          text-align: center;
+          font-size: 8pt;
+          font-weight: bold;
+          border-radius: 8px;
+          padding: 0px 4px; }
+          div.cardToolbar header div.settingsToggle .button .attachmentQueueToggleButton .badge.top {
+            top: 11px; }
+          div.cardToolbar header div.settingsToggle .button .attachmentQueueToggleButton .badge.bottom {
+            top: 25px;
+            margin-left: -42px; }
   div.cardToolbar header div .button {
     overflow: hidden;
     font-size: 24pt;
@@ -1042,6 +1057,139 @@ div.cardToolbar header {
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     vertical-align: center; }
+
+div.attachmentQueueStatus {
+  position: fixed;
+  top: calc(48px - 8px);
+  right: 0;
+  padding: 0;
+  color: white;
+  z-index: 10;
+  height: calc(100% - 48px);
+  pointer-events: none; }
+  div.attachmentQueueStatus .arrow {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 8px 8px 8px;
+    border-color: transparent transparent black transparent;
+    position: fixed;
+    right: 70px;
+    top: calc(49px - 8px); }
+  div.attachmentQueueStatus.closed {
+    display: none;
+    visibility: hidden; }
+  div.attachmentQueueStatus p {
+    padding: 1em; }
+  div.attachmentQueueStatus ul {
+    pointer-events: all;
+    max-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    white-space: nowrap;
+    background: black;
+    margin-top: 8px;
+    padding: 0;
+    box-shadow: 0px 2px 5px #888888; }
+    div.attachmentQueueStatus ul li {
+      padding: 0 0 0 1em;
+      border-bottom: 1px solid white; }
+      div.attachmentQueueStatus ul li span {
+        display: inline-block;
+        vertical-align: middle;
+        height: 40px;
+        line-height: 40px; }
+      div.attachmentQueueStatus ul li .contentType {
+        font-family: 'clipperz-icons';
+        -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+        -moz-font-feature-settings: "liga" 1, "dlig" 1;
+        -ms-font-feature-settings: "liga" 1, "dlig" 1;
+        -o-font-feature-settings: "liga" 1, "dlig" 1;
+        font-feature-settings: "liga" 1, "dlig" 1;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        color: white;
+        width: 30px; }
+      div.attachmentQueueStatus ul li .name {
+        width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis; }
+      div.attachmentQueueStatus ul li .status {
+        width: 150px;
+        text-align: right; }
+        div.attachmentQueueStatus ul li .status .statusString {
+          font-size: .8em; }
+        div.attachmentQueueStatus ul li .status .processIcon {
+          margin-left: 1em; }
+      div.attachmentQueueStatus ul li .close a {
+        font-family: 'clipperz-icons';
+        -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+        -moz-font-feature-settings: "liga" 1, "dlig" 1;
+        -ms-font-feature-settings: "liga" 1, "dlig" 1;
+        -o-font-feature-settings: "liga" 1, "dlig" 1;
+        font-feature-settings: "liga" 1, "dlig" 1;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        display: inline-block;
+        width: 50px;
+        text-align: center;
+        letter-spacing: 1px;
+        font-size: 20px;
+        -moz-user-select: -moz-none;
+        -khtml-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none; }
+      div.attachmentQueueStatus ul li .close a:hover {
+        color: lightgray;
+        cursor: pointer; }
+      div.attachmentQueueStatus ul li .progress {
+        width: 50px;
+        height: 30px;
+        text-align: center;
+        -moz-user-select: -moz-none;
+        -khtml-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none; }
+      div.attachmentQueueStatus ul li:last-child {
+        border-bottom: 0; }
+  div.attachmentQueueStatus .radialProgressIndicator {
+    height: 25px; }
+    div.attachmentQueueStatus .radialProgressIndicator .background {
+      fill: white; }
+    div.attachmentQueueStatus .radialProgressIndicator .progress {
+      fill: #ff9900; }
+
+.narrow .attachmentQueueStatus {
+  width: 100%; }
+  .narrow .attachmentQueueStatus ul {
+    white-space: inherit; }
+    .narrow .attachmentQueueStatus ul li {
+      padding-top: .2em;
+      padding-bottom: .2em; }
+      .narrow .attachmentQueueStatus ul li span {
+        height: 25px;
+        line-height: 30px; }
+      .narrow .attachmentQueueStatus ul li .name {
+        width: 225px; }
+      .narrow .attachmentQueueStatus ul li .status {
+        padding-left: 30px;
+        text-align: left;
+        width: calc(100% - 100px);
+        line-height: 20px;
+        font-size: .8em; }
+        .narrow .attachmentQueueStatus ul li .status .processIcon {
+          margin-left: 0.5em; }
+      .narrow .attachmentQueueStatus ul li .close {
+        height: inherit;
+        line-height: inherit;
+        float: right;
+        display: block;
+        margin-top: -5px; }
+      .narrow .attachmentQueueStatus ul li .progress {
+        padding-left: 18px;
+        margin-top: -24px; }
 
 div.cardContent {
   display: -webkit-box;
@@ -1178,7 +1326,8 @@ div.cardContent {
       -webkit-flex-direction: column;
       -moz-flex-direction: column;
       -ms-flex-direction: column;
-      flex-direction: column; }
+      flex-direction: column;
+      width: 100%; }
     div.cardContent div.cardDetail.column .content {
       -webkit-box-flex: auto;
       -webkit-flex: auto;
@@ -1201,7 +1350,8 @@ div.cardContent {
   -moz-flex-direction: column;
   -ms-flex-direction: column;
   flex-direction: column;
-  height: 100%; }
+  height: 100%;
+  width: 100%; }
   #cardDetailPage > .view .content, #cardDetailPage > .editWrapper > .edit .content {
     -webkit-box-flex: auto;
     -webkit-flex: auto;
@@ -1226,7 +1376,8 @@ div.cardContent {
     -moz-order: 1;
     -ms-flex-order: 1;
     order: 1;
-    -webkit-transform: translate3d(0, 0, 0); }
+    -webkit-transform: translate3d(0, 0, 0);
+    width: 100%; }
     .cardDetailToolbar.edit li.save {
       cursor: default;
       background-color: #55aa55; }
@@ -1529,9 +1680,17 @@ div.help {
       flex: none;
       font-size: 13pt;
       font-weight: 100;
-      padding-right: 10px;
+      margin-right: 10px;
       padding-left: 1px;
-      line-height: 27px; }
+      line-height: 27px;
+      /* boxed style test */
+      /*			background-color: $clipperz-orange;
+      			padding-left: 5px;
+      			padding-right: 5px;
+      			border-radius: 3px;
+      			border:1px solid gray;
+      			color: white;
+      */ }
       .tagEditor ul li.tag span.tagRemoveButton {
         font-family: 'clipperz-icons';
         -webkit-font-feature-settings: "liga" 1, "dlig" 1;
@@ -1541,9 +1700,15 @@ div.help {
         font-feature-settings: "liga" 1, "dlig" 1;
         -webkit-font-smoothing: antialiased;
         text-rendering: optimizeLegibility;
+        -moz-user-select: -moz-none;
+        -khtml-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
         cursor: pointer;
         line-height: 22px;
-        color: #ccc; }
+        color: #ccc;
+        /*color:white;*/ }
         .tagEditor ul li.tag span.tagRemoveButton:hover {
           color: #9b0000; }
   .tagEditor input {
@@ -1917,6 +2082,9 @@ div.help {
         content: "clipperz"; }
       #selections ul.defaultSet li.recentCards:before {
         content: "recent"; }
+      #selections ul.defaultSet li.withAttachmentCards:before {
+        content: "attachment";
+        font-weight: bold; }
       #selections ul.defaultSet li.untaggedCards {
         padding-left: 35px; }
   #selections .search form div.form {
@@ -2160,14 +2328,25 @@ span.count {
 
 #selections.ALL li.allCards {
   color: #ff9900; }
+  #selections.ALL li.allCards:before {
+    color: white; }
+
+#selections.WITH_ATTACHMENTS li.withAttachmentCards {
+  color: #ff9900; }
+  #selections.WITH_ATTACHMENTS li.withAttachmentCards:before {
+    color: white; }
 
 #selections.RECENT li.recentCards {
   color: #ff9900; }
+  #selections.RECENT li.recentCards:before {
+    color: white; }
 
 #selections.UNTAGGED li.untaggedCards {
   color: #ff9900; }
+  #selections.UNTAGGED li.untaggedCards:before {
+    color: white; }
 
-#selections.SEARCH div.search form div.form label {
+#selections.SEARCH div.search form div.form input {
   color: #ff9900; }
 #selections.SEARCH div.search form div.form .searchClear span.count {
   display: block; }
@@ -2176,6 +2355,8 @@ span.count {
 
 #selections.TAG ul.tagList li.selected {
   color: #ff9900; }
+  #selections.TAG ul.tagList li.selected:before {
+    color: white; }
 
 #extraFeaturesPanel .extraFeatureIndex {
   background-color: black;
@@ -2293,13 +2474,13 @@ span.count {
   #extraFeaturesPanel .extraFeatureIndex footer {
     font-size: 8pt;
     padding: 5px 5px 5px 5px;
-    border-top: 1px solid #999999; }
+    border-top: 1px solid #999; }
     #extraFeaturesPanel .extraFeatureIndex footer span {
-      color: #999999; }
+      color: #999; }
       #extraFeaturesPanel .extraFeatureIndex footer span:after {
         content: ":"; }
     #extraFeaturesPanel .extraFeatureIndex footer a {
-      color: #999999;
+      color: #999;
       text-decoration: none;
       padding-left: 5px;
       font-weight: bold; }
@@ -3097,7 +3278,7 @@ div.cardList ul {
       padding-right: 0px;
       box-shadow: -4px 0px 3px -1px rgba(0, 0, 0, 0.2); }
     div.cardList ul li.archived {
-      background-color: #eeeeee;
+      background-color: #eee;
       color: #999; }
     div.cardList ul li .favicon {
       width: 48px;
@@ -3124,6 +3305,19 @@ div.cardList ul {
       padding-left: 16px;
       padding-right: 8px;
       line-height: 1.2em; }
+    div.cardList ul li .attachmentsCount {
+      font-family: 'clipperz-icons';
+      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+      -moz-font-feature-settings: "liga" 1, "dlig" 1;
+      -ms-font-feature-settings: "liga" 1, "dlig" 1;
+      -o-font-feature-settings: "liga" 1, "dlig" 1;
+      font-feature-settings: "liga" 1, "dlig" 1;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      color: #aaa;
+      padding-right: 8px;
+      padding-left: 6px;
+      padding-top: 18px; }
 
 div.cardList.narrow {
   overflow: auto;
@@ -3184,7 +3378,7 @@ div.cardList.narrow {
     content: ""; }
 
 #cardDetailPage .view.archived, .cardDetail .view.archived {
-  background-color: #eeeeee; }
+  background-color: #eee; }
 #cardDetailPage .view .cardDetailToolbar, .cardDetail .view .cardDetailToolbar {
   background-color: #1863a1;
   color: white; }
@@ -3256,6 +3450,9 @@ div.cardList.narrow {
 #cardDetailPage .edit .cardDetailToolbar, .cardDetail .edit .cardDetailToolbar {
   background-color: #1863a1;
   color: white; }
+  #cardDetailPage .edit .cardDetailToolbar.top, .cardDetail .edit .cardDetailToolbar.top {
+    display: none;
+    /* Issue #203 */ }
   #cardDetailPage .edit .cardDetailToolbar.narrow, .cardDetail .edit .cardDetailToolbar.narrow {
     -webkit-transition: height 2.5s ease-in;
     -moz-transition: height 2.5s ease-in;
@@ -3294,8 +3491,8 @@ div.cardList.narrow {
   font-feature-settings: "liga" 1, "dlig" 1;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  margin: 6px;
-  margin-top: 12px;
+  display: inline-block;
+  margin-left: 6px;
   cursor: pointer;
   color: white;
   width: 40px;
@@ -3304,7 +3501,172 @@ div.cardList.narrow {
     color: #9b0000; }
 #cardDetailPage .edit .cardDirectLogin .directLoginLabel, .cardDetail .edit .cardDirectLogin .directLoginLabel {
   vertical-align: bottom;
-  padding-left: 17px; }
+  padding-left: 0px; }
+#cardDetailPage .edit .cardUploadAttachments, .cardDetail .edit .cardUploadAttachments {
+  border: 2px dashed #ccc;
+  margin: 0 1em 1em 1em;
+  padding: 1em;
+  text-align: center;
+  margin-left: 44px; }
+  #cardDetailPage .edit .cardUploadAttachments p, .cardDetail .edit .cardUploadAttachments p {
+    margin-bottom: 1em; }
+  #cardDetailPage .edit .cardUploadAttachments .attachmentInput, .cardDetail .edit .cardUploadAttachments .attachmentInput {
+    display: none; }
+  #cardDetailPage .edit .cardUploadAttachments .button, .cardDetail .edit .cardUploadAttachments .button {
+    display: inline-block;
+    color: white;
+    background-color: #ff9900;
+    font-size: 14pt;
+    padding: 10px 14px; }
+
+.cardAttachmentWrapper {
+  border-bottom: 3px double #eee; }
+
+.cardAttachments {
+  padding-bottom: 10px; }
+  .cardAttachments h3 {
+    padding-top: 14px;
+    padding-bottom: 14px;
+    color: gray;
+    font-size: 12pt; }
+    .cardAttachments h3:before {
+      font-family: 'clipperz-icons';
+      -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+      -moz-font-feature-settings: "liga" 1, "dlig" 1;
+      -ms-font-feature-settings: "liga" 1, "dlig" 1;
+      -o-font-feature-settings: "liga" 1, "dlig" 1;
+      font-feature-settings: "liga" 1, "dlig" 1;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      content: "attachment";
+      padding-left: 13px;
+      padding-right: 13px;
+      padding-top: 0px;
+      padding-bottom: 0px;
+      font-weight: bold;
+      font-size: 14pt;
+      display: inline-block;
+      transform: scaleX(-1); }
+  .cardAttachments .skippedFiles {
+    margin: 1em 1em 1em 44px;
+    color: white;
+    background: #ff9900;
+    padding: 1em;
+    font-size: .8em; }
+    .cardAttachments .skippedFiles ul {
+      padding: 1em 1em 1em 0;
+      list-style-type: none; }
+      .cardAttachments .skippedFiles ul li .filename {
+        font-weight: bold; }
+  .cardAttachments .attachmentList {
+    margin-left: 44px;
+    padding-right: 8px; }
+    .cardAttachments .attachmentList li {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -moz-flex;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-direction: normal;
+      -webkit-box-orient: horizontal;
+      -webkit-flex-direction: row;
+      -moz-flex-direction: row;
+      -ms-flex-direction: row;
+      flex-direction: row;
+      padding-bottom: 6px;
+      /*cursor: pointer;*/ }
+      .cardAttachments .attachmentList li.broken span {
+        color: #dd1111 !important; }
+      .cardAttachments .attachmentList li .contentType {
+        -webkit-box-flex: none;
+        -webkit-flex: none;
+        -moz-box-flex: none;
+        -moz-flex: none;
+        -ms-flex: none;
+        flex: none;
+        width: 30px;
+        font-family: 'clipperz-icons';
+        -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+        -moz-font-feature-settings: "liga" 1, "dlig" 1;
+        -ms-font-feature-settings: "liga" 1, "dlig" 1;
+        -o-font-feature-settings: "liga" 1, "dlig" 1;
+        font-feature-settings: "liga" 1, "dlig" 1;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        color: gray; }
+      .cardAttachments .attachmentList li span {
+        /*border:1px solid black;*/
+        line-height: 30px;
+        display: inline-block; }
+      .cardAttachments .attachmentList li .meta {
+        -webkit-box-flex: auto;
+        -webkit-flex: auto;
+        -moz-box-flex: auto;
+        -moz-flex: auto;
+        -ms-flex: auto;
+        flex: auto;
+        text-align: left;
+        font-size: 14pt;
+        width: 100%;
+        /* Hack to fix long names behaviour */
+        overflow: hidden; }
+        .cardAttachments .attachmentList li .meta .name {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          width: 100%;
+          white-space: pre; }
+        .cardAttachments .attachmentList li .meta .size {
+          display: block;
+          color: #aaa;
+          font-size: 8pt;
+          line-height: 8pt; }
+      .cardAttachments .attachmentList li .status {
+        width: 100px;
+        text-align: right; }
+        .cardAttachments .attachmentList li .status .waiting {
+          font-size: 10pt;
+          color: #aaa; }
+      .cardAttachments .attachmentList li .actions {
+        -moz-user-select: -moz-none;
+        -khtml-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        display: inline-block;
+        width: 30px; }
+        .cardAttachments .attachmentList li .actions a {
+          display: inline-block;
+          width: 30px;
+          cursor: pointer;
+          font-size: 20pt;
+          color: #aaa; }
+          .cardAttachments .attachmentList li .actions a.cancel, .cardAttachments .attachmentList li .actions a.remove {
+            font-family: 'clipperz-icons';
+            -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+            -moz-font-feature-settings: "liga" 1, "dlig" 1;
+            -ms-font-feature-settings: "liga" 1, "dlig" 1;
+            -o-font-feature-settings: "liga" 1, "dlig" 1;
+            font-feature-settings: "liga" 1, "dlig" 1;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility; }
+            .cardAttachments .attachmentList li .actions a.cancel:hover, .cardAttachments .attachmentList li .actions a.remove:hover {
+              color: #dd1111; }
+          .cardAttachments .attachmentList li .actions a.download:hover {
+            color: #1863a1; }
+      .cardAttachments .attachmentList li .progress {
+        width: 30px;
+        text-align: center; }
+        .cardAttachments .attachmentList li .progress .radialProgressIndicator {
+          width: 25px;
+          height: 30px; }
+          .cardAttachments .attachmentList li .progress .radialProgressIndicator .background {
+            fill: white; }
+          .cardAttachments .attachmentList li .progress .radialProgressIndicator .progress {
+            fill: black; }
+          .cardAttachments .attachmentList li .progress .radialProgressIndicator .border {
+            fill: black; }
+          .cardAttachments .attachmentList li .progress .radialProgressIndicator.waiting .border {
+            fill: #aaa; }
 
 .edit .cardDetailToolbar.commands div, .edit .cardDetailToolbar.commands ul {
   display: none;
@@ -3341,7 +3703,36 @@ div.cardList.narrow {
   width: 100%;
   padding: 13px 20px 13px 42px; }
 .content .tagEditor {
-  padding: 10px; }
+  padding: 10px;
+  flex-wrap: wrap;
+  /* I considered this specific to the card View/Edit page: should it go in tagEditor.scss instead? */ }
+  .content .tagEditor ul {
+    width: calc(100% - 31px);
+    flex-wrap: wrap;
+    padding-left: 31px; }
+    .content .tagEditor ul:before {
+      margin-left: -32px; }
+    .content .tagEditor ul li .tagLabel {
+      max-width: 500px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: pre; }
+  .content .tagEditor.readOnly ul li {
+    display: inline-block;
+    max-width: 30%; }
+    .content .tagEditor.readOnly ul li .tagLabel {
+      display: inline-block;
+      width: 100%; }
+  .content .tagEditor.readWrite ul li {
+    /*display: inline-flex;*/
+    /*width: 30%;*/
+    display: inline-block;
+    max-width: 30%; }
+    .content .tagEditor.readWrite ul li .tagLabel {
+      width: calc(100% - 30px);
+      display: inline-block; }
+    .content .tagEditor.readWrite ul li input {
+      width: 100%; }
 .content .cardNotes {
   border: 0px;
   font-size: 10pt;
@@ -3424,12 +3815,12 @@ div.cardList.narrow {
       width: 40px;
       font-size: 20pt; }
       .content .cardField .fieldEditAction .removeField:hover {
-        color: #9b0000; }
+        color: #dd1111; }
     .content .cardField .fieldEditAction .dragHandler3 {
       cursor: grab;
       cursor: -moz-grab;
       cursor: -webkit-grab;
-      background: repeating-linear-gradient(0deg, white, white 2px, #dddddd 2px, #dddddd 3px);
+      background: repeating-linear-gradient(0deg, white, white 2px, #ddd 2px, #ddd 3px);
       width: 28px;
       height: 20px;
       margin-left: 6px;
@@ -3581,6 +3972,7 @@ div.cardList.narrow {
         height: 20px;
         font-size: 15pt;
         margin: 6px;
+        margin-right: 16px;
         cursor: default; }
         .content .cardField .fieldAction span.action.URL {
           cursor: pointer; }
@@ -3613,20 +4005,40 @@ div.cardList.narrow {
         .content .cardField .fieldAction span.toggleLock:hover {
           color: #888; }
 .content .newCardField {
-  font-family: 'clipperz-icons';
-  -webkit-font-feature-settings: "liga" 1, "dlig" 1;
-  -moz-font-feature-settings: "liga" 1, "dlig" 1;
-  -ms-font-feature-settings: "liga" 1, "dlig" 1;
-  -o-font-feature-settings: "liga" 1, "dlig" 1;
-  font-feature-settings: "liga" 1, "dlig" 1;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  margin: 6px;
-  cursor: pointer;
-  color: #ccc;
-  font-size: 20pt; }
+  height: 115px;
+  border-bottom: 3px double #eee;
+  cursor: pointer; }
+  .content .newCardField .fieldGhostShadow {
+    padding-top: 11px;
+    padding-bottom: 11px;
+    padding-left: 42px;
+    padding-right: 49px; }
+    .content .newCardField .fieldGhostShadow .label {
+      background-color: white;
+      height: 25px;
+      margin-bottom: 8px; }
+    .content .newCardField .fieldGhostShadow .value {
+      background-color: white;
+      height: 58px; }
+  .content .newCardField .addNewFieldButton {
+    margin-top: -90px;
+    width: 70px;
+    font-size: 50pt;
+    margin-left: auto;
+    margin-right: auto;
+    font-family: 'clipperz-icons';
+    -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+    -moz-font-feature-settings: "liga" 1, "dlig" 1;
+    -ms-font-feature-settings: "liga" 1, "dlig" 1;
+    -o-font-feature-settings: "liga" 1, "dlig" 1;
+    font-feature-settings: "liga" 1, "dlig" 1;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    color: #eee; }
   .content .newCardField:hover {
-    color: green; }
+    background-color: #f5f5f5; }
+    .content .newCardField:hover .addNewFieldButton {
+      color: #7c7; }
 .content .cardDirectLogin {
   font-size: 18pt;
   padding: 10px;
@@ -3655,7 +4067,7 @@ div.cardList.narrow {
     min-width: 220px;
     width: 80%;
     max-width: 400px;
-    background-color: #333333;
+    background-color: #333;
     color: #fff;
     -webkit-border-radius: 6px;
     -moz-border-radius: 6px;
@@ -3670,7 +4082,7 @@ div.cardList.narrow {
       margin-left: 0px;
       width: 0;
       height: 0;
-      border-top: 5px solid #333333;
+      border-top: 5px solid #333;
       border-left: 5px solid transparent;
       border-right: 5px solid transparent; }
     .passwordGenerator .passwordGeneratorBaloon form span {

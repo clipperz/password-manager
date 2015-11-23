@@ -21,6 +21,8 @@ refer to http://www.clipperz.com.
 
 */
 
+"use strict";
+
 if (typeof(Clipperz) == 'undefined') { Clipperz = {}; }
 if (typeof(Clipperz.PM) == 'undefined') { Clipperz.PM = {}; }
 
@@ -123,6 +125,16 @@ Clipperz.PM.Connection.prototype = MochiKit.Base.update(null, {
 	//-------------------------------------------------------------------------
 
 	'serverSideUserCredentials': function() {
+		throw Clipperz.Base.exception.AbstractMethod;
+	},
+
+	//-------------------------------------------------------------------------
+
+	'uploadAttachment': function(someArguments, aProgressCallback) {
+		throw Clipperz.Base.exception.AbstractMethod;
+	},
+
+	'downloadAttachment': function(someArguments, aProgressCallback) {
 		throw Clipperz.Base.exception.AbstractMethod;
 	},
 
@@ -433,7 +445,7 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 
 	//=========================================================================
 
-	'message': function(aMessageName, someParameters) {
+	'message': function(aMessageName, someParameters, someOptionalParameters) {
 		var args;
 		var parameters;
 
@@ -449,16 +461,16 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 			parameters: parameters
 		}
 
-		return this.sendMessage(args);
+		return this.sendMessage(args, someOptionalParameters);
 	},
 
 	//-------------------------------------------------------------------------
 
-	'sendMessage': function(someArguments) {
+	'sendMessage': function(someArguments, someOptionalParameters) {
 		var	deferredResult;
-		
+
 		deferredResult = new Clipperz.Async.Deferred("Connection.sendMessage", {trace:false});
-		deferredResult.addMethod(this.proxy(), 'message', someArguments);
+		deferredResult.addMethod(this.proxy(), 'message', someArguments, someOptionalParameters);
 		deferredResult.addCallback(MochiKit.Base.bind(function(res) {
 			if (typeof(res['lock']) != 'undefined') {
 				this.setServerLockValue(res['lock']);
@@ -496,6 +508,30 @@ Clipperz.log("<<< Connection.messageExceptionHandler")
 		return result;;
 	},
 	
+	//=========================================================================
+
+	// 'uploadAttachment': function(someArguments, aProgressCallback) {
+	// 	return this.message('uploadAttachment', someArguments, {'uploadProgressCallback': aProgressCallback});
+	// },
+
+	'uploadAttachment': function(someArguments, aProgressCallback) {
+		return Clipperz.Async.callbacks("Connction.uploadAttachment", [
+			MochiKit.Base.method(this, 'message', 'knock', {'requestType':'MESSAGE'}),
+			MochiKit.Base.method(this.proxy(), 'uploadAttachment', someArguments, aProgressCallback, this.sharedSecret()),
+		], {trace:false});
+
+		// return this.proxy().uploadAttachment(someArguments, aProgressCallback, this.sharedSecret());
+	},
+
+	'downloadAttachment': function(someArguments, aProgressCallback) {
+		return Clipperz.Async.callbacks("Connction.uploadAttachment", [
+			MochiKit.Base.method(this, 'message', 'knock', {'requestType':'MESSAGE'}),
+			MochiKit.Base.method(this.proxy(), 'downloadAttachment', someArguments, aProgressCallback, this.sharedSecret()),
+		], {trace:false});
+
+		// return this.proxy().downloadAttachment(someArguments, aProgressCallback, this.sharedSecret());
+	},
+
 	//=========================================================================
 
 	'reestablishConnection': function(anOriginalMessageArguments) {

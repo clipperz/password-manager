@@ -323,6 +323,10 @@ div.cardToolbar {
 					&.tag, &.search {
 						font-size: 14pt;
 					}
+					
+					&.withAttachments {
+						font-weight: bold;
+					}
 				}
 				
 				span.value {
@@ -334,30 +338,64 @@ div.cardToolbar {
 		
 			&.selectionToggle {
 				@include flex(1);
+				text-align: left;
 
 				.button {
-					text-align: left;
+					display: inline-block;
 
 					.label {
 						padding-left: 8px;
+						padding-right: 8px;
 					}
 				}
 			}
 
-//			&.logo {
-//				@include align-self(center);
-//				@include flex(4);
-//				text-align: center;
-//			}
-
 			&.settingsToggle {
 				@include flex(1);
+				text-align: right;
 
 				.button {
-					text-align: right;
+					display: inline-block;
 
 					.label {
 						padding-right: 8px;
+						padding-left: 8px;
+					}
+					
+					.attachmentQueueToggleButton {
+						font-family: "clipperz-font";
+						margin-right: 10px;
+
+						h3 {
+							font-weight: bold;
+							font-size: 33pt;
+
+							letter-spacing: -10px;
+						}
+
+						.badge {
+							position: absolute;
+							margin-left: -12px;
+							width: auto;
+							height: 16px;
+							line-height: 17px;
+							background-color: #1863a1;
+							color: white;
+							text-align: center;
+							font-size: 8pt;
+							font-weight: bold;
+							border-radius: 8px;
+							padding: 0px 4px;
+
+							&.top {
+								top: 11px;
+							}
+
+							&.bottom {
+								top: 25px;
+								margin-left: -42px;
+							}
+						}
 					}
 				}
 			}
@@ -367,6 +405,183 @@ div.cardToolbar {
 				font-size: 24pt;
 				@include icon-font();
 				vertical-align: center;
+			}
+		}
+	}
+}
+
+$arrow-size: 8px;
+div.attachmentQueueStatus {
+	position: fixed;
+	top: calc(48px - #{$arrow-size});
+	right: 0;
+	padding: 0;
+	color: white;
+	z-index: 10;
+
+	height: calc(100% - 48px);
+	pointer-events: none;
+
+	.arrow {
+		width: 0;
+		height: 0;
+		border-style: solid;
+		border-width: 0 $arrow-size $arrow-size $arrow-size;
+		border-color: transparent transparent black transparent;
+		position: fixed;
+		right: 70px;
+		top: calc(49px - #{$arrow-size});
+	}
+
+	&.closed {
+		display: none;
+		visibility: hidden;
+	}
+
+	p {
+		padding: 1em;
+	}
+
+	ul {
+		pointer-events: all;
+		
+		max-height: 100%;
+		overflow-y: auto;
+		overflow-x: hidden;
+		white-space: nowrap;
+
+		background: black;
+		margin-top: $arrow-size;
+		padding: 0;
+		box-shadow: 0px 2px 5px #888888;
+
+		li {
+			padding: 0 0 0 1em;;
+			border-bottom: 1px solid white;
+
+			span {
+				display: inline-block;
+				vertical-align: middle;
+				height: 40px;
+				line-height: 40px;
+			}
+
+			.contentType {
+				@include icon-font();
+				color: white;
+				width: 30px;
+			}
+
+			.name {
+				width: 250px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+
+			.status {
+				width: 150px;
+				text-align: right;
+
+				.statusString {
+					font-size: .8em;
+				}
+
+				.processIcon {
+					margin-left: 1em;
+				}
+			}
+
+			.close {
+				a {
+					@include icon-font();
+					display: inline-block;
+
+					width: 50px;
+					text-align: center;
+					letter-spacing: 1px;
+					font-size: 20px;
+
+					@include userSelectNone();
+				}
+
+				a:hover {
+					color: lightgray;
+					cursor: pointer;
+				}
+			}
+
+			.progress {
+				width: 50px;
+				height: 30px;
+				text-align: center;
+
+				@include userSelectNone();
+			}
+
+			&:last-child {
+				border-bottom: 0;
+			}
+		}
+	}
+
+	.radialProgressIndicator {
+		height: 25px;
+
+		.background {
+			fill: white;
+		}
+
+		.progress {
+			fill: $clipperz-orange;
+		}
+	}
+}
+
+
+.narrow {
+	.attachmentQueueStatus {
+		width:100%;
+
+		ul {
+			white-space: inherit;
+
+			li {
+				padding-top: .2em;
+				padding-bottom: .2em;
+
+				span {
+					height: 25px;
+					line-height: 30px;
+				}
+
+				.name {
+					width: 225px;
+				}
+
+				.status {
+					padding-left: 30px;
+					text-align: left;
+					width: calc(100% - 100px);
+					line-height: 20px;
+					font-size: .8em;
+
+					.processIcon {
+						margin-left: 0.5em;
+					}
+				}
+
+				.close {
+					height: inherit;
+					line-height: inherit;
+					float: right;
+					display: block;
+					margin-top: -5px;
+				}
+
+				.progress {
+					padding-left: 18px;
+					margin-top: -24px;
+				}
 			}
 		}
 	}
@@ -481,6 +696,8 @@ div.cardContent {
 
 			@include flexbox();
 			@include flex-direction(column);
+
+			width:100%;
 		}
 
 		.content {
@@ -498,6 +715,7 @@ div.cardContent {
 		@include flexbox();
 		@include flex-direction(column);
 		height: 100%;
+		width: 100%;
 
 		.content {
 			@include flex(auto);
@@ -515,6 +733,8 @@ div.cardContent {
 		@include order(1);
 
 		@include chromeFix();
+
+		width:100%;
 
 		li.save {
 			cursor: default;

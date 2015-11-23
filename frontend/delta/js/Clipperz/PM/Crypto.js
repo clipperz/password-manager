@@ -434,7 +434,7 @@ MochiKit.Base.update(Clipperz.PM.Crypto, {
 						deferredResult.addErrback(function(anError) {
 							Clipperz.logError("Error while decrypting data [4]");
 							throw Clipperz.Crypto.Base.exception.CorruptedMessage;
-						})
+						});
 					} else {
 						deferredResult.addCallback(function() {
 							return null;

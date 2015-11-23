@@ -63,6 +63,7 @@ Clipperz.PM.UI.Components.Cards.TextAreaClass = React.createClass({
 	handleKeyDown: function (anEvent) {
 		switch (anEvent.keyCode) {
 			case 27: // escape
+//				console.log("ESCAPE");
 				Mousetrap.trigger('esc');
 				break;
 		}
@@ -78,7 +79,7 @@ Clipperz.PM.UI.Components.Cards.TextAreaClass = React.createClass({
 	recalculateSize_1: function () {
 		var node = this.getDOMNode();
 
-		node.style.height = 'auto';
+		node.style.height = '33px';
 		node.style.height = node.scrollHeight + 'px';
 		window.scrollTo(window.scrollLeft, (node.scrollTop + node.scrollHeight));
 	},

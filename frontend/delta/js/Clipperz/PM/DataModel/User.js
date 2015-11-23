@@ -254,6 +254,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 					'recordsData':					{'data':null, 'index':{}},
 					'recordsStats':					null,
 					'directLoginsData':				{'data':null, 'index':{}},
+					'attachmentsData':				{'data':null, 'index':{}},
 					'encryptedDataVersion':			Clipperz.PM.Crypto.encryptingFunctions.currentVersion,
 					'retrieveRecordDetailFunction':	MochiKit.Base.method(this, 'getRecordDetail')
 				}),
@@ -465,13 +466,16 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 			case '0.1':
 				var	headerData;
 
+//console.log("Server data", someServerData);
 				headerData = Clipperz.Base.evalJSON(someServerData['header']);
 
+//console.log("headerData", headerData);
 				recordsIndex = new Clipperz.PM.DataModel.User.Header.RecordIndex({
 					'retrieveKeyFunction':			MochiKit.Base.method(this, 'getPassphrase'),
 					'recordsData':					headerData['records'],
 					'recordsStats':					someServerData['recordsStats'],
 					'directLoginsData':				headerData['directLogins'],
+					'attachmentsData':				headerData['attachments'] || {'data': null, 'index':{}},
 					'encryptedDataVersion':			someServerData['version'],
 					'retrieveRecordDetailFunction':	MochiKit.Base.method(this, 'getRecordDetail')
 				});
@@ -695,7 +699,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 						result = someFilteredResults[0];
 						break;
 					default:
-Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more than one result: " + someFilteredResults.length);
+//console.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more than one result: " + someFilteredResults.length);
 						result = someFilteredResults[0];
 						break;
 				}
@@ -723,8 +727,13 @@ Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more 
 
 	//-------------------------------------------------------------------------
 
-	'getRecordDetail': function (aRecordReference) {
-		return this.connection().message('getRecordDetail', {reference: aRecordReference});
+	'getRecordDetail': function (aRecord) {
+		// return this.connection().message('getRecordDetail', {reference: aRecordReference});
+
+		return Clipperz.Async.callbacks("User.getRecordDetail", [
+			MochiKit.Base.method(this.connection(), 'message', 'getRecordDetail', {reference: aRecord.reference()}),
+			function(someInfo) { aRecord.setAttachmentServerStatus(someInfo['attachmentStatus']); return someInfo;}, // Couldn't find a better way...
+		], {trace:false});
 	},
 
 	//-------------------------------------------------------------------------
@@ -750,6 +759,7 @@ Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more 
 	'createNewRecordFromJSON': function(someJSON) {
 		var deferredResult;
 
+		//	TODO: how do we handle attachments?
 		deferredResult = new Clipperz.Async.Deferred("User.createNewRecordFromJSON", {trace:false});
 		deferredResult.collectResults({
 			'recordIndex': MochiKit.Base.method(this, 'getHeaderIndex', 'recordsIndex'),
@@ -770,6 +780,7 @@ Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more 
 				});
 
 				return Clipperz.Async.callbacks("User.createNewRecordFromJSON__inner", [
+					//	TODO: check if we should invoke the create new direct login methon on Record instead of calling it directly on the index
 					MochiKit.Base.method(recordIndex, 'createNewDirectLogin', record),
 					MochiKit.Base.methodcaller('setLabel', aDirectLogin['label']),
 					MochiKit.Base.methodcaller('setBookmarkletConfiguration', configuration),
@@ -937,6 +948,22 @@ Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more 
 		], {trace:false});
 	},
 
+
+	//-------------------------------------------------------------------------
+/*
+	'addNewAttachment': function(anAttachment) {
+		console.log("Adding attachment", anAttachment);
+	},
+*/
+	'uploadAttachment': function(aRecordReference, anAttachmentReference, someData) {
+		// TODO: pass a callback to handle onProgress events (and modify Connection accordingly)
+		this.connection().message('uploadAttachment', {
+			'recordReference': aRecordReference,
+			'attachmentReference': anAttachmentReference,
+			'data': someData
+		});
+	},
+
 	//=========================================================================
 
 	'hasPendingChanges': function () {
@@ -1035,6 +1062,7 @@ Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more 
 			header = {};
 			header['records']			= someHeaderPackedData['recordIndex']['records'];
 			header['directLogins']		= someHeaderPackedData['recordIndex']['directLogins'];
+			header['attachments']		= someHeaderPackedData['recordIndex']['attachments'];
 			header['preferences']		= {'data': someHeaderPackedData['preferences']['data']};
 			header['oneTimePasswords']	= {'data': someHeaderPackedData['oneTimePasswords']['data']};
 			header['version']			= '0.1';

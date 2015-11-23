@@ -30,22 +30,40 @@ Clipperz.PM.UI.Components.ButtonClass = React.createClass({
 		'eventName':	React.PropTypes.string.isRequired,
 		'label':		React.PropTypes.string.isRequired,
 		'handler':		React.PropTypes.func.isRequired,
-		'className':	React.PropTypes.string
+		'className':	React.PropTypes.string,
+		'badgeTopContent': React.PropTypes.string,
+		'badgeBottomContent': React.PropTypes.string,
 	},
 
 	//=========================================================================
 
 	render: function () {
+		var badgeTop;
+		var badgeBottom;
+
 		var	classes = {
 			'button': true
 		};
 		if (typeof(this.props['className']) != 'undefined') {
 			classes[this.props['className']] = true;
 		};
+
+		badgeTop = null;
+		if (this.props['badgeTopContent']) {
+			badgeTop = React.DOM.span({'className': 'badge top'}, this.props['badgeTopContent']);
+		};
+
+		badgeBottom = null;
+		if (this.props['badgeBottomContent']) {
+			badgeBottom = React.DOM.span({'className': 'badge bottom'}, this.props['badgeBottomContent']);
+		};
+
 	
 		return	React.DOM.div({className:Clipperz.PM.UI.Components.classNames(classes), onClick:this.props['handler']}, [
 			React.DOM.div({className:this.props['eventName']}, [
-				React.DOM.h3({className:'label'}, this.props['label'])
+				React.DOM.h3({className:'label'}, this.props['label']),
+				badgeTop,
+				badgeBottom,
 			])
 		]);
 	}

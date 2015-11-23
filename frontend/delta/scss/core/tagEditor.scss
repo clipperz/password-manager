@@ -52,9 +52,18 @@ $tagEditor_lineHeight: 27px;
 			font-size: 13pt;
 			font-weight: 100;
 
-			padding-right: 10px;
+			margin-right: 10px;
 			padding-left: 1px;
 			line-height: $tagEditor_lineHeight;
+
+			/* boxed style test */
+/*			background-color: $clipperz-orange;
+			padding-left: 5px;
+			padding-right: 5px;
+			border-radius: 3px;
+			border:1px solid gray;
+			color: white;
+*/
 
 //			&:last-child:after {
 //				content: '';
@@ -68,9 +77,12 @@ $tagEditor_lineHeight: 27px;
 			
 			span.tagRemoveButton {
 				@include icon-font();
+				@include userSelectNone();
+
 				cursor: pointer;
 				line-height: 22px;
 				color: #ccc;
+				/*color:white;*/
 
 				&:hover {
 					color: rgb(155, 0, 0);

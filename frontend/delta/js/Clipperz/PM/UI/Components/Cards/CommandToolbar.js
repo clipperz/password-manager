@@ -136,6 +136,7 @@ Clipperz.PM.UI.Components.Cards.CommandToolbarClass = React.createClass({
 		var	classes = {
 			'cardDetailToolbar':	true,
 			'commands':				true,
+			'top':					true,
 		};
 		classes[style] = true;
 

@@ -135,10 +135,10 @@ Clipperz.PM.UI.Components.ExtraFeatures.OTPClass = React.createClass({
 			'</html>'
 		);
 
-		newWindow.document.close();
-		newWindow.focus();
-		newWindow.print();
-		newWindow.close();
+		// newWindow.document.close();
+		// newWindow.focus();
+		// newWindow.print();
+		// newWindow.close();
 	},
 
 	//=========================================================================
