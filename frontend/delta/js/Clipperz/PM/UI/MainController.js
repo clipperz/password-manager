@@ -610,7 +610,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		
 		return deferredResult;
 	},
-
+	
 	collectAttachmentInfo: function(anAttachment) {
 		var deferredResult;
 		
@@ -945,7 +945,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			function (someCards) { return someCards.length; },
 		], {trace:false});
 	},
-
+	
 	getCardsWithAttachmentsCount: function () {
 		var	archivedCardsFilter =	this.shouldIncludeArchivedCards()
 									?	MochiKit.Async.succeed
@@ -1344,8 +1344,8 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 				'messageBox':					this.messageBoxContent(),
 				'userInfo':						this.userInfo(),
 				'accountInfo':					this.userAccountInfo(),
-				'selectionPanelStatus':			this.isSelectionPanelOpen()			? 'OPEN' : 'CLOSED',
-				'settingsPanelStatus':			this.isSettingsPanelOpen()			? 'OPEN' : 'CLOSED',
+				'selectionPanelStatus':			this.isSelectionPanelOpen()	? 'OPEN' : 'CLOSED',
+				'settingsPanelStatus':			this.isSettingsPanelOpen()	? 'OPEN' : 'CLOSED',
 				'attachmentQueueBoxStatus':		this.isAttachmentQueueBoxOpen()	? 'OPEN' : 'CLOSED',
 				'featureSet':					this.featureSet(),
 				'features':						this.features(),
@@ -1926,7 +1926,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			MochiKit.Base.method(this, 'refreshUI'),
 		], {trace:false});
 	},
-
+	
 	isPageInEditMode: function() {
 		var	currentPage = this.pages()[this.currentPage()];
 		return currentPage.props['mode'] == 'edit';
