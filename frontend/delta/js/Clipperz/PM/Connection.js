@@ -493,14 +493,18 @@ Clipperz.log(">>> Connection.messageExceptionHandler:  " + anError.message, anEr
 		if (anError instanceof MochiKit.Async.CancelledError) {
 			result = anError;
 		} else {
-			if ((anError.message == 'Trying to communicate without an active connection')	||
-				(anError.message == 'No tollManager available for current session')		
+			var	errorPayload;
+			
+			errorPayload = Clipperz.Base.evalJSON(anError.req.responseText);
+			if ((errorPayload.message == 'Trying to communicate without an active connection')	||
+				(errorPayload.message == 'No tollManager available for current session')		||
+				(errorPayload.message == 'HashCash verification failed. The provided toll is not valid.')
 			) {
 				result = this.reestablishConnection(anOriginalMessageArguments);
-			} else if (anError.message == 'Session with stale data') {
+			} else if (errorPayload.message == 'Session with stale data') {
 				MochiKit.Signal.signal(this, 'EXCEPTION');
 			} else {
-				result = anError;
+				result = errorPayload;
 			}
 		}
 Clipperz.log("<<< Connection.messageExceptionHandler")
