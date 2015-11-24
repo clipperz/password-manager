@@ -112,6 +112,8 @@ Clipperz.PM.UI.MainController = function() {
 	Mousetrap.bind(['*'],					MochiKit.Base.method(this, 'selectAllCards_handler'));
 
 	Mousetrap.bind(['?'],					MochiKit.Base.method(this, 'showHelp_handler'));
+	
+	Mousetrap.bind(['l o c k'],				MochiKit.Base.method(this, 'lockShortcut'));
 
 //	Mousetrap.bind(['t e s t'],				MochiKit.Base.method(this, 'downloadExport_handler'));
 
@@ -406,6 +408,12 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		deferredResult.callback();
 
 		return deferredResult;
+	},
+
+	lockShortcut: function(anEvent) {
+		anEvent.preventDefault();
+
+		return this.lock();
 	},
 
 	lock: function () {
@@ -1852,6 +1860,8 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 	addCardClick_handler: function () {
 		var newRecord;
+
+		this.selectAllCards();
 
 		return Clipperz.Async.callbacks("MainController.addCardClick_handler", [
 			MochiKit.Base.method(this.user(), 'createNewRecord'),

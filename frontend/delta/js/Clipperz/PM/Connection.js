@@ -516,7 +516,7 @@ Clipperz.log("<<< Connection.messageExceptionHandler")
 
 	'uploadAttachment': function(someArguments, aProgressCallback) {
 		return Clipperz.Async.callbacks("Connction.uploadAttachment", [
-			MochiKit.Base.method(this, 'message', 'knock', {'requestType':'MESSAGE'}),
+			MochiKit.Base.method(this, 'message', 'echo', {'echo':"echo"}),
 			MochiKit.Base.method(this.proxy(), 'uploadAttachment', someArguments, aProgressCallback, this.sharedSecret()),
 		], {trace:false});
 
@@ -525,7 +525,7 @@ Clipperz.log("<<< Connection.messageExceptionHandler")
 
 	'downloadAttachment': function(someArguments, aProgressCallback) {
 		return Clipperz.Async.callbacks("Connction.uploadAttachment", [
-			MochiKit.Base.method(this, 'message', 'knock', {'requestType':'MESSAGE'}),
+			MochiKit.Base.method(this, 'message', 'echo', {'echo':"echo"}),
 			MochiKit.Base.method(this.proxy(), 'downloadAttachment', someArguments, aProgressCallback, this.sharedSecret()),
 		], {trace:false});
 
