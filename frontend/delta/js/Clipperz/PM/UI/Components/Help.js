@@ -77,6 +77,16 @@ Clipperz.PM.UI.Components.HelpClass = React.createClass({
 							]), React.DOM.dd({}, "previous/next card"),
 						])
 					]),
+
+					React.DOM.div({'className':'helpBlock'}, [
+						React.DOM.h4({}, "Misc"),
+						React.DOM.dl({}, [
+							React.DOM.dt({}, [
+								React.DOM.span({'className':'key'}, 'l o c k'),
+							]), React.DOM.dd({}, "lock application"),
+						])
+					]),
+
 /*
 
 	Mousetrap.bind(['left',  'h', 'esc'],	MochiKit.Base.method(this, 'exitCurrentSelection'));
