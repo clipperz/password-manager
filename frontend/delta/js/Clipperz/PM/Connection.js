@@ -514,26 +514,20 @@ Clipperz.log("<<< Connection.messageExceptionHandler")
 	
 	//=========================================================================
 
-	// 'uploadAttachment': function(someArguments, aProgressCallback) {
-	// 	return this.message('uploadAttachment', someArguments, {'uploadProgressCallback': aProgressCallback});
-	// },
-
 	'uploadAttachment': function(someArguments, aProgressCallback) {
 		return Clipperz.Async.callbacks("Connction.uploadAttachment", [
 			MochiKit.Base.method(this, 'message', 'echo', {'echo':"echo"}),
-			MochiKit.Base.method(this.proxy(), 'uploadAttachment', someArguments, aProgressCallback, this.sharedSecret()),
+			MochiKit.Base.bind(function(){ return this.sharedSecret()}, this),
+			MochiKit.Base.method(this.proxy(), 'uploadAttachment', someArguments, aProgressCallback/*, this.sharedSecret()*/),
 		], {trace:false});
-
-		// return this.proxy().uploadAttachment(someArguments, aProgressCallback, this.sharedSecret());
 	},
 
 	'downloadAttachment': function(someArguments, aProgressCallback) {
 		return Clipperz.Async.callbacks("Connction.uploadAttachment", [
 			MochiKit.Base.method(this, 'message', 'echo', {'echo':"echo"}),
-			MochiKit.Base.method(this.proxy(), 'downloadAttachment', someArguments, aProgressCallback, this.sharedSecret()),
+			MochiKit.Base.bind(function(){ return this.sharedSecret()}, this),
+			MochiKit.Base.method(this.proxy(), 'downloadAttachment', someArguments, aProgressCallback/*, this.sharedSecret()*/),
 		], {trace:false});
-
-		// return this.proxy().downloadAttachment(someArguments, aProgressCallback, this.sharedSecret());
 	},
 
 	//=========================================================================

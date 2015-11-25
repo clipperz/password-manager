@@ -102,7 +102,6 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.JSON, Clipperz.PM.Proxy, {
 
 	//-------------------------------------------------------------------------
 
-	// TODO: test
 	'_uploadAttachment': function(someArguments, aProgressCallback, aSharedSecret, aToll) {
 		var formData;
 		var deferredResult;
@@ -142,7 +141,6 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.JSON, Clipperz.PM.Proxy, {
 				throw someValues['message'];
 			}
 			
-			// TODO: check return value with actual request. Expected: ArrayBuffer
 			return someValues;
 		});
 
@@ -151,7 +149,6 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.JSON, Clipperz.PM.Proxy, {
 		return deferredResult;
 	},
 
-	// TODO: test
 	'_downloadAttachment': function(someArguments,  aProgressCallback, aSharedSecret, aToll) {
 		var	deferredResult;
 		var parameters;

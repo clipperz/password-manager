@@ -483,7 +483,7 @@ div.attachmentQueueStatus {
 				text-align: right;
 
 				.statusString {
-					font-size: .8em;
+					font-size: 14px;
 				}
 
 				.processIcon {
@@ -665,6 +665,8 @@ div.cardContent {
 		div.editWrapper {
 			@include flex(auto);
 			@include mask();
+
+			width:100%;
 
 			@include flexbox();
 			& > div.edit {

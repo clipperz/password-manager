@@ -1134,7 +1134,7 @@ div.attachmentQueueStatus {
         width: 150px;
         text-align: right; }
         div.attachmentQueueStatus ul li .status .statusString {
-          font-size: .8em; }
+          font-size: 14px; }
         div.attachmentQueueStatus ul li .status .processIcon {
           margin-left: 1em; }
       div.attachmentQueueStatus ul li .close a {
@@ -1286,6 +1286,7 @@ div.cardContent {
       -moz-flex: auto;
       -ms-flex: auto;
       flex: auto;
+      width: 100%;
       display: -webkit-box;
       display: -webkit-flex;
       display: -moz-flex;
@@ -3684,9 +3685,11 @@ div.cardList.narrow {
           .cardAttachments .attachmentList li .progress .radialProgressIndicator.waiting .border {
             fill: #aaa; }
 
-.edit .cardDetailToolbar.commands div, .edit .cardDetailToolbar.commands ul {
-  display: none;
-  visibility: hidden; }
+.edit {
+  width: 100%; }
+  .edit .cardDetailToolbar.commands div, .edit .cardDetailToolbar.commands ul {
+    display: none;
+    visibility: hidden; }
 
 .cardDetailToolbar.edit li {
   font-weight: 100; }

@@ -25,16 +25,16 @@ refer to http://www.clipperz.com.
 Clipperz.Base.module('Clipperz.PM.UI');
 
 Clipperz.PM.UI.AttachmentController = function(someParameters) {
-		this.MAX_SIMULTANEOUS_READ = 1;
-		this.MAX_SIMULTANEOUS_UPLOAD = 1;
+		this.MAX_SIMULTANEOUS_READ     = 1;
+		this.MAX_SIMULTANEOUS_UPLOAD   = 1;
 		this.MAX_SIMULTANEOUS_DOWNLOAD = 1;
-		this.MAX_SIMULTANEOUS_ENCRYPT = 1;
-		this.MAX_SIMULTANEOUS_DECRYPT = 1;
+		this.MAX_SIMULTANEOUS_ENCRYPT  = 1;
+		this.MAX_SIMULTANEOUS_DECRYPT  = 1;
 
 		this.LATEST_ENCRYPTION_VERSION = '1.0';	// Versions aren't handled completely yet!
 
-		this.fileQueue = [];
-		this.notifications = [];
+		this.fileQueue       = [];
+		this.notifications   = [];
 		this.operationsCount = null;
 
 		this.encryptedDocument = null;
@@ -279,7 +279,7 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 	},
 
 	//=========================================================================
-	// Queue Processing
+	// Notifications
 	//=========================================================================
 
 	addNotification: function(aQueueElement) {

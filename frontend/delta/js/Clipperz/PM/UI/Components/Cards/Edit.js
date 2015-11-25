@@ -688,6 +688,7 @@ console.log("DROP");	//, anEvent);
 		var result;
 
 		var broken = (! aServerStatus && (! aStatus || aStatus == 'CANCELED' || aStatus == 'FAILED' || aStatus == 'DONE'));
+		var queueOperationsInProgress = (aStatus != 'DONE' && aStatus != 'CANCELED' && aStatus != 'FAILED');
 
 		result = null;
 		if (aStatus == 'UPLOADING' || aStatus == 'DOWNLOADING') {
@@ -695,7 +696,7 @@ console.log("DROP");	//, anEvent);
 				'progress': aProgress,
 				'border': 1
 			});
-		} else if (! broken && aStatus != 'DONE' && aStatus != 'FAILED' && aServerStatus != 'AVAILABLE') {
+		} else if (! broken && aServerStatus != 'AVAILABLE' && queueOperationsInProgress) {
 			result = Clipperz.PM.UI.Components.RadialProgressIndicator({
 				'progress': 0,
 				'border': 1,
@@ -710,6 +711,7 @@ console.log("DROP");	//, anEvent);
 		var result;
 
 		var status = aStatus ? aStatus : false;
+		var queueOperationsInProgress = (status && (status != 'DONE' && status != 'CANCELED' && status != 'FAILED'));
 
 		result = null;
 
@@ -730,8 +732,10 @@ console.log("DROP");	//, anEvent);
 					result = React.DOM.span({'className': 'broken'}, "failed");
 					break;
 				default:
-					result = React.DOM.span({'className': 'waiting'}, "waiting");
+					result = React.DOM.span({'className': 'waiting'}, "\u2b06waiting");
 			}
+		} else if (queueOperationsInProgress) {
+			result = React.DOM.span({'className': 'waiting'}, "\u2b07waiting");
 		}
 
 		return result;
