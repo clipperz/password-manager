@@ -696,7 +696,7 @@ console.log("DROP");	//, anEvent);
 				'progress': aProgress,
 				'border': 1
 			});
-		} else if (! broken /* && aStatus != 'DONE' && aStatus != 'FAILED' */ && aServerStatus != 'AVAILABLE' && queueOperationsInProgress) {
+		} else if (! broken && aServerStatus != 'AVAILABLE' && queueOperationsInProgress) {
 			result = Clipperz.PM.UI.Components.RadialProgressIndicator({
 				'progress': 0,
 				'border': 1,

@@ -265,7 +265,6 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 	renderAttachmentProgress: function(aStatus, aServerStatus, aProgress) {
 		var result;
 
-		var broken = (! aServerStatus && (! aStatus || aStatus == 'CANCELED' || aStatus == 'FAILED' || aStatus == 'DONE'));
 		var queueOperationsInProgress = (aStatus != 'DONE' && aStatus != 'CANCELED' && aStatus != 'FAILED');
 
 		result = null;
@@ -274,7 +273,7 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 				'progress': aProgress,
 				'border': 1
 			});
-		} else if (! broken && queueOperationsInProgress /* && aServerStatus != 'AVAILABLE'*/) {
+		} else if (queueOperationsInProgress) {
 			result = Clipperz.PM.UI.Components.RadialProgressIndicator({
 				'progress': 0,
 				'border': 1,
@@ -337,19 +336,6 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 			}, "remove field");
 		}
 
-		// result = null;
-		// if (aStatus  == 'DOWNLOADING') {
-		// 	result = React.DOM.a({
-		// 		'className': 'cancel',
-		// 		'onClick': MochiKit.Base.method(this, 'handleCancelDownload', anAttachment)
-		// 	}, "remove field");
-		// } else if (aServerStatus == 'AVAILABLE' && ! queueOperationsInProgress) {
-		// 	result = React.DOM.a({
-		// 		'className': 'download',
-		// 		'onClick': MochiKit.Base.method(this, 'handleGetAttachment', anAttachment),
-		// 	}, "\u2b07");
-		// }
-
 		return result;
 	},
 
@@ -389,7 +375,6 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 	renderAttachments: function(someAttachments) {
 		var result;
 
-//console.log("View props:", this.props, someAttachments);
 		if (someAttachments.length > 0) {
 			result = React.DOM.div({'className': 'cardAttachments'}, [
 				React.DOM.h3({'className': 'summaryText'}, "Attachments"),

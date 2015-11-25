@@ -281,6 +281,11 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 	uploadAttachment: function(someArguments, aProgressCallback, aSharedSecret, aToll) {
 		var connection = this.currentStaticConnection();
 		var attachmentReference = someArguments['attachmentReference'];
+		var payloadSize = someArguments['arrayBufferData'].length;
+		var resultValue = {
+			result: {},
+			toll:   this.getTollForRequestType('MESSAGE')
+		};
 
 		if (this.isReadOnly() == false) {
 			connection['userData']['attachments'][attachmentReference] = {
@@ -290,27 +295,31 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 				'version': someArguments['version'],
 			};
 
-			return this.simulateNetworkDelayResponse(someArguments['arrayBufferData'].length, aProgressCallback, {
-				result: {},
-				toll:   this.getTollForRequestType('MESSAGE')
-			});
+			return Clipperz.Async.callbacks("Proxy.Offline.DataStore.uploadAttachment", [
+				MochiKit.Base.method(this, 'simulateNetworkDelay', payloadSize, aProgressCallback, resultValue),
+				function () { return resultValue; },
+			], {trace:false});
 		} else {
 			throw Clipperz.PM.Proxy.Offline.DataStore.exception.ReadOnly;
 		}
 	},
 
 	downloadAttachment: function(someArguments, aProgressCallback, aSharedSecret, aToll) {
-		var connection = this.currentStaticConnection();
-		var reference = someArguments['reference'];
-		var result = connection['userData']['attachments'][reference]['data'];
+		var connection  = this.currentStaticConnection();
+		var reference   = someArguments['reference'];
+		var resultData  = connection['userData']['attachments'][reference]['data'];
+		var resultValue = {
+			result: resultData,
+			// toll:   this.getTollForRequestType('MESSAGE')
+		};
 
-		return this.simulateNetworkDelayResponse(result.length, aProgressCallback, {
-				result: result,
-				// toll:   this.getTollForRequestType('MESSAGE')
-			});
+		return Clipperz.Async.callbacks("Proxy.Offline.DataStore.downloadAttachment", [
+			MochiKit.Base.method(this, 'simulateNetworkDelay', resultData.length, aProgressCallback, resultValue),
+			function () { return resultValue; },
+		], {trace:false});
 	},
 
-	simulateNetworkDelayResponse: function(payloadSize, progressCallback, aResponse) {
+	simulateNetworkDelay: function(payloadSize, progressCallback) {
 		var deferredResult;
 		var i;
 
@@ -321,8 +330,6 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.Offline.DataStore, Object, {
 			deferredResult.addCallback(MochiKit.Async.wait, 1);
 			deferredResult.addMethod(this, 'runProgressCallback', progressCallback, loaded, payloadSize);
 		}
-
-		deferredResult.addCallback(MochiKit.Async.succeed, aResponse);
 
 		deferredResult.callback();
 
