@@ -266,6 +266,7 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 		var result;
 
 		var broken = (! aServerStatus && (! aStatus || aStatus == 'CANCELED' || aStatus == 'FAILED' || aStatus == 'DONE'));
+		var queueOperationsInProgress = (aStatus != 'DONE' && aStatus != 'CANCELED' && aStatus != 'FAILED');
 
 		result = null;
 		if (aStatus == 'UPLOADING' || aStatus == 'DOWNLOADING') {
@@ -273,7 +274,7 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 				'progress': aProgress,
 				'border': 1
 			});
-		} else if (! broken && aStatus != 'DONE' && aServerStatus != 'AVAILABLE') {
+		} else if (! broken && queueOperationsInProgress /* && aServerStatus != 'AVAILABLE'*/) {
 			result = Clipperz.PM.UI.Components.RadialProgressIndicator({
 				'progress': 0,
 				'border': 1,
@@ -288,6 +289,7 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 		var result;
 
 		var status = aStatus ? aStatus : false;
+		var queueOperationsInProgress = (status && (status != 'DONE' && status != 'CANCELED' && status != 'FAILED'));
 
 		result = null;
 
@@ -308,8 +310,10 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 					result = React.DOM.span({'className': 'broken'}, "failed");
 					break;
 				default:
-					result = React.DOM.span({'className': 'waiting'}, "waiting");
+					result = React.DOM.span({'className': 'waiting'}, "\u2b06waiting");
 			}
+		} else if (queueOperationsInProgress) {
+			result = React.DOM.span({'className': 'waiting'}, "\u2b07waiting");
 		}
 
 		return result;
@@ -318,18 +322,33 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 	renderAttachmentActions: function(aStatus, aServerStatus, anAttachment) {
 		var result;
 
+		var queueOperationsInProgress = (aStatus != 'DONE' && aStatus != 'CANCELED' && aStatus != 'FAILED');
+
 		result = null;
-		if (aStatus  == 'DOWNLOADING') {
-			result = React.DOM.a({
-				'className': 'cancel',
-				'onClick': MochiKit.Base.method(this, 'handleCancelDownload', anAttachment)
-			}, "remove field");
-		} else if (aServerStatus == 'AVAILABLE') {
+		if (aServerStatus == 'AVAILABLE' && ! queueOperationsInProgress) {
 			result = React.DOM.a({
 				'className': 'download',
 				'onClick': MochiKit.Base.method(this, 'handleGetAttachment', anAttachment),
 			}, "\u2b07");
+		} else if (aServerStatus == 'AVAILABLE' && queueOperationsInProgress) {
+			result = React.DOM.a({
+				'className': 'cancel',
+				'onClick': MochiKit.Base.method(this, 'handleCancelDownload', anAttachment)
+			}, "remove field");
 		}
+
+		// result = null;
+		// if (aStatus  == 'DOWNLOADING') {
+		// 	result = React.DOM.a({
+		// 		'className': 'cancel',
+		// 		'onClick': MochiKit.Base.method(this, 'handleCancelDownload', anAttachment)
+		// 	}, "remove field");
+		// } else if (aServerStatus == 'AVAILABLE' && ! queueOperationsInProgress) {
+		// 	result = React.DOM.a({
+		// 		'className': 'download',
+		// 		'onClick': MochiKit.Base.method(this, 'handleGetAttachment', anAttachment),
+		// 	}, "\u2b07");
+		// }
 
 		return result;
 	},
