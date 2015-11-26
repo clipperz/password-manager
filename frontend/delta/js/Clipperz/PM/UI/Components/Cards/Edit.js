@@ -678,6 +678,9 @@ console.log("DROP");	//, anEvent);
 						]);
 					}, this.state['skippedFiles'])
 				),
+				React.DOM.a({
+					'onClick': MochiKit.Base.method(this, 'setState', {'skippedFiles': []}),
+				}, 'close'),
 			]);
 		}
 

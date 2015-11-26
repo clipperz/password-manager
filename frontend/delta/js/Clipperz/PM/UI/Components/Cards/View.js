@@ -31,6 +31,7 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 	propTypes: {
 		'label':	React.PropTypes.string /*.isRequired */ ,
 		'loading':	React.PropTypes.bool,
+		'proxyInfo': React.PropTypes.object.isRequired,
 	},
 
 	getInitialState: function () {
@@ -265,7 +266,7 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 	renderAttachmentProgress: function(aStatus, aServerStatus, aProgress) {
 		var result;
 
-		var queueOperationsInProgress = (aStatus != 'DONE' && aStatus != 'CANCELED' && aStatus != 'FAILED');
+		var queueOperationsInProgress = (aStatus && aStatus != 'DONE' && aStatus != 'CANCELED' && aStatus != 'FAILED');
 
 		result = null;
 		if (aStatus == 'UPLOADING' || aStatus == 'DOWNLOADING') {
@@ -321,19 +322,21 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 	renderAttachmentActions: function(aStatus, aServerStatus, anAttachment) {
 		var result;
 
-		var queueOperationsInProgress = (aStatus != 'DONE' && aStatus != 'CANCELED' && aStatus != 'FAILED');
+		var queueOperationsInProgress = (aStatus && aStatus != 'DONE' && aStatus != 'CANCELED' && aStatus != 'FAILED');
 
 		result = null;
-		if (aServerStatus == 'AVAILABLE' && ! queueOperationsInProgress) {
-			result = React.DOM.a({
-				'className': 'download',
-				'onClick': MochiKit.Base.method(this, 'handleGetAttachment', anAttachment),
-			}, "\u2b07");
-		} else if (aServerStatus == 'AVAILABLE' && queueOperationsInProgress) {
-			result = React.DOM.a({
-				'className': 'cancel',
-				'onClick': MochiKit.Base.method(this, 'handleCancelDownload', anAttachment)
-			}, "remove field");
+		if (this.props['proxyInfo']['proxyType'] != 'OFFLINE_COPY') {
+			if (aServerStatus == 'AVAILABLE' && ! queueOperationsInProgress) {
+				result = React.DOM.a({
+					'className': 'download',
+					'onClick': MochiKit.Base.method(this, 'handleGetAttachment', anAttachment),
+				}, "\u2b07");
+			} else if (aServerStatus == 'AVAILABLE' && queueOperationsInProgress) {
+				result = React.DOM.a({
+					'className': 'cancel',
+					'onClick': MochiKit.Base.method(this, 'handleCancelDownload', anAttachment)
+				}, "remove field");
+			}
 		}
 
 		return result;

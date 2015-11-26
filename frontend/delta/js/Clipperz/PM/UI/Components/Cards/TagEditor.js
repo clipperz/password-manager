@@ -145,7 +145,7 @@ Clipperz.PM.UI.Components.Cards.TagEditorClass = React.createClass({
 		return	React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(classes)}, [
 			React.DOM.ul({},[
 				MochiKit.Base.map(this.renderTag, this.props['selectedTags']),
-				this.isReadOnly() ? null : React.DOM.li({}, React.DOM.input({'type':'text', 'list':'tagListData', 'onKeyDown':this.handleKeyDown, 'onBlur':this.handleBlur, 'placeholder': "tag"})),
+				this.isReadOnly() ? null : React.DOM.li({}, React.DOM.input({'type':'text', 'list':'tagListData', 'onKeyDown':this.handleKeyDown, 'onBlur':this.handleBlur, 'placeholder': "add tag"})),
 			]),
 			this.isReadOnly() ? null : this.renderEditField()
 		]);

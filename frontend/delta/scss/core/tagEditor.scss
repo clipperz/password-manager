@@ -54,6 +54,7 @@ $tagEditor_lineHeight: 27px;
 
 			margin-right: 10px;
 			padding-left: 1px;
+			padding-right: 30px;
 			line-height: $tagEditor_lineHeight;
 
 			/* boxed style test */
@@ -80,9 +81,13 @@ $tagEditor_lineHeight: 27px;
 				@include userSelectNone();
 
 				cursor: pointer;
-				line-height: 22px;
+				/*line-height: 22px;*/
 				color: #ccc;
 				/*color:white;*/
+
+				position: absolute;
+				margin-left: 5px;
+				line-height: 31px;
 
 				&:hover {
 					color: rgb(155, 0, 0);

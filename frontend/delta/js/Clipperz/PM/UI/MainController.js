@@ -1368,6 +1368,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		} else if (aPageName == 'cardDetailPage') {
 			extraProperties = {
 				'attachmentQueueInfo':			this.attachmentQueueInfo(),
+				'proxyInfo':					this.proxyInfo(),
 			};
 		} else if (aPageName == 'errorPage') {
 			extraProperties = {
@@ -1939,7 +1940,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	
 	isPageInEditMode: function() {
 		var	currentPage = this.pages()[this.currentPage()];
-		return currentPage.props['mode'] == 'edit';
+		return currentPage ? currentPage.props['mode'] == 'edit' : false;
 	},
 	
 	enterEditMode: function () {
@@ -2093,11 +2094,28 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	//============================================================================
 
 	matchMediaQuery_handler: function (newQueryStyle) {
+		var wasInEditMode = this.isPageInEditMode();
+		var currentPage = this.currentPage();
+		var selectedCardInfo = this.selectedCardInfo();
+
 		this._mediaQueryStyle = newQueryStyle;
 
-		if (this.currentPage() == 'cardDetailPage') {
+		if (currentPage == 'cardDetailPage') {
 			this.moveOutPage(this.currentPage(), 'mainPage');
 		}
+
+		if (selectedCardInfo) {
+			this.pages()[currentPage].setProps({'mode': 'view'});
+
+			if (currentPage == 'mainPage' && newQueryStyle == 'narrow') {
+				this.selectCard(selectedCardInfo, true);
+			}
+			if (wasInEditMode) {
+				MochiKit.Async.callLater(0.1, MochiKit.Base.method(this, 'enterEditMode'));
+				MochiKit.Async.callLater(0.1, MochiKit.Base.method(this, 'updateSelectedCard', this.selectedCardInfo(), false, true));
+			}
+		}
+
 		this.resetPanels();
 		this.refreshCurrentPage();
 	},

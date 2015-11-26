@@ -1699,6 +1699,7 @@ div.help {
       font-weight: 100;
       margin-right: 10px;
       padding-left: 1px;
+      padding-right: 30px;
       line-height: 27px;
       /* boxed style test */
       /*			background-color: $clipperz-orange;
@@ -1723,9 +1724,12 @@ div.help {
         -ms-user-select: none;
         user-select: none;
         cursor: pointer;
-        line-height: 22px;
+        /*line-height: 22px;*/
         color: #ccc;
-        /*color:white;*/ }
+        /*color:white;*/
+        position: absolute;
+        margin-left: 5px;
+        line-height: 31px; }
         .tagEditor ul li.tag span.tagRemoveButton:hover {
           color: #9b0000; }
   .tagEditor input {
@@ -3575,6 +3579,9 @@ div.cardList.narrow {
       list-style-type: none; }
       .cardAttachments .skippedFiles ul li .filename {
         font-weight: bold; }
+    .cardAttachments .skippedFiles a {
+      text-decoration: underline;
+      cursor: pointer; }
   .cardAttachments .attachmentList {
     margin-left: 44px;
     padding-right: 8px; }
@@ -3656,7 +3663,8 @@ div.cardList.narrow {
           width: 30px;
           cursor: pointer;
           font-size: 20pt;
-          color: #aaa; }
+          color: #aaa;
+          margin-top: 1px; }
           .cardAttachments .attachmentList li .actions a.cancel, .cardAttachments .attachmentList li .actions a.remove {
             font-family: 'clipperz-icons';
             -webkit-font-feature-settings: "liga" 1, "dlig" 1;
@@ -3671,7 +3679,7 @@ div.cardList.narrow {
           .cardAttachments .attachmentList li .actions a.download:hover {
             color: #1863a1; }
       .cardAttachments .attachmentList li .progress {
-        width: 30px;
+        width: 50px;
         text-align: center; }
         .cardAttachments .attachmentList li .progress .radialProgressIndicator {
           width: 25px;
@@ -3749,6 +3757,7 @@ div.cardList.narrow {
     max-width: 30%; }
     .content .tagEditor.readWrite ul li .tagLabel {
       width: calc(100% - 30px);
+      width: 100%;
       display: inline-block; }
     .content .tagEditor.readWrite ul li input {
       width: 100%; }
