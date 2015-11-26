@@ -1,3 +1,4 @@
+@charset "UTF-8";
 /*
 
 Copyright 2008-2015 Clipperz Srl
@@ -20,8 +21,6 @@ refer to http://www.clipperz.com.
   License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
-
-@charset "UTF-8";
 /* http://meyerweb.com/eric/tools/css/reset/ 
    v2.0 | 20110126
    License: none (public domain)
@@ -54,6 +53,72 @@ table {
   border-collapse: collapse;
   border-spacing: 0; }
 
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
 @font-face {
   font-family: "clipperz-icons";
   font-style: normal;
@@ -110,6 +175,50 @@ table {
 
 http://css-tricks.com/snippets/css/a-guide-to-flexbox/
 http://jonibologna.com/flexbox-cheatsheet/
+
+*/
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
 
 */
 @-webkit-keyframes spin {
@@ -550,6 +659,28 @@ div.overlay {
   100% {
     opacity: 0; } }
 /*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
+/*
 .registrationForm {
 	.steps {
 		.step {
@@ -597,6 +728,50 @@ div.overlay {
 	&.show-top    { transform: translateZ( -100px ) rotateX(  -90deg ); }
 	&.show-bottom { transform: translateZ( -100px ) rotateX(   90deg ); }
 }
+*/
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
 */
 html {
   position: fixed;
@@ -1639,6 +1814,28 @@ div.help {
     #loginPage .content footer .footerContent, #registrationPage .content footer .footerContent, #unlockPage .content footer .footerContent {
       width: 100%; }
 
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
 .tagEditor {
   display: -webkit-box;
   display: -webkit-flex;
@@ -1744,6 +1941,28 @@ div.help {
     line-height: 24px;
     border: 0px; }
 
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
 #loadingPage {
   background-color: #ff9900; }
   #loadingPage div {
@@ -1761,6 +1980,28 @@ div.help {
       color: white;
       margin: 0px; }
 
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
 #loginPage .content, #unlockPage .content {
   background-color: #ff9900; }
   #loginPage .content .body, #unlockPage .content .body {
@@ -2062,6 +2303,28 @@ div.help {
           padding-left: 5px;
           font-weight: bold; }
 
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
 #selections {
   background-color: black;
   color: white;
@@ -2379,6 +2642,28 @@ span.count {
   #selections.TAG ul.tagList li.selected:before {
     color: white; }
 
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
 #extraFeaturesPanel .extraFeatureIndex {
   background-color: black;
   color: white; }
@@ -3234,6 +3519,28 @@ span.count {
     padding-top: 15px;
     padding-left: 10px; }
 
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
 .miscInfo .proxyInfo {
   border-bottom: 1px solid white;
   display: none;
@@ -3271,6 +3578,28 @@ span.count {
   .miscInfo .accountStatus.EXPIRED {
     background-color: red; }
 
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
 div.cardList.loadingCard li.selected {
   background-color: gray;
   border-bottom: 1px solid gray; }
@@ -4253,6 +4582,28 @@ div.cardList.narrow {
         .passwordGenerator .passwordGeneratorBaloon form .passwordValue .button:hover {
           color: white; }
 
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
 div.dialog {
   -webkit-box-shadow: 0px 2px 5px rgba(50, 50, 50, 0.75);
   -moz-box-shadow: 0px 2px 5px rgba(50, 50, 50, 0.75);
@@ -4285,6 +4636,28 @@ div.dialog {
       color: white;
       background-color: #666; }
 
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
 .helpBox {
   color: white;
   margin: 20px;
@@ -4372,6 +4745,28 @@ input {
 textarea {
   font-family: "clipperz-font"; }
 
+/*
+
+Copyright 2008-2015 Clipperz Srl
+
+This file is part of Clipperz, the online password manager.
+For further information about its features and functionalities please
+refer to http://www.clipperz.com.
+
+* Clipperz is free software: you can redistribute it and/or modify it 
+  under the terms of the GNU Affero General Public License as published 
+  by the Free Software Foundation, either version 3 of the License, or 
+  (at your option) any later version.
+
+* Clipperz is distributed in the hope that it will be useful, but 
+  WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  See the GNU Affero General Public License for more details.
+
+* You should have received a copy of the GNU Affero General Public
+  License along with Clipperz. If not, see http://www.gnu.org/licenses/.
+
+*/
 /*
 
 Bootstrap CSS suggests these size breakpoints:
