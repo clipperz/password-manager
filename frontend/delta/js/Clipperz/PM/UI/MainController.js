@@ -648,6 +648,8 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		deferredResult.setValue('_reference');
 		deferredResult.addMethod(aRecord, 'isArchived');
 		deferredResult.setValue('_isArchived');
+		deferredResult.addMethod(aRecord, 'isBrandNew');
+		deferredResult.setValue('_isBrandNew');
 //		deferredResult.addMethod(aRecord, 'hasPendingChanges');
 		deferredResult.addMethod(this.user(), 'hasPendingChanges');
 		deferredResult.setValue('hasPendingChanges');
@@ -1784,10 +1786,25 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	saveCardEdits_handler: function (aRecordReference) {
 		var	currentPage = this.pages()[this.currentPage()];
 		var	self = this;
+		var record, wasBrandNew;
 		
 		return Clipperz.Async.callbacks("MainController.saveCardEdits_handler", [
 			MochiKit.Base.method(currentPage, 'setProps', {'showGlobalMask':true}),
+
+			MochiKit.Base.method(this.user(), 'getRecord', aRecordReference),
+			function(aRecord) { record = aRecord; wasBrandNew = aRecord.isBrandNew(); },
+
 			MochiKit.Base.method(this, 'saveChanges'),
+
+			// When new record has attachments, server status should be updated as soon as it is available
+			function() { return wasBrandNew; },
+			Clipperz.Async.deferredIf('WasBrandNew',[
+				function() { return record; },
+				MochiKit.Base.method(this, 'reloadAttachmentServerStatusCallback')
+			], [
+//				MochiKit.Async.succeed
+			]),
+						
 			MochiKit.Base.method(currentPage, 'setProps', {'mode':'view', 'showGlobalMask':false}),
 			MochiKit.Base.method(this, 'refreshUI', aRecordReference),
 			MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'enableLock'),
@@ -2310,14 +2327,16 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	//----------------------------------------------------------------------------
 
 	reloadAttachmentServerStatusCallback: function(aRecord) {
-		return Clipperz.Async.callbacks("MainController.reloadAttachmentServerStatus_handler", [
-			MochiKit.Base.method(this.user(), 'getRecordDetail', aRecord),
-			MochiKit.Base.bind(function () { 
-				if (this._selectedCardInfo && this._selectedCardInfo['reference']) {
-					return this.refreshUI(this._selectedCardInfo['reference']);
-				}
-			}, this),
-		], {trace:false});
+		if (! aRecord.isBrandNew()) {
+			return Clipperz.Async.callbacks("MainController.reloadAttachmentServerStatus_handler", [
+				MochiKit.Base.method(this.user(), 'getRecordDetail', aRecord),
+				MochiKit.Base.bind(function () { 
+					if (this._selectedCardInfo && this._selectedCardInfo['reference']) {
+						this.refreshUI(this._selectedCardInfo['reference']);
+					}
+				}, this),
+			], {trace:false});
+		}
 	},
 
 	//============================================================================

@@ -690,8 +690,7 @@ console.log("DROP");	//, anEvent);
 	renderAttachmentProgress: function(aStatus, aServerStatus, aProgress) {
 		var result;
 
-		var broken = (! aServerStatus && (! aStatus || aStatus == 'CANCELED' || aStatus == 'FAILED' || aStatus == 'DONE'));
-		var queueOperationsInProgress = (aStatus != 'DONE' && aStatus != 'CANCELED' && aStatus != 'FAILED');
+		var queueOperationsInProgress = (aStatus && aStatus != 'DONE' && aStatus != 'CANCELED' && aStatus != 'FAILED');
 
 		result = null;
 		if (aStatus == 'UPLOADING' || aStatus == 'DOWNLOADING') {
@@ -699,7 +698,7 @@ console.log("DROP");	//, anEvent);
 				'progress': aProgress,
 				'border': 1
 			});
-		} else if (! broken && aServerStatus != 'AVAILABLE' && queueOperationsInProgress) {
+		} else if (queueOperationsInProgress) {
 			result = Clipperz.PM.UI.Components.RadialProgressIndicator({
 				'progress': 0,
 				'border': 1,
@@ -723,7 +722,7 @@ console.log("DROP");	//, anEvent);
 		} else if (status == 'UPLOADING' || status == 'DOWNLOADING') {
 			var actionSymbol = (status == 'UPLOADING') ? "\u2b06" : "\u2b07";
 			result = React.DOM.span({'className': 'progressStatus'}, actionSymbol + Math.floor(aProgress*100) + '%');
-		} else if (aServerStatus != 'AVAILABLE') {
+		} else if (aServerStatus != 'AVAILABLE' && ! this.props['_isBrandNew']) {
 			switch(status) {
 				case 'CANCELED':
 					result = React.DOM.span({'className': 'broken'}, "canceled");
@@ -739,6 +738,8 @@ console.log("DROP");	//, anEvent);
 			}
 		} else if (queueOperationsInProgress) {
 			result = React.DOM.span({'className': 'waiting'}, "\u2b07waiting");
+		} else if (this.props['_isBrandNew']) {
+			result = React.DOM.span({'className': 'waiting'}, "waiting save");
 		}
 
 		return result;
@@ -762,9 +763,9 @@ console.log("DROP");	//, anEvent);
 		var queueInfo = this.props['attachmentQueueInfo'].elementFetchCallback(anAttachment._reference) || [];
 		var queueStatus = queueInfo['status'];
 		var serverStatus = this.props['attachmentServerStatus'][anAttachment._reference];
-		var broken = (! serverStatus && (! queueStatus || queueStatus == 'CANCELED' || queueStatus == 'FAILED' || queueStatus == 'DONE'));
-
-// console.log(anAttachment['name'], queueStatus)
+		var queueOperationsInProgress = (queueStatus && queueStatus != 'DONE' && queueStatus != 'CANCELED' && queueStatus != 'FAILED');
+		
+		var broken = (! serverStatus && ! queueOperationsInProgress && ! this.props['_isBrandNew']);
 
 		var status				= this.renderAttachmentStatus(queueStatus, serverStatus, queueInfo['requestProgress']);
 		var actions				= this.renderAttachmentActions(queueStatus, serverStatus, anAttachment['_attachment']);

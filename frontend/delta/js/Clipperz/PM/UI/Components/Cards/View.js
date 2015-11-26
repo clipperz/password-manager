@@ -298,7 +298,7 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 		} else if (status == 'UPLOADING' || status == 'DOWNLOADING') {
 			var actionSymbol = (status == 'UPLOADING') ? "\u2b06" : "\u2b07";
 			result = React.DOM.span({'className': 'progressStatus'}, actionSymbol + Math.floor(aProgress*100) + '%');
-		} else if (aServerStatus != 'AVAILABLE') {
+		} else if (aServerStatus != 'AVAILABLE' && ! this.props['_isBrandNew']) {
 			switch(status) {
 				case 'CANCELED':
 					result = React.DOM.span({'className': 'broken'}, "canceled");
@@ -314,11 +314,12 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 			}
 		} else if (queueOperationsInProgress) {
 			result = React.DOM.span({'className': 'waiting'}, "\u2b07waiting");
+		} else if (this.props['_isBrandNew']) {
+			result = React.DOM.span({'className': 'waiting'}, "waiting save");
 		}
 
 		return result;
 	},
-
 	renderAttachmentActions: function(aStatus, aServerStatus, anAttachment) {
 		var result;
 
@@ -349,7 +350,9 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 			var queueInfo = this.props['attachmentQueueInfo'].elementFetchCallback(anAttachment._reference) || [];
 			var queueStatus = queueInfo['status'];
 			var serverStatus = this.props['attachmentServerStatus'][anAttachment._reference];
-			var broken = (! serverStatus && (! queueStatus || queueStatus == 'CANCELED'));
+			var queueOperationsInProgress = (queueStatus && queueStatus != 'DONE' && queueStatus != 'CANCELED' && queueStatus != 'FAILED');
+
+			var broken = (! serverStatus && ! queueOperationsInProgress && ! this.props['_isBrandNew']);
 
 			var status				= this.renderAttachmentStatus(queueStatus, serverStatus, queueInfo['requestProgress']);
 			var actions				= this.renderAttachmentActions(queueStatus, serverStatus, anAttachment['_attachment']);
@@ -419,6 +422,8 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 
 	render: function () {
 		var	result;
+
+console.log(this.props['_isBrandNew']);
 
 		if (this.props['loading'] == true) {
 			result = this.renderLoading();

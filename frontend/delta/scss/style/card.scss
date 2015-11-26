@@ -476,8 +476,9 @@ $cardViewBasePadding: 10px;
 				text-align: right;
 
 				.waiting {
+					white-space: pre;
 					font-size: 10pt;
-					color: #aaa;
+					color: grey;
 				}
 			}
 

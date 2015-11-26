@@ -43,6 +43,8 @@ Clipperz.PM.UI.AttachmentController = function(someParameters) {
 		this.downloadMessageCallback    = someParameters['downloadMessageCallback'];
 		this.reloadServerStatusCallback = someParameters['reloadServerStatusCallback'];
 
+		this.cryptoObject = window.crypto || window.msCrypto;
+
 		return this;
 	}
 
@@ -345,7 +347,7 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 			'status': 'ENCRYPTING',
 		});
 
-		window.crypto.subtle.importKey(
+		this.cryptoObject.subtle.importKey(
 		    "raw",
 		    aKey,								//this is an example jwk key, "raw" would be an ArrayBuffer
 		    { name: "AES-CBC" },				//this is the algorithm options
@@ -358,7 +360,7 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 	},
 
 	doEncrypt: function(aFileReference, anArrayBuffer, anIV, aWebcryptoKey) {
-		window.crypto.subtle.encrypt(
+		this.cryptoObject.subtle.encrypt(
 			{
 				name: "AES-CBC",
 				iv: anIV,
@@ -481,7 +483,7 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 			'status': 'DECRYPTING',
 		});
 	
-		window.crypto.subtle.importKey(
+		this.cryptoObject.subtle.importKey(
 		    "raw",
 		    aKey,								//this is an example jwk key, "raw" would be an ArrayBuffer
 		    {name: "AES-CBC"},					//this is the algorithm options
@@ -493,7 +495,7 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 	},
 
 	doDecrypt: function(aFileReference, anArrayBuffer, anIV, aWebcryptoKey) {
-		window.crypto.subtle.decrypt(
+		this.cryptoObject.subtle.decrypt(
 		    {name: "AES-CBC", iv: anIV},
 		    aWebcryptoKey,
 		    anArrayBuffer
@@ -532,8 +534,9 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 	 *  an exception is thrown also when the user manually cancels the file
 	 *  processing. In this case the status remains 'CANCELED'.
 	 */
-	handleException: function(aFileReference, aMessage) {
+	handleException: function(aFileReference, aMessage, anException) {
 		var queueElement = this.getQueueElement(aFileReference);
+		var messageString = aMessage ? " (" + aMessage + ")" : "";
 
 		if (queueElement['status'] != 'CANCELED') {
 			this.updateFileInQueue(aFileReference, {
@@ -542,7 +545,7 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 		}
 
 		if (aMessage) {
-			console.log("AttachmentController: caught exception (" + aMessage + ")");
+			console.log("AttachmentController: caught exception" + messageString + ":", anException);
 		}
 	},
 
