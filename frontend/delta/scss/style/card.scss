@@ -411,6 +411,11 @@ $cardViewBasePadding: 10px;
 				}
 			}
 		}
+
+		a {
+			text-decoration: underline;
+			cursor: pointer;
+		}
 	}
 
 	.attachmentList {
@@ -488,6 +493,7 @@ $cardViewBasePadding: 10px;
 					cursor:pointer;
 					font-size: 20pt;
 					color: #aaa;
+					margin-top:1px;
 
 					&.cancel, &.remove {
 						@include icon-font();
@@ -505,7 +511,7 @@ $cardViewBasePadding: 10px;
 			}
 
 			.progress {
-				width: 30px;
+				width: 50px;
 				text-align: center;
 
 				.radialProgressIndicator {
@@ -665,6 +671,7 @@ $cardViewBasePadding: 10px;
 
 					.tagLabel {
 						width: calc(100% - 30px);
+						width: 100%;
 						display: inline-block;
 					}
 

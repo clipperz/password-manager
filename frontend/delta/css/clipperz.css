@@ -119,6 +119,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -132,6 +133,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -145,6 +147,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -158,6 +161,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -476,61 +480,73 @@ div.overlay {
 @-webkit-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-moz-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-ms-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-webkit-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-moz-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-ms-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-webkit-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @-moz-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @-ms-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 /*
@@ -1683,6 +1699,7 @@ div.help {
       font-weight: 100;
       margin-right: 10px;
       padding-left: 1px;
+      padding-right: 30px;
       line-height: 27px;
       /* boxed style test */
       /*			background-color: $clipperz-orange;
@@ -1707,9 +1724,12 @@ div.help {
         -ms-user-select: none;
         user-select: none;
         cursor: pointer;
-        line-height: 22px;
+        /*line-height: 22px;*/
         color: #ccc;
-        /*color:white;*/ }
+        /*color:white;*/
+        position: absolute;
+        margin-left: 5px;
+        line-height: 31px; }
         .tagEditor ul li.tag span.tagRemoveButton:hover {
           color: #9b0000; }
   .tagEditor input {
@@ -2475,13 +2495,13 @@ span.count {
   #extraFeaturesPanel .extraFeatureIndex footer {
     font-size: 8pt;
     padding: 5px 5px 5px 5px;
-    border-top: 1px solid #999; }
+    border-top: 1px solid #999999; }
     #extraFeaturesPanel .extraFeatureIndex footer span {
-      color: #999; }
+      color: #999999; }
       #extraFeaturesPanel .extraFeatureIndex footer span:after {
         content: ":"; }
     #extraFeaturesPanel .extraFeatureIndex footer a {
-      color: #999;
+      color: #999999;
       text-decoration: none;
       padding-left: 5px;
       font-weight: bold; }
@@ -3279,7 +3299,7 @@ div.cardList ul {
       padding-right: 0px;
       box-shadow: -4px 0px 3px -1px rgba(0, 0, 0, 0.2); }
     div.cardList ul li.archived {
-      background-color: #eee;
+      background-color: #eeeeee;
       color: #999; }
     div.cardList ul li .favicon {
       width: 48px;
@@ -3379,7 +3399,7 @@ div.cardList.narrow {
     content: ""; }
 
 #cardDetailPage .view.archived, .cardDetail .view.archived {
-  background-color: #eee; }
+  background-color: #eeeeee; }
 #cardDetailPage .view .cardDetailToolbar, .cardDetail .view .cardDetailToolbar {
   background-color: #1863a1;
   color: white; }
@@ -3559,6 +3579,9 @@ div.cardList.narrow {
       list-style-type: none; }
       .cardAttachments .skippedFiles ul li .filename {
         font-weight: bold; }
+    .cardAttachments .skippedFiles a {
+      text-decoration: underline;
+      cursor: pointer; }
   .cardAttachments .attachmentList {
     margin-left: 44px;
     padding-right: 8px; }
@@ -3640,7 +3663,8 @@ div.cardList.narrow {
           width: 30px;
           cursor: pointer;
           font-size: 20pt;
-          color: #aaa; }
+          color: #aaa;
+          margin-top: 1px; }
           .cardAttachments .attachmentList li .actions a.cancel, .cardAttachments .attachmentList li .actions a.remove {
             font-family: 'clipperz-icons';
             -webkit-font-feature-settings: "liga" 1, "dlig" 1;
@@ -3655,7 +3679,7 @@ div.cardList.narrow {
           .cardAttachments .attachmentList li .actions a.download:hover {
             color: #1863a1; }
       .cardAttachments .attachmentList li .progress {
-        width: 30px;
+        width: 50px;
         text-align: center; }
         .cardAttachments .attachmentList li .progress .radialProgressIndicator {
           width: 25px;
@@ -3733,6 +3757,7 @@ div.cardList.narrow {
     max-width: 30%; }
     .content .tagEditor.readWrite ul li .tagLabel {
       width: calc(100% - 30px);
+      width: 100%;
       display: inline-block; }
     .content .tagEditor.readWrite ul li input {
       width: 100%; }
@@ -3823,7 +3848,7 @@ div.cardList.narrow {
       cursor: grab;
       cursor: -moz-grab;
       cursor: -webkit-grab;
-      background: repeating-linear-gradient(0deg, white, white 2px, #ddd 2px, #ddd 3px);
+      background: repeating-linear-gradient(0deg, white, white 2px, #dddddd 2px, #dddddd 3px);
       width: 28px;
       height: 20px;
       margin-left: 6px;
@@ -4070,7 +4095,7 @@ div.cardList.narrow {
     min-width: 220px;
     width: 80%;
     max-width: 400px;
-    background-color: #333;
+    background-color: #333333;
     color: #fff;
     -webkit-border-radius: 6px;
     -moz-border-radius: 6px;
@@ -4085,7 +4110,7 @@ div.cardList.narrow {
       margin-left: 0px;
       width: 0;
       height: 0;
-      border-top: 5px solid #333;
+      border-top: 5px solid #333333;
       border-left: 5px solid transparent;
       border-right: 5px solid transparent; }
     .passwordGenerator .passwordGeneratorBaloon form span {

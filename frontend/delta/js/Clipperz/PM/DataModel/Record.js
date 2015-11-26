@@ -42,7 +42,7 @@ Clipperz.PM.DataModel.Record = function(args) {
 	this._setDirectLoginIndexDataFunction		= args.setDirectLoginIndexDataFunction		|| null;
 	this._removeDirectLoginIndexDataFunction	= args.removeDirectLoginIndexDataFunction	|| null;
 	this._createNewDirectLoginFunction			= args.createNewDirectLoginFunction			|| null;
-
+	
 	this._retrieveAttachmentIndexDataFunction	= args.retrieveAttachmentIndexDataFunction	|| null;
 	this._setAttachmentIndexDataFunction		= args.setAttachmentIndexDataFunction		|| null;
 	this._removeAttachmentIndexDataFunction		= args.removeAttachmentIndexDataFunction	|| null;
@@ -301,7 +301,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 	},
 
 	//=========================================================================
-	
+
 	attachmentsCount: function() {
 		return MochiKit.Base.keys(this.attachments()).length;
 	},
@@ -436,7 +436,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 			}, this))
 		}
 	},
-
+	
 	'createNewDirectLogin': function () {
 		this.saveOriginalDirectLoginStatusToTransientState();
 
@@ -689,7 +689,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 						result = someFilteredResults[0];
 						break;
 					default:
-//console.log("Warning: Record.fieldWithLabel('" + aLabel + "') is returning more than one result: " + someFilteredResults.length);
+Clipperz.log("Warning: Record.fieldWithLabel('" + aLabel + "') is returning more than one result: " + someFilteredResults.length);
 						result = someFilteredResults[0];
 						break;
 				}
@@ -715,7 +715,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		var transientStateKey;
 
 		if (typeof(aVersionReference) == 'undefined') {
-			console.log("ERROR; getVersionKey aVersionReference is undefined");
+			Clipperz.log("ERROR; getVersionKey aVersionReference is undefined");
 		}
 
 		transientStateKey = 'versionKeys' + '.' + aVersionReference;
@@ -900,7 +900,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 			]
 		}, {trace:true});
 		deferredResult.addCallback(MochiKit.Base.values);
-		deferredResult.addCallback(MochiKit.Base.bind(function (someValues) {
+		deferredResult.addCallback(MochiKit.Base.bind(function(someValues) {
 			return MochiKit.Iter.some(someValues, MochiKit.Base.operator.identity);
 		}, this));
 
@@ -980,7 +980,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 				MochiKit.Base.method(this, 'directLogins'),
 				MochiKit.Base.values,
 				MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('revertChanges')),
-				
+
 				MochiKit.Base.method(this, 'attachments'),
 				MochiKit.Base.values,
 				MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.methodcaller('revertChanges')),
@@ -1048,8 +1048,8 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 			MochiKit.Base.bind(function () {
 				if (isCommitting == false) {
 					if (this.transientState().getValue('directLogins') != null) {
-						this._directLogins = this.transientState().getValue('directLogins');
-					}
+					this._directLogins = this.transientState().getValue('directLogins');
+				}
 					if (this.transientState().getValue('attachments') != null) {
 						this._attachments = this.transientState().getValue('attachments');
 					}

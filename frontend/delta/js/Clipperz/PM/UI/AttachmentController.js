@@ -126,7 +126,9 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 		var reference = anAttachment.reference()
 		var queueElement = this.getQueueElement(reference);
 
-		if (queueElement) {
+		var isElementInProgress = (queueElement && queueElement['status'] != 'DONE' && queueElement['status'] != 'CANCELED' && queueElement['status'] != 'FAILED');
+
+		if (isElementInProgress) {
 			deferredResult = new Clipperz.Async.Deferred("Clipperz.PM.UI.AttachmentController.cancelAttachment", {trace:false});
 			deferredResult.addMethod(this, 'updateFileInQueue', reference, {'status': 'CANCELED'});
 			if (queueElement['deferredRequest']) {

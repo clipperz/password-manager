@@ -63,7 +63,6 @@ Clipperz.PM.UI.Components.Cards.TextAreaClass = React.createClass({
 	handleKeyDown: function (anEvent) {
 		switch (anEvent.keyCode) {
 			case 27: // escape
-//				console.log("ESCAPE");
 				Mousetrap.trigger('esc');
 				break;
 		}
