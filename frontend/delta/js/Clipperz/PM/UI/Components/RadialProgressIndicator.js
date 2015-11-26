@@ -43,8 +43,8 @@ Clipperz.PM.UI.Components.RadialProgressIndicatorClass = React.createClass({
 		var pi = Math.PI;
 		var radiantAngle = 2 * pi * aProgress;
 
-		var x = Math.sin( radiantAngle ) * aRadius;
-		var y = Math.cos( radiantAngle ) * - aRadius;
+		var x = Math.sin(radiantAngle) * aRadius;
+		var y = Math.cos(radiantAngle) * - aRadius;
 		var mid = (aProgress > 0.5) ? 1 : 0;
 
 		return 'M 0 0 ' +									// Start from origin
@@ -61,7 +61,7 @@ Clipperz.PM.UI.Components.RadialProgressIndicatorClass = React.createClass({
 
 	//=========================================================================
 
-	getAdditionalClassesString(aList) {
+	getAdditionalClassesString: function(aList) {
 		var result;
 
 		aList = aList || [];
