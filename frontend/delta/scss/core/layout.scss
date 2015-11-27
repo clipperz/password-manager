@@ -180,6 +180,7 @@ input[type=text] {
 
 	.extraFeatureContent {
 		display: none;
+		width: 100%;
 	}
 
 	&.fullOpen {
@@ -278,6 +279,11 @@ input[type=text] {
 .container {
 	height: 100%;
 	width: 100%;
+}
+
+/* IE fix for 'wide' mode. */
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+	position: absolute;
 }
 
 .cardToolbarFrame {
@@ -405,6 +411,21 @@ div.cardToolbar {
 				font-size: 24pt;
 				@include icon-font();
 				vertical-align: center;
+			}
+		}
+	}
+}
+
+/* IE fix for badges being shifted to left. */
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+	.attachmentQueueToggleButton {
+		.badge {
+			.top {
+				margin-left: 37px;
+			}
+
+			.bottom {
+				margin-left: 7px;
 			}
 		}
 	}
@@ -731,6 +752,10 @@ div.cardContent {
 	height: $mainCardToolbarHeight;
 	line-height: $mainCardToolbarHeight;
 	
+	li.enabled:hover {
+		background-color: #114875;
+	}
+
 	&.edit {
 		@include order(1);
 

@@ -91,8 +91,8 @@ div.overlay {
 		position: relative;
 		width: 100px;
 		height: 100px;
-		left: 50% !important;
-		top: 40% !important;
+		left: 50%;
+		top: 40%;
 
 		margin-left: -50px;
 		margin-top: -50px;
@@ -125,6 +125,12 @@ div.overlay {
 		div.bar10 {@include transform(270deg, 0, -142%); @include animation-delay(-0.25000s);}
 		div.bar11 {@include transform(300deg, 0, -142%); @include animation-delay(-0.16670s);}
 		div.bar12 {@include transform(330deg, 0, -142%); @include animation-delay(-0.08330s);}
+	}
+
+	&.spinnerOnly {
+		.spinner {
+			top: 50%;
+		}
 	}
 
 	.progressBar {

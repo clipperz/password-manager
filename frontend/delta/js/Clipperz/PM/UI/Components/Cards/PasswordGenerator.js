@@ -202,12 +202,12 @@ Clipperz.PM.UI.Components.Cards.PasswordGeneratorClass = React.createClass({
 						])
 					]),
 					React.DOM.div({'className':'passwordValue'}, [
+						React.DOM.div({'className':'button generatePassword', 'onClick':this.refreshPasswordValue}, "generate password"),
 						React.DOM.div({'className':'passwordWrapper'}, [
 							Clipperz.PM.UI.Components.Cards.TextArea({'rows':'1', 'value':this.state['password'], 'onChange':this.changeStateWithTargetValue('password', false)}),
 							React.DOM.div({'className':'entropyWrapper', 'style':{'backgroundColor':entropyColor}}, [ React.DOM.div({'className':'entropy', 'style':{'width': entropyWidth}})])
 						]),
 						React.DOM.div({'className':'button setPasswordValue', 'onClick':this.setPasswordValue},     "set password"),
-						React.DOM.div({'className':'button generatePassword', 'onClick':this.refreshPasswordValue}, "generate password"),
 					]),
 				])
 			])

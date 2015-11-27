@@ -62,6 +62,12 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 			this.showProgressBar();
 		}
 
+		if (! aMessage && ! showProgress) {
+			MochiKit.DOM.addElementClass(this.element(), 'spinnerOnly');
+		} else {
+			MochiKit.DOM.removeElementClass(this.element(), 'spinnerOnly');
+		}
+
 		this.resetStatus();
 		this.setMessage(aMessage);
 		MochiKit.DOM.removeElementClass(this.element(), 'ios-overlay-hide');

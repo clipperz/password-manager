@@ -141,7 +141,12 @@ Clipperz.PM.UI.Components.SelectionsClass = React.createClass({
 			]),
 			]),
 
-			React.DOM.ul({'className':'tagList'}, MochiKit.Base.map(function (aTag) {return Clipperz.PM.UI.Components.TagIndexItem({'label':aTag, 'count':tagInfo[aTag], 'selected':aTag == filterValue}); }, tags)),
+			React.DOM.ul({'className':'tagList'}, [
+				React.DOM.li({'className': 'title'}, "Tags"),
+				MochiKit.Base.map(function (aTag) {
+					return Clipperz.PM.UI.Components.TagIndexItem({'label':aTag, 'count':tagInfo[aTag], 'selected':aTag == filterValue});
+				}, tags)
+			]),
 			React.DOM.div({'className':'showArchivedCards', 'onClick':this.handleCheckboxChanges}, [
 				React.DOM.input({'type':'checkbox', 'checked':this.props['shouldIncludeArchivedCards'] ? 'checked' : null}),
 				React.DOM.span({'className':'label'}, "Show archived cards"),

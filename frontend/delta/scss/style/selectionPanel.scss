@@ -171,13 +171,14 @@ refer to http://www.clipperz.com.
 			@include flexbox();
 			@include flex-direction(row);
 
-			&:before {
+			&.title:before {
 				content: "tag";
 			}
 
 			span.label {
 				font-size: 14pt;
 				@include flex(auto);
+				padding-left: 35px;
 			}
 		
 			span.count {
@@ -241,13 +242,13 @@ refer to http://www.clipperz.com.
 }
 
 span.count {
-	background-color: gray;
+	background-color: white;
 	font-size: 10pt;
 	margin-right: 12px;
 	padding: 3px 5px;
 	@include border-radius(4px);
 
-	color: white;
+	color: black;
 	font-weight: 300;
 	vertical-align: middle;
 }

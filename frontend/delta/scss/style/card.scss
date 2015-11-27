@@ -1099,15 +1099,15 @@ $cardViewBasePadding: 10px;
 
 			.optionsWrapper {
 				header {
-					height: 12px;
+					height: 30px;
 					border-bottom: 1px solid #666;
 				
 					div {
 						content: "options";
 						@include icon-font();
-//						text-align: right;
-						font-size: 8pt;
-						line-height: 14px;
+						text-align: center;
+						font-size: 28px;
+						line-height: 30px;
 						color: #999;
 						padding-left: 5px;
 					
@@ -1119,7 +1119,8 @@ $cardViewBasePadding: 10px;
 
 				.options {
 //					height: inherit;
-					background-color: #888;
+//					background-color: #888;
+					background-color: white;
 					padding-left: $passwordBaloonBorder;
 					padding-right: $passwordBaloonBorder /* + 30px */;
 					padding-bottom: 3px;
@@ -1134,6 +1135,10 @@ $cardViewBasePadding: 10px;
 						div {
 							visibility: hidden;
 						}
+					}
+
+					span {
+						color:black;
 					}
 
 					.length {
@@ -1182,7 +1187,7 @@ $cardViewBasePadding: 10px;
 							label {
 								span {
 									font-size: 10pt;
-									color: #eee;
+									color: black;
 
 									&:after {
 										content: '';
@@ -1197,6 +1202,7 @@ $cardViewBasePadding: 10px;
 						textarea {
 							color: gray;
 							min-height: 34px;
+							border:1px solid black;
 
 							&:focus {
 								outline: 0;
@@ -1214,6 +1220,7 @@ $cardViewBasePadding: 10px;
 				padding: $passwordBaloonBorder;
 				padding-top: 3px;
 				padding-right: 0px;
+				padding-left: 0;
 
 				.passwordWrapper {
 					@include flex(auto);
@@ -1245,10 +1252,12 @@ $cardViewBasePadding: 10px;
 					@include icon-font();
 					font-size: 14pt;
 					font-weight: bold;
-					text-align: center;
+					text-align: left;
+					padding-left: .5em;
 					color: #999;
-					width: 40px;
+					width: 30px;
 					height: inherit;
+					line-height: 35px;
 					
 					&.setPasswordValue {
 						background-color: lighten($passwordBaloonColor, 5%);
