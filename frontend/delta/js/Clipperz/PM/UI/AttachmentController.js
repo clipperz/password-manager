@@ -43,7 +43,8 @@ Clipperz.PM.UI.AttachmentController = function(someParameters) {
 		this.downloadMessageCallback    = someParameters['downloadMessageCallback'];
 		this.reloadServerStatusCallback = someParameters['reloadServerStatusCallback'];
 
-		this.cryptoObject = window.crypto || window.msCrypto;
+		// this.cryptoObject = window.crypto || window.msCrypto; // Not needed anymore because of polyfill
+		this.cryptoObject = window.crypto
 
 		return this;
 	}

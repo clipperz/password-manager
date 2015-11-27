@@ -34,7 +34,15 @@
 
 		"filesize.repository":			"https://github.com/avoidwork/filesize.js.git",
 		"filesize.version":				"3.1.3",
-		"filesize.commit":				"20b4ac454f9c6236b6611ddd1b9cbe97d0efbbd2"
+		"filesize.commit":				"20b4ac454f9c6236b6611ddd1b9cbe97d0efbbd2",
+
+		"promiz.repository":			"https://github.com/Zolmeister/promiz.git",
+		"promiz.version":				"1.0.4",
+		"promiz.commit":				"0b87e96be9f3cb444a29b0e5afbdf849455a59b1",
+
+		"webcryptoshim.repository":		"https://github.com/vibornoff/webcrypto-shim.git",
+		"webcryptoshim.version":		"0.1.0",
+		"webcryptoshim.commit":			"fb82fe0936adb4813a9b513991266a2bef51d32b"
 	},
 
 	"html.template": "index_template.html",
@@ -80,6 +88,10 @@
 		
 		"-- Filesize/filesize.js",
 		"Filesize/filesize.min.js",
+
+		"-- WEBCRYPTO AND PROMISES POLYFILL FOR IE11",
+		"Promiz/promiz.min.js",
+		"WebcryptoShim/webcrypto-shim.js",
 
 		"-- IT WOULD BE NICE TO BE ABLE TO GET RID OF THESE IMPORTS",
 		"Clipperz/YUI/Utils.js",
