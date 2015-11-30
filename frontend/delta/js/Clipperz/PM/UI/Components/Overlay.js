@@ -56,6 +56,8 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 	'show': function (aMessage, showMask, showProgress, showOnCardDetail) {
 		if (showMask === true) {
 			this.showMask(showOnCardDetail);
+		} else {
+			this.hideMask();
 		}
 
 		if (showProgress === true) {

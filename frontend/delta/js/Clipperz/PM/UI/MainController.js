@@ -362,7 +362,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 		user = null;
 
-		this.overlay().show("logging in");
+		this.overlay().show("logging in", false, false);
 		this.pages()['loginPage'].setProps({disabled:true});
 
 		if ('pin' in someCredentials) {
@@ -447,7 +447,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		var unlockPage = this.pages()['unlockPage'];
 		var overlay = this.overlay();
 
-		overlay.show("validating…");
+		overlay.show("validating…", false);
 		passphrase = (aCredentialType=='PIN') ? Clipperz.PM.PIN.credentialsWithPIN(aCredential)['passphrase'] : aCredential;
 
 		getPassphraseDelegate = MochiKit.Base.partial(MochiKit.Async.succeed, passphrase);
