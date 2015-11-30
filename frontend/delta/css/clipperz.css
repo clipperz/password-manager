@@ -119,6 +119,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -132,6 +133,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -145,6 +147,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -158,6 +161,7 @@ http://jonibologna.com/flexbox-cheatsheet/
     -ms-transform: rotate(0deg) translate(0, 0);
     -o-transform: rotate(0deg) translate(0, 0);
     transform: rotate(0deg) translate(0, 0); }
+
   100% {
     -webkit-transform: rotate(359deg) translate(0, 0);
     -moz-transform: rotate(359deg) translate(0, 0);
@@ -190,6 +194,18 @@ div.overlay {
     z-index: -2; }
     div.overlay .mask.hidden {
       display: none; }
+    div.overlay .mask.card {
+      top: 48px; }
+      .extra-wide div.overlay .mask.card {
+        left: 46.6%; }
+      .wide div.overlay .mask.card {
+        left: 33.3%; }
+      .narrow div.overlay .mask.card {
+        left: 100%; }
+  .extra-wide div.overlay.card {
+    left: 74%; }
+  .wide div.overlay.card {
+    left: 66.6%; }
   div.overlay .title {
     color: #FFF;
     font-weight: bold;
@@ -222,7 +238,7 @@ div.overlay {
     font-size: 96pt;
     color: white;
     text-shadow: none; }
-  div.overlay.ios-overlay-show {
+  div.overlay.ios-overlay-show:not(.card) {
     -webkit-animation-name: ios-overlay-show;
     -webkit-animation-duration: 750ms;
     -webkit-animation-timing-function: linear;
@@ -248,7 +264,7 @@ div.overlay {
     animation-timing-function: linear;
     animation-iteration-count: 1;
     animation-fill-mode: none; }
-  div.overlay.ios-overlay-hide {
+  div.overlay.ios-overlay-hide:not(.card) {
     -webkit-animation-name: ios-overlay-hide;
     -webkit-animation-duration: 750ms;
     -webkit-animation-timing-function: linear;
@@ -478,61 +494,73 @@ div.overlay {
 @-webkit-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-moz-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-ms-keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @keyframes overlay-spin {
   from {
     opacity: 1; }
+
   to {
     opacity: 0.25; } }
 @-webkit-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-moz-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-ms-keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @keyframes ios-overlay-show {
   0% {
     opacity: 0; }
+
   100% {
     opacity: 1; } }
 @-webkit-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @-moz-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @-ms-keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 @keyframes ios-overlay-hide {
   0% {
     opacity: 1; }
+
   100% {
     opacity: 0; } }
 /*
@@ -2494,13 +2522,13 @@ span.count {
   #extraFeaturesPanel .extraFeatureIndex footer {
     font-size: 8pt;
     padding: 5px 5px 5px 5px;
-    border-top: 1px solid #999; }
+    border-top: 1px solid #999999; }
     #extraFeaturesPanel .extraFeatureIndex footer span {
-      color: #999; }
+      color: #999999; }
       #extraFeaturesPanel .extraFeatureIndex footer span:after {
         content: ":"; }
     #extraFeaturesPanel .extraFeatureIndex footer a {
-      color: #999;
+      color: #999999;
       text-decoration: none;
       padding-left: 5px;
       font-weight: bold; }
@@ -3298,7 +3326,7 @@ div.cardList ul {
       padding-right: 0px;
       box-shadow: -4px 0px 3px -1px rgba(0, 0, 0, 0.2); }
     div.cardList ul li.archived {
-      background-color: #eee;
+      background-color: #eeeeee;
       color: #999; }
     div.cardList ul li .favicon {
       width: 48px;
@@ -3398,7 +3426,7 @@ div.cardList.narrow {
     content: ""; }
 
 #cardDetailPage .view.archived, .cardDetail .view.archived {
-  background-color: #eee; }
+  background-color: #eeeeee; }
 #cardDetailPage .view .cardDetailToolbar, .cardDetail .view .cardDetailToolbar {
   background-color: #1863a1;
   color: white; }
@@ -3848,7 +3876,7 @@ div.cardList.narrow {
       cursor: grab;
       cursor: -moz-grab;
       cursor: -webkit-grab;
-      background: repeating-linear-gradient(0deg, white, white 2px, #ddd 2px, #ddd 3px);
+      background: repeating-linear-gradient(0deg, white, white 2px, #dddddd 2px, #dddddd 3px);
       width: 28px;
       height: 20px;
       margin-left: 6px;
@@ -4095,7 +4123,7 @@ div.cardList.narrow {
     min-width: 220px;
     width: 80%;
     max-width: 400px;
-    background-color: #333;
+    background-color: #333333;
     color: #fff;
     -webkit-border-radius: 6px;
     -moz-border-radius: 6px;
@@ -4110,7 +4138,7 @@ div.cardList.narrow {
       margin-left: 0px;
       width: 0;
       height: 0;
-      border-top: 5px solid #333;
+      border-top: 5px solid #333333;
       border-left: 5px solid transparent;
       border-right: 5px solid transparent; }
     .passwordGenerator .passwordGeneratorBaloon form span {

@@ -429,6 +429,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		deferredResult.addMethod(this.user(), 'lock');
 		deferredResult.addMethod(this, 'deleteCleanTextData');
 		deferredResult.addMethod(this.pages()['unlockPage'], 'setProps', {'username': this.user().username()});
+		deferredResult.addCallback(MochiKit.Async.callLater, 0.1, MochiKit.Base.method(this.pages()['unlockPage'], 'resetUnlockForm'));
 		deferredResult.addMethod(this.pages()['unlockPage'], 'setInitialFocus');
 		deferredResult.addCallback(MochiKit.Async.callLater, 1, MochiKit.Base.method(this.pages()['mainPage'], 'replaceProps', {'locked': true}));
 		
@@ -496,7 +497,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			'disabled': false,
 			'forceCredentials': false,
 		});
-		deferredResult.addMethod(unlockPage, 'resetUnlockForm');
+		// deferredResult.addMethod(unlockPage, 'resetUnlockForm');
 		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'enableLock');
 		deferredResult.addMethod(overlay, 'done', "", 0.5);
 
@@ -706,7 +707,8 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			deferredResult = MochiKit.Async.succeed();
 		} else {
 			if (showLoading) {
-				this.setPageProperties('mainPage', 'selectedCard', {'loading':true, 'label':someInfo['label'], '_reference':someInfo['reference']});
+				// this.setPageProperties('mainPage', 'selectedCard', {'loading':true, 'label':someInfo['label'], '_reference':someInfo['reference']});
+				this.overlay().show('', true, false, true)
 			}
 
 			deferredResult = new Clipperz.Async.Deferred('MainController.updateSelectedCard', {trace:false});
@@ -717,6 +719,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			if ((this.mediaQueryStyle() == 'narrow') && shouldShowCardDetail) {
 				deferredResult.addMethod(this, 'showCardDetailInNarrowView');
 			}
+			deferredResult.addMethod(this.overlay(), 'hide', true);
 		
 			MochiKit.Async.callLater(0.1, MochiKit.Base.method(deferredResult, 'callback'));
 		}
@@ -2116,6 +2119,8 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		var selectedCardInfo = this.selectedCardInfo();
 
 		this._mediaQueryStyle = newQueryStyle;
+
+		MochiKit.DOM.setElementClass(document.body, newQueryStyle);
 
 		if (currentPage == 'cardDetailPage') {
 			this.moveOutPage(this.currentPage(), 'mainPage');

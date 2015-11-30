@@ -53,9 +53,9 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 
 	//-------------------------------------------------------------------------
 
-	'show': function (aMessage, showMask, showProgress) {
+	'show': function (aMessage, showMask, showProgress, showOnCardDetail) {
 		if (showMask === true) {
-			this.showMask();
+			this.showMask(showOnCardDetail);
 		}
 
 		if (showProgress === true) {
@@ -66,6 +66,12 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 			MochiKit.DOM.addElementClass(this.element(), 'spinnerOnly');
 		} else {
 			MochiKit.DOM.removeElementClass(this.element(), 'spinnerOnly');
+		}
+
+		if (showOnCardDetail) {
+			MochiKit.DOM.addElementClass(this.element(), 'card');
+		} else {
+			MochiKit.DOM.removeElementClass(this.element(), 'card');
 		}
 
 		this.resetStatus();
@@ -90,7 +96,12 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 		return this.getElement('mask');
 	},
 	
-	'showMask': function () {
+	'showMask': function (showOnCardDetail) {
+		MochiKit.DOM.removeElementClass(this.maskElement(), 'card');
+
+		if (showOnCardDetail) {
+			MochiKit.DOM.addElementClass(this.maskElement(), 'card');
+		}
 		MochiKit.DOM.removeElementClass(this.maskElement(), 'hidden');
 	},
 	
@@ -123,12 +134,13 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 		return MochiKit.Async.callLater(delay, MochiKit.Base.bind(this.hide, this))
 	},
 
-	'hide': function () {
+	'hide': function (withoutAnimationTime) {
+		var secondsBeforeHiding = withoutAnimationTime ? 0 : 1;
 		var element = this.element();
 		this.hideProgressBar();
 		MochiKit.DOM.removeElementClass(element, 'ios-overlay-show');
 		MochiKit.DOM.addElementClass(element, 'ios-overlay-hide');
-		return MochiKit.Async.callLater(1, MochiKit.Style.hideElement, element);
+		return MochiKit.Async.callLater(secondsBeforeHiding, MochiKit.Style.hideElement, element);
 	},
 
 	'hideSpinner': function () {

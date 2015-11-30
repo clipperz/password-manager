@@ -41,11 +41,21 @@ Clipperz.PM.UI.Components.ExtraFeatures.DevicePINClass = React.createClass({
 	//=========================================================================
 
 	handleChange: function(anEvent) {
-		if (anEvent.target.value.length <= this.props['PIN'].DEFAULT_PIN_LENGTH) {
+		var newValue = anEvent.target.value;
+
+		if (!isNaN(newValue) && newValue.length <= this.props['PIN'].DEFAULT_PIN_LENGTH) {
 			this.setState({
 				'pinValue': anEvent.target.value
 			});
 		}
+	},
+
+	handleSubmit: function(anEvent) {
+		var isSubmitEnabled = (this.state['pinValue'].length == this.props['PIN'].DEFAULT_PIN_LENGTH);
+
+		if (isSubmitEnabled) { this.savePIN(); }
+
+		anEvent.preventDefault();
 	},
 
 	setFocus: function() {
@@ -94,7 +104,9 @@ Clipperz.PM.UI.Components.ExtraFeatures.DevicePINClass = React.createClass({
 			React.DOM.div({'className': 'content'}, [
 //				React.DOM.p({}, "PIN is "+((this.props['PIN'].isSet()) ? '' : 'not ')+"set on this device"),
 				React.DOM.p({}, ((this.props['PIN'].isSet()) ? "PIN is set on this device" : "PIN is not set on this device")),
-				React.DOM.form({},[
+				React.DOM.form({
+						'onSubmit': this.handleSubmit,
+				},[
 					React.DOM.input({
 						'type': 'tel',
 						'key': 'pinValue',

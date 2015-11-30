@@ -68,7 +68,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataExportClass = React.createClass({
 						React.DOM.h3({}, "Offline copy"),
 						React.DOM.div({'className':'description'}, [
 							React.DOM.p({}, "Download a read-only portable version of Clipperz. Very convenient when no Internet connection is available."),
-							React.DOM.p({}, "An offline copy is just a single HTML file that contains both the whole Clipperz web application and your encrypted data."),
+							React.DOM.p({}, "An offline copy is just a single HTML file that contains both the whole Clipperz web application and your encrypted data, except file attachments."),
 							React.DOM.p({}, "It is as secure as the hosted Clipperz service since they both share the same code and security architecture.")
 						]),
 						React.DOM.a({'className':'button', 'onClick':this.handleDownloadOfflineCopyLink}, "download offline copy")
@@ -77,7 +77,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataExportClass = React.createClass({
 						React.DOM.h3({}, "HTML + JSON"),
 						React.DOM.div({'className':'description'}, [
 							React.DOM.p({}, "Download a printer-friendly HTML file that lists the content of all your cards."),
-							React.DOM.p({}, "This same file also contains all your data in JSON format."),
+							React.DOM.p({}, "This same file also contains all your data in JSON format. Please note that file attachments are not included."),
 							React.DOM.p({'className':'warning'}, "Beware: all data are unencrypted! Therefore make sure to properly store and manage this file.")
 						]),
 						React.DOM.a({'className':'button', 'onClick':this.handleExportLink}, "download HTML+JSON")

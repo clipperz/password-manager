@@ -423,8 +423,6 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 	render: function () {
 		var	result;
 
-console.log(this.props['_isBrandNew']);
-
 		if (this.props['loading'] == true) {
 			result = this.renderLoading();
 		} else if (this.props['_reference']) {

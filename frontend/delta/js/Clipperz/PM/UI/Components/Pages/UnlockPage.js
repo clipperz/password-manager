@@ -73,7 +73,7 @@ Clipperz.PM.UI.Components.Pages.UnlockPageClass = React.createClass({
 		this.refs['passphrase'].getDOMNode().blur();
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'unlock', this.refs['passphrase'].getDOMNode().value, 'PASSPHRASE');
 	
-		this.resetUnlockForm();
+		// this.resetUnlockForm();
 	},
 
 	submitPIN: function() {
@@ -83,7 +83,7 @@ Clipperz.PM.UI.Components.Pages.UnlockPageClass = React.createClass({
 
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'unlock', pin, 'PIN');
 
-		this.resetUnlockForm();
+		// this.resetUnlockForm();
 	},
 
 	resetUnlockForm: function() {

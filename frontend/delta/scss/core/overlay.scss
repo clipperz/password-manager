@@ -33,6 +33,23 @@ div.overlay {
 		&.hidden {
 			display: none;
 		}
+
+		&.card {
+
+			top: 48px;
+
+			.extra-wide & {
+				left: 46.6%;
+			}
+
+			.wide & {
+				left: 33.3%;
+			}
+
+			.narrow & {
+				left: 100%;
+			}
+		}
 	}
 	z-index: 99999;
 	position: fixed;
@@ -44,6 +61,15 @@ div.overlay {
 	margin-top: -100px;
 	background: rgba(0,0,0,0.8);
 	@include border-radius(20px);
+
+	&.card {
+		.extra-wide & {
+			left: 74%;
+		}
+		.wide & {
+			left: 66.6%;
+		}
+	}
 
 	.title {
 		color: #FFF;
@@ -78,12 +104,16 @@ div.overlay {
 	}
 
 	&.ios-overlay-show {
-		@include animation(ios-overlay-show, 750ms);
+		&:not(.card) {
+			@include animation(ios-overlay-show, 750ms);
+		}
 	}
 
 
 	&.ios-overlay-hide {
-		@include animation(ios-overlay-hide, 750ms, linear, 1, forwards);
+		&:not(.card) {
+			@include animation(ios-overlay-hide, 750ms, linear, 1, forwards);
+		}
 	}
 
 	//	http://37signals.com/svn/posts/2577-loading-spinner-animation-using-css-and-webkit
