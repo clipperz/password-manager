@@ -431,10 +431,15 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 	//=========================================================================
 
 	'logout': function() {
-		return Clipperz.Async.callbacks("Connection.logout", [
-			MochiKit.Base.method(this, 'setSharedSecret'),
-			MochiKit.Base.method(this.proxy(), 'logout', {})
-		], {trace:false});
+		var	deferredResult;
+
+		deferredResult = new Clipperz.Async.Deferred("Connection.login", {trace:false});
+		deferredResult.addMethod(this, 'setSharedSecret');
+		deferredResult.addMethod(this.proxy(), 'logout', {});
+		deferredResult.addErrback(function (aResult) { Clipperz.log("Ignored error while logging out"); return {}; });
+		deferredResult.callback();
+		
+		return deferredResult;
 	},
 
 	//=========================================================================
