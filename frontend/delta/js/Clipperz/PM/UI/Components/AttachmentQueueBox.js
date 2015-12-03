@@ -54,7 +54,8 @@ Clipperz.PM.UI.Components.AttachmentQueueBoxClass = React.createClass({
 
 		var queueElement = aNotificationElement['queueElement'];
 
-		processIcon = (queueElement['process'] == 'UPLOAD') ? "\u2b06" : "\u2b07";
+		processIcon = (queueElement['process'] == 'UPLOAD') ? "\u2191" : "\u2193";
+
 		status = "waiting";
 		closeButton = null;
 		progressIndicator = null;

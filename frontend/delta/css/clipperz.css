@@ -1160,7 +1160,8 @@ div.attachmentQueueStatus {
         div.attachmentQueueStatus ul li .status .statusString {
           font-size: 14px; }
         div.attachmentQueueStatus ul li .status .processIcon {
-          margin-left: 1em; }
+          margin-left: 1em;
+          font-size: 15pt; }
       div.attachmentQueueStatus ul li .close a {
         font-family: 'clipperz-icons';
         -webkit-font-feature-settings: "liga" 1, "dlig" 1;
