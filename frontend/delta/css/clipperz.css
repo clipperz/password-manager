@@ -2289,7 +2289,9 @@ div.help {
         -moz-flex: auto;
         -ms-flex: auto;
         flex: auto;
-        padding-left: 35px; }
+        padding-left: 35px;
+        overflow: hidden;
+        text-overflow: ellipsis; }
       #selections ul.tagList li span.count {
         -webkit-box-flex: none;
         -webkit-flex: none;

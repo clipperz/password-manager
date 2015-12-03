@@ -179,6 +179,9 @@ refer to http://www.clipperz.com.
 				font-size: 14pt;
 				@include flex(auto);
 				padding-left: 35px;
+
+				overflow: hidden;
+				text-overflow: ellipsis;				
 			}
 		
 			span.count {
