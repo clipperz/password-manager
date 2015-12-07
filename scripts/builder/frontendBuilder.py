@@ -158,7 +158,7 @@ class FrontendBuilder(object):
 	def cssminCompressor (self, css):
 		# package found here:
 		# - http://stackoverflow.com/questions/222581/python-script-for-minifying-css/2396777#2396777
-		# actual downloaded version: http://pypi.python.org/pypi/cssmin/0.1.4
+		# actual downloaded version: http://pypi.python.org/pypi/cssmin/0.1.4 -> 0.2.0
 		return cssmin.cssmin(css)
 	
 
@@ -202,10 +202,15 @@ class FrontendBuilder(object):
 		return css
 
 
+	def mockCssCompressor (self, css):
+		return css;
+
+
 	def compressCSS (self, css):
 		self.log("compressing CSS")
 		#return self.regexCssCompressor(css)
-		return self.cssminCompressor(css)
+		#return self.cssminCompressor(css)
+		return self.mockCssCompressor(css)
 
 	#--------------------------------------------------------------------------
 
