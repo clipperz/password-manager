@@ -1044,9 +1044,31 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 	//=========================================================================
 
+	historyReplaceState: function (args) {
+		if (window.document.origin != null) {
+			window.history.replaceState.apply(window.history, arguments);
+		}
+	},
+	
+	historyPushState: function (args) {
+		if (window.document.origin != null) {
+			window.history.pushState.apply(window.history, arguments);
+		}
+	},
+	
+	historyState: function (args) {
+		if (window.document.origin != null) {
+			return window.history.state.apply(window.history, arguments);
+		}
+	},
+
+	//=========================================================================
+
 	runApplication: function (anUser) {
-		window.history.replaceState({selectedCardInfo: null}, "", window.location.toString());
-		window.history.pushState({selectedCardInfo: null}, "", window.location.toString());	// Hack to support filters undo with no other actions
+//		window.history.replaceState({selectedCardInfo: null}, "", window.location.toString());
+		this.historyReplaceState({selectedCardInfo: null}, "", window.location.toString());
+//		window.history.pushState({selectedCardInfo: null}, "", window.location.toString());	// Hack to support filters undo with no other actions
+		this.historyPushState({selectedCardInfo: null}, "", window.location.toString());	// Hack to support filters undo with no other actions
 		this.moveInPage(this.currentPage(), 'mainPage');
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'enableLock');
 		this.resetLockTimeout();
@@ -1170,11 +1192,11 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		this.moveOutPage(fromPage, toPage);
 	},
 
-	historyGoBack: function (anEvent) {
-		anEvent.preventDefault();
-		anEvent.stopPropagation();
-		this.goBack();
-	},
+//	historyGoBack: function (anEvent) {
+//		anEvent.preventDefault();
+//		anEvent.stopPropagation();
+//		this.goBack();
+//	},
 
 	currentPage: function () {
 		return this.pageStack()[0];
@@ -1596,7 +1618,8 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 	selectCard_handler: function (someInfo, shouldUpdateCardDetail) {
 		this.selectCard(someInfo, shouldUpdateCardDetail);
-		window.history.pushState({selectedCardInfo: someInfo}, "", window.location.toString());
+//		window.history.pushState({selectedCardInfo: someInfo}, "", window.location.toString());
+		this.historyPushState({selectedCardInfo: someInfo}, "", window.location.toString());
 		// console.log("pushing state");
 	},
 
@@ -2014,7 +2037,8 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 	goBackToMainPage_handler: function (anEvent) {
 		this.goBackToMainPage(anEvent);
-		window.history.pushState({selectedCardInfo: null}, "", window.location.toString());
+//		window.history.pushState({selectedCardInfo: null}, "", window.location.toString());
+		this.historyPushState({selectedCardInfo: null}, "", window.location.toString());
 	},
 
 	//============================================================================
@@ -2353,10 +2377,12 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	handleOnpopstate: function (anEvent) {
 		if (this.filter().type != 'ALL') {
 			this.selectAllCards();
-			window.history.pushState(window.history.state, "", window.location.toString());
+//			window.history.pushState(window.history.state, "", window.location.toString());
+			this.historyPushState(this.historyState, "", window.location.toString());
 		} else if(anEvent.state) {
 			if (this.isPageInEditMode()) {
-				window.history.pushState({selectedCardInfo: this.selectedCardInfo()}, "", window.location.toString());
+//				window.history.pushState({selectedCardInfo: this.selectedCardInfo()}, "", window.location.toString());
+				this.historyPushState({selectedCardInfo: this.selectedCardInfo()}, "", window.location.toString());
 				this.cancelCardEdits(this.selectedCardReference());
 			} else {
 				if (anEvent.state['selectedCardInfo']) {
