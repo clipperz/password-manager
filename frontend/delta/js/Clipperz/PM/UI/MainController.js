@@ -1045,19 +1045,19 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	//=========================================================================
 
 	historyReplaceState: function (args) {
-		if (window.document.origin != null) {
+		if ((window.document.origin != null) && (window.document.origin != "null")) {
 			window.history.replaceState.apply(window.history, arguments);
 		}
 	},
 	
 	historyPushState: function (args) {
-		if (window.document.origin != null) {
+		if ((window.document.origin != null) && (window.document.origin != "null")) {
 			window.history.pushState.apply(window.history, arguments);
 		}
 	},
 	
 	historyState: function (args) {
-		if (window.document.origin != null) {
+		if ((window.document.origin != null) && (window.document.origin != "null")) {
 			return window.history.state.apply(window.history, arguments);
 		}
 	},
