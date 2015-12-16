@@ -355,8 +355,10 @@ Clipperz.PM.DataModel.Attachment.contentTypeIcon = function (aContentType) {
 	var	result;
 	
 	result = 'other file';
-	
-	if (aContentType == "application/pdf") {
+
+	if (aContentType == null) {
+		result = 'other file';
+	} else if (aContentType == "application/pdf") {
 		result = 'pdf file';
 	} else if (aContentType.indexOf('image/') == 0) {
 		result = 'image file';
