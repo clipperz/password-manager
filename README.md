@@ -28,18 +28,17 @@ As an example, the current PHP backend lacks several critical capabilities such 
 Please note: the actual Clipperz service use a far more robust backend, but the communication protocol between backend and frontend is of course identical.
 
 [app]: https://clipperz.is/app/
-[CA]: /open_source/contributor_agreement/
-[contact]: /about/contacts/
+[CA]: https://clipperz.is/contributor_agreement/
+[contact]: https://clipperz.is/about/contacts/
 
 
 ## Donations
 If you like what Clipperz is building, its openness and its view of cryptography as a powerful tool for liberty, then you may consider making a donation. 
 
-Our favorite payment method is clearly Bitcoin ([learn why here][why]), but you can also send your donation via credit card, Paypal or bank transfer. In all cases there will be no link between your real identity and your encrypted data stored on Clipperz.
+Our favorite payment method is clearly Bitcoin, but you can also send your donation via credit card, Paypal or bank transfer. In all cases there will be no link between your real identity and your encrypted data stored on Clipperz.
 
 **To make your donation visit [this page][donations]. Thanks!**
 
-[why]: https://clipperz.is/pricing/why_bitcoin
 [donations]: https://clipperz.is/donations
 
 
