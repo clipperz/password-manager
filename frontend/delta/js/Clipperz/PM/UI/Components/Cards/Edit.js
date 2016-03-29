@@ -28,6 +28,8 @@ Clipperz.PM.UI.Components.Cards.EditClass = React.createClass({
 
 	//============================================================================
 
+	displayName: 'Clipperz.PM.UI.Components.Cards.Edit',
+
 	propTypes: {
 		'allTags':	React.PropTypes.array,
 //		'label':	React.PropTypes.string /*.isRequired */ ,
@@ -128,7 +130,7 @@ console.log("DROP");	//, anEvent);
 			], {trace:false});
 
 		} else {
-//console.log("CANCELLED FIELD MOVE");
+//console.log("CANCELED FIELD MOVE");
 		}
 
 		// Delayed because a quick touch would prevent the state to update correctly otherwise (don't know why)
@@ -453,7 +455,7 @@ console.log("DROP");	//, anEvent);
 	},
 
 	removeDirectLogin: function(aDirectLoginReference) {
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'removeDirectLogin', this.record(), aDirectLoginReference);
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'removeDirectLogin', {'record':this.record(), 'directLoginReference':aDirectLoginReference});
 	},
 
 	//============================================================================
@@ -614,7 +616,7 @@ console.log("DROP");	//, anEvent);
 
 	handleRemoveAttachment: function(anAttachment) {
 		// MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'cancelAttachment', anAttachment);
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'removeAttachment', this.record(), anAttachment);
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'removeAttachment', {'record':this.record(), 'attachment': anAttachment});
 	},
 
 	//............................................................................
@@ -622,13 +624,15 @@ console.log("DROP");	//, anEvent);
 	uploadFiles: function(someFiles) {
 		var i;
 
+//console.log("uploadFiles", someFiles);
 		var newSkippedFiles = [];
 
 		for (i = 0; i < someFiles.length; i++) {
 			var file = someFiles[i];
+//console.log("uploadFiles - file", file);
 
 			if (file.size <= Clipperz.PM.DataModel.Attachment.MAX_ATTACHMENT_SIZE) {
-				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'addAttachment', this.record(), file);
+				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'addAttachment', {'record':this.record(), 'file':file});
 			} else {
 				newSkippedFiles.push(file);
 				this.setState({'skippedFiles': newSkippedFiles});
@@ -636,7 +640,7 @@ console.log("DROP");	//, anEvent);
 		}
 
 		// TODO: check compatibility with all browsers
-		this.refs['attachmentInput'].getDOMNode().value = null;
+		this.refs['attachmentInput'].value = null;
 	},
 
 	//............................................................................
@@ -658,12 +662,14 @@ console.log("DROP");	//, anEvent);
 		// http://enome.github.io/javascript/2014/03/24/drag-and-drop-with-react-js.html
 		// https://code.google.com/p/chromium/issues/detail?id=168387
 		// http://www.quirksmode.org/blog/archives/2009/09/the_html5_drag.html
+		anEvent.stopPropagation();
 		anEvent.preventDefault();
+		anEvent.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
 	},
 
 	//............................................................................
 
-	renderSkippedFiles: function() {
+	renderSkippedFiles: function () {
 		var result;
 
 		result = null;
@@ -687,7 +693,7 @@ console.log("DROP");	//, anEvent);
 		return result;
 	},
 
-	renderAttachmentProgress: function(aStatus, aServerStatus, aProgress) {
+	renderAttachmentProgress: function (aStatus, aServerStatus, aProgress) {
 		var result;
 
 		var queueOperationsInProgress = (aStatus && aStatus != 'DONE' && aStatus != 'CANCELED' && aStatus != 'FAILED');
@@ -709,7 +715,7 @@ console.log("DROP");	//, anEvent);
 		return result;
 	},
 
-	renderAttachmentStatus: function(aStatus, aServerStatus, aProgress) {
+	renderAttachmentStatus: function (aStatus, aServerStatus, aProgress) {
 		var result;
 
 		var status = aStatus ? aStatus : false;
@@ -728,7 +734,7 @@ console.log("DROP");	//, anEvent);
 					result = React.DOM.span({'className': 'broken'}, "canceled");
 					break;
 				case 'DONE':
-					result = React.DOM.span({'className': 'broken'}, "failed");
+					result = React.DOM.span({'className': 'done'}, "done");
 					break;
 				case false:
 					result = React.DOM.span({'className': 'broken'}, "failed");
@@ -745,7 +751,7 @@ console.log("DROP");	//, anEvent);
 		return result;
 	},
 
-	renderAttachmentActions: function(aStatus, aServerStatus, anAttachment) {
+	renderAttachmentActions: function (aStatus, aServerStatus, anAttachment) {
 		var result;
 
 		result = null;
@@ -759,17 +765,13 @@ console.log("DROP");	//, anEvent);
 		return result;
 	},
 
-	renderAttachment: function(anAttachment) {
+	renderAttachment: function (anAttachment) {
 		var queueInfo = this.props['attachmentQueueInfo'].elementFetchCallback(anAttachment._reference) || [];
 		var queueStatus = queueInfo['status'];
 		var serverStatus = this.props['attachmentServerStatus'][anAttachment._reference];
 		var queueOperationsInProgress = (queueStatus && queueStatus != 'DONE' && queueStatus != 'CANCELED' && queueStatus != 'FAILED');
 		
 		var broken = (! serverStatus && ! queueOperationsInProgress && ! this.props['_isBrandNew']);
-
-		var status				= this.renderAttachmentStatus(queueStatus, serverStatus, queueInfo['requestProgress']);
-		var actions				= this.renderAttachmentActions(queueStatus, serverStatus, anAttachment['_attachment']);
-		var progressIndicator	= this.renderAttachmentProgress(queueStatus, serverStatus, queueInfo['requestProgress']);;
 
 		return React.DOM.li({
 			'className': (broken) ? 'broken' : '',
@@ -780,9 +782,9 @@ console.log("DROP");	//, anEvent);
 				React.DOM.span({'className': 'name'}, anAttachment.name),
 				React.DOM.span({'className': 'size'}, filesize(anAttachment.size)),
 			]),
-			React.DOM.span({'className': 'status'}, status),
-			React.DOM.span({'className': 'progress'}, progressIndicator),
-			React.DOM.span({'className': 'actions'}, actions),
+			React.DOM.span({'className': 'status'},		this.renderAttachmentStatus  (queueStatus, serverStatus, queueInfo['requestProgress'])),
+			React.DOM.span({'className': 'progress'},	this.renderAttachmentProgress(queueStatus, serverStatus, queueInfo['requestProgress'])),
+			React.DOM.span({'className': 'actions'},	this.renderAttachmentActions (queueStatus, serverStatus, anAttachment['_attachment'])),
 		])
 	},
 
@@ -798,7 +800,7 @@ console.log("DROP");	//, anEvent);
 			]),
 			React.DOM.div({
 				'className': 'cardUploadAttachments',
-				'onClick': MochiKit.Base.bind(function() { this.refs['attachmentInput'].getDOMNode().click() }, this),
+				'onClick': MochiKit.Base.bind(function() { this.refs['attachmentInput'].click() }, this),
 				'onDragOver': this.handleOnDragOver,
 				'onDrop': this.handleOnDrop,
 			},[

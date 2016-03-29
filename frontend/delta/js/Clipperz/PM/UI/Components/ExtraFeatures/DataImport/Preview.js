@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataImport.PreviewClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.ExtraFeatures.DataImport.Preview',
+
 	getInitialState: function() {
 		var	recordsToImport;
 
@@ -83,7 +85,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.PreviewClass = React.createCl
 	//-------------------------------------------------------------------------
 
 	handleImportTagTextChange: function() {
-		var newTag = this.refs['importTagText'].getDOMNode().value;
+		var newTag = this.refs['importTagText'].value;
 
 		this.props.importContext.setState('importTag', newTag);
 	},

@@ -28,6 +28,8 @@ Clipperz.PM.UI.Components.Panels.MainPanelClass = React.createClass({
 
 	//=========================================================================
 
+	displayName: 'Clipperz.PM.UI.Components.Panels.MainPanel',
+
 	propTypes: {
 		'allTags':				React.PropTypes.array,
 		'messageBox':			React.PropTypes.object.isRequired,

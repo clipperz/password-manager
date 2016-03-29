@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.Pages');
 
 Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.Pages.LoginPage',
+
 	propTypes: {
 		mode:							React.PropTypes.oneOf(['CREDENTIALS','PIN']).isRequired,
 		isNewUserRegistrationAvailable:	React.PropTypes.bool.isRequired,
@@ -59,7 +61,7 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 
 	handleChange: function (anEvent) {
 		var	refs = this.refs;
-		var refName = MochiKit.Base.filter(function (aRefName) { return refs[aRefName].getDOMNode() == anEvent.target}, MochiKit.Base.keys(this.refs))[0];
+		var refName = MochiKit.Base.filter(function (aRefName) { return refs[aRefName] == anEvent.target}, MochiKit.Base.keys(this.refs))[0];
 		var newState = {};
 
 		newState[refName] = anEvent.target.value;
@@ -70,8 +72,8 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 		if (this.mode() == 'CREDENTIALS') {
 			var newState;
 
-			var usernameValue = this.refs['username'].getDOMNode().value;
-			var passphraseValue = this.refs['passphrase'].getDOMNode().value;
+			var usernameValue = this.refs['username'].value;
+			var passphraseValue = this.refs['passphrase'].value;
 
 			newState = {};
 
@@ -87,11 +89,11 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 	handleCredentialSubmit: function (event) {
 		event.preventDefault();
 
-		this.refs['passphrase'].getDOMNode().blur();
+		this.refs['passphrase'].blur();
 
 		var credentials = {
-			'username': this.refs['username'].getDOMNode().value,
-			'passphrase': this.refs['passphrase'].getDOMNode().value
+			'username': this.refs['username'].value,
+			'passphrase': this.refs['passphrase'].value
 		}
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'doLogin', credentials);
 	},
@@ -116,7 +118,7 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 	},
 
 	loginForm: function () {
-		return	React.DOM.form({'key':'form', 'className':'loginForm credentials', 'autoComplete':'off', 'autoCorrect':'off', 'autoCapitalize':'off', 'onChange':this.handleChange, 'onSubmit':this.handleCredentialSubmit}, [
+		return	React.DOM.form({'key':'loginForm', 'className':'loginForm credentials', 'autoComplete':'off', 'autoCorrect':'off', 'autoCapitalize':'off', 'onChange':this.handleChange, 'onSubmit':this.handleCredentialSubmit}, [
 					React.DOM.div({'key':'fields'},[
 						React.DOM.label({'key':'username-label', 'htmlFor' :'name'}, "username"),
 						React.DOM.input({'key':'username', 'type':'text', 'name':'name', 'ref':'username', 'placeholder':"username", 'autoComplete':'off', 'autoCorrect':'off', 'autoCapitalize':'off', 'spellCheck': false}),
@@ -128,10 +130,10 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 	},
 
 	submitPIN: function (event) {
-		this.refs['pin'].getDOMNode().blur();
+		this.refs['pin'].blur();
 
 		var credentials = {
-			pin: this.refs['pin'].getDOMNode().value
+			pin: this.refs['pin'].value
 		}
 
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'doLogin', credentials);
@@ -153,7 +155,7 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 
 	// handlePinFocus: function(anEvent) {
 	// 	// anEvent.preventDefault();
-	// 	this.refs['pin'].getDOMNode().focus();
+	// 	this.refs['pin'].focus();
 	// },
 
 	// pinFormDigits: function() {
@@ -179,12 +181,13 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 
 	pinForm: function () {
 		return	React.DOM.form({
+			'key':'pinForm',
 			'className':'pinForm pin',
 			'autoComplete':'off',
 			'onSubmit': function(anEvent) {anEvent.preventDefault();},
 		}, [
 				React.DOM.div({'key':'pinFormDiv'},[
-					React.DOM.label({'htmlFor':'pin'}, "Enter your PIN"),
+					React.DOM.label({'key':'pinLabel', 'htmlFor':'pin'}, "Enter your PIN"),
 					React.DOM.input({
 						'type':'tel',
 						'name':'pin',
@@ -199,6 +202,7 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 					}),
 					// React.DOM.div({'className': 'pinContainer'}, this.pinFormDigits()),
 					React.DOM.a({
+						'key':'pinAnchor',
 						'className': 'passphraseLogin',
 						'onClick': this.forcePassphraseLogin,
 					}, "Login with passphrase")
@@ -212,12 +216,12 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 			this.setState({
 				'pin': ''
 			})
-			this.refs['pin'].getDOMNode().focus();
+			this.refs['pin'].focus();
 		} else {
-			if (this.refs['username'].getDOMNode().value == '') {
-				this.refs['username'].getDOMNode().focus();
+			if (this.refs['username'].value == '') {
+				this.refs['username'].focus();
 			} else{
-				this.refs['passphrase'].getDOMNode().select();
+				this.refs['passphrase'].select();
 			}
 		}
 	},
@@ -234,22 +238,22 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 		return React.DOM.div({'key':'loginForm', 'className':'loginForm content ' + this.props['style']}, [
 			Clipperz.PM.UI.Components.AccountStatus(MochiKit.Base.update(this.props['proxyInfo'])),
 			React.DOM.header({'key':'header'}, [
-				React.DOM.div({'className':'headerContent'}, [
-					React.DOM.h3({}, 'clipperz'),
-					React.DOM.h5({}, 'keep it to yourself'),
+				React.DOM.div({'key':'div', 'className':'headerContent'}, [
+					React.DOM.h3({'key':'h3'}, 'clipperz'),
+					React.DOM.h5({'key':'h5'}, 'keep it to yourself'),
 				]),
 			]),
 			React.DOM.div({'key':'formWrapper', 'className':'form body'}, [
-				React.DOM.div({'className':'bodyContent'}, [
+				React.DOM.div({'key':'div', 'className':'bodyContent'}, [
 					this.mode() == 'PIN' ? this.pinForm() : this.loginForm(),
 					this.props['isNewUserRegistrationAvailable'] ? registrationLink : null,
 				]),
 			]),
 			React.DOM.div({'key':'afterBody', 'className':'afterBody'}),
-			React.DOM.div({'className':'other', 'key':'other'}, [
-				React.DOM.div({'className':'otherContent'}, [
+			React.DOM.div({'key':'other', 'className':'other'}, [
+				React.DOM.div({'key':'otherContent', 'className':'otherContent'}, [
 					React.DOM.div({'key':'links', 'className':'links'}, [
-						React.DOM.ul({}, [
+						React.DOM.ul({'key':'ul'}, [
 							React.DOM.li({'key':'about',   'onClick':this.showUrl('/about/')}, "About"),
 							React.DOM.li({'key':'terms',   'onClick':this.showUrl('/terms_service/')}, "Terms of service"),
 							React.DOM.li({'key':'privacy', 'onClick':this.showUrl('/privacy_policy/')}, "Privacy"),
@@ -258,7 +262,7 @@ Clipperz.PM.UI.Components.Pages.LoginPageClass = React.createClass({
 				])
 			]),
 			React.DOM.footer({'key':'footer'}, [
-				React.DOM.div({'className':'footerContent'}, [
+				React.DOM.div({'key':'div', 'className':'footerContent'}, [
 					React.DOM.div({'key':'applicationVersion', 'className':'applicationVersion'}, [
 						React.DOM.span({'key':'applicationVersionLabel'}, "application version"),
 						React.DOM.a({'key':'applicationVersionLink', 'href':'https://github.com/clipperz/password-manager/commit/' + Clipperz_version, 'target':'github'}, Clipperz_version)

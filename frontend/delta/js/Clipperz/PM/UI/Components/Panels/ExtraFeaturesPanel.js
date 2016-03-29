@@ -26,12 +26,13 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.Panels');
 
 Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel',
+
 	componentDidMount: function () {
 		MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, 'closeSettingsPanel', MochiKit.Base.method(this, 'hideExtraFeatureContent'));
 	},
 
 	settingsToggleHandler: function (anEvent) {
-//console.log("settingsToggleHandler");
 		this.hideExtraFeatureContent();
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSettingsPanel');
 	},
@@ -120,6 +121,10 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'updateOTPListAndDetails');
 		}
 		
+		if (aComponentName == 'Plan') {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'updateUserAccountInfo');
+		}
+		
 		this.setState({
 			'isFullyOpen':true,
 			'extraFeatureComponentName': aComponentName,
@@ -147,23 +152,29 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 					React.DOM.li({'key':'account', 'className':this.state['index']['account'] ? 'open' : 'closed'}, [
 						React.DOM.h1({'key':'accountH1', 'onClick':this.toggleIndexState('account')}, "Account"),
 						React.DOM.ul({'key':'accountUL'}, [
-							React.DOM.li({'key':'account_preferences', 'onClick':this.toggleExtraFeatureComponent('Preferences'), 'className':(this.state['extraFeatureComponentName'] == 'Preferences') ? 'selected' : ''}, [
-								React.DOM.h2({'key':'account_preferences_h2'}, "Preferences"),
+							React.DOM.li({'key':'account_0', 'onClick':this.toggleExtraFeatureComponent('Preferences'), 'className':(this.state['extraFeatureComponentName'] == 'Preferences') ? 'selected' : ''}, [
+								React.DOM.h2({}, "Preferences"),
 							]),
 							React.DOM.li({'key':'account_1', 'onClick':this.toggleExtraFeatureComponent('Passphrase'), 'className':(this.state['extraFeatureComponentName'] == 'Passphrase') ? 'selected' : ''}, [
-								React.DOM.h2({'key':'account_1_h2'}, "Passphrase"),
+								React.DOM.h2({}, "Passphrase"),
 //								React.DOM.div({'key':'account_1_div'}, [
 //									React.DOM.p({'key':'account_1_p'}, "Change your account passphrase.")
 //								])
 							]),
-							React.DOM.li({'key':'account_2', 'onClick':this.toggleExtraFeatureComponent('OTP')}, [
+							React.DOM.li({'key':'account_2', 'onClick':this.toggleExtraFeatureComponent('Plan'), 'className':(this.state['extraFeatureComponentName'] == 'Plan') ? 'selected' : ''}, [
+								React.DOM.h2({}, "Plan"),
+//								React.DOM.div({}, [
+//									React.DOM.p({}, "Current plan.")
+//								])
+							]),
+							React.DOM.li({'key':'account_3', 'onClick':this.toggleExtraFeatureComponent('OTP')}, [
 								React.DOM.h2({}, "One-Time Passwords"),
 //								React.DOM.div({}, [
 //									React.DOM.p({}, "Manage your OTPs.")
 //								])
 							]),
 
-							React.DOM.li({'key':'account_3', 'onClick':this.toggleExtraFeatureComponent('DevicePIN')}, [
+							React.DOM.li({'key':'account_4', 'onClick':this.toggleExtraFeatureComponent('DevicePIN')}, [
 								React.DOM.h2({}, "Device PIN"),
 //								React.DOM.div({}, [
 //									React.DOM.p({}, "Configure a PIN that will allow to get access to your cards, but only on this device.")

@@ -25,14 +25,16 @@ Clipperz.Base.module('Clipperz.PM.UI.Components');
 
 Clipperz.PM.UI.Components.CardToolbarClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.CardToolbar',
+
 	propTypes: {
-//		'style':			React.PropTypes.oneOf(['extra-short', 'narrow', 'wide', 'extra-wide']).isRequired,
-		'style':			React.PropTypes.oneOf(Clipperz_PM_UI_availableStyles).isRequired,
-		'enableSidePanels':	React.PropTypes.bool.isRequired,
-		'accountInfo':		React.PropTypes.object.isRequired,
-		'proxyInfo':		React.PropTypes.object.isRequired,
-		'messageBox':		React.PropTypes.object.isRequired,
-		'filter':			React.PropTypes.object /*.isRequired */,
+//		'style':				React.PropTypes.oneOf(['extra-short', 'narrow', 'wide', 'extra-wide']).isRequired,
+		'style':				React.PropTypes.oneOf(Clipperz_PM_UI_availableStyles).isRequired,
+		'enableSidePanels':		React.PropTypes.bool.isRequired,
+		'accountInfo':			React.PropTypes.object.isRequired,
+		'proxyInfo':			React.PropTypes.object.isRequired,
+		'messageBox':			React.PropTypes.object.isRequired,
+		'filter':				React.PropTypes.object /*.isRequired */,
 		'attachmentQueueInfo':	React.PropTypes.object.isRequired,
 	},
 
@@ -55,6 +57,12 @@ Clipperz.PM.UI.Components.CardToolbarClass = React.createClass({
 
 	//============================================================================
 
+	certificateQueueToggleHandler: function (anEvent) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleCertificateQueueBox');
+	},
+	
+	//============================================================================
+
 	renderWithSidePanels: function () {
 		var attachmentDownloadNotificationNumber = MochiKit.Base.filter(function(anElement) {
 			return anElement['queueElement']['process'] == 'DOWNLOAD';
@@ -62,18 +70,25 @@ Clipperz.PM.UI.Components.CardToolbarClass = React.createClass({
 
 		var attachmentUploadNotificationNumber = this.props['attachmentQueueInfo']['notifications'].length - attachmentDownloadNotificationNumber;
 
+//		attachmentDownloadNotificationNumber = 2;
+//		attachmentUploadNotificationNumber = 3;
+		var verifyingCertificateNotificationNumber = this.props['certificateQueueInfo'] ? MochiKit.Base.filter(function (anCertificationInfo) {
+			return anCertificationInfo['status'] == 'requested';
+		}, this.props['certificateQueueInfo']).length : 0;
+		var verifiedCertificateNotificationNumber = this.props['certificateQueueInfo'] ? MochiKit.Base.filter(function (anCertificationInfo) {
+			return anCertificationInfo['status'] == 'published';
+		}, this.props['certificateQueueInfo']).length : 0;
+
 		return [
 			React.DOM.div({className:'selectionToggle'}, [
 				Clipperz.PM.UI.Components.Button({eventName:'selectionToggleButton', label:"tags", handler:this.selectionToggleHandler})
 			]),
 			this.renderWithoutSidePanels(),
-			// React.DOM.div({className:'attachmentToggle'}, [
-			// 	Clipperz.PM.UI.Components.Button({eventName:'attachmentQueueToggleButton', label:"clipperz", handler:this.attachmentQueueToggleHandler})
-			// ]),
 
 			// TODO: validate and adjust names
 			React.DOM.div({className:'settingsToggle'}, [
-				Clipperz.PM.UI.Components.Button({eventName:'attachmentQueueToggleButton', label:"\u2191\u2193", handler:this.attachmentQueueToggleHandler, badgeTopContent: attachmentDownloadNotificationNumber, badgeBottomContent: attachmentUploadNotificationNumber}),
+				Clipperz.PM.UI.Components.Button({eventName:'certificateQueueToggleButton', label:"certificate",  handler:this.certificateQueueToggleHandler, badgeTopContent:verifyingCertificateNotificationNumber, badgeBottomContent:verifiedCertificateNotificationNumber}),
+				Clipperz.PM.UI.Components.Button({eventName:'attachmentQueueToggleButton',  label:"\u2191\u2193", handler:this.attachmentQueueToggleHandler,  badgeTopContent:attachmentDownloadNotificationNumber, badgeBottomContent:attachmentUploadNotificationNumber}),
 				Clipperz.PM.UI.Components.Button({eventName:'settingsToggleButton', label:"menu", handler:this.settingsToggleHandler})
 			])
 		];
@@ -81,6 +96,7 @@ Clipperz.PM.UI.Components.CardToolbarClass = React.createClass({
 	
 	renderWithoutSidePanels: function () {
 		var	result;
+//console.log("CARD TOOLBAR", this.props);
 
 		if (this.props['filter']) {
 //console.log("CARD TOOLBAR", this.props['filter']['type']);

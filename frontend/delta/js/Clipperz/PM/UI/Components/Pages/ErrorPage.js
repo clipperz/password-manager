@@ -25,26 +25,28 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.Pages');
 
 Clipperz.PM.UI.Components.Pages.ErrorPageClass = React.createClass({
 
-	getDefaultProps: function () {
-		return {
-//			template: Clipperz.PM.UI.Components.PageTemplate
-		}
-	},
-
-	'propTypes': {
-//		type:		React.PropTypes.oneOf(['PERMANENT', 'TEMPORARY']),
-		message:	React.PropTypes.string.isRequired,
-		template:	React.PropTypes.func
-	},
-
+	displayName: 'Clipperz.PM.UI.Components.Pages.ErrorPage',
 
 	render: function () {
-		return	React.DOM.div({className:'error-message'}, this.props.message);
-	},
-
-//	render: function () {
-//		return	new this.props.template({'innerComponent': this._render()});
-//	}
+//console.log("ERROR PAGE", this.props);
+		return	React.DOM.div({}, [
+			React.DOM.header({}, [
+				React.DOM.h2({}, 'clipperz')
+			]),
+			React.DOM.div({}, [
+				React.DOM.div({'className':'error-box'}, [
+					React.DOM.div({}, [
+						React.DOM.p({}, "Ops!"),
+						React.DOM.p({}, "Sorry, something went wrong."),
+						React.DOM.p({}, "Please reload."),
+					]),
+					React.DOM.div({'className':'error-message'}, [
+						React.DOM.p({}, this.props['error'] ? this.props['error']['message'] : '')
+					])
+				])
+			])
+		])
+	}
 });
 
 Clipperz.PM.UI.Components.Pages.ErrorPage = React.createFactory(Clipperz.PM.UI.Components.Pages.ErrorPageClass);

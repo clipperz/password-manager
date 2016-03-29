@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures');
 
 Clipperz.PM.UI.Components.ExtraFeatures.PassphraseClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.ExtraFeatures.Passphrase',
+
 	propTypes: {
 	},
 	
@@ -44,18 +46,18 @@ Clipperz.PM.UI.Components.ExtraFeatures.PassphraseClass = React.createClass({
 	resetForm: function () {
 		this.setState(this.getInitialState());
 
-		this.refs['username'].getDOMNode().value = '';
-		this.refs['old-passphrase'].getDOMNode().value = '';
-		this.refs['new-passphrase'].getDOMNode().value = '';
-		this.refs['confirm-new-passphrase'].getDOMNode().value = '';
-		this.refs['confirm'].getDOMNode().checked = false;
+		this.refs['username'].value = '';
+		this.refs['old-passphrase'].value = '';
+		this.refs['new-passphrase'].value = '';
+		this.refs['confirm-new-passphrase'].value = '';
+		this.refs['confirm'].checked = false;
 	},
 
 	handleChangePassphrase: function(event) {
 		var	newPassphrase;
 		
 		event.preventDefault();
-		newPassphrase = this.refs['new-passphrase'].getDOMNode().value;
+		newPassphrase = this.refs['new-passphrase'].value;
 		this.resetForm();
 
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'changePassphrase', newPassphrase);
@@ -65,19 +67,19 @@ Clipperz.PM.UI.Components.ExtraFeatures.PassphraseClass = React.createClass({
 		var deferredResult;
 		
 		deferredResult = new Clipperz.Async.Deferred("Passphrase.handleFormChange", {trace: false});
-		deferredResult.addCallback(this.props.userInfo['checkPassphraseCallback'], this.refs['old-passphrase'].getDOMNode().value);
+		deferredResult.addCallback(this.props.userInfo['checkPassphraseCallback'], this.refs['old-passphrase'].value);
 		deferredResult.addMethod(this, function(passCheck){
-			var username = this.refs['username'].getDOMNode().value;
-			var oldPassphrase = this.refs['old-passphrase'].getDOMNode().value;
-			var newPassphrase = this.refs['new-passphrase'].getDOMNode().value;
-			var confirmNewPassphrase = this.refs['confirm-new-passphrase'].getDOMNode().value;
+			var username = this.refs['username'].value;
+			var oldPassphrase = this.refs['old-passphrase'].value;
+			var newPassphrase = this.refs['new-passphrase'].value;
+			var confirmNewPassphrase = this.refs['confirm-new-passphrase'].value;
 			
 			this.setState({
 				'username': (username != '') ? [(username == this.props.userInfo['username']) ? 'valid' : 'invalid'] : 'empty',
 				'old-passphrase': (oldPassphrase != '') ? [(passCheck) ? 'valid' : 'invalid'] : 'empty',
 				'new-passphrase': (newPassphrase != '') ? 'valid' : 'empty',
 				'confirm-new-passphrase': (confirmNewPassphrase != '') ? [(confirmNewPassphrase == newPassphrase) ? 'valid' : 'invalid'] : 'empty',
-				'confirm': this.refs['confirm'].getDOMNode().checked,
+				'confirm': this.refs['confirm'].checked,
 			});
 		});
 		

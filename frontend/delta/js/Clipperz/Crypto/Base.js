@@ -497,7 +497,7 @@ var state = new array(4);
 var count = new array(2);
     count[0] = 0;
     count[1] = 0;                     
-var buffer = new array(64); 
+var md5_buffer = new array(64); 
 var transformBuffer = new array(16); 
 var digestBits = new array(16);
 
@@ -683,9 +683,9 @@ function md5_update(b) {
       count[0] -= 0xFFFFFFFF + 1;
       count[0] += 8;
     }
-    buffer[index] = and(b, 0xff);
+    md5_buffer[index] = and(b, 0xff);
     if (index  >= 63) {
-        transform(buffer, 0);
+        transform(md5_buffer, 0);
     }
 }
 

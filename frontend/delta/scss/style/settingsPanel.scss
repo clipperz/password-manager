@@ -524,6 +524,94 @@ refer to http://www.clipperz.com.
 			}
 		}
 
+		.plan {
+			h2 {
+				font-size: 15pt;
+				padding-bottom: 10px;
+			}
+			
+			div {
+				padding-bottom: 30px;
+			}
+
+			dl {
+				dt {
+					float: left;
+					clear: both;
+					padding-right: 5px;
+					padding-bottom: 6px;
+
+					span {
+						font-weight: bold;
+						
+						&:after {
+							content: ": ";
+						}
+					}
+				}
+				
+				dd {
+					float: left;
+				}
+			}
+
+			.certificates {
+				ul {
+					li {
+//						display: inline-block;
+						padding-bottom: 5px;
+
+						&.published {
+							&:before {
+								color: #fff;
+							}
+						}
+				
+						&.requested {
+							&:before {
+								color: #777;
+							}
+						}
+				
+						&.available {
+							&:before {
+								color: #222;
+							}
+						}
+
+						&:before {
+							content: "certificate";
+							@include icon-font();
+							font-size: 30px;
+							margin-right: 10px;
+							vertical-align: middle;
+						};
+					}
+				}
+			}
+
+			.progressBar {
+		//		display: block;
+		//		width: 100%;
+				background-color: #222;
+				height: 10px;
+				margin-top: 50px;
+//				margin-bottom: 25px;
+				margin-right: 20px;
+				padding-bottom: 0px;
+				@include border-radius(5px);
+	
+				.progress {
+					background-color: #999;
+		//			width: 70%;
+					height: 10px;
+					display: block;
+					@include border-radius(5px);
+				}
+			}
+			
+		}
+
 		.OTP {
 			.header {
 				.description {

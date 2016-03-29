@@ -25,6 +25,8 @@ refer to http://www.clipperz.com.
 Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV.ColumnsClass = React.createClass({
+
+	displayName: 'Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV.Columns',
 	
 	getInitialState: function() {
 		return {

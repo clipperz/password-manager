@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components');
 
 Clipperz.PM.UI.Components.HelpClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.Help',
+
 	close: function (anEvent) {
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'closeHelp');
 	},

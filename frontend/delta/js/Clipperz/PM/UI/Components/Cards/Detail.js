@@ -25,23 +25,39 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
 Clipperz.PM.UI.Components.Cards.DetailClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.Cards.Detail',
+
 	propTypes: {
 		'allTags':	React.PropTypes.array,
 	},
 
 	viewComponentProps: function () {
 		var	result;
+		var	props = this.props;
+		var	propertiesToPassAlong = [
+			'features',
+			'style',
+			'showGlobalMask',
+			'allTags',
+			'preferences',
+			'attachmentQueueInfo',
+			'proxyInfo',
+			'showCertificatePreview',
+			'certificateDetails'
+		];
 
-		result = this.props['selectedCard'];
+		result = props['selectedCard'];
 		if (result) {
-			result['features'] = this.props['features'];
-			result['style'] = this.props['style'];
-			result['ask'] = (this.props['style'] == 'narrow') ? this.props['ask'] : null;
-			result['showGlobalMask'] = this.props['showGlobalMask'];
-			result['allTags'] = this.props['allTags'];
-			result['preferences'] = this.props['preferences'];
-			result['attachmentQueueInfo'] = this.props['attachmentQueueInfo'];
-			result['proxyInfo'] = this.props['proxyInfo'];
+//			result['features'] = this.props['features'];
+//			result['style'] = this.props['style'];
+			result['ask'] = (props['style'] == 'narrow') ? props['ask'] : null;
+//			result['showGlobalMask'] = this.props['showGlobalMask'];
+//			result['allTags'] = this.props['allTags'];
+//			result['preferences'] = this.props['preferences'];
+//			result['attachmentQueueInfo'] = this.props['attachmentQueueInfo'];
+//			result['proxyInfo'] = this.props['proxyInfo'];
+//			result['showCertificatePreview'] = this.props['showCertificatePreview'];
+			MochiKit.Iter.forEach(propertiesToPassAlong, function (aProperty) { result[aProperty] = props[aProperty]; });
 		}
 		
 		return result;

@@ -42,7 +42,15 @@
 
 		"webcryptoshim.repository":		"https://github.com/vibornoff/webcrypto-shim.git",
 		"webcryptoshim.version":		"0.1.0",
-		"webcryptoshim.commit":			"fb82fe0936adb4813a9b513991266a2bef51d32b"
+		"webcryptoshim.commit":			"fb82fe0936adb4813a9b513991266a2bef51d32b",
+
+		"bitcoinjs-lib.repository":		"https://github.com/bitcoinjs/bitcoinjs-lib",
+		"bitcoinjs-lib.version":		"2.1.4",
+		"bitcoinjs-lib.commit":			"e25ce449dcd932d34d15e47a269a54ea155bdb4d",
+		
+		"buffer.repository":			"https://github.com/feross/buffer",
+		"buffer.version":				"4.3.0",
+		"buffer.commit":				"e52c33af77a79060c4d423a5447bd77c331ee9c9"
 	},
 
 	"html.template": "index_template.html",
@@ -63,10 +71,10 @@
 		"MochiKit/Selector.js",
 		"-- MochiKit/Visual.js",
 
-		"-- React/react-0.13.3.js",
-		"React/react.min-0.13.3.js",
-		"-- #React/react-with-addons-0.13.1.js",
-		"-- #React/react-with-addons.min-0.13.1.js",
+		"-- React/react-0.14.7.js",
+		"-- React/react-dom-0.14.7.js",
+		"React/react.min-0.14.7.js",
+		"React/react-dom.min-0.14.7.js",
 
 		"MouseTrap/mousetrap.js",
 		"-- MouseTrap/mousetrap-bind-dictionary.js",
@@ -84,7 +92,7 @@
 		"PapaParse/papaparse.js",
 		"-- PapaParse/papaparse.min.js",
 
-		"xDate/xdate.js",
+		"xDate/xdate-0.8.js",
 		
 		"-- Filesize/filesize.js",
 		"Filesize/filesize.min.js",
@@ -92,6 +100,8 @@
 		"-- WEBCRYPTO AND PROMISES POLYFILL FOR IE11",
 		"Promiz/promiz.min.js",
 		"WebcryptoShim/webcrypto-shim.js",
+
+		"npm/npm.js",
 
 		"-- IT WOULD BE NICE TO BE ABLE TO GET RID OF THESE IMPORTS",
 		"Clipperz/YUI/Utils.js",
@@ -163,6 +173,7 @@
 		"Clipperz/PM/DataModel/User.Header.RecordIndex.js",
 		"Clipperz/PM/DataModel/User.Header.Preferences.js",
 		"Clipperz/PM/DataModel/User.Header.OneTimePasswords.js",
+		"Clipperz/PM/DataModel/User.Header.Wallet.js",
 		"Clipperz/PM/DataModel/User.AccountInfo.js",
 		"Clipperz/PM/DataModel/Record.js",
 		"Clipperz/PM/DataModel/Record.Version.js",
@@ -195,6 +206,7 @@
 		"Clipperz/PM/UI/Components/TagIndexItem.js",
 		"Clipperz/PM/UI/Components/Help.js",
 		"Clipperz/PM/UI/Components/AttachmentQueueBox.js",
+		"Clipperz/PM/UI/Components/CertificateQueueBox.js",
 		"Clipperz/PM/UI/Components/RadialProgressIndicator.js",
 
 		"Clipperz/PM/UI/Components/ExpiredPanel.js",
@@ -213,6 +225,7 @@
 		"Clipperz/PM/UI/Components/ExtraFeatures/DevicePIN.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/Preferences.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/Passphrase.js",
+		"Clipperz/PM/UI/Components/ExtraFeatures/Plan.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/OTP.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/DeleteAccount.js",
 		"Clipperz/PM/UI/Components/ExtraFeatures/DataExport.js",
@@ -238,6 +251,8 @@
 		"Clipperz/PM/UI/Components/Cards/EditToolbar.js",
 		"Clipperz/PM/UI/Components/Cards/TagEditor.js",
 		"Clipperz/PM/UI/Components/Cards/PasswordGenerator.js",
+		"Clipperz/PM/UI/Components/Cards/CertificateRenderer.js",
+		
 
 		"Clipperz/PM/UI/Components/AccountStatus.js",
 
@@ -245,6 +260,7 @@
 		"-- Clipperz/PM/UI/MainDesktopController.js",
 		"Clipperz/PM/UI/DirectLoginController.js",
 		"Clipperz/PM/UI/ExportController.js",
+		"Clipperz/PM/UI/CertificateDownloadController.js",
 		"Clipperz/PM/UI/AttachmentController.js",
 		"Clipperz/PM/UI/ImportContext.js",
 		"main.js"

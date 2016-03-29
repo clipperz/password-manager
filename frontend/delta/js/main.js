@@ -43,7 +43,7 @@ MochiKit.Logging.logError("## MainController - GENERIC ERROR" + "\n" + "==>> " +
 	return result;
 }
 
-React.initializeTouchEvents(true);
+//React.initializeTouchEvents(true);
 
 Clipperz.PM.RunTime = {};
 

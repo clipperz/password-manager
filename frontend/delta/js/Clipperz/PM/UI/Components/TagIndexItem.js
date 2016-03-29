@@ -28,6 +28,8 @@ Clipperz.PM.UI.Components.TagIndexItemClass = React.createClass({
 
 	//=========================================================================
 
+	displayName: 'Clipperz.PM.UI.Components.TagIndexItem',
+
 	propTypes: {
 		'label':	React.PropTypes.string.isRequired,
 		'count':	React.PropTypes.number.isRequired,

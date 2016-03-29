@@ -24,33 +24,13 @@ refer to http://www.clipperz.com.
 Clipperz.Base.module('Clipperz.PM.UI.Components.Pages');
 
 Clipperz.PM.UI.Components.Pages.CardDetailPageClass = React.createClass({
+
+	displayName: 'Clipperz.PM.UI.Components.Pages.CardDetailPage',
+
 	propTypes: {
 		'allTags':	React.PropTypes.array,
 	},
 
-/*
-	viewComponentProps: function () {
-		var	result;
-		
-		result = this.props['selectedCard'];
-		if (result) {
-			result['style'] = this.props['style'];
-		}
-		
-		return result;
-	},
-	
-	render: function () {
-		var	result;
-		if (this.props['mode'] == 'edit') {
-			result = Clipperz.PM.UI.Components.Cards.Edit(this.viewComponentProps());
-		} else {
-			result = Clipperz.PM.UI.Components.Cards.View(this.viewComponentProps());
-		}
-		
-		return result;
-	},
-*/
 	render: function () {
 		return Clipperz.PM.UI.Components.Cards.Detail(this.props);
 	}

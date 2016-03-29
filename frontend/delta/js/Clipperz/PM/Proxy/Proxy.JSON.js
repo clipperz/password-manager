@@ -130,10 +130,10 @@ Clipperz.Base.extend(Clipperz.PM.Proxy.JSON, Clipperz.PM.Proxy, {
 		deferredResult = new Clipperz.Async.Deferred("Proxy.JSON._sendMessage", {trace:false});
 //deferredResult.addCallback(function(){console.log("About to send request");});
 		deferredResult.addCallback(Clipperz.Async.doXHR, this.url(), {
-			method:'POST',
-			sendContent:formData,
+			'method':'POST',
+			'sendContent':formData,
 			// headers:{"Content-Type":"application/x-www-form-urlencoded"},
-			uploadProgress: aProgressCallback || null,
+			'uploadProgress': aProgressCallback || null,
 		});
 //deferredResult.addCallback(function(something){console.log("Done sending request"); return something;});
 		deferredResult.addCallback(function (someValues) {

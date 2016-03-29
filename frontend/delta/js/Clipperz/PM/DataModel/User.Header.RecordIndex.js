@@ -456,27 +456,15 @@ Clipperz.log("SKIPPING record " + reference + " as there are no stats associated
 	//-------------------------------------------------------------------------
 
 	'createNewAttachment': function (aRecord) {
-		//	TODO:
-
-//		var newDirectLogin;
 		var	newAttachment;
-//		var	newDirectLoginIndexValue;
 		var newAttachmentIndexValue;
 
-//		newDirectLogin = new Clipperz.PM.DataModel.DirectLogin({record:aRecord});
 		newAttachment = new Clipperz.PM.DataModel.Attachment({'record':aRecord});
-//		newDirectLoginIndexValue = MochiKit.Base.listMax(MochiKit.Base.map(function (aValue) { return aValue * 1; }, MochiKit.Base.values(this.directLoginsIndex()))) + 1;
 		newAttachmentIndexValue = MochiKit.Base.listMax(MochiKit.Base.map(function (aValue) { return aValue * 1; }, MochiKit.Base.values(this.attachmentsIndex()))) + 1;
-
-//		this.transientState().setValue('newDirectLoginReferences' + '.' + newDirectLogin.reference(), newDirectLogin);
 		this.transientState().setValue('newAttachmentReferences' + '.' + newAttachment.reference(), newAttachment);
-
-//		this.directLoginsIndex()[newDirectLogin.reference()] = newDirectLoginIndexValue;
 		this.attachmentsIndex()[newAttachment.reference()] = newAttachmentIndexValue;
-//		this.directLoginsData().setValue(this.directLoginsIndex()[newDirectLogin.reference()], {'record': this.recordsIndex()[aRecord.reference()]});
 		this.attachmentsData().setValue(this.attachmentsIndex()[newAttachment.reference()], {'record': this.recordsIndex()[aRecord.reference()]});
 	
-//		return newDirectLogin;
 		return newAttachment;
 	},
 

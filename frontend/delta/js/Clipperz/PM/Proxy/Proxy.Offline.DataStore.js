@@ -1031,6 +1031,7 @@ Clipperz.PM.Proxy.Offline.DataStore.defaultAccountInfo = {
 		'UPDATE_CREDENTIALS',
 		'EDIT_CARD',
 		'CARD_DETAILS',
+		'REGISTER_CARD',
 		'ADD_CARD',
 		'DELETE_CARD',
 		'OFFLINE_COPY',

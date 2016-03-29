@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataExportClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.ExtraFeatures.DataExport',
+
 	propTypes: {
 //		featureSet:			React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
 //		'level':	React.PropTypes.oneOf(['hide', 'info', 'warning', 'error']).isRequired

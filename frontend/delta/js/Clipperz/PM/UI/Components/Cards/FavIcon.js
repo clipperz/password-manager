@@ -27,6 +27,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
 Clipperz.PM.UI.Components.Cards.FavIconClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.Cards.FavIcon',
+
 	propTypes: {
 		'src':	React.PropTypes.string,
 	},

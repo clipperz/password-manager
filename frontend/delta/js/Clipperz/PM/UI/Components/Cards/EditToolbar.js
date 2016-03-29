@@ -28,6 +28,8 @@ Clipperz.PM.UI.Components.Cards.EditToolbarClass = React.createClass({
 
 	//============================================================================
 
+	displayName: 'Clipperz.PM.UI.Components.Cards.EditToolbar',
+
 	propTypes: {
 		'hasPendingChanges':	React.PropTypes.bool.isRequired,
 	},

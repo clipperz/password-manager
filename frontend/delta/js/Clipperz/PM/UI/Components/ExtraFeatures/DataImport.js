@@ -25,7 +25,9 @@ refer to http://www.clipperz.com.
 Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataImportClass = React.createClass({
-	
+
+	displayName: 'Clipperz.PM.UI.Components.ExtraFeatures.DataImport',
+
 	getInitialState: function() {
 		return {
 			'importContext': new Clipperz.PM.UI.ImportContext(this),

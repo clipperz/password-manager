@@ -26,10 +26,12 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.Pages');
 
 Clipperz.PM.UI.Components.Pages.UnlockPageClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.Pages.UnlockPage',
+
 	propTypes: {
-		username:	React.PropTypes.string.isRequired,
+//		username:	React.PropTypes.string.isRequired,
 		mode:		React.PropTypes.oneOf(['CREDENTIALS','PIN']).isRequired,
-		disabled:	React.PropTypes.bool.isRequired,
+//		disabled:	React.PropTypes.bool.isRequired,
 	},
 
 	getInitialState: function () {
@@ -70,29 +72,29 @@ Clipperz.PM.UI.Components.Pages.UnlockPageClass = React.createClass({
 	handlePassphraseSubmit: function (event) {
 		event.preventDefault();
 
-		this.refs['passphrase'].getDOMNode().blur();
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'unlock', this.refs['passphrase'].getDOMNode().value, 'PASSPHRASE');
+		this.refs['passphrase'].blur();
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'unlock', {'credential':this.refs['passphrase'].value, 'credentialType':'PASSPHRASE'});
 	
 		// this.resetUnlockForm();
 	},
 
 	submitPIN: function() {
-		this.refs['pin'].getDOMNode().blur();
+		this.refs['pin'].blur();
 
-		var pin = this.refs['pin'].getDOMNode().value;
+		var pin = this.refs['pin'].value;
 
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'unlock', pin, 'PIN');
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'unlock', {'credential':pin, 'credentialType':'PIN'});
 
 		// this.resetUnlockForm();
 	},
 
 	resetUnlockForm: function() {
 		if (this.mode() == 'CREDENTIALS') {
-			this.refs['passphrase'].getDOMNode().value = '';
-			this.refs['passphrase'].getDOMNode().blur();
+			this.refs['passphrase'].value = '';
+			this.refs['passphrase'].blur();
 		} else if (this.mode() == 'PIN') {
-			this.refs['pin'].getDOMNode().value = '';
-			this.refs['pin'].getDOMNode().blur();
+			this.refs['pin'].value = '';
+			this.refs['pin'].blur();
 		}
 	},
 
@@ -104,9 +106,9 @@ Clipperz.PM.UI.Components.Pages.UnlockPageClass = React.createClass({
 
 	setInitialFocus: function () {
 		if (this.mode() == 'PIN') {
-			this.refs['pin'].getDOMNode().focus();
+			this.refs['pin'].focus();
 		} else {
-			this.refs['passphrase'].getDOMNode().focus();
+			this.refs['passphrase'].focus();
 		}
 	},
 

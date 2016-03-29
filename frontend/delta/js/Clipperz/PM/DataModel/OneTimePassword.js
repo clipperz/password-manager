@@ -183,7 +183,7 @@ Clipperz.PM.DataModel.OneTimePassword.isValidOneTimePasswordValue = function(aPa
 	var result;
 	
 //	"yaxx k7ww - f8y6 tqz5 - 58b6 th44 - 9cwv q0fg"
-	if (aPassword.replace(/[\s\-]/g, '').length == 32) {
+	if (aPassword.replace(/[^a-zA-Z0-9]/g, '').length == 32) {
 		try {
 			var passwordByteArray;
 			

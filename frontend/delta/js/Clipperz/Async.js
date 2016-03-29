@@ -69,7 +69,7 @@ Clipperz.Base.extend(Clipperz.Async.Deferred, MochiKit.Async.Deferred, {
 				if (! (aResult instanceof MochiKit.Async.CancelledError)) {
 					message = "ERROR [" + deferredName + "]";
 				} else {
-					message = "CANCELLED - " + deferredName;
+					message = "CANCELED - " + deferredName;
 				}
 				Clipperz.log(message, aResult);
 

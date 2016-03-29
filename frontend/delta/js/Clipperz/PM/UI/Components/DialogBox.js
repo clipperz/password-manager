@@ -25,6 +25,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components');
 
 Clipperz.PM.UI.Components.DialogBoxClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.DialogBox',
+
 	propTypes: {
 		'info':		React.PropTypes.object.isRequired,
 		'deferred':	React.PropTypes.object.isRequired
@@ -54,19 +56,28 @@ console.log("DIALOG BOX - key UP", anEvent);
 		var	answerInfo = this.props['info']['possibleAnswers'][anAnswerInfoKey];
 		var	classes = {
 			'button':		true,
-			'isDefault':	answerInfo['isDefault']
+			'isDefault':	answerInfo['isDefault'],
+			'disabled':		answerInfo['disabled']
 		};
 		
-		return	React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(classes), 'onClick':this.handleAnswerButton, 'data-answer-key':anAnswerInfoKey}, answerInfo['label'])
+		return	React.DOM.div({
+			'className':Clipperz.PM.UI.Components.classNames(classes),
+			'onClick':this.handleAnswerButton,
+			'data-answer-key':anAnswerInfoKey
+		}, answerInfo['label']);
 	},
 
 	//=========================================================================
 
 	render: function () {
+//console.log("DIALOG BOX", this.props);
 		return	React.DOM.div({'className':'dialogBox' /*, 'onKeyDown':this.handleKeyDown, 'onKeyPress':this.handleKeyPress, 'onKeyUp':this.handleKeyUp */ }, [
 			React.DOM.div({'className':'mask'}),
 			React.DOM.div({'className':'dialog'}, [
 				React.DOM.h3({'className': 'message'}, this.props['info']['question']),
+				this.props['info']['description']
+					? React.DOM.div({'className':'description'}, this.props['info']['description'])
+					: null,
 				React.DOM.div({'className': 'answers'}, MochiKit.Base.map(this.renderAnswerButton, MochiKit.Base.keys(this.props['info']['possibleAnswers'])))
 			])
 		]);

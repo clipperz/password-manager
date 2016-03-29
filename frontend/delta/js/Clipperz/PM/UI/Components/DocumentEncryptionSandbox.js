@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components');
 
 Clipperz.PM.UI.Components.DocumentEncryptionSandboxClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.DocumentEncryptionSandbox',
+
 	getInitialState: function() {
 		return {
 			'documentMeta': null,

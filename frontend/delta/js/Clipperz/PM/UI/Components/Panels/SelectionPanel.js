@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.Panels');
 
 Clipperz.PM.UI.Components.Panels.SelectionPanelClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.Panels.SelectionPanel',
+
 	propTypes: {
 		selectionPanelStatus:	React.PropTypes.oneOf(['OPEN', 'CLOSED']).isRequired
 	},

@@ -28,6 +28,8 @@ Clipperz.PM.UI.Components.Cards.TagEditorClass = React.createClass({
 
 	//============================================================================
 
+	displayName: 'Clipperz.PM.UI.Components.Cards.TagEditor',
+
 	propTypes: {
 		'allTags':				React.PropTypes.array,
 		'selectedTags':			React.PropTypes.array.isRequired,

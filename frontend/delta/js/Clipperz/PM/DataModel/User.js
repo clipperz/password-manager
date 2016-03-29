@@ -52,10 +52,6 @@ Clipperz.PM.DataModel.User = function (args) {
 	this._deferredLocks = {
 		'passphrase':			new MochiKit.Async.DeferredLock(),
 		'serverData':			new MochiKit.Async.DeferredLock(),
-//		'recordsIndex':			new MochiKit.Async.DeferredLock(),
-//		'directLoginsIndex':	new MochiKit.Async.DeferredLock()
-//		'preferences':			new MochiKit.Async.DeferredLock()
-//		'oneTimePasswords':		new MochiKit.Async.DeferredLock()
 		'__syntaxFix__': 'syntax fix'
 	};
 
@@ -267,6 +263,10 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 					'name':	'oneTimePasswords',
 					'username': this.username(),
 					'passphraseCallback': MochiKit.Base.method(this, 'getPassphrase')
+				}),
+				'wallet': new Clipperz.PM.DataModel.User.Header.Wallet({
+					'name':	'wallet',
+					'retrieveKeyFunction': MochiKit.Base.method(this, 'getPassphrase')
 				})
 			}
 		};
@@ -391,6 +391,24 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		this.setAccountInfo(new Clipperz.PM.DataModel.User.AccountInfo(aValue['accountInfo']));
 	},
 
+	'updateAccountInfo': function () {
+		var deferredResult;
+
+		deferredResult = new Clipperz.Async.Deferred("User.updateAccountInfo", {trace:false});
+
+		deferredResult.addMethod(this.connection(), 'message', 'accountInfo');
+//		deferredResult.addCallback(function (aValue) {
+//console.log("ACCOUNT INFO", aValue);
+//			return new Clipperz.PM.DataModel.User.AccountInfo(aValue);
+//		})
+		deferredResult.addMethod(this, 'setupAccountInfo');
+		deferredResult.addErrback (MochiKit.Base.method(this, 'handleConnectionFallback'));
+
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+
 	//-------------------------------------------------------------------------
 
 	'lock': function () {
@@ -439,8 +457,9 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		var headerVersion;
 
 		var	recordsIndex;
-		var preferences;
-		var oneTimePasswords;
+		var	preferences;
+		var	oneTimePasswords;
+		var	wallet;
 
 		headerVersion = this.headerFormatVersion(someServerData['header']);
 		switch (headerVersion) {
@@ -462,6 +481,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 				recordsIndex		= legacyHeader;
 				preferences			= legacyHeader;
 				oneTimePasswords	= legacyHeader;
+				wallet				= legacyHeader;	//	TODO: does this make any sense?
 				break;
 			case '0.1':
 				var	headerData;
@@ -516,6 +536,22 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 						'retrieveKeyFunction': MochiKit.Base.method(this, 'getPassphrase')
 					});
 				}
+
+				if (typeof(headerData['wallet']) != 'undefined') {
+					wallet	= new Clipperz.PM.DataModel.User.Header.Wallet({
+						'name':	'wallet',
+						'retrieveKeyFunction': MochiKit.Base.method(this, 'getPassphrase'),
+						'remoteData': {
+							'data': headerData['wallet']['data'],
+							'version': someServerData['version']
+						}
+					});
+				} else {
+					wallet	= new Clipperz.PM.DataModel.User.Header.Wallet({
+						'name':	'wallet',
+						'retrieveKeyFunction': MochiKit.Base.method(this, 'getPassphrase')
+					});
+				}
 				
 				break;
 		}
@@ -527,9 +563,10 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 				'data': someServerData['header'],
 				'version': headerVersion,
 				
-				'recordsIndex': recordsIndex,
-				'preferences': preferences,
-				'oneTimePasswords': oneTimePasswords
+				'recordsIndex':		recordsIndex,
+				'preferences':		preferences,
+				'oneTimePasswords':	oneTimePasswords,
+				'wallet':			wallet
 			}
 		};
 
@@ -552,7 +589,9 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 			if (this._serverData == null) {
 				innerDeferredResult.addCallbackPass(MochiKit.Signal.signal, this, 'loadingUserDetails');
 				innerDeferredResult.addMethod(this.connection(), 'message', 'getUserDetails');
+//				innerDeferredResult.addCallback(function (aValue) { console.log("USER DETAILS", aValue); return aValue; });
 				innerDeferredResult.addMethod(this, 'unpackServerData');
+//				innerDeferredResult.addCallback(function (aValue) { console.log("UNPACKED SERVER DATA", aValue); return aValue; });
 				innerDeferredResult.addCallbackPass(MochiKit.Signal.signal, this, 'loadedUserDetails');
 			}
 
@@ -607,6 +646,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 	'getHeaderIndex': function (aKey) {
 		return Clipperz.Async.callbacks("User.getHeaderIndex", [
 			MochiKit.Base.method(this, 'getServerData'),
+//			function (aValue) { console.log("HEADER INDEX", aValue); return aValue; },
 			MochiKit.Base.itemgetter('header'),
 			MochiKit.Base.itemgetter(aKey)
 		], {trace:false})
@@ -728,12 +768,7 @@ Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more 
 	//-------------------------------------------------------------------------
 
 	'getRecordDetail': function (aRecord) {
-		// return this.connection().message('getRecordDetail', {reference: aRecordReference});
-
-		return Clipperz.Async.callbacks("User.getRecordDetail", [
-			MochiKit.Base.method(this.connection(), 'message', 'getRecordDetail', {reference: aRecord.reference()}),
-			function(someInfo) { aRecord.setAttachmentServerStatus(someInfo['attachmentStatus']); return someInfo;}, // Couldn't find a better way...
-		], {trace:false});
+		return this.connection().message('getRecordDetail', {reference: aRecord.reference()});
 	},
 
 	//-------------------------------------------------------------------------
@@ -906,7 +941,11 @@ Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more 
 			'oneTimePasswords': [
 				MochiKit.Base.method(this, 'getHeaderIndex', 'oneTimePasswords'),
 				MochiKit.Base.methodcaller(aMethodName, aValue)
-			]//,
+			],
+			'wallet': [
+				MochiKit.Base.method(this, 'getHeaderIndex', 'wallet'),
+				MochiKit.Base.methodcaller(aMethodName, aValue)
+			]
 //			'statistics': [
 //				MochiKit.Base.method(this, 'getStatistics'),
 //				MochiKit.Base.methodcaller(aMethodName, aValue)
@@ -926,14 +965,14 @@ Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more 
 
 	//-------------------------------------------------------------------------
 
-	'getPreferences': function() {
+	getPreferences: function() {
 		return Clipperz.Async.callbacks("User.getPreferences", [
 			MochiKit.Base.method(this, 'getHeaderIndex', 'preferences'),
 			MochiKit.Base.methodcaller('getPreferences')
 		], {trace:false});
 	},
 
-	'getPreference': function(aKey) {
+	getPreference: function(aKey) {
 		return Clipperz.Async.callbacks("User.getPreference", [
 			MochiKit.Base.method(this, 'getHeaderIndex', 'preferences'),
 			MochiKit.Base.methodcaller('getPreference', aKey)
@@ -950,11 +989,7 @@ Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more 
 
 
 	//-------------------------------------------------------------------------
-/*
-	'addNewAttachment': function(anAttachment) {
-		console.log("Adding attachment", anAttachment);
-	},
-*/
+
 	'uploadAttachment': function(aRecordReference, anAttachmentReference, someData) {
 		// TODO: pass a callback to handle onProgress events (and modify Connection accordingly)
 		this.connection().message('uploadAttachment', {
@@ -962,6 +997,34 @@ Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more 
 			'attachmentReference': anAttachmentReference,
 			'data': someData
 		});
+	},
+
+	//=========================================================================
+
+	getWallet: function () {
+		return this.getHeaderIndex('wallet');
+	},
+	
+	getUserMasterKey: function () {
+//console.log("USER - GET USER MASTER KEY");
+		return Clipperz.Async.callbacks("User.getPreferences", [
+			MochiKit.Base.method(this, 'getHeaderIndex', 'wallet'),
+			MochiKit.Base.methodcaller('userMasterKey')
+		], {trace:false});
+	},
+
+	createCertificateForRecord: function (aRecord) {
+		var	cardCertificatePath = 'm/0';
+
+		return Clipperz.Async.callbacks("User.createCertificateForRecord", [
+			MochiKit.Base.method(this, 'getWallet'),
+			MochiKit.Base.methodcaller('getNextID', cardCertificatePath),
+			MochiKit.Base.method(aRecord, 'setID'),
+			MochiKit.Base.method(aRecord, 'markAsCertified'),
+			MochiKit.Base.method(this, 'getWallet'),
+			MochiKit.Base.method(aRecord, 'computeCertificateInfo'),
+			function (certificateInfo) { return {'certificateInfo': certificateInfo}; },
+		], {trace:false});
 	},
 
 	//=========================================================================
@@ -1059,12 +1122,14 @@ Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more 
 		deferredResult.addCallback(MochiKit.Base.bind(function (aResult, someHeaderPackedData) {
 			var header;
 
+//console.log("USER - prepareRemoteDataWithKey", someHeaderPackedData);
 			header = {};
 			header['records']			= someHeaderPackedData['recordIndex']['records'];
 			header['directLogins']		= someHeaderPackedData['recordIndex']['directLogins'];
 			header['attachments']		= someHeaderPackedData['recordIndex']['attachments'];
 			header['preferences']		= {'data': someHeaderPackedData['preferences']['data']};
 			header['oneTimePasswords']	= {'data': someHeaderPackedData['oneTimePasswords']['data']};
+			header['wallet']			= {'data': someHeaderPackedData['wallet']['data']};
 			header['version']			= '0.1';
 
 			aResult['header']		= Clipperz.Base.serializeJSON(header);
@@ -1089,10 +1154,17 @@ Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more 
 	//=========================================================================
 
 	'saveChanges': function () {
+		return this.saveChangesWithExtraParameters();
+	},
+
+	'saveChangesWithExtraParameters': function (extraParameters) {
 		var	deferredResult;
 		var messageParameters;
 		
 		messageParameters = {};
+		if (typeof(extraParameters) != 'undefined') {
+			messageParameters['extraParameters'] = extraParameters;
+		}
 
 		deferredResult = new Clipperz.Async.Deferred("User.saveChangaes", {trace:false});
 
@@ -1110,7 +1182,6 @@ Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more 
 
 		deferredResult.addMethod(this, 'commitTransientState');
 		deferredResult.addErrbackPass(MochiKit.Base.method(this, 'revertChanges'));
-
 		deferredResult.callback();
 
 		return deferredResult;

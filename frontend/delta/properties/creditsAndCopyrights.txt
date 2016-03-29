@@ -37,6 +37,36 @@
 	* Copyright (c) 2000-2013, Leemon Baird 
 	* License: Public Domain
 
+# PapaParse (https://github.com/mholt/PapaParse)
+	* Repository: @papaparse.repository@ (version: @papaparse.version@ - commit: @papaparse.commit@)
+	* Copyright (c) 2015 Matthew Holt
+	* License: http://opensource.org/licenses/mit-license.php
+
+# xDate (http://arshaw.com/xdate/)
+	* Repository: @xDate.repository@ (version: @xDate.version@ - commit: @xDate.commit@)
+	* Copyright (c) 2011 Adam Shaw, http://arshaw.com/xdate/
+	* License: http://opensource.org/licenses/mit-license.php
+
+# FileSize (http://filesizejs.com)
+	* Repository: @filesize.repository@ (version: @filesize.version@ - commit: @filesize.commit@)
+	* Copyright (c) 2015, Jason Mulligan
+	* License: https://github.com/avoidwork/filesize.js/blob/master/LICENSE
+
+# Promiz (https://github.com/Zolmeister/promiz.git)
+	* Repository: @promiz.repository@ (version: @promiz.version@ - commit: @promiz.commit@)
+	* Copyright (c) 2014 Zolmeister
+	* License: http://opensource.org/licenses/mit-license.php
+
+# WebCryptoShim (https://vibornoff.github.io/webcrypto-shim/)
+	* Repository: @webcryptoshim.repository@ (version: @webcryptoshim.version@ - commit: @webcryptoshim.commit@)
+	* Copyright (c) 2015 Artem S Vybornov
+	* License: http://opensource.org/licenses/mit-license.php
+
+# BitCoinJS-lib (http://bitcoinjs.org)
+	* Repository: @bitcoinjs-lib.repository@ (version: @bitcoinjs-lib.version@ - commit: @bitcoinjs-lib.commit@)
+	* Copyright (c) 2011-2016 bitcoinjs-lib contributors
+	* License: http://opensource.org/licenses/mit-license.php
+
 ===============================================================================
 
 	Other code snippets used in the first demo of the program, and still 
