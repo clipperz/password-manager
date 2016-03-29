@@ -551,6 +551,13 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 		var queueElement = this.getQueueElement(aFileReference);
 		var messageString = aMessage ? " (" + aMessage + ")" : "";
 
+		try {
+			if (Clipperz.Base.evalJSON(anException['req']['response'])['message'] == "not enough space available for uploading the attachment") {
+				console.log("NOT ENOUGH ATTACHMENT QUOTA EXCEPTION");
+			}
+		} catch (exception) {
+		}
+
 		if (queueElement['status'] != 'CANCELED') {
 			this.updateFileInQueue(aFileReference, {
 				'status': 'FAILED',
