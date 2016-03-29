@@ -359,7 +359,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 
 				MochiKit.Base.methodcaller('getAddress')
 			],
-			'attachments': MochiKit.Base.method(this, 'computeAttachmentsCertificateInfo')
+//			'attachments': MochiKit.Base.method(this, 'computeAttachmentsCertificateInfo')
 		});
 //deferredResult.addCallback(function (aValue) { console.log("=== CERTIFICATE INFO", MochiKit.Base.serializeJSON(aValue)); return aValue;});
 		deferredResult.callback();
