@@ -114,21 +114,22 @@ Clipperz.PM.UI.Components.Cards.CertificateRendererClass = React.createClass({
 					React.DOM.ul({'className':'attachments'},
 						MochiKit.Base.map(
 							function (anAttachmentInfo) {
-								var	numberPadding = function (aValue) {
-									return ("00" + aValue).substr(-2);
-								}
+//								var	numberPadding = function (aValue) {
+//									return ("00" + aValue).substr(-2);
+//								}
 								return React.DOM.li({}, [
-									React.DOM.dl({'className':'file'}, [React.DOM.dt({}, "File"),     React.DOM.dd({}, anAttachmentInfo[0]['name'])]),
-									React.DOM.dl({'className':'size'}, [React.DOM.dt({}, "Size"),     React.DOM.dd({}, filesize(anAttachmentInfo[0]['size']))]),
-									React.DOM.dl({'className':'type'}, [React.DOM.dt({}, "Filetype"), React.DOM.dd({}, anAttachmentInfo[0]['contentType'])]),
-									React.DOM.dl({'className':'hash'}, [React.DOM.dt({}, "Sha256"),   React.DOM.dd({}, anAttachmentInfo[1]['hash'])]),
+									React.DOM.dl({'className':'file'}, [React.DOM.dt({}, "File"),     React.DOM.dd({}, anAttachmentInfo['name'])]),
+									React.DOM.dl({'className':'size'}, [React.DOM.dt({}, "Size"),     React.DOM.dd({}, filesize(anAttachmentInfo['size']))]),
+									React.DOM.dl({'className':'type'}, [React.DOM.dt({}, "Filetype"), React.DOM.dd({}, anAttachmentInfo['contentType'])]),
+									React.DOM.dl({'className':'hash'}, [React.DOM.dt({}, "Sha256"),   React.DOM.dd({}, anAttachmentInfo['hash'])]),
 //									React.DOM.div({'className':'address'}, /*"OUT" + numberPadding(anAttachmentInfo[2]) + " - " + */"File BTC address: " + anAttachmentInfo[1]['address'])
 								]);
-							}, MochiKit.Base.zip(
-								this.props['certificateDetails']['metadata']['attachments'],
-								MochiKit.Base.values(this.props['certificateDetails']['transaction']['attachments']),
-								MochiKit.Iter.range(2, this.props['certificateDetails']['metadata']['attachments'].length + 2)
-							)
+							}, this.props['certificateDetails']['metadata']['attachments']
+//							}, MochiKit.Base.zip(
+//								this.props['certificateDetails']['metadata']['attachments'],
+//								MochiKit.Base.values(this.props['certificateDetails']['transaction']['attachments']),
+//								MochiKit.Iter.range(2, this.props['certificateDetails']['metadata']['attachments'].length + 2)
+//							)
 						)
 					),
 					React.DOM.div({'className':'address'}, /*"OUT01 - " + */"BTC address from card data: " + this.props['certificateDetails']['transaction']['metadata.address'])
