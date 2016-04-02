@@ -25,6 +25,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components');
 
 Clipperz.PM.UI.Components.MessageBoxClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.MessageBox',
+
 	propTypes: {
 		'level':	React.PropTypes.oneOf(['HIDE', 'INFO', 'WARNING', 'ERROR']).isRequired,
 		'message':	React.PropTypes.string.isRequired

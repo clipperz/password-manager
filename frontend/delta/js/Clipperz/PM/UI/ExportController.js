@@ -33,7 +33,7 @@ Clipperz.PM.UI.ExportController = function(args) {
 	
 	this._style =
 		"body {" +
-			"font-family: 'Dejavu Sans', monospace;" +
+			"font-family: 'DejaVu Sans Mono', monospace;" +
 			"margin: 0px;" +
 		"}" +
 

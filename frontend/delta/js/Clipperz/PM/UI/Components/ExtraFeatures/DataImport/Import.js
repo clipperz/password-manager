@@ -27,6 +27,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport');
 Clipperz.PM.UI.Components.ExtraFeatures.DataImport.ImportClass = React.createClass({
 	//=========================================================================
 
+	displayName: 'Clipperz.PM.UI.Components.ExtraFeatures.DataImport.Import',
+
 	importHandler: function (anEvent) {
 		var recordsToImport = this.props.importContext.state('recordsToImport');
 

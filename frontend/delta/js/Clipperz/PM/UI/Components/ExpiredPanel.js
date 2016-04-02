@@ -25,6 +25,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components');
 
 Clipperz.PM.UI.Components.ExpiredPanelClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.ExpiredPanel',
+
 	propTypes: {
 //		featureSet:			React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
 //		'level':	React.PropTypes.oneOf(['hide', 'info', 'warning', 'error']).isRequired

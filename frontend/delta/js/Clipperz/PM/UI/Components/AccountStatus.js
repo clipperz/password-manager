@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components');
 
 Clipperz.PM.UI.Components.AccountStatusClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.AccountStatus',
+
 	propTypes: {
 //		'currentSubscriptionType':		React.PropTypes.oneOf(['EARLY_ADOPTER', 'FRIEND', 'FAN', 'DEVOTEE', 'PATRON', 'TRIAL', 'TRIAL_EXPIRED', 'PAYMENT_FAILED_2', 'EXPIRED', 'PAYMENT_FAILED', 'VERIFYING_PAYMENT', 'VERIFYING_PAYMENT_2']).isRequired,
 		'expirationDate':				React.PropTypes.string /* .isRequired */,
@@ -54,15 +56,15 @@ Clipperz.PM.UI.Components.AccountStatusClass = React.createClass({
 		proxyInfoClasses[this.props['proxyType']] = true;
 		proxyInfoClasses['withReferenceDate'] = (this.props['referenceDate'] != null);
 
-		return	React.DOM.div({'className':'miscInfo'}, [
-			React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(proxyInfoClasses)}, [
-				React.DOM.span({'className':'proxyDescription'}, this.props['proxyTypeDescription']),
-				React.DOM.span({'className':'referenceDate'}, this.props['referenceDate'])
+		return	React.DOM.div({'key':'miscInfo', 'className':'miscInfo'}, [
+			React.DOM.div({'key':'miscInfo_1', 'className':Clipperz.PM.UI.Components.classNames(proxyInfoClasses)}, [
+				React.DOM.span({'key':'proxyDescription', 'className':'proxyDescription'}, this.props['proxyTypeDescription']),
+				React.DOM.span({'key':'referenceDate', 'className':'referenceDate'}, this.props['referenceDate'])
 			]),
-			React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(accountInfoClasses)}, [
-				React.DOM.span({'className':'level'}, Clipperz.PM.DataModel.Feature['featureSets'][this.props['featureSet']]),
-				React.DOM.span({'className':'expirationMessage'}, "expiring on"),
-				React.DOM.span({'className':'expirationDate'}, this.props['expirationDate'])
+			React.DOM.div({'key':'miscInfo_2', 'className':Clipperz.PM.UI.Components.classNames(accountInfoClasses)}, [
+				React.DOM.span({'key':'level', 'className':'level'}, Clipperz.PM.DataModel.Feature['featureSets'][this.props['featureSet']]),
+				React.DOM.span({'key':'expirationMessage', 'className':'expirationMessage'}, "expiring on"),
+				React.DOM.span({'key':'expirationDate', 'className':'expirationDate'}, this.props['expirationDate'])
 			])
 		]);
 		

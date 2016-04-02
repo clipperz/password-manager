@@ -25,11 +25,11 @@ refer to http://www.clipperz.com.
 Clipperz.Base.module('Clipperz.PM.UI');
 
 Clipperz.PM.UI.AttachmentController = function(someParameters) {
-		this.MAX_SIMULTANEOUS_READ     = 1;
-		this.MAX_SIMULTANEOUS_UPLOAD   = 1;
-		this.MAX_SIMULTANEOUS_DOWNLOAD = 1;
-		this.MAX_SIMULTANEOUS_ENCRYPT  = 1;
-		this.MAX_SIMULTANEOUS_DECRYPT  = 1;
+		this.MAX_SIMULTANEOUS_READ		= 1;
+		this.MAX_SIMULTANEOUS_UPLOAD	= 1;
+		this.MAX_SIMULTANEOUS_DOWNLOAD	= 1;
+		this.MAX_SIMULTANEOUS_ENCRYPT	= 1;
+		this.MAX_SIMULTANEOUS_DECRYPT	= 1;
 
 		this.LATEST_ENCRYPTION_VERSION = '1.0';	// Versions aren't handled completely yet!
 
@@ -74,7 +74,11 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 	//=========================================================================
 
 	addAttachment: function (anAttachment) {
-		var deferredResult;
+		var	deferredResult;
+		var	actualDeferredResult;
+
+		actualDeferredResult = new Clipperz.Async.Deferred("Clipperz.PM.UI.AttachmentController.uploadAttachment-result", {trace:false});
+		actualDeferredResult.addMethod(anAttachment, 'setValue', 'hash');
 
 		deferredResult = new Clipperz.Async.Deferred("Clipperz.PM.UI.AttachmentController.uploadAttachment", {trace:false});
 		deferredResult.collectResults({
@@ -89,10 +93,12 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 			'recordReference': MochiKit.Base.method(anAttachment.record(), 'reference'),
 			'process': MochiKit.Base.partial(MochiKit.Async.succeed, 'UPLOAD'),	// Used only to differentiate notifications
 		}, {trace: false});
+		deferredResult.addCallback(function (someInfo) { someInfo['deferredResult'] = actualDeferredResult; return someInfo; });
 		deferredResult.addMethod(this, 'addFileToQueue');
 		deferredResult.callback();
 
-		return deferredResult;
+//		return deferredResult;
+		return actualDeferredResult;
 	},
 
 	getAttachment: function(anAttachment, aMessageCallback) {
@@ -162,8 +168,8 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 
 		processNextElements = true;
 		for (i in this.fileQueue) {
-			if(processNextElements) {
-			currentElement = this.fileQueue[i];
+			if (processNextElements) {
+				currentElement = this.fileQueue[i];
 				switch (currentElement['status']) {
 					case 'WAITING_READ':
 						if ((count['READING']) < this.MAX_SIMULTANEOUS_READ) {
@@ -214,20 +220,20 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 		var count;
 
 		count = {
-			'WAITING_READ': 0,
-			'READING': 0,
-			'WAITING_ENCRYPT': 0,
-			'ENCRYPTING': 0,
-			'WAITING_UPLOAD': 0,
-			'UPLOADING': 0,
-			'WAITING_DOWNLOAD': 0,
-			'DOWNLOADING': 0,
-			'WAITING_DECRYPT': 0,
-			'DECRYPTING': 0,
-			'WAITING_SAVE': 0,
-			'DONE': 0,
-			'CANCELED': 0,
-			'FAILED': 0,
+			'WAITING_READ':		0,
+			'READING':			0,
+			'WAITING_ENCRYPT':	0,
+			'ENCRYPTING':		0,
+			'WAITING_UPLOAD':	0,
+			'UPLOADING':		0,
+			'WAITING_DOWNLOAD':	0,
+			'DOWNLOADING':		0,
+			'WAITING_DECRYPT':	0,
+			'DECRYPTING':		0,
+			'WAITING_SAVE':		0,
+			'DONE':				0,
+			'CANCELED':			0,
+			'FAILED':			0,
 		};
 
 		for (var i in this.fileQueue) {
@@ -332,12 +338,18 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 	},
 
 	readFileOnload: function(aFileReference, anEvent) {
+		var	fileContent;
+		var	fileContentSha256Hash;
+		
+		fileContent = new Uint8Array(anEvent.target.result);
+		fileContentSha256Hash = npm.bitcoin.crypto.sha256(fileContent).toString('hex');
+		this.getQueueElement(aFileReference)['deferredResult'].callback(fileContentSha256Hash);
+
 		this.updateFileInQueue(aFileReference, {
 			'status': 'WAITING_ENCRYPT',
-			'originalArray': new Uint8Array(anEvent.target.result),
+			'originalArray': fileContent,
 		})
 	},
-
 
 	//=========================================================================
 	// Queue Processing: ENCRYPT
@@ -349,11 +361,11 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 		});
 
 		this.cryptoObject.subtle.importKey(
-		    "raw",
-		    aKey,								//this is an example jwk key, "raw" would be an ArrayBuffer
-		    { name: "AES-CBC" },				//this is the algorithm options
-		    false,								//whether the key is extractable (i.e. can be used in exportKey)
-		    ["encrypt"]							//can be "encrypt", "decrypt", "wrapKey", or "unwrapKey"
+			"raw",
+			aKey,								//this is an example jwk key, "raw" would be an ArrayBuffer
+			{ name: "AES-CBC" },				//this is the algorithm options
+			false,								//whether the key is extractable (i.e. can be used in exportKey)
+			["encrypt"]							//can be "encrypt", "decrypt", "wrapKey", or "unwrapKey"
 		)
 		// .then(MochiKit.Base.method(this, 'doEncrypt', aFileReference, anArrayBuffer, aNonce))
 		.then(this.doEncrypt.bind(this,aFileReference, anArrayBuffer, aNonce))
@@ -538,6 +550,13 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 	handleException: function(aFileReference, aMessage, anException) {
 		var queueElement = this.getQueueElement(aFileReference);
 		var messageString = aMessage ? " (" + aMessage + ")" : "";
+
+		try {
+			if (Clipperz.Base.evalJSON(anException['req']['response'])['message'] == "not enough space available for uploading the attachment") {
+				console.log("NOT ENOUGH ATTACHMENT QUOTA EXCEPTION");
+			}
+		} catch (exception) {
+		}
 
 		if (queueElement['status'] != 'CANCELED') {
 			this.updateFileInQueue(aFileReference, {

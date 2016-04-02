@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DevicePINClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.ExtraFeatures.DevicePIN',
+
 	propTypes: {
 //		featureSet:			React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
 //		'level':	React.PropTypes.oneOf(['hide', 'info', 'warning', 'error']).isRequired
@@ -59,7 +61,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DevicePINClass = React.createClass({
 	},
 
 	setFocus: function() {
-		this.refs['pinValue'].getDOMNode().focus();
+		this.refs['pinValue'].focus();
 	},
 
 	resetPIN: function() {

@@ -28,6 +28,8 @@ Clipperz.PM.UI.Components.Cards.ListClass = React.createClass({
 
 	//=========================================================================
 
+	displayName: 'Clipperz.PM.UI.Components.Cards.List',
+
 	propTypes: {
 		'cards':		React.PropTypes.array,
 		'featureSet':	React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
@@ -45,7 +47,7 @@ Clipperz.PM.UI.Components.Cards.ListClass = React.createClass({
 
 	handleClick: function (anEvent) {
 		if (this.isFeatureEnabled('CARD_DETAILS')) {
-			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', {'reference':anEvent.currentTarget.dataset.reference, 'label':anEvent.currentTarget.dataset.label}, true);
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', {'cardInfo':{'reference':anEvent.currentTarget.dataset.reference, 'label':anEvent.currentTarget.dataset.label}, 'update':true});
 		}
 	},
 	
@@ -63,7 +65,8 @@ Clipperz.PM.UI.Components.Cards.ListClass = React.createClass({
 			result = React.DOM.li({'className':Clipperz.PM.UI.Components.classNames(classes), 'onClick': this.handleClick, 'key':anItem['_reference'], 'data-reference':anItem['_reference'], 'data-label':anItem['label']}, [
 //				React.DOM.span({'className':'favicon'}, Clipperz.PM.UI.Components.Cards.FavIcon({'src':anItem['favicon']})),
 				React.DOM.span({'className':'label'}, anItem['label']),
-				React.DOM.span({'className':'attachmentsCount'}, anItem['attachmentsCount'] ? 'attachment' : ''),
+				anItem['hasBeenCertified'] != '' ? React.DOM.span({'className':'certificateStatus'}, 'certificate') : null,
+				anItem['attachmentsCount'] ? React.DOM.span({'className':'attachmentsCount'}, 'attachment') : null,
 			]);
 		}
 		

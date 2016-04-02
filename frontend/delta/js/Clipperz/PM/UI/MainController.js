@@ -36,6 +36,7 @@ Clipperz.PM.UI.MainController = function() {
 	this._isSelectionPanelOpen = false;
 	this._isSettingsPanelOpen = false;
 	this._isAttachmentQueueBoxOpen = false;
+	this._isCertificateQueueBoxOpen = false;
 	
 	this._pageStack = ['loadingPage'];
 	this._overlay =  new Clipperz.PM.UI.Components.Overlay();
@@ -67,6 +68,7 @@ Clipperz.PM.UI.MainController = function() {
 
 	this.registerForNotificationCenterEvents([
 		'doLogin', 'registerNewUser', 'showRegistrationForm', 'goBack',
+		'updateUserAccountInfo',
 		'logout',
 		'enableLock', 'disableLock', 'unlock',
 		'updatePIN', 'disablePIN', 'forcePassphraseLogin', 'forcePassphraseUnlock',
@@ -76,14 +78,15 @@ Clipperz.PM.UI.MainController = function() {
 		'importCards',
 		'downloadExport',
 		'updateProgress',
-		'toggleSelectionPanel', 'hideSelectionPanel', 'toggleSettingsPanel', 'toggleAttachmentQueueBox',
+		'toggleSelectionPanel', 'hideSelectionPanel', 'toggleSettingsPanel', 'toggleAttachmentQueueBox', 'toggleCertificateQueueBox',
 		'matchMediaQuery', 'unmatchMediaQuery',
-		'selectAllCards', 'selectRecentCards', 'selectCardsWithAttachments', 'selectUntaggedCards', 'tagSelected', 'search',
+		'selectAllCards', 'selectRecentCards', 'selectCardsWithCertificate', 'selectCardsWithAttachments', 'selectUntaggedCards', 'tagSelected', 'search',
 		'refreshCardEditDetail',
 		'saveCardEdits', 'cancelCardEdits',
 		'selectCard',
 		'addCardClick',
-		'deleteCard', 'toggleArchiveCard', 'cloneCard', 'editCard',
+		'deleteCard', 'toggleArchiveCard', 'cloneCard', 'createCertificate', 'editCard',
+		'downloadCertificate',	'showCertificatePreview', 'hideCertificatePreview', 'closeCertificateNotification', 'showCertificateCard',
 		'addTag', 'removeTag',
 		'showArchivedCards', 'hideArchivedCards',
 		'goBackToMainPage',
@@ -100,6 +103,10 @@ Clipperz.PM.UI.MainController = function() {
 		'downloadMessageCallback':    MochiKit.Base.method(this, 'downloadMessageCallback'),
 		'reloadServerStatusCallback': MochiKit.Base.method(this, 'reloadAttachmentServerStatusCallback')
 	});
+	
+	this._certificateQueueStatus = [];
+
+	document.addEventListener('dragover', MochiKit.Base.method(this, 'blockDragOver'), false);
 
 	Mousetrap.bind(['/'],					MochiKit.Base.method(this, 'focusOnSearch'));
 
@@ -133,7 +140,9 @@ MochiKit.Base.update(Clipperz.PM.UI.MainController.prototype, {
 	},
 
 	updateProgress_handler: function (aProgressPercentage) {
-		this.overlay().updateProgress(aProgressPercentage);
+		return Clipperz.Async.callbacks("MainController.updateProgress_handler", [
+			MochiKit.Base.method(this.overlay(), 'updateProgress', aProgressPercentage)
+		], {trace:false});
 	},
 
 	loginForm: function () {
@@ -215,7 +224,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	renderPages: function (pages) {
 		var self = this;
 		MochiKit.Iter.forEach(pages, function (aPageName) {
-			self._pages[aPageName] = React.render(
+			self._pages[aPageName] = ReactDOM.render(
 				Clipperz.PM.UI.Components.Pages[self.capitaliseFirstLetter(aPageName)](self.pageProperties(aPageName)),
 				MochiKit.DOM.getElement(aPageName)
 			);
@@ -226,12 +235,32 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		var	self = this;
 
 		MochiKit.Iter.forEach(events, function (anEvent) {
-			MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, anEvent, MochiKit.Base.method(self, anEvent + '_handler'));
+//			MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, anEvent, MochiKit.Base.method(self, anEvent + '_handler'));
+			MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, anEvent, MochiKit.Base.method(self, 'eventHandlerErrorCatcher', anEvent));
 			MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, anEvent, MochiKit.Base.method(self, 'resetLockTimeout'));
 		});
 
 //		MochiKit.Signal.connect(window, 'onpopstate',		MochiKit.Base.method(this, 'historyGoBack'));
 //		MochiKit.Signal.connect(window, 'onbeforeunload',	MochiKit.Base.method(this, 'shouldExitApp'));
+	},
+
+	eventHandlerErrorCatcher: function (anEvent, aValue) {
+		var deferredResult;
+		
+		deferredResult = new Clipperz.Async.Deferred("MainController.eventHandlerErrorCatcher", {trace: false});
+		deferredResult.addMethod(this, anEvent + '_handler');
+		deferredResult.addErrback(MochiKit.Base.bind(function (anError) {
+			if (! anError instanceof MochiKit.Async.CancelledError) {
+				this.overlay().hide(true);
+				this.moveInPage(this.currentPage(), 'errorPage');
+				this.pages()['errorPage'].setProps({'error':anError});
+				console.log("CATCHED UNHANDLED ERROR");
+			}
+			return anError;
+		}, this));
+		deferredResult.callback(aValue);
+		
+		return deferredResult;
 	},
 
 	//-------------------------------------------------------------------------
@@ -332,20 +361,28 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 		currentPage = this.currentPage();
 		registrationPage = this.pages()['registrationPage'];
-		this.setCurrentPage('loginPage');
-		registrationPage.setProps({});
-		this.moveInPage(currentPage, 'registrationPage');
-		MochiKit.Async.callLater(0.5, MochiKit.Base.method(registrationPage, 'setInitialFocus'));
+
+		return Clipperz.Async.callbacks("MainController.showRegistrationForm_handler", [
+			MochiKit.Base.method(this, 'setCurrentPage', 'loginPage'),
+			MochiKit.Base.method(registrationPage, 'setProps', {}),
+			MochiKit.Base.method(this, 'moveInPage', currentPage, 'registrationPage'),
+			MochiKit.Base.partial(MochiKit.Async.callLater, 0.5, MochiKit.Base.method(registrationPage, 'setInitialFocus'))
+		], {trace:false});
+
 	},
 
 	forcePassphraseLogin_handler: function() {
-		this.pages()['loginPage'].setProps({'forceCredentials': true});
-		MochiKit.Async.callLater(0.1, MochiKit.Base.method(this.pages()['loginPage'], 'setInitialFocus'));
+		return Clipperz.Async.callbacks("MainController.forcePassphraseLogin_handler", [
+			MochiKit.Base.method(this.pages()['loginPage'], 'setProps', {'forceCredentials': true}),
+			MochiKit.Base.partial(MochiKit.Async.callLater, 0.1, MochiKit.Base.method(this.pages()['loginPage'], 'setInitialFocus'))
+		], {trace:false});
 	},
 
 	forcePassphraseUnlock_handler: function() {
-		this.pages()['unlockPage'].setProps({'forceCredentials': true});
-		MochiKit.Async.callLater(0.1, MochiKit.Base.method(this.pages()['unlockPage'], 'setInitialFocus'));
+		return Clipperz.Async.callbacks("MainController.forcePassphraseUnlock_handler", [
+			MochiKit.Base.method(this.pages()['unlockPage'], 'setProps', {'forceCredentials': true}),
+			MochiKit.Base.partial(MochiKit.Async.callLater, 0.1, MochiKit.Base.method(this.pages()['unlockPage'], 'setInitialFocus'))
+		], {trace:false});
 	},
 
 	//=========================================================================
@@ -383,6 +420,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		deferredResult.addMethod(this, 'setUser', user);
 		deferredResult.addMethod(this, 'updateUserPreferences');
 		deferredResult.addMethod(this, 'runApplication');
+		deferredResult.addMethod(this, 'updateCertificateQueueInfo');
 		deferredResult.addMethod(this.overlay(), 'done', "", 1);
 		deferredResult.addErrback(MochiKit.Base.method(this, 'genericErrorHandler', someCredentials, "login failed"));
 		deferredResult.addErrback(MochiKit.Base.bind(function (anEvent, anError) {
@@ -390,7 +428,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 				this.pages()['loginPage'].setProps({disabled:false, 'mode':this.loginMode()});
 				this.pages()['loginPage'].setInitialFocus();
 			}
-			return anError;
+			return anEvent; //	anError;
 		}, this, someCredentials))
 		deferredResult.callback();
 
@@ -438,9 +476,11 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		return deferredResult;
 	},
 
-	unlock_handler: function(aCredential, aCredentialType) {
-		var deferredResult;
-		var user, passphrase, getPassphraseDelegate;
+	unlock_handler: function(someInfo) {
+		var	deferredResult;
+		var	credential = someInfo['credential'];
+		var	credentialType = someInfo['credentialType'];
+		var	user, passphrase, getPassphraseDelegate;
 
 		// var user = this.user();
 		var oldUser = this.user();
@@ -448,7 +488,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		var overlay = this.overlay();
 
 		overlay.show("validating…", false);
-		passphrase = (aCredentialType=='PIN') ? Clipperz.PM.PIN.credentialsWithPIN(aCredential)['passphrase'] : aCredential;
+		passphrase = (credentialType=='PIN') ? Clipperz.PM.PIN.credentialsWithPIN(credential)['passphrase'] : credential;
 
 		getPassphraseDelegate = MochiKit.Base.partial(MochiKit.Async.succeed, passphrase);
 		user = new Clipperz.PM.DataModel.User({'username':oldUser.username(), 'getPassphraseFunction':getPassphraseDelegate});
@@ -466,7 +506,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			var errorMessage;
 
 			errorMessage = 'failed';
-			if (aCredentialType=='PIN') {
+			if (credentialType=='PIN') {
 				var attemptsLeft = Clipperz.PM.PIN.recordFailedAttempt();
 
 				if (attemptsLeft == -1) {
@@ -487,7 +527,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			return aValue;
 		}, this));
 
-		if (aCredentialType=='PIN') {
+		if (credentialType=='PIN') {
 			deferredResult.addMethod(Clipperz.PM.PIN, 'resetFailedAttemptCount');
 		}
 		deferredResult.addMethod(this, 'updateUserPreferences');
@@ -499,8 +539,9 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		});
 		// deferredResult.addMethod(unlockPage, 'resetUnlockForm');
 		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'enableLock');
+		deferredResult.addMethod(this, 'updateCertificateQueueInfo');
 		deferredResult.addMethod(overlay, 'done', "", 0.5);
-
+		deferredResult.addErrback(MochiKit.Async.succeed, true);
 		deferredResult.callback();
 
 		return deferredResult;
@@ -581,113 +622,27 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 	//----------------------------------------------------------------------------
 
-	collectFieldInfo: function (aField) {
-		var deferredResult;
-		
-		deferredResult = new Clipperz.Async.Deferred('MainController.collectFieldInfo', {trace:false});
-		deferredResult.setValue('_field');
-		deferredResult.addMethod(aField, 'reference');
-		deferredResult.setValue('_reference');
-		deferredResult.addMethod(aField, 'label');
-		deferredResult.setValue('label');
-		deferredResult.addMethod(aField, 'value');
-		deferredResult.setValue('value');
-		deferredResult.addMethod(aField, 'actionType');
-		deferredResult.setValue('actionType');
-		deferredResult.addMethod(aField, 'isHidden');
-		deferredResult.setValue('isHidden');
-		deferredResult.values();
-
-		deferredResult.callback(aField);
-		
-		return deferredResult;
-	},
-
-	collectDirectLoginInfo: function (aDirectLogin) {
-		var deferredResult;
-		
-		deferredResult = new Clipperz.Async.Deferred('MainController.collectDirectLoginInfo', {trace:false});
-		deferredResult.addMethod(aDirectLogin, 'reference');
-		deferredResult.setValue('_reference');
-		deferredResult.addMethod(aDirectLogin, 'label');
-		deferredResult.setValue('label');
-		deferredResult.addMethod(aDirectLogin, 'favicon');
-		deferredResult.setValue('favicon');
-		deferredResult.values();
-
-		deferredResult.callback();
-		
-		return deferredResult;
-	},
-	
-	collectAttachmentInfo: function(anAttachment) {
-		var deferredResult;
-		
-		deferredResult = new Clipperz.Async.Deferred('MainController.collectAttachmentInfo', {trace:false});
-		deferredResult.setValue('_attachment'); // The object itself, maybe this should be the only value being passed
-		deferredResult.addMethod(anAttachment, 'reference');
-		deferredResult.setValue('_reference');
-		deferredResult.addMethod(anAttachment, 'name');
-		deferredResult.setValue('name');
-		deferredResult.addMethod(anAttachment, 'contentType');
-		deferredResult.setValue('contentType');
-		deferredResult.addMethod(anAttachment, 'size');
-		deferredResult.setValue('size');
-		deferredResult.values();
-
-		deferredResult.callback(anAttachment);
-		
-		return deferredResult;
-	},
-	
 	collectRecordInfo: function (aRecord) {
-		var deferredResult;
-
-		deferredResult = new Clipperz.Async.Deferred('MainController.collectRecordInfo', {trace:false});
-		deferredResult.setValue('_record');
-		deferredResult.addMethod(aRecord, 'reference');
-		deferredResult.setValue('_reference');
-		deferredResult.addMethod(aRecord, 'isArchived');
-		deferredResult.setValue('_isArchived');
-		deferredResult.addMethod(aRecord, 'isBrandNew');
-		deferredResult.setValue('_isBrandNew');
-//		deferredResult.addMethod(aRecord, 'hasPendingChanges');
-		deferredResult.addMethod(this.user(), 'hasPendingChanges');
-		deferredResult.setValue('hasPendingChanges');
-		deferredResult.addMethod(aRecord, 'label');
-		deferredResult.setValue('label');
-		deferredResult.addMethod(aRecord, 'notes');
-		deferredResult.setValue('notes');
-		deferredResult.addMethod(aRecord, 'tags');
-		deferredResult.setValue('tags');
-
-		deferredResult.addMethod(aRecord, 'fields');
-		deferredResult.addCallback(MochiKit.Base.values);
-		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.method(this, 'collectFieldInfo'));
-		deferredResult.addCallback(Clipperz.Async.collectAll);
-		deferredResult.setValue('fields');
-
-		deferredResult.addMethod(aRecord, 'attachments');
-		deferredResult.addCallback(MochiKit.Base.values);
-		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.method(this, 'collectAttachmentInfo'));
-		deferredResult.addCallback(Clipperz.Async.collectAll);
-		deferredResult.setValue('attachments');
-
-		deferredResult.addMethod(aRecord, 'directLogins');
-		deferredResult.addCallback(MochiKit.Base.values);
-		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.method(this, 'collectDirectLoginInfo'));
-		deferredResult.addCallback(Clipperz.Async.collectAll);
-		deferredResult.setValue('directLogins');
-
-		deferredResult.addMethod(aRecord, 'getAttachmentServerStatus');
-		deferredResult.setValue('attachmentServerStatus');
-
-		deferredResult.values();
-
-		deferredResult.callback(aRecord);
+		return Clipperz.Async.callbacks("MainController.updateOTPListAndDetails", [
+			Clipperz.Async.collectResults("MainController.updateOTPListAndDetails <inner results>", {
+				'recordInfo':			MochiKit.Base.method(aRecord,		'collectRecordInfo'),
+//				'certificateMetadata':	MochiKit.Base.method(aRecord,		'certificateMetadata'),
+				'hasPendingChanges':	MochiKit.Base.method(this.user(),	'hasPendingChanges'),
+			}, {trace:false}),
+			function (someData) {
+				var result;
+				
+				result = someData['recordInfo'];
+				result['hasPendingChanges'] = someData['hasPendingChanges'];
+				
+				return result;
+			},
+		], {trace:false});
 		
 		return deferredResult;
 	},
+
+	//----------------------------------------------------------------------------
 
 	showCardDetailInNarrowView: function (aValue) {
 		return Clipperz.Async.callbacks("MainController.showCardDetailInNarrowView", [
@@ -701,7 +656,6 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	updateSelectedCard: function (someInfo, shouldShowLoading, shouldShowCardDetail) {
 		var deferredResult;
 		var showLoading = typeof(shouldShowLoading) !== 'undefined' ? shouldShowLoading : true;
-
 		if (someInfo == null) {
 			this.setPageProperties('mainPage', 'selectedCard', {});
 			deferredResult = MochiKit.Async.succeed();
@@ -713,7 +667,6 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 			deferredResult = new Clipperz.Async.Deferred('MainController.updateSelectedCard', {trace:false});
 			deferredResult.addMethod(this.user(), 'getRecord', someInfo['reference']);
-
 			deferredResult.addMethod(this, 'collectRecordInfo');
 			deferredResult.addMethod(this, 'setPageProperties', 'mainPage', 'selectedCard');
 			if ((this.mediaQueryStyle() == 'narrow') && shouldShowCardDetail) {
@@ -765,6 +718,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	},
 	
 	setRecordsInfo: function (someRecordsInfo) {
+//console.log("setRecordsInfo", someRecordsInfo);
 		this._recordsInfo = someRecordsInfo;
 		return this._recordsInfo;
 	},
@@ -819,6 +773,10 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			filterCriteria = MochiKit.Base.operator.truth;
 			sortCriteria = Clipperz.Base.reverseComparator(MochiKit.Base.keyComparator('_accessDate'));
 			rangeFilter = function (someCards) { return someCards.slice(0, 10)};
+		} else if (aFilter['type'] == 'WITH_CERTIFICATE') {
+			filterCriteria = function (aRecordInfo) { return aRecordInfo['hasBeenCertified']; };
+			sortCriteria = Clipperz.Base.caseInsensitiveKeyComparator('label');
+			rangeFilter = MochiKit.Base.operator.identity;
 		} else if (aFilter['type'] == 'WITH_ATTACHMENTS') {
 			filterCriteria = function (aRecordInfo) { return aRecordInfo.attachmentsCount > 0; };
 			sortCriteria = Clipperz.Base.caseInsensitiveKeyComparator('label');
@@ -899,11 +857,15 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	//----------------------------------------------------------------------------
 
 	enableLock_handler: function () {
-		MochiKit.Signal.connect(Clipperz.Signal.NotificationCenter, 'lock', MochiKit.Base.method(this, 'lock'));
+		return Clipperz.Async.callbacks("MainController.enableLock_handler", [
+			MochiKit.Base.partial(MochiKit.Signal.connect, Clipperz.Signal.NotificationCenter, 'lock', MochiKit.Base.method(this, 'lock'))
+		], {trace:false});
 	},
 	
 	disableLock_handler: function () {
-		MochiKit.Signal.disconnectAll(Clipperz.Signal.NotificationCenter, 'lock');
+		return Clipperz.Async.callbacks("MainController.disableLock_handler", [
+			MochiKit.Base.partial(MochiKit.Signal.disconnectAll, Clipperz.Signal.NotificationCenter, 'lock')
+		], {trace:false});
 	},
 	
 	updatePIN_handler: function(aPIN) {
@@ -959,6 +921,22 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		], {trace:false});
 	},
 	
+	getCardsWithCertificateCount: function () {
+		var	archivedCardsFilter =	this.shouldIncludeArchivedCards()
+									?	MochiKit.Async.succeed
+									:	MochiKit.Base.partial(MochiKit.Base.filter, function (someRecordInfo) { return ! someRecordInfo['_isArchived']; });
+
+		return Clipperz.Async.callbacks("MainController.getCardsWithCertificateCount", [
+			MochiKit.Base.method(this.user(), 'getRecords'),
+			MochiKit.Base.partial(MochiKit.Base.map, Clipperz.Async.collectResults("collectResults", {'hasBeenCertified':MochiKit.Base.methodcaller('hasBeenCertified'), '_isArchived':MochiKit.Base.methodcaller('isArchived')}, {trace:false})),
+			Clipperz.Async.collectAll,
+			archivedCardsFilter,
+			function (aResult) {
+				return MochiKit.Base.filter(function (aRecordInfo) { return aRecordInfo['hasBeenCertified'] === true; }, aResult).length;
+			}
+		], {trace:false});
+	},
+
 	getCardsWithAttachmentsCount: function () {
 		var	archivedCardsFilter =	this.shouldIncludeArchivedCards()
 									?	MochiKit.Async.succeed
@@ -1025,6 +1003,8 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'allTags'),
 			MochiKit.Base.method(this, 'getAllCardsCount'),
 			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'allCardsCount'),
+			MochiKit.Base.method(this, 'getCardsWithCertificateCount'),
+			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'withCertificateCardsCount'),
 			MochiKit.Base.method(this, 'getCardsWithAttachmentsCount'),
 			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'withAttachmentCardsCount'),
 			MochiKit.Base.method(this, 'getArchivedCardsCount'),
@@ -1065,10 +1045,8 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	//=========================================================================
 
 	runApplication: function (anUser) {
-//		window.history.replaceState({selectedCardInfo: null}, "", window.location.toString());
 		this.historyReplaceState({selectedCardInfo: null}, "", window.location.toString());
-//		window.history.pushState({selectedCardInfo: null}, "", window.location.toString());	// Hack to support filters undo with no other actions
-		this.historyPushState({selectedCardInfo: null}, "", window.location.toString());	// Hack to support filters undo with no other actions
+		this.historyPushState({selectedCardInfo: null}, "", window.location.toString());
 		this.moveInPage(this.currentPage(), 'mainPage');
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'enableLock');
 		this.resetLockTimeout();
@@ -1089,17 +1067,19 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		return deferredResult;
 	},
 
-	removeDirectLogin_handler: function (aRecord, aDirectLoginReference) {
+	removeDirectLogin_handler: function (someInfo) {
 		var deferredResult;
+		var	record = someInfo['record'];
+		var	directLoginReference = someInfo['directLoginReference'];
 
 		deferredResult = new Clipperz.Async.Deferred("MainController.removeDirectLogin_handler", {'trace': false});
 		
 		deferredResult.addMethodcaller('directLogins');
-		deferredResult.addCallback(MochiKit.Base.itemgetter(aDirectLoginReference));
+		deferredResult.addCallback(MochiKit.Base.itemgetter(directLoginReference));
 		deferredResult.addMethodcaller('remove');
-		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', aRecord.reference());
+		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', record.reference());
 
-		deferredResult.callback(aRecord);
+		deferredResult.callback(record);
 
 		return deferredResult;
 	},
@@ -1188,8 +1168,11 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 		fromPage = this.pageStack().shift();
 		toPage = this.currentPage();
-		this.pages()[toPage].setProps({});
-		this.moveOutPage(fromPage, toPage);
+
+		return Clipperz.Async.callbacks("MainController.goBack_handler", [
+			MochiKit.Base.method(this.pages()[toPage], 'setProps', {}),
+			MochiKit.Base.method(this, 'moveOutPage', fromPage, toPage)
+		], {trace:false});
 	},
 
 //	historyGoBack: function (anEvent) {
@@ -1276,7 +1259,10 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 				'features',
 				'isExpired',
 				'isExpiring',
-				'paymentVerificationPending'
+				'paymentVerificationPending',
+				
+				'attachmentQuota',
+				'certificateQuota'
 			];
 			
 			var	attributes = this.user().accountInfo()._attributes;
@@ -1286,6 +1272,17 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		};
 		
 		return result;
+	},
+
+	updateUserAccountInfo_handler: function (anEvent) {
+		var deferredResult;
+
+		deferredResult = new Clipperz.Async.Deferred("updateUserAccountInfo_handler", {trace:false});
+		deferredResult.addMethod(this.user(), 'updateAccountInfo');
+		deferredResult.addMethod(this, 'refreshCurrentPage');
+		deferredResult.callback();
+
+		return deferredResult;
 	},
 
 	proxyInfo: function () {
@@ -1382,11 +1379,13 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 				'selectionPanelStatus':			this.isSelectionPanelOpen()	? 'OPEN' : 'CLOSED',
 				'settingsPanelStatus':			this.isSettingsPanelOpen()	? 'OPEN' : 'CLOSED',
 				'attachmentQueueBoxStatus':		this.isAttachmentQueueBoxOpen()	? 'OPEN' : 'CLOSED',
+				'certificateQueueBoxStatus':	this.isCertificateQueueBoxOpen() ? 'OPEN' : 'CLOSED',
 				'featureSet':					this.featureSet(),
 				'features':						this.features(),
 				'proxyInfo':					this.proxyInfo(),
 				'locked':						false,
 				'attachmentQueueInfo':			this.attachmentQueueInfo(),
+				'certificateQueueInfo':			this.certificateQueueInfo(),
 //				'shouldIncludeArchivedCards':	this.shouldIncludeArchivedCards(),
 //				'cards':				…,
 //				'tags':					…,
@@ -1395,6 +1394,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		} else if (aPageName == 'cardDetailPage') {
 			extraProperties = {
 				'attachmentQueueInfo':			this.attachmentQueueInfo(),
+				'certificateQueueInfo':			this.certificateQueueInfo(),
 				'proxyInfo':					this.proxyInfo(),
 			};
 		} else if (aPageName == 'errorPage') {
@@ -1471,9 +1471,13 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	},
 
 	hideSelectionPanel_handler: function (anEvent) {
-		if (this.isSelectionPanelOpen()) {
-			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSelectionPanel');
-		}
+		return Clipperz.Async.callbacks("MainController.hideSelectionPanel_handler", [
+			MochiKit.Base.bind(function () {
+				if (this.isSelectionPanelOpen()) {
+					MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSelectionPanel');
+				}
+			}, this)
+		], {trace:false});
 	},
 
 	isSettingsPanelOpen: function () {
@@ -1481,12 +1485,16 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	},
 
 	toggleSettingsPanel_handler: function (anEvent) {
-		this._isSettingsPanelOpen = !this._isSettingsPanelOpen;
-		this.setCloseMaskAction(MochiKit.Base.method(this, 'toggleSettingsPanel_handler'));
-		if (this._isSettingsPanelOpen == false) {
-			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'closeSettingsPanel');
-		}
-		this.refreshCurrentPage();
+		return Clipperz.Async.callbacks("MainController.toggleSettingsPanel_handler", [
+			MochiKit.Base.bind(function () {
+				this._isSettingsPanelOpen = !this._isSettingsPanelOpen;
+				this.setCloseMaskAction(MochiKit.Base.method(this, 'toggleSettingsPanel_handler'));
+				if (this._isSettingsPanelOpen == false) {
+					MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'closeSettingsPanel');
+				}
+				this.refreshCurrentPage();
+			}, this)
+		], {trace:false});
 	},
 
 	isAttachmentQueueBoxOpen: function() {
@@ -1494,8 +1502,29 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	},
 
 	toggleAttachmentQueueBox_handler: function (anEvent) {
-		this._isAttachmentQueueBoxOpen = !this._isAttachmentQueueBoxOpen;
-		this.refreshCurrentPage();
+		return Clipperz.Async.callbacks("MainController.toggleAttachmentQueueBox_handler", [
+			MochiKit.Base.bind(function () {
+				this._isAttachmentQueueBoxOpen = !this._isAttachmentQueueBoxOpen;
+				this._isCertificateQueueBoxOpen = false;
+				this.refreshCurrentPage();
+			}, this)
+		], {trace:false});
+	},
+
+	//----------------------------------------------------------------------------
+
+	isCertificateQueueBoxOpen: function() {
+		return this._isCertificateQueueBoxOpen;
+	},
+
+	toggleCertificateQueueBox_handler: function (anEvent) {
+		return Clipperz.Async.callbacks("MainController.toggleCertificateQueueBox_handler", [
+			MochiKit.Base.bind(function () {
+				this._isCertificateQueueBoxOpen = !this._isCertificateQueueBoxOpen;
+				this._isAttachmentQueueBoxOpen = false;
+				this.refreshCurrentPage();
+			}, this)
+		], {trace:false});
 	},
 
 	//----------------------------------------------------------------------------
@@ -1616,15 +1645,27 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		this._selectedCardInfo = null;
 	},
 
-	selectCard_handler: function (someInfo, shouldUpdateCardDetail) {
-		this.selectCard(someInfo, shouldUpdateCardDetail);
-//		window.history.pushState({selectedCardInfo: someInfo}, "", window.location.toString());
-		this.historyPushState({selectedCardInfo: someInfo}, "", window.location.toString());
-		// console.log("pushing state");
+	selectCard_handler: function (someInfo) {
+		var	cardInfo = someInfo['cardInfo'];
+		var shouldUpdateCardDetail = someInfo['update'];
+
+		return Clipperz.Async.callbacks("MainController.selectCard_handler", [
+			MochiKit.Base.method(this, 'selectCard', cardInfo, shouldUpdateCardDetail),
+			MochiKit.Base.method(this, 'historyPushState', {selectedCardInfo: cardInfo}, "", window.location.toString())
+		], {trace:false});
+	},
+
+	blockDragOver: function (anEvent) {
+		anEvent.stopPropagation();
+		anEvent.preventDefault();
+		anEvent.dataTransfer.dropEffect = 'none';
 	},
 
 	refreshCardEditDetail_handler: function (aRecordReference) {
-		this.updateSelectedCard({'reference':aRecordReference}, false, true);
+		return Clipperz.Async.callbacks("MainController.refreshCardEditDetail_handler", [
+			MochiKit.Base.method(this, 'updateSelectedCard', {'reference':aRecordReference}, false, true)
+		], {trace:false});
+
 	},
 
 	//----------------------------------------------------------------------------
@@ -1745,7 +1786,6 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	//----------------------------------------------------------------------------
 	
 	updateOTPListAndDetails: function() {
-
 		return Clipperz.Async.callbacks("MainController.updateOTPListAndDetails", [
 			Clipperz.Async.collectResults("MainController.updateOTPListAndDetails <inner results>", {
 				'userInfo':		MochiKit.Base.method(this, 'userInfo'),
@@ -1788,10 +1828,13 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		], {trace:false});
 	},
 	
-	changeOTPLabel_handler: function (aReference, aLabel) {
+	changeOTPLabel_handler: function (someInfo) {
+		var	reference = someInfo['reference'];
+		var label = someInfo['label'];
+
 		return Clipperz.Async.callbacks("MainController.changeOTPLabel_handler", [
 			MochiKit.Base.method(this.overlay(), 'show', "", true),
-			MochiKit.Base.method(this.user(), 'changeOTPLabel', aReference, aLabel),
+			MochiKit.Base.method(this.user(), 'changeOTPLabel', reference, label),
 			MochiKit.Base.method(this, 'updateOTPListAndDetails'),
 			MochiKit.Base.method(this.overlay(), 'done', "", 0.5),
 		], {trace:false});
@@ -1913,10 +1956,10 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 				newRecord = aValue;
 				return newRecord;
 			},
-			MochiKit.Base.methodcaller('addField', {'label':"username", 'value':"", 'hidden':false}),
-			function () { return newRecord; },
-			MochiKit.Base.methodcaller('addField', {'label':"password", 'value':"", 'hidden':true}),
-			function () { return newRecord; },
+//			MochiKit.Base.methodcaller('addField', {'label':"username", 'value':"", 'hidden':false}),
+//			function () { return newRecord; },
+//			MochiKit.Base.methodcaller('addField', {'label':"password", 'value':"", 'hidden':true}),
+//			function () { return newRecord; },
 			MochiKit.Base.methodcaller('reference'),
 			MochiKit.Base.method(this, 'refreshUI'),
 			function () { return newRecord; },
@@ -1972,8 +2015,8 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			function (aValue) { cardInfo = aValue; return aValue; },
 			MochiKit.Base.method(this, 'saveChanges'),
 
-			function (aValue) {
-				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', cardInfo);
+			function () {
+				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', {'cardInfo':cardInfo, 'update':false});
 			},
 			
 			function (aValue) { return cardInfo['reference']; },
@@ -2005,6 +2048,184 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		this.enterEditMode();
 	},
 
+	certificateDetails: function (aRecordReference) {
+		return Clipperz.Async.callbacks("MainController.certificateDetails", [
+			Clipperz.Async.collectResults("MainController.certificateDetails <inner results>", {
+				'wallet':	MochiKit.Base.method(this.user(), 'getWallet'),
+				'record':	MochiKit.Base.method(this.user(), 'getRecord', aRecordReference),
+			}, {trace:false}),
+			Clipperz.Async.collectResults("MainController.showCertificatePreview_handler <inner results>", {
+				'transaction':	function (someValues) { return someValues['record'].computeCertificateInfo(someValues['wallet']); },
+				'metadata':		[
+					MochiKit.Base.itemgetter('record'),
+					MochiKit.Base.methodcaller('certificateMetadata'),
+					Clipperz.Base.evalJSON
+				]
+			}, {trace:false}),
+		], {trace:false});
+	},
+
+	downloadCertificate_handler: function (aRecordReference) {
+//console.log("DOWNLOAD CERTIFICATE", aRecordReference);
+		var	certificateDownloadController;
+		var deferredResult;
+
+		certificateDownloadController = new Clipperz.PM.UI.CertificateDownloadController();
+
+		deferredResult = new Clipperz.Async.Deferred("MainController.downloadCertificate_handler", {trace: false});
+		deferredResult.addMethod(this.overlay(), 'show', "", true, false);
+		deferredResult.addMethod(this.user(), 'getRecord', aRecordReference);
+		deferredResult.collectResults({
+			'attachments': MochiKit.Base.methodcaller('attachmentsInfo'),
+			'certificateInfo': MochiKit.Base.methodcaller('certificateInfo'),
+			'certificateDetails': MochiKit.Base.method(this, 'certificateDetails', aRecordReference),
+		}, {trace:false});
+
+		deferredResult.addMethod(certificateDownloadController, 'run');
+		deferredResult.addMethod(this.overlay(), 'done', "", 1);
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+	
+	showCertificatePreview_handler: function (aRecordReference) {
+		var	currentPage = this.pages()[this.currentPage()];
+		currentPage.setProps({'showCertificatePreview': true});
+
+		return Clipperz.Async.callbacks("MainController.showCertificatePreview_handler", [
+			MochiKit.Base.method(this, 'certificateDetails', aRecordReference),
+			function (aValue) {
+				currentPage.setProps({'certificateDetails': aValue});
+			},
+		], {trace:false});
+	},
+
+	hideCertificatePreview_handler: function (aRecordReference) {
+		return Clipperz.Async.callbacks("MainController.hideCertificatePreview_handler", [
+			MochiKit.Base.method(this.pages()[this.currentPage()], 'setProps', {'showCertificatePreview': false})
+		], {trace:false});
+	},
+
+	createCertificate_handler: function (anEvent) {
+//console.log("CREATE CERTIFICATE HANDLER", anEvent);
+//console.log("CREATE CERTIFICATE", this.user().accountInfo(), this.userAccountInfo());
+		var	certificateQuota = this.userAccountInfo()['certificateQuota'];
+		var	availableCertificates =
+			certificateQuota['totalNumber']
+			- (certificateQuota['used']['published'] + certificateQuota['used']['requested']);
+		var	result;
+		var	self = this;
+
+		if (availableCertificates > 0) {
+			var	documentID;
+
+//console.log("CREATE CERTIFICATE - availableCertificates", availableCertificates);
+			result = Clipperz.Async.callbacks("MainController.createCertificate_handler [option A]", [
+				MochiKit.Base.method(self, 'ask', {
+					'question': "Create certificate?",
+					'description': [
+						React.DOM.p({'className':'cardCertificateWarning'}, "You are going to register the content of this card on the Bitcoin blockchain."),
+						React.DOM.p({'className':'cardCertificateWarning'}, "Afterward you won't be able to make any change, so make sure the card contains all the desired data and files before proceeding."),
+						React.DOM.p({'className':'cardCertificateWarning'}, availableCertificates + " registrations left"),
+					],
+					'possibleAnswers':{
+						'cancel':	{'label':"Cancel",	'isDefault':false,	'answer':MochiKit.Base.methodcaller('cancel', new MochiKit.Async.CancelledError())},
+						'delete':	{'label':"Continue",'isDefault':true,	'answer':MochiKit.Base.methodcaller('callback')}
+					}
+				}),
+
+				MochiKit.Base.method(this.overlay(), 'show', "registering", true),
+				MochiKit.Base.method(this.user(), 'getRecord', anEvent['reference']),
+				MochiKit.Base.method(this.user(), 'createCertificateForRecord'),
+				MochiKit.Base.method(this.user(), 'saveChangesWithExtraParameters'),
+
+				MochiKit.Base.method(this.user(), 'getRecord', anEvent['reference']),
+				MochiKit.Base.methodcaller('updateCertificateInfo'),
+
+				MochiKit.Base.method(this.overlay(), 'done', "", 1),
+				
+				MochiKit.Base.method(this, 'updateCertificateQueueInfo'),
+				MochiKit.Base.method(this, 'resetRecordsInfo'),
+				MochiKit.Base.method(this, 'refreshUI', anEvent['reference']),
+			], {trace:false});
+		} else {
+			result = Clipperz.Async.callbacks("MainController.createCertificate_handler [option B]", [
+				MochiKit.Base.method(self, 'ask', {
+					'question': "Sorry, registration not available",
+					'description': [
+						React.DOM.p({'className':'cardCertificateWarning'}, "You can't register this card on the Bitcoin blockchain because you have already consumed all your quota. Replenish your supply!"),
+					],
+					'possibleAnswers':{
+						'cancel':		{'label':"Ok",		'isDefault':false,	'answer':MochiKit.Base.methodcaller('cancel', new MochiKit.Async.CancelledError())},
+//						'subscribe':	{'label':"Upgrade",	'isDefault':true,	'answer':MochiKit.Base.noop, 'disabled':true}
+					}
+				}),
+			], {trace:false});
+		}
+		
+		return result;
+	},
+
+	//...........................................................................
+
+	updateCertificateQueueInfo: function () {
+		return Clipperz.Async.callbacks("MainController.updateCertificateQueueInfo", [
+			MochiKit.Base.method(this.user().connection(), 'message', 'getCertificatesStatus', {}),
+			MochiKit.Base.bind(function (certificatesStatus) {
+				return MochiKit.Base.map(MochiKit.Base.bind(function (certificateStatus) {
+					var	matchingRecords;
+					var	result;
+					matchingRecords = MochiKit.Base.filter(function (aRecordInfo) { return aRecordInfo['_reference'] == certificateStatus[0]; }, this._recordsInfo);
+					if (matchingRecords.length == 1) {
+						result = {'reference':certificateStatus[0], 'status':certificateStatus[1], 'label':matchingRecords[0]['label']};
+					} else {
+						result = null;
+					}
+					return result;
+				}, this), MochiKit.Base.zip(MochiKit.Base.keys(certificatesStatus), MochiKit.Base.values(certificatesStatus)));
+			}, this),
+			MochiKit.Base.method(this, '_updatedCertificateQueueInfo'),
+			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'certificateQueueInfo'),
+			MochiKit.Base.method(this, 'setPageProperties', 'cardDetailPage', 'certificateQueueInfo'),
+		], {trace:false});
+	},
+
+	_updatedCertificateQueueInfo: function (newQueueStatus) {
+		var	hasPendingPublishingCertificate;
+
+		this._certificateQueueStatus = newQueueStatus;
+		hasPendingPublishingCertificate = MochiKit.Iter.some(this._certificateQueueStatus, function (anInfo) { return (anInfo && (anInfo['status'] == 'requested')); });
+
+//console.log("hasPendingPublishingCertificate", hasPendingPublishingCertificate);
+		if (hasPendingPublishingCertificate) {
+//console.log("Rescheduled call to 'updateCertificateQueueInfo'");
+			MochiKit.Async.callLater(10 * 60, MochiKit.Base.method(this, 'updateCertificateQueueInfo'));
+		}
+
+		return this._certificateQueueStatus;
+	},
+
+	certificateQueueInfo: function() {
+		return this._certificateQueueStatus;
+	},
+
+	closeCertificateNotification_handler: function (aRecordReference) {
+		return Clipperz.Async.callbacks("MainController.closeCertificateNotification_handler", [
+			MochiKit.Base.method(this.user().connection(), 'message', 'acknowledgeCertificateStatus', {'reference':aRecordReference}),
+			MochiKit.Base.method(this, 'updateCertificateQueueInfo'),
+		], {trace:false});
+	},
+
+	showCertificateCard_handler: function (aRecordReference) {
+console.log("showCertificateCard_handler");
+		return Clipperz.Async.callbacks("MainController.showCertificateCard_handler", [
+//			MochiKit.Base.bind(function () { this._isAttachmentQueueBoxOpen = false; }, this),
+			MochiKit.Base.method(this, 'selectCard_handler', {'cardInfo': {'reference':aRecordReference}, 'update': true}),
+		], {trace:false});
+	},
+
+	//===========================================================================
+	
 	addTag_handler: function (anEvent) {
 		var	record = this.pages()[this.currentPage()].props['selectedCard']['_record'];
 		var	tag = anEvent;
@@ -2036,15 +2257,19 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	},
 
 	goBackToMainPage_handler: function (anEvent) {
-		this.goBackToMainPage(anEvent);
-//		window.history.pushState({selectedCardInfo: null}, "", window.location.toString());
-		this.historyPushState({selectedCardInfo: null}, "", window.location.toString());
+		return Clipperz.Async.callbacks("MainController.goBackToMainPage_handler", [
+			MochiKit.Base.method(this, 'goBackToMainPage', anEvent),
+			MochiKit.Base.method(this, 'historyPushState', {selectedCardInfo: null}, "", window.location.toString())
+		], {trace:false});
 	},
 
 	//============================================================================
 
 	selectAllCards_handler: function () {
-		this.selectAllCards();
+		return Clipperz.Async.callbacks("MainController.selectAllCards_handler", [
+			MochiKit.Base.method(this, 'selectAllCards')
+		], {trace:false});
+
 	},
 
 	selectAllCards: function () {
@@ -2056,56 +2281,82 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	},
 	
 	selectRecentCards_handler: function () {
-		this.resetSelectedCard();
-		this.setFilter('RECENT');
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'hideSelectionPanel');
-		return this.refreshSelectedCards();
+		return Clipperz.Async.callbacks("MainController.selectRecentCards_handler", [
+			MochiKit.Base.method(this, 'resetSelectedCard'),
+			MochiKit.Base.method(this, 'setFilter', 'RECENT'),
+			MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'hideSelectionPanel'),
+			MochiKit.Base.method(this, 'refreshSelectedCards')
+		], {trace:false});
+	},
+
+	selectCardsWithCertificate_handler: function () {
+		return Clipperz.Async.callbacks("MainController.selectCardsWithCertificate_handler", [
+			MochiKit.Base.method(this, 'resetSelectedCard'),
+			MochiKit.Base.method(this, 'setFilter', 'WITH_CERTIFICATE'),
+			MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'hideSelectionPanel'),
+			MochiKit.Base.method(this, 'refreshSelectedCards')
+		], {trace:false});
 	},
 
 	selectCardsWithAttachments_handler: function () {
-		this.resetSelectedCard();
-		this.setFilter('WITH_ATTACHMENTS');
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'hideSelectionPanel');
-		return this.refreshSelectedCards();
+		return Clipperz.Async.callbacks("MainController.selectCardsWithAttachments_handler", [
+			MochiKit.Base.method(this, 'resetSelectedCard'),
+			MochiKit.Base.method(this, 'setFilter', 'WITH_ATTACHMENTS'),
+			MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'hideSelectionPanel'),
+			MochiKit.Base.method(this, 'refreshSelectedCards')
+		], {trace:false});
 	},
 
 	search_handler: function (aValue) {
-		this.resetSelectedCard();
+		var	searchType;
 
 		if (aValue == "") {
-			this.setFilter('ALL');
+			searchType = 'ALL';
 		} else {
-			this.setFilter('SEARCH', aValue);
+			searchType = 'SEARCH';
 		}
-
-		this.setPageProperties('mainPage', 'searchTerm', aValue);
-		return this.refreshSelectedCards();
+		
+		return Clipperz.Async.callbacks("MainController.search_handler", [
+			MochiKit.Base.method(this, 'resetSelectedCard'),
+			MochiKit.Base.method(this, 'setFilter', searchType, aValue),
+			MochiKit.Base.method(this, 'setPageProperties', 'mainPage', 'searchTerm', aValue),
+			MochiKit.Base.method(this, 'refreshSelectedCards')
+		], {trace:false});
 	},
 
 	tagSelected_handler: function (aTag) {
-		this.resetSelectedCard();
-		this.setFilter('TAG', aTag);
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'hideSelectionPanel');
-		return this.refreshSelectedCards();
+		return Clipperz.Async.callbacks("MainController.tagSelected_handler", [
+			MochiKit.Base.method(this, 'resetSelectedCard'),
+			MochiKit.Base.method(this, 'setFilter', 'TAG', aTag),
+			MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'hideSelectionPanel'),
+			MochiKit.Base.method(this, 'refreshSelectedCards')
+		], {trace:false});
 	},
 
 	selectUntaggedCards_handler: function () {
-		this.resetSelectedCard();
-		this.setFilter('UNTAGGED');
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'hideSelectionPanel');
-		return this.refreshSelectedCards();
+		return Clipperz.Async.callbacks("MainController.selectUntaggedCards_handler", [
+			MochiKit.Base.method(this, 'resetSelectedCard'),
+			MochiKit.Base.method(this, 'setFilter', 'UNTAGGED'),
+			MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'hideSelectionPanel'),
+			MochiKit.Base.method(this, 'refreshSelectedCards')
+		], {trace:false});
 	},
 	
 	//............................................................................
 	
 	showArchivedCards_handler: function () {
-		this.setShouldIncludeArchivedCards(true);
-		return this.refreshUI();
+		return Clipperz.Async.callbacks("MainController.showArchivedCards_handler", [
+			MochiKit.Base.method(this, 'setShouldIncludeArchivedCards', true),
+			MochiKit.Base.method(this, 'refreshUI')
+		], {trace:false});
 	},
 	
 	hideArchivedCards_handler: function () {
-		this.setShouldIncludeArchivedCards(false);
-		return this.refreshUI();
+		return Clipperz.Async.callbacks("MainController.hideArchivedCards_handler", [
+			MochiKit.Base.method(this, 'setShouldIncludeArchivedCards', false),
+			MochiKit.Base.method(this, 'refreshUI')
+		], {trace:false});
+
 	},
 	
 	//----------------------------------------------------------------------------
@@ -2115,20 +2366,30 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	},
 	
 	maskClick_handler: function () {
-		this._closeMaskAction.apply(this);
-		this._closeMaskAction = null;
+		return Clipperz.Async.callbacks("MainController.maskClick_handler", [
+			MochiKit.Base.bind(function () {
+				this._closeMaskAction.apply(this);
+				this._closeMaskAction = null;
+			}, this)
+		], {trace:false});
 	},
 
 	//............................................................................
 
 	showHelp_handler: function () {
-		if (this.currentPage() == 'mainPage') {
-			this.setPageProperties(this.currentPage(), 'showHelp', true);
-		}
+		return Clipperz.Async.callbacks("MainController.showHelp_handler", [
+			MochiKit.Base.bind(function () {
+				if (this.currentPage() == 'mainPage') {
+					this.setPageProperties(this.currentPage(), 'showHelp', true);
+				}
+			}, this)
+		], {trace:false});
 	},
 
 	closeHelp_handler: function () {
-		this.setPageProperties(this.currentPage(), 'showHelp', false);
+		return Clipperz.Async.callbacks("MainController.closeHelp_handler", [
+			MochiKit.Base.method(this, 'setPageProperties', this.currentPage(), 'showHelp', false)
+		], {trace:false});
 	},
 
 	isShowingHelp: function () {
@@ -2222,8 +2483,10 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	},
 
 	exitSearch_handler: function (anEvent) {
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'toggleSelectionPanel');
-		MochiKit.DOM.getElement('searchValue').blur();
+		return Clipperz.Async.callbacks("MainController.exitSearch_handler", [
+			MochiKit.Base.partial(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'toggleSelectionPanel'),
+			MochiKit.Base.method(MochiKit.DOM.getElement('searchValue'), 'blur')
+		], {trace:false});
 	},
 
 	selectPreviousCard: function () {
@@ -2234,7 +2497,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		shouldUpdateCardDetail = this.shouldShowCardDetailWhenMovingBetweenCardsUsingKeys();
 
 		if (prevCardInfo != null) {
-			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', prevCardInfo, shouldUpdateCardDetail);
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', {'cardInfo':prevCardInfo, 'update':shouldUpdateCardDetail});
 		}
 	},
 
@@ -2246,7 +2509,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		shouldUpdateCardDetail = this.shouldShowCardDetailWhenMovingBetweenCardsUsingKeys();
 
 		if (nextCardInfo != null) {
-			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', nextCardInfo, shouldUpdateCardDetail);
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', {'cardInfo':nextCardInfo, 'update':shouldUpdateCardDetail});
 		}
 	},
 
@@ -2265,10 +2528,14 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		if (this.isShowingHelp()) {
 			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'closeHelp');
 		} else {
-			if (this.currentPage() == 'cardDetailPage') {
+			var	currentPage = this.pages()[this.currentPage()];
+			
+			if (currentPage.props['showCertificatePreview'] == true) {
+				currentPage.setProps({'showCertificatePreview': false});
+			} else if (this.currentPage() == 'cardDetailPage') {
 				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'goBackToMainPage', {'reference':this.selectedCardInfo()['reference']});
 			} else if (this.currentPage() == 'mainPage') {
-				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', null, true);
+				MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCard', {'cardInfo':null, 'update':true});
 			}
 		}
 	},
@@ -2276,24 +2543,30 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	//============================================================================
 
 	updateAttachmentQueueInfo_handler: function(someProperties) {
-		this.setPageProperties(this.currentPage(), 'attachmentQueueInfo', this.attachmentQueueInfo());
+		return Clipperz.Async.callbacks("MainController.updateAttachmentQueueInfo_handler", [
+			MochiKit.Base.method(this, 'setPageProperties', this.currentPage(), 'attachmentQueueInfo', this.attachmentQueueInfo())
+		], {trace:false});
 	},
 
-	addAttachment_handler: function(aRecord, aFile) {	//	aReference, someMetadata, aKey, aNonce
+	addAttachment_handler: function (aFileInfo) {	//	aReference, someMetadata, aKey, aNonce
 		var deferredResult;
-
+		var	record = aFileInfo['record'];
+		var	file = aFileInfo['file'];
+//console.log("addAttachment_handler", aFileInfo, record, file);
 		deferredResult = new Clipperz.Async.Deferred("MainController.addCardAttachment_handler", {'trace':false});
 
-		deferredResult.addMethod(aRecord, 'createNewAttachment');
-		deferredResult.addCallback(MochiKit.Base.methodcaller('setFile', aFile));
+		deferredResult.addMethod(this.overlay(), 'show', "reading", true);
+		deferredResult.addMethod(record, 'createNewAttachment');
+		deferredResult.addCallback(MochiKit.Base.methodcaller('setFile', file));
 		deferredResult.addMethod(this.attachmentController(), 'addAttachment');
-		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', aRecord.reference());
+		deferredResult.addMethod(this.overlay(), 'hide', true);
+		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', record.reference());
 		deferredResult.callback();
 		
 		return deferredResult;
 	},
 
-	uploadMessageCallback: function(someArguments, aProgressCallback) {
+	uploadMessageCallback: function (someArguments, aProgressCallback) {
 		var deferredResult;
 
 		deferredResult = new Clipperz.Async.Deferred("MainController.uploadMessageCallback", {'trace':false});
@@ -2305,8 +2578,10 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 	//----------------------------------------------------------------------------
 
-	removeAttachment_handler: function(aRecord, anAttachment) {
+	removeAttachment_handler: function (anAttachmentInfo) {
 		var deferredResult;
+		var record = anAttachmentInfo['record'];
+		var attachment = anAttachmentInfo['attachment'];
 		
 		deferredResult = new Clipperz.Async.Deferred("MainController.removeAttachment_handler", {trace: false});
 		deferredResult.addCallback(MochiKit.Base.method(this, 'ask', {
@@ -2316,9 +2591,9 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 				'revert':	{'label':"Yes",	'isDefault':false,	'answer':MochiKit.Base.methodcaller('callback')}
 			}
 		})),
-		deferredResult.addMethod(this, 'cancelAttachment_handler', anAttachment);
-		deferredResult.addMethod(aRecord, 'removeAttachment', anAttachment);
-		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', aRecord.reference());
+		deferredResult.addMethod(this, 'cancelAttachment_handler', attachment);
+		deferredResult.addMethod(record, 'removeAttachment', attachment);
+		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'refreshCardEditDetail', record.reference());
 
 		deferredResult.callback();
 		
@@ -2327,7 +2602,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 
 	//----------------------------------------------------------------------------
 
-	getAttachment_handler: function(anAttachment) {
+	getAttachment_handler: function (anAttachment) {
 		this.attachmentController().getAttachment(anAttachment);
 	},
 
@@ -2350,7 +2625,10 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	},
 
 	closeAttachmentNotification_handler: function(aNotificationId) {
-		return this.attachmentController().removeNotification(aNotificationId);
+		return Clipperz.Async.callbacks("MainController.", [
+			MochiKit.Base.method(this.attachmentController(), 'removeNotification', aNotificationId)
+		], {trace:false});
+
 	},
 
 	//----------------------------------------------------------------------------
@@ -2358,7 +2636,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 	reloadAttachmentServerStatusCallback: function(aRecord) {
 		if (! aRecord.isBrandNew()) {
 			return Clipperz.Async.callbacks("MainController.reloadAttachmentServerStatus_handler", [
-				MochiKit.Base.method(this.user(), 'getRecordDetail', aRecord),
+				MochiKit.Base.method(aRecord, 'updatedAttachmentServerStatus'),
 				MochiKit.Base.bind(function () { 
 					if (this._selectedCardInfo && this._selectedCardInfo['reference']) {
 						this.refreshUI(this._selectedCardInfo['reference']);

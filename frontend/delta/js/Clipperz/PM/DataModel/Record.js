@@ -49,6 +49,7 @@ Clipperz.PM.DataModel.Record = function(args) {
 	this._createNewAttachmentFunction			= args.createNewAttachmentFunction			|| null;
 	
 	this._attachmentServerStatus = {};
+	this._certificateInfo = null;
 
 	this._tags = [];
 	this._directLogins = {};
@@ -63,7 +64,6 @@ Clipperz.PM.DataModel.Record = function(args) {
 		newVersion = new Clipperz.PM.DataModel.Record.Version({
 			'retrieveKeyFunction':	MochiKit.Base.method(this, 'getVersionKey'),
 			'getVersion':			MochiKit.Base.method(this, 'getVersion')
-
 		});
 		this._versions[newVersion.reference()] = newVersion;
 		this._currentVersionReference = newVersion.reference();
@@ -85,7 +85,288 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 //	'reference': function () {
 //		return this._reference;
 //	},
+
+	//=========================================================================
+
+	setID: function (anID) {
+//console.log("RECORD - SET ID", this, anID);
+		return this.setValue('ID', anID);
+	},
 	
+	getID: function () {
+		return this.getValue('ID');
+	},
+
+	//=========================================================================
+
+	collectFieldInfo: function (aField) {
+		var deferredResult;
+		
+		deferredResult = new Clipperz.Async.Deferred('Record.collectFieldInfo', {trace:false});
+		deferredResult.setValue('_field');
+		deferredResult.addMethod(aField, 'reference');
+		deferredResult.setValue('_reference');
+		deferredResult.addMethod(aField, 'label');
+		deferredResult.setValue('label');
+		deferredResult.addMethod(aField, 'value');
+		deferredResult.setValue('value');
+		deferredResult.addMethod(aField, 'actionType');
+		deferredResult.setValue('actionType');
+		deferredResult.addMethod(aField, 'isHidden');
+		deferredResult.setValue('isHidden');
+		deferredResult.values();
+
+		deferredResult.callback(aField);
+		
+		return deferredResult;
+	},
+
+	collectDirectLoginInfo: function (aDirectLogin) {
+		var deferredResult;
+		
+		deferredResult = new Clipperz.Async.Deferred('Record.collectDirectLoginInfo', {trace:false});
+		deferredResult.addMethod(aDirectLogin, 'reference');
+		deferredResult.setValue('_reference');
+		deferredResult.addMethod(aDirectLogin, 'label');
+		deferredResult.setValue('label');
+		deferredResult.addMethod(aDirectLogin, 'favicon');
+		deferredResult.setValue('favicon');
+		deferredResult.values();
+
+		deferredResult.callback();
+		
+		return deferredResult;
+	},
+	
+	collectAttachmentInfo: function(anAttachment) {
+		var deferredResult;
+		
+		deferredResult = new Clipperz.Async.Deferred('Record.collectAttachmentInfo', {trace:false});
+		deferredResult.setValue('_attachment'); // The object itself, maybe this should be the only value being passed
+		deferredResult.addMethod(anAttachment, 'reference');
+		deferredResult.setValue('_reference');
+		deferredResult.addMethod(anAttachment, 'name');
+		deferredResult.setValue('name');
+		deferredResult.addMethod(anAttachment, 'contentType');
+		deferredResult.setValue('contentType');
+		deferredResult.addMethod(anAttachment, 'size');
+		deferredResult.setValue('size');
+		deferredResult.addMethod(anAttachment, 'hash');
+		deferredResult.setValue('hash');
+		deferredResult.values();
+
+		deferredResult.callback(anAttachment);
+		
+		return deferredResult;
+	},
+
+	collectRecordInfo: function () {
+		var deferredResult;
+
+		deferredResult = new Clipperz.Async.Deferred('Record.collectRecordInfo', {trace:false});
+		deferredResult.setValue('_record');
+		deferredResult.addMethod(this, 'reference');
+		deferredResult.setValue('_reference');
+		deferredResult.addMethod(this, 'isArchived');
+		deferredResult.setValue('_isArchived');
+		deferredResult.addMethod(this, 'isBrandNew');
+		deferredResult.setValue('_isBrandNew');
+		deferredResult.addMethod(this, 'label');
+		deferredResult.setValue('label');
+		deferredResult.addMethod(this, 'notes');
+		deferredResult.setValue('notes');
+		deferredResult.addMethod(this, 'tags');
+		deferredResult.setValue('tags');
+
+		deferredResult.addMethod(this, 'getID');
+		deferredResult.setValue('ID');
+
+		deferredResult.addMethod(this, 'fields');
+		deferredResult.addCallback(MochiKit.Base.values);
+		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.method(this, 'collectFieldInfo'));
+		deferredResult.addCallback(Clipperz.Async.collectAll);
+		deferredResult.setValue('fields');
+
+		deferredResult.addMethod(this, 'certificateInfo');
+		deferredResult.addCallback(MochiKit.Base.bind(function (someCertificateInfo) {
+			var result;
+
+			if ((someCertificateInfo) && (someCertificateInfo['status'] == 'requested')) {
+				result = this.updateCertificateInfo()
+			} else {
+				result = MochiKit.Async.succeed(someCertificateInfo);
+			}
+
+			return result;
+		}, this));
+		deferredResult.setValue('certificateInfo');
+
+		deferredResult.addMethod(this, 'attachmentsInfo');
+		deferredResult.setValue('attachments');
+
+		deferredResult.addMethod(this, 'directLogins');
+		deferredResult.addCallback(MochiKit.Base.values);
+		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.method(this, 'collectDirectLoginInfo'));
+		deferredResult.addCallback(Clipperz.Async.collectAll);
+		deferredResult.setValue('directLogins');
+
+		deferredResult.addMethod(this, 'getAttachmentServerStatus');
+		deferredResult.setValue('attachmentServerStatus');
+
+		deferredResult.values();
+
+		deferredResult.callback(this);
+		
+		return deferredResult;
+	},
+
+	//=========================================================================
+
+	certificateMetadata: function () {
+		var deferredResult;
+
+		deferredResult = new Clipperz.Async.Deferred('Record.certificateMetadata', {trace:false});
+		deferredResult.addMethod(this, 'collectRecordInfo');
+		deferredResult.addCallback(function (someValues) {
+			var	result = {};
+			var propertiesToCollect = ['label', 'notes'];
+			var fieldPropertiesToCollect = ['label', 'value'];
+			var attachmentPropertiesToCollect = ['name', 'contentType', 'size', 'hash'];
+			
+			MochiKit.Iter.forEach(propertiesToCollect, function (aKey) { result[aKey] = someValues[aKey]});
+			result['fields'] = MochiKit.Base.map(function (aField) {
+				var	fieldResult = {};
+				MochiKit.Iter.forEach(fieldPropertiesToCollect, function (aKey) { fieldResult[aKey] = aField[aKey]});
+
+				return fieldResult;
+			}, someValues['fields']);
+			result['attachments'] = MochiKit.Base.map(function (anAttachment) {
+				var	attachmentResult = {};
+				MochiKit.Iter.forEach(attachmentPropertiesToCollect, function (aKey) { attachmentResult[aKey] = anAttachment[aKey]});
+
+				return attachmentResult;
+			}, someValues['attachments']);
+
+			if (result['notes'] == "") {
+				delete result['notes'];
+			}
+
+			return result;
+		});
+		deferredResult.addCallback(Clipperz.Base.serializeJSON);
+//deferredResult.addCallback(function (aValue) { console.log("<<< CERTIFICATE METADATA", aValue); return aValue;});
+		deferredResult.callback();
+		
+		return deferredResult;
+
+	},
+
+	//=========================================================================
+/*
+	publicKeyBufferFromHash256: function (aBuffer) {
+//		var fixedBuffer;
+//
+//		fixedBuffer = new npm.buffer.Buffer(33);
+//		fixedBuffer.writeUInt8(0x03, 0);	//	https://github.com/bitcoin/bips/blob/master/bip-0066.mediawiki
+//		aBuffer.copy(fixedBuffer, 1);
+//
+//		return npm.bitcoin.ECPair.fromPublicKeyBuffer(fixedBuffer, NETWORK);
+
+		return npm.bitcoin.HDNode.fromSeedHex(aBuffer.toString('hex')).getPublicKeyBuffer();
+	},
+*/
+	keyFromHash256: function (aBuffer) {
+//		return npm.bitcoin.HDNode.fromSeedHex(aBuffer.toString('hex'), NETWORK);
+		var d = npm.BigInteger.fromHex(aBuffer.toString('hex'));
+		return new npm.bitcoin.ECPair(d, null, {'network':NETWORK, 'compressed':true})
+	},
+
+	computeAttachmentsCertificateInfo: function (attachmentController) {
+		var	deferredResult;
+		var	collectResultsInfo = {};
+		var	shouldComputeResult = false;
+		var	self = this;
+		
+		MochiKit.Iter.forEach(MochiKit.Base.values(this.attachments()), function (anAttachment) {
+			shouldComputeResult = true;
+			collectResultsInfo[anAttachment.reference()] = [
+				MochiKit.Base.method(anAttachment, 'metadata'),
+				MochiKit.Base.itemgetter('hash'),
+				function (anHashValue) {
+					var	hashBuffer = new npm.buffer.Buffer(anHashValue, 'hex');
+					var key = self.keyFromHash256(hashBuffer);
+
+					return {
+						'hash': anHashValue,
+						'publicKey': key.getPublicKeyBuffer().toString('hex'),
+						'address': key.getAddress(),
+					}
+				}
+			];
+		});
+
+		if (shouldComputeResult) {
+			deferredResult = new Clipperz.Async.Deferred("Record.computeAttachmentsCertificateInfo", {trace:false});
+			deferredResult.collectResults(collectResultsInfo);
+			deferredResult.callback();
+		} else {
+			deferredResult = MochiKit.Async.succeed(collectResultsInfo);
+		}
+
+		return deferredResult;
+	},
+
+	computeCertificateInfo: function (aWallet) {
+		var deferredResult;
+		
+		deferredResult = new Clipperz.Async.Deferred("Record.computeCertificateInfo", {trace:false});
+		deferredResult.collectResults({
+			'reference': MochiKit.Base.method(this, 'reference'),
+			'version': MochiKit.Base.partial(MochiKit.Async.succeed, "1.0"),
+			'card.publicKey': [
+				MochiKit.Base.method(this, 'getID'),
+				MochiKit.Base.method(aWallet, 'getKeyForDocumentWithID'),
+				MochiKit.Base.methodcaller('getPublicKeyBuffer'),
+				MochiKit.Base.methodcaller('toString', 'hex'),
+			],
+			'card.address': [
+				MochiKit.Base.method(this, 'getID'),
+				MochiKit.Base.method(aWallet, 'getKeyForDocumentWithID'),
+				MochiKit.Base.methodcaller('getAddress')
+			],
+/*
+			'metadata': [
+				MochiKit.Base.method(this, 'certificateMetadata'),
+				function (aString) { return new npm.buffer.Buffer(aString, 'utf8') },
+				npm.bitcoin.crypto.hash160,
+				function (anHash160) { return npm.bitcoin.address.toBase58Check(anHash160, NETWORK.pubKeyHash);}
+			],
+*/
+			'metadata.publicKey': [
+				MochiKit.Base.method(this, 'certificateMetadata'),
+				function (aString) { return new npm.buffer.Buffer(aString, 'utf8') },
+				npm.bitcoin.crypto.hash256,
+				MochiKit.Base.method(this, 'keyFromHash256'),
+
+				MochiKit.Base.methodcaller('getPublicKeyBuffer'),
+				MochiKit.Base.methodcaller('toString', 'hex'),
+			],
+			'metadata.address': [
+				MochiKit.Base.method(this, 'certificateMetadata'),
+				function (aString) { return new npm.buffer.Buffer(aString, 'utf8') },
+				npm.bitcoin.crypto.hash256,
+				MochiKit.Base.method(this, 'keyFromHash256'),
+
+				MochiKit.Base.methodcaller('getAddress')
+			],
+//			'attachments': MochiKit.Base.method(this, 'computeAttachmentsCertificateInfo')
+		});
+//deferredResult.addCallback(function (aValue) { console.log("=== CERTIFICATE INFO", MochiKit.Base.serializeJSON(aValue)); return aValue;});
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+
 	//=========================================================================
 
 	'getIndexData': function () {
@@ -147,6 +428,33 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 
 	getAttachmentServerStatus: function() {
 		return this._attachmentServerStatus;
+	},
+
+	updatedAttachmentServerStatus: function () {
+		return Clipperz.Async.callbacks("Record.updatedAttachmentServerStatus", [
+			MochiKit.Base.partial(this.retrieveRemoteDataFunction(), this),
+			MochiKit.Base.itemgetter('attachmentStatus'),
+			MochiKit.Base.method(this, 'setAttachmentServerStatus'),
+		], {trace:false});
+	},
+
+	//----------------------------------------------------------------------------
+
+	setCertificateInfo: function (aValue) {
+		this._certificateInfo = aValue;
+		return this._certificateInfo;
+	},
+
+	certificateInfo: function () {
+		return this._certificateInfo;
+	},
+
+	updateCertificateInfo: function () {
+		return Clipperz.Async.callbacks("Record.updateCertificateInfo", [
+			MochiKit.Base.partial(this.retrieveRemoteDataFunction(), this),
+			MochiKit.Base.itemgetter('certificateInfo'),
+			MochiKit.Base.method(this, 'setCertificateInfo'),
+		], {trace:false});
 	},
 
 	//============================================================================
@@ -302,8 +610,32 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 
 	//=========================================================================
 
-	attachmentsCount: function() {
-		return MochiKit.Base.keys(this.attachments()).length;
+	certificateStatus: function() {
+		//	TODO: FAKE IMPLEMENTATION, just enough to test the UI
+		var	result;
+
+//		if (this.reference().charAt(0) == 'a') {
+//			result = 'published';
+//		} else if (this.reference().charAt(0) == '0') {
+//			result = 'requested';
+//		} else {
+//			result = '';
+//		}
+
+		result = '';
+		
+		return result;	//	'requested' | 'published' | ''
+	},
+
+	markAsCertified: function () {
+		return this.addTag(Clipperz.PM.DataModel.Record.certifiedTag);
+	},
+
+	hasBeenCertified: function () {
+		return Clipperz.Async.callbacks("Record.isArchived", [
+			MochiKit.Base.method(this, 'tags'),
+			function (someTags) { return MochiKit.Iter.some(someTags, MochiKit.Base.partial(MochiKit.Base.objEqual, Clipperz.PM.DataModel.Record.certifiedTag))},
+		], {trace:false});
 	},
 
 	//=========================================================================
@@ -486,6 +818,26 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 
 	//=========================================================================
 	//	TODO: !!!!
+
+	'attachmentsCount': function() {
+		return MochiKit.Base.keys(this.attachments()).length;
+	},
+
+	
+	'attachmentsInfo': function () {
+		//		deferredResult.addMethod(this, 'attachments');
+		//		deferredResult.addCallback(MochiKit.Base.values);
+		//		deferredResult.addCallback(MochiKit.Base.map, MochiKit.Base.method(this, 'collectAttachmentInfo'));
+		//		deferredResult.addCallback(Clipperz.Async.collectAll);
+
+		return Clipperz.Async.callbacks("Record.attachmentsInfo", [
+			MochiKit.Base.method(this, 'attachments'),
+			MochiKit.Base.values,
+			MochiKit.Base.partial(MochiKit.Base.map, MochiKit.Base.method(this, 'collectAttachmentInfo')),
+			Clipperz.Async.collectAll
+		], {trace:false});
+	},
+
 	'attachments': function () {
 		return this._attachments;
 	},
@@ -527,7 +879,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 				delete this._attachments[anAttachment.reference()]
 			}, this)
 		], {trace:false});
-		
 	},
 
 	'attachmentReferences': function () {
@@ -563,15 +914,10 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 
 	'unpackRemoteData': function (someData) {
 		var result;
-
-/*
-		this._currentRecordVersion = new Clipperz.PM.DataModel.Record.Version({
-			'reference':				someData['currentVersion']['reference'],
-			'retrieveKeyFunction':		MochiKit.Base.method(this, 'getCurrentRecordVersionKey'),
-			'remoteData':				someData['currentVersion'],
-		});
-*/
 		var versionKey;
+
+		this.setAttachmentServerStatus(someData['attachmentStatus']);
+		this.setCertificateInfo(someData['certificateInfo']);
 
 		for (versionKey in someData['versions']) {
 			this._versions[versionKey] = new Clipperz.PM.DataModel.Record.Version({
@@ -581,8 +927,6 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 				'getVersion':			MochiKit.Base.method(this, 'getVersion')
 			})
 		}
-		
-//		this._currentVersionReference = someData['currentVersion']['reference'];
 		this._currentVersionReference = someData['currentVersion'];
 
 		result = Clipperz.PM.DataModel.Record.superclass.unpackRemoteData.apply(this, arguments);
@@ -596,11 +940,10 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Record, Clipperz.PM.DataModel.Encrypt
 		var result;
 
 		result = Clipperz.PM.DataModel.Record.superclass.unpackData.apply(this, arguments);
-
 		if (MochiKit.Base.isUndefinedOrNull(result['notes'])) {
 			result['notes'] = ''
 		}
-				
+
 		return result;
 	},
 	
@@ -1218,6 +1561,12 @@ Clipperz.log("Warning: Record.fieldWithLabel('" + aLabel + "') is returning more
 
 			MochiKit.Base.method(aRecord, 'fullLabel'),
 			MochiKit.Base.method(aRecord, 'extractTagsFromFullLabel'),
+//function (someValues) { console.log(">>> TAGS", someValues); return someValues; },
+			MochiKit.Base.keys,
+			MochiKit.Base.partial(MochiKit.Base.filter, Clipperz.PM.DataModel.Record.isRegularTag),
+			MochiKit.Base.partial(MochiKit.Base.filter, Clipperz.PM.DataModel.Record.isNotImportTag),
+			function (tags) { return MochiKit.Iter.reduce(function (result, value) { result[value] = true; return result; }, tags, {}); },
+//function (someValues) { console.log("<<< TAGS", someValues); return someValues; },
 			MochiKit.Base.method(this, 'updateTags'),
 			
 			MochiKit.Base.method(aRecord, 'notes'),
@@ -1333,6 +1682,7 @@ Clipperz.PM.DataModel.Record.defaultCardInfo = {
 	'label':				MochiKit.Base.methodcaller('label'),
 	'favicon':				MochiKit.Base.methodcaller('favicon'),
 	'attachmentsCount':		MochiKit.Base.methodcaller('attachmentsCount'),
+	'hasBeenCertified':		MochiKit.Base.methodcaller('hasBeenCertified'),
 };
 Clipperz.PM.DataModel.Record.defaultSearchField = '_searchableContent';
 
@@ -1342,7 +1692,9 @@ Clipperz.PM.DataModel.Record.specialTagChar =	'\uE010';
 Clipperz.PM.DataModel.Record.specialTagsConstructor = function (aTag) {
 	return Clipperz.PM.DataModel.Record.specialTagChar + aTag;	//.replace(/\s/g, Clipperz.PM.DataModel.Record.tagSpace);
 }
-Clipperz.PM.DataModel.Record.archivedTag = Clipperz.PM.DataModel.Record.specialTagsConstructor('ARCH');
+Clipperz.PM.DataModel.Record.archivedTag =	Clipperz.PM.DataModel.Record.specialTagsConstructor('ARCH');
+Clipperz.PM.DataModel.Record.certifiedTag =	Clipperz.PM.DataModel.Record.specialTagsConstructor('CERT');
+
 Clipperz.PM.DataModel.Record.regExpForTag = function (aTag) {
 	return new RegExp('\\' + Clipperz.PM.DataModel.Record.tagChar + aTag, 'g');
 };
@@ -1354,6 +1706,9 @@ Clipperz.PM.DataModel.Record.isSpecialTag = function (aTag) {
 };
 Clipperz.PM.DataModel.Record.isRegularTag = function (aTag) {
 	return !Clipperz.PM.DataModel.Record.isSpecialTag(aTag);
+};
+Clipperz.PM.DataModel.Record.isNotImportTag = function (aTag) {
+	return aTag.indexOf('Import_') != 0;
 };
 Clipperz.PM.DataModel.Record.regExpForSearch = function (aSearch) {
 	return new RegExp(aSearch.replace(/[^A-Za-z0-9]/g, '\\$&'), 'i');

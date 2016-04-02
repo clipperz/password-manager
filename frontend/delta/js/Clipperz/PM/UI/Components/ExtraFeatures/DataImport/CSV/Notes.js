@@ -25,7 +25,9 @@ refer to http://www.clipperz.com.
 Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV.NotesClass = React.createClass({
-	
+
+	displayName: 'Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV.Notes',
+
 	getInitialState: function() {
 		return {
 			'notesIndex': this.props.importContext.state('csvData.notesIndex'),

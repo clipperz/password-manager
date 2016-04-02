@@ -28,16 +28,39 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 
 	//============================================================================
 
+	displayName: 'Clipperz.PM.UI.Components.Cards.View',
+
 	propTypes: {
 		'label':	React.PropTypes.string /*.isRequired */ ,
 		'loading':	React.PropTypes.bool,
-		'proxyInfo': React.PropTypes.object.isRequired,
+//		'proxyInfo': React.PropTypes.object.isRequired,
 	},
 
 	getInitialState: function () {
-		return {};
+		return {
+//			'showCertificatePreview': false,
+		};
+	},
+
+	downloadCertificate: function (anEvent) {
+		if (this.isCertificatePublished()) {
+//			console.log("DOWNLOAD CERTIFICATE");
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'downloadCertificate', this.props['_reference']);
+		}
 	},
 	
+	previewCertificate: function (anEvent) {
+		if (this.isCertificatePublished()) {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'showCertificatePreview', this.props['_reference']);
+//			this.setState({'showCertificatePreview':true});
+		}
+	},
+	
+	hideCertificatePreview: function (anEvent) {
+//		this.setState({'showCertificatePreview':false});
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'hideCertificatePreview', this.props['_reference']);
+	},
+
 	//----------------------------------------------------------------------------
 
 	handleDirectLoginClick: function (aDirectLogin) {
@@ -161,6 +184,85 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 		]);
 	},
 	
+	//----------------------------------------------------------------------------
+
+	hasCertificate: function () {
+		return ((typeof(this.props['certificateInfo']) != 'undefined') && (this.props['certificateInfo'] != null));
+	},
+
+	isCertificatePublished: function () {
+		return (this.props['certificateInfo'] && (this.props['certificateInfo']['status'] == 'published'));
+	},
+
+	//----------------------------------------------------------------------------
+
+	renderCertificatePreview: function () {
+		return React.DOM.div({'className':'certificatePreview'}, [
+			React.DOM.div({'className':'mask'}),
+			React.DOM.div({'className':'previewContent'}, [
+				React.DOM.header({}, [
+					React.DOM.span({'onClick': this.hideCertificatePreview}, "close")
+				]),
+				React.DOM.div({'className':'preview'}, Clipperz.PM.UI.Components.Cards.CertificateRenderer(this.props)),
+				React.DOM.footer({}, null)
+			])
+		]);
+	},
+
+	renderCertificateInfo: function (someCertificateInfo) {
+		var	result;
+		
+		if (this.hasCertificate()) {
+			var description;
+			var	statusDescription;
+			var	dateLabel;
+			var	dateValue;
+			var	transactionInfo;
+			var classes = {
+				'cardCertificateInfo':	true,
+				'published':			this.isCertificatePublished(),
+				'requested':			!this.isCertificatePublished(),
+			};
+
+			if (this.isCertificatePublished()) {
+				description = "This card has been registered on the Bitcoin blockchain";
+				statusDescription = "confirmed";
+				dateLabel = "Registration date";
+				dateValue = (new XDate(someCertificateInfo['creationDate'])).toString("MMM d, yyyy - HH:mm");
+				transactionInfo = React.DOM.span({}, someCertificateInfo['txID']);
+			} else {
+				description = "This card will soon be registered on the Bitcoin blockchain";
+				statusDescription = "pending";
+				dateLabel = "Request date";
+				dateValue = (new XDate(someCertificateInfo['requestDate'])).toString("MMM d, yyyy - HH:mm");
+				transactionInfo = React.DOM.span({}, "N.A.");
+			}
+			
+			result = React.DOM.div({'className': Clipperz.PM.UI.Components.classNames(classes)}, [
+				React.DOM.div({}, [
+					React.DOM.h3({}, "certificate"),
+					React.DOM.p({}, description),
+				]),
+				React.DOM.div({'className':'info'}, [
+					React.DOM.div({'className':'details'}, [
+						React.DOM.dl({}, [ React.DOM.dt({}, dateLabel),		React.DOM.dd({}, dateValue) ]),
+						React.DOM.dl({}, [ React.DOM.dt({}, 'transaction'),	React.DOM.dd({'className':'transactionInfo'}, transactionInfo) ]),
+						React.DOM.dl({}, [ React.DOM.dt({}, 'status'),		React.DOM.dd({}, statusDescription) ]),
+					]),
+					React.DOM.div({'className':'links'}, [
+						React.DOM.a({'className':'certificate', 'onClick':this.downloadCertificate}, "certificate"),
+						React.DOM.a({'className':'preview', 'onClick':this.previewCertificate}, "preview"),
+					]),
+				]),
+			])
+
+		} else {
+			result = null;
+		}
+		
+		return result;
+	},
+
 	//----------------------------------------------------------------------------
 
 	renderLabel: function (aLabel) {
@@ -292,7 +394,7 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 		var queueOperationsInProgress = (status && (status != 'DONE' && status != 'CANCELED' && status != 'FAILED'));
 
 		result = null;
-
+ 
 		if (status == 'FAILED') {
 			result = React.DOM.span({'className': 'failed'}, "failed");
 		} else if (status == 'UPLOADING' || status == 'DOWNLOADING') {
@@ -304,7 +406,7 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 					result = React.DOM.span({'className': 'broken'}, "canceled");
 					break;
 				case 'DONE':
-					result = React.DOM.span({'className': 'broken'}, "failed");
+					result = React.DOM.span({'className': 'done'}, "done");
 					break;
 				case false:
 					result = React.DOM.span({'className': 'broken'}, "failed");
@@ -320,6 +422,7 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 
 		return result;
 	},
+
 	renderAttachmentActions: function(aStatus, aServerStatus, anAttachment) {
 		var result;
 
@@ -401,20 +504,25 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 	renderCard: function () {
 		var	classes = {
 			'view':		true,
-			'archived':	this.props['_isArchived']
+			'archived':	this.props['_isArchived'],
+			'registered': this.hasCertificate()
 		}
 	
 		return	React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(classes)},[
 			Clipperz.PM.UI.Components.Cards.CommandToolbar(this.props),
 			React.DOM.div({'className':'content'}, [
+				this.renderCertificateInfo(this.props['certificateInfo']),
 				this.renderLabel(this.props['label']),
+//React.DOM.div({}, "ID:" + this.props['ID']),
+//React.DOM.div({}, "Reference:" + this.props['_reference']),
 				this.renderTags(this.props['tags']),
 				this.renderFields(this.props['fields']),
 				this.renderAttachments(MochiKit.Base.values(this.props['attachments'])),
 				this.renderNotes(this.props['notes']),
 				this.renderDirectLogins(this.props['directLogins']),
 			]),
-			this.props['ask'] ? Clipperz.PM.UI.Components.DialogBox(this.props['ask']) : null
+			this.props['ask'] ? Clipperz.PM.UI.Components.DialogBox(this.props['ask']) : null,
+			this.props['showCertificatePreview'] ? this.renderCertificatePreview() : null
 		]);
 	},
 	
@@ -422,7 +530,7 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 
 	render: function () {
 		var	result;
-
+//console.log("VIEW", this.props);
 		if (this.props['loading'] == true) {
 			result = this.renderLoading();
 		} else if (this.props['_reference']) {

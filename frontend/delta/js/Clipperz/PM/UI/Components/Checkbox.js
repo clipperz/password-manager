@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components');
 Clipperz.PM.UI.Components.CheckboxClass = React.createClass({
 //	http://development.tobypitman.com/iphoneCheckboxes/iphoneCheckboxes2.html
 
+	displayName: 'Clipperz.PM.UI.Components.Checkbox',
+
 	propTypes: {
 		'checked':		React.PropTypes.bool.isRequired,
 		'id':			React.PropTypes.string.isRequired,

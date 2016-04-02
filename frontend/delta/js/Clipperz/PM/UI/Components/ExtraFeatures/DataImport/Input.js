@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataImport.InputClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.ExtraFeatures.DataImport.Input',
+
 	getInitialState: function() {
 		return {
 			'inputString': this.props.importContext.inputString(),
@@ -46,7 +48,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.InputClass = React.createClas
 		var jsonData;
 		var parsedInput;
 		
-		var inputString = this.refs['input-textarea'].getDOMNode().value.trim();
+		var inputString = this.refs['input-textarea'].value.trim();
 //		this.props.importContext.setData(inputString);
 
 		result = {'inputString': inputString};
@@ -80,7 +82,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.InputClass = React.createClas
 		var re = new RegExp('.*<textarea>(.*)<\/textarea>.*','g');
 		
 		if (re.test(someHtml)) {
-			textarea =  this.refs['input-textarea'].getDOMNode();
+			textarea =  this.refs['input-textarea'];
 			textarea.innerHTML = someHtml.replace(re, '$1');
 			result = textarea.innerHTML;
 		} else {
@@ -208,17 +210,19 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.InputClass = React.createClas
 		// http://enome.github.io/javascript/2014/03/24/drag-and-drop-with-react-js.html
 		// https://code.google.com/p/chromium/issues/detail?id=168387
 		// http://www.quirksmode.org/blog/archives/2009/09/the_html5_drag.html
+		anEvent.stopPropagation();
 		anEvent.preventDefault();
+		anEvent.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
 	},
 	
 	handleTextareaChange: function () {
 //		var newInputString;
 //		
-//		newInputString = this.refs['input-textarea'].getDOMNode().value;
+//		newInputString = this.refs['input-textarea'].value;
 //		this.setState({'inputString': newInputString});
 //		this.props.importContext.setInputString(newInputString);
 
-		this.updateTextAreaContent(this.refs['input-textarea'].getDOMNode().value, false);
+		this.updateTextAreaContent(this.refs['input-textarea'].value, false);
 	},
 
 	//=========================================================================
@@ -247,7 +251,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.InputClass = React.createClas
 					React.DOM.br({}),
 					React.DOM.a({
 						'className': 'button',
-						'onClick': MochiKit.Base.bind(function() { this.refs['upload-input'].getDOMNode().click() }, this),
+						'onClick': MochiKit.Base.bind(function() { this.refs['upload-input'].click() }, this),
 					}, "select it manually")
 				]),
 				React.DOM.div({'className': 'description'},

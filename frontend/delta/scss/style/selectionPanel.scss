@@ -57,8 +57,11 @@ refer to http://www.clipperz.com.
 				content: "recent";
 			}
 
+			&.withCertificateCards:before {
+				content: "certificate";
+			}
+
 			&.withAttachmentCards:before {
-//				transform: scaleX(-1);
 				content: "attachment";
 				font-weight: bold;
 			}
@@ -264,6 +267,16 @@ $selectionColor: $clipperz-orange;
 	li.allCards {
 		color: $selectionColor;
 		
+		&:before {
+			color: white;
+		}
+	}
+}
+
+#selections.WITH_CERTIFICATE {
+	li.withCertificateCards {
+		color: $selectionColor;
+
 		&:before {
 			color: white;
 		}

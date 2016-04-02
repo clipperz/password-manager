@@ -28,12 +28,18 @@ Clipperz.PM.UI.Components.SelectionsClass = React.createClass({
 
 	//=========================================================================
 
+	displayName: 'Clipperz.PM.UI.Components.Selections',
+
 	selectAll: function (anEvent) {
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectAllCards');
 	},
 	
 	selectRecent: function (anEvent) {
 		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectRecentCards');
+	},
+
+	selectWithCertificate: function (anEvent) {
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'selectCardsWithCertificate');
 	},
 
 	selectWithAttachments: function (anEvent) {
@@ -98,6 +104,10 @@ Clipperz.PM.UI.Components.SelectionsClass = React.createClass({
 				React.DOM.li({'className':'recentCards', 'onClick': this.selectRecent}, [
 					React.DOM.span({'className':'label'}, "Recent"),
 					React.DOM.span({'className':'count'}, this.props['allCardsCount'] ? '10' : '-')
+				]),
+				React.DOM.li({'className':'withCertificateCards', 'onClick': this.selectWithCertificate}, [
+					React.DOM.span({'className':'label'}, "With certificate"),
+					React.DOM.span({'className':'count'}, this.props['withCertificateCardsCount'] ? this.props['withCertificateCardsCount'] : '-')
 				]),
 				React.DOM.li({'className':'withAttachmentCards', 'onClick': this.selectWithAttachments}, [
 					React.DOM.span({'className':'label'}, "With attachments"),

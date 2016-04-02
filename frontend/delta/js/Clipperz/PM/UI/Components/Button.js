@@ -26,13 +26,15 @@ Clipperz.Base.module('Clipperz.PM.UI.Components');
 
 Clipperz.PM.UI.Components.ButtonClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.Button',
+
 	propTypes: {
 		'eventName':	React.PropTypes.string.isRequired,
 		'label':		React.PropTypes.string.isRequired,
 		'handler':		React.PropTypes.func.isRequired,
 		'className':	React.PropTypes.string,
-		'badgeTopContent': React.PropTypes.string,
-		'badgeBottomContent': React.PropTypes.string,
+		'badgeTopContent': React.PropTypes.number,
+		'badgeBottomContent': React.PropTypes.number,
 	},
 
 	//=========================================================================

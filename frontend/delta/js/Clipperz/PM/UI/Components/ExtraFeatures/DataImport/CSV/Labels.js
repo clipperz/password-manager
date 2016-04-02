@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV.LabelsClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV.Labels',
+
 	getInitialState: function() {
 		return {
 			'useFirstRowAsLabels': this.props.importContext.state('csvData.useFirstRowAsLabels'),
@@ -57,7 +59,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV.LabelsClass = React.creat
 		var newState;
 	
 		newState = this.state;
-		newState['labels'][columnIndex] = this.refs['csv-labels-input-' + columnIndex].getDOMNode().value;
+		newState['labels'][columnIndex] = this.refs['csv-labels-input-' + columnIndex].value;
 
 		this.setState(newState);
 		this.updateImportContextState();

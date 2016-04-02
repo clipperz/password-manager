@@ -28,6 +28,8 @@ Clipperz.PM.UI.Components.Cards.TextAreaClass = React.createClass({
 
 	//----------------------------------------------------------------------------
 
+	displayName: 'Clipperz.PM.UI.Components.Cards.TextArea',
+
 	componentDidMount: function() {
 		this.recalculateSize();
 		this.getDOMNode().addEventListener('input', this.handleKeyDown, false);

@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.DeleteAccount');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccount',
+
 	propTypes: {
 //		featureSet:			React.PropTypes.oneOf(['FULL', 'EXPIRED', 'TRIAL']).isRequired,
 //		'level':	React.PropTypes.oneOf(['hide', 'info', 'warning', 'error']).isRequired
@@ -50,15 +52,15 @@ Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 		var deferredResult;
 		
 		deferredResult = new Clipperz.Async.Deferred("DeleteAccount.handleDeleteAccount", {trace: false});
-		deferredResult.addCallback(this.props.userInfo['checkPassphraseCallback'], this.refs['passphrase'].getDOMNode().value);
+		deferredResult.addCallback(this.props.userInfo['checkPassphraseCallback'], this.refs['passphrase'].value);
 		deferredResult.addMethod(this, function(passCheck){
-			var username = this.refs['username'].getDOMNode().value;
-			var passphrase = this.refs['passphrase'].getDOMNode().value;
+			var username = this.refs['username'].value;
+			var passphrase = this.refs['passphrase'].value;
 			
 			this.setState({
 				'username': (username != '') ? (username == this.props.userInfo['username']) ? 'valid' : 'invalid' : 'empty',
 				'passphrase': (passphrase != '') ? (passCheck) ? 'valid' : 'invalid' : 'empty',
-				'confirm': this.refs['confirm'].getDOMNode().checked,
+				'confirm': this.refs['confirm'].checked,
 			});
 		});
 		
@@ -87,7 +89,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.DeleteAccountClass = React.createClass({
 						React.DOM.input({'key':'passphrase', 'className': this.state['passphrase'], 'type':'password', 'name':'passphrase', 'ref':'passphrase', 'placeholder':"passphrase"}),
 						React.DOM.p({}, [
 							React.DOM.input({'key':'confirm', 'className':'confirmCheckbox', 'type':'checkbox', 'id':'deleteAccountConfirmCheckbox', 'name':'confirm', 'ref':'confirm'}),
-							React.DOM.label({'htmlFor':'deleteAccountConfirmCheckbox'}, "All my data will be permanently deleted. I understand that this action cannot be undone or cancelled.")
+							React.DOM.label({'htmlFor':'deleteAccountConfirmCheckbox'}, "All my data will be permanently deleted. I understand that this action cannot be undone or canceled.")
 						]),
 					]),
 					React.DOM.button({'key':'button', 'type':'submit', 'disabled':!this.shouldEnableDeleteAccountButton(), 'className':'button'}, "Delete my account")

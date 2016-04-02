@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components');
 
 Clipperz.PM.UI.Components.AttachmentQueueBoxClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.AttachmentQueueBox',
+
 	propTypes: {
 		'attachmentQueueInfo':		React.PropTypes.object.isRequired,
 		'attachmentQueueBoxStatus':	React.PropTypes.string.isRequired,
@@ -104,7 +106,7 @@ Clipperz.PM.UI.Components.AttachmentQueueBoxClass = React.createClass({
 
 	render: function () {
 		//test
-		this.renderNotifications(this.props['attachmentQueueInfo']['notifications']);
+//		this.renderNotifications(this.props['attachmentQueueInfo']['notifications']);
 
 		return	React.DOM.div({
 			'className': 'attachmentQueueStatus '+this.props['attachmentQueueBoxStatus'],

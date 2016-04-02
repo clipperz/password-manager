@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV.HiddenClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV.Hidden',
+
 	getInitialState: function() {
 		return {
 			'hiddenFields': this.props.importContext.state('csvData.hiddenFields'),

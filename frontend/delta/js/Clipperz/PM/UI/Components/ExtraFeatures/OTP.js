@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures');
 
 Clipperz.PM.UI.Components.ExtraFeatures.OTPClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.ExtraFeatures.OTP',
+
 	getInitialState: function() {
 		return {
 //			'selectedOTPs': [],
@@ -82,7 +84,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.OTPClass = React.createClass({
 	},
 
 	handleLabelSave: function (anOTP) {
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'changeOTPLabel', anOTP.reference(), this.state['otpLabel']);
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'changeOTPLabel', {'reference':anOTP.reference(), 'label':this.state['otpLabel']});
 		this.handleLabelCancel()
 	},
 

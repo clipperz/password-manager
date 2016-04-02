@@ -69,16 +69,17 @@ Clipperz.PM.DataModel.EncryptedRemoteObject = function(args) {
 //
 //	  Basic data workflow
 //	=======================
-//
+//	# READ
 //	getRemoteData
 //		unpackRemoteData
 //			getDecryptedData [encryptedDataKeypath, encryptedVersionKeypath]
 //				unpackData
-//				
-//				
-//	??			packData
-//	??		encryptDataWithKey
-//	??	packRemoteData [encryptedDataKeypath (?), encryptedVersionKeypath (?)]
+//
+//	# WRITE
+//	prepareRemoteDataWithKey
+//		packData
+//		[encryptDataWithKey]
+//		packRemoteData [encryptedDataKeypath (?), encryptedVersionKeypath (?)]
 //
 
 Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(null, {
@@ -284,7 +285,18 @@ Clipperz.PM.DataModel.EncryptedRemoteObject.prototype = MochiKit.Base.update(nul
 
 	//-------------------------------------------------------------------------
 
-	'setValue': function(aKey, aValue) {
+	'getOrSetValue': function (aKey, aGetValueFunction) {
+		var deferredResult;
+		
+		deferredResult = new Clipperz.Async.Deferred("EncryptedRemoteObject.setValue", {trace:false});
+		deferredResult.addMethod(this, '_getObjectDataStore');
+		deferredResult.addCallback(MochiKit.Base.methodcaller('deferredGetOrSet', aKey, aGetValueFunction));
+		deferredResult.callback();
+		
+		return deferredResult;
+	},
+
+	'setValue': function (aKey, aValue) {
 		var deferredResult;
 		
 		deferredResult = new Clipperz.Async.Deferred("EncryptedRemoteObject.setValue", {trace:false});

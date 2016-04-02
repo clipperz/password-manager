@@ -109,6 +109,7 @@ input[type=text] {
 			
 			&.selection {
 				@include flex($selectionPanelFlexWidth, 0);
+				max-width: 20%;
 //				height: 100%;
 //				@include overflow-auto;
 			}
@@ -326,6 +327,8 @@ div.cardToolbar {
 					@include flex(4);
 					text-align: center;
 					
+					font-size: 28pt;
+					
 					&.tag, &.search {
 						font-size: 14pt;
 					}
@@ -374,17 +377,16 @@ div.cardToolbar {
 
 						h3 {
 							font-weight: bold;
-							font-size: 33pt;
-
-							letter-spacing: -10px;
+							font-size: 32pt;
+							letter-spacing: -12px;
 						}
 
 						.badge {
 							position: absolute;
-							margin-left: -12px;
+							margin-left: -8px;
 							width: auto;
 							height: 16px;
-							line-height: 17px;
+							line-height: 16px;
 							background-color: #1863a1;
 							color: white;
 							text-align: center;
@@ -399,10 +401,49 @@ div.cardToolbar {
 
 							&.bottom {
 								top: 25px;
-								margin-left: -42px;
+								margin-left: -36px;
 							}
 						}
 					}
+
+					.certificateQueueToggleButton {
+						@include icon-font();
+						margin-right: 10px;
+
+						h3 {
+							font-weight: bold;
+							font-size: 22pt;
+							letter-spacing: -12px;
+							line-height: 34pt;
+						}
+
+						.badge {
+							position: absolute;
+							margin-left: -4px;
+							width: auto;
+							height: 16px;
+							line-height: 16px;
+//							background-color: #1863a1;
+							color: white;
+							text-align: center;
+							font-size: 8pt;
+							font-weight: bold;
+							border-radius: 8px;
+							padding: 0px 4px;
+
+							&.top {
+								top: 8px;
+								background-color: #666;
+							}
+
+							&.bottom {
+								top: 26px;
+//								margin-left: -42px;
+								background-color: #EAD143;
+							}
+						}
+					}
+
 				}
 			}
 			
@@ -450,7 +491,7 @@ div.attachmentQueueStatus {
 		border-width: 0 $arrow-size $arrow-size $arrow-size;
 		border-color: transparent transparent black transparent;
 		position: fixed;
-		right: 70px;
+		right: 66px;
 		top: calc(49px - #{$arrow-size});
 	}
 
@@ -608,6 +649,208 @@ div.attachmentQueueStatus {
 		}
 	}
 }
+
+//=============================================================================
+
+$arrow-size: 8px;
+div.certificateQueueStatus {
+	position: fixed;
+	top: calc(48px - #{$arrow-size});
+	right: 0;
+	padding: 0;
+	color: white;
+	z-index: 10;
+
+	height: calc(100% - 48px);
+	pointer-events: none;
+
+	.arrow {
+		width: 0;
+		height: 0;
+		border-style: solid;
+		border-width: 0 $arrow-size $arrow-size $arrow-size;
+		border-color: transparent transparent black transparent;
+		position: fixed;
+		right: 110px;
+		top: calc(49px - #{$arrow-size});
+	}
+
+	&.closed {
+		display: none;
+		visibility: hidden;
+	}
+
+	p {
+		padding: 1em;
+	}
+
+	ul {
+		pointer-events: all;
+		
+		max-height: 100%;
+		overflow-y: auto;
+		overflow-x: hidden;
+		white-space: nowrap;
+
+		background: black;
+		margin-top: $arrow-size;
+		padding: 0;
+		box-shadow: 0px 2px 5px #888888;
+
+		li {
+			padding: 0 0 0 1em;;
+			border-bottom: 1px solid white;
+
+			span {
+				display: inline-block;
+				vertical-align: middle;
+				height: 40px;
+				line-height: 40px;
+			}
+
+			&.requested {
+				.icon {
+					color: #999;
+				}
+				
+				.close {
+//					display: none;
+					visibility: hidden;
+				}
+			}
+			
+			&.published {
+				.icon {
+					color: #EAD143;
+				}
+			}
+
+			.icon {
+				@include icon-font();
+				color: white;
+				width: 30px;
+			}
+
+			.name {
+				width: 250px;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				cursor: pointer;
+			}
+
+			.status {
+				width: 150px;
+				text-align: right;
+
+				.statusString {
+					font-size: 14px;
+				}
+
+//				.processIcon {
+//					margin-left: 1em;
+//					font-size: 15pt;
+//				}
+			}
+
+			.close {
+				a {
+					@include icon-font();
+					display: inline-block;
+
+					width: 50px;
+					text-align: center;
+					letter-spacing: 1px;
+					font-size: 20px;
+
+					@include userSelectNone();
+				}
+
+				a:hover {
+					color: lightgray;
+					cursor: pointer;
+				}
+			}
+
+//			.progress {
+//				width: 50px;
+//				height: 30px;
+//				text-align: center;
+//
+//				@include userSelectNone();
+//			}
+
+			&:last-child {
+				border-bottom: 0;
+			}
+		}
+	}
+/*
+	.radialProgressIndicator {
+		height: 25px;
+
+		.background {
+			fill: white;
+		}
+
+		.progress {
+			fill: $clipperz-orange;
+		}
+	}
+*/
+}
+
+
+.narrow {
+	.certificateQueueStatus {
+		width:100%;
+
+		ul {
+			white-space: inherit;
+
+			li {
+				padding-top: .2em;
+				padding-bottom: .2em;
+
+				span {
+					height: 25px;
+					line-height: 30px;
+				}
+
+				.name {
+					width: 225px;
+				}
+
+				.status {
+					padding-left: 30px;
+					text-align: left;
+					width: calc(100% - 100px);
+					line-height: 20px;
+					font-size: .8em;
+
+					.processIcon {
+						margin-left: 0.5em;
+					}
+				}
+
+				.close {
+					height: inherit;
+					line-height: inherit;
+					float: right;
+					display: block;
+					margin-top: -5px;
+				}
+
+//				.progress {
+//					padding-left: 18px;
+//					margin-top: -24px;
+//				}
+			}
+		}
+
+	}
+}
+
+//=============================================================================
 
 
 div.cardContent {

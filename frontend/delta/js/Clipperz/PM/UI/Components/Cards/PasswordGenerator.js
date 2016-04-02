@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.Cards');
 
 Clipperz.PM.UI.Components.Cards.PasswordGeneratorClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.Cards.PasswordGenerator',
+
 	charsetBlocks: {
 		'chars_AZ':		'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
 		'chars_az':		'abcdefghijklmnopqrstuvwxyz',

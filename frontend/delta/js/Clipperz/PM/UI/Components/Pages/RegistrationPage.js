@@ -25,6 +25,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.Pages');
 
 Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.Pages.RegistrationPage',
+
 	getDefaultProps: function () {
 		return {
 			steps: [
@@ -126,8 +128,8 @@ Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 	toggleCheckbox: function (aCheckboxRef, anEvent) {
 		var	newState = {};
 
-		this.refs[aCheckboxRef].getDOMNode().checked = ! this.refs[aCheckboxRef].getDOMNode().checked;
-		newState[aCheckboxRef] = this.refs[aCheckboxRef].getDOMNode().checked;
+		this.refs[aCheckboxRef].checked = ! this.refs[aCheckboxRef].checked;
+		newState[aCheckboxRef] = this.refs[aCheckboxRef].checked;
 		this.setState(newState);
 	},
 	
@@ -154,7 +156,7 @@ Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 
 	handleChange: function (anEvent) {
 		var	refs = this.refs;
-		var refName = MochiKit.Base.filter(function (aRefName) { return refs[aRefName].getDOMNode() == anEvent.target}, MochiKit.Base.keys(this.refs))[0];
+		var refName = MochiKit.Base.filter(function (aRefName) { return refs[aRefName] == anEvent.target}, MochiKit.Base.keys(this.refs))[0];
 		var newState = {};
 
 		if ((anEvent.target.type == 'checkbox') || (anEvent.target.type == 'radio')) {
@@ -213,12 +215,12 @@ Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 		return	React.DOM.div({'key':'termsOfService'}, [
 					React.DOM.div({'key':'termsOfService_choice_1', 'className':'checkboxBlock'}, [
 						React.DOM.label({'key':'termsOfService_label_1', 'htmlFor':'no_password_recovery'}, "I understand that Clipperz is unable to recover a lost passphrase."),
-						React.DOM.input({'key':'no_password_recovery', 'type':'checkbox', 'name':'no_password_recovery', 'ref':'no_password_recovery', 'id':'no_password_recovery', 'tabindex':'0'}),
+						React.DOM.input({'key':'no_password_recovery', 'type':'checkbox', 'name':'no_password_recovery', 'ref':'no_password_recovery', 'id':'no_password_recovery', 'tabIndex':'0'}),
 						React.DOM.p({'key':'termsOfService_description_1', 'onClick':MochiKit.Base.method(this, 'toggleCheckbox', 'no_password_recovery')}, "I understand that Clipperz is unable to recover a lost passphrase.")
 					]),
 					React.DOM.div({'key':'termsOfService_choice_2', 'className':'checkboxBlock'}, [
 						React.DOM.label({'key':'termsOfService_label_2', 'htmlFor':'agree_terms_of_service'}, "I have read and agreed to the Terms of Service."),
-						React.DOM.input({'key':'agree_terms_of_service', 'type':'checkbox', 'name':'agree_terms_of_service', 'ref':'agree_terms_of_service', 'id':'agree_terms_of_service', 'tabindex':'1'}),
+						React.DOM.input({'key':'agree_terms_of_service', 'type':'checkbox', 'name':'agree_terms_of_service', 'ref':'agree_terms_of_service', 'id':'agree_terms_of_service', 'tabIndex':'1'}),
 						React.DOM.p({'key':'termsOfService_description_2'},  [
 							React.DOM.span({'key':'termsOfService_description_2_p1', 'onClick':MochiKit.Base.method(this, 'toggleCheckbox', 'agree_terms_of_service')}, "I have read and agreed to the "),
 							React.DOM.a({'key':'termsOfService_description_2_p2', 'onClick':this.showUrl('/terms_service/')}, "Terms of Service.")
@@ -290,15 +292,15 @@ Clipperz.PM.UI.Components.Pages.RegistrationPageClass = React.createClass({
 	//=========================================================================
 
 	setInitialFocus: function () {
-		this.refs['username'].getDOMNode().focus();
+		this.refs['username'].focus();
 	},
 
 	componentDidUpdate: function (prevProps, prevState, rootNode) {
 		if (prevState['currentStep'] != this.state['currentStep']) {
 			if (this.state['currentStep'] == 'CREDENTIALS') {
-				this.refs['passphrase'].getDOMNode().select();
+				this.refs['passphrase'].select();
 			} else if (this.state['currentStep'] == 'PASSWORD_VERIFICATION') {
-				this.refs['verify_passphrase'].getDOMNode().select();
+				this.refs['verify_passphrase'].select();
 			}
 		}
 	}

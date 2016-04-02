@@ -104,18 +104,23 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Attachment, Object, {
 	},
 	
 	'setFile': function (aFile) {
+		var	hashValue;
+//console.log("ATTACHMENT SET FILE", aFile);
 		this._file			= aFile			|| null;
+//		hashValue = aFile ? npm.bitcoin.address.toBase58Check(npm.bitcoin.crypto.hash160(aFile), NETWORK.pubKeyHash) : null;
 
 		/* These ones will disappear when the application is closed */
 		this._name			= aFile ? aFile['name'] : null;
 		this._contentType	= aFile ? aFile['type'] : null;
 		this._size			= aFile ? aFile['size'] : null;
+//		this._hash			= hashValue;
 		
 		/* These ones will be saved in the Record */
 		return Clipperz.Async.callbacks("Attachment.setFile", [
 			MochiKit.Base.method(this, 'setValue', 'name', aFile['name']),
 			MochiKit.Base.method(this, 'setValue', 'contentType', aFile['type']),
 			MochiKit.Base.method(this, 'setValue', 'size', aFile['size']),
+//			MochiKit.Base.method(this, 'setValue', 'hash', hashValue),
 			
 			MochiKit.Base.partial(MochiKit.Async.succeed, this),
 		], {trace:false});
@@ -135,6 +140,10 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Attachment, Object, {
 		return this.getValue('size');
 	},
 	
+	'hash': function () {
+		return this.getValue('hash');
+	},
+	
 	'metadata': function () {
 		var deferredResult;
 
@@ -143,6 +152,7 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Attachment, Object, {
 			'name':	MochiKit.Base.method(this, 'name'),
 			'type': MochiKit.Base.method(this, 'contentType'),
 			'size': MochiKit.Base.method(this, 'size'),
+			'hash': MochiKit.Base.method(this, 'hash'),
 		}, {trace:false});
 		deferredResult.callback();
 
@@ -345,6 +355,30 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.Attachment, Object, {
 		return MochiKit.Async.succeed(result);
 	},
 
+	//=========================================================================
+/*
+	computeAttachmentCertificateInfo: function () {
+		var deferredResult;
+		
+		deferredResult = new Clipperz.Async.Deferred("Attachment.computeAttachmentCertificateInfo", {trace:false});
+		deferredResult.collectResults({
+			'name':			MochiKit.Base.method(this, 'name'),
+			'contentType':	MochiKit.Base.method(this, 'contentType'),
+			'size':			MochiKit.Base.method(this, 'size'),
+			'hash': [
+				MochiKit.Base.method(attachmentController, 'getAttachment', this),
+function (aValue) { console.log("STEP 1", aValue); return aValue; },
+//				npm.bitcoin.crypto.hash160,
+//function (aValue) { console.log("STEP 2", aValue); return aValue; },
+//				function (anHash160) { return npm.bitcoin.address.toBase58Check(anHash160, NETWORK.pubKeyHash);}
+				function () { return MochiKit.Async.succeed("bingo"); }
+			]
+		});
+		deferredResult.callback();
+
+		return deferredResult;
+	},
+*/
 	//=========================================================================
 	__syntaxFix__: "syntax fix"
 });

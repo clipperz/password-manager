@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures');
 
 Clipperz.PM.UI.Components.ExtraFeatures.PreferencesClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.ExtraFeatures.Preferences',
+
 	getInitialState: function() {
 		return {
 			'editedPreferences': new Clipperz.KeyValueObjectStore()
@@ -66,7 +68,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.PreferencesClass = React.createClass({
 	checkboxClick: function (aRef) {
 		return MochiKit.Base.bind(function (anEvent) {
 // console.log("CHECKBOX CLICK", this, this.refs, this.refs[aRef]);
-			this.refs[aRef].getDOMNode().click();
+			this.refs[aRef].click();
 		}, this);
 	},
 

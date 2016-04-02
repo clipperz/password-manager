@@ -26,6 +26,8 @@ Clipperz.Base.module('Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV');
 
 Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV.TitlesClass = React.createClass({
 
+	displayName: 'Clipperz.PM.UI.Components.ExtraFeatures.DataImport.CSV.Titles',
+
 	getInitialState: function() {
 		return {
 			'titleIndex': this.props.importContext.state('csvData.titleIndex'),

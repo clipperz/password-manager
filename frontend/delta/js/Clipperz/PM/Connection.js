@@ -497,9 +497,11 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 Clipperz.log(">>> Connection.messageExceptionHandler:  " + anError.message, anError);
 		if (anError instanceof MochiKit.Async.CancelledError) {
 			result = anError;
+		} else if (typeof(anError.req) == 'undefined') {
+			result = anError;
 		} else {
 			var	errorPayload;
-			
+
 			errorPayload = Clipperz.Base.evalJSON(anError.req.responseText);
 			if ((errorPayload.message == 'Trying to communicate without an active connection')	||
 				(errorPayload.message == 'No tollManager available for current session')		||

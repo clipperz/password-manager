@@ -77,3 +77,33 @@ If you want to add other JS files you will have to include the reference to the 
 ### SCSS files
 
 Any change to the SCSS files (as long as they are included –directly or indirectly– by clipperz.scss) will be visible as soon as you compile `scss/clipperz.scss` and reload the page on the browser. If you are using LiveReload, you can configure it to compile all files and reload the browser whenever you save any changes.
+
+
+# bitcoinJS-lib
+
+## bitcoinJS-lib + bip32-utils + bip32-wallet -> browserify
+> npm install bitcoinjs-lib
+> npm install bip32-utils
+> npm install bip32-wallet
+
+> browserify Workarea/clipperz/gcsolaroli\@bitbucket/password-manager/frontend/delta/js/bitcoinjs-lib/npm.js -s bitcoin > Workarea/clipperz/gcsolaroli\@bitbucket/password-manager/frontend/delta/js/bitcoinjs-lib/bitcoinjs-lib-2.1.4.js
+
+## bitcoinJS-lib raw
+> browserify -r bitcoinjs-lib:bigi -s bitcoin -d > Workarea/clipperz/gcsolaroli\@bitbucket/password-manager/frontend/delta/js/bitcoinjs-lib/bitcoinjs-lib-2.1.4.js
+
+## BigInteger
+> npm install bigi@1.4.0
+> browserify -r bigi -s BigInteger > Workarea/clipperz/gcsolaroli\@bitbucket/password-manager/frontend/delta/js/bitcoinjs-lib/bigi-1.4.0.js
+
+## bops-browser
+> npm install bops-browser
+> browserify -r bops-browser -s bops > Workarea/clipperz/gcsolaroli\@bitbucket/password-manager/frontend/delta/js/bops-browser/bops-browser-0.6.0.js
+
+## buffer
+> npm buffer
+> browserify -r buffer -s buffer > Workarea/clipperz/gcsolaroli\@bitbucket/password-manager/frontend/delta/js/buffer/buffer-4.3.0.js
+
+
+## custom browserify packaging
+> npm install bitcoinjs-lib@2.2.0
+> browserify Workarea/clipperz/gcsolaroli\@bitbucket/password-manager/frontend/delta/js/npm/config.js -s npm > Workarea/clipperz/gcsolaroli\@bitbucket/password-manager/frontend/delta/js/npm/npm.js
