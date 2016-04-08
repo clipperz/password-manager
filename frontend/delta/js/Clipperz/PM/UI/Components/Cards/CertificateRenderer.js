@@ -66,7 +66,7 @@ Clipperz.PM.UI.Components.Cards.CertificateRendererClass = React.createClass({
 			];
 		};
 
-		return React.DOM.svg({'viewBox':'0 0 600 ' + height, 'width':'100%', 'height':height, 'fill':'currentcolor'}, [
+		return React.DOM.svg({'viewBox':'0 0 630 ' + height, 'width':'100%', 'height':height, 'fill':'currentcolor'}, [
 			arrow(0, height/2),
 			React.DOM.rect({'x':arrowLength, 'y':0, 'width':rectWidth, 'height':height, 'fill':'blue', 'opacity':0.3}),
 			React.DOM.rect({'x':arrowLength, 'y':0, 'width':rectWidth, 'height':height, 'fill':'none', 'stroke':'black', 'strokeWidth':1, 'opacity':1}),
