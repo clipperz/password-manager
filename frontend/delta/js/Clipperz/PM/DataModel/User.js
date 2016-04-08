@@ -836,13 +836,15 @@ Clipperz.log("Warning: User.recordWithLabel('" + aLabel + "') is returning more 
 		var	user = this;
 		
 		return Clipperz.Async.callbacks("User.cloneRecord", [
-			MochiKit.Base.method(this, 'hasPendingChanges'),
-			Clipperz.Async.deferredIf("User has pending changes", [
-				MochiKit.Async.fail
-			], [
-				MochiKit.Base.method(user, 'createNewRecord'),
-				MochiKit.Base.methodcaller('setUpWithRecord', aRecord),
-			])
+//			MochiKit.Base.method(this, 'hasPendingChanges'),
+//			Clipperz.Async.deferredIf("User has pending changes", [
+///				MochiKit.Async.fail
+//			], [
+//				MochiKit.Base.method(user, 'createNewRecord'),
+//				MochiKit.Base.methodcaller('setUpWithRecord', aRecord),
+//			])
+			MochiKit.Base.method(user, 'createNewRecord'),
+			MochiKit.Base.methodcaller('setUpWithRecord', aRecord),
 		], {trace:false});
 	},
 
