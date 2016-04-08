@@ -873,6 +873,18 @@ div.cardContent {
 		box-shadow: 2px 0 6px 0 rgba(0,0,0, 0.1);
 
 		div.cardToolbar.narrow {
+			header {
+				div {
+					&.settingsToggle {
+						.button {
+							.label {
+								padding-right: 6px;
+								padding-left: 6px;
+							}
+						}
+					}
+				}
+			}
 		}
 		
 		&.addCard {
