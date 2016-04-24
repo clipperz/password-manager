@@ -140,8 +140,9 @@ def pm():
     """Main request handler."""
     method = request.form['method']
     if method not in globals():
+        app.logger.error(method)
         raise InvalidUsage('This method is not yet implemented',
                            status_code=501)
-    handler = globals()[method]()
     app.logger.debug(method)
+    handler = globals()[method]()
     return handler.handle_request(request)
