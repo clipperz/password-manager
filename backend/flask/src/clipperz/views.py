@@ -1,10 +1,11 @@
 """Clipperz views."""
-from flask import session, request, g
+from flask import session, request, g, send_from_directory
 from clipperz import app, db, lm
 from .models import User
 from .api import *  # NOQA
 from .exceptions import InvalidUsage
 from flask.ext.login import login_required
+from os.path import dirname
 
 
 @lm.user_loader
@@ -113,19 +114,25 @@ def dump(frontend_version):
 @app.route('/beta/<path:path>')
 def beta(path):
     """Fallback for serving beta version."""
-    return send_from_directory('beta', path)
+    here = dirname(__file__)
+    file_path = "{0}/../beta/".format(here)
+    return send_from_directory(file_path, path)
 
 
 @app.route('/gamma/<path:path>')
 def gamma(path):
     """Fallback for serving gamma version."""
-    return send_from_directory('gamma', path)
+    here = dirname(__file__)
+    file_path = "{0}/../gamma/".format(here)
+    return send_from_directory(file_path, path)
 
 
 @app.route('/delta/<path:path>')
 def delta(path):
     """Fallback for serving delta version."""
-    return send_from_directory('delta', path)
+    here = dirname(__file__)
+    file_path = "{0}/../delta/".format(here)
+    return send_from_directory(file_path, path)
 
 
 @app.route('/pm', methods=['GET', 'OPTIONS', 'POST'])
