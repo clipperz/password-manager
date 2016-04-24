@@ -1,0 +1,11 @@
+  location /pm {
+    auth_basic            "Restricted";
+    auth_basic_user_file  /etc/nginx/.htpasswd;
+    try_files $uri $uri/ @pm;
+  }
+  location @pm {
+    include         uwsgi_params;
+    uwsgi_param SCRIPT_NAME /pm;
+    uwsgi_modifier1 30;
+    uwsgi_pass      unix:/run/uwsgi/pm.sock;
+  }
