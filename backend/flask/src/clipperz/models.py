@@ -104,8 +104,12 @@ class RecordVersion(db.Model):
         self.version = self.record.version
         self.previous_version_key = recordVersionData['previousVersionKey']
         self.update_date = datetime.datetime.utcnow()
+        self.access_date = datetime.datetime.utcnow()
 
         self.record.update(someData['record'], self)
+
+    def access(self):
+        self.access_date = datetime.datetime.now()
 # ------------------------------------------------------------------------------
 
 
@@ -144,8 +148,12 @@ class Record(db.Model):
         self.data = data['data']
         self.api_version = data['version']
         self.update_date = datetime.datetime.now()
+        self.access_date = datetime.datetime.now()
         self.current_record_version = record_version
         self.version += 1
+
+    def access(self):
+        self.access_date = datetime.datetime.now()
 
 # ------------------------------------------------------------------------------
 
