@@ -664,6 +664,15 @@ class message(HandlerMixin):
         result['result'] = 'done'
         return jsonify({'result': result})
 
+    @login_required
+    def getCertificatesStatus(self, parameters, request):
+        """
+        Provides support for BTC Certificate feature.
+
+        No idea how it works.
+        """
+        return jsonify({'result': {}})
+
 
 class logout(HandlerMixin):
 
