@@ -438,6 +438,11 @@ class message(HandlerMixin):
         result['oldestUsedEncryptedVersion'] = oldest_encryption_version
         result['versions'] = record_versions
         result['currentVersion'] = record.current_record_version.reference
+        record.current_record_version.access()
+        record.access()
+        db.session.add(record)
+        db.session.add(record_version)
+        db.session.commit()
         return jsonify({'result': result})
 
     @login_required
