@@ -87,8 +87,11 @@ class RecordVersion(db.Model):
                                                 order_by=id,
                                                 cascade='all,delete'))
 
-    def __init__(self):
+    def __init__(self, record=None):
         """Initialize a record version."""
+        if record:
+            self.record = record
+            self.record_id = record.id
         self.creation_date = datetime.datetime.utcnow()
 
     def update(self, someData):
@@ -101,8 +104,12 @@ class RecordVersion(db.Model):
         self.version = self.record.version
         self.previous_version_key = recordVersionData['previousVersionKey']
         self.update_date = datetime.datetime.utcnow()
+        self.access_date = datetime.datetime.utcnow()
 
         self.record.update(someData['record'], self)
+
+    def access(self):
+        self.access_date = datetime.datetime.now()
 # ------------------------------------------------------------------------------
 
 
@@ -128,8 +135,11 @@ class Record(db.Model):
         uselist=False,
         cascade='save-update, merge, delete, delete-orphan')
 
-    def __init__(self):
+    def __init__(self, user=None):
         """Initialize a record."""
+        if user:
+            self.user_id = user.id
+        self.version = 1
         self.creation_date = datetime.datetime.utcnow()
 
     def update(self, data, record_version):
@@ -138,11 +148,12 @@ class Record(db.Model):
         self.data = data['data']
         self.api_version = data['version']
         self.update_date = datetime.datetime.now()
+        self.access_date = datetime.datetime.now()
         self.current_record_version = record_version
-        if self.version:
-            self.version += 1
-        else:
-            self.version = 1
+        self.version += 1
+
+    def access(self):
+        self.access_date = datetime.datetime.now()
 
 # ------------------------------------------------------------------------------
 

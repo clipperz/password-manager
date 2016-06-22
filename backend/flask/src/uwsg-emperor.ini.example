@@ -1,0 +1,28 @@
+[uwsgi]
+plugin = python
+socket = /run/uwsgi/%n.sock
+chmod-socket = 660
+master = true
+processes = 1
+uid = clipperz
+gid = clipperz
+umask = 027
+procname-master = uwsgi pm
+
+vacuum = true
+
+die-on-term = true
+
+base = /home/clipperz/password-manager/target/flask/
+module = clipperz
+callable = app
+venv = /home/clipperz/password-manager/target/flask/
+
+#the variable that holds a flask application inside the module imported at line #6
+callable = app
+
+#location of log files
+logto = /var/log/uwsgi/%n.log
+
+env = PYTHON_EGG_CACHE=/var/tmp/clipperz
+env = DATABASE_URL = 'mysql://clipperz:clipperz@localhost/clipperz'
