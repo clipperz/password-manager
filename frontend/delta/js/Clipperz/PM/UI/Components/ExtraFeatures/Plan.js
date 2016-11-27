@@ -120,9 +120,9 @@ Clipperz.PM.UI.Components.ExtraFeatures.PlanClass = React.createClass({
 
 				this.renderCertificateSection(),
 				
-				React.DOM.div({'className': 'upgrade'}, [
-					React.DOM.button({'className':'button disabled', 'type':'submit'}, "upgrade")
-				])
+//				React.DOM.div({'className': 'upgrade'}, [
+//					React.DOM.button({'className':'button disabled', 'type':'submit'}, "upgrade")
+//				])
 
 			])
 		]);

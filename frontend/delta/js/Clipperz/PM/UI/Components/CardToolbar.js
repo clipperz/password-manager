@@ -66,7 +66,7 @@ Clipperz.PM.UI.Components.CardToolbarClass = React.createClass({
 	notificationCounter: function () {
 		var	result;
 		
-		console.log("CARD TOOLBAR NOTIFICATIONS", this.props['notifications']);
+//		console.log("CARD TOOLBAR NOTIFICATIONS", this.props['notifications']);
 
 		if (this.props['notifications']) {
 			result = this.props['notifications'].length;

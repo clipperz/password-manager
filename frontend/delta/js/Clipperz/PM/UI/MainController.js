@@ -2551,7 +2551,7 @@ console.log("showCertificateCard_handler");
 	//============================================================================
 
 	addNotification_handler: function (aNotification) {
-console.log("ADD NOTIFICATION", aNotification);
+//console.log("ADD NOTIFICATION", aNotification);
 		var	notification;
 
 		notification = {
@@ -2567,7 +2567,7 @@ console.log("ADD NOTIFICATION", aNotification);
 	},
 
 	acknowledgeNotification_handler: function (aNotificationReference) {
-console.log("ACKNOWLEDGE NOTIFICATION", aNotificationReference);
+//console.log("ACKNOWLEDGE NOTIFICATION", aNotificationReference);
 		var	objectIndex = -1;
 		var	i, c;
 		
@@ -2591,7 +2591,7 @@ console.log("ACKNOWLEDGE NOTIFICATION", aNotificationReference);
 	},
 
 	updateNotifications: function () {
-console.log("UPDATE NOTIFICATIONS");
+//console.log("UPDATE NOTIFICATIONS");
 		this.setPageProperties(this.currentPage(), 'notifications', this.notifications());
 	},
 
@@ -2730,8 +2730,6 @@ console.log("UPDATE NOTIFICATIONS");
 	},
 
 	//============================================================================
-
-
 /*
 	wrongAppVersion: function (anError) {
 //		this.pages()['errorPage'].setProps({message:anError.message});
