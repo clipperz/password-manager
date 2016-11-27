@@ -30,13 +30,14 @@ Clipperz.PM.UI.MainController = function() {
 	this._mediaQueryStyle = "narrow";
 	this._user		= null;
 	this._filter	= {'type':'ALL'};
+	this._notifications = [];
 
 	this._shouldIncludeArchivedCards = false;
 
 	this._isSelectionPanelOpen = false;
 	this._isSettingsPanelOpen = false;
-	this._isAttachmentQueueBoxOpen = false;
-	this._isCertificateQueueBoxOpen = false;
+//	this._isAttachmentQueueBoxOpen = false;
+//	this._isCertificateQueueBoxOpen = false;
 	
 	this._pageStack = ['loadingPage'];
 	this._overlay =  new Clipperz.PM.UI.Components.Overlay();
@@ -78,15 +79,15 @@ Clipperz.PM.UI.MainController = function() {
 		'importCards',
 		'downloadExport',
 		'updateProgress',
-		'toggleSelectionPanel', 'hideSelectionPanel', 'toggleSettingsPanel', 'toggleAttachmentQueueBox', 'toggleCertificateQueueBox',
+		'toggleSelectionPanel', 'hideSelectionPanel', 'toggleSettingsPanel', //	'toggleAttachmentQueueBox', 'toggleCertificateQueueBox',
 		'matchMediaQuery', 'unmatchMediaQuery',
 		'selectAllCards', 'selectRecentCards', 'selectCardsWithCertificate', 'selectCardsWithAttachments', 'selectUntaggedCards', 'tagSelected', 'search',
 		'refreshCardEditDetail',
 		'saveCardEdits', 'cancelCardEdits',
 		'selectCard',
 		'addCardClick',
-		'deleteCard', 'toggleArchiveCard', 'cloneCard', 'createCertificate', 'editCard',
-		'downloadCertificate',	'showCertificatePreview', 'hideCertificatePreview', 'closeCertificateNotification', 'showCertificateCard',
+		'deleteCard', 'toggleArchiveCard', 'cloneCard', 'editCard',	//	'createCertificate',
+		'downloadCertificate',	'showCertificatePreview', 'hideCertificatePreview', 'showCertificateCard',	//	'closeCertificateNotification'
 		'addTag', 'removeTag',
 		'showArchivedCards', 'hideArchivedCards',
 		'goBackToMainPage',
@@ -95,7 +96,8 @@ Clipperz.PM.UI.MainController = function() {
 		'downloadOfflineCopy',
 		'runDirectLogin', 'removeDirectLogin',
 		'exitSearch',
-		'updateAttachmentQueueInfo', 'addAttachment', 'removeAttachment', 'getAttachment', 'cancelAttachment', 'closeAttachmentNotification',
+		'addAttachment', 'removeAttachment', 'getAttachment', 'cancelAttachment',	// 'closeAttachmentNotification', 'updateAttachmentQueueInfo', 
+		'addNotification', 'acknowledgeNotification',
 	]);
 
 	this._attachmentController = new Clipperz.PM.UI.AttachmentController({
@@ -104,7 +106,7 @@ Clipperz.PM.UI.MainController = function() {
 		'reloadServerStatusCallback': MochiKit.Base.method(this, 'reloadAttachmentServerStatusCallback')
 	});
 	
-	this._certificateQueueStatus = [];
+//	this._certificateQueueStatus = [];
 
 	document.addEventListener('dragover', MochiKit.Base.method(this, 'blockDragOver'), false);
 
@@ -420,7 +422,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		deferredResult.addMethod(this, 'setUser', user);
 		deferredResult.addMethod(this, 'updateUserPreferences');
 		deferredResult.addMethod(this, 'runApplication');
-		deferredResult.addMethod(this, 'updateCertificateQueueInfo');
+//		deferredResult.addMethod(this, 'updateCertificateQueueInfo');
 		deferredResult.addMethod(this.overlay(), 'done', "", 1);
 		deferredResult.addErrback(MochiKit.Base.method(this, 'genericErrorHandler', someCredentials, "login failed"));
 		deferredResult.addErrback(MochiKit.Base.bind(function (anEvent, anError) {
@@ -539,7 +541,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		});
 		// deferredResult.addMethod(unlockPage, 'resetUnlockForm');
 		deferredResult.addCallback(MochiKit.Signal.signal, Clipperz.Signal.NotificationCenter, 'enableLock');
-		deferredResult.addMethod(this, 'updateCertificateQueueInfo');
+//		deferredResult.addMethod(this, 'updateCertificateQueueInfo');
 		deferredResult.addMethod(overlay, 'done', "", 0.5);
 		deferredResult.addErrback(MochiKit.Async.succeed, true);
 		deferredResult.callback();
@@ -1302,15 +1304,19 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		var elementFetchCallback;
 
 		if (this._attachmentController) {
+//console.log(">>> attachmentController", this._attachmentController);
 			queue = this._attachmentController.getQueueInfo();
-			notifications = this._attachmentController.getNotificationsInfo();
+//			notifications = this._attachmentController.getNotificationsInfo();
 			elementFetchCallback = MochiKit.Base.method(this._attachmentController, 'getQueueElement');
 		} else {
+//console.log(">>> attachmentController -> NULL");
 			queue = [];
-			notifications = [];
+//			notifications = [];
 			elementFetchCallback = null;
 		}
 
+
+//console.log("<<< attachmentController", queue, notifications);
 		return {
 			'queue': queue,
 			'notifications': notifications,
@@ -1378,14 +1384,15 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 				'accountInfo':					this.userAccountInfo(),
 				'selectionPanelStatus':			this.isSelectionPanelOpen()	? 'OPEN' : 'CLOSED',
 				'settingsPanelStatus':			this.isSettingsPanelOpen()	? 'OPEN' : 'CLOSED',
-				'attachmentQueueBoxStatus':		this.isAttachmentQueueBoxOpen()	? 'OPEN' : 'CLOSED',
-				'certificateQueueBoxStatus':	this.isCertificateQueueBoxOpen() ? 'OPEN' : 'CLOSED',
+//				'attachmentQueueBoxStatus':		this.isAttachmentQueueBoxOpen()	? 'OPEN' : 'CLOSED',
+//				'certificateQueueBoxStatus':	this.isCertificateQueueBoxOpen() ? 'OPEN' : 'CLOSED',
 				'featureSet':					this.featureSet(),
 				'features':						this.features(),
 				'proxyInfo':					this.proxyInfo(),
 				'locked':						false,
+				'notifications':				this.notifications(),
 				'attachmentQueueInfo':			this.attachmentQueueInfo(),
-				'certificateQueueInfo':			this.certificateQueueInfo(),
+//				'certificateQueueInfo':			this.certificateQueueInfo(),
 //				'shouldIncludeArchivedCards':	this.shouldIncludeArchivedCards(),
 //				'cards':				…,
 //				'tags':					…,
@@ -1393,8 +1400,9 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			};
 		} else if (aPageName == 'cardDetailPage') {
 			extraProperties = {
+				'notifications':				this.notifications(),
 				'attachmentQueueInfo':			this.attachmentQueueInfo(),
-				'certificateQueueInfo':			this.certificateQueueInfo(),
+//				'certificateQueueInfo':			this.certificateQueueInfo(),
 				'proxyInfo':					this.proxyInfo(),
 			};
 		} else if (aPageName == 'errorPage') {
@@ -1496,7 +1504,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			}, this)
 		], {trace:false});
 	},
-
+/*
 	isAttachmentQueueBoxOpen: function() {
 		return this._isAttachmentQueueBoxOpen;
 	},
@@ -1510,9 +1518,9 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			}, this)
 		], {trace:false});
 	},
-
+*/
 	//----------------------------------------------------------------------------
-
+/*
 	isCertificateQueueBoxOpen: function() {
 		return this._isCertificateQueueBoxOpen;
 	},
@@ -1526,7 +1534,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			}, this)
 		], {trace:false});
 	},
-
+*/
 	//----------------------------------------------------------------------------
 
 	selectedCardInfo: function () {
@@ -1956,10 +1964,10 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 				newRecord = aValue;
 				return newRecord;
 			},
-//			MochiKit.Base.methodcaller('addField', {'label':"username", 'value':"", 'hidden':false}),
-//			function () { return newRecord; },
-//			MochiKit.Base.methodcaller('addField', {'label':"password", 'value':"", 'hidden':true}),
-//			function () { return newRecord; },
+			MochiKit.Base.methodcaller('addField', {'label':"username", 'value':"", 'hidden':false}),
+			function () { return newRecord; },
+			MochiKit.Base.methodcaller('addField', {'label':"password", 'value':"", 'hidden':true}),
+			function () { return newRecord; },
 			MochiKit.Base.methodcaller('reference'),
 			MochiKit.Base.method(this, 'refreshUI'),
 			function () { return newRecord; },
@@ -2105,7 +2113,7 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 			MochiKit.Base.method(this.pages()[this.currentPage()], 'setProps', {'showCertificatePreview': false})
 		], {trace:false});
 	},
-
+/*
 	createCertificate_handler: function (anEvent) {
 //console.log("CREATE CERTIFICATE HANDLER", anEvent);
 //console.log("CREATE CERTIFICATE", this.user().accountInfo(), this.userAccountInfo());
@@ -2165,9 +2173,9 @@ Clipperz.log("THE BROWSER IS OFFLINE");
 		
 		return result;
 	},
-
+*/
 	//...........................................................................
-
+/*
 	updateCertificateQueueInfo: function () {
 		return Clipperz.Async.callbacks("MainController.updateCertificateQueueInfo", [
 			MochiKit.Base.method(this.user().connection(), 'message', 'getCertificatesStatus', {}),
@@ -2223,7 +2231,7 @@ console.log("showCertificateCard_handler");
 			MochiKit.Base.method(this, 'selectCard_handler', {'cardInfo': {'reference':aRecordReference}, 'update': true}),
 		], {trace:false});
 	},
-
+*/
 	//===========================================================================
 	
 	addTag_handler: function (anEvent) {
@@ -2542,12 +2550,58 @@ console.log("showCertificateCard_handler");
 	
 	//============================================================================
 
+	addNotification_handler: function (aNotification) {
+console.log("ADD NOTIFICATION", aNotification);
+		var	notification;
+
+		notification = {
+			'id':		Clipperz.PM.Crypto.randomKey(),
+			'date':		new Date(),
+			'message':	aNotification['message'],
+			'level':	aNotification['level'],
+			'callback':	aNotification['callback'],
+		};
+
+		this.notifications().unshift(notification);
+		this.updateNotifications();
+	},
+
+	acknowledgeNotification_handler: function (aNotificationReference) {
+console.log("ACKNOWLEDGE NOTIFICATION", aNotificationReference);
+		var	objectIndex = -1;
+		var	i, c;
+		
+		c = this.notifications().length;
+		for (i=0; i<c; i++) {
+			if (this.notifications()[i]['id'] == aNotificationReference) {
+				objectIndex = i;
+			}
+		}
+		
+		if (objectIndex != -1) {
+			Clipperz.Base.removeObjectAtIndexFromArray(objectIndex, this.notifications());
+		} else {
+			console.log("WARNING: notification with ID '" + aNotificationReference + "' not found");
+		}
+		this.updateNotifications();
+	},
+
+	notifications: function () {
+		return this._notifications;
+	},
+
+	updateNotifications: function () {
+console.log("UPDATE NOTIFICATIONS");
+		this.setPageProperties(this.currentPage(), 'notifications', this.notifications());
+	},
+
+/*
 	updateAttachmentQueueInfo_handler: function(someProperties) {
 		return Clipperz.Async.callbacks("MainController.updateAttachmentQueueInfo_handler", [
 			MochiKit.Base.method(this, 'setPageProperties', this.currentPage(), 'attachmentQueueInfo', this.attachmentQueueInfo())
 		], {trace:false});
 	},
-
+*/
 	addAttachment_handler: function (aFileInfo) {	//	aReference, someMetadata, aKey, aNonce
 		var deferredResult;
 		var	record = aFileInfo['record'];
@@ -2623,14 +2677,14 @@ console.log("showCertificateCard_handler");
 	cancelAttachment_handler: function(anAttachment) {
 		return this.attachmentController().cancelAttachment(anAttachment);
 	},
-
+/*
 	closeAttachmentNotification_handler: function(aNotificationId) {
 		return Clipperz.Async.callbacks("MainController.", [
 			MochiKit.Base.method(this.attachmentController(), 'removeNotification', aNotificationId)
 		], {trace:false});
 
 	},
-
+*/
 	//----------------------------------------------------------------------------
 
 	reloadAttachmentServerStatusCallback: function(aRecord) {

@@ -34,7 +34,7 @@ Clipperz.PM.UI.AttachmentController = function(someParameters) {
 		this.LATEST_ENCRYPTION_VERSION = '1.0';	// Versions aren't handled completely yet!
 
 		this.fileQueue       = [];
-		this.notifications   = [];
+//		this.notifications   = [];
 		this.operationsCount = null;
 
 		this.encryptedDocument = null;
@@ -56,19 +56,20 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 	},
 
 	//-------------------------------------------------------------------------
-
+/*
 	notifyUpdate: function() {
-		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'updateAttachmentQueueInfo', this.getQueueInfo(), this.getNotificationsInfo());
+//		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'updateAttachmentQueueInfo', this.getQueueInfo(), this.getNotificationsInfo());
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'updateNotifications');
 	},
-
+*/
 	getQueueInfo: function() {
 		return this.fileQueue;
 	},
-
+/*
 	getNotificationsInfo: function() {
 		return this.notifications;
 	},
-
+*/
 	//=========================================================================
 	// Entry points
 	//=========================================================================
@@ -164,7 +165,7 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 
 		var count = this.updateOperationsCount();
 
-		this.notifyUpdate();
+//		this.notifyUpdate();
 
 		processNextElements = true;
 		for (i in this.fileQueue) {
@@ -209,7 +210,7 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 					case 'WAITING_SAVE':
 						this.saveFile(currentElement['reference'], currentElement['decryptedArray'], currentElement['meta']['name'], currentElement['meta']['type']);
 						processNextElements = false;
-						Clipperz.Sound.beep();
+//						Clipperz.Sound.beep();
 						break;
 				}
 			}
@@ -247,7 +248,6 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 
 	addFileToQueue: function(someParameters) {
 		this.fileQueue.push(someParameters);
-		this.addNotification(someParameters);
 
 		this.dispatchQueueOperations();
 	},
@@ -267,6 +267,10 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 		var queuePosition = this.getQueuePosition(aFileReference);
 
 		MochiKit.Base.update(this.fileQueue[queuePosition], someParameters);
+
+		if ((someParameters['status'] == 'DONE') || (someParameters['status'] == 'FAILED')) {
+			this.addNotification(this.fileQueue[queuePosition], someParameters['status']);
+		}
 
 		this.dispatchQueueOperations();
 	},
@@ -293,13 +297,38 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 	// Notifications
 	//=========================================================================
 
-	addNotification: function(aQueueElement) {
-		this.notifications.push({
-			'id': this.randomId(),
-			'queueElement': aQueueElement
-		})
-	},
+	addNotification: function(aQueueElement, aStatus) {
+//console.log("ADD ATTACHMENT NOTIFICATION", aQueueElement);
+		var messagePrefix = "";
+		var	message;
+		var	filename;
+		var	level;
+		
+		if (aStatus == 'DONE') {
+			level = 'info';
+			if (aQueueElement['process'] == 'DOWNLOAD') {
+				messagePrefix = "downloaded attachment ";
+			} else if (aQueueElement['process'] == 'UPLOAD') {
+				messagePrefix = "uploaded attachment ";
+			}
+		} else if (aStatus == 'FAILED') {
+			level = 'error';
+			if (aQueueElement['process'] == 'DOWNLOAD') {
+				messagePrefix = "error downloading attachment ";
+			} else if (aQueueElement['process'] == 'UPLOAD') {
+				messagePrefix = "error uploading attachment ";
+			}
+		} else {
+			level = 'warning';
+			messagePrefix = "???";
+		}
 
+		filename = aQueueElement['meta']['name'];
+		message = messagePrefix + filename;
+
+		MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'addNotification', {'message':message, 'level':level});
+	},
+/*
 	removeNotification: function(aNotificationId) {
 		var i, position;
 
@@ -314,14 +343,15 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 			this.notifications.splice(position, 1);
 		}
 
-		this.notifyUpdate();
+//		this.notifyUpdate();
 	},
-
+*/
+/*
 	randomId: function() {
-		return Clipperz.Crypto.PRNG.defaultRandomGenerator().getRandomBytes(32).toHexString().substring(2);
+		return Clipperz.Crypto.randomKey();
+//		return Clipperz.Crypto.PRNG.defaultRandomGenerator().getRandomBytes(32).toHexString().substring(2);
 	},
-
-
+*/
 	//=========================================================================
 	// Queue Processing: READ
 	//=========================================================================
@@ -432,6 +462,7 @@ MochiKit.Base.update(Clipperz.PM.UI.AttachmentController.prototype, {
 				'status': 'DONE',
 				'requestProgress': 1,
 			}),
+			//	add notification
 		], {trace:false});
 	},
 

@@ -63,33 +63,66 @@ Clipperz.PM.UI.Components.CardToolbarClass = React.createClass({
 	
 	//============================================================================
 
-	renderWithSidePanels: function () {
+	notificationCounter: function () {
+		var	result;
+		
+		console.log("CARD TOOLBAR NOTIFICATIONS", this.props['notifications']);
+
+		if (this.props['notifications']) {
+			result = this.props['notifications'].length;
+		} else {
+			result = null;
+		}
+/*
 		var attachmentDownloadNotificationNumber = MochiKit.Base.filter(function(anElement) {
 			return anElement['queueElement']['process'] == 'DOWNLOAD';
 		}, this.props['attachmentQueueInfo']['notifications']).length;
 
 		var attachmentUploadNotificationNumber = this.props['attachmentQueueInfo']['notifications'].length - attachmentDownloadNotificationNumber;
-
 //		attachmentDownloadNotificationNumber = 2;
 //		attachmentUploadNotificationNumber = 3;
+/*
 		var verifyingCertificateNotificationNumber = this.props['certificateQueueInfo'] ? MochiKit.Base.filter(function (anCertificationInfo) {
 			return anCertificationInfo['status'] == 'requested';
 		}, this.props['certificateQueueInfo']).length : 0;
 		var verifiedCertificateNotificationNumber = this.props['certificateQueueInfo'] ? MochiKit.Base.filter(function (anCertificationInfo) {
 			return anCertificationInfo['status'] == 'published';
 		}, this.props['certificateQueueInfo']).length : 0;
+*/
+		return result;
+	},
 
+	notificationLevel: function () {
+		var	result = 'info';
+		var i, c;
+		
+		c = this.props['notifications'].length;
+		for (i=0; i<c; i++) {
+			var	level;
+			
+			level = this.props['notifications'][i]['level'];
+			if (level == 'error') {
+				result = 'error';
+			} else if ((level == 'warning') && (result == 'info')) {
+				result = 'warning';
+			}
+		}
+		
+		return result;
+	},
+
+	renderWithSidePanels: function () {
 		return [
 			React.DOM.div({className:'selectionToggle'}, [
-				Clipperz.PM.UI.Components.Button({eventName:'selectionToggleButton', label:"tags", handler:this.selectionToggleHandler})
+				Clipperz.PM.UI.Components.Button({'eventName':'selectionToggleButton', 'label':"tags", 'handler':this.selectionToggleHandler})
 			]),
 			this.renderWithoutSidePanels(),
 
 			// TODO: validate and adjust names
-			React.DOM.div({className:'settingsToggle'}, [
-				Clipperz.PM.UI.Components.Button({eventName:'certificateQueueToggleButton', label:"certificate",  handler:this.certificateQueueToggleHandler, badgeTopContent:verifyingCertificateNotificationNumber, badgeBottomContent:verifiedCertificateNotificationNumber}),
-				Clipperz.PM.UI.Components.Button({eventName:'attachmentQueueToggleButton',  label:"\u2191\u2193", handler:this.attachmentQueueToggleHandler,  badgeTopContent:attachmentDownloadNotificationNumber, badgeBottomContent:attachmentUploadNotificationNumber}),
-				Clipperz.PM.UI.Components.Button({eventName:'settingsToggleButton', label:"menu", handler:this.settingsToggleHandler})
+			React.DOM.div({'className':'settingsToggle'}, [
+//				Clipperz.PM.UI.Components.Button({eventName:'certificateQueueToggleButton', label:"certificate",  handler:this.certificateQueueToggleHandler, badgeTopContent:verifyingCertificateNotificationNumber, badgeBottomContent:verifiedCertificateNotificationNumber}),
+//				Clipperz.PM.UI.Components.Button({eventName:'attachmentQueueToggleButton',  label:"\u2191\u2193", handler:this.attachmentQueueToggleHandler,  badgeTopContent:attachmentDownloadNotificationNumber, badgeBottomContent:attachmentUploadNotificationNumber}),
+				Clipperz.PM.UI.Components.Button({'eventName':'settingsToggleButton', 'label':"menu", 'handler':this.settingsToggleHandler, 'badgeTopContent':this.notificationCounter(), 'badgeTopLevel':this.notificationLevel()})
 			])
 		];
 	},
@@ -102,36 +135,36 @@ Clipperz.PM.UI.Components.CardToolbarClass = React.createClass({
 //console.log("CARD TOOLBAR", this.props['filter']['type']);
 
 			if (this.props['filter']['type'] == 'RECENT') {
-				result = [React.DOM.div({className:'clipperz'}, [React.DOM.span({className:'logo recent'}, "recent")])];
+				result = [React.DOM.div({'className':'clipperz'}, [React.DOM.span({'className':'logo recent'}, "recent")])];
 			} else if (this.props['filter']['type'] == 'WITH_ATTACHMENTS') {
-					result = [React.DOM.div({className:'clipperz'}, [React.DOM.span({className:'logo withAttachments'}, "attachment")])];
+					result = [React.DOM.div({'className':'clipperz'}, [React.DOM.span({'className':'logo withAttachments'}, "attachment")])];
 			} else if (this.props['filter']['type'] == 'TAG') {
-				result = [React.DOM.div({className:'clipperz'}, [
-					React.DOM.span({className:'logo tag'}, "tag"),
-					React.DOM.span({className:'value'}, this.props['filter']['value'])
+				result = [React.DOM.div({'className':'clipperz'}, [
+					React.DOM.span({'className':'logo tag'}, "tag"),
+					React.DOM.span({'className':'value'}, this.props['filter']['value'])
 				])];
 			} else if (this.props['filter']['type'] == 'UNTAGGED') {
-				result = [React.DOM.div({className:'clipperz'}, [
-					React.DOM.span({className:'logo tag'}, "tag"),
-					React.DOM.span({className:'value'}, "untagged")
+				result = [React.DOM.div({'className':'clipperz'}, [
+					React.DOM.span({'className':'logo tag'}, "tag"),
+					React.DOM.span({'className':'value'}, "untagged")
 				])];
 			} else if (this.props['filter']['type'] == 'SEARCH') {
-				result = [React.DOM.div({className:'clipperz'}, [
-					React.DOM.span({className:'logo search'}, "search"),
-					React.DOM.span({className:'value'}, this.props['filter']['value'])
+				result = [React.DOM.div({'className':'clipperz'}, [
+					React.DOM.span({'className':'logo search'}, "search"),
+					React.DOM.span({'className':'value'}, this.props['filter']['value'])
 					])];
 			} else {
-				result = [React.DOM.div({className:'clipperz'}, [React.DOM.span({className:'logo clipperz'}, "clipperz")])];
+				result = [React.DOM.div({'className':'clipperz'}, [React.DOM.span({'className':'logo clipperz'}, "clipperz")])];
 			}
 		} else {
-			result = [React.DOM.div({className:'clipperz'}, [React.DOM.span({className:'logo clipperz'}, "clipperz")])];
+			result = [React.DOM.div({'className':'clipperz'}, [React.DOM.span({'className':'logo clipperz'}, "clipperz")])];
 		}
 		
 		return result;
 	},
 
 	render: function () {
-		return	React.DOM.div({className:'cardToolbar ' + this.props['style']}, [
+		return	React.DOM.div({'className':'cardToolbar ' + this.props['style']}, [
 			React.DOM.header({}, this.props['enableSidePanels'] ? this.renderWithSidePanels() : this.renderWithoutSidePanels()),
 			Clipperz.PM.UI.Components.AccountStatus(MochiKit.Base.update(this.props['accountInfo'], this.props['proxyInfo'])),
 			Clipperz.PM.UI.Components.MessageBox(this.props['messageBox']),

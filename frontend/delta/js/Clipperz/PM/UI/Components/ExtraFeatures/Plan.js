@@ -41,6 +41,25 @@ Clipperz.PM.UI.Components.ExtraFeatures.PlanClass = React.createClass({
 
 	//=========================================================================
 
+	hasSomeCertificate: function () {
+		return ((this.props['accountInfo']['certificateQuota']['used']['published'] > 0) || (this.props['accountInfo']['certificateQuota']['used']['requested'] > 0));
+	},
+
+	renderCertificateSection: function () {
+		var	result;
+		
+		if (this.hasSomeCertificate()) {
+			result = React.DOM.div({'className': 'certificates'}, [
+				React.DOM.h2({}, "Certificates"),
+				this.renderCertificateIcons(),
+			]);
+		} else {
+			result = null;
+		}
+		
+		return result;
+	},
+
 	renderCertificateIcons: function () {
 		var	result;
 		var	totalCertificates;
@@ -72,7 +91,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.PlanClass = React.createClass({
 		return React.DOM.ul({}, [
 			React.DOM.li({'className':'published'}, "published: " + ((publishedCertificates > 0) ? publishedCertificates : '-')),
 			React.DOM.li({'className':'requested'}, "requested: " + ((requestedCertificates > 0) ? requestedCertificates : '-')),
-			React.DOM.li({'className':'available'}, "available: " + ((availableCertificates > 0) ? availableCertificates : '-')),
+//			React.DOM.li({'className':'available'}, "available: " + ((availableCertificates > 0) ? availableCertificates : '-')),
 		]);
 	},
 	
@@ -99,10 +118,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.PlanClass = React.createClass({
 					])
 				]),
 
-				React.DOM.div({'className': 'certificates'}, [
-					React.DOM.h2({}, "Certificates"),
-					this.renderCertificateIcons(),
-				]),
+				this.renderCertificateSection(),
 				
 				React.DOM.div({'className': 'upgrade'}, [
 					React.DOM.button({'className':'button disabled', 'type':'submit'}, "upgrade")

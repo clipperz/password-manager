@@ -370,7 +370,59 @@ div.cardToolbar {
 						padding-right: 8px;
 						padding-left: 8px;
 					}
-					
+/*
+					.settingsToggleButton {
+//						font-family: "clipperz-font";
+//						margin-right: 10px;
+
+//						h3 {
+//							font-weight: bold;
+//							font-size: 32pt;
+//							letter-spacing: -12px;
+//						}
+
+						.badge {
+							font-family: "clipperz-font";
+							position: absolute;
+							margin-top: -2px;
+							margin-left: -18px;
+							width: auto;
+							height: 16px;
+							line-height: 16px;
+							text-align: center;
+							font-size: 8pt;
+							font-weight: bold;
+							border-radius: 8px;
+							padding: 1px 5px 0px 5px;
+
+							&.top {
+								top: 11px;
+							}
+
+							&.bottom {
+								top: 25px;
+								margin-left: -36px;
+							}
+
+							&.info {
+								color: white;
+								background-color: #1863a1;
+							}
+							
+							&.warning {
+								color: #999;
+								background-color: yellow;
+							}
+							
+							&.error {
+								color: white;
+								background-color: red;
+							}
+							
+						}
+					}
+*/
+/*					
 					.attachmentQueueToggleButton {
 						font-family: "clipperz-font";
 						margin-right: 10px;
@@ -443,7 +495,7 @@ div.cardToolbar {
 							}
 						}
 					}
-
+*/
 				}
 			}
 			
@@ -459,9 +511,22 @@ div.cardToolbar {
 
 /* IE fix for badges being shifted to left. */
 @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-	.attachmentQueueToggleButton {
+//	.attachmentQueueToggleButton {
+//		.badge {
+//			.top {
+//				margin-left: 37px;
+//			}
+//
+//			.bottom {
+//				margin-left: 7px;
+//			}
+//		}
+//	}
+	
+	.settingsToggleButton {
+		background-color: pink;
 		.badge {
-			.top {
+			&.top {
 				margin-left: 37px;
 			}
 
@@ -470,9 +535,11 @@ div.cardToolbar {
 			}
 		}
 	}
+	
 }
 
 $arrow-size: 8px;
+/*
 div.attachmentQueueStatus {
 	position: fixed;
 	top: calc(48px - #{$arrow-size});
@@ -784,7 +851,7 @@ div.certificateQueueStatus {
 			}
 		}
 	}
-/*
+/ *
 	.radialProgressIndicator {
 		height: 25px;
 
@@ -796,7 +863,7 @@ div.certificateQueueStatus {
 			fill: $clipperz-orange;
 		}
 	}
-*/
+* /
 }
 
 
@@ -849,7 +916,7 @@ div.certificateQueueStatus {
 
 	}
 }
-
+*/
 //=============================================================================
 
 
@@ -1219,5 +1286,53 @@ div.help {
 				}
 			}
 		}
+	}
+}
+
+
+.settingsToggleButton {
+	.badge {
+		font-family: "clipperz-font";
+
+//		position: absolute;
+//		margin-left: -18px;
+//		margin-top: -2px;
+		position: fixed;
+		right: 4px;
+		margin-top: -4px;
+
+		width: auto;
+		height: 16px;
+		line-height: 16px;
+		text-align: center;
+		font-size: 8pt;
+		font-weight: bold;
+		border-radius: 8px;
+		padding: 1px 5px 0px 5px;
+
+		&.top {
+			top: 11px;
+		}
+
+		&.bottom {
+			top: 25px;
+			margin-left: -36px;
+		}
+
+		&.info {
+			color: white;
+			background-color: #1863a1;
+		}
+		
+		&.warning {
+			color: #999;
+			background-color: yellow;
+		}
+		
+		&.error {
+			color: white;
+			background-color: red;
+		}
+		
 	}
 }

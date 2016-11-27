@@ -63,9 +63,9 @@ Clipperz.PM.UI.Components.Cards.CommandToolbarClass = React.createClass({
 		return {
 			'delete':	{ 'label': "delete",		'broadcastEvent': 'deleteCard',			'enabled': this.isFeatureEnabled('DELETE_CARD')},
 			'archive':	{ 'label': archiveLabel,	'broadcastEvent': 'toggleArchiveCard',	'enabled': this.isFeatureEnabled('EDIT_CARD')},
-//			'share':	{ 'label': "share",		'broadcastEvent': 'shareCard' },
+//			'share':	{ 'label': "share",			'broadcastEvent': 'shareCard' },
 			'clone':	{ 'label': "clone",			'broadcastEvent': 'cloneCard',			'enabled': this.isFeatureEnabled('ADD_CARD')},
-			'register':	{ 'label': "register",		'broadcastEvent': 'createCertificate',	'enabled': this.isFeatureEnabled('REGISTER_CARD') && !this.isCardCertified()},
+//			'register':	{ 'label': "register",		'broadcastEvent': 'createCertificate',	'enabled': this.isFeatureEnabled('REGISTER_CARD') && !this.isCardCertified()},
 			'edit':		{ 'label': "edit",			'broadcastEvent': 'editCard',			'enabled': this.isFeatureEnabled('EDIT_CARD') && !this.isCardCertified()}
 		};
 	},

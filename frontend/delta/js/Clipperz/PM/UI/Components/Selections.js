@@ -84,6 +84,7 @@ Clipperz.PM.UI.Components.SelectionsClass = React.createClass({
 		var	selectedCardCount;
 		var	filterType;
 		var	filterValue;
+		var	certificateSelector;
 
 //console.log("SELECTIONS PROPS", this.props);
 //console.log("withAttachmentCardsCount", this.props['withAttachmentCardsCount']);
@@ -95,6 +96,15 @@ Clipperz.PM.UI.Components.SelectionsClass = React.createClass({
 		filterType = (this.props['filter'] && this.props['filter']['type']) ? this.props['filter']['type'] : 'ALL';
 		filterValue = (this.props['filter'] && this.props['filter']['value']) ? this.props['filter']['value'] : null;
 
+		if (this.props['withCertificateCardsCount']) {
+			certificateSelector =	React.DOM.li({'className':'withCertificateCards', 'onClick': this.selectWithCertificate}, [
+										React.DOM.span({'className':'label'}, "With certificate"),
+										React.DOM.span({'className':'count'}, this.props['withCertificateCardsCount'] ? this.props['withCertificateCardsCount'] : '-')
+									]);
+		} else {
+			certificateSelector =	null;
+		}
+
 		return	React.DOM.div({'key':'selections', 'id':'selections', 'className':filterType}, [
 			React.DOM.ul({'className':'defaultSet'}, [
 				React.DOM.li({'className':'allCards', 'onClick': this.selectAll}, [
@@ -105,10 +115,7 @@ Clipperz.PM.UI.Components.SelectionsClass = React.createClass({
 					React.DOM.span({'className':'label'}, "Recent"),
 					React.DOM.span({'className':'count'}, this.props['allCardsCount'] ? '10' : '-')
 				]),
-				React.DOM.li({'className':'withCertificateCards', 'onClick': this.selectWithCertificate}, [
-					React.DOM.span({'className':'label'}, "With certificate"),
-					React.DOM.span({'className':'count'}, this.props['withCertificateCardsCount'] ? this.props['withCertificateCardsCount'] : '-')
-				]),
+				certificateSelector,
 				React.DOM.li({'className':'withAttachmentCards', 'onClick': this.selectWithAttachments}, [
 					React.DOM.span({'className':'label'}, "With attachments"),
 					React.DOM.span({'className':'count'}, this.props['withAttachmentCardsCount'] ? this.props['withAttachmentCardsCount'] : '-')

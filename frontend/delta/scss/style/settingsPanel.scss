@@ -44,6 +44,59 @@ refer to http://www.clipperz.com.
 		& > div {
 			border-top: 1px solid white;
 
+			& > div.notifications {
+				background-color: gray;
+				border-bottom: 1px solid white;
+				
+				.notification {
+					@include flexbox();
+					@include flex-direction(row);
+					padding: 3px;
+
+					&.info {
+						color: white;
+						background-color: #1863a1;
+					}
+		
+					&.warning {
+						color: #999;
+						background-color: yellow;
+					}
+		
+					&.error {
+						color: white;
+						background-color: red;
+					}
+					
+					span.acknowledge {
+						@include flex(none);
+						cursor: pointer;
+						padding: 4px;
+						
+						span {
+							display: block;
+							@include icon-font();
+							font-size: 5pt;
+							background-color: white;
+							color: gray;
+							width: 11px;
+							padding-left: 4px;
+							height: 14px;
+							border-radius: 7px;
+							line-height: 14px;
+						}
+					}
+					
+					span.message {
+						@include flex(auto);
+//						overflow: auto;
+						overflow-x: auto;
+						overflow-y: visible;
+						padding: 4px;
+					}
+				}
+			}
+
 			& > ul > li {
 //				padding: 10px;
 //				padding-right: 0px;

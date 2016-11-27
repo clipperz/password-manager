@@ -70,8 +70,8 @@ Clipperz.PM.UI.Components.Pages.MainPageClass = React.createClass({
 			classes[this.props['style']] = true;
 
 			result = React.DOM.div({'key':'mainPage', 'className':Clipperz.PM.UI.Components.classNames(classes)}, [
-				Clipperz.PM.UI.Components.AttachmentQueueBox(this.props),
-				Clipperz.PM.UI.Components.CertificateQueueBox(this.props),
+//				Clipperz.PM.UI.Components.AttachmentQueueBox(this.props),
+//				Clipperz.PM.UI.Components.CertificateQueueBox(this.props),
 				this.props['style'] != 'extra-wide' ? Clipperz.PM.UI.Components.Panels.SelectionPanel(this.props) : null,
 				Clipperz.PM.UI.Components.Panels.MainPanel(this.props),
 				Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanel(this.props),

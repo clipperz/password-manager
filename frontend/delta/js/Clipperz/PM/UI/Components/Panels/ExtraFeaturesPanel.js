@@ -134,6 +134,21 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 	
 	//=========================================================================
 
+	acknowledgeNotification: function (aNotificationID) {
+		return MochiKit.Base.bind(function () {
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'acknowledgeNotification', aNotificationID);
+		}, this);
+	},
+
+	renderNotification: function (aNotification) {
+		return	React.DOM.div({'key':aNotification['id'], 'className':Clipperz.PM.UI.Components.classNames('notification', aNotification['level'])}, [
+			React.DOM.span({'className':'acknowledge', 'onClick':this.acknowledgeNotification(aNotification['id'])}, [
+				React.DOM.span({}, "close")
+			]),
+			React.DOM.span({'className':'message'}, aNotification['message'])
+		]);
+	},
+
 	renderIndex: function () {
 		var	offlineCopyButtonClasses = {
 			'button': true,
@@ -146,8 +161,8 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 					Clipperz.PM.UI.Components.Button({'key':'button', 'eventName':'settingsToggleButton', 'label':"menu", 'handler':this.settingsToggleHandler})
 				])
 			]),
-
 			React.DOM.div({'key':'ulWrapper'}, [
+				this.props['notifications'].length ? React.DOM.div({'key':'notifications', 'className':'notifications'}, MochiKit.Base.map(MochiKit.Base.method(this, 'renderNotification'), this.props['notifications'])) : null,
 				React.DOM.ul({'key':'ul'}, [
 					React.DOM.li({'key':'account', 'className':this.state['index']['account'] ? 'open' : 'closed'}, [
 						React.DOM.h1({'key':'accountH1', 'onClick':this.toggleIndexState('account')}, "Account"),
@@ -256,8 +271,8 @@ Clipperz.PM.UI.Components.Panels.ExtraFeaturesPanelClass = React.createClass({
 						React.DOM.h1({'key':'aboutH1', 'onClick':this.toggleIndexState('about')}, "About"),
 						React.DOM.div({'key':'address', 'className':'address'}, [
 							"Clipperz Srl",
-							"Piazza Nuova, 10",
-							"48012 Bagnacavallo",
+							"Via Selice, 66/a",
+							"40026 Imola",
 							"Italy"
 						]),
 						React.DOM.ul({'key':'data'}, [

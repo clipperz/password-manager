@@ -29,12 +29,14 @@ Clipperz.PM.UI.Components.ButtonClass = React.createClass({
 	displayName: 'Clipperz.PM.UI.Components.Button',
 
 	propTypes: {
-		'eventName':	React.PropTypes.string.isRequired,
-		'label':		React.PropTypes.string.isRequired,
-		'handler':		React.PropTypes.func.isRequired,
-		'className':	React.PropTypes.string,
-		'badgeTopContent': React.PropTypes.number,
-		'badgeBottomContent': React.PropTypes.number,
+		'eventName':			React.PropTypes.string.isRequired,
+		'label':				React.PropTypes.string.isRequired,
+		'handler':				React.PropTypes.func.isRequired,
+		'className':			React.PropTypes.string,
+		'badgeTopContent':		React.PropTypes.number,
+		'badgeTopLevel':		React.PropTypes.string,
+		'badgeBottomContent':	React.PropTypes.number,
+		'badgeBottomLevel':		React.PropTypes.string,
 	},
 
 	//=========================================================================
@@ -52,18 +54,18 @@ Clipperz.PM.UI.Components.ButtonClass = React.createClass({
 
 		badgeTop = null;
 		if (this.props['badgeTopContent']) {
-			badgeTop = React.DOM.span({'className': 'badge top'}, this.props['badgeTopContent']);
+			badgeTop = React.DOM.span({'className': Clipperz.PM.UI.Components.classNames('badge', 'top', this.props['badgeTopLevel'])}, this.props['badgeTopContent']);
 		};
 
 		badgeBottom = null;
 		if (this.props['badgeBottomContent']) {
-			badgeBottom = React.DOM.span({'className': 'badge bottom'}, this.props['badgeBottomContent']);
+			badgeBottom = React.DOM.span({'className': Clipperz.PM.UI.Components.classNames('badge', 'bottom', this.props['badgeBottomLevel'])}, this.props['badgeBottomContent']);
 		};
 
 	
-		return	React.DOM.div({className:Clipperz.PM.UI.Components.classNames(classes), onClick:this.props['handler']}, [
-			React.DOM.div({className:this.props['eventName']}, [
-				React.DOM.h3({className:'label'}, this.props['label']),
+		return	React.DOM.div({'className':Clipperz.PM.UI.Components.classNames(classes), onClick:this.props['handler']}, [
+			React.DOM.div({'className':this.props['eventName']}, [
+				React.DOM.h3({'className':'label'}, this.props['label']),
 				badgeTop,
 				badgeBottom,
 			])
