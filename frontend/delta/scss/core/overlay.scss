@@ -101,6 +101,10 @@ div.overlay {
 		font-size: 96pt;
 		color: white;
 		text-shadow: none;
+		
+		&.custom {
+			font-size: 80pt;
+		}
 	}
 
 	&.ios-overlay-show {

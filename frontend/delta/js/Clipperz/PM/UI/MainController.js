@@ -83,7 +83,7 @@ Clipperz.PM.UI.MainController = function() {
 		'matchMediaQuery', 'unmatchMediaQuery',
 		'selectAllCards', 'selectRecentCards', 'selectCardsWithCertificate', 'selectCardsWithAttachments', 'selectUntaggedCards', 'tagSelected', 'search',
 		'refreshCardEditDetail',
-		'saveCardEdits', 'cancelCardEdits',
+		'saveCardEdits', 'cancelCardEdits', 'copyFieldValueFeedback',
 		'selectCard',
 		'addCardClick',
 		'deleteCard', 'toggleArchiveCard', 'cloneCard', 'editCard',	//	'createCertificate',
@@ -2618,6 +2618,13 @@ console.log("showCertificateCard_handler");
 		deferredResult.callback();
 		
 		return deferredResult;
+	},
+
+	copyFieldValueFeedback_handler: function () {
+//		this.overlay().show("copy", true);
+//		MochiKit.Async.callLater(0.5, MochiKit.Base.method(this.overlay(), 'hide', true));
+		this.overlay().show("copying …", true);
+		this.overlay().customResult('copy', "copied", 0.5);
 	},
 
 	uploadMessageCallback: function (someArguments, aProgressCallback) {

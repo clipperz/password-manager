@@ -306,6 +306,33 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 		return result;
 	},
 
+	onClickOnFieldValue: function (event) {
+		var	succeeded;
+		var	element;
+
+		element = event.target;
+
+//		event.target.focus();
+//		event.target.select();
+//		event.target.selectionStart = 0;
+//		event.target.selectionEnd = event.target.value.length;
+//		event.stopPropagation();
+//		event.preventDefault();
+
+		element.focus();
+		element.setSelectionRange(0, element.value.length);
+		event.stopPropagation();
+		event.preventDefault();
+
+//		selectedText = element.value;
+
+		succeeded = document.execCommand('copy');
+		if (succeeded === true) {
+			window.getSelection().removeAllRanges();
+			MochiKit.Signal.signal(Clipperz.Signal.NotificationCenter, 'copyFieldValueFeedback');
+		}
+	},
+
 	//............................................................................
 
 	renderField: function (aField) {
@@ -331,10 +358,10 @@ Clipperz.PM.UI.Components.Cards.ViewClass = React.createClass({
 			React.DOM.div({'className':'fieldValues'}, [
 				React.DOM.div({'className':'fieldLabel'}, aField['label']),
 				Clipperz.PM.UI.Components.Cards.TextArea({
-//				React.DOM.textarea({
 					'readOnly': true,
 					// 'onMouseUp': function(e) { e.target.focus(); e.target.select(); e.stopPropagation(); e.preventDefault();},
-					'onClick': function(e) { e.target.focus(); e.target.select(); e.target.selectionStart = 0; e.target.selectionEnd = e.target.value.length; e.stopPropagation(); e.preventDefault(); },
+//					'onClick': function(e) { e.target.focus(); e.target.select(); e.target.selectionStart = 0; e.target.selectionEnd = e.target.value.length; e.stopPropagation(); e.preventDefault(); },
+					'onClick': this.onClickOnFieldValue,
 					'className':Clipperz.PM.UI.Components.classNames(cardFieldValueClasses),
 					'value': aField['value'],
 					'rows': 1

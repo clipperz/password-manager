@@ -88,6 +88,17 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 		this.completed(this.showDoneIcon, aMessage, aDelayBeforeHiding);
 	},
 	
+	'setCustomResultIcon': function (anIcon) {
+		this.getElement('custom').innerHTML = anIcon;
+		MochiKit.Style.showElement(this.getElement('custom'));
+	},
+
+	'customResult': function (anIcon, aMessage, aDelayBeforeHiding) {
+		this.hideMask();
+		this.hideProgressBar();
+		this.completed(MochiKit.Base.method(this, 'setCustomResultIcon', anIcon), aMessage, aDelayBeforeHiding);
+	},
+	
 	'failed': function (aMessage, aDelayBeforeHiding) {
 		this.completed(this.showFailIcon, aMessage, aDelayBeforeHiding);
 	},
@@ -139,10 +150,20 @@ Clipperz.Base.extend(Clipperz.PM.UI.Components.Overlay, Object, {
 	'hide': function (withoutAnimationTime) {
 		var secondsBeforeHiding = withoutAnimationTime ? 0 : 1;
 		var element = this.element();
+
+//		this.getElement('custom').innerHTML = '';
+//		MochiKit.Style.hideElement(this.getElement('custom'));
+
 		this.hideProgressBar();
 		MochiKit.DOM.removeElementClass(element, 'ios-overlay-show');
 		MochiKit.DOM.addElementClass(element, 'ios-overlay-hide');
-		return MochiKit.Async.callLater(secondsBeforeHiding, MochiKit.Style.hideElement, element);
+//		return MochiKit.Async.callLater(secondsBeforeHiding, MochiKit.Style.hideElement, element);
+		return MochiKit.Async.callLater(secondsBeforeHiding, MochiKit.Base.method(this, 'hideElement'));
+	},
+
+	'hideElement': function () {
+		this.getElement('custom').innerHTML = '';
+		MochiKit.Style.hideElement(this.element())
 	},
 
 	'hideSpinner': function () {
