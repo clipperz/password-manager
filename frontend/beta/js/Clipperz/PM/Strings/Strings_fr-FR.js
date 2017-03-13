@@ -34,7 +34,7 @@ Clipperz.PM.Strings.Languages['fr-FR'.toLowerCase()] = MochiKit.Base.merge(Clipp
 'loginFormVerifyTheCodeLabel':	"vérifiez le code",
 'loginFormButtonLabel':	"S’identifer",
 'loginPanelSwithLanguageDescription':	"<p>Sélectionnez votre langue préférée</p> ",
-'browserCompatibilityDescription':	"<p>Pour une utilisation optimale de Clipperz nous vous conseillons Firefor. Toutefois Clipperz fonctionne aussi bien avec Opera et MS Internet Explorer !</p> ",
+'browserCompatibilityDescription':	"<p>Pour une utilisation optimale de Clipperz nous vous conseillons Firefox. Toutefois Clipperz fonctionne aussi bien avec Opera et MS Internet Explorer !</p> ",
 'loginMessagePanelInitialTitle':	"En cours d’identification ...",
 'loginMessagePanelInitialButtonLabel':	"Annuler",
 'loginMessagePanelConnectedTitle':	"Connecté",
