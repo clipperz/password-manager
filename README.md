@@ -2,7 +2,7 @@
 
 [icon]: ./Icon.png
 
-##What does Clipperz do?
+## What does Clipperz do?
 
 Clipperz is a smart online vault where you can store confidential data without worrying about security. It can be used to save and manage passwords, private notes, burglar alarm codes, credit and debit card details, PINs, software keys, …
 Since passwords are the most common type of private information that you need to protect, we have added a great deal of functionality to make Clipperz a great [online password manager][home]. Read more on the [Clipperz website][home].
