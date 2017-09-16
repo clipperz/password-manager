@@ -19,8 +19,9 @@
         _SubtleCrypto = global.SubtleCrypto || _subtle.constructor || Object,
         _CryptoKey  = global.CryptoKey || global.Key || Object;
 
-    var isIE    = !!global.msCrypto,
-        isWebkit = !!_crypto.webkitSubtle;
+    var isEdge = global.navigator.userAgent.indexOf('Edge/') > -1;
+    var isIE    = !!global.msCrypto && !isEdge;
+    var isWebkit = !_crypto.subtle && !!_crypto.webkitSubtle;
     if ( !isIE && !isWebkit ) return;
 
     function s2a ( s ) {
@@ -360,7 +361,7 @@
                             keys[0].alg = keys[1].alg = jwkAlg(ka);
                             keys[0].key_ops = ku.filter(isPubKeyUse), keys[1].key_ops = ku.filter(isPrvKeyUse);
                             return Promise.all([
-                                _subtle.importKey( 'jwk', keys[0], ka, kx, keys[0].key_ops ),
+                                _subtle.importKey( 'jwk', keys[0], ka, true, keys[0].key_ops ),
                                 _subtle.importKey( 'jwk', keys[1], ka, kx, keys[1].key_ops ),
                             ]);
                         })
@@ -594,4 +595,4 @@
         global.SubtleCrypto = _SubtleCrypto;
         global.CryptoKey = CryptoKey;
     }
-}(this);
+}( typeof window === 'undefined' ? typeof self === 'undefined' ? this : self : window );
