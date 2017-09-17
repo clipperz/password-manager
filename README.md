@@ -108,6 +108,9 @@ Once the index.html file has been built and a backend is running and has been co
   The POG interface will allow also a very basic access to the DB data that may be useful to check that the application is actually writing something on the DB (even if you will not be able to make much sense out of the data you will see, as they are all encrypted!)  
   More information about building the PHP backend may be found in the `doc/install.php.txt` file.
 
+* **Cleanup**
+  Remove both `test.php` and the `setup/` folder once the setup is ready.
+
 
 ## Disclaimer
 
