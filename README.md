@@ -28,7 +28,7 @@ As an example, the current PHP backend lacks several critical capabilities such 
 Please note: the actual Clipperz service use a far more robust backend, but the communication protocol between backend and frontend is of course identical.
 
 [app]: https://clipperz.is/app/
-[CA]: https://clipperz.is/contributor_agreement/
+[CA]: https://clipperz.is/open_source/contributor_agreement/
 [contact]: https://clipperz.is/about/contacts/
 
 
