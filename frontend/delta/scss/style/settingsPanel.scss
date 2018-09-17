@@ -1128,6 +1128,9 @@ refer to http://www.clipperz.com.
 							border: 1px solid #999;
 							padding: 0.5rem;
 							
+							max-width: 100px;
+							overflow-x: scroll;
+							
 							&.PASSWORD {
 								font-family: clipperz-password;
 								font-size: 14.9pt;
