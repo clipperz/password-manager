@@ -1,6 +1,6 @@
 /*
 
-Copyright 2008-2015 Clipperz Srl
+Copyright 2008-2018 Clipperz Srl
 
 This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
@@ -104,23 +104,29 @@ Clipperz.PM.Toll.prototype = MochiKit.Base.update(null, {
 	//-------------------------------------------------------------------------
 
 	'innerDeferredPay': function (aTargetValue, aCost, aPayment) {
-		var deferredResult;
-		var result;
-		var payment;
-		var i;
+		var	deferredResult;
+		var	result;
+		var	payment;
+		var	startTime;
+		var currentTime;
+		var	elapsedTime;
 
+		currentTime = (new Date()).getMilliseconds();
+		startTime = currentTime;
+		
 		result = null;
 		payment = aPayment;
-		i = 0;
+		elapsedTime = currentTime - startTime;
 
-		while ((result == null) && (i < Clipperz.PM.Toll.numberOfCloseLoopIterations)) {
+		while ((result == null) && (elapsedTime < Clipperz.PM.Toll.maxTimeForCloseLoopIterations)) {
 			if (Clipperz.ByteArray.prefixMatchingBits(aTargetValue, Clipperz.Crypto.SHA.sha256(payment)) > aCost) {
 				result = payment;
 			} else {
 				payment.increment();
 			}
 
-			i ++;
+			currentTime = (new Date()).getMilliseconds();
+			elapsedTime = currentTime - startTime;
 		}
 		
 		if (result == null) {
@@ -137,8 +143,7 @@ Clipperz.PM.Toll.prototype = MochiKit.Base.update(null, {
 		var	toll;
 		
 		toll = this;
-		deferredResult = new Clipperz.Async.Deferred("Toll.deferredPay");
-//deferredResult.addLog("--->>> deferredPay - " + this.cost());
+		deferredResult = new Clipperz.Async.Deferred("Toll.deferredPay", {trace:false});
 		deferredResult.addMethod(Clipperz.Crypto.PRNG.defaultRandomGenerator(), 'getRandomBytes', 32);
 		deferredResult.addMethod(toll, 'innerDeferredPay', new Clipperz.ByteArray("0x" + this.targetValue()), this.cost());
 		deferredResult.addCallback(MochiKit.Base.bind(function(aPayment) {
@@ -151,7 +156,6 @@ Clipperz.PM.Toll.prototype = MochiKit.Base.update(null, {
 		
 			return result;
 		}, this));
-//deferredResult.addLog("<<<--- deferredPay - " + this.cost());
 		deferredResult.callback();
 		
 		return deferredResult;
@@ -185,5 +189,5 @@ Clipperz.PM.Toll.validate = function(aTargetValue, aToll, aCost) {
 	return result;
 };
 
-Clipperz.PM.Toll.numberOfCloseLoopIterations = 50;
-Clipperz.PM.Toll.pauseBetweenEachCloseLoop = 0.5;
+Clipperz.PM.Toll.maxTimeForCloseLoopIterations = 500;	//	milliseconds
+Clipperz.PM.Toll.pauseBetweenEachCloseLoop = 0.1;		//	seconds

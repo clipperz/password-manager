@@ -1,6 +1,6 @@
 /*
 
-Copyright 2008-2015 Clipperz Srl
+Copyright 2008-2018 Clipperz Srl
 
 This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
@@ -36,8 +36,8 @@ Clipperz.PM.UI.Components.ExtraFeatures.OTPClass = React.createClass({
 		};
 	},
 
-	propTypes: {
-	},
+// 	propTypes: {
+//	},
 
 	//=========================================================================
 
@@ -190,19 +190,29 @@ Clipperz.PM.UI.Components.ExtraFeatures.OTPClass = React.createClass({
 				};
 				otpClasses[otpDetailInfo['status']] = true;
 
-				if (otpDetailInfo['status'] != 'ACTIVE') {
-					otpStatusInfo = React.DOM.div({'className':'otpStatusInfo'}, [
-						React.DOM.span({'className':'otpStatus'}, otpDetailInfo['status']),
-						React.DOM.span({'className':'requestDate'}, otpDetailInfo['usageDate']),
-						React.DOM.span({'className':'connectionIp'}, otpDetailInfo['connection']['ip']),
-						React.DOM.span({'className':'connectionBrowser'}, otpDetailInfo['connection']['browser']),
+				if (otpDetailInfo['status'] === 'USED') {
+					otpStatusInfo = React.DOM.div({'key':'otpStatusInfo', 'className':'otpStatusInfo'}, [
+						React.DOM.span({'key':'otpStatus', 'className':'otpStatus'}, otpDetailInfo['status']),
+						React.DOM.span({'key':'requestDate', 'className':'requestDate'}, otpDetailInfo['usageDate']),
+						React.DOM.span({'key':'connectionIp', 'className':'connectionIp'}, otpDetailInfo['connection']['ip']),
+						React.DOM.span({'key':'connectionBrowser', 'className':'connectionBrowser'}, otpDetailInfo['connection']['browser']),
 					])
-				} else {
+				} else if (otpDetailInfo['status'] === 'DISABLED') {
+						otpStatusInfo = React.DOM.div({'key':'otpStatusInfo', 'className':'otpStatusInfo'}, [
+							React.DOM.span({'key':'otpStatus', 'className':'otpStatus'}, otpDetailInfo['status']),
+							React.DOM.span({'key':'requestDate', 'className':'requestDate'}, otpDetailInfo['usageDate']),
+//							React.DOM.span({'className':'connectionIp'}, otpDetailInfo['connection']['ip']),
+//							React.DOM.span({'className':'connectionBrowser'}, otpDetailInfo['connection']['browser']),
+						])
+				} else if (otpDetailInfo['status'] === 'ACTIVE') {
 					otpStatusInfo = null;
+				} else {
+					throw "Clipperz.PM.UI.Components.ExtraFeatures.OTP.renderOtpRows: unrecognized OTP status: " + otpDetailInfo['status'];
 				}
 
 				if (reference == this.state.labelBeingEdited) {
 					labelComponent = React.DOM.input({
+						'key': 'input',
 						'autoFocus':true,
 						'value':this.state.otpLabel,
 						'placeholder': "custom label",
@@ -211,6 +221,7 @@ Clipperz.PM.UI.Components.ExtraFeatures.OTPClass = React.createClass({
 					});
 				} else {
 					labelComponent = React.DOM.span({
+						'key': 'span',
 						'onClick':MochiKit.Base.partial(this.enableOtpLabelEditing, anOTP),
 						'className': Clipperz.PM.UI.Components.classNames({'customLabel':anOTP.label()})
 					}, (anOTP.label()) ? anOTP.label() : defaultOtpLabel)
@@ -220,12 +231,12 @@ Clipperz.PM.UI.Components.ExtraFeatures.OTPClass = React.createClass({
 					'key':'otp-' + reference,
 					'className':Clipperz.PM.UI.Components.classNames(otpClasses)
 				}, [
-					React.DOM.div({'className':'otpAction'}, [
-						React.DOM.a({'onClick':MochiKit.Base.partial(this.handleDelete, reference)}, 'remove OTP'),
+					React.DOM.div({'key':'otpAction', 'className':'otpAction'}, [
+						React.DOM.a({'key':'a', 'onClick':MochiKit.Base.partial(this.handleDelete, reference)}, 'remove OTP'),
 					]),
-					React.DOM.div({'className':'otpInfo'}, [
-						React.DOM.div({'className':'otpPassword'}, anOTP.password()),
-						React.DOM.div({'className':'otpLabel'}, labelComponent),
+					React.DOM.div({'key':'otpInfo', 'className':'otpInfo'}, [
+						React.DOM.div({'key':'otpPassword', 'className':'otpPassword'}, anOTP.password()),
+						React.DOM.div({'key':'otpLabel', 'className':'otpLabel'}, labelComponent),
 						otpStatusInfo,
 					]),
 				]);
@@ -238,20 +249,20 @@ Clipperz.PM.UI.Components.ExtraFeatures.OTPClass = React.createClass({
 	},
 
 	render: function () {
-		return	React.DOM.div({'className':'extraFeature OTP'}, [
-			React.DOM.div({'className':'header'}, [
-				React.DOM.h1({}, "One-Time Passwords"),
+		return	React.DOM.div({'key':'extraFeatureOTP', 'className':'extraFeature OTP'}, [
+			React.DOM.div({'key':'header', 'className':'header'}, [
+				React.DOM.h1({'key':'h1'}, "One-Time Passwords"),
 			]),
-			React.DOM.div({'className':'content'}, [
-				React.DOM.div({},[
-					React.DOM.div({'className':'description'}, [
-						React.DOM.p({}, "A one-time password works like your regular passphrase, but it can be used only once. Strongly recommended when accessing your Clipperz account from unsecure devices where keyloggers may be installed."),
+			React.DOM.div({'key':'content', 'className':'content'}, [
+				React.DOM.div({'key': 'div'},[
+					React.DOM.div({'key':'description', 'className':'description'}, [
+						React.DOM.p({'key': 'p'}, "A one-time password works like your regular passphrase, but it can be used only once. Strongly recommended when accessing your Clipperz account from unsecure devices where keyloggers may be installed."),
 					]),
-					React.DOM.a({'className':'button', 'onClick':this.handlePrint}, "Print"),
+					React.DOM.a({'key':'button', 'className':'button', 'onClick':this.handlePrint}, "Print"),
 
-					React.DOM.ul({'className':'otpList'}, this.renderOtpRows()),
-					React.DOM.div({'className':'actions'}, [
-						React.DOM.a({'onClick': this.handleNew}, "create new OTP"),
+					React.DOM.ul({'key':'otpList', 'className':'otpList'}, this.renderOtpRows()),
+					React.DOM.div({'key':'actions', 'className':'actions'}, [
+						React.DOM.a({'key':'newButton', 'onClick': this.handleNew}, "create new OTP"),
 					]),
 				])
 			])

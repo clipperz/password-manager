@@ -1,6 +1,6 @@
 /*
 
-Copyright 2008-2015 Clipperz Srl
+Copyright 2008-2018 Clipperz Srl
 
 This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
@@ -823,7 +823,7 @@ refer to http://www.clipperz.com.
 						}
 					}
 
-					&.REQUESTED, &.USED {
+					&.REQUESTED, &.USED, &.DISABLED {
 						background-color: #222;
 
 						.otpPassword {
@@ -1127,10 +1127,10 @@ refer to http://www.clipperz.com.
 						td, th {
 							border: 1px solid #999;
 							padding: 0.5rem;
-							
+
 							max-width: 100px;
 							overflow-x: scroll;
-							
+
 							&.PASSWORD {
 								font-family: clipperz-password;
 								font-size: 14.9pt;

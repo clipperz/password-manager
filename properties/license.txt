@@ -1,7 +1,7 @@
 
 GNU AFFERO GENERAL PUBLIC LICENSE
 
-Copyright 2008-2015 Clipperz Srl
+Copyright 2008-2018 Clipperz Srl
 
 This file is part of Clipperz, a web application for encrypting texts and 
 documents, store them in the cloud, share them securely. 

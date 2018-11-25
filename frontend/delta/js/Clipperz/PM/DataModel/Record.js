@@ -1,6 +1,6 @@
 /*
 
-Copyright 2008-2015 Clipperz Srl
+Copyright 2008-2018 Clipperz Srl
 
 This file is part of Clipperz, the online password manager.
 For further information about its features and functionalities please
@@ -1241,7 +1241,7 @@ Clipperz.log("Warning: Record.fieldWithLabel('" + aLabel + "') is returning more
 				Clipperz.Async.collectAll,
 				Clipperz.Async.or
 			]
-		}, {trace:true});
+		}, {trace:false});
 		deferredResult.addCallback(MochiKit.Base.values);
 		deferredResult.addCallback(MochiKit.Base.bind(function(someValues) {
 			return MochiKit.Iter.some(someValues, MochiKit.Base.operator.identity);
