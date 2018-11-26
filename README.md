@@ -61,7 +61,7 @@ Please [download][CA] and review the Contributor Agreement for a complete unders
 ## Building
 In order to build the deployable version, you need to invoke the following command:
 
-    git clone git@github.com:clipperz/password-manager.git
+    git clone https://github.com/clipperz/password-manager.git
     cd password-manager
     ./scripts/build install --backends php python --frontends delta
   
