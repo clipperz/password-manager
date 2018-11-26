@@ -549,14 +549,14 @@ MochiKit.Base.update(Clipperz.Async, {
 
 	//-------------------------------------------------------------------------
 
-	'deferredIf': function (aName, aThenBlock, anElseBlock) {
+	'deferredIf': function (aName, aThenBlock, anElseBlock, someArguments) {
 		return function (aValue) {
 			var deferredResult;
 
 			if (!MochiKit.Base.isUndefinedOrNull(aValue) && aValue) {
-				deferredResult = Clipperz.Async.callbacks(aName + " <then>", aThenBlock, null, aValue);
+				deferredResult = Clipperz.Async.callbacks(aName + " <then>", aThenBlock, someArguments, aValue);
 			} else {
-				deferredResult = Clipperz.Async.callbacks(aName + " <else>", anElseBlock, null, aValue);
+				deferredResult = Clipperz.Async.callbacks(aName + " <else>", anElseBlock, someArguments, aValue);
 			}
 			
 			return deferredResult;
