@@ -314,6 +314,7 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 		var normalizedOTP;
 
 		normalizedOTP = Clipperz.PM.DataModel.OneTimePassword.normalizedOneTimePassword(someParameters['password']);
+console.log("normalizedOTP", normalizedOTP);
 
 		args = {
 			'message': 'oneTimePassword',
@@ -323,7 +324,7 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 				'oneTimePasswordKeyChecksum':	Clipperz.PM.DataModel.OneTimePassword.computeKeyChecksumWithUsernameAndPassword(someParameters['username'], normalizedOTP)
 			}
 		}
-
+console.log("Connction.redeemOneTimePassword 'handshake' args", args);
 		return Clipperz.Async.callbacks("Connction.redeemOneTimePassword", [
 			MochiKit.Base.method(this.proxy(), 'handshake', args),
 			function(aResult) {
@@ -336,7 +337,7 @@ Clipperz.PM.Connection.SRP['1.0'].prototype = MochiKit.Base.update(new Clipperz.
 			function(aResult) {
 				return (new Clipperz.ByteArray().appendBase64String(aResult['passphrase'])).asString();
 			}			
-		], {trace:false})
+		], {trace:true})
 	},
 
 	'login': function(isReconnecting) {
