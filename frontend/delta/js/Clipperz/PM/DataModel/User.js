@@ -328,15 +328,15 @@ Clipperz.Base.extend(Clipperz.PM.DataModel.User, Object, {
 		deferredResult.addCallback(Clipperz.PM.DataModel.OneTimePassword.isValidOneTimePasswordValue);
 
 		deferredResult.addCallback(Clipperz.Async.deferredIf("Is the passphrase an OTP", [
-			MochiKit.Base.method(this,'getPassphrase'),
-			MochiKit.Base.method(this,'setUsedOTP'),
+			MochiKit.Base.method(this, 'getPassphrase'),
+			MochiKit.Base.method(this, 'setUsedOTP'),
 			MochiKit.Base.method(this, 'getCredentials'),
 			MochiKit.Base.method(this.connection(), 'redeemOneTimePassword'),
 			function (aPassphrase) {
 				return MochiKit.Base.partial(MochiKit.Async.succeed, aPassphrase);
 			},
 			MochiKit.Base.method(this, 'setPassphraseFunction')
-		], []));
+		], [], {trace:false}));
 
 		deferredResult.addBoth(MochiKit.Base.method(this, 'loginWithPassphrase'));
 		deferredResult.addBothPass(MochiKit.Base.method(this, 'resetUsedOTP'));
