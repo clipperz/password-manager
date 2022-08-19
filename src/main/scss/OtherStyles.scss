@@ -1,0 +1,49 @@
+code {
+    color: gray;
+}
+
+div.settings {
+    border: 1px solid red;
+    margin: 3px;
+}
+div.password {
+    border: 1px solid blue;
+    margin: 3px;
+
+    &.loading {
+        border: 1px dotted blue;
+        background-color: rgba(blue, 10%);
+    }
+}
+div.form {
+    border: 1px solid pink;
+    margin: 3px;
+}
+
+div.asyncWidgetRunner {
+    border: 1px dashed purple;
+    margin: 3px;
+    padding: 0px;
+
+    min-height: 40px;
+}
+
+div.outerComponent {
+    border: 1px dashed orange;
+    margin: 3px;
+    padding: 0px;
+}
+
+div.clock {
+    font-family: monospace;
+    border: 1px dashed green;
+    margin: 3px;
+    padding: 5px;
+    font-weight: bold;
+
+    &:before {
+        content: "clock";
+        padding-right: 1em;
+        font-weight: lighter;
+    }
+}
