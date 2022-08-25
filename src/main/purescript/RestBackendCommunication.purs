@@ -1,27 +1,4 @@
-module RestBackendCommunication
-  ( CardReference
-  , LoginResult
-  , LoginStep1Data
-  , LoginStep1Response
-  , LoginStep1Result
-  , LoginStep2Response
-  , LoginStep2Result
-  , LogintStep2Data
-  , ProtocolError(..)
-  , RegisterUserRequest
-  , Url
-  , UserCard
-  , baseUrl
-  , doGenericRequest
-  , getBlob
-  , getIndexCard
-  , isStatusCodeOk
-  , login
-  , loginStep1
-  , registerUser
-  , sessionKeyHeaderName
-  )
-  where
+module RestBackendCommunication where
 
 import Affjax.Web as AXW
 import Affjax.RequestBody (RequestBody, json)
@@ -52,7 +29,7 @@ import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
-import DataModel.IndexCard (IndexCard)
+import DataModel.Index (Index)
 import Effect.Aff (Aff)
 import EncodeDecode (decryptJson)
 import Record (merge)
@@ -103,6 +80,7 @@ type RegisterUserRequest = {
     user :: UserCard
   , indexCardReference :: HexString
   , indexCardContent   :: HexString
+  , cards :: Array HexString
 }
 
 registerUser :: RegisterUserRequest -> Aff (Either ProtocolError HexString)
@@ -206,9 +184,15 @@ getBlob hash = do
   let url = joinWith "/" [baseUrl, "blobs", show $ hash]
   doGenericRequest url GET [] Nothing RF.arrayBuffer
 
-getIndexCard :: HexString -> CryptoKey -> Aff (Either ProtocolError IndexCard)
-getIndexCard reference key = runExceptT $ do
+getIndex :: HexString -> CryptoKey -> Aff (Either ProtocolError Index)
+getIndex reference key = runExceptT $ do
   response <- ExceptT $ getBlob reference
   if isStatusCodeOk response.status
     then withExceptT (\e -> CryptoError $ show e) (ExceptT $ decryptJson key response.body)
     else except $ Left (ResponseError (unwrap response.status))
+
+postBlob :: ArrayBuffer -> Aff (Either ProtocolError (AXW.Response String))
+postBlob blob = do
+  let url = joinWith "/" [baseUrl, "blobs"]
+  let body = json $ encodeJson (fromArrayBuffer blob) :: RequestBody
+  doGenericRequest url POST [] (Just body) RF.string

@@ -22,6 +22,7 @@ import Data.Eq (class Eq, (==))
 import Data.EuclideanRing (mod)
 import Data.Function (($))
 import Data.Maybe(Maybe, maybe)
+import Data.Ord (class Ord)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.String (toLower, toUpper)
@@ -39,6 +40,8 @@ foreign import arrayBufferToHex :: ArrayBuffer -> String
 -- ----------------------------------------------------------------
 
 data HexString = HexString String
+
+derive instance ordHexString :: Ord HexString
 
 derive instance eqHexString :: Eq HexString
 

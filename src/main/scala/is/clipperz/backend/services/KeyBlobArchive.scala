@@ -30,7 +30,7 @@ object KeyBlobArchive:
       }
 
     override def deleteBlob(key: Key): Task[Unit] =
-      ZIO.succeed {
+      ZIO.attempt {
         Files.deleteIfExists(getBlobPath(key, false).get)
         // TODO: delete empty folder?
       }

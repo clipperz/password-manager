@@ -5,7 +5,7 @@ import java.io.File
 import java.nio.file.FileSystems
 import scala.util.Try
 import io.netty.handler.ssl.util.SelfSignedCertificate
-import zio.{ ZIO, Scope, ZIOAppArgs, ZIOAppDefault }
+import zio.{ Task, ZIO, Scope, ZIOAppArgs, ZIOAppDefault }
 import zio.stream.{ ZSink, ZStream }
 import zio.json.{ DecoderOps, EncoderOps }
 import zhttp.http.{ Headers, HeaderNames, HeaderValues, Http, HttpApp, HttpData, Method, Path, Request, Response, Status }
@@ -65,16 +65,23 @@ object Main extends zio.ZIOAppDefault:
             fromStream[SignupData](content)
             .flatMap(signupData => {
               if HexString(c) == signupData.user.c then
-                userArchive.saveUser(signupData.user, false)
-                <&> //Returns an effect that executes both this effect and the specified effect, in parallel, combining their results into a tuple. If either side fails, then the other side will be interrupted.
-                blobArchive.saveBlob(HexString(signupData.indexCardReference), ZStream.fromIterable(HexString(signupData.indexCardContent).toByteArray))
+                ( userArchive.saveUser(signupData.user, false)
+                  <&> //Returns an effect that executes both this effect and the specified effect, in parallel, combining their results into a tuple. If either side fails, then the other side will be interrupted.
+                  blobArchive.saveBlob(signupData.indexCardReference, ZStream.fromIterable(HexString(signupData.indexCardContent).toByteArray))
+                  <&>
+                  ZIO.foreach(signupData.cards) { (reference, content) => blobArchive.saveBlob(reference, ZStream.fromIterable(HexString(content).toByteArray)) }
+                ).parallelErrors.foldZIO(
+                    _      => ZIO.fail(new Exception("TODO")),
+                    result => ZIO.succeed(result)
+                )                
               else  
                 ZIO.fail(new Exception("c in request path differs from c in request body "))
             })
           )
+        ).fold(
+          err => { println(s"ERROR ${err}"); Response(status = Status.Conflict) },
+          results => Response.text(results._1.toString)
         )
-        .either
-        .map(e => e.fold(err => { println(s"ERROR ${err}"); Response(status = Status.Conflict) }, results => Response.text(results._1.toString)))
 
     case request @ Method.DELETE -> !! / "users" / c =>
       ZIO.service[UserArchive]

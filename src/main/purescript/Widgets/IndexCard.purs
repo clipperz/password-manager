@@ -1,4 +1,4 @@
-module Widgets.IndexCard where
+module Widgets.Index where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
@@ -7,12 +7,11 @@ import Data.Array (fromFoldable)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.List (sort)
-import Data.Map.Internal (values)
 
-import DataModel.IndexCard (IndexCard(..), CardIndex(..), CardReference)
+import DataModel.Index (Index(..), CardEntry(..), CardReference)
 import Widgets.SimpleWebComponents (clickableListItemWidget)
 
-indexCard :: IndexCard -> Widget HTML CardReference
-indexCard (IndexCard_v1 {cards: cards}) = do
-  let sortedCards = fromFoldable $ sort $ values cards :: Array CardIndex
-  ol' $ (\(CardIndex_v1 {title: title, cardReference: reference, archived: _}) -> clickableListItemWidget (text title) reference) <$> sortedCards
+indexCard :: Index -> Widget HTML CardReference
+indexCard (Index_v1 cards) = do
+  let sortedCards = fromFoldable $ sort cards :: Array CardEntry
+  ol' $ (\(CardEntry_v1 {title: title, cardReference: reference, archived: _}) -> clickableListItemWidget (text title) reference) <$> sortedCards

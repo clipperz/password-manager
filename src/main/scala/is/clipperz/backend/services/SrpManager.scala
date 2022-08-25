@@ -10,7 +10,7 @@ import is.clipperz.backend.functions.SrpFunctions.{ SrpFunctionsV6a }
 
 // ============================================================================
 
-case class SignupData(user: UserCard, indexCardReference: String, indexCardContent: String)
+case class SignupData(user: UserCard, indexCardReference: HexString, indexCardContent: String, cards: Array[(HexString, String)])
 object SignupData:
   implicit val decoder: JsonDecoder[SignupData] = DeriveJsonDecoder.gen[SignupData]
   implicit val encoder: JsonEncoder[SignupData] = DeriveJsonEncoder.gen[SignupData]

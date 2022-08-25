@@ -10,7 +10,7 @@ import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
 
 import Clipboard (copyToClipboard)
-import DataModel.Card (CardField(..), CardValues, Card)
+import DataModel.Card (CardField(..), CardValues(..), Card(..))
 import Widgets.SimpleWebComponents (simpleButton)
 
 -- -----------------------------------
@@ -26,9 +26,9 @@ instance showCardAction :: Show CardAction where
 -- -----------------------------------
 
 card :: Card -> Widget HTML CardAction
-card c = div [] [
+card c@(Card_v1 r) = div [] [
     cardActions c
-  , NoAction <$ cardContent c.content
+  , NoAction <$ cardContent r.content
 ]
 
 cardActions :: Card -> Widget HTML CardAction
@@ -40,7 +40,7 @@ cardActions c = div [] [
 ]
 
 cardContent :: forall a. CardValues -> Widget HTML a
-cardContent {title: t, tags: ts, fields: fs, notes: n} = div [Props.className "card_content"] [
+cardContent (CardValues_v1 {title: t, tags: ts, fields: fs, notes: n}) = div [Props.className "card_content"] [
   h3  [Props.className "card_title"]  [text t]
 , ul  [Props.className "card_tags"]   $ (\s -> li' [text s]) <$> ts
 , div [Props.className "card_fields"] $ cardField <$> fs
