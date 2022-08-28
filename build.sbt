@@ -90,6 +90,7 @@ lazy val dependencies = Seq(
     "dev.zio" %% "zio" % zio_version,
     "dev.zio" %% "zio-streams" % zio_version,
     "dev.zio" %% "zio-json" % zio_json,
+    "dev.zio" %% "zio-cache" % "0.2.0",
     "io.d11" %% "zhttp" % zio_http_version,
   ),
   libraryDependencies ++= Seq(

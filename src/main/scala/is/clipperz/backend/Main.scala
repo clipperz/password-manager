@@ -8,8 +8,9 @@ import io.netty.handler.ssl.util.SelfSignedCertificate
 import zio.{ Task, ZIO, Scope, ZIOAppArgs, ZIOAppDefault }
 import zio.stream.{ ZSink, ZStream }
 import zio.json.{ DecoderOps, EncoderOps }
-import zhttp.http.{ Headers, HeaderNames, HeaderValues, Http, HttpApp, HttpData, Method, Path, Request, Response, Status }
+import zhttp.http.{ Headers, HeaderNames, HeaderValues, Http, HttpApp, HttpData, Method, Middleware, Path, Request, Response, Status }
 import zhttp.http.* //TODO: fix How do you import `!!` and `/`?
+import zhttp.http.middleware.{ HttpMiddleware }
 import zhttp.service.{ EventLoopGroup, Server }
 import zhttp.service.server.ServerChannelFactory
 
@@ -42,6 +43,8 @@ object Main extends zio.ZIOAppDefault:
     Throwable,
   ]
 
+  type TollMiddleware = HttpMiddleware[SessionManager, Throwable]
+
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
   val static = Http.collectHttp[Request] { 
@@ -67,9 +70,9 @@ object Main extends zio.ZIOAppDefault:
               if HexString(c) == signupData.user.c then
                 ( userArchive.saveUser(signupData.user, false)
                   <&> //Returns an effect that executes both this effect and the specified effect, in parallel, combining their results into a tuple. If either side fails, then the other side will be interrupted.
-                  blobArchive.saveBlob(signupData.indexCardReference, ZStream.fromIterable(HexString(signupData.indexCardContent).toByteArray))
+                  blobArchive.saveBlob(signupData.indexCardReference, ZStream.fromIterable(signupData.indexCardContent.toByteArray))
                   <&>
-                  ZIO.foreach(signupData.cards) { (reference, content) => blobArchive.saveBlob(reference, ZStream.fromIterable(HexString(content).toByteArray)) }
+                  ZIO.foreach(signupData.cards) { (reference, content) => blobArchive.saveBlob(reference, ZStream.fromIterable(content.toByteArray)) }
                 ).parallelErrors.foldZIO(
                     _      => ZIO.fail(new Exception("TODO")),
                     result => ZIO.succeed(result)
@@ -105,7 +108,7 @@ object Main extends zio.ZIOAppDefault:
           .flatMap(loginStep1Data => {
             if HexString(c) == loginStep1Data.c then
               for {
-                session <- sessionManager.getSession(sessionKey)
+                session <- sessionManager.getSession(sessionKey) //create new session
                 (step1Response, session) <- srpManager.srpStep1(loginStep1Data, session)
                 _ <- sessionManager.saveSession(session)
               } yield step1Response
@@ -176,12 +179,14 @@ object Main extends zio.ZIOAppDefault:
 
   val clipperzBackend: ClipperzHttpApp = { users ++ login ++ blobs ++ static}
 
+  // val hashcash: TollMiddleware = Middleware.ifThenElseZIO()
+
   // -------------------------------------------------------------------------
 
   val server =
     Server.port(PORT) ++
     Server.paranoidLeakDetection ++
-    Server.app(clipperzBackend)
+    Server.app(clipperzBackend /* @@ hashcash */)
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
     val nThreads: Int = args.headOption.flatMap(x => Try(x.toInt).toOption).getOrElse(0)

@@ -19,14 +19,17 @@ object UserSpec extends ZIOSpecDefault:
   val environment =
     PRNG.live ++
     SessionManager.live ++
-    TollManager.live ++
     UserArchive.fs(userBasePath, 2) ++
     BlobArchive.fs(blobBasePath, 2) ++
-    ((UserArchive.fs(userBasePath, 2) ++ PRNG.live) >>> SrpManager.v6a())
+    ((UserArchive.fs(userBasePath, 2) ++ PRNG.live) >>> SrpManager.v6a()) ++
+    (PRNG.live >>> TollManager.live)
 
   def preparePut (c: HexString)=     
     val testUser = UserCard(c, HexString("s"), HexString("v"), "srpVersion_test", "masterKeyEncodingVersion_test", HexString("masterKeyContent_test"))
-    val testRequest = SignupData(testUser, "af22025a81131eca3c315f2ef038ab2234a54730910a48530ce3f8d71e0ed718", "34f233155174be0c7cde653552919d4a6b37483830550c5542c6d3e626fb66b5514e93f4343997666c3638f52738e9")
+    val testRequest = SignupData(testUser, 
+                                 HexString("af22025a81131eca3c315f2ef038ab2234a54730910a48530ce3f8d71e0ed718"), 
+                                 HexString("34f233155174be0c7cde653552919d4a6b37483830550c5542c6d3e626fb66b5514e93f4343997666c3638f52738e9"),
+                                 Array[(HexString, HexString)]())
     Request(
       url = URL(!! / "users" / c.toString),
       method = Method.PUT,

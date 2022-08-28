@@ -27,10 +27,10 @@ object BlobSpec extends ZIOSpecDefault:
   val environment =
     PRNG.live ++
     SessionManager.live ++
-    TollManager.live ++
     UserArchive.fs(userBasePath, 2) ++
     BlobArchive.fs(blobBasePath, 2) ++
-    ((UserArchive.fs(userBasePath, 2) ++ PRNG.live) >>> SrpManager.v6a())
+    ((UserArchive.fs(userBasePath, 2) ++ PRNG.live) >>> SrpManager.v6a()) ++
+    (PRNG.live >>> TollManager.live)
 
   val testFile = new File(
     "src/test/resources/blobs/4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63.blob"
