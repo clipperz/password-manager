@@ -15,7 +15,7 @@ data CardField =
     }
 
 instance showCardField :: Show CardField where
-  show (CardField_v1 {name: n, value: v, locked: l}) = "[" <> show l <> "] " <> n <> ": " <> v
+  show (CardField_v1 { name, value, locked }) = "[" <> show locked <> "] " <> name <> ": " <> value
 
 instance encodeJsonCardField :: EncodeJson CardField where
   encodeJson (CardField_v1 record) = encodeJson record
@@ -61,7 +61,6 @@ instance decodeJsonCard :: DecodeJson Card where
   decodeJson json = rmap (\record -> Card_v1 record) (decodeJson json)
 
 -- --------------------------------------------
-
 
 card0 :: CardValues
 card0 = CardValues_v1 { title: "Mail account (SAMPLE)"

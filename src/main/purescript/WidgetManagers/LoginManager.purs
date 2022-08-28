@@ -9,21 +9,24 @@ import Concur.React.DOM (div, text)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT, withExceptT)
 import Data.Either (Either(..))
 import Data.Function (($))
-import Data.HexString (HexString)
+import Data.Functor ((<$>))
+import Data.HexString (HexString, fromArrayBuffer)
 import Effect.Aff.Class (liftAff)
 import Record (merge)
 import RestBackendCommunication
 import SRP as SRP
 import Widgets.LoginForm (loginForm)
 
-type LoginManagerResult = { username :: String, password :: String, indexReference :: HexString, sessionKey :: HexString }
+type LoginManagerResult = { c :: HexString, p :: HexString, indexReference :: HexString, sessionKey :: HexString }
 
 loginManager :: SRP.SRPConf -> Widget HTML LoginManagerResult
 loginManager conf = demandLoop "" (\s -> loopW (Left s) (\err -> do
-  loginFormResult <- case err of
+  loginFormResult@{ username, password } <- case err of
     Left string -> div [] [text $ string, loginForm]
     Right _     -> loginForm
   liftAff $ runExceptT $ do
     loginResult <- withExceptT (\_ -> "Login failed") (ExceptT $ login conf loginFormResult)
-    pure $ merge loginFormResult loginResult
+    c           <- ExceptT $ Right <$> SRP.prepareC conf username password
+    p           <- ExceptT $ Right <$> SRP.prepareP conf username password
+    pure $ merge {c: fromArrayBuffer c, p: fromArrayBuffer p} loginResult
 ))

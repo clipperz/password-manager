@@ -14,4 +14,4 @@ import Widgets.SimpleWebComponents (clickableListItemWidget)
 indexCard :: Index -> Widget HTML CardReference
 indexCard (Index_v1 cards) = do
   let sortedCards = fromFoldable $ sort cards :: Array CardEntry
-  ol' $ (\(CardEntry_v1 {title: title, cardReference: reference, archived: _}) -> clickableListItemWidget (text title) reference) <$> sortedCards
+  ol' $ (\(CardEntry_v1 { title, cardReference }) -> clickableListItemWidget (text title) cardReference) <$> sortedCards

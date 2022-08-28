@@ -21,14 +21,14 @@ import Data.Show (show)
 import Data.String (length)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
-
+import Record (merge)
 import Widgets.Utilities (PasswordStrengthFunction, PasswordStrength(..))
 import Widgets.SimpleWebComponents (simpleButton, simpleUserSignal, simpleVerifiedPasswordSignal, checkboxesSignal, PasswordForm)
 
 -- | The data of the signup form
 type SignupForm = { username :: String
-            , password :: String
-            }
+                  , password :: String
+                  }
 
 type DataForm = { username       :: String
                 , password       :: String
@@ -54,7 +54,11 @@ emptyDataForm = { username: ""
 --                 }
 
 isFormValid :: DataForm -> Boolean
-isFormValid {username: user, password: pswd, verifyPassword: vpswd, checkboxes: chckbx} = user /= "" && pswd /= "" && pswd == vpswd && all (\(Tuple _ value) -> value) chckbx
+isFormValid { username, password, verifyPassword, checkboxes } =
+      username /= ""
+  &&  password /= ""
+  &&  password == verifyPassword 
+  &&  all (\(Tuple _ value) -> value) checkboxes
 
 checkboxesLabels :: forall a. Map String (Widget HTML a) 
 checkboxesLabels = fromFoldable [
@@ -75,12 +79,12 @@ signupForm = do
       eitherPassword :: Either PasswordForm String <- simpleVerifiedPasswordSignal standardPasswordStrengthFunction $ Left {password: password, verifyPassword: verifyPassword}
       checkboxMap' :: Array (Tuple String Boolean) <- checkboxesSignal checkboxMap checkboxesLabels   
       case eitherPassword of
-        Left { password: p, verifyPassword: vp} -> pure { username: username', password: p, verifyPassword: vp, checkboxes: checkboxMap'}
-        Right s                                 -> pure { username: username', password: s, verifyPassword: s, checkboxes: checkboxMap' }
+        Left  passwords -> pure $ merge passwords { username: username', checkboxes: checkboxMap'}
+        Right s         -> pure { username: username', password: s, verifyPassword: s, checkboxes: checkboxMap' }
     result :: Maybe SignupForm <- fireOnce (submitWidget formValues)
     pure result
   liftEffect $ log $ "signalResult " <> show signalResult
   pure signalResult
 
 submitWidget :: DataForm -> Widget HTML SignupForm
-submitWidget (f@{username: user, password: pswd, verifyPassword: _}) = simpleButton "Sign up" (not (isFormValid f)) { username: user, password: pswd }
+submitWidget f@{ username, password } = simpleButton "Sign up" (not (isFormValid f)) { username, password }

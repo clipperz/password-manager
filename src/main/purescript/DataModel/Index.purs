@@ -33,7 +33,7 @@ instance showCardReference :: Show CardReference where
   show (CardReference_v1 record) = show record
 
 instance eqCardReference :: Eq CardReference where
-  eq (CardReference_v1 {reference: r, key: _}) (CardReference_v1 {reference: r', key: _}) = eq r r'
+  eq (CardReference_v1 { reference: r }) (CardReference_v1 { reference: r' }) = eq r r'
 
 instance encodeJsonCardReference :: EncodeJson CardReference where
   encodeJson (CardReference_v1 record) = encodeJson record
@@ -53,10 +53,10 @@ data CardEntry =
     }
 
 instance ordCardEntry :: Ord CardEntry where
-  compare (CardEntry_v1 {title: t, cardReference: _, archived: _}) (CardEntry_v1 {title: t', cardReference: _, archived: _}) = compare t t'
+  compare (CardEntry_v1 { title: t }) (CardEntry_v1 {title: t'}) = compare t t'
 
 instance eqCardEntry :: Eq CardEntry where
-  eq (CardEntry_v1 {title: _, cardReference: cr, archived: _}) (CardEntry_v1 {title: _, cardReference: cr', archived: _}) = eq cr cr'
+  eq (CardEntry_v1 { cardReference: cr }) (CardEntry_v1 { cardReference: cr' }) = eq cr cr'
 
 instance encodeJsonCardEntry :: EncodeJson CardEntry where
   encodeJson (CardEntry_v1 record) = encodeJson record
@@ -78,13 +78,13 @@ instance decodeJsonIndex :: DecodeJson Index where
 -- --------------------------------------------
 
 createCardEntry :: Card -> CryptoKey -> SRP.HashFunction -> Aff (Tuple ArrayBuffer CardEntry)
-createCardEntry card@(Card_v1 {content: (CardValues_v1 content), timestamp: _}) key hashf = do
+createCardEntry card@(Card_v1 { content: (CardValues_v1 content) }) key hashf = do
   encryptedCard <- encryptJson key card
   hash <- hashf (encryptedCard : Nil)
   exportedKey <- fromArrayBuffer <$> exportKey raw key
-  let cardIndex = CardEntry_v1 { title: content.title
+  let cardEntry = CardEntry_v1 { title: content.title
                                , cardReference: CardReference_v1 { reference: fromArrayBuffer hash, key: exportedKey }
                                , archived: false
                                , tags: content.tags
                                }
-  pure $ Tuple encryptedCard cardIndex
+  pure $ Tuple encryptedCard cardEntry

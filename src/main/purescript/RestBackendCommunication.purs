@@ -11,7 +11,7 @@ import Control.Monad.Except.Trans (ExceptT(..), runExceptT, except, withExceptT)
 import Control.Semigroupoid ((>>>))
 import Crypto.Subtle.Key.Types (CryptoKey)
 import Data.Argonaut.Encode.Class (encodeJson)
-import Data.Argonaut.Decode.Class (decodeJson)
+import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.BigInt (BigInt, fromInt)
 import Data.Bifunctor (lmap)
@@ -29,7 +29,6 @@ import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
-import DataModel.Index (Index)
 import Effect.Aff (Aff)
 import EncodeDecode (decryptJson)
 import Record (merge)
@@ -80,14 +79,13 @@ type RegisterUserRequest = {
     user :: UserCard
   , indexCardReference :: HexString
   , indexCardContent   :: HexString
-  , cards :: Array HexString
+  , cards :: Array (Tuple HexString HexString)
 }
 
 registerUser :: RegisterUserRequest -> Aff (Either ProtocolError HexString)
 registerUser request = do
   let url = joinWith "/" [baseUrl, "users", show request.user.c]
   let body = (json $ encodeJson request) :: RequestBody
-  -- _ <- log $ show request
   registerUserResponse <- doGenericRequest url PUT [] (Just body) RF.string 
   pure $ case registerUserResponse of
     Left  error    -> Left error
@@ -109,11 +107,11 @@ login srpConf formData = runExceptT $ do
   sessionKey :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32
   c          :: HexString   <- ExceptT $ Right <$> fromArrayBuffer <$> SRP.prepareC srpConf formData.username formData.password
   p          :: ArrayBuffer <- ExceptT $ Right <$> SRP.prepareP srpConf formData.username formData.password
-  loginStep1Result <- ExceptT $ loginStep1 srpConf { c: c, sessionKey: sessionKey }
-  { m1: m1, kk: kk, m2: m2, encIndexReference: indexRef } <- ExceptT $ loginStep2 srpConf $ merge loginStep1Result { c: c, p: p, sessionKey: sessionKey}   
+  loginStep1Result <- ExceptT $ loginStep1 srpConf { c, sessionKey }
+  { m1, kk, m2, encIndexReference: indexReference } <- ExceptT $ loginStep2 srpConf $ merge loginStep1Result { c, p, sessionKey }   
   check :: Boolean <- ExceptT $ Right <$> SRP.checkM2 SRP.baseConfiguration loginStep1Result.aa m1 kk (toArrayBuffer m2)
   except $ case check of
-    true  -> Right { indexReference: indexRef, sessionKey: sessionKey }
+    true  -> Right { indexReference, sessionKey }
     false -> Left  (SRPError "Client M2 doesn't match with server M2")
 
 type LoginStep1Data = { c :: HexString
@@ -134,7 +132,7 @@ loginStep1 :: SRP.SRPConf -> LoginStep1Data -> Aff (Either ProtocolError LoginSt
 loginStep1 srpConf { c: c, sessionKey: sessionKey } = runExceptT $ do
   (Tuple a aa) <- withExceptT (\err -> SRPError $ show err) (ExceptT $ SRP.prepareA srpConf)
   let url  = joinWith "/" [baseUrl, "login", "step1", show c] :: String
-  let body = json $ encodeJson {c: c, aa: fromBigInt aa}  :: RequestBody
+  let body = json $ encodeJson { c, aa: fromBigInt aa }  :: RequestBody
   step1Response <- ExceptT $ doGenericRequest url POST [RE.RequestHeader sessionKeyHeaderName (show sessionKey)] (Just body) RF.json
   responseBody :: LoginStep1Response <- except $ if isStatusCodeOk step1Response.status
                                                  then lmap (\err -> DecodeError $ show err) (decodeJson step1Response.body)
@@ -142,7 +140,7 @@ loginStep1 srpConf { c: c, sessionKey: sessionKey } = runExceptT $ do
   bb :: BigInt <- except $ note (SRPError "Error in converting B from String to BigInt") (toBigInt responseBody.bb)
   except $ if bb == fromInt (0)
            then Left $ SRPError "Server returned B == 0"
-           else Right { aa: aa, a: a, s: responseBody.s, bb: bb }
+           else Right { aa, a, s: responseBody.s, bb }
 
 type LogintStep2Data = { aa :: BigInt
                        , bb :: BigInt
@@ -164,18 +162,18 @@ type LoginStep2Result = { m1 :: ArrayBuffer
                         }
 
 loginStep2 :: SRP.SRPConf -> LogintStep2Data -> Aff (Either ProtocolError LoginStep2Result)
-loginStep2 srpConf { aa: aa, bb: bb, a: a, s: s, c: c, p: p, sessionKey: sessionKey } = runExceptT $ do
+loginStep2 srpConf { aa, bb, a, s, c, p, sessionKey } = runExceptT $ do
   x  :: BigInt      <- ExceptT $ (\ab -> note (SRPError "Cannot convert x from ArrayBuffer to BigInt") (arrayBufferToBigInt ab)) <$> (srpConf.kdf (toArrayBuffer s) p)
   ss :: BigInt      <- withExceptT (\err -> SRPError $ show err) (ExceptT $ SRP.prepareSClient srpConf aa bb x a)
   kk :: ArrayBuffer <- ExceptT $ Right <$> (SRP.prepareK srpConf ss)
   m1 :: ArrayBuffer <- ExceptT $ Right <$> (SRP.prepareM1 srpConf c s aa bb kk)
   let url  = joinWith "/" [baseUrl, "login", "step2", show c] :: String
-  let body = json $ encodeJson {m1: fromArrayBuffer m1}  :: RequestBody
+  let body = json $ encodeJson { m1: fromArrayBuffer m1 }  :: RequestBody
   step2Response     <- ExceptT $ doGenericRequest url POST [RE.RequestHeader sessionKeyHeaderName (show sessionKey)] (Just body) RF.json
   responseBody :: LoginStep2Response <- except $ if isStatusCodeOk step2Response.status
                                                  then lmap (\err -> DecodeError $ show err) (decodeJson step2Response.body)
                                                  else Left (ResponseError (unwrap step2Response.status))
-  except $ Right {m1: m1, kk: kk, m2: responseBody.m2, encIndexReference: responseBody.encIndexReference}
+  except $ Right { m1, kk, m2: responseBody.m2, encIndexReference: responseBody.encIndexReference}
 
 -- ----------------------------------------------------------------------------
 
@@ -184,8 +182,8 @@ getBlob hash = do
   let url = joinWith "/" [baseUrl, "blobs", show $ hash]
   doGenericRequest url GET [] Nothing RF.arrayBuffer
 
-getIndex :: HexString -> CryptoKey -> Aff (Either ProtocolError Index)
-getIndex reference key = runExceptT $ do
+getDecryptedBlob :: forall a. DecodeJson a => HexString -> CryptoKey -> Aff (Either ProtocolError a)
+getDecryptedBlob reference key = runExceptT $ do
   response <- ExceptT $ getBlob reference
   if isStatusCodeOk response.status
     then withExceptT (\e -> CryptoError $ show e) (ExceptT $ decryptJson key response.body)

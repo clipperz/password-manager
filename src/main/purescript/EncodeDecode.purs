@@ -9,12 +9,13 @@ import Crypto.Subtle.Key.Types as Key.Types
 import Data.Argonaut.Core as A
 import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
+import Data.Argonaut.Parser as P
 import Data.ArrayBuffer.Typed as ABTyped
 import Data.ArrayBuffer.Types (ArrayBuffer, ArrayView, Uint8)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.HexString (fromArrayBuffer, toArrayBuffer, hex)
+import Data.HexString (fromArrayBuffer, toArrayBuffer, hex, toString, Base(..))
 import Data.Maybe (Maybe(..))
 import Data.Semiring ((*))
 import Data.Show (show)
@@ -73,6 +74,7 @@ decryptJson :: forall a. DecodeJson a => Key.Types.CryptoKey -> ArrayBuffer -> A
 decryptJson key bytes = do
     result :: Either EX.Error a <- runExceptT $ do
       decryptedData :: ArrayBuffer <- ExceptT $ liftAff $ decryptWithAesCTR bytes key
-      object        :: a           <- withExceptT (\err -> EX.error $ show err) (except $ decodeJson (A.fromString $ show $ fromArrayBuffer decryptedData))
+      parsedJson  <- withExceptT (\err -> EX.error $ show err) (except $ P.jsonParser $ toString Dec $ fromArrayBuffer decryptedData)
+      object :: a <- withExceptT (\err -> EX.error $ show err) (except $ decodeJson parsedJson)
       pure object
     pure result

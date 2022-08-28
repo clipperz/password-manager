@@ -29,7 +29,7 @@ trait SessionManager:
 object SessionManager:
   val sessionKeyHeaderName = "clipperz-UserSession-ID"
 
-  case class TrivialSessionManager(/* */ ) extends SessionManager:
+  case class TrivialSessionManager(/* */) extends SessionManager:
     var sessions: Map[SessionKey, Session] = new HashMap[SessionKey, Session]()
     def emptySession(key: SessionKey) = Session(key, new HashMap[String, String]())
     

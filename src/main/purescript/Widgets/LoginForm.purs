@@ -17,17 +17,17 @@ import Effect.Class.Console (log)
 import Widgets.SimpleWebComponents (simpleButton, simpleUserSignal, simplePasswordSignal)
 
 -- | The data of the login form
-type LoginForm = { username :: String
-            , password :: String
-            }
+type LoginForm =  { username :: String
+                  , password :: String
+                  }
 
 emptyForm :: LoginForm
-emptyForm = {username: "", password: ""}
+emptyForm = { username: "", password: "" }
 -- For testing purpose
 -- emptyForm = {username: "joe", password: "clipperz"}
 
 isFormValid :: LoginForm -> Boolean
-isFormValid {username: user, password: pswd} = user /= "" && pswd /= ""
+isFormValid { username, password } = username /= "" && password /= ""
 
 loginForm :: Widget HTML LoginForm
 loginForm = form' [

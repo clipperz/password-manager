@@ -48,7 +48,7 @@ cardContent (CardValues_v1 {title: t, tags: ts, fields: fs, notes: n}) = div [Pr
 ]
 
 cardField :: forall a. CardField -> Widget HTML a
-cardField (CardField_v1 {name: name, value: value, locked: locked}) = div [] [
+cardField (CardField_v1 {name, value, locked}) = div [] [
   text name
 , p ((if locked then [Props.className "PASSWORD"] else []) <> [(\_ -> copyToClipboard value) <$> Props.onClick]) [text value]
 ] --TODO add class based on content for urls and emails

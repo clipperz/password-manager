@@ -9,6 +9,7 @@ import Concur.React.DOM (div, text)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
+import Data.HexString (fromArrayBuffer)
 import Data.Show (show)
 import Effect.Aff.Class (liftAff)
 import Record (merge)
@@ -41,8 +42,11 @@ landingPageWithState view conf = do
     ViewSignup -> landingPageWithState SignupView conf
     ViewLogin  -> landingPageWithState LoginView conf
     Login rs   -> pure rs
-    Signup f   -> do
+    Signup f@{ username, password } -> do
       result <- liftAff $ login conf f
       case result of
         Left err -> div [] [text (show err), landingPageWithState LoginView conf]
-        Right rs -> pure $ merge rs f
+        Right rs -> liftAff do
+          c <- SRP.prepareC conf username password
+          p <- SRP.prepareP conf username password
+          pure $ merge { c: fromArrayBuffer c, p: fromArrayBuffer p } rs 

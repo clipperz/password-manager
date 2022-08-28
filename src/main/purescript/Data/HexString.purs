@@ -5,6 +5,7 @@ module Data.HexString
   , fromBigInt
   , hex
   , isHex
+  , splitHexInHalf
   , toArrayBuffer
   , toBigInt
   , toString
@@ -19,14 +20,14 @@ import Data.Bifunctor (rmap)
 import Data.BigInt (BigInt, fromBase, toBase)
 import Data.Either(hush)
 import Data.Eq (class Eq, (==))
-import Data.EuclideanRing (mod)
+import Data.EuclideanRing (mod, (/))
 import Data.Function (($))
 import Data.Maybe(Maybe, maybe)
 import Data.Ord (class Ord)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.String (toLower, toUpper)
-import Data.String.CodeUnits (length)
+import Data.String.CodeUnits (length, splitAt)
 import Data.String.Common (replaceAll)
 import Data.String.Pattern (Pattern(..), Replacement(..))
 import Data.String.Regex (regex, test)
@@ -67,6 +68,10 @@ hex s = normalizeHex $ HexString if isHex s then s else hexEncode s
 
 isHex :: String -> Boolean
 isHex s = maybe false (\reg -> test reg s) (hush (regex "^[0-9a-fA-F ]+$" noFlags))
+
+splitHexInHalf :: HexString -> { before :: HexString, after :: HexString }
+splitHexInHalf (HexString s) = let split = (splitAt ((length s) / 2) s)
+  in { before: hex split.before, after: hex split.after }
 
 normalizeHex :: HexString -> HexString
 normalizeHex (HexString s) = let p = replaceAll (Pattern " ") (Replacement "") $ toUpper s

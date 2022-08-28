@@ -76,7 +76,7 @@ type PasswordForm = { password       :: String
 simpleVerifiedPasswordSignal :: PasswordStrengthFunction -> Either PasswordForm String -> Signal HTML (Either PasswordForm String)
 simpleVerifiedPasswordSignal psf f = loopS f $ \ef ->
   case ef of
-    Left {password: p, verifyPassword: vp} -> go p vp
+    Left { password, verifyPassword } -> go password verifyPassword
     Right p -> go p p
     where go p vp = do
                       pswd <- loopW p (simplePasswordInputWidget "password" (text "Password"))
@@ -86,7 +86,7 @@ simpleVerifiedPasswordSignal psf f = loopS f $ \ef ->
                       if pswd == pswd2 then
                         pure $ Right pswd
                       else 
-                        pure $ Left {password: pswd, verifyPassword: pswd2}
+                        pure $ Left { password: pswd, verifyPassword: pswd2 }
 
 checkboxesSignal :: Array (Tuple String Boolean) ->  Map String (Widget HTML Boolean) -> Signal HTML (Array (Tuple String Boolean))
 checkboxesSignal ts lablesMap = loopS ts \m -> do

@@ -7,7 +7,6 @@ import Concur.React (HTML)
 import Concur.React.DOM (div, text)
 import Control.Applicative (pure)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT, withExceptT)
-import Control.Semigroupoid ((>>>))
 import Crypto.Subtle.Constants.AES (aesCTR, l256)
 import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Generate as KG
@@ -19,9 +18,9 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
 import Data.List.Types (List(..), (:))
-import Data.Tuple (Tuple, fst, snd)
+import Data.Tuple (Tuple(..), snd)
 import DataModel.Card (Card, defaultCards)
-import DataModel.Index (Index(..), CardEntry, createCardEntry)
+import DataModel.Index (Index(..), CardEntry(..), CardReference(..), createCardEntry)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -32,17 +31,17 @@ import Utilities (concatArrayBuffers)
 import Widgets.SignupForm (signupForm, SignupForm)
 
 prepareCards :: SRP.SRPConf -> List Card -> Aff (List (Tuple ArrayBuffer CardEntry))
-prepareCards conf cards = go2 $ go <$> cards
-  where go :: Card -> Aff (Tuple ArrayBuffer CardEntry)
-        go card = do
+prepareCards conf cards = extractAff $ convertToCardEntry <$> cards
+  where convertToCardEntry :: Card -> Aff (Tuple ArrayBuffer CardEntry)
+        convertToCardEntry card = do
           key <- KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
           createCardEntry card key conf.hash
         
-        go2 :: List (Aff (Tuple ArrayBuffer CardEntry)) -> Aff (List (Tuple ArrayBuffer CardEntry))
-        go2 Nil = pure Nil
-        go2 (Cons elem list) = do
+        extractAff :: List (Aff (Tuple ArrayBuffer CardEntry)) -> Aff (List (Tuple ArrayBuffer CardEntry))
+        extractAff Nil = pure Nil
+        extractAff (Cons elem list) = do
           e <- elem
-          l <- go2 list
+          l <- extractAff list
           pure $ Cons e l
 
 prepareSignupParameters :: SRP.SRPConf -> SignupForm -> Aff (Either SRP.SRPError RegisterUserRequest)
@@ -69,7 +68,7 @@ prepareSignupParameters conf form = runExceptT $ do
                 }
         , indexCardReference : fromArrayBuffer indexCardContentHash
         , indexCardContent   : fromArrayBuffer indexCardContent
-        , cards : fromFoldable ((fst >>> fromArrayBuffer) <$> cards)
+        , cards : fromFoldable ((\(Tuple encryptedCard (CardEntry_v1 { cardReference: (CardReference_v1 { reference }) })) -> (Tuple reference (fromArrayBuffer encryptedCard))) <$> cards)
         }
 
 signupManager :: SRP.SRPConf -> Widget HTML SignupForm
