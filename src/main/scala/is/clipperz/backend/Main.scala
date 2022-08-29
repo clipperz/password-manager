@@ -13,12 +13,13 @@ import zhttp.http.* //TODO: fix How do you import `!!` and `/`?
 import zhttp.http.middleware.{ HttpMiddleware }
 import zhttp.service.{ EventLoopGroup, Server }
 import zhttp.service.server.ServerChannelFactory
-
+import is.clipperz.backend.services.TollManager
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.functions.fromStream
 import is.clipperz.backend.functions.SrpFunctions.*
 import is.clipperz.backend.services.{
   BlobArchive,
+  ChallengeType,
   PRNG,
   SaveBlobData, 
   SessionManager,
@@ -43,7 +44,7 @@ object Main extends zio.ZIOAppDefault:
     Throwable,
   ]
 
-  type TollMiddleware = HttpMiddleware[SessionManager, Throwable]
+  type TollMiddleware = HttpMiddleware[TollManager, Throwable]
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -179,14 +180,50 @@ object Main extends zio.ZIOAppDefault:
 
   val clipperzBackend: ClipperzHttpApp = { users ++ login ++ blobs ++ static}
 
-  // val hashcash: TollMiddleware = Middleware.ifThenElseZIO()
+  def extractPath(req: Request): String = 
+    if req.path.leadingSlash 
+      then req.path.dropTrailingSlash.drop(1).take(1).toString 
+      else req.path.dropTrailingSlash.take(1).toString
+
+  def verifyTollNecessity(req: Request): Boolean =
+    List("users", "login", "blobs").contains(extractPath(req))
+
+  def getChallengeType(req: Request): ChallengeType = 
+    extractPath(req) match
+      case "users" => ChallengeType.CONNECT
+      case "login" => ChallengeType.LOGIN
+      case "blobs" => ChallengeType.MESSAGE
+
+  val missingTollMiddleware: Request => TollMiddleware = req =>
+    Middleware.fromHttp(
+        Http.responseZIO (
+          ZIO
+            .service[TollManager]
+            .flatMap(tollManager => tollManager.getToll(tollManager.getChallengeCost(getChallengeType(req))))
+            .map(tollChallenge => 
+              Response(
+                status = Status.BadRequest,
+                headers = Headers((TollManager.tollHeader, tollChallenge.toll.toString), 
+                                  (TollManager.tollCostHeader, tollChallenge.cost.toString))
+              )
+            )
+        )
+      ).when(verifyTollNecessity)
+
+  val tollPresentMiddleware: Request => TollMiddleware = req => Middleware.fromHttp(Http.status(Status.Ok).addHeaders(Headers()))
+
+  val hashcash: TollMiddleware = Middleware.ifThenElse[Request]
+    (req => req.headers.hasHeader(TollManager.tollReceiptHeader) && req.headers.hasHeader(TollManager.tollCostHeader))
+      ( tollPresentMiddleware
+      , missingTollMiddleware
+      )
 
   // -------------------------------------------------------------------------
 
   val server =
     Server.port(PORT) ++
     Server.paranoidLeakDetection ++
-    Server.app(clipperzBackend /* @@ hashcash */)
+    Server.app(clipperzBackend @@ hashcash)
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
     val nThreads: Int = args.headOption.flatMap(x => Try(x.toInt).toOption).getOrElse(0)

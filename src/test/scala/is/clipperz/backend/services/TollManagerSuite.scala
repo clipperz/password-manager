@@ -24,7 +24,7 @@ object TollManagerSuite extends ZIOSpecDefault:
         tollManager <- ZIO.service[TollManager]
         hash <- ByteArrays.hashOfArrays(HashFunction.hashSHA256, hexString.toByteArray)
                           .map(HexString.bytesToHex)
-        result <- tollManager.verifyToll(TollChallange(hash, 15), hexString)
+        result <- tollManager.verifyToll(TollChallenge(hash, 15), hexString)
       } yield assertTrue(result)
     }
   ).provideCustomLayerShared(environment)
