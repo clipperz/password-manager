@@ -30,7 +30,7 @@ import EncodeDecode
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
 import TestUtilities (makeTestableOnBrowser, failOnBrowser)
-import Utilities (emptyByteArrayBuffer)
+import Functions.ArrayBuffer (emptyByteArrayBuffer)
 
 encodeDecodeSpec :: SpecT Aff Unit Identity Unit
 encodeDecodeSpec = 

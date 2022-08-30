@@ -14,10 +14,10 @@ import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
 import DataModel.AppState (AppState)
 import Effect.Aff.Class (liftAff)
+import Functions.Communication.Login (login)
+import Functions.State (makeStateT)
 import Record (merge)
-import RestBackendCommunication
 import SRP as SRP
-import Utilities (makeStateT)
 import Widgets.LoginForm (loginForm)
 
 type LoginManagerResult = { c :: HexString, p :: HexString, indexReference :: HexString, sessionKey :: HexString }

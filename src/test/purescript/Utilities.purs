@@ -16,7 +16,7 @@ import SRP (hashFuncSHA256)
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
 import TestUtilities (makeTestableOnBrowser, failOnBrowser)
-import Utilities (emptyByteArrayBuffer, xor, arrayBufferToBigInt, bigIntToArrayBuffer)
+import Functions.ArrayBuffer (emptyByteArrayBuffer, xor, arrayBufferToBigInt, bigIntToArrayBuffer)
 
 utilitiesSpec :: SpecT Aff Unit Identity Unit
 utilitiesSpec =

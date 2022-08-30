@@ -1,13 +1,13 @@
 module WidgetManagers.SignupManager where
 
+import Control.Bind (bind, (>>=))
 import Concur.Core (Widget)
 import Concur.Core.FRP (demandLoop, loopW)
 import Concur.React (HTML)
 import Concur.React.DOM (div, text)
 import Control.Applicative (pure)
-import Control.Bind (bind, (>>=))
-import Control.Monad.State (StateT(..), modify_)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT, withExceptT)
+import Control.Monad.State (StateT)
 import Crypto.Subtle.Constants.AES (aesCTR, l256)
 import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Generate as KG
@@ -26,10 +26,11 @@ import DataModel.Index (Index(..), CardEntry(..), CardReference(..), createCardE
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
+import Functions.ArrayBuffer (concatArrayBuffers)
+import Functions.Communication.Signup (registerUser, RegisterUserRequest)
+import Functions.State (makeStateT)
 import EncodeDecode (encryptJson, encryptArrayBuffer)
-import RestBackendCommunication
 import SRP as SRP
-import Utilities (concatArrayBuffers, makeStateT)
 import Widgets.SignupForm (signupForm, SignupForm)
 
 prepareCards :: SRP.SRPConf -> List Card -> Aff (List (Tuple ArrayBuffer CardEntry))

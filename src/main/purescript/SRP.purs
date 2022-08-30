@@ -24,7 +24,7 @@ import Data.Tuple (Tuple(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Effect.Fortuna (randomBytes)
-import Utilities (concatArrayBuffers, arrayBufferToBigInt, bigIntToArrayBuffer, xor)
+import Functions.ArrayBuffer (concatArrayBuffers, arrayBufferToBigInt, bigIntToArrayBuffer, xor)
 
 data SRPError = SRPError String
 
