@@ -25,7 +25,7 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Exception as EX
-import Utilities (emptyByteArrayBuffer)
+import Functions.ArrayBuffer (emptyByteArrayBuffer)
 
 defaultBlockSize = 16 :: Int
 

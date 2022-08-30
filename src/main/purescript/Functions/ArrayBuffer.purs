@@ -1,4 +1,4 @@
-module Utilities where
+module Functions.ArrayBuffer where
 
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))

@@ -24,10 +24,10 @@ import DataModel.Index (Index(..), CardEntry(..), CardReference(..), createCardE
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
+import Functions.Communication.Signup (registerUser, RegisterUserRequest)
 import EncodeDecode (encryptJson, encryptArrayBuffer)
-import RestBackendCommunication
 import SRP as SRP
-import Utilities (concatArrayBuffers)
+import Functions.ArrayBuffer (concatArrayBuffers)
 import Widgets.SignupForm (signupForm, SignupForm)
 
 prepareCards :: SRP.SRPConf -> List Card -> Aff (List (Tuple ArrayBuffer CardEntry))

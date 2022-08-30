@@ -18,17 +18,17 @@ import Data.List.Types (List(..))
 import Data.Maybe (Maybe(..))
 import Data.Show (show)
 import Data.Unit (Unit)
+import DataModel.Card (Card(..), card0)
+import DataModel.Index (CardReference(..), Index(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Effect.Exception as EX
 import EncodeDecode (decryptArrayBuffer)
-import DataModel.Index (CardReference(..), Index(..))
-import DataModel.Card (Card(..), card0)
+import Functions.Communication.Blobs (getDecryptedBlob)
 import Widgets.HomePage (HomePageAction(..), CardsViewAction(..), homePage)
 import WidgetManagers.LoginManager (LoginManagerResult)
-import RestBackendCommunication (getDecryptedBlob)
 
 getCard :: CardReference -> Aff Card
 getCard (CardReference_v1 { reference, key }) = do

@@ -12,8 +12,8 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
 import Effect.Aff.Class (liftAff)
+import Functions.Communication.Login (login)
 import Record (merge)
-import RestBackendCommunication
 import SRP as SRP
 import Widgets.LoginForm (loginForm)
 
