@@ -56,6 +56,7 @@ getIndex p encryptedRef = do
       pure $ Index_v1 Nil -- TODO
     Right res -> pure res
 
+-- homePageManager :: IndexReference -> StateT AppState (Widget HTML) Unit
 homePageManager :: LoginManagerResult -> Widget HTML Unit
 homePageManager { c: _, p, indexReference, sessionKey: _ } = do
   index <- liftAff $ getIndex p indexReference

@@ -1,11 +1,12 @@
 module WidgetManagers.SignupManager where
 
-import Control.Bind (bind, (>>=))
 import Concur.Core (Widget)
 import Concur.Core.FRP (demandLoop, loopW)
 import Concur.React (HTML)
 import Concur.React.DOM (div, text)
 import Control.Applicative (pure)
+import Control.Bind (bind, (>>=))
+import Control.Monad.State (StateT(..), modify_)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT, withExceptT)
 import Crypto.Subtle.Constants.AES (aesCTR, l256)
 import Crypto.Subtle.Key.Import as KI
@@ -19,6 +20,7 @@ import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
 import Data.List.Types (List(..), (:))
 import Data.Tuple (Tuple(..), snd)
+import DataModel.AppState (AppState)
 import DataModel.Card (Card, defaultCards)
 import DataModel.Index (Index(..), CardEntry(..), CardReference(..), createCardEntry)
 import Effect.Aff (Aff)
@@ -27,7 +29,7 @@ import Effect.Class (liftEffect)
 import EncodeDecode (encryptJson, encryptArrayBuffer)
 import RestBackendCommunication
 import SRP as SRP
-import Utilities (concatArrayBuffers)
+import Utilities (concatArrayBuffers, makeStateT)
 import Widgets.SignupForm (signupForm, SignupForm)
 
 prepareCards :: SRP.SRPConf -> List Card -> Aff (List (Tuple ArrayBuffer CardEntry))
@@ -71,8 +73,8 @@ prepareSignupParameters conf form = runExceptT $ do
         , cards : fromFoldable ((\(Tuple encryptedCard (CardEntry_v1 { cardReference: (CardReference_v1 { reference }) })) -> (Tuple reference (fromArrayBuffer encryptedCard))) <$> cards)
         }
 
-signupManager :: SRP.SRPConf -> Widget HTML SignupForm
-signupManager conf = demandLoop "" (\s -> loopW (Left s) (\err -> do
+signupManager :: SRP.SRPConf -> StateT AppState (Widget HTML) SignupForm
+signupManager conf = makeStateT $ demandLoop "" (\s -> loopW (Left s) (\err -> do
   signupFormResult <- case err of
     Left  string -> div [] [text $ string, signupForm]
     Right _      -> signupForm

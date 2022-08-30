@@ -223,7 +223,7 @@ object Main extends zio.ZIOAppDefault:
   val server =
     Server.port(PORT) ++
     Server.paranoidLeakDetection ++
-    Server.app(clipperzBackend @@ hashcash)
+    Server.app(clipperzBackend /* @@ hashcash */)
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
     val nThreads: Int = args.headOption.flatMap(x => Try(x.toInt).toOption).getOrElse(0)

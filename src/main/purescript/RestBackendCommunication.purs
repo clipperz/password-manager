@@ -107,8 +107,10 @@ login srpConf formData = runExceptT $ do
   sessionKey :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32
   c          :: HexString   <- ExceptT $ Right <$> fromArrayBuffer <$> SRP.prepareC srpConf formData.username formData.password
   p          :: ArrayBuffer <- ExceptT $ Right <$> SRP.prepareP srpConf formData.username formData.password
-  loginStep1Result <- ExceptT $ loginStep1 srpConf { c, sessionKey }
-  { m1, kk, m2, encIndexReference: indexReference } <- ExceptT $ loginStep2 srpConf $ merge loginStep1Result { c, p, sessionKey }   
+  -- loginStep1Result <- ExceptT $ loginStep1 srpConf { c, sessionKey }
+  loginStep1Result <- loginStep1 srpConf { c, sessionKey }
+  -- { m1, kk, m2, encIndexReference: indexReference } <- ExceptT $ loginStep2 srpConf $ merge loginStep1Result { c, p, sessionKey }   
+  { m1, kk, m2, encIndexReference: indexReference } <- loginStep2 srpConf $ merge loginStep1Result { c, p, sessionKey }   
   check :: Boolean <- ExceptT $ Right <$> SRP.checkM2 SRP.baseConfiguration loginStep1Result.aa m1 kk (toArrayBuffer m2)
   except $ case check of
     true  -> Right { indexReference, sessionKey }
@@ -128,8 +130,11 @@ type LoginStep1Result = { aa :: BigInt
                         , bb :: BigInt
                         }
 
-loginStep1 :: SRP.SRPConf -> LoginStep1Data -> Aff (Either ProtocolError LoginStep1Result)
-loginStep1 srpConf { c: c, sessionKey: sessionKey } = runExceptT $ do
+-- loginStep1 :: SRP.SRPConf -> LoginStep1Data -> Aff (Either ProtocolError LoginStep1Result)
+loginStep1 :: SRP.SRPConf -> LoginStep1Data -> ExceptT ProtocolError Aff LoginStep1Result
+-- loginStep1 :: SRP.SRPConf -> LoginStep1Data -> StateT AppState (ExceptT ProtocolError Aff) LoginStep1Result
+-- loginStep1 srpConf { c: c, sessionKey: sessionKey } = runExceptT $ do
+loginStep1 srpConf { c: c, sessionKey: sessionKey } = do
   (Tuple a aa) <- withExceptT (\err -> SRPError $ show err) (ExceptT $ SRP.prepareA srpConf)
   let url  = joinWith "/" [baseUrl, "login", "step1", show c] :: String
   let body = json $ encodeJson { c, aa: fromBigInt aa }  :: RequestBody
@@ -161,8 +166,10 @@ type LoginStep2Result = { m1 :: ArrayBuffer
                         , encIndexReference :: HexString
                         }
 
-loginStep2 :: SRP.SRPConf -> LogintStep2Data -> Aff (Either ProtocolError LoginStep2Result)
-loginStep2 srpConf { aa, bb, a, s, c, p, sessionKey } = runExceptT $ do
+-- loginStep2 :: SRP.SRPConf -> LogintStep2Data -> Aff (Either ProtocolError LoginStep2Result)
+loginStep2 :: SRP.SRPConf -> LogintStep2Data -> ExceptT ProtocolError Aff LoginStep2Result
+-- loginStep2 srpConf { aa, bb, a, s, c, p, sessionKey } = runExceptT $ do
+loginStep2 srpConf { aa, bb, a, s, c, p, sessionKey } = do
   x  :: BigInt      <- ExceptT $ (\ab -> note (SRPError "Cannot convert x from ArrayBuffer to BigInt") (arrayBufferToBigInt ab)) <$> (srpConf.kdf (toArrayBuffer s) p)
   ss :: BigInt      <- withExceptT (\err -> SRPError $ show err) (ExceptT $ SRP.prepareSClient srpConf aa bb x a)
   kk :: ArrayBuffer <- ExceptT $ Right <$> (SRP.prepareK srpConf ss)
