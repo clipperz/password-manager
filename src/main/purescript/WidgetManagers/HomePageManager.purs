@@ -57,7 +57,7 @@ getIndex p encryptedRef = do
     Right res -> pure res
 
 homePageManager :: LoginManagerResult -> Widget HTML Unit
-homePageManager { p, indexReference } = do
+homePageManager { c: _, p, indexReference, sessionKey: _ } = do
   index <- liftAff $ getIndex p indexReference
   dyn $ loopW (CardsViewAction (ShowCard Nothing)) (\cva ->
     case cva of

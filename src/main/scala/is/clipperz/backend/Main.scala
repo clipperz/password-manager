@@ -190,8 +190,8 @@ object Main extends zio.ZIOAppDefault:
 
   def getChallengeType(req: Request): ChallengeType = 
     extractPath(req) match
-      case "users" => ChallengeType.CONNECT
-      case "login" => ChallengeType.LOGIN
+      case "users" => ChallengeType.REGISTER
+      case "login" => ChallengeType.CONNECT
       case "blobs" => ChallengeType.MESSAGE
 
   val missingTollMiddleware: Request => TollMiddleware = req =>
