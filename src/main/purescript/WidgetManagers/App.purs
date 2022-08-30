@@ -12,3 +12,8 @@ app :: Widget HTML Unit
 app = do
   loginResult <- (LandingPage.landingPage SRP.baseConfiguration)
   HomePageManager.homePageManager loginResult
+
+  -- landingPage :: SRP.SRPConf -> StateT AppState (Widget HTML) LoginManagerResult
+  -- homePageManager :: LoginManagerResult -> StateT AppState (Widget HTML) Unit
+  -- Tuple loginResult newState <- runStateT (landingPage SRP.baseConfiguration) initialState
+  -- void $ runStateT (homePageManager loginResult) newState
