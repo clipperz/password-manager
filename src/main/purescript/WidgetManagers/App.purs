@@ -5,6 +5,8 @@ import Control.Applicative (pure)
 import Control.Monad.State (runStateT)
 import Concur.React (HTML)
 import Control.Bind (bind)
+import Data.Function (($))
+import Data.Functor (void)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
@@ -22,6 +24,5 @@ computeInitialState = pure { proxy: (OnlineProxy ""), sessionKey: Nothing, toll:
 app :: Widget HTML Unit
 app = do
   initialState <- liftEffect computeInitialState
-  Tuple loginResult newState <- runStateT (LandingPage.landingPage SRP.baseConfiguration) initialState
-  -- void $ runStateT (homePageManager loginResult) newState
-  HomePageManager.homePageManager loginResult
+  Tuple indexReference newState <- runStateT (LandingPage.landingPage SRP.baseConfiguration) initialState
+  void $ runStateT (HomePageManager.homePageManager indexReference) newState

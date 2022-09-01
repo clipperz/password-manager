@@ -22,6 +22,7 @@ import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
+import DataModel.Index (IndexReference)
 import Effect.Aff (Aff)
 import Functions.Communication.BackendCommunication (ProtocolError(..), baseUrl, isStatusCodeOk, doGenericRequest)
 import Record (merge)
@@ -34,7 +35,7 @@ import Functions.ArrayBuffer (arrayBufferToBigInt)
 sessionKeyHeaderName :: String
 sessionKeyHeaderName = "clipperz-UserSession-ID"
 
-type LoginResult =  { indexReference :: HexString
+type LoginResult =  { indexReference :: IndexReference
                     , sessionKey     :: HexString
                     }
 

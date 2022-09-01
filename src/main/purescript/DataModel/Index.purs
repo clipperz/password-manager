@@ -77,6 +77,10 @@ instance decodeJsonIndex :: DecodeJson Index where
 
 -- --------------------------------------------
 
+type IndexReference = HexString
+
+-- --------------------------------------------
+
 createCardEntry :: Card -> CryptoKey -> SRP.HashFunction -> Aff (Tuple ArrayBuffer CardEntry)
 createCardEntry card@(Card_v1 { content: (CardValues_v1 content) }) key hashf = do
   encryptedCard <- encryptJson key card
