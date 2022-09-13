@@ -6,19 +6,22 @@ import Affjax.RequestHeader as RE
 import Affjax.ResponseFormat as RF
 import Affjax.StatusCode (StatusCode(..))
 import Control.Applicative (pure)
-import Control.Bind (bind)
-import Control.Monad.State (StateT(..), get)
+import Control.Bind (bind, discard)
+import Control.Monad.State (StateT(..), get, modify_)
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..))
+import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HeytingAlgebra ((&&))
 import Data.HTTP.Method (Method)
-import Data.Maybe (Maybe)
+import Data.Maybe (Maybe(..))
+import Data.HexString (hex)
 import Data.Ord((<=), (>=))
 import Data.Semigroup ((<>))
 import Data.Tuple (Tuple(..))
 import Data.Show (class Show, show)
 import DataModel.AppState (AppState)
+import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff)
 import Functions.State (makeStateT)
 
@@ -31,26 +34,15 @@ baseUrl = "http://localhost:8090" --TODO: get from configuration file/build
 
 -- ----------------------------------------------------------------------------
 
-data ProtocolError = RequestError AXW.Error | ResponseError Int | SRPError String | DecodeError String | CryptoError String
-instance showProtobufRequestError :: Show ProtocolError where
-  show (RequestError err) = "Request Error: "  <> AXW.printError err
-  show (ResponseError i)  = "Response Error: " <> "response status code " <> show i
-  show (SRPError err)     = "SRP Error: "      <> err
-  show (DecodeError err)  = "Decode Error: "   <> err
-  show (CryptoError err)  = "Decode Error: "   <> err
-
--- ----------------------------------------------------------------------------
-
--- doGenericRequest :: forall a. Url -> Method -> Array RE.RequestHeader -> Maybe RequestBody -> RF.ResponseFormat a -> StateT AppState Aff (Either ProtocolError (AXW.Response a))
 doGenericRequest :: forall a. Url 
                  -> Method 
                  -> Array RE.RequestHeader 
                  -> Maybe RequestBody 
                  -> RF.ResponseFormat a 
                  -> Aff (Either ProtocolError (AXW.Response a))
+                --  -> StateT AppState Aff (Either ProtocolError (AXW.Response a))
 doGenericRequest url method headers body resFormat = do
-  -- state <- get
-  -- makeStateT (lmap (\e -> RequestError e) <$> AXW.request (
+  -- result <- makeStateT (lmap (\e -> RequestError e) <$> AXW.request (
   lmap (\e -> RequestError e) <$> AXW.request (
     AXW.defaultRequest {
       url            = url
@@ -60,6 +52,9 @@ doGenericRequest url method headers body resFormat = do
     , responseFormat = resFormat
     })
   -- )
+  -- modify_ (\currentState -> currentState { toll = Just $ hex "0ef2" })
+  -- pure $ result
+
 
 isStatusCodeOk :: StatusCode -> Boolean
 isStatusCodeOk code = (code >= (StatusCode 200)) && (code <= (StatusCode 299))

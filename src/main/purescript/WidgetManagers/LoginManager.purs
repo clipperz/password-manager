@@ -6,7 +6,7 @@ import Concur.React (HTML)
 import Concur.React.DOM (div, text)
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
-import Control.Monad.State (StateT, evalStateT, modify_, get, runStateT)
+import Control.Monad.State (StateT, modify_, get, runStateT, mapStateT)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT, withExceptT)
 import Data.Either (Either(..))
 import Data.Function (($))
@@ -15,7 +15,7 @@ import Data.HexString (HexString, fromArrayBuffer)
 import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Show (show)
-import Data.Tuple (Tuple(..), fst)
+import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppState)
 import DataModel.Index (IndexReference)
 import Effect.Aff (Aff)
@@ -37,15 +37,17 @@ loginManager conf = do
       Right _     -> loginForm
     liftAff $ runExceptT $ runStateT (doLogin conf loginFormResult) currentState
   ))
-  modify_ (\state -> newState)
+  modify_ (\_ -> newState)
   pure result
 
 doLogin :: SRP.SRPConf -> LoginForm -> StateT AppState (ExceptT String Aff) IndexReference
-doLogin conf loginFormResult@{ username, password } = do
-  loginResult <- makeStateT $ withExceptT (\_ -> "Login failed") (ExceptT $ login conf loginFormResult)
+doLogin conf { username, password } = do
   c           <- makeStateT $ ExceptT $ Right <$> fromArrayBuffer <$> SRP.prepareC conf username password
   p           <- makeStateT $ ExceptT $ Right <$> fromArrayBuffer <$> SRP.prepareP conf username password
-  modify_ (\currentState -> currentState { c = Just c, p = Just p, sessionKey = Just loginResult.sessionKey })
+  modify_ (\currentState -> currentState { c = Just c, p = Just p })
+  
+  loginResult <- mapStateT (withExceptT (\_ -> "Login failed")) (login conf)
+
   s <- get
   log $ "doLogin " <> (show s)
   pure $ loginResult.indexReference

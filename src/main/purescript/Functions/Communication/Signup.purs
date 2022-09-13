@@ -4,6 +4,7 @@ import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
 import Control.Applicative (pure)
 import Control.Bind (bind)
+import Control.Monad.State (StateT)
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Either (Either(..))
 import Data.Function (($))
@@ -14,8 +15,11 @@ import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple)
+import DataModel.AppState (AppState)
+import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff)
-import Functions.Communication.BackendCommunication (ProtocolError(..), baseUrl, isStatusCodeOk, doGenericRequest)
+import Functions.Communication.BackendCommunication (baseUrl, isStatusCodeOk, doGenericRequest)
+import Functions.State (makeStateT)
 
 type UserCard = {
     c :: HexString
@@ -33,11 +37,13 @@ type RegisterUserRequest = {
 }
 
 registerUser :: RegisterUserRequest -> Aff (Either ProtocolError HexString)
+-- registerUser :: RegisterUserRequest -> StateT AppState Aff (Either ProtocolError HexString)
 registerUser request = do
   let url = joinWith "/" [baseUrl, "users", show request.user.c]
   let body = (json $ encodeJson request) :: RequestBody
   registerUserResponse <- doGenericRequest url PUT [] (Just body) RF.string 
   pure $ case registerUserResponse of
+  -- makeStateT $ pure $ case registerUserResponse of
     Left  error    -> Left error
     Right response -> if isStatusCodeOk response.status
                       then Right $ hex response.body
