@@ -1,13 +1,13 @@
 module WidgetManagers.SignupManager where
 
-import Control.Bind (bind, discard, (>>=))
+import Control.Bind (bind, (>>=))
 import Concur.Core (Widget)
 import Concur.Core.FRP (demandLoop, loopW)
 import Concur.React (HTML)
 import Concur.React.DOM (div, text)
 import Control.Applicative (pure)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT, withExceptT)
-import Control.Monad.State (StateT, get, modify_, mapStateT)
+import Control.Monad.State (StateT)
 import Crypto.Subtle.Constants.AES (aesCTR, l256)
 import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Generate as KG

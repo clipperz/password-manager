@@ -5,7 +5,6 @@ import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT, except, withExceptT)
-import Control.Monad.State (StateT, mapStateT)
 import Crypto.Subtle.Key.Types (CryptoKey)
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson)
@@ -18,21 +17,18 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
-import DataModel.AppState (AppState)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff)
 import EncodeDecode (decryptJson)
-import Functions.Communication.BackendCommunication (baseUrl, isStatusCodeOk, doGenericRequest)
-import Functions.State (makeStateT)
-
+import Functions.Communication.BackendCommunication (isStatusCodeOk, doGenericRequest')
 
 -- ----------------------------------------------------------------------------
 
 getBlob :: HexString ->  Aff (Either ProtocolError (AXW.Response ArrayBuffer))
 -- getBlob :: HexString -> StateT AppState Aff (Either ProtocolError (AXW.Response ArrayBuffer))
 getBlob hash = do
-  let url = joinWith "/" [baseUrl, "blobs", show $ hash]
-  doGenericRequest url GET [] Nothing RF.arrayBuffer
+  let url = joinWith "/" ["http://localhost:8090", "blobs", show $ hash]
+  doGenericRequest' url GET [] Nothing RF.arrayBuffer
 
 getDecryptedBlob :: forall a. DecodeJson a => HexString -> CryptoKey -> Aff (Either ProtocolError a)
 getDecryptedBlob reference key = runExceptT $ do
@@ -50,6 +46,6 @@ getDecryptedBlob reference key = runExceptT $ do
 postBlob :: ArrayBuffer -> Aff (Either ProtocolError (AXW.Response String))
 -- postBlob :: ArrayBuffer -> StateT AppState Aff (Either ProtocolError (AXW.Response String))
 postBlob blob = do
-  let url = joinWith "/" [baseUrl, "blobs"]
+  let url = joinWith "/" ["http://localhost:8090", "blobs"]
   let body = json $ encodeJson (fromArrayBuffer blob) :: RequestBody
-  doGenericRequest url POST [] (Just body) RF.string
+  doGenericRequest' url POST [] (Just body) RF.string

@@ -14,12 +14,16 @@ import DataModel.AppState (AppState)
 import DataModel.Proxy (Proxy(..))
 import Effect (Effect)
 import Effect.Class (liftEffect)
+import Functions.Communication.BackendCommunication (Url)
 import SRP as SRP
 import WidgetManagers.HomePageManager as HomePageManager
 import WidgetManagers.LandingPage as LandingPage
 
+baseUrl :: Url 
+baseUrl = "http://localhost:8090" --TODO: get from configuration file/build
+
 computeInitialState :: Effect AppState
-computeInitialState = pure { proxy: (OnlineProxy ""), sessionKey: Nothing, toll: Nothing, c: Nothing, p: Nothing }
+computeInitialState = pure { proxy: (OnlineProxy baseUrl), sessionKey: Nothing, toll: Nothing, c: Nothing, p: Nothing }
 
 app :: Widget HTML Unit
 app = do

@@ -5,7 +5,7 @@ import Affjax.RequestHeader as RE
 import Affjax.ResponseFormat as RF
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT)
-import Control.Monad.State (StateT, modify_, mapStateT, get)
+import Control.Monad.State (StateT, modify_, get)
 import Control.Semigroupoid ((>>>))
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Argonaut.Decode.Class (decodeJson)
@@ -27,7 +27,7 @@ import DataModel.AppState (AppState, AppError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (IndexReference)
 import Effect.Aff (Aff)
-import Functions.Communication.BackendCommunication (baseUrl, isStatusCodeOk, doGenericRequest)
+import Functions.Communication.BackendCommunication (isStatusCodeOk, doGenericRequest')
 import SRP as SRP
 import Functions.ArrayBuffer (arrayBufferToBigInt)
 import Functions.State (makeStateT)
@@ -72,9 +72,9 @@ loginStep1 srpConf = do
   c <- makeStateT $ except $ note (InvalidStateError "c is Nothing") mc
   sessionKey <- makeStateT $ except $ note (InvalidStateError "sessionKey is Nothing") mSessionKey
   (Tuple a aa) <- makeStateT $ withExceptT (\err -> ProtocolError $ SRPError $ show err) (ExceptT $ SRP.prepareA srpConf)
-  let url  = joinWith "/" [baseUrl, "login", "step1", show c] :: String
+  let url  = joinWith "/" ["http://localhost:8090", "login", "step1", show c] :: String
   let body = json $ encodeJson { c, aa: fromBigInt aa }  :: RequestBody
-  step1Response <- makeStateT $ withExceptT (\e -> ProtocolError e) $ ExceptT $ doGenericRequest url POST [RE.RequestHeader sessionKeyHeaderName (show sessionKey)] (Just body) RF.json
+  step1Response <- makeStateT $ withExceptT (\e -> ProtocolError e) $ ExceptT $ doGenericRequest' url POST [RE.RequestHeader sessionKeyHeaderName (show sessionKey)] (Just body) RF.json
   responseBody :: LoginStep1Response <- makeStateT $ except $ if isStatusCodeOk step1Response.status
                                                           then lmap (\err -> ProtocolError $ DecodeError $ show err) (decodeJson step1Response.body)
                                                           else Left (ProtocolError $ ResponseError (unwrap step1Response.status))
@@ -111,9 +111,9 @@ loginStep2 srpConf { aa, bb, a, s } = do
   ss :: BigInt      <- makeStateT $ withExceptT (\err -> ProtocolError $ SRPError $ show err) (ExceptT $ SRP.prepareSClient srpConf aa bb x a)
   kk :: ArrayBuffer <- makeStateT $ ExceptT $ Right <$> (SRP.prepareK srpConf ss)
   m1 :: ArrayBuffer <- makeStateT $ ExceptT $ Right <$> (SRP.prepareM1 srpConf c s aa bb kk)
-  let url  = joinWith "/" [baseUrl, "login", "step2", show c] :: String
+  let url  = joinWith "/" ["http://localhost:8090", "login", "step2", show c] :: String
   let body = json $ encodeJson { m1: fromArrayBuffer m1 }  :: RequestBody
-  step2Response     <- makeStateT $ withExceptT (\e -> ProtocolError e) $ ExceptT $ doGenericRequest url POST [RE.RequestHeader sessionKeyHeaderName (show sessionKey)] (Just body) RF.json
+  step2Response     <- makeStateT $ withExceptT (\e -> ProtocolError e) $ ExceptT $ doGenericRequest' url POST [RE.RequestHeader sessionKeyHeaderName (show sessionKey)] (Just body) RF.json
   responseBody :: LoginStep2Response <- makeStateT $ except $ if isStatusCodeOk step2Response.status
                                                               then lmap (\err -> ProtocolError $ DecodeError $ show err) (decodeJson step2Response.body)
                                                               else Left (ProtocolError $ ResponseError (unwrap step2Response.status))
