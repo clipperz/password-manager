@@ -24,8 +24,13 @@ function fn2xorLowBitAligned(buffer1, buffer2) {
     return unit8ArrayXor(new Uint8Array(buffer1).reverse(), new Uint8Array(buffer2).reverse()).reverse();
 }
 
+function toBitString(buf) {
+	return new Uint8Array(buf).map(byte => ("0000" + byte.toString(2).slice(-4))).join('')
+}
+
 export {
 	  emptyByteArrayBuffer
 	, fn2xorLowBitAligned
+	, toBitString
 	  // , fn2xorHighBitAligned
 }

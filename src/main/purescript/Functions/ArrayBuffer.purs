@@ -23,6 +23,8 @@ foreign import emptyByteArrayBuffer :: Int -> ArrayBuffer
 
 foreign import fn2xorLowBitAligned :: Fn2 ArrayBuffer ArrayBuffer ArrayBuffer
 
+foreign import toBitString :: ArrayBuffer -> String
+
 -- | Computes the xor between two ArrayBuffers, alignig them from the lower bit
 xor :: ArrayBuffer -> ArrayBuffer -> ArrayBuffer
 xor = runFn2 fn2xorLowBitAligned

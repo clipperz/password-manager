@@ -12,6 +12,7 @@ import Test.Utilities (utilitiesSpec)
 import Test.SRP (srpSpec)
 import Test.EncodeDecode (encodeDecodeSpec)
 import Test.HexString (hexSpec)
+import Test.HashCash (hashCashSpec)
 
 main :: Effect Unit
 main = launchAff_ $ runSpec [consoleReporter] do
@@ -19,3 +20,4 @@ main = launchAff_ $ runSpec [consoleReporter] do
   srpSpec
   encodeDecodeSpec
   hexSpec
+  hashCashSpec

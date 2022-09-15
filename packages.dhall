@@ -110,6 +110,7 @@ in  upstream
     , repo = "https://github.com/clipperz/purescript-formless-independent"
     , version = "clipperz"
     }
+  -- with fortuna = /Users/fabio/Documents/Workspace/Clipperz/dependencies/purescript-fortuna/spago.dhall as Location
   with fortuna =
     { dependencies =
       [ "arraybuffer-types"
