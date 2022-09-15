@@ -39,6 +39,7 @@
   , "subtlecrypto"
   , "transformers"
   , "tuples"
+  , "unfoldable"
   ]
 , packages = ./packages.dhall
 }

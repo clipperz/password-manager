@@ -9,25 +9,28 @@ import Data.HexString (HexString, toArrayBuffer, fromArrayBuffer)
 import Data.List (List(..), (:))
 import Data.String.CodeUnits (take)
 import Effect.Aff (Aff)
+import Effect.Class.Console (log)
 import Functions.ArrayBuffer (toBitString)
 import SRP (HashFunction, randomArrayBuffer)
 
-type Challenge = HexString
+type Toll = HexString
 type Cost = Int
 type Receipt = HexString
 
-computeHashCash :: HashFunction -> Challenge -> Cost -> Aff Receipt
-computeHashCash hash challenge cost = do
-  -- _ <- log "PING"
+type TollChallenge = {toll :: Toll, cost :: Cost}
+
+computeReceipt :: HashFunction -> TollChallenge -> Aff Receipt
+computeReceipt hash challenge = do
+  _ <- log "PING"
   receipt <- fromArrayBuffer <$> randomArrayBuffer 32
-  verification <- verifyChallenge hash challenge cost receipt
+  verification <- verifyReceipt hash challenge receipt
   case verification of
     true -> pure receipt
-    false -> computeHashCash hash challenge cost
+    false -> computeReceipt hash challenge
 
-verifyChallenge :: HashFunction -> Challenge -> Cost -> Receipt -> Aff Boolean
-verifyChallenge hashFunc challenge cost receipt = do
+verifyReceipt :: HashFunction -> TollChallenge -> Receipt -> Aff Boolean
+verifyReceipt hashFunc {toll, cost} receipt = do
   hash <- hashFunc $ (toArrayBuffer receipt) : Nil
-  let challengeBits = toBitString $ toArrayBuffer challenge
+  let tollBits = toBitString $ toArrayBuffer toll
   let hashBits      = toBitString hash
-  pure $ (take cost challengeBits) == (take cost hashBits)
+  pure $ (take cost tollBits) == (take cost hashBits)
