@@ -42,24 +42,6 @@ type Url = String
 
 -- ----------------------------------------------------------------------------
 
-doGenericRequest' :: forall a. Url 
-                 -> Method 
-                 -> Array RequestHeader 
-                 -> Maybe RequestBody 
-                 -> RF.ResponseFormat a 
-                 -> Aff (Either ProtocolError (AXW.Response a))
-doGenericRequest' url method headers body resFormat = do
-  lmap (\e -> RequestError e) <$> AXW.request (
-    AXW.defaultRequest {
-      url            = url
-    , method         = Left method
-    , headers        = headers
-    , content        = body 
-    , responseFormat = resFormat
-    })
-
--- ----------------------------------------------------------------------------
-
 sessionKeyHeaderName :: String
 sessionKeyHeaderName = "clipperz-UserSession-ID"
 

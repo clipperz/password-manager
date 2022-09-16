@@ -1,13 +1,13 @@
 module WidgetManagers.SignupManager where
 
-import Control.Bind (bind, (>>=))
+import Control.Bind (bind, (>>=), discard)
 import Concur.Core (Widget)
 import Concur.Core.FRP (demandLoop, loopW)
 import Concur.React (HTML)
 import Concur.React.DOM (div, text)
 import Control.Applicative (pure)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT, withExceptT)
-import Control.Monad.State (StateT)
+import Control.Monad.State (StateT, get, runStateT, mapStateT, modify_)
 import Crypto.Subtle.Constants.AES (aesCTR, l256)
 import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Generate as KG
@@ -15,7 +15,7 @@ import Crypto.Subtle.Key.Types (encrypt, exportKey, decrypt, raw, unwrapKey, Cry
 import Data.Array (fromFoldable)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Either (Either(..))
-import Data.Function (($))
+import Data.Function (($), flip)
 import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
 import Data.List.Types (List(..), (:))
@@ -75,18 +75,18 @@ prepareSignupParameters conf form = runExceptT $ do
         }
 
 signupManager :: SRP.SRPConf -> StateT AppState (Widget HTML) SignupForm
-signupManager conf = -- do
-  -- currentState <- get
-  -- Tuple result newState <- makeStateT $ demandLoop "" (\s -> loopW (Left s) (\err -> do
-  makeStateT $ demandLoop "" (\s -> loopW (Left s) (\err -> do
+signupManager conf = do
+  currentState <- get
+  Tuple result newState <- makeStateT $ demandLoop "" (\s -> loopW (Left s) (\err -> do
+  -- makeStateT $ demandLoop "" (\s -> loopW (Left s) (\err -> do
     signupFormResult <- case err of
       Left  string -> div [] [text $ string, signupForm]
       Right _      -> signupForm
-    liftAff $ runExceptT $ do
-      singupParameters <- withExceptT (\_ -> "Registration failed") (ExceptT $ prepareSignupParameters conf signupFormResult)
-      _                <- withExceptT (\_ -> "Registration failed") (ExceptT $ registerUser singupParameters)
-      -- _                <- mapStateT (\aff -> withExceptT (\_ -> "Registration failed") (ExceptT aff)) (registerUser singupParameters)
+    liftAff $ runExceptT $ (flip runStateT) currentState $ do
+      signupParameters <- makeStateT $ withExceptT (\_ -> "Registration failed") (ExceptT $ prepareSignupParameters conf signupFormResult)
+      _                <- mapStateT (\e -> withExceptT (\err -> "Registration failed") e) (registerUser signupParameters)
+      -- _                <- mapStateT (\aff -> withExceptT (\_ -> "Registration failed") (ExceptT aff)) (registerUser signupParameters)
       pure $ signupFormResult
   ))
-  -- modify_ (\_ -> newState)
-  -- pure result
+  modify_ (\_ -> newState)
+  pure result

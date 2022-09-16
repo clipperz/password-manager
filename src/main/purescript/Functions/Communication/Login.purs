@@ -27,7 +27,7 @@ import DataModel.AppState (AppState, AppError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (IndexReference)
 import Effect.Aff (Aff)
-import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk{- `, doGenericRequest'` -})
+import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
 import SRP as SRP
 import Functions.ArrayBuffer (arrayBufferToBigInt)
 import Functions.State (makeStateT)
