@@ -78,14 +78,12 @@ signupManager :: SRP.SRPConf -> StateT AppState (Widget HTML) SignupForm
 signupManager conf = do
   currentState <- get
   Tuple result newState <- makeStateT $ demandLoop "" (\s -> loopW (Left s) (\err -> do
-  -- makeStateT $ demandLoop "" (\s -> loopW (Left s) (\err -> do
     signupFormResult <- case err of
       Left  string -> div [] [text $ string, signupForm]
       Right _      -> signupForm
     liftAff $ runExceptT $ (flip runStateT) currentState $ do
       signupParameters <- makeStateT $ withExceptT (\_ -> "Registration failed") (ExceptT $ prepareSignupParameters conf signupFormResult)
-      _                <- mapStateT (\e -> withExceptT (\err -> "Registration failed") e) (registerUser signupParameters)
-      -- _                <- mapStateT (\aff -> withExceptT (\_ -> "Registration failed") (ExceptT aff)) (registerUser signupParameters)
+      _                <- mapStateT (\e -> withExceptT (\_ -> "Registration failed") e) (registerUser signupParameters)
       pure $ signupFormResult
   ))
   modify_ (\_ -> newState)

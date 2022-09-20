@@ -3,7 +3,7 @@ module Functions.State where
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad (class Monad)
-import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
+import Control.Monad.Except.Trans (ExceptT, runExceptT)
 import Control.Monad.State (StateT(..), runStateT, modify_)
 import Data.Either (Either(..))
 import Data.Function (($))

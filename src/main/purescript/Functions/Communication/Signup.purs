@@ -3,10 +3,8 @@ module Functions.Communication.Signup where
 import Affjax.Web as AXW
 import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
-import Control.Applicative (pure)
-import Control.Bind (bind)
-import Control.Monad.Except.Trans (ExceptT(..), runExceptT, mapExceptT)
-import Control.Monad.State (StateT(..), get, mapStateT)
+import Control.Monad.Except.Trans (ExceptT, mapExceptT)
+import Control.Monad.State (StateT, mapStateT)
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Either (Either(..))
 import Data.Function (($))
@@ -22,7 +20,6 @@ import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.AppState (AppState)
 import Effect.Aff (Aff)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
-import Functions.State (extractExceptT, makeStateT)
 
 type UserCard = {
     c :: HexString
