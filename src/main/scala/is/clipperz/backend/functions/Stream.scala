@@ -9,7 +9,10 @@ def fromStream[A] (using decoder: JsonDecoder[A])(content: ZStream[Any, Throwabl
     content
       .run(ZSink.collectAll[Byte])
       .flatMap(chunk =>
-        String(chunk.toArray, StandardCharsets.UTF_8).fromJson[A] match
-          case Left(error: String) => ZIO.fail(new Exception(s"JSON CONVERSION ERROR: ${error}"))
-          case Right(value: A) => ZIO.succeed(value)
+        fromString(String(chunk.toArray, StandardCharsets.UTF_8))
       )
+
+def fromString[A] (using decoder: JsonDecoder[A])(string: String): Task[A] =
+  string.fromJson[A] match
+    case Left(error: String) => ZIO.fail(new Exception(s"JSON CONVERSION ERROR: ${error}"))
+    case Right(value: A) => ZIO.succeed(value)

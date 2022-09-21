@@ -23,6 +23,9 @@ import WidgetManagers.SignupManager (signupManager)
 import Widgets.SignupForm (SignupForm)
 import Widgets.SimpleWebComponents(simpleButton)
 
+import Data.Semigroup ((<>))
+import Effect.Class.Console (log)
+
 data LandingPageAction = ViewSignup | ViewLogin | Signup (Tuple SignupForm AppState) | Login (Tuple IndexReference AppState) 
 
 data LandingPageView = SignupView | LoginView
@@ -46,6 +49,7 @@ landingPageWithState view conf = do
     ViewSignup -> landingPageWithState SignupView conf
     ViewLogin  -> landingPageWithState LoginView conf
     Login (Tuple indexReference newState) -> do
+      _ <- log $ "newState (landingPage) " <> (show newState)
       modify_ (\_ -> newState)
       pure $ indexReference
     Signup (Tuple form newState) -> do

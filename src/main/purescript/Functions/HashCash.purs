@@ -7,6 +7,8 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString, toArrayBuffer, fromArrayBuffer)
 import Data.List (List(..), (:))
+import Data.Semigroup ((<>))
+import Data.Show (show)
 import Data.String.CodeUnits (take)
 import Effect.Aff (Aff)
 import Effect.Class.Console (log)
@@ -32,5 +34,10 @@ verifyReceipt :: HashFunction -> TollChallenge -> Receipt -> Aff Boolean
 verifyReceipt hashFunc {toll, cost} receipt = do
   hash <- hashFunc $ (toArrayBuffer receipt) : Nil
   let tollBits = toBitString $ toArrayBuffer toll
-  let hashBits      = toBitString hash
-  pure $ (take cost tollBits) == (take cost hashBits)
+  let hashBits = toBitString hash
+  -- pure $ (take cost tollBits) == (take cost hashBits)
+  if (take cost tollBits) == (take cost hashBits) 
+    then do
+      _ <- log $ "cost: " <> show cost <> "; Toll -> " <> tollBits <> "; Receipt -> " <> show receipt <> "; Hash -> " <> hashBits 
+      pure true 
+    else pure false

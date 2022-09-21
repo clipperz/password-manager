@@ -1,3 +1,4 @@
+
 module Functions.Communication.Login where
 
 import Affjax.RequestBody (RequestBody, json)
@@ -18,7 +19,7 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
 import Data.HexString (HexString, toBigInt, fromBigInt, toArrayBuffer, fromArrayBuffer)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), isJust)
 import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
@@ -37,21 +38,18 @@ import Functions.State (makeStateT)
 sessionKeyHeaderName :: String
 sessionKeyHeaderName = "clipperz-UserSession-ID"
 
-type LoginResult =  { indexReference :: IndexReference
-                    , sessionKey     :: HexString
-                    }
-
-login :: SRP.SRPConf -> StateT AppState (ExceptT AppError Aff) LoginResult
+login :: SRP.SRPConf -> StateT AppState (ExceptT AppError Aff) IndexReference
 login srpConf = do
+  currentState <- get
   sessionKey :: HexString   <- makeStateT $ ExceptT $ (fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32
-  modify_ (\currentState -> currentState { sessionKey = Just sessionKey })
+  if isJust currentState.sessionKey
+    then modify_ (\currentState -> currentState)
+    else modify_ (\currentState -> currentState { sessionKey = Just sessionKey })
   loginStep1Result <- loginStep1 srpConf
   { m1, kk, m2, encIndexReference: indexReference } <- loginStep2 srpConf loginStep1Result
   check :: Boolean <- makeStateT $ ExceptT $ Right <$> SRP.checkM2 SRP.baseConfiguration loginStep1Result.aa m1 kk (toArrayBuffer m2)
   case check of
-    true  -> do
-      modify_ (\currentState -> currentState { sessionKey = Just sessionKey })
-      makeStateT $ except $ Right { indexReference, sessionKey }
+    true  -> makeStateT $ except $ Right indexReference
     false -> makeStateT $ except $ Left (ProtocolError $ SRPError "Client M2 doesn't match with server M2")
 
 -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

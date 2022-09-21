@@ -32,6 +32,7 @@ import DataModel.AppState (AppState)
 import DataModel.Proxy (Proxy(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff)
+import Effect.Class.Console (log)
 import Functions.State (makeStateT)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import SRP (hashFuncSHA256)
@@ -43,16 +44,16 @@ type Url = String
 -- ----------------------------------------------------------------------------
 
 sessionKeyHeaderName :: String
-sessionKeyHeaderName = "clipperz-UserSession-ID"
+sessionKeyHeaderName = "clipperz-usersession-id"
 
 tollHeaderName :: String
-tollHeaderName = "clipperz-HashCash-TollChallenge"
+tollHeaderName = "clipperz-hashcash-tollchallenge"
 
 tollCostHeaderName :: String
-tollCostHeaderName = "clipperz-HashCash-TollCost"
+tollCostHeaderName = "clipperz-hashcash-tollcost"
 
 tollReceiptHeaderName :: String
-tollReceiptHeaderName = "clipperz-HashCash-TollReceipt"
+tollReceiptHeaderName = "clipperz-hashcash-tollreceipt"
 
 createHeaders :: AppState -> Array RequestHeader
 createHeaders { toll, sessionKey } = 
@@ -77,26 +78,34 @@ manageGenericRequest url method body responseFormat = do
   response <- makeStateT $ ExceptT $ doGenericRequest proxy requestInfo
   manageResponse response.status response
 
-  where manageResponse :: StatusCode -> (AXW.Response a -> StateT AppState (ExceptT ProtocolError Aff) (AXW.Response a))
+  where 
+        manageResponse :: StatusCode -> (AXW.Response a -> StateT AppState (ExceptT ProtocolError Aff) (AXW.Response a))
         manageResponse code@(StatusCode n)
-          | n == 406            = \response -> do
-              case (extractChallengeCost response.headers) of
+          | n == 400            = \response -> do
+              -- _ <- log "400 received"
+              -- _ <- log $ show response.headers
+              case (extractChallenge response.headers) of
                 Just challenge -> do
+                  -- _ <- log $ "toll challenge: " <> (show challenge)
                   receipt <- makeStateT $ ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
                   modify_ (\currentState -> currentState { toll = Just receipt })
                   manageGenericRequest url method body responseFormat
                 Nothing -> makeStateT $ except $ Left $ IllegalResponse "HashCash headers not present or wrong"
           | isStatusCodeOk code = \response -> do
-              case (extractChallengeCost response.headers) of
+              -- _ <- log "200 received"
+              case (extractChallenge response.headers) of
                 Just challenge -> do
+                  -- _ <- log "computing new receipt..."
                   receipt <- makeStateT $ ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
                   modify_ (\currentState -> currentState { toll = Just receipt })
                   pure response
                 Nothing -> pure response
-          | otherwise           = \_ -> makeStateT $ except $ Left $ ResponseError n
+          | otherwise           = \response -> do
+            -- _ <- log $ "Unknown request error" <> show response.status
+            makeStateT $ except $ Left $ ResponseError n
         
-        extractChallengeCost :: Array ResponseHeader -> Maybe TollChallenge
-        extractChallengeCost headers =
+        extractChallenge :: Array ResponseHeader -> Maybe TollChallenge
+        extractChallenge headers =
           let tollArray = filter (\a -> name a == tollHeaderName) headers
               costArray = filter (\a -> name a == tollCostHeaderName) headers
           in case (Tuple tollArray costArray) of

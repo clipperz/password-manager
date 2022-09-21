@@ -13,18 +13,19 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
 import Data.Maybe (Maybe(..))
-import Data.Semigroup ((<>))
-import Data.Show (show)
 import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppState)
 import DataModel.Index (IndexReference)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Effect.Class.Console (log)
 import Functions.Communication.Login (login)
 import Functions.State (makeStateT)
 import SRP as SRP
 import Widgets.LoginForm (loginForm, LoginForm)
+
+import Data.Semigroup ((<>))
+import Data.Show (show)
+import Effect.Class.Console (log)
 
 type LoginManagerResult = { c :: HexString, p :: HexString, indexReference :: IndexReference, sessionKey :: HexString }
 
@@ -38,6 +39,7 @@ loginManager conf = do
     liftAff $ runExceptT $ runStateT (doLogin conf loginFormResult) currentState
   ))
   modify_ (\_ -> newState)
+  _ <- log $ "newState (loginManager)" <> show newState
   pure result
 
 doLogin :: SRP.SRPConf -> LoginForm -> StateT AppState (ExceptT String Aff) IndexReference
@@ -46,8 +48,5 @@ doLogin conf { username, password } = do
   p           <- makeStateT $ ExceptT $ Right <$> fromArrayBuffer <$> SRP.prepareP conf username password
   modify_ (\currentState -> currentState { c = Just c, p = Just p })
   
-  loginResult <- mapStateT (withExceptT (\_ -> "Login failed")) (login conf)
-
-  s <- get
-  log $ "doLogin " <> (show s)
-  pure $ loginResult.indexReference
+  indexReference <- mapStateT (withExceptT (\_ -> "Login failed")) (login conf)
+  pure $ indexReference

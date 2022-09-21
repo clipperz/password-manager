@@ -25,7 +25,10 @@ function fn2xorLowBitAligned(buffer1, buffer2) {
 }
 
 function toBitString(buf) {
-	return new Uint8Array(buf).map(byte => ("0000" + byte.toString(2).slice(-4))).join('')
+	var result = [] // needs an array as support because a simple map doesn't work: Uint8Array can only contain bytes, not strings
+	new Uint8Array(buf).forEach((byte, i) => result[i] = ("0000000" + byte.toString(2)).slice(-8))
+	result = result.join("")
+	return result;
 }
 
 export {

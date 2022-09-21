@@ -28,7 +28,7 @@ trait SessionManager:
   def deleteSession(key: SessionKey): Task[Unit]
       
 object SessionManager:
-  val sessionKeyHeaderName = "clipperz-UserSession-ID"
+  val sessionKeyHeaderName = "clipperz-usersession-id"
 
   case class TrivialSessionManager(/* */) extends SessionManager:
     var sessions: Map[SessionKey, Session] = new HashMap[SessionKey, Session]()

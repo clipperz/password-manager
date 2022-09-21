@@ -8,14 +8,14 @@ import io.netty.handler.ssl.util.SelfSignedCertificate
 import zio.{ Task, ZIO, Scope, ZIOAppArgs, ZIOAppDefault }
 import zio.stream.{ ZSink, ZStream }
 import zio.json.{ DecoderOps, EncoderOps }
-import zhttp.http.{ Headers, HeaderNames, HeaderValues, Http, HttpApp, HttpData, Method, Middleware, Path, Request, Response, Status }
+import zhttp.http.{ Header, Headers, HeaderNames, HeaderValues, Http, HttpApp, HttpData, Method, Middleware, Path, Request, Response, Status }
 import zhttp.http.* //TODO: fix How do you import `!!` and `/`?
-import zhttp.http.middleware.{ HttpMiddleware }
 import zhttp.service.{ EventLoopGroup, Server }
+import zhttp.http.middleware.{ HttpMiddleware }
 import zhttp.service.server.ServerChannelFactory
 import is.clipperz.backend.services.TollManager
 import is.clipperz.backend.data.HexString
-import is.clipperz.backend.functions.fromStream
+import is.clipperz.backend.functions.{ fromStream, fromString }
 import is.clipperz.backend.functions.SrpFunctions.*
 import is.clipperz.backend.services.{
   BlobArchive,
@@ -28,6 +28,7 @@ import is.clipperz.backend.services.{
   SRPStep1Data,
   SRPStep2Data,
   TollManager,
+  TollChallenge,
   UserArchive,
   UserCard
 }
@@ -44,7 +45,7 @@ object Main extends zio.ZIOAppDefault:
     Throwable,
   ]
 
-  type TollMiddleware = HttpMiddleware[TollManager, Throwable]
+  type TollMiddleware = HttpMiddleware[TollManager & SessionManager, Throwable]
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -63,7 +64,7 @@ object Main extends zio.ZIOAppDefault:
         .zip(ZIO.succeed(request.bodyAsStream))
         .flatMap((userArchive, blobArchive, sessionManager, content) =>
           userArchive.getUser(HexString(c)).flatMap(optionalUser => optionalUser match
-            case Some(_) => sessionManager.verifySessionUser(c, request)
+            case Some(_) => sessionManager.verifySessionUser(c, request) // TODO: manage put for modifing user (user is present && session is verified)
             case None    => ZIO.succeed(())
           ).flatMap(_ =>
             fromStream[SignupData](content)
@@ -123,7 +124,7 @@ object Main extends zio.ZIOAppDefault:
     case request @ Method.POST -> !! / "login" / "step2" / c => 
       ZIO.service[SessionManager]
         .zip(ZIO.service[SrpManager])
-        .zip(ZIO.attempt(request.headers.headerValue(SessionManager.sessionKeyHeaderName).get))
+        .zip(ZIO.attempt(request.headers.headerValue(SessionManager.sessionKeyHeaderName).get)) // TODO: return significant status in response
         .zip(ZIO.succeed(request.bodyAsStream))
         .flatMap((sessionManager, srpManager, sessionKey, content) =>
           fromStream[SRPStep2Data](content)
@@ -192,7 +193,7 @@ object Main extends zio.ZIOAppDefault:
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  val clipperzBackend: ClipperzHttpApp = { users ++ login ++ logout ++ blobs ++ static}
+  val clipperzBackend: ClipperzHttpApp = { users ++ login ++ logout ++ blobs ++ static }
 
   def extractPath(req: Request): String = 
     if req.path.leadingSlash 
@@ -208,12 +209,41 @@ object Main extends zio.ZIOAppDefault:
       case "login" => ChallengeType.CONNECT
       case "blobs" => ChallengeType.MESSAGE
 
-  val missingTollMiddleware: Request => TollMiddleware = req =>
+  def getNextChallengeType(req: Request): ChallengeType = 
+    extractPath(req) match
+      case "users" => ChallengeType.CONNECT
+      case "login" => ChallengeType.MESSAGE
+      case "blobs" => ChallengeType.MESSAGE
+
+  def checkReceipt(req: Request): ZIO[TollManager & SessionManager, Throwable, Boolean] = 
+    ZIO
+      .service[TollManager]
+      .zip(ZIO.service[SessionManager])
+      .zip(ZIO.attempt(req.headers.headerValue(TollManager.tollReceiptHeader).get))
+      .zip(ZIO.attempt(req.headers.headerValue(SessionManager.sessionKeyHeaderName).get))
+      .flatMap((tollManager, sessionManager, receipt, sessionKey) => {
+        for {
+          session <- sessionManager.getSession(sessionKey)
+          challengeJson <- ZIO.attempt(session(TollManager.tollChallengeContentKey).get)
+          challenge <- fromString[TollChallenge](challengeJson)
+          res <- tollManager.verifyToll(challenge, HexString(receipt))
+        } yield res
+      })
+
+  val wrongTollMiddleware : Request => TollMiddleware = req =>
     Middleware.fromHttp(
         Http.responseZIO (
           ZIO
             .service[TollManager]
-            .flatMap(tollManager => tollManager.getToll(tollManager.getChallengeCost(getChallengeType(req))))
+            .zip(ZIO.service[SessionManager])
+            .zip(ZIO.attempt(req.headers.headerValue(SessionManager.sessionKeyHeaderName).get))
+            .flatMap((tollManager, sessionManager, sessionKey) => 
+              for {
+                tollChallenge <- tollManager.getToll(tollManager.getChallengeCost(getChallengeType(req)))
+                session <- sessionManager.getSession(sessionKey)
+                _ <- sessionManager.saveSession(session + (TollManager.tollChallengeContentKey, tollChallenge.toJson))
+              } yield tollChallenge
+            )
             .map(tollChallenge => 
               Response(
                 status = Status.BadRequest,
@@ -222,22 +252,52 @@ object Main extends zio.ZIOAppDefault:
               )
             )
         )
-      ).when(verifyTollNecessity)
+      )
 
-  val tollPresentMiddleware: Request => TollMiddleware = req => Middleware.fromHttp(Http.status(Status.Ok).addHeaders(Headers()))
+  val missingTollMiddleware: Request => TollMiddleware = req =>
+    wrongTollMiddleware(req)
+
+  val correctReceiptMiddleware: Request => TollMiddleware = req =>
+    Middleware.patchZIO(_ =>
+      ZIO
+        .service[TollManager]
+        .zip(ZIO.service[SessionManager])
+        .zip(ZIO.attempt(req.headers.headerValue(SessionManager.sessionKeyHeaderName).get))
+        .flatMap((tollManager, sessionManager, sessionKey) => 
+          for {
+            tollChallenge <- tollManager.getToll(tollManager.getChallengeCost(getNextChallengeType(req)))
+            session <- sessionManager.getSession(sessionKey)
+            _ <- sessionManager.saveSession(session + (TollManager.tollChallengeContentKey, tollChallenge.toJson))
+          } yield Patch.addHeader(
+                    Headers((TollManager.tollHeader, tollChallenge.toll.toString), 
+                            (TollManager.tollCostHeader, tollChallenge.cost.toString))
+                  )
+        )
+        .mapError(msg => 
+          println(msg)
+          Some(new Exception(msg))
+        ) // THIS IS SO STUPID 🤬 e 🤬
+    )
+
+  val tollPresentMiddleware: Request => TollMiddleware = req =>
+    Middleware.ifThenElseZIO[Request]
+      (req => checkReceipt(req))
+      ( correctReceiptMiddleware //keep the request going and add headers with the new toll to the response
+      , wrongTollMiddleware //
+      )
 
   val hashcash: TollMiddleware = Middleware.ifThenElse[Request]
-    (req => req.headers.hasHeader(TollManager.tollReceiptHeader) && req.headers.hasHeader(TollManager.tollCostHeader))
+    (req => req.headers.hasHeader(TollManager.tollReceiptHeader))
       ( tollPresentMiddleware
       , missingTollMiddleware
-      )
+      ).when(verifyTollNecessity)
 
   // -------------------------------------------------------------------------
 
   val server =
     Server.port(PORT) ++
     Server.paranoidLeakDetection ++
-    Server.app(clipperzBackend/*  @@ hashcash */)
+    Server.app(clipperzBackend @@ hashcash)
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
     val nThreads: Int = args.headOption.flatMap(x => Try(x.toInt).toOption).getOrElse(0)
