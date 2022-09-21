@@ -143,6 +143,20 @@ object Main extends zio.ZIOAppDefault:
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+  val logout: ClipperzHttpApp = Http.collectZIO {
+    case request @ Method.POST -> !! / "logout" => 
+      ZIO
+        .service[SessionManager]
+        .zip(ZIO.attempt(request.headers.headerValue(SessionManager.sessionKeyHeaderName).get))
+        .flatMap((sessionManager, sessionKey) => 
+          sessionManager
+            .deleteSession(sessionKey)
+            .map(_ => Response.text(""))
+        )
+  }
+    
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
   val blobs: ClipperzHttpApp = Http.collectZIO {
     case request @ Method.POST -> !! / "blobs" =>
       ZIO
@@ -178,7 +192,7 @@ object Main extends zio.ZIOAppDefault:
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-  val clipperzBackend: ClipperzHttpApp = { users ++ login ++ blobs ++ static}
+  val clipperzBackend: ClipperzHttpApp = { users ++ login ++ logout ++ blobs ++ static}
 
   def extractPath(req: Request): String = 
     if req.path.leadingSlash 

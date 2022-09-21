@@ -25,6 +25,7 @@ trait SessionManager:
           case None => ZIO.fail(new Exception("session does not contain c"))
       )
       case None => ZIO.fail(new Exception("session key not found in header"))
+  def deleteSession(key: SessionKey): Task[Unit]
       
 object SessionManager:
   val sessionKeyHeaderName = "clipperz-UserSession-ID"
@@ -39,6 +40,10 @@ object SessionManager:
     override def saveSession(content: Session): Task[SessionKey] =
       sessions = sessions + ((content._1, content))
       ZIO.succeed(content._1)
+
+    override def deleteSession(key: SessionKey): Task[Unit] =
+      sessions = sessions - key
+      ZIO.succeed(())
 
   val live: Layer[Nothing, SessionManager] =
     ZLayer.succeed[SessionManager](new TrivialSessionManager)(Tag[SessionManager], Tracer.newTrace)

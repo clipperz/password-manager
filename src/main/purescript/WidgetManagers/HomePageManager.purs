@@ -1,11 +1,12 @@
 module WidgetManagers.HomePageManager where
 
+import Affjax.ResponseFormat as RF
 import Concur.Core (Widget)
-import Concur.Core.FRP (loopW, dyn, demandLoop)
+import Concur.Core.FRP (loopW, demandLoop)
 import Concur.React (HTML)
 import Control.Applicative (pure)
 import Control.Bind (discard, bind)
-import Control.Monad.Except.Trans (ExceptT(..), withExceptT)
+import Control.Monad.Except.Trans (ExceptT(..), withExceptT, runExceptT)
 import Control.Monad.State (StateT, get, runStateT, modify_, mapStateT)
 import Control.Semigroupoid ((>>>))
 import Crypto.Subtle.Constants.AES (aesCTR)
@@ -16,6 +17,7 @@ import Data.Either (Either(..))
 import Data.Function (($), flip)
 import Data.Functor ((<$>))
 import Data.HexString (HexString, toArrayBuffer, fromArrayBuffer, splitHexInHalf)
+import Data.HTTP.Method (Method(..))
 import Data.Maybe (Maybe(..))
 import Data.Show (show)
 import Data.Tuple (Tuple(..))
@@ -30,6 +32,7 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Effect.Exception as EX
 import EncodeDecode (decryptArrayBuffer)
+import Functions.Communication.BackendCommunication (manageGenericRequest)
 import Functions.Communication.Blobs (getDecryptedBlob)
 import Functions.State (makeStateT, extractExceptT, computeInitialState)
 import Widgets.HomePage (HomePageAction(..), CardsViewAction(..), homePage)
@@ -65,9 +68,8 @@ homePageManager indexReference = do
       eitherIndex <- mapStateT (\e -> liftAff e) $ getIndex p indexReference
       case eitherIndex of
         Right index -> do
-          -- Tuple result newState <- makeStateT $ dyn $ loopW (Tuple (CardsViewAction (ShowCard Nothing)) currentState) (\(Tuple cva s) ->
-          newState <- makeStateT $ demandLoop (Tuple (CardsViewAction (ShowCard Nothing)) currentState) (\t -> loopW (Left t) (\either ->
-            case either of
+          newState <- makeStateT $ demandLoop (Tuple (CardsViewAction (ShowCard Nothing)) currentState) (\t -> loopW (Left t) (\loop ->
+            case loop of
               Left (Tuple hva s)->
                 case hva of 
                   CardsViewAction (ShowCard Nothing) -> (\r -> Left $ Tuple r s) <$> homePage index Nothing
@@ -82,10 +84,11 @@ homePageManager indexReference = do
                     _ <- log $ show a
                     (\r -> Left $ Tuple r s) <$> homePage index Nothing
                   LogoutAction -> do
-                    -- call api to logut (emtpy backend session)
+                    _ <- liftAff $ runExceptT $ runStateT (manageGenericRequest "logout" POST Nothing RF.string) s
                     initialState <- liftEffect computeInitialState
                     pure $ Right initialState
-              Right state -> pure $ Right state
+              Right state -> do
+                pure $ Right state
           ))
           modify_ (\_ -> newState)
           pure unit
@@ -95,6 +98,3 @@ homePageManager indexReference = do
     _ -> do
       log $ show currentState
       makeStateT $ pure $ unit -- TODO: manage error
-
--- homePageSignal :: Index -> StateT AppState (Signal HTML) (Maybe Unit)
--- homePageSignal index = 
