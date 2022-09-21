@@ -1,7 +1,7 @@
 module WidgetManagers.HomePageManager where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (loopW, dyn)
+import Concur.Core.FRP (loopW, dyn, demandLoop)
 import Concur.React (HTML)
 import Control.Applicative (pure)
 import Control.Bind (discard, bind)
@@ -26,11 +26,12 @@ import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardReference(..), Index, IndexReference)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
+import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Effect.Exception as EX
 import EncodeDecode (decryptArrayBuffer)
 import Functions.Communication.Blobs (getDecryptedBlob)
-import Functions.State (makeStateT, extractExceptT)
+import Functions.State (makeStateT, extractExceptT, computeInitialState)
 import Widgets.HomePage (HomePageAction(..), CardsViewAction(..), homePage)
 
 getCard :: CardReference -> StateT AppState Aff (Either ProtocolError Card)
@@ -64,25 +65,36 @@ homePageManager indexReference = do
       eitherIndex <- mapStateT (\e -> liftAff e) $ getIndex p indexReference
       case eitherIndex of
         Right index -> do
-          Tuple result newState <- makeStateT $ dyn $ loopW (Tuple (CardsViewAction (ShowCard Nothing)) currentState) (\(Tuple cva s) ->
-            case cva of
-              CardsViewAction (ShowCard Nothing) -> (\r -> Tuple r s) <$> homePage index Nothing
-              CardsViewAction (ShowCard (Just ref)) -> do
-                Tuple either newState <- liftAff $ runStateT (getCard ref) s
-                case either of
-                  Left err -> do
-                    _ <- log $ show err
-                    (\r -> Tuple r s) <$> homePage index Nothing
-                  Right card -> (\r -> Tuple r newState) <$> homePage index (Just card)
-              CardsViewAction (ActOnCard _ a) -> do
-                _ <- log $ show a
-                (\r -> Tuple r s) <$> homePage index Nothing
-          )
+          -- Tuple result newState <- makeStateT $ dyn $ loopW (Tuple (CardsViewAction (ShowCard Nothing)) currentState) (\(Tuple cva s) ->
+          newState <- makeStateT $ demandLoop (Tuple (CardsViewAction (ShowCard Nothing)) currentState) (\t -> loopW (Left t) (\either ->
+            case either of
+              Left (Tuple hva s)->
+                case hva of 
+                  CardsViewAction (ShowCard Nothing) -> (\r -> Left $ Tuple r s) <$> homePage index Nothing
+                  CardsViewAction (ShowCard (Just ref)) -> do
+                    Tuple either newState <- liftAff $ runStateT (getCard ref) s
+                    case either of
+                      Left err -> do
+                        _ <- log $ show err
+                        (\r -> Left $ Tuple r s) <$> homePage index Nothing
+                      Right card -> (\r -> Left $ Tuple r newState) <$> homePage index (Just card)
+                  CardsViewAction (ActOnCard _ a) -> do
+                    _ <- log $ show a
+                    (\r -> Left $ Tuple r s) <$> homePage index Nothing
+                  LogoutAction -> do
+                    -- call api to logut (emtpy backend session)
+                    initialState <- liftEffect computeInitialState
+                    pure $ Right initialState
+              Right state -> pure $ Right state
+          ))
           modify_ (\_ -> newState)
-          pure result
+          pure unit
         Left err -> do
           _ <- log $ show err
           pure unit
     _ -> do
       log $ show currentState
       makeStateT $ pure $ unit -- TODO: manage error
+
+-- homePageSignal :: Index -> StateT AppState (Signal HTML) (Maybe Unit)
+-- homePageSignal index = 

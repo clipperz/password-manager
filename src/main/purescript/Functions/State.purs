@@ -8,7 +8,12 @@ import Control.Monad.State (StateT(..), runStateT, modify_)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor (class Functor, (<$>))
+import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
+import DataModel.AppState (AppState)
+import DataModel.Proxy (Proxy(..))
+import Effect (Effect)
+-- import Functions.Communication.BackendCommunication (Url)
 
 makeStateT :: forall m a s. Functor m => m a -> StateT s m a
 makeStateT value = StateT (\s -> ((\r -> Tuple r s) <$> value))
@@ -23,3 +28,9 @@ extractExceptT monad state = do
     Right (Tuple value newState) -> do
       modify_ (\_ -> newState)
       makeStateT $ pure $ Right value
+
+baseUrl :: String 
+baseUrl = "http://localhost:8090" --TODO: get from configuration file/build
+
+computeInitialState :: Effect AppState
+computeInitialState = pure { proxy: (OnlineProxy baseUrl), sessionKey: Nothing, toll: Nothing, c: Nothing, p: Nothing }

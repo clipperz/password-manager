@@ -15,6 +15,7 @@ import DataModel.Index (CardReference, Index(..))
 import DataModel.Card (Card)
 import Widgets.Cards (card, CardAction)
 import Widgets.Index (indexCard)
+import Widgets.SimpleWebComponents (simpleButton)
 
 cards :: Map HexString Card
 cards = fromFoldable []
@@ -34,10 +35,11 @@ cardsView index (Just c) = div [] [
   , ActOnCard c <$> card c
 ]
 
-data HomePageAction = CardsViewAction CardsViewAction
+data HomePageAction = CardsViewAction CardsViewAction | LogoutAction
 
 homePage :: Index -> Maybe Card -> Widget HTML HomePageAction
 homePage index card = div [] [
   CardsViewAction <$> cardsView index card
+, simpleButton "Logout" false LogoutAction
 ]
   
