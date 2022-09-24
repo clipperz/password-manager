@@ -28,9 +28,9 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.ArrayBuffer (concatArrayBuffers)
 import Functions.Communication.Signup (registerUser, RegisterUserRequest)
+import Functions.SRP as SRP
 import Functions.State (makeStateT)
 import EncodeDecode (encryptJson, encryptArrayBuffer)
-import SRP as SRP
 import Widgets.SignupForm (signupForm, SignupForm)
 
 prepareCards :: SRP.SRPConf -> List Card -> Aff (List (Tuple ArrayBuffer CardEntry))

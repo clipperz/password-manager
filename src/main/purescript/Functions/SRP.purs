@@ -1,4 +1,4 @@
-module SRP where
+module Functions.SRP where
 
 import Bytes (asArrayBuffer)
 import Control.Applicative (pure)

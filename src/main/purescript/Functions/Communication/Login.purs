@@ -29,8 +29,8 @@ import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (IndexReference)
 import Effect.Aff (Aff)
 import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
-import SRP as SRP
 import Functions.ArrayBuffer (arrayBufferToBigInt)
+import Functions.SRP as SRP
 import Functions.State (makeStateT)
     
 -- ----------------------------------------------------------------------------
@@ -43,8 +43,8 @@ login srpConf = do
   currentState <- get
   sessionKey :: HexString   <- makeStateT $ ExceptT $ (fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32
   if isJust currentState.sessionKey
-    then modify_ (\currentState -> currentState)
-    else modify_ (\currentState -> currentState { sessionKey = Just sessionKey })
+    then modify_ (\state -> state)
+    else modify_ (\state -> state { sessionKey = Just sessionKey })
   loginStep1Result <- loginStep1 srpConf
   { m1, kk, m2, encIndexReference: indexReference } <- loginStep2 srpConf loginStep1Result
   check :: Boolean <- makeStateT $ ExceptT $ Right <$> SRP.checkM2 SRP.baseConfiguration loginStep1Result.aa m1 kk (toArrayBuffer m2)

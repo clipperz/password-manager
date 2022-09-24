@@ -13,7 +13,7 @@ import Data.String.CodeUnits (take)
 import Effect.Aff (Aff)
 import Effect.Class.Console (log)
 import Functions.ArrayBuffer (toBitString)
-import SRP (HashFunction, randomArrayBuffer)
+import Functions.SRP (HashFunction, randomArrayBuffer)
 
 type Toll = HexString
 type Cost = Int

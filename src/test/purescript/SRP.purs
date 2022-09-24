@@ -14,10 +14,10 @@ import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
+import Functions.SRP as SRP
 import Effect.Aff (Aff)
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
-import SRP as SRP
 import TestUtilities (makeTestableOnBrowser, failOnBrowser)
 
 srpSpec :: SpecT Aff Unit Identity Unit

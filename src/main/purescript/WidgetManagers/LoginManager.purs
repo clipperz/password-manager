@@ -19,8 +19,8 @@ import DataModel.Index (IndexReference)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Login (login)
+import Functions.SRP as SRP
 import Functions.State (makeStateT)
-import SRP as SRP
 import Widgets.LoginForm (loginForm, LoginForm)
 
 import Data.Semigroup ((<>))

@@ -32,10 +32,9 @@ import DataModel.AppState (AppState)
 import DataModel.Proxy (Proxy(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff)
-import Effect.Class.Console (log)
 import Functions.State (makeStateT)
 import Functions.HashCash (TollChallenge, computeReceipt)
-import SRP (hashFuncSHA256)
+import Functions.SRP (hashFuncSHA256)
 
 -- ----------------------------------------------------------------------------
 
@@ -100,7 +99,7 @@ manageGenericRequest url method body responseFormat = do
                   modify_ (\currentState -> currentState { toll = Just receipt })
                   pure response
                 Nothing -> pure response
-          | otherwise           = \response -> do
+          | otherwise           = \_ -> do
             -- _ <- log $ "Unknown request error" <> show response.status
             makeStateT $ except $ Left $ ResponseError n
         

@@ -16,8 +16,8 @@ import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppState)
 import DataModel.Index (IndexReference)
 import Effect.Aff.Class (liftAff)
+import Functions.SRP as SRP
 import Functions.State (makeStateT)
-import SRP as SRP
 import WidgetManagers.LoginManager (loginManager, doLogin)
 import WidgetManagers.SignupManager (signupManager)
 import Widgets.SignupForm (SignupForm)

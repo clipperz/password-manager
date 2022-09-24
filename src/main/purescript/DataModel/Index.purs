@@ -18,8 +18,7 @@ import Data.Tuple (Tuple(..))
 import DataModel.Card (Card(..), CardValues(..))
 import Effect.Aff (Aff)
 import EncodeDecode (encryptJson)
-
-import SRP as SRP
+import Functions.SRP as SRP
 
 -- --------------------------------------------
 

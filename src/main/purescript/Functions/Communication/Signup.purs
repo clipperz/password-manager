@@ -22,8 +22,8 @@ import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.AppState (AppState)
 import Effect.Aff (Aff)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
+import Functions.SRP as SRP
 import Functions.State (makeStateT)
-import SRP as SRP
 
 type UserCard = {
     c :: HexString
