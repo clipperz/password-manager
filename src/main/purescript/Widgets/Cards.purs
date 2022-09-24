@@ -9,7 +9,7 @@ import Data.Functor ((<$), (<$>))
 import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
 
-import Clipboard (copyToClipboard)
+import Functions.Clipboard (copyToClipboard)
 import DataModel.Card (CardField(..), CardValues(..), Card(..))
 import Widgets.SimpleWebComponents (simpleButton)
 

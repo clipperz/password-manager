@@ -22,7 +22,7 @@ import DataModel.Card (Card(..), card0)
 import Effect.Aff (Aff)
 import Effect.Exception (Error, error)
 import Effect.Class (liftEffect)
-import EncodeDecode
+import Functions.EncodeDecode
 -- import Crypto.Subtle.Constants.AES (aesCTR, l256)
 -- import Crypto.Subtle.Key.Import as KI
 -- import Crypto.Subtle.Key.Generate as KG

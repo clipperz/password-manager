@@ -17,7 +17,7 @@ import Data.Show (class Show, show)
 import Data.Tuple (Tuple(..))
 import DataModel.Card (Card(..), CardValues(..))
 import Effect.Aff (Aff)
-import EncodeDecode (encryptJson)
+import Functions.EncodeDecode (encryptJson)
 import Functions.SRP as SRP
 
 -- --------------------------------------------

@@ -1,4 +1,4 @@
-module EncodeDecode where
+module Functions.EncodeDecode where
 
 import Control.Applicative (pure)
 import Control.Bind ((>>=), bind)

@@ -21,7 +21,7 @@ import Data.String.Common (joinWith)
 import DataModel.AppState (AppState)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff)
-import EncodeDecode (decryptJson)
+import Functions.EncodeDecode (decryptJson)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
 import Functions.State (makeStateT)
 

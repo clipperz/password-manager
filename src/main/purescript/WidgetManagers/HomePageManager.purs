@@ -31,7 +31,7 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Effect.Exception as EX
-import EncodeDecode (decryptArrayBuffer)
+import Functions.EncodeDecode (decryptArrayBuffer)
 import Functions.Communication.BackendCommunication (manageGenericRequest)
 import Functions.Communication.Blobs (getDecryptedBlob)
 import Functions.State (makeStateT, extractExceptT, computeInitialState)

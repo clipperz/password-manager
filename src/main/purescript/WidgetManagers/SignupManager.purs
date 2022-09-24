@@ -30,7 +30,7 @@ import Functions.ArrayBuffer (concatArrayBuffers)
 import Functions.Communication.Signup (registerUser, RegisterUserRequest)
 import Functions.SRP as SRP
 import Functions.State (makeStateT)
-import EncodeDecode (encryptJson, encryptArrayBuffer)
+import Functions.EncodeDecode (encryptJson, encryptArrayBuffer)
 import Widgets.SignupForm (signupForm, SignupForm)
 
 prepareCards :: SRP.SRPConf -> List Card -> Aff (List (Tuple ArrayBuffer CardEntry))
