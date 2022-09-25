@@ -1,4 +1,4 @@
-module WidgetManagers.LandingPage where
+module WidgetManagers.LandingPageManager where
 
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, fireOnce)
@@ -14,6 +14,7 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Show (show)
 import Data.Tuple (Tuple(..))
+import Data.Unit (Unit, unit)
 import DataModel.AppState (AppState)
 import DataModel.Credentials (Credentials)
 import DataModel.Index (IndexReference)
@@ -36,7 +37,7 @@ import Effect.Class.Console (log)
 landingPage :: SRP.SRPConf -> StateT AppState (Widget HTML) IndexReference
 landingPage conf = landingPageWithState (LoginView Default emptyForm) conf
 
-landingPageWithState :: LandingPageView -> SRP.SRPConf -> StateT AppState (Widget HTML) IndexReference
+landingPageWithState :: LandingPageView -> SRP.SRPConf -> StateT AppState (Widget HTML) IndexReference -- Unit
 landingPageWithState view conf = do
   currentState <- get
   result :: LandingPageAction <- makeStateT $ landingWidget (view)
@@ -55,4 +56,7 @@ landingPageWithState view conf = do
       loginResult <- mapStateT (mapExceptT currentState >>> liftAff) (doLogin conf credentials)
       case loginResult of
         Left err -> landingPageWithState (LoginView (Error err) credentials) conf
-        Right value -> pure value
+        Right value -> do
+          -- modify_ (\cs -> cs { indexReference = Just cs })
+          -- pure unit 
+          pure value

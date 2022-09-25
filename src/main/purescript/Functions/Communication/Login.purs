@@ -41,10 +41,11 @@ sessionKeyHeaderName = "clipperz-UserSession-ID"
 login :: SRP.SRPConf -> StateT AppState (ExceptT AppError Aff) IndexReference
 login srpConf = do
   currentState <- get
-  sessionKey :: HexString   <- makeStateT $ ExceptT $ (fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32
   if isJust currentState.sessionKey
     then modify_ (\state -> state)
-    else modify_ (\state -> state { sessionKey = Just sessionKey })
+    else do
+      sessionKey :: HexString   <- makeStateT $ ExceptT $ (fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32
+      modify_ (\state -> state { sessionKey = Just sessionKey })
   loginStep1Result <- loginStep1 srpConf
   { m1, kk, m2, encIndexReference: indexReference } <- loginStep2 srpConf loginStep1Result
   check :: Boolean <- makeStateT $ ExceptT $ Right <$> SRP.checkM2 SRP.baseConfiguration loginStep1Result.aa m1 kk (toArrayBuffer m2)

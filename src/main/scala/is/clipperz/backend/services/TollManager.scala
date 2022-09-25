@@ -22,7 +22,7 @@ object TollChallenge:
 enum ChallengeType: 
   case CONNECT, REGISTER, MESSAGE
 
-val tollByteSize = 64
+val tollByteSize = 32
 
 def byteToBinary(b: Byte): String =
   String.format("%8s", Integer.toBinaryString(b & 0xFF)).nn.replace(' ', '0').nn

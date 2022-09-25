@@ -66,9 +66,10 @@ homePageManager indexReference = do
   case currentState of
     { p: Just p, sessionKey: _, c: _, proxy: _, toll: _ } -> do
       eitherIndex <- mapStateT (\e -> liftAff e) $ getIndex p indexReference
+      newCurrentState <- get
       case eitherIndex of
         Right index -> do
-          newState <- makeStateT $ demandLoop (Tuple (CardsViewAction (ShowCard Nothing)) currentState) (\t -> loopW (Left t) (\loop ->
+          newState <- makeStateT $ demandLoop (Tuple (CardsViewAction (ShowCard Nothing)) newCurrentState) (\t -> loopW (Left t) (\loop ->
             case loop of
               Left (Tuple hva s)->
                 case hva of 
@@ -78,7 +79,7 @@ homePageManager indexReference = do
                     case either of
                       Left err -> do
                         _ <- log $ show err
-                        (\r -> Left $ Tuple r s) <$> homePage index Nothing
+                        (\r -> Left $ Tuple r newState) <$> homePage index Nothing
                       Right card -> (\r -> Left $ Tuple r newState) <$> homePage index (Just card)
                   CardsViewAction (ActOnCard _ a) -> do
                     _ <- log $ show a

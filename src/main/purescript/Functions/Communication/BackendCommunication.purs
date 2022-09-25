@@ -9,7 +9,7 @@ import Affjax.StatusCode (StatusCode(..))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (ExceptT(..), except)
-import Control.Monad.State (StateT, get, modify_)
+import Control.Monad.State (StateT, get, modify_, modify)
 import Data.Array (filter)
 import Data.Bifunctor (lmap)
 import Data.Boolean (otherwise)
@@ -35,6 +35,8 @@ import Effect.Aff (Aff)
 import Functions.State (makeStateT)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.SRP (hashFuncSHA256)
+
+import Effect.Class.Console (log)
 
 -- ----------------------------------------------------------------------------
 
@@ -74,6 +76,7 @@ manageGenericRequest url method body responseFormat = do
                                                           , responseFormat
                                                           }
                       OfflineProxy  -> OfflineRequestInfo { url, method, body, responseFormat }
+  modify_ (\state -> state { toll = Nothing })
   response <- makeStateT $ ExceptT $ doGenericRequest proxy requestInfo
   manageResponse response.status response
 
@@ -94,9 +97,11 @@ manageGenericRequest url method body responseFormat = do
               -- _ <- log "200 received"
               case (extractChallenge response.headers) of
                 Just challenge -> do
-                  -- _ <- log "computing new receipt..."
+                  _ <- log "1 - computing new receipt..."
                   receipt <- makeStateT $ ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
-                  modify_ (\currentState -> currentState { toll = Just receipt })
+                  _ <- log "2 - computed new receipt"
+                  _ <- modify (\currentState -> currentState { toll = Just receipt })
+                  _ <- log "3 - inserted new receipt into state"
                   pure response
                 Nothing -> pure response
           | otherwise           = \_ -> do

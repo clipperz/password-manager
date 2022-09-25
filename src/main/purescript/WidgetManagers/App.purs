@@ -11,7 +11,7 @@ import Effect.Class (liftEffect)
 import Functions.SRP as SRP
 import Functions.State(computeInitialState)
 import WidgetManagers.HomePageManager as HomePageManager
-import WidgetManagers.LandingPage as LandingPage
+import WidgetManagers.LandingPageManager as LandingPageManager
 
 import Data.Show (show)
 import Data.Semigroup ((<>))
@@ -21,7 +21,7 @@ app :: Widget HTML Unit
 app = do
   initialState <- liftEffect computeInitialState
   _ <- (flip runStateT) initialState $ do
-    indexReference <- LandingPage.landingPage SRP.baseConfiguration
+    indexReference <- LandingPageManager.landingPage SRP.baseConfiguration
     newState <- get
     _ <- log $ "newState (app) -> " <> show newState
     void $ HomePageManager.homePageManager indexReference
