@@ -3,7 +3,7 @@ module Widgets.SignupForm where
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (text, a, p)
+import Concur.React.DOM (text, a, p, form', div)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
@@ -19,41 +19,31 @@ import Data.Semigroup ((<>))
 import Data.Tuple (Tuple(..))
 import Data.Show (show)
 import Data.String (length)
+import DataModel.Credentials (Credentials)
+import DataModel.WidgetState (WidgetState(..))
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Record (merge)
 import Widgets.Utilities (PasswordStrengthFunction, PasswordStrength(..))
 import Widgets.SimpleWebComponents (simpleButton, simpleUserSignal, simpleVerifiedPasswordSignal, checkboxesSignal, PasswordForm)
 
--- | The data of the signup form
-type SignupForm = { username :: String
-                  , password :: String
-                  }
 
-type DataForm = { username       :: String
-                , password       :: String
-                , verifyPassword :: String
-                , checkboxes     :: Array (Tuple String Boolean)
-                }
+type SignupDataForm = { username       :: String
+                      , password       :: String
+                      , verifyPassword :: String
+                      , checkboxes     :: Array (Tuple String Boolean)
+                      }
 
-emptyDataForm :: DataForm
+emptyDataForm :: SignupDataForm
 emptyDataForm = { username: ""
                 , password: ""
                 , verifyPassword: ""
-                , checkboxes: [ Tuple "terms_of_service" true
-                              , Tuple "not_recoverable" true
+                , checkboxes: [ Tuple "terms_of_service" false
+                              , Tuple "not_recoverable" false
                               ]
                 }
--- For testing purpose
--- emptyDataForm = { username: "joe"
---                 , password: "clipperz"
---                 , verifyPassword: "clipperz"
---                 , checkboxes: [ Tuple "terms_of_service" true
---                               , Tuple "not_recoverable" true
---                               ]
---                 }
 
-isFormValid :: DataForm -> Boolean
+isFormValid :: SignupDataForm -> Boolean
 isFormValid { username, password, verifyPassword, checkboxes } =
       username /= ""
   &&  password /= ""
@@ -71,20 +61,31 @@ standardPasswordStrengthFunction s = if (length s) <= 4 then Weak else Strong
 
 --------------------------------
 
-signupForm :: Widget HTML SignupForm
-signupForm = do
-  signalResult <- demand $ do
-    formValues :: DataForm <- loopS emptyDataForm $ \{username: username, password: password, verifyPassword: verifyPassword, checkboxes: checkboxMap} -> do
-      username' :: String <- simpleUserSignal username
-      eitherPassword :: Either PasswordForm String <- simpleVerifiedPasswordSignal standardPasswordStrengthFunction $ Left {password: password, verifyPassword: verifyPassword}
-      checkboxMap' :: Array (Tuple String Boolean) <- checkboxesSignal checkboxMap checkboxesLabels   
-      case eitherPassword of
-        Left  passwords -> pure $ merge passwords { username: username', checkboxes: checkboxMap'}
-        Right s         -> pure { username: username', password: s, verifyPassword: s, checkboxes: checkboxMap' }
-    result :: Maybe SignupForm <- fireOnce (submitWidget formValues)
-    pure result
-  liftEffect $ log $ "signalResult " <> show signalResult
-  pure signalResult
+signupWidget :: WidgetState -> SignupDataForm -> Widget HTML Credentials
+signupWidget widgetState signupFormData = do
+  case widgetState of
+    Default -> signupForm
+    Loading -> do
+      _ <- div [] [ text "loading"]
+      pure { username: signupFormData.username, password: signupFormData.password }
+    Error err -> div [] [text err, signupForm]
 
-submitWidget :: DataForm -> Widget HTML SignupForm
+  where 
+    signupForm = div [] [
+      do
+        signalResult <- demand $ do
+          formValues :: SignupDataForm <- loopS signupFormData $ \{username: username, password: password, verifyPassword: verifyPassword, checkboxes: checkboxMap} -> do
+            username' :: String <- simpleUserSignal username
+            eitherPassword :: Either PasswordForm String <- simpleVerifiedPasswordSignal standardPasswordStrengthFunction $ Left {password: password, verifyPassword: verifyPassword}
+            checkboxMap' :: Array (Tuple String Boolean) <- checkboxesSignal checkboxMap checkboxesLabels   
+            case eitherPassword of
+              Left  passwords -> pure $ merge passwords { username: username', checkboxes: checkboxMap'}
+              Right s         -> pure { username: username', password: s, verifyPassword: s, checkboxes: checkboxMap' }
+          result :: Maybe Credentials <- fireOnce (submitWidget formValues)
+          pure result
+        liftEffect $ log $ "signalResult " <> show signalResult
+        pure signalResult
+    ]
+
+submitWidget :: SignupDataForm -> Widget HTML Credentials
 submitWidget f@{ username, password } = simpleButton "Sign up" (not (isFormValid f)) { username, password }

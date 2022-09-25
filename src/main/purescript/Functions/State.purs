@@ -29,6 +29,13 @@ extractExceptT monad state = do
       modify_ (\_ -> newState)
       makeStateT $ pure $ Right value
 
+mapExceptT :: forall e m a s. Monad m => s -> ExceptT e m (Tuple a s) -> m (Tuple (Either e a) s)
+mapExceptT state ex = do
+  either <- runExceptT ex
+  pure $ case either of
+    Left err -> Tuple (Left err) state
+    Right (Tuple a s) -> Tuple (Right a) s
+
 baseUrl :: String 
 baseUrl = "http://localhost:8090" --TODO: get from configuration file/build
 

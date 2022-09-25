@@ -1,13 +1,8 @@
-module WidgetManagers.SignupManager where
+module Functions.Signup where
 
-import Control.Bind (bind, (>>=), discard)
-import Concur.Core (Widget)
-import Concur.Core.FRP (demandLoop, loopW)
-import Concur.React (HTML)
-import Concur.React.DOM (div, text)
+import Control.Bind (bind, (>>=))
 import Control.Applicative (pure)
-import Control.Monad.Except.Trans (ExceptT(..), runExceptT, withExceptT)
-import Control.Monad.State (StateT, get, runStateT, mapStateT, modify_)
+import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Crypto.Subtle.Constants.AES (aesCTR, l256)
 import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Generate as KG
@@ -15,23 +10,21 @@ import Crypto.Subtle.Key.Types (encrypt, exportKey, decrypt, raw, unwrapKey, Cry
 import Data.Array (fromFoldable)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Either (Either(..))
-import Data.Function (($), flip)
+import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
 import Data.List.Types (List(..), (:))
 import Data.Tuple (Tuple(..), snd)
-import DataModel.AppState (AppState)
 import DataModel.Card (Card, defaultCards)
+import DataModel.Credentials (Credentials)
 import DataModel.Index (Index(..), CardEntry(..), CardReference(..), createCardEntry)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.ArrayBuffer (concatArrayBuffers)
-import Functions.Communication.Signup (registerUser, RegisterUserRequest)
+import Functions.Communication.Signup (RegisterUserRequest)
 import Functions.SRP as SRP
-import Functions.State (makeStateT)
 import Functions.EncodeDecode (encryptJson, encryptArrayBuffer)
-import Widgets.SignupForm (signupForm, SignupForm)
 
 prepareCards :: SRP.SRPConf -> List Card -> Aff (List (Tuple ArrayBuffer CardEntry))
 prepareCards conf cards = extractAff $ convertToCardEntry <$> cards
@@ -47,7 +40,7 @@ prepareCards conf cards = extractAff $ convertToCardEntry <$> cards
           l <- extractAff list
           pure $ Cons e l
 
-prepareSignupParameters :: SRP.SRPConf -> SignupForm -> Aff (Either SRP.SRPError RegisterUserRequest)
+prepareSignupParameters :: SRP.SRPConf -> Credentials -> Aff (Either SRP.SRPError RegisterUserRequest)
 prepareSignupParameters conf form = runExceptT $ do
   cAb <- liftAff $ SRP.prepareC conf form.username form.password
   let c = fromArrayBuffer cAb
@@ -73,18 +66,3 @@ prepareSignupParameters conf form = runExceptT $ do
         , indexCardContent   : fromArrayBuffer indexCardContent
         , cards : fromFoldable ((\(Tuple encryptedCard (CardEntry_v1 { cardReference: (CardReference_v1 { reference }) })) -> (Tuple reference (fromArrayBuffer encryptedCard))) <$> cards)
         }
-
-signupManager :: SRP.SRPConf -> StateT AppState (Widget HTML) SignupForm
-signupManager conf = do
-  currentState <- get
-  Tuple result newState <- makeStateT $ demandLoop "" (\s -> loopW (Left s) (\err -> do
-    signupFormResult <- case err of
-      Left  string -> div [] [text $ string, signupForm]
-      Right _      -> signupForm
-    liftAff $ runExceptT $ (flip runStateT) currentState $ do
-      signupParameters <- makeStateT $ withExceptT (\_ -> "Registration failed") (ExceptT $ prepareSignupParameters conf signupFormResult)
-      _                <- mapStateT (\e -> withExceptT (\_ -> "Registration failed") e) (registerUser signupParameters)
-      pure $ signupFormResult
-  ))
-  modify_ (\_ -> newState)
-  pure result
