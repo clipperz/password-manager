@@ -34,29 +34,33 @@ import Widgets.SimpleWebComponents (simpleButton)
 import Data.Semigroup ((<>))
 import Effect.Class.Console (log)
 
-landingPage :: SRP.SRPConf -> StateT AppState (Widget HTML) IndexReference
+landingPage :: SRP.SRPConf -> Widget HTML IndexReference
 landingPage conf = landingPageWithState (LoginView Default emptyForm) conf
 
-landingPageWithState :: LandingPageView -> SRP.SRPConf -> StateT AppState (Widget HTML) IndexReference -- Unit
+landingPageWithState :: LandingPageView -> SRP.SRPConf -> Widget HTML IndexReference -- Unit
 landingPageWithState view conf = do
-  currentState <- get
-  result :: LandingPageAction <- makeStateT $ landingWidget (view)
+  _ <- log "landingPageWithState START"
+  result <- landingWidget conf view
   case result of
-    Signup credentials -> do
-      signupResult <- mapStateT (mapExceptT currentState >>> liftAff) $ do
-        signupParameters <- makeStateT $ withExceptT (\_ -> "Registration failed") (ExceptT $ prepareSignupParameters conf credentials)
-        mapStateT (\e -> withExceptT (\_ -> "Registration failed") e) (registerUser signupParameters)
-      case signupResult of
-        Left err -> landingPageWithState (SignupView (Error err) (merge credentials emptyDataForm)) conf
-        Right value -> executeLogin credentials currentState
-    Login credentials -> executeLogin credentials currentState 
-  where 
-    executeLogin :: Credentials -> AppState -> StateT AppState (Widget HTML) IndexReference
-    executeLogin credentials currentState = do
-      loginResult <- mapStateT (mapExceptT currentState >>> liftAff) (doLogin conf credentials)
-      case loginResult of
-        Left err -> landingPageWithState (LoginView (Error err) credentials) conf
-        Right value -> do
-          -- modify_ (\cs -> cs { indexReference = Just cs })
-          -- pure unit 
-          pure value
+    Signup credentials -> landingPageWithState view conf
+    Login index -> pure index
+
+  -- case result of
+  --   Signup credentials -> do
+  --     signupResult <- mapStateT (mapExceptT currentState >>> liftAff) $ do
+  --       signupParameters <- makeStateT $ withExceptT (\_ -> "Registration failed") (ExceptT $ prepareSignupParameters conf credentials)
+  --       mapStateT (\e -> withExceptT (\_ -> "Registration failed") e) (registerUser signupParameters)
+  --     case signupResult of
+  --       Left err -> landingPageWithState (SignupView (Error err) (merge credentials emptyDataForm)) conf
+  --       Right value -> executeLogin credentials currentState
+  --   Login credentials -> executeLogin credentials currentState 
+  -- where 
+  --   executeLogin :: Credentials -> AppState -> StateT AppState (Widget HTML) IndexReference
+  --   executeLogin credentials currentState = do
+  --     loginResult <- mapStateT (mapExceptT currentState >>> liftAff) (doLogin conf credentials)
+  --     case loginResult of
+  --       Left err -> landingPageWithState (LoginView (Error err) credentials) conf
+  --       Right value -> do
+  --         -- modify_ (\cs -> cs { indexReference = Just cs })
+  --         -- pure unit 
+  --         pure value

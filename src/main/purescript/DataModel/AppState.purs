@@ -7,6 +7,8 @@ import Data.Show (class Show, show)
 import DataModel.Proxy (Proxy)
 import DataModel.Communication.ProtocolError (ProtocolError)
 
+import Data.Generic.Rep (class Generic)
+
 type AppState =
   { proxy :: Proxy
   , sessionKey :: Maybe (HexString)

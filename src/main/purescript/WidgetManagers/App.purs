@@ -3,13 +3,15 @@ module WidgetManagers.App where
 import Concur.Core (Widget)
 import Control.Monad.State (runStateT, get)
 import Concur.React (HTML)
-import Control.Bind (bind)
+import Control.Bind (bind, discard)
 import Data.Function (($), flip)
 import Data.Functor (void)
 import Data.Unit (Unit)
+import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.SRP as SRP
-import Functions.State(computeInitialState)
+import Functions.State (computeInitialState)
+import Functions.JSState (updateAppState)
 import WidgetManagers.HomePageManager as HomePageManager
 import WidgetManagers.LandingPageManager as LandingPageManager
 
@@ -19,10 +21,11 @@ import Effect.Class.Console (log)
 
 app :: Widget HTML Unit
 app = do
+  _ <- log "app START"
   initialState <- liftEffect computeInitialState
-  _ <- (flip runStateT) initialState $ do
-    indexReference <- LandingPageManager.landingPage SRP.baseConfiguration
-    newState <- get
-    _ <- log $ "newState (app) -> " <> show newState
-    void $ HomePageManager.homePageManager indexReference
+  liftAff $ updateAppState initialState
+  _ <- log "app STATE READY"
+  _ <- do
+    {- indexReference <- -} LandingPageManager.landingPage SRP.baseConfiguration
+    -- void $ HomePageManager.homePageManager indexReference
   app

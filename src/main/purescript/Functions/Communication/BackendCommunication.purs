@@ -8,7 +8,7 @@ import Affjax.ResponseHeader (ResponseHeader, name, value)
 import Affjax.StatusCode (StatusCode(..))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
-import Control.Monad.Except.Trans (ExceptT(..), except)
+import Control.Monad.Except.Trans (ExceptT(..), except, mapExceptT, withExceptT)
 import Control.Monad.State (StateT, get, modify_, modify)
 import Data.Array (filter)
 import Data.Bifunctor (lmap)
@@ -28,12 +28,14 @@ import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
-import DataModel.AppState (AppState)
+import DataModel.AppState as AS
 import DataModel.Proxy (Proxy(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff)
+import Effect.Class (liftEffect)
 import Functions.State (makeStateT)
 import Functions.HashCash (TollChallenge, computeReceipt)
+import Functions.JSState (getAppState, updateAppState)
 import Functions.SRP (hashFuncSHA256)
 
 import Effect.Class.Console (log)
@@ -56,7 +58,7 @@ tollCostHeaderName = "clipperz-hashcash-tollcost"
 tollReceiptHeaderName :: String
 tollReceiptHeaderName = "clipperz-hashcash-tollreceipt"
 
-createHeaders :: AppState -> Array RequestHeader
+createHeaders :: AS.AppState -> Array RequestHeader
 createHeaders { toll, sessionKey } = 
   let
     tollHeader    = (\t ->   RequestHeader tollReceiptHeaderName (show t))   <$> fromMaybe toll
@@ -65,7 +67,7 @@ createHeaders { toll, sessionKey } =
 
 -- ----------------------------------------------------------------------------
 
-manageGenericRequest :: forall a. Url -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> StateT AppState (ExceptT ProtocolError Aff) (AXW.Response a)
+manageGenericRequest :: forall a. Url -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> StateT AS.AppState (ExceptT ProtocolError Aff) (AXW.Response a)
 manageGenericRequest url method body responseFormat = do
   currentState@{ c: _, p: _, toll: _, sessionKey: _, proxy } <- get
   let requestInfo = case proxy of
@@ -81,7 +83,7 @@ manageGenericRequest url method body responseFormat = do
   manageResponse response.status response
 
   where 
-        manageResponse :: StatusCode -> (AXW.Response a -> StateT AppState (ExceptT ProtocolError Aff) (AXW.Response a))
+        manageResponse :: StatusCode -> (AXW.Response a -> StateT AS.AppState (ExceptT ProtocolError Aff) (AXW.Response a))
         manageResponse code@(StatusCode n)
           | n == 400            = \response -> do
               -- _ <- log "400 received"
@@ -107,6 +109,59 @@ manageGenericRequest url method body responseFormat = do
           | otherwise           = \_ -> do
             -- _ <- log $ "Unknown request error" <> show response.status
             makeStateT $ except $ Left $ ResponseError n
+        
+        extractChallenge :: Array ResponseHeader -> Maybe TollChallenge
+        extractChallenge headers =
+          let tollArray = filter (\a -> name a == tollHeaderName) headers
+              costArray = filter (\a -> name a == tollCostHeaderName) headers
+          in case (Tuple tollArray costArray) of
+              Tuple [tollHeader] [costHeader] -> (\cost -> { toll: hex $ value tollHeader, cost }) <$> fromString (value costHeader)
+              _                               -> Nothing
+
+manageGenericRequest' :: forall a. Url -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AS.AppError Aff (AXW.Response a)
+manageGenericRequest' url method body responseFormat = do
+  currentState@{ proxy: proxy, c: mc, p: _, sessionKey: _, toll: _ } <- ExceptT $ liftEffect $ getAppState
+  let requestInfo = case proxy of
+                      OnlineProxy _ -> OnlineRequestInfo  { url 
+                                                          , method
+                                                          , headers: createHeaders currentState
+                                                          , body
+                                                          , responseFormat
+                                                          }
+                      OfflineProxy  -> OfflineRequestInfo { url, method, body, responseFormat }
+  ExceptT $ Right <$> updateAppState (currentState { toll = Nothing })
+  response <- withExceptT (\e -> AS.ProtocolError e) (ExceptT $ doGenericRequest proxy requestInfo)
+  manageResponse response.status response
+
+  where 
+        manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AS.AppError Aff (AXW.Response a))
+        manageResponse code@(StatusCode n)
+          | n == 400            = \response -> do
+              -- _ <- log "400 received"
+              -- _ <- log $ show response.headers
+              case (extractChallenge response.headers) of
+                Just challenge -> do
+                  -- _ <- log $ "toll challenge: " <> (show challenge)
+                  receipt <- ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
+                  currentState <- ExceptT $ liftEffect $ getAppState
+                  ExceptT $ Right <$> updateAppState (currentState { toll = Just receipt })
+                  manageGenericRequest' url method body responseFormat
+                Nothing -> except $ Left $  AS.ProtocolError $ IllegalResponse "HashCash headers not present or wrong"
+          | isStatusCodeOk code = \response -> do
+              -- _ <- log "200 received"
+              case (extractChallenge response.headers) of
+                Just challenge -> do
+                  _ <- log "1 - computing new receipt..."
+                  receipt <- ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
+                  _ <- log "2 - computed new receipt"
+                  currentState <- ExceptT $ liftEffect $ getAppState
+                  ExceptT $ Right <$> updateAppState (currentState { toll = Just receipt })
+                  _ <- log "3 - inserted new receipt into state"
+                  pure response
+                Nothing -> pure response
+          | otherwise           = \_ -> do
+            -- _ <- log $ "Unknown request error" <> show response.status
+           except $ Left $ AS.ProtocolError $ ResponseError n
         
         extractChallenge :: Array ResponseHeader -> Maybe TollChallenge
         extractChallenge headers =

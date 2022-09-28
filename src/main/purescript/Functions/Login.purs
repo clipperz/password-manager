@@ -9,13 +9,16 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
 import Data.Maybe (Maybe(..))
+import Data.Show (show)
 import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppState)
 import DataModel.Credentials (Credentials)
 import DataModel.Index (IndexReference)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Functions.Communication.Login (login)
+import Effect.Class (liftEffect)
+import Functions.Communication.Login (login, login')
+import Functions.JSState (updateAppState, getAppState)
 import Functions.SRP as SRP
 import Functions.State (makeStateT)
 
@@ -26,4 +29,14 @@ doLogin conf { username, password } = do
   modify_ (\currentState -> currentState { c = Just c, p = Just p })
   
   indexReference <- mapStateT (withExceptT (\_ -> "Login failed")) (login conf)
+  pure $ indexReference
+
+doLogin' :: SRP.SRPConf -> Credentials -> ExceptT String Aff IndexReference
+doLogin' conf { username, password } = do
+  currentState <- withExceptT (show) (ExceptT $ liftEffect getAppState)
+  c            <- ExceptT $ Right <$> fromArrayBuffer <$> SRP.prepareC conf username password
+  p            <- ExceptT $ Right <$> fromArrayBuffer <$> SRP.prepareP conf username password
+  ExceptT $ Right <$> updateAppState (currentState { c = Just c, p = Just p })
+  
+  indexReference <- withExceptT (\_ -> "Login failed") (login' conf)
   pure $ indexReference

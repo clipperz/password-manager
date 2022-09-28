@@ -1,6 +1,5 @@
 const Main = require ("../../../target/output.purescript/Main")
 
-
 function main () {
     /*
         Here we could add variables such as
