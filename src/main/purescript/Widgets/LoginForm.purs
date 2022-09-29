@@ -7,7 +7,7 @@ import Control.Monad.Except.Trans (runExceptT)
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (form', div, text)
+import Concur.React.DOM (form', div, div', text)
 import Concur.React.Props as P
 import Data.Either (either)
 import Data.Eq ((/=))
@@ -45,33 +45,36 @@ data LoginWidgetResults = Credentials Credentials | LoginDone IndexReference | L
 loginWidget :: SRP.SRPConf -> WidgetState -> LoginForm -> Widget HTML IndexReference
 loginWidget conf widgetState loginData = do
   res <- case widgetState of
-    Default -> Credentials <$> loginForm true loginData
+    Default -> Credentials <$> loginForm Default loginData
     Loading -> do
       let login = liftAff $ (either LoginFailed LoginDone <$> (runExceptT $ doLogin' conf loginData)) 
-      (Credentials <$> loginForm false loginData) <|> login
-    Error err -> Credentials <$> div [] [text err, loginForm true loginData]
+      (Credentials <$> loginForm Loading loginData) <|> login
+    Error err -> Credentials <$> loginForm (Error err) loginData
   case res of
     Credentials credentials -> loginWidget conf Loading credentials
     LoginDone index -> pure index
     LoginFailed err -> loginWidget conf (Error err) loginData
 
-  where 
-    loginForm :: Boolean -> LoginForm -> Widget HTML Credentials
-    loginForm loading formData = div [] [
-                  div [ (P.className (if loading then "Loading" else "")) ] [],
-                  form' [
-                    do
-                      signalResult <- demand $ do
-                        formValues <- loopS loginData $ \{username: username, password: password} -> do
-                          username' <- simpleUserSignal username
-                          password' <- simplePasswordSignal password
-                          pure { username: username', password: password' }
-                        result <- fireOnce (submitWidget formValues)
-                        pure result
-                      liftEffect $ log $ "signalResult " <> show signalResult
-                      pure signalResult
-                  ]
-                ]
+  where
+    loginForm :: WidgetState -> LoginForm -> Widget HTML Credentials
+    loginForm state formData = 
+      case state of
+        Default -> div' [form false formData]
+        Loading -> div' [loadingDiv, form true formData]
+        Error err -> div' [errorDiv err, form false formData]
+    errorDiv err = div' [text err]
+    loadingDiv = div [ (P.className "Loading") ] [text "LOADING"]
+    form disabled formData = div' [ do
+                                      signalResult <- demand $ do
+                                        formValues <- loopS loginData $ \{username: username, password: password} -> do
+                                          username' <- simpleUserSignal username
+                                          password' <- simplePasswordSignal password
+                                          pure { username: username', password: password' }
+                                        result <- fireOnce (submitWidget formValues)
+                                        pure result
+                                      liftEffect $ log $ "signalResult " <> show signalResult
+                                      pure signalResult
+                                  ]
 
 submitWidget :: LoginForm -> Widget HTML LoginForm
 submitWidget f = simpleButton "Log In" (not (isFormValid f)) f

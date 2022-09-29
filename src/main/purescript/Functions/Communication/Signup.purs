@@ -5,7 +5,7 @@ import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
-import Control.Monad.Except.Trans (ExceptT(..), mapExceptT)
+import Control.Monad.Except.Trans (ExceptT(..), mapExceptT, except)
 import Control.Monad.State (StateT, mapStateT, modify_)
 import Control.Semigroupoid ((>>>), (<<<))
 import Data.Argonaut.Encode.Class (encodeJson)
@@ -59,7 +59,7 @@ signupUser conf credentials = do
   ExceptT $ Right <$> updateAppState (currentState { sessionKey = Just sessionKey })
   --- --------------------------- 
   response :: AXW.Response String <- manageGenericRequest' url PUT (Just body) RF.string
-  ExceptT $ pure $ if isStatusCodeOk response.status
-                    then Right $ hex response.body
-                    else Left (ProtocolError (ResponseError (unwrap response.status)))
+  except $ if isStatusCodeOk response.status
+           then Right $ hex response.body
+           else Left (ProtocolError (ResponseError (unwrap response.status)))
 

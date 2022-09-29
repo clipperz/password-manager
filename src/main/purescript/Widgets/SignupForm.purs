@@ -3,7 +3,7 @@ module Widgets.SignupForm where
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (text, a, p, form', div)
+import Concur.React.DOM (text, a, p, form', div, div', fieldset)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
@@ -15,13 +15,14 @@ import Data.Eq ((==), (/=))
 import Data.Foldable (all)
 import Data.Function (($))
 import Data.Functor ((<$>))
+import Data.HexString (HexString)
 import Data.HeytingAlgebra ((&&), not)
 import Data.Map (Map, fromFoldable)
 import Data.Maybe (Maybe)
 import Data.Ord ((<=))
 import Data.Semigroup ((<>))
 import Data.Tuple (Tuple(..))
-import Data.Show (show)
+import Data.Show (class Show, show)
 import Data.String (length)
 import DataModel.Credentials (Credentials)
 import DataModel.Index (IndexReference)
@@ -71,7 +72,11 @@ standardPasswordStrengthFunction s = if (length s) <= 4 then Weak else Strong
 
 --------------------------------
 
-data SignupWidgetResults = SignupCredentials Credentials | SignupDone Credentials | SignupFailed String
+data SignupWidgetResults = SignupCredentials Credentials | SignupDone Credentials HexString | SignupFailed String
+instance showSignupWidgetResults :: Show SignupWidgetResults where
+  show (SignupCredentials c) = "Credentials " <> show c
+  show (SignupDone c _) = "Signup done " <> show c
+  show (SignupFailed s) = "Signup failed " <> s
 
 --------------------------------
 
@@ -79,32 +84,38 @@ signupWidgetWithLogin :: SRP.SRPConf -> WidgetState -> SignupDataForm -> Widget 
 signupWidgetWithLogin conf state form = do
   signupResult <- signupWidget conf state form
   let login = liftAff $ (either LoginFailed LoginDone <$> (runExceptT $ doLogin' conf signupResult)) 
-  loginResult <- (Credentials <$> signupWidget conf Loading (merge signupResult form)) <|> login
+  loginResult <- (Credentials <$> signupForm Loading (merge signupResult form)) <|> login
   case loginResult of
-    Credentials credentials -> signupWidgetWithLogin conf Loading (merge credentials form)
+    Credentials credentials -> signupWidgetWithLogin conf Default (merge credentials form)
     LoginDone index -> pure index
     LoginFailed err -> signupWidgetWithLogin conf (Error ("Automatic login failed: " <> err)) (merge signupResult form) -- TODO: show login form?
 
 signupWidget :: SRP.SRPConf -> WidgetState -> SignupDataForm -> Widget HTML Credentials
 signupWidget conf widgetState signupFormData = do
   res <- case widgetState of
-    Default -> SignupCredentials <$> signupForm false signupFormData
+    Default -> SignupCredentials <$> signupForm Default signupFormData
     Loading -> do
       let creds = { username: signupFormData.username, password: signupFormData.password }
-      let signup = liftAff $ (either (SignupFailed <<< show) (\_ -> SignupDone creds) <$> (runExceptT $ signupUser conf creds)) 
-      (SignupCredentials <$> signupForm true signupFormData) <|> signup
-    Error err -> do
-      _ <- log err
-      SignupCredentials <$> div [] [text err, signupForm false signupFormData]
+      -- let res = runExceptT $ signupUser conf creds
+      let signup = liftAff $ runExceptT $ signupUser conf creds 
+      (SignupCredentials <$> signupForm Loading signupFormData) <|> (either (SignupFailed <<< show) (\r -> SignupDone creds r) <$> signup)
+    Error err -> SignupCredentials <$> div [] [text err, signupForm (Error err) signupFormData]
   case res of
     SignupCredentials credentials -> signupWidget conf Loading (merge credentials signupFormData)
-    SignupDone credentials -> pure credentials
+    SignupDone credentials _ -> pure credentials
     SignupFailed err -> signupWidget conf (Error err) signupFormData
 
+signupForm :: WidgetState -> SignupDataForm -> Widget HTML Credentials -- TODO: return SignupDataForm to show the compiled form in loading
+signupForm state formData = 
+  case state of
+    Default   -> div' [form false]
+    Loading   -> div' [loadingDiv, form true]
+    Error err -> div' [errorDiv err, form false]
+
   where 
-    signupForm :: Boolean -> SignupDataForm -> Widget HTML Credentials -- TODO: return SignupDataForm to show the compiled form in loading
-    signupForm loading formData = div [] [
-      div [ (Props.className (if loading then "Loading" else "")) ] (if loading then [text "LOADING"] else []),
+    errorDiv err = div' [text err ]
+    loadingDiv = div [ (Props.className "Loading") ] [text "LOADING"]
+    form disabled = fieldset [(Props.disabled disabled)] [
       do
         signalResult <- demand $ do
           formValues :: SignupDataForm <- loopS formData $ \{username: username, password: password, verifyPassword: verifyPassword, checkboxes: checkboxMap} -> do
