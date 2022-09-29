@@ -22,9 +22,24 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.ArrayBuffer (concatArrayBuffers)
-import Functions.Communication.Signup (RegisterUserRequest)
 import Functions.SRP as SRP
 import Functions.EncodeDecode (encryptJson, encryptArrayBuffer)
+
+type UserCard = {
+    c :: HexString
+  , v :: HexString
+  , s :: HexString
+  , srpVersion :: String
+  , masterKeyEncodingVersion :: String
+  , masterKeyContent :: HexString
+}
+
+type RegisterUserRequest = {
+    user :: UserCard
+  , indexCardReference :: HexString
+  , indexCardContent   :: HexString
+  , cards :: Array (Tuple HexString HexString)
+}
 
 prepareCards :: SRP.SRPConf -> List Card -> Aff (List (Tuple ArrayBuffer CardEntry))
 prepareCards conf cards = extractAff $ convertToCardEntry <$> cards

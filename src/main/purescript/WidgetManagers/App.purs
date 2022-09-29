@@ -21,10 +21,8 @@ import Effect.Class.Console (log)
 
 app :: Widget HTML Unit
 app = do
-  _ <- log "app START"
   initialState <- liftEffect computeInitialState
   liftAff $ updateAppState initialState
-  _ <- log "app STATE READY"
   _ <- do
     {- indexReference <- -} LandingPageManager.landingPage SRP.baseConfiguration
     -- void $ HomePageManager.homePageManager indexReference

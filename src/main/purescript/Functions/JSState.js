@@ -6,7 +6,7 @@ let appState = ""
 
 const getJsonState = function() {
     return function() {
-        console.log("GET - " + appState);
+        // console.log("GET - " + appState);
         return appState;
     }
 }
@@ -14,7 +14,7 @@ const getJsonState = function() {
 const updateJsonState = function(n) {
     return function() {
         appState = n;
-        console.log("SET - " + appState);
+        // console.log("SET - " + appState);
         return appState;
     }
 }

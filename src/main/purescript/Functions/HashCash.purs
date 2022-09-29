@@ -23,7 +23,7 @@ type TollChallenge = {toll :: Toll, cost :: Cost}
 
 computeReceipt :: HashFunction -> TollChallenge -> Aff Receipt
 computeReceipt hash challenge = do
-  _ <- log "PING"
+  -- _ <- log "PING"
   receipt <- fromArrayBuffer <$> randomArrayBuffer 32
   verification <- verifyReceipt hash challenge receipt
   case verification of
@@ -38,6 +38,6 @@ verifyReceipt hashFunc {toll, cost} receipt = do
   -- pure $ (take cost tollBits) == (take cost hashBits)
   if (take cost tollBits) == (take cost hashBits) 
     then do
-      _ <- log $ "cost: " <> show cost <> "; Toll -> " <> tollBits <> "; Receipt -> " <> show receipt <> "; Hash -> " <> hashBits 
+      -- _ <- log $ "cost: " <> show cost <> "; Toll -> " <> tollBits <> "; Receipt -> " <> show receipt <> "; Hash -> " <> hashBits 
       pure true 
     else pure false

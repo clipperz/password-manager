@@ -13,7 +13,7 @@ import DataModel.WidgetState (WidgetState(..))
 import Record (merge)
 import Widgets.SimpleWebComponents (simpleButton)
 import Widgets.LoginForm (loginWidget, LoginForm)
-import Widgets.SignupForm (signupWidget, SignupDataForm, emptyDataForm)
+import Widgets.SignupForm (signupWidget, SignupDataForm, emptyDataForm, signupWidgetWithLogin)
 import Functions.SRP as SRP
 
 import Effect.Class.Console (log)
@@ -27,7 +27,6 @@ data LandingWidgetAction = LandingPageView LandingPageView | LandingPageAction L
 
 landingWidget :: SRP.SRPConf -> LandingPageView -> Widget HTML LandingPageAction
 landingWidget conf view = do
-  _ <- log "landingWidget START"
   result <- case view of
     LoginView state form ->  div [] [
                     (LandingPageAction <<< Login) <$> loginWidget conf state form
@@ -35,7 +34,7 @@ landingWidget conf view = do
                   ]
     SignupView state form -> div [] [
                     -- Signup <$> runStateT (signupManager conf) currentState
-                    (LandingPageAction <<< Signup) <$> signupWidget state form
+                    (LandingPageAction <<< Login) <$> signupWidgetWithLogin conf state form -- TODO
                   , simpleButton "Go to log in" false (LandingPageView (LoginView Default { username: form.username, password: form.password }))
                   ]
   case result of

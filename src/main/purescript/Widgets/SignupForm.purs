@@ -5,12 +5,16 @@ import Concur.Core.FRP (loopS, fireOnce, demand)
 import Concur.React (HTML)
 import Concur.React.DOM (text, a, p, form', div)
 import Concur.React.Props as Props
+import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
-import Data.Either (Either(..))
+import Control.Monad.Except.Trans (runExceptT)
+import Control.Semigroupoid ((<<<))
+import Data.Either (Either(..), either)
 import Data.Eq ((==), (/=))
 import Data.Foldable (all)
 import Data.Function (($))
+import Data.Functor ((<$>))
 import Data.HeytingAlgebra ((&&), not)
 import Data.Map (Map, fromFoldable)
 import Data.Maybe (Maybe)
@@ -20,10 +24,16 @@ import Data.Tuple (Tuple(..))
 import Data.Show (show)
 import Data.String (length)
 import DataModel.Credentials (Credentials)
+import DataModel.Index (IndexReference)
 import DataModel.WidgetState (WidgetState(..))
+import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
+import Functions.Communication.Signup (signupUser)
+import Functions.Login (doLogin')
+import Functions.SRP as SRP
 import Record (merge)
+import Widgets.LoginForm (LoginWidgetResults(..))
 import Widgets.Utilities (PasswordStrengthFunction, PasswordStrength(..))
 import Widgets.SimpleWebComponents (simpleButton, simpleUserSignal, simpleVerifiedPasswordSignal, checkboxesSignal, PasswordForm)
 
@@ -61,20 +71,43 @@ standardPasswordStrengthFunction s = if (length s) <= 4 then Weak else Strong
 
 --------------------------------
 
-signupWidget :: WidgetState -> SignupDataForm -> Widget HTML Credentials
-signupWidget widgetState signupFormData = do
-  case widgetState of
-    Default -> signupForm
+data SignupWidgetResults = SignupCredentials Credentials | SignupDone Credentials | SignupFailed String
+
+--------------------------------
+
+signupWidgetWithLogin :: SRP.SRPConf -> WidgetState -> SignupDataForm -> Widget HTML IndexReference
+signupWidgetWithLogin conf state form = do
+  signupResult <- signupWidget conf state form
+  let login = liftAff $ (either LoginFailed LoginDone <$> (runExceptT $ doLogin' conf signupResult)) 
+  loginResult <- (Credentials <$> signupWidget conf Loading (merge signupResult form)) <|> login
+  case loginResult of
+    Credentials credentials -> signupWidgetWithLogin conf Loading (merge credentials form)
+    LoginDone index -> pure index
+    LoginFailed err -> signupWidgetWithLogin conf (Error ("Automatic login failed: " <> err)) (merge signupResult form) -- TODO: show login form?
+
+signupWidget :: SRP.SRPConf -> WidgetState -> SignupDataForm -> Widget HTML Credentials
+signupWidget conf widgetState signupFormData = do
+  res <- case widgetState of
+    Default -> SignupCredentials <$> signupForm false signupFormData
     Loading -> do
-      _ <- div [] [ text "loading"]
-      pure { username: signupFormData.username, password: signupFormData.password }
-    Error err -> div [] [text err, signupForm]
+      let creds = { username: signupFormData.username, password: signupFormData.password }
+      let signup = liftAff $ (either (SignupFailed <<< show) (\_ -> SignupDone creds) <$> (runExceptT $ signupUser conf creds)) 
+      (SignupCredentials <$> signupForm true signupFormData) <|> signup
+    Error err -> do
+      _ <- log err
+      SignupCredentials <$> div [] [text err, signupForm false signupFormData]
+  case res of
+    SignupCredentials credentials -> signupWidget conf Loading (merge credentials signupFormData)
+    SignupDone credentials -> pure credentials
+    SignupFailed err -> signupWidget conf (Error err) signupFormData
 
   where 
-    signupForm = div [] [
+    signupForm :: Boolean -> SignupDataForm -> Widget HTML Credentials -- TODO: return SignupDataForm to show the compiled form in loading
+    signupForm loading formData = div [] [
+      div [ (Props.className (if loading then "Loading" else "")) ] (if loading then [text "LOADING"] else []),
       do
         signalResult <- demand $ do
-          formValues :: SignupDataForm <- loopS signupFormData $ \{username: username, password: password, verifyPassword: verifyPassword, checkboxes: checkboxMap} -> do
+          formValues :: SignupDataForm <- loopS formData $ \{username: username, password: password, verifyPassword: verifyPassword, checkboxes: checkboxMap} -> do
             username' :: String <- simpleUserSignal username
             eitherPassword :: Either PasswordForm String <- simpleVerifiedPasswordSignal standardPasswordStrengthFunction $ Left {password: password, verifyPassword: verifyPassword}
             checkboxMap' :: Array (Tuple String Boolean) <- checkboxesSignal checkboxMap checkboxesLabels   

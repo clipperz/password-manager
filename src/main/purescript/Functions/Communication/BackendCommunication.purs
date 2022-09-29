@@ -151,12 +151,12 @@ manageGenericRequest' url method body responseFormat = do
               -- _ <- log "200 received"
               case (extractChallenge response.headers) of
                 Just challenge -> do
-                  _ <- log "1 - computing new receipt..."
+                  -- _ <- log "1 - computing new receipt..."
                   receipt <- ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
-                  _ <- log "2 - computed new receipt"
+                  -- _ <- log "2 - computed new receipt"
                   currentState <- ExceptT $ liftEffect $ getAppState
                   ExceptT $ Right <$> updateAppState (currentState { toll = Just receipt })
-                  _ <- log "3 - inserted new receipt into state"
+                  -- _ <- log "3 - inserted new receipt into state"
                   pure response
                 Nothing -> pure response
           | otherwise           = \_ -> do

@@ -44,7 +44,6 @@ data LoginWidgetResults = Credentials Credentials | LoginDone IndexReference | L
 
 loginWidget :: SRP.SRPConf -> WidgetState -> LoginForm -> Widget HTML IndexReference
 loginWidget conf widgetState loginData = do
-  _ <- log "loginWidget START"
   res <- case widgetState of
     Default -> Credentials <$> loginForm true loginData
     Loading -> do

@@ -39,7 +39,6 @@ landingPage conf = landingPageWithState (LoginView Default emptyForm) conf
 
 landingPageWithState :: LandingPageView -> SRP.SRPConf -> Widget HTML IndexReference -- Unit
 landingPageWithState view conf = do
-  _ <- log "landingPageWithState START"
   result <- landingWidget conf view
   case result of
     Signup credentials -> landingPageWithState view conf
