@@ -24,6 +24,6 @@ app = do
   initialState <- liftEffect computeInitialState
   liftAff $ updateAppState initialState
   _ <- do
-    {- indexReference <- -} LandingPageManager.landingPage SRP.baseConfiguration
-    -- void $ HomePageManager.homePageManager indexReference
+    indexReference <- LandingPageManager.landingPage SRP.baseConfiguration
+    void $ HomePageManager.homePageManager indexReference
   app
