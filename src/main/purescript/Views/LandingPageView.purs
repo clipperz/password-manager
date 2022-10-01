@@ -32,7 +32,6 @@ landingPageView conf view = do
                   , simpleButton "Go to sign up" false (LandingPageView (SignupView Default (merge form emptyDataForm)))
                   ]
     SignupView state form -> div [] [
-                    -- Signup <$> runStateT (signupManager conf) currentState
                     Login <$> signupWidgetWithLogin conf state form -- TODO
                   , simpleButton "Go to log in" false (LandingPageView (LoginView Default { username: form.username, password: form.password }))
                   ]

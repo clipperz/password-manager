@@ -31,7 +31,7 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Signup (signupUser)
-import Functions.Login (doLogin')
+import Functions.Login (doLogin)
 import Functions.SRP as SRP
 import Record (merge)
 import OperationalWidgets.LoginWidget (LoginWidgetResults(..))
@@ -49,7 +49,7 @@ instance showSignupWidgetResults :: Show SignupWidgetResults where
 signupWidgetWithLogin :: SRP.SRPConf -> WidgetState -> SignupDataForm -> Widget HTML IndexReference
 signupWidgetWithLogin conf state form = do
   signupResult <- signupWidget conf state form
-  let login = liftAff $ (either LoginFailed LoginDone <$> (runExceptT $ doLogin' conf signupResult)) 
+  let login = liftAff $ (either LoginFailed LoginDone <$> (runExceptT $ doLogin conf signupResult)) 
   loginResult <- (Credentials <$> signupFormView Loading (merge signupResult form)) <|> login
   case loginResult of
     Credentials credentials -> signupWidgetWithLogin conf Default (merge credentials form)

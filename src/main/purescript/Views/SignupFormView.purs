@@ -31,7 +31,7 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Signup (signupUser)
-import Functions.Login (doLogin')
+import Functions.Login (doLogin)
 import Functions.Password (standardPasswordStrengthFunction)
 import Functions.SRP as SRP
 import Record (merge)

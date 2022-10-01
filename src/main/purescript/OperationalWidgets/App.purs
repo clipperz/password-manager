@@ -1,7 +1,6 @@
 module OperationalWidgets.App where
 
 import Concur.Core (Widget)
-import Control.Monad.State (runStateT, get)
 import Concur.React (HTML)
 import Control.Bind (bind, discard)
 import Data.Function (($), flip)

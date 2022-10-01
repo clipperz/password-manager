@@ -23,13 +23,13 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Effect.Exception as EX
 import Functions.EncodeDecode (decryptArrayBuffer)
-import Functions.Communication.Blobs (getDecryptedBlob')
+import Functions.Communication.Blobs (getDecryptedBlob)
 import Functions.JSState (getAppState)
 
 getCard :: CardReference -> ExceptT AppError Aff Card
 getCard (CardReference_v1 { reference, key }) = do
   cryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-  getDecryptedBlob' reference cryptoKey 
+  getDecryptedBlob reference cryptoKey 
 
 getIndex :: HexString -> ExceptT AppError Aff Index
 getIndex encryptedRef = do 
@@ -39,7 +39,7 @@ getIndex encryptedRef = do
       masterPassword :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       { before: masterKey, after: indexReference } <- mapDecodeError $ ExceptT $ splitInHalf <$> (decryptEncryptedRef masterPassword)
       cryptoKey      :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      getDecryptedBlob' indexReference cryptoKey
+      getDecryptedBlob indexReference cryptoKey
     _ -> except $ Left $ InvalidStateError "Missing p"
   
   where 

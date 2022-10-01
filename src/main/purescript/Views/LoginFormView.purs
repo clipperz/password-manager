@@ -22,7 +22,7 @@ import DataModel.Index (IndexReference)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
-import Functions.Login (doLogin, doLogin')
+import Functions.Login (doLogin)
 import Functions.SRP as SRP
 
 import Views.SimpleWebComponents (simpleButton, simpleUserSignal, simplePasswordSignal)
