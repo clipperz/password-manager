@@ -7,6 +7,7 @@ import Control.Monad.Except.Trans (ExceptT, runExceptT)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor (class Functor, (<$>))
+import Data.Map.Internal (empty)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppState)
@@ -17,4 +18,4 @@ baseUrl :: String
 baseUrl = "http://localhost:8090" --TODO: get from configuration file/build
 
 computeInitialState :: Effect AppState
-computeInitialState = pure { proxy: (OnlineProxy baseUrl), sessionKey: Nothing, toll: Nothing, c: Nothing, p: Nothing }
+computeInitialState = pure { proxy: (OnlineProxy baseUrl), sessionKey: Nothing, toll: Nothing, c: Nothing, p: Nothing, cardsCache: empty }

@@ -22,14 +22,21 @@ import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Effect.Exception as EX
-import Functions.EncodeDecode (decryptArrayBuffer)
+import Functions.CardsCache (getCardFromCache, addCardToCache)
 import Functions.Communication.Blobs (getDecryptedBlob)
+import Functions.EncodeDecode (decryptArrayBuffer)
 import Functions.JSState (getAppState)
 
 getCard :: CardReference -> ExceptT AppError Aff Card
 getCard (CardReference_v1 { reference, key }) = do
-  cryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-  getDecryptedBlob reference cryptoKey 
+  maybeCard <- getCardFromCache reference
+  case maybeCard of
+    Just card -> pure $ card
+    Nothing -> do
+      cryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+      card <- getDecryptedBlob reference cryptoKey
+      addCardToCache reference card
+      pure $ card
 
 getIndex :: HexString -> ExceptT AppError Aff Index
 getIndex encryptedRef = do 
