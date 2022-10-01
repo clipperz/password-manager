@@ -3,7 +3,7 @@ module Views.SimpleWebComponents where
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopW, loopS, display)
 import Concur.React (HTML)
-import Concur.React.DOM (text, input, label, div', button, li)
+import Concur.React.DOM (text, input, label, div', div, button, li)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
@@ -102,3 +102,6 @@ clickableListItemWidget item reference = li [reference <$ Props.onClick] [item]
 
 passwordStrengthShow :: forall a. PasswordStrength -> Widget HTML a
 passwordStrengthShow = text <<< show
+
+loadingDiv :: forall a. Widget HTML a
+loadingDiv = div [ (Props.className "Loading") ] [text "LOADING"]  

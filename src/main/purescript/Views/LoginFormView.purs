@@ -25,7 +25,7 @@ import Effect.Class.Console (log)
 import Functions.Login (doLogin)
 import Functions.SRP as SRP
 
-import Views.SimpleWebComponents (simpleButton, simpleUserSignal, simplePasswordSignal)
+import Views.SimpleWebComponents (simpleButton, simpleUserSignal, simplePasswordSignal, loadingDiv)
 
 -- | The data of the login form
 type LoginForm =  { username :: String
@@ -49,7 +49,6 @@ loginFormView state formData =
   
   where
     errorDiv err = div' [text err]
-    loadingDiv = div [ (P.className "Loading") ] [text "LOADING"]
     form disabled formData = div' [ do
                                       signalResult <- demand $ do
                                         formValues <- loopS formData $ \{username: username, password: password} -> do

@@ -22,20 +22,19 @@ import Views.SimpleWebComponents (simpleButton)
 
 -- -----------------------------------
 
-data CardAction = Edit Card | Clone Card | Archive Card | Delete Card | NoAction
+data CardAction = Edit Card | Clone Card | Archive Card | Delete Card
 instance showCardAction :: Show CardAction where
   show (Edit _)    = "Edit"
   show (Clone _)   = "Clone"
   show (Archive _) = "Archive"
   show (Delete _)  = "Delete"
-  show (NoAction)   = "No action"
 
 -- -----------------------------------
 
 cardView :: Card -> Widget HTML CardAction
 cardView c@(Card_v1 r) = div [] [
     cardActions c
-  , NoAction <$ cardContent r.content
+  , cardContent r.content
 ]
 
 cardActions :: Card -> Widget HTML CardAction

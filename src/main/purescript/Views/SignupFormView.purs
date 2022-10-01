@@ -36,7 +36,7 @@ import Functions.Password (standardPasswordStrengthFunction)
 import Functions.SRP as SRP
 import Record (merge)
 import OperationalWidgets.LoginWidget (LoginWidgetResults(..))
-import Views.SimpleWebComponents (simpleButton, simpleUserSignal, simpleVerifiedPasswordSignal, checkboxesSignal, PasswordForm)
+import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleUserSignal, simpleVerifiedPasswordSignal, checkboxesSignal, PasswordForm)
 
 type SignupDataForm = { username       :: String
                       , password       :: String
@@ -77,7 +77,6 @@ signupFormView state formData =
 
   where 
     errorDiv err = div' [text err ]
-    loadingDiv = div [ (Props.className "Loading") ] [text "LOADING"]
     form disabled = fieldset [(Props.disabled disabled)] [
       do
         signalResult <- demand $ do
