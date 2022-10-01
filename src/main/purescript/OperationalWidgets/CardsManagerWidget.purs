@@ -1,4 +1,4 @@
-module Widgets.HomePage where
+module OperationalWidgets.CardsManagerWidget where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
@@ -13,43 +13,30 @@ import Data.Map (fromFoldable, Map)
 import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
+import Data.Unit (Unit)
 import DataModel.Index (CardReference, Index(..))
 import DataModel.Card (Card)
 import Effect.Class.Console (log)
-import Widgets.Cards (card, CardAction, cardWidget)
-import Widgets.Index (indexCard, IndexUpdateAction)
-import Widgets.SimpleWebComponents (simpleButton)
-
-cards :: Map HexString Card
-cards = fromFoldable []
-
-cardIndex :: Index
-cardIndex = Index_v1 Nil
+import Views.CardViews (CardAction)
+import Views.IndexView (indexView)
+import Views.SimpleWebComponents (simpleButton)
+import OperationalWidgets.CardWidget (cardWidget, IndexUpdateAction)
 
 data CardsViewAction = UpdateIndex IndexUpdateAction | ShowCard CardReference
 instance showCardsViewAction :: Show CardsViewAction where
   show (UpdateIndex a) = "UpdateIndex " <> show a
   show (ShowCard ref) = "Show Card " <> show ref
 
-cardsView :: Index -> Maybe CardReference -> Widget HTML CardsViewAction
-cardsView index mc = do
+cardsManagerWidget :: forall a. Index -> Maybe CardReference -> Widget HTML a
+cardsManagerWidget index mc = do
   res <- case mc of
-    Nothing -> div [] [ ShowCard <$> indexCard index ]
+    Nothing -> div [] [ ShowCard <$> indexView index ]
     Just c -> div [] [
-        ShowCard <$> indexCard index
+        ShowCard <$> indexView index
       , UpdateIndex <$> cardWidget c
     ]
   case res of
     UpdateIndex action -> do
       _ <- log $ show action
-      cardsView index mc
-    ShowCard ref -> cardsView index (Just ref)
-        
-
-data HomePageAction = DefaultHomePageAction | LogoutAction
-
-homePage :: Index -> Maybe CardReference -> Widget HTML HomePageAction
-homePage index cardReference = div [] [
-  DefaultHomePageAction <$ cardsView index cardReference
-, simpleButton "Logout" false LogoutAction
-]
+      cardsManagerWidget index mc
+    ShowCard ref -> cardsManagerWidget index (Just ref)

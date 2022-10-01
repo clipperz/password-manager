@@ -1,4 +1,4 @@
-module Widgets.PasswordGenerator where
+module Views.PasswordGenerator where
   
 import Concur.Core (Widget)
 import Concur.React (HTML)
@@ -27,8 +27,8 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 
-import Widgets.SimpleWebComponents (simpleButton, simpleNumberInputWidget, disabledSimpleTextInputWidget, simpleTextInputWidget, simpleCheckboxWidget)
-import Widgets.Utilities (randomPassword)
+import Functions.Password (randomPassword)
+import Views.SimpleWebComponents (simpleButton, simpleNumberInputWidget, disabledSimpleTextInputWidget, simpleTextInputWidget, simpleCheckboxWidget)
 
 data AsyncValue a = Loading (Maybe a) | Done a
 instance showAsyncValue :: (Show a) => Show (AsyncValue a) where

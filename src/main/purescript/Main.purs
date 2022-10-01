@@ -4,7 +4,7 @@ import Prelude
 
 import Concur.React.Run (runWidgetInDom)
 import Effect (Effect)
-import WidgetManagers.App (app)
+import OperationalWidgets.App (app)
 
 import Control.Bind ((>>=))
 import Data.Functor ((<$>))

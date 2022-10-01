@@ -1,4 +1,4 @@
-module Widgets.LoginForm where
+module Views.LoginFormView where
 
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
@@ -25,7 +25,7 @@ import Effect.Class.Console (log)
 import Functions.Login (doLogin, doLogin')
 import Functions.SRP as SRP
 
-import Widgets.SimpleWebComponents (simpleButton, simpleUserSignal, simplePasswordSignal)
+import Views.SimpleWebComponents (simpleButton, simpleUserSignal, simplePasswordSignal)
 
 -- | The data of the login form
 type LoginForm =  { username :: String
@@ -40,41 +40,27 @@ emptyForm = { username: "", password: "" }
 isFormValid :: LoginForm -> Boolean
 isFormValid { username, password } = username /= "" && password /= ""
 
-data LoginWidgetResults = Credentials Credentials | LoginDone IndexReference | LoginFailed String
-
-loginWidget :: SRP.SRPConf -> WidgetState -> LoginForm -> Widget HTML IndexReference
-loginWidget conf widgetState loginData = do
-  res <- case widgetState of
-    Default -> Credentials <$> loginForm Default loginData
-    Loading -> do
-      let login = liftAff $ (either LoginFailed LoginDone <$> (runExceptT $ doLogin' conf loginData)) 
-      (Credentials <$> loginForm Loading loginData) <|> login
-    Error err -> Credentials <$> loginForm (Error err) loginData
-  case res of
-    Credentials credentials -> loginWidget conf Loading credentials
-    LoginDone index -> pure index
-    LoginFailed err -> loginWidget conf (Error err) loginData
-
+loginFormView :: WidgetState -> LoginForm -> Widget HTML Credentials
+loginFormView state formData = 
+  case state of
+    Default -> div' [form false formData]
+    Loading -> div' [loadingDiv, form true formData]
+    Error err -> div' [errorDiv err, form false formData]
+  
   where
-    loginForm :: WidgetState -> LoginForm -> Widget HTML Credentials
-    loginForm state formData = 
-      case state of
-        Default -> div' [form false formData]
-        Loading -> div' [loadingDiv, form true formData]
-        Error err -> div' [errorDiv err, form false formData]
     errorDiv err = div' [text err]
     loadingDiv = div [ (P.className "Loading") ] [text "LOADING"]
     form disabled formData = div' [ do
                                       signalResult <- demand $ do
-                                        formValues <- loopS loginData $ \{username: username, password: password} -> do
+                                        formValues <- loopS formData $ \{username: username, password: password} -> do
                                           username' <- simpleUserSignal username
                                           password' <- simplePasswordSignal password
                                           pure { username: username', password: password' }
-                                        result <- fireOnce (submitWidget formValues)
+                                        result <- fireOnce (submitButton formValues)
                                         pure result
                                       liftEffect $ log $ "signalResult " <> show signalResult
                                       pure signalResult
                                   ]
 
-submitWidget :: LoginForm -> Widget HTML LoginForm
-submitWidget f = simpleButton "Log In" (not (isFormValid f)) f
+    submitButton :: LoginForm -> Widget HTML LoginForm
+    submitButton f = simpleButton "Log In" (not (isFormValid f)) f

@@ -1,4 +1,4 @@
-module Widgets.SimpleWebComponents where
+module Views.SimpleWebComponents where
 
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopW, loopS, display)
@@ -7,6 +7,7 @@ import Concur.React.DOM (text, input, label, div', button, li)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
+import Control.Semigroupoid ((<<<))
 import Data.Either (Either(..))
 import Data.Eq ((==))
 import Data.Function (($))
@@ -14,10 +15,10 @@ import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not)
 import Data.Map (Map, lookup)
 import Data.Maybe (fromMaybe)
+import Data.Show (show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
-
-import Widgets.Utilities (passwordStrengthShow, PasswordStrengthFunction)
+import Functions.Password (PasswordStrengthFunction, PasswordStrength)
 
 simpleInputWidget :: String -> Widget HTML String -> Boolean -> String -> String -> Widget HTML String
 simpleInputWidget id lbl disable value t = do
@@ -98,3 +99,6 @@ checkboxesSignal ts lablesMap = loopS ts \m -> do
 
 clickableListItemWidget :: forall a. Widget HTML a -> a -> Widget HTML a
 clickableListItemWidget item reference = li [reference <$ Props.onClick] [item]
+
+passwordStrengthShow :: forall a. PasswordStrength -> Widget HTML a
+passwordStrengthShow = text <<< show

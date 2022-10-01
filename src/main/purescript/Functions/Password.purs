@@ -1,12 +1,8 @@
-module Widgets.Utilities where
+module Functions.Password where
 
 import Bytes (foldMapBytesToString)
-import Concur.Core (Widget)
-import Concur.React (HTML)
-import Concur.React.DOM (text)
 import Control.Applicative (pure)
 import Control.Bind (bind)
-import Control.Semigroupoid ((<<<))
 import Data.Ord ((<=), (<))
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
@@ -24,10 +20,10 @@ instance showPasswordStrengh :: Show PasswordStrength where
   show Strong     = "strong"
   show VeryStrong = "very strong"
 
-passwordStrengthShow :: forall a. PasswordStrength -> Widget HTML a
-passwordStrengthShow = text <<< show
-
 type PasswordStrengthFunction = String -> PasswordStrength
+
+standardPasswordStrengthFunction :: PasswordStrengthFunction
+standardPasswordStrengthFunction s = if (length s) <= 4 then Weak else Strong
 
 randomPassword :: Int -> String -> Aff String
 randomPassword l characters = appendRandomChars (repeatStringUpToSize 256 characters) l ""

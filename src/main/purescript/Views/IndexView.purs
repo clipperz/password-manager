@@ -1,4 +1,4 @@
-module Widgets.Index where
+module Views.IndexView where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
@@ -13,16 +13,9 @@ import Data.Unit (Unit)
 
 import DataModel.Card (Card(..))
 import DataModel.Index (Index(..), CardEntry(..), CardReference)
-import Widgets.SimpleWebComponents (clickableListItemWidget)
+import Views.SimpleWebComponents (clickableListItemWidget)
 
-data IndexUpdateAction = AddReference Card | DeleteReference Card | ChangeToReference Card Card | NoUpdate
-instance showIndexUpdateAction :: Show IndexUpdateAction where
-  show (AddReference c) = "Add reference to " <> show c
-  show (DeleteReference c) = "Delete reference to " <> show c
-  show (ChangeToReference c c') = "Change reference of " <> show c <> " to " <> show c'
-  show NoUpdate = "No update"
-
-indexCard :: Index -> Widget HTML CardReference
-indexCard (Index_v1 cards) = do
+indexView :: Index -> Widget HTML CardReference
+indexView (Index_v1 cards) = do
   let sortedCards = fromFoldable $ sort cards :: Array CardEntry
   ol' $ (\(CardEntry_v1 { title, cardReference }) -> clickableListItemWidget (text title) cardReference) <$> sortedCards

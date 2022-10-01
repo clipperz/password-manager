@@ -1,4 +1,4 @@
-module Widgets.LandingPageWidget where
+module Views.LandingPageView where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
@@ -11,32 +11,31 @@ import DataModel.Credentials (Credentials)
 import DataModel.Index (IndexReference)
 import DataModel.WidgetState (WidgetState(..))
 import Record (merge)
-import Widgets.SimpleWebComponents (simpleButton)
-import Widgets.LoginForm (loginWidget, LoginForm)
-import Widgets.SignupForm (signupWidget, SignupDataForm, emptyDataForm, signupWidgetWithLogin)
+import Views.SimpleWebComponents (simpleButton)
+import Views.LoginFormView (LoginForm)
+import Views.SignupFormView (SignupDataForm, emptyDataForm)
+import OperationalWidgets.LoginWidget (loginWidget)
+import OperationalWidgets.SignupWidget (signupWidgetWithLogin)
 import Functions.SRP as SRP
 
 import Effect.Class.Console (log)
 
-
-data LandingPageAction = Signup Credentials | Login IndexReference 
-
 data LandingPageView = SignupView WidgetState SignupDataForm | LoginView WidgetState LoginForm
 
-data LandingWidgetAction = LandingPageView LandingPageView | LandingPageAction LandingPageAction
+data LandingWidgetAction = LandingPageView LandingPageView | Login IndexReference
 
-landingWidget :: SRP.SRPConf -> LandingPageView -> Widget HTML LandingPageAction
-landingWidget conf view = do
+landingPageView :: SRP.SRPConf -> LandingPageView -> Widget HTML IndexReference
+landingPageView conf view = do
   result <- case view of
     LoginView state form ->  div [] [
-                    (LandingPageAction <<< Login) <$> loginWidget conf state form
+                    Login <$> loginWidget conf state form
                   , simpleButton "Go to sign up" false (LandingPageView (SignupView Default (merge form emptyDataForm)))
                   ]
     SignupView state form -> div [] [
                     -- Signup <$> runStateT (signupManager conf) currentState
-                    (LandingPageAction <<< Login) <$> signupWidgetWithLogin conf state form -- TODO
+                    Login <$> signupWidgetWithLogin conf state form -- TODO
                   , simpleButton "Go to log in" false (LandingPageView (LoginView Default { username: form.username, password: form.password }))
                   ]
   case result of
-    LandingPageView view -> landingWidget conf view
-    LandingPageAction action -> pure action
+    LandingPageView view -> landingPageView conf view
+    Login index          -> pure index

@@ -1,4 +1,4 @@
-module Widgets.SignupForm where
+module Views.SignupFormView where
 
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, fireOnce, demand)
@@ -32,12 +32,11 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Signup (signupUser)
 import Functions.Login (doLogin')
+import Functions.Password (standardPasswordStrengthFunction)
 import Functions.SRP as SRP
 import Record (merge)
-import Widgets.LoginForm (LoginWidgetResults(..))
-import Widgets.Utilities (PasswordStrengthFunction, PasswordStrength(..))
-import Widgets.SimpleWebComponents (simpleButton, simpleUserSignal, simpleVerifiedPasswordSignal, checkboxesSignal, PasswordForm)
-
+import OperationalWidgets.LoginWidget (LoginWidgetResults(..))
+import Views.SimpleWebComponents (simpleButton, simpleUserSignal, simpleVerifiedPasswordSignal, checkboxesSignal, PasswordForm)
 
 type SignupDataForm = { username       :: String
                       , password       :: String
@@ -67,46 +66,10 @@ checkboxesLabels = fromFoldable [
   Tuple "not_recoverable" (text "I understand Clipperz won't be able to recover a lost password")
 ]
 
-standardPasswordStrengthFunction :: PasswordStrengthFunction
-standardPasswordStrengthFunction s = if (length s) <= 4 then Weak else Strong
-
 --------------------------------
 
-data SignupWidgetResults = SignupCredentials Credentials | SignupDone Credentials HexString | SignupFailed String
-instance showSignupWidgetResults :: Show SignupWidgetResults where
-  show (SignupCredentials c) = "Credentials " <> show c
-  show (SignupDone c _) = "Signup done " <> show c
-  show (SignupFailed s) = "Signup failed " <> s
-
---------------------------------
-
-signupWidgetWithLogin :: SRP.SRPConf -> WidgetState -> SignupDataForm -> Widget HTML IndexReference
-signupWidgetWithLogin conf state form = do
-  signupResult <- signupWidget conf state form
-  let login = liftAff $ (either LoginFailed LoginDone <$> (runExceptT $ doLogin' conf signupResult)) 
-  loginResult <- (Credentials <$> signupForm Loading (merge signupResult form)) <|> login
-  case loginResult of
-    Credentials credentials -> signupWidgetWithLogin conf Default (merge credentials form)
-    LoginDone index -> pure index
-    LoginFailed err -> signupWidgetWithLogin conf (Error ("Automatic login failed: " <> err)) (merge signupResult form) -- TODO: show login form?
-
-signupWidget :: SRP.SRPConf -> WidgetState -> SignupDataForm -> Widget HTML Credentials
-signupWidget conf widgetState signupFormData = do
-  res <- case widgetState of
-    Default -> SignupCredentials <$> signupForm Default signupFormData
-    Loading -> do
-      let creds = { username: signupFormData.username, password: signupFormData.password }
-      -- let res = runExceptT $ signupUser conf creds
-      let signup = liftAff $ runExceptT $ signupUser conf creds 
-      (SignupCredentials <$> signupForm Loading signupFormData) <|> (either (SignupFailed <<< show) (\r -> SignupDone creds r) <$> signup)
-    Error err -> SignupCredentials <$> div [] [text err, signupForm (Error err) signupFormData]
-  case res of
-    SignupCredentials credentials -> signupWidget conf Loading (merge credentials signupFormData)
-    SignupDone credentials _ -> pure credentials
-    SignupFailed err -> signupWidget conf (Error err) signupFormData
-
-signupForm :: WidgetState -> SignupDataForm -> Widget HTML Credentials -- TODO: return SignupDataForm to show the compiled form in loading
-signupForm state formData = 
+signupFormView :: WidgetState -> SignupDataForm -> Widget HTML Credentials -- TODO: return SignupDataForm to show the compiled form in loading
+signupFormView state formData = 
   case state of
     Default   -> div' [form false]
     Loading   -> div' [loadingDiv, form true]

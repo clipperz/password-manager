@@ -1,4 +1,4 @@
-module Widgets.Cards where
+module Views.CardViews where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
@@ -18,8 +18,7 @@ import DataModel.Index (CardReference(..))
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Cards (getCard)
 import Functions.Clipboard (copyToClipboard)
-import Widgets.Index (IndexUpdateAction(..))
-import Widgets.SimpleWebComponents (simpleButton)
+import Views.SimpleWebComponents (simpleButton)
 
 -- -----------------------------------
 
@@ -33,24 +32,8 @@ instance showCardAction :: Show CardAction where
 
 -- -----------------------------------
 
-cardWidget :: CardReference -> Widget HTML IndexUpdateAction
-cardWidget reference = do
-  eitherCard <- liftAff $ runExceptT $ getCard reference
-  case eitherCard of
-    Right c -> do 
-      res <- card c
-      case res of
-        Edit cc -> pure $ ChangeToReference cc cc
-        Clone cc -> pure $ AddReference cc
-        Archive cc -> pure $ ChangeToReference cc cc
-        Delete cc -> pure $ DeleteReference cc
-        NoAction -> cardWidget reference -- TODO: to optimize, use a cardWidget that takes a card
-    Left err -> do
-      -- TODO: check error to decide what to do
-      NoUpdate <$ div [] [text $ show err] 
-
-card :: Card -> Widget HTML CardAction
-card c@(Card_v1 r) = div [] [
+cardView :: Card -> Widget HTML CardAction
+cardView c@(Card_v1 r) = div [] [
     cardActions c
   , NoAction <$ cardContent r.content
 ]
