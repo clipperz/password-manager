@@ -68,7 +68,7 @@ val wrongTollMiddleware : Request => TollMiddleware = req =>
           )
           .map(tollChallenge => 
             Response(
-              status = Status.BadRequest,
+              status = Status.PaymentRequired,
               headers = Headers((TollManager.tollHeader, tollChallenge.toll.toString), 
                                 (TollManager.tollCostHeader, tollChallenge.cost.toString))
             )

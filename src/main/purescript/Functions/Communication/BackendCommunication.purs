@@ -83,8 +83,8 @@ manageGenericRequest url method body responseFormat = do
   where 
         manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AS.AppError Aff (AXW.Response a))
         manageResponse code@(StatusCode n)
-          | n == 400            = \response -> do
-              -- _ <- log "400 received"
+          | n == 402            = \response -> do
+              -- _ <- log "402 received"
               -- _ <- log $ show response.headers
               case (extractChallenge response.headers) of
                 Just challenge -> do
