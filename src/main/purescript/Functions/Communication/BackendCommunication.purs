@@ -8,14 +8,14 @@ import Affjax.ResponseHeader (ResponseHeader, name, value)
 import Affjax.StatusCode (StatusCode(..))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
-import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT)
+import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT, runExceptT)
 import Data.Array (filter)
 import Data.Bifunctor (lmap)
 import Data.Boolean (otherwise)
 import Data.Either (Either(..))
 import Data.Eq ((==))
 import Data.Function (($))
-import Data.Functor ((<$>))
+import Data.Functor ((<$>), void)
 import Data.HexString (hex)
 import Data.HeytingAlgebra ((&&))
 import Data.HTTP.Method (Method)
@@ -25,12 +25,14 @@ import Data.Ord((<=), (>=))
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith)
+import Data.Time.Duration (Milliseconds(..))
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
 import DataModel.AppState as AS
+import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue, changeToLoading)
 import DataModel.Proxy (Proxy(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import Effect.Aff (Aff)
+import Effect.Aff (Aff, forkAff, delay)
 import Effect.Class (liftEffect)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.JSState (getAppState, updateAppState)
@@ -57,7 +59,7 @@ tollReceiptHeaderName = "clipperz-hashcash-tollreceipt"
 createHeaders :: AS.AppState -> Array RequestHeader
 createHeaders { toll, sessionKey } = 
   let
-    tollReceiptHeader = (\t ->   RequestHeader tollReceiptHeaderName (show t))   <$> fromMaybe toll
+    tollReceiptHeader = (\t ->   RequestHeader tollReceiptHeaderName (show t))   <$> arrayFromAsyncValue toll
     sessionHeader     = (\key -> RequestHeader sessionKeyHeaderName  (show key)) <$> fromMaybe sessionKey
   in tollReceiptHeader <> sessionHeader
 
@@ -65,48 +67,58 @@ createHeaders { toll, sessionKey } =
 
 manageGenericRequest :: forall a. Url -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AS.AppError Aff (AXW.Response a)
 manageGenericRequest url method body responseFormat = do
-  currentState@{ proxy: proxy, c: _, p: _, sessionKey: _, toll: _ } <- ExceptT $ liftEffect $ getAppState
-  let requestInfo = case proxy of
-                      OnlineProxy _ -> OnlineRequestInfo  { url 
-                                                          , method
-                                                          , headers: createHeaders currentState
-                                                          , body
-                                                          , responseFormat
-                                                          }
-                      OfflineProxy  -> OfflineRequestInfo { url, method, body, responseFormat }
-  ExceptT $ Right <$> updateAppState (currentState { toll = Nothing })
-  response <- withExceptT (\e -> AS.ProtocolError e) (ExceptT $ doGenericRequest proxy requestInfo)
-  manageResponse response.status response
+  currentState@{ toll } <- ExceptT $ liftEffect $ getAppState
+  case toll of
+    Done _           -> doRequest currentState
+    Loading Nothing  -> doRequest currentState
+    Loading (Just _) -> do
+      -- small delay to prevent js single thread to block in recourive calling and let the time to the computation of the toll receipt inside forkAff to finish
+      ExceptT $ Right <$> (delay $ Milliseconds 1.0) -- TODO: may be changed from budy waiting to waiting for a signal
+      manageGenericRequest url method body responseFormat
 
-  where 
+  where
+        doRequest :: AS.AppState -> ExceptT AS.AppError Aff (AXW.Response a)
+        doRequest currentState@{ proxy } = do
+          let requestInfo = case proxy of
+                              OnlineProxy _ -> OnlineRequestInfo  { url 
+                                                                  , method
+                                                                  , headers: createHeaders currentState
+                                                                  , body
+                                                                  , responseFormat
+                                                                  }
+                              OfflineProxy  -> OfflineRequestInfo { url, method, body, responseFormat }
+          response <- withExceptT (\e -> AS.ProtocolError e) (ExceptT $ doGenericRequest proxy requestInfo)
+          manageResponse response.status response
+
         manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AS.AppError Aff (AXW.Response a))
         manageResponse code@(StatusCode n)
           | n == 402            = \response -> do
-              -- _ <- log "402 received"
-              -- _ <- log $ show response.headers
               case (extractChallenge response.headers) of
                 Just challenge -> do
-                  -- _ <- log $ "toll challenge: " <> (show challenge)
                   receipt <- ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
                   currentState <- ExceptT $ liftEffect $ getAppState
-                  ExceptT $ Right <$> updateAppState (currentState { toll = Just receipt })
+                  ExceptT $ Right <$> updateAppState (currentState { toll = Done receipt })
                   manageGenericRequest url method body responseFormat
                 Nothing -> except $ Left $  AS.ProtocolError $ IllegalResponse "HashCash headers not present or wrong"
-          | isStatusCodeOk code = \response -> do
-              -- _ <- log "200 received"
+          | isStatusCodeOk code = \response -> do     
+              -- change the toll in state to Loading so to let know to the next request to wait for the result
+              currentState@{ toll } <- ExceptT $ liftEffect $ getAppState
+              ExceptT $ Right <$> updateAppState (currentState { toll = changeToLoading toll })
+              
               case (extractChallenge response.headers) of
                 Just challenge -> do
-                  -- _ <- log "1 - computing new receipt..."
-                  receipt <- ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
-                  -- _ <- log "2 - computed new receipt"
-                  currentState <- ExceptT $ liftEffect $ getAppState
-                  ExceptT $ Right <$> updateAppState (currentState { toll = Just receipt })
-                  -- _ <- log "3 - inserted new receipt into state"
+                  -- compute the new toll in forkAff to keep the program going
+                  ExceptT $ Right <$> (void $ forkAff $ runExceptT $ do                    
+                    receipt <- ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
+                    stateToUpdate <- ExceptT $ liftEffect $ getAppState
+                    ExceptT $ Right <$> (void $ updateAppState (stateToUpdate { toll = Done receipt }))
+                  )
                   pure response
                 Nothing -> pure response
           | otherwise           = \_ -> do
-            -- _ <- log $ "Unknown request error" <> show response.status
-           except $ Left $ AS.ProtocolError $ ResponseError n
+              currentState <- ExceptT $ liftEffect $ getAppState
+              ExceptT $ Right <$> updateAppState (currentState { toll = Loading Nothing })
+              except $ Left $ AS.ProtocolError $ ResponseError n
         
         extractChallenge :: Array ResponseHeader -> Maybe TollChallenge
         extractChallenge headers =

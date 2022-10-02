@@ -23,17 +23,13 @@ import Data.Show (show, class Show)
 import Data.String (contains)
 import Data.String.Pattern (Pattern(..))
 import Data.Tuple(Tuple(..), fst)
+import DataModel.AsyncValue (AsyncValue(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 
 import Functions.Password (randomPassword)
 import Views.SimpleWebComponents (simpleButton, simpleNumberInputWidget, disabledSimpleTextInputWidget, simpleTextInputWidget, simpleCheckboxWidget)
-
-data AsyncValue a = Loading (Maybe a) | Done a
-instance showAsyncValue :: (Show a) => Show (AsyncValue a) where
-    show (Loading p) = "loading[" <> show p <> "]"
-    show (Done p) = "done[" <> show p <> "]"
 
 extractValue :: forall a. Monoid a => AsyncValue a -> a
 extractValue v = 

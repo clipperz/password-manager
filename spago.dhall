@@ -18,6 +18,7 @@
   , "concur-react"
   , "console"
   , "control"
+  , "datetime"
   , "decimals"
   , "effect"
   , "either"

@@ -5,16 +5,17 @@ import Data.Maybe (Maybe)
 import Data.HexString (HexString)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
+import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
 import DataModel.Proxy (Proxy)
 import DataModel.Communication.ProtocolError (ProtocolError)
 
 type AppState =
   { proxy :: Proxy
-  , sessionKey :: Maybe (HexString)
-  , toll :: Maybe (HexString)
-  , c :: Maybe (HexString)
-  , p :: Maybe (HexString)
+  , sessionKey :: Maybe HexString
+  , toll :: AsyncValue HexString
+  , c :: Maybe HexString
+  , p :: Maybe HexString
   -- , baseConfiguration :: SRPConf --TODO
   , cardsCache :: Map HexString Card
   }
