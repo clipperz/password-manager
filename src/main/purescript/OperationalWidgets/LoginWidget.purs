@@ -2,30 +2,20 @@ module OperationalWidgets.LoginWidget where
 
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind)
 import Control.Monad.Except.Trans (runExceptT)
 import Concur.Core (Widget)
-import Concur.Core.FRP (loopS, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (form', div, div', text)
-import Concur.React.Props as P
 import Data.Either (either)
-import Data.Eq ((/=))
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.HeytingAlgebra ((&&), not)
-import Data.Semigroup ((<>))
-import Data.Show (show)
 import DataModel.Credentials (Credentials)
 import DataModel.WidgetState (WidgetState(..))
 import DataModel.Index (IndexReference)
 import Effect.Aff.Class (liftAff)
-import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
-import Functions.Login (doLogin, doLogin)
+import Functions.Login (doLogin)
 import Functions.SRP as SRP
 import Views.LoginFormView (loginFormView, LoginForm)
-import Views.SimpleWebComponents (simpleButton, simpleUserSignal, simplePasswordSignal)
 
 data LoginWidgetResults = Credentials Credentials | LoginDone IndexReference | LoginFailed String
 

@@ -8,7 +8,7 @@ import Affjax.ResponseHeader (ResponseHeader, name, value)
 import Affjax.StatusCode (StatusCode(..))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
-import Control.Monad.Except.Trans (ExceptT(..), except, mapExceptT, withExceptT)
+import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT)
 import Data.Array (filter)
 import Data.Bifunctor (lmap)
 import Data.Boolean (otherwise)
@@ -36,8 +36,6 @@ import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.JSState (getAppState, updateAppState)
 import Functions.SRP (hashFuncSHA256)
 
-import Effect.Class.Console (log)
-
 -- ----------------------------------------------------------------------------
 
 type Url = String
@@ -59,15 +57,15 @@ tollReceiptHeaderName = "clipperz-hashcash-tollreceipt"
 createHeaders :: AS.AppState -> Array RequestHeader
 createHeaders { toll, sessionKey } = 
   let
-    tollHeader    = (\t ->   RequestHeader tollReceiptHeaderName (show t))   <$> fromMaybe toll
-    sessionHeader = (\key -> RequestHeader sessionKeyHeaderName  (show key)) <$> fromMaybe sessionKey
-  in tollHeader <> sessionHeader
+    tollReceiptHeader = (\t ->   RequestHeader tollReceiptHeaderName (show t))   <$> fromMaybe toll
+    sessionHeader     = (\key -> RequestHeader sessionKeyHeaderName  (show key)) <$> fromMaybe sessionKey
+  in tollReceiptHeader <> sessionHeader
 
 -- ----------------------------------------------------------------------------
 
 manageGenericRequest :: forall a. Url -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AS.AppError Aff (AXW.Response a)
 manageGenericRequest url method body responseFormat = do
-  currentState@{ proxy: proxy, c: mc, p: _, sessionKey: _, toll: _ } <- ExceptT $ liftEffect $ getAppState
+  currentState@{ proxy: proxy, c: _, p: _, sessionKey: _, toll: _ } <- ExceptT $ liftEffect $ getAppState
   let requestInfo = case proxy of
                       OnlineProxy _ -> OnlineRequestInfo  { url 
                                                           , method

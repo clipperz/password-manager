@@ -3,7 +3,7 @@ module OperationalWidgets.App where
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Control.Bind (bind, discard)
-import Data.Function (($), flip)
+import Data.Function (($))
 import Data.Functor (void)
 import Data.Unit (Unit)
 import DataModel.WidgetState (WidgetState(..))
@@ -15,10 +15,6 @@ import Functions.JSState (updateAppState)
 import OperationalWidgets.HomePageWidget as HomePageWidget
 import Views.LoginFormView (emptyForm)
 import Views.LandingPageView (landingPageView, LandingPageView(..))
-
-import Data.Show (show)
-import Data.Semigroup ((<>))
-import Effect.Class.Console (log)
 
 app :: Widget HTML Unit
 app = do

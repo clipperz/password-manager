@@ -23,18 +23,15 @@ import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
-import DataModel.AppState (AppState, AppError(..))
+import DataModel.AppState (AppError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (IndexReference)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Functions.Communication.BackendCommunication (manageGenericRequest, manageGenericRequest, isStatusCodeOk)
+import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
 import Functions.JSState (updateAppState, getAppState)
 import Functions.SRP as SRP
-
-import Effect.Class.Console (log)
-
     
 -- ----------------------------------------------------------------------------
 

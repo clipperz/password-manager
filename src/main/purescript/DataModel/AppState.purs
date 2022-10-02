@@ -9,8 +9,6 @@ import DataModel.Card (Card)
 import DataModel.Proxy (Proxy)
 import DataModel.Communication.ProtocolError (ProtocolError)
 
-import Data.Generic.Rep (class Generic)
-
 type AppState =
   { proxy :: Proxy
   , sessionKey :: Maybe (HexString)

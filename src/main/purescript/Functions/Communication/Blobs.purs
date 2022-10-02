@@ -17,11 +17,11 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
-import DataModel.AppState (AppState, AppError(..))
+import DataModel.AppState (AppError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff)
 import Functions.EncodeDecode (decryptJson)
-import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest, manageGenericRequest)
+import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
 
 -- ----------------------------------------------------------------------------
 

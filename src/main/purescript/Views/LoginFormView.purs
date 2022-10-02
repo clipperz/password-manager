@@ -1,29 +1,20 @@
 module Views.LoginFormView where
 
-import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
-import Control.Monad.Except.Trans (runExceptT)
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (form', div, div', text)
-import Concur.React.Props as P
-import Data.Either (either)
+import Concur.React.DOM (div', text)
 import Data.Eq ((/=))
 import Data.Function (($))
-import Data.Functor ((<$>))
 import Data.HeytingAlgebra ((&&), not)
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import DataModel.Credentials (Credentials)
 import DataModel.WidgetState (WidgetState(..))
-import DataModel.Index (IndexReference)
-import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
-import Functions.Login (doLogin)
-import Functions.SRP as SRP
 
 import Views.SimpleWebComponents (simpleButton, simpleUserSignal, simplePasswordSignal, loadingDiv)
 
@@ -41,11 +32,11 @@ isFormValid :: LoginForm -> Boolean
 isFormValid { username, password } = username /= "" && password /= ""
 
 loginFormView :: WidgetState -> LoginForm -> Widget HTML Credentials
-loginFormView state formData = 
+loginFormView state loginFormData = 
   case state of
-    Default -> div' [form false formData]
-    Loading -> div' [loadingDiv, form true formData]
-    Error err -> div' [errorDiv err, form false formData]
+    Default -> div' [form false loginFormData]
+    Loading -> div' [loadingDiv, form true loginFormData]
+    Error err -> div' [errorDiv err, form false loginFormData]
   
   where
     errorDiv err = div' [text err]

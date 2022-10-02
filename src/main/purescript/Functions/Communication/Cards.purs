@@ -2,7 +2,7 @@ module Functions.Communication.Cards where
 
 import Control.Applicative (pure)
 import Control.Bind (discard, bind)
-import Control.Monad.Except.Trans (ExceptT(..), withExceptT, runExceptT, except)
+import Control.Monad.Except.Trans (ExceptT(..), withExceptT, except)
 import Control.Semigroupoid ((>>>))
 import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Key.Import as KI
@@ -12,15 +12,13 @@ import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString, toArrayBuffer, fromArrayBuffer, splitHexInHalf)
-import Data.HTTP.Method (Method(..))
 import Data.Maybe (Maybe(..))
-import DataModel.AppState (AppState, AppError(..))
+import DataModel.AppState (AppError(..))
 import DataModel.Card (Card)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.Index (CardReference(..), Index, IndexReference)
+import DataModel.Index (CardReference(..), Index)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Effect.Exception as EX
 import Functions.CardsCache (getCardFromCache, addCardToCache)
 import Functions.Communication.Blobs (getDecryptedBlob)
@@ -42,7 +40,7 @@ getIndex :: HexString -> ExceptT AppError Aff Index
 getIndex encryptedRef = do 
   currentState <- ExceptT $ liftEffect getAppState
   case currentState of
-    cs@{ c, p: Just p, proxy, sessionKey, toll } -> do
+    { c: _, p: Just p, proxy: _, sessionKey: _, toll: _ } -> do
       masterPassword :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       { before: masterKey, after: indexReference } <- mapDecodeError $ ExceptT $ splitInHalf <$> (decryptEncryptedRef masterPassword)
       cryptoKey      :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]

@@ -1,24 +1,21 @@
 module Functions.JSState where
 
-import Control.Bind ((>>=), bind)
+import Control.Bind (bind)
 import Control.Applicative (pure)
-import Control.Monad.Except (Except, runExcept)
 import Control.Semigroupoid ((>>>))
-import Data.Argonaut.Core (stringify, Json)
+import Data.Argonaut.Core (stringify)
 import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.List.NonEmpty (NonEmptyList)
 import Data.Show (show)
 import Data.Unit (Unit, unit)
 import DataModel.AppState (AppState, AppError(..))
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Foreign (Foreign, ForeignError)
 
 foreign import getJsonState :: Unit -> Effect String
 

@@ -2,26 +2,23 @@ module OperationalWidgets.CardWidget where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, h3, li', p, text, ul)
-import Concur.React.Props as Props
+import Concur.React.DOM (div, text)
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (Either(..))
 import Data.Function (($))
-import Data.Functor ((<$), (<$>))
+import Data.Functor ((<$))
 import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
-import DataModel.Card (CardField(..), CardValues(..), Card(..))
-import DataModel.Index (CardReference(..))
+import DataModel.Card (Card)
+import DataModel.Index (CardReference)
 import DataModel.WidgetState (WidgetState(..))
-import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Cards (getCard)
-import Functions.Clipboard (copyToClipboard)
 import Views.CardViews (cardView, CardAction(..))
-import Views.SimpleWebComponents (simpleButton, loadingDiv)
+import Views.SimpleWebComponents (loadingDiv)
 
 data IndexUpdateAction = AddReference Card | DeleteReference Card | ChangeToReference Card Card | NoUpdate
 instance showIndexUpdateAction :: Show IndexUpdateAction where
@@ -31,9 +28,9 @@ instance showIndexUpdateAction :: Show IndexUpdateAction where
   show NoUpdate = "No update"
 
 cardWidget :: CardReference -> Widget HTML IndexUpdateAction
-cardWidget reference = go Loading reference
+cardWidget reference = go Loading
   where 
-    go state ref = do
+    go state = do
       eitherCard <- case state of 
         Default -> div [] []
         Loading -> loadingDiv <|> (liftAff $ runExceptT $ getCard reference)

@@ -2,12 +2,10 @@ module Views.LandingPageView where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text)
+import Concur.React.DOM (div)
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
-import Control.Semigroupoid ((<<<))
+import Control.Bind (bind)
 import Data.Functor ((<$>))
-import DataModel.Credentials (Credentials)
 import DataModel.Index (IndexReference)
 import DataModel.WidgetState (WidgetState(..))
 import Record (merge)
@@ -17,8 +15,6 @@ import Views.SignupFormView (SignupDataForm, emptyDataForm)
 import OperationalWidgets.LoginWidget (loginWidget)
 import OperationalWidgets.SignupWidget (signupWidgetWithLogin)
 import Functions.SRP as SRP
-
-import Effect.Class.Console (log)
 
 data LandingPageView = SignupView WidgetState SignupDataForm | LoginView WidgetState LoginForm
 
@@ -36,5 +32,5 @@ landingPageView conf view = do
                   , simpleButton "Go to log in" false (LandingPageView (LoginView Default { username: form.username, password: form.password }))
                   ]
   case result of
-    LandingPageView view -> landingPageView conf view
-    Login index          -> pure index
+    LandingPageView v -> landingPageView conf v
+    Login index       -> pure index
