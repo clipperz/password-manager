@@ -29,13 +29,13 @@ import Data.Time.Duration (Milliseconds(..))
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
 import DataModel.AppState as AS
-import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue, changeToLoading)
+import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue, toLoading)
 import DataModel.Proxy (Proxy(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff, forkAff, delay)
 import Effect.Class (liftEffect)
 import Functions.HashCash (TollChallenge, computeReceipt)
-import Functions.JSState (getAppState, updateAppState)
+import Functions.JSState (getAppState, modifyAppState, updateAppState)
 import Functions.SRP (hashFuncSHA256)
 
 -- ----------------------------------------------------------------------------
@@ -96,28 +96,25 @@ manageGenericRequest url method body responseFormat = do
               case (extractChallenge response.headers) of
                 Just challenge -> do
                   receipt <- ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
-                  currentState <- ExceptT $ liftEffect $ getAppState
-                  ExceptT $ Right <$> updateAppState (currentState { toll = Done receipt })
+                  ExceptT $ updateAppState { toll: Done receipt }
                   manageGenericRequest url method body responseFormat
                 Nothing -> except $ Left $  AS.ProtocolError $ IllegalResponse "HashCash headers not present or wrong"
           | isStatusCodeOk code = \response -> do     
               -- change the toll in state to Loading so to let know to the next request to wait for the result
               currentState@{ toll } <- ExceptT $ liftEffect $ getAppState
-              ExceptT $ Right <$> updateAppState (currentState { toll = changeToLoading toll })
+              ExceptT $ Right <$> modifyAppState (currentState { toll = toLoading toll })
               
               case (extractChallenge response.headers) of
                 Just challenge -> do
                   -- compute the new toll in forkAff to keep the program going
                   ExceptT $ Right <$> (void $ forkAff $ runExceptT $ do                    
                     receipt <- ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
-                    stateToUpdate <- ExceptT $ liftEffect $ getAppState
-                    ExceptT $ Right <$> (void $ updateAppState (stateToUpdate { toll = Done receipt }))
+                    ExceptT $ updateAppState { toll: Done receipt }
                   )
                   pure response
                 Nothing -> pure response
           | otherwise           = \_ -> do
-              currentState <- ExceptT $ liftEffect $ getAppState
-              ExceptT $ Right <$> updateAppState (currentState { toll = Loading Nothing })
+              ExceptT $ updateAppState { toll: Loading Nothing }
               except $ Left $ AS.ProtocolError $ ResponseError n
         
         extractChallenge :: Array ResponseHeader -> Maybe TollChallenge

@@ -30,7 +30,7 @@ import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
-import Functions.JSState (updateAppState, getAppState)
+import Functions.JSState (modifyAppState, getAppState)
 import Functions.SRP as SRP
     
 -- ----------------------------------------------------------------------------
@@ -42,10 +42,10 @@ login :: SRP.SRPConf -> ExceptT AppError Aff IndexReference
 login srpConf = do
   currentState <- ExceptT $ liftEffect $ getAppState
   if isJust currentState.sessionKey
-    then ExceptT $ Right <$> updateAppState currentState
+    then ExceptT $ Right <$> modifyAppState currentState
     else do
       sessionKey :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32
-      ExceptT $ Right <$> updateAppState (currentState { sessionKey = Just sessionKey })
+      ExceptT $ Right <$> modifyAppState (currentState { sessionKey = Just sessionKey })
   loginStep1Result <- loginStep1 srpConf
   { m1, kk, m2, encIndexReference: indexReference } <- loginStep2 srpConf loginStep1Result
   check :: Boolean <- ExceptT $ Right <$> SRP.checkM2 SRP.baseConfiguration loginStep1Result.aa m1 kk (toArrayBuffer m2)

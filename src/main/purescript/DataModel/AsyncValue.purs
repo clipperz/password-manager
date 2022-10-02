@@ -15,8 +15,6 @@ instance showAsyncValue :: (Show a) => Show (AsyncValue a) where
     show (Loading p) = "loading[" <> show p <> "]"
     show (Done p) = "done[" <> show p <> "]"
 
--- repToAsyncValue
-
 derive instance genericAsyncValue :: Generic (AsyncValue a) _
 
 instance encodeJsonAsyncValue :: EncodeJson a => EncodeJson (AsyncValue a) where
@@ -29,8 +27,8 @@ arrayFromAsyncValue :: forall a. AsyncValue a -> Array a
 arrayFromAsyncValue (Loading _) = []
 arrayFromAsyncValue (Done a) = [a]
 
-changeToLoading :: forall a. AsyncValue a -> AsyncValue a
-changeToLoading async =
+toLoading :: forall a. AsyncValue a -> AsyncValue a
+toLoading async =
   case async of
-    Done value -> Loading (Just value)
+    Done value    -> Loading (Just value)
     Loading value -> Loading value

@@ -14,15 +14,15 @@ import DataModel.Index (IndexReference)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Login (login)
-import Functions.JSState (updateAppState, getAppState)
+import Functions.JSState (modifyAppState, getAppState, updateAppState)
 import Functions.SRP as SRP
 
 doLogin :: SRP.SRPConf -> Credentials -> ExceptT String Aff IndexReference
 doLogin conf { username, password } = do
-  currentState <- withExceptT (show) (ExceptT $ liftEffect getAppState)
   c            <- ExceptT $ Right <$> fromArrayBuffer <$> SRP.prepareC conf username password
   p            <- ExceptT $ Right <$> fromArrayBuffer <$> SRP.prepareP conf username password
-  ExceptT $ Right <$> updateAppState (currentState { c = Just c, p = Just p })
-  
+
+  withExceptT (show) (ExceptT $ updateAppState { c: Just c, p: Just p })
+
   indexReference <- withExceptT (\_ -> "Login failed") (login conf)
   pure $ indexReference

@@ -11,7 +11,7 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.SRP as SRP
 import Functions.State (computeInitialState)
-import Functions.JSState (updateAppState)
+import Functions.JSState (modifyAppState)
 import OperationalWidgets.HomePageWidget as HomePageWidget
 import Views.LoginFormView (emptyForm)
 import Views.LandingPageView (landingPageView, LandingPageView(..))
@@ -19,7 +19,7 @@ import Views.LandingPageView (landingPageView, LandingPageView(..))
 app :: Widget HTML Unit
 app = do
   initialState <- liftEffect computeInitialState
-  liftAff $ updateAppState initialState
+  liftAff $ modifyAppState initialState
   _ <- do
     indexReference <- landingPageView SRP.baseConfiguration (LoginView Default emptyForm)
     void $ HomePageWidget.homePageWidget indexReference
