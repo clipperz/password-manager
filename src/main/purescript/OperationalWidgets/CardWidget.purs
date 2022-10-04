@@ -5,22 +5,30 @@ import Concur.React (HTML)
 import Concur.React.DOM (div, text)
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind)
-import Control.Monad.Except.Trans (runExceptT)
+import Control.Bind (bind, (>>=))
+import Control.Monad.Except.Trans (runExceptT, ExceptT)
+import Control.Semigroupoid ((<<<))
+import Data.DateTime.Instant (unInstant)
 import Data.Either (Either(..))
 import Data.Function (($))
-import Data.Functor ((<$))
+import Data.Functor ((<$), (<$>))
+import Data.Int (ceil)
+import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
-import DataModel.Card (Card)
-import DataModel.Index (CardReference)
+import DataModel.AppState (AppError)
+import DataModel.Card (Card(..), emptyCard)
+import DataModel.Index (CardEntry(..), CardReference)
 import DataModel.WidgetState (WidgetState(..))
+import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Functions.Communication.Cards (getCard)
-import Views.CardViews (cardView, CardAction(..))
+import Effect.Class (liftEffect)
+import Effect.Now (now)
+import Functions.Communication.Cards (getCard, postCard)
+import Views.CardViews (cardView, CardAction(..), createCardView)
 import Views.SimpleWebComponents (loadingDiv)
 
-data IndexUpdateAction = AddReference Card | DeleteReference Card | ChangeToReference Card Card | NoUpdate
+data IndexUpdateAction = AddReference CardEntry | DeleteReference Card | ChangeToReference Card Card | NoUpdate
 instance showIndexUpdateAction :: Show IndexUpdateAction where
   show (AddReference c) = "Add reference to " <> show c
   show (DeleteReference c) = "Delete reference to " <> show c
@@ -38,11 +46,43 @@ cardWidget reference = go Loading
       case eitherCard of
         Right c -> do 
           res <- cardView c
-          case res of
-            Edit cc -> pure $ ChangeToReference cc cc
-            Clone cc -> pure $ AddReference cc
-            Archive cc -> pure $ ChangeToReference cc cc
-            Delete cc -> pure $ DeleteReference cc
+          manageCardAction res
         Left err -> do
           -- TODO: check error to decide what to do
-          NoUpdate <$ div [] [text $ show err] 
+          NoUpdate <$ div [] [text $ show err]
+
+    manageCardAction :: CardAction -> Widget HTML IndexUpdateAction
+    manageCardAction action = 
+      case action of
+        Edit cc -> pure $ ChangeToReference cc cc
+        Clone cc@(Card_v1 cardRecord) -> do
+          timestamp <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
+          doOp cc (postCard (Card_v1 $ cardRecord { timestamp = timestamp })) AddReference
+        Archive cc -> pure $ ChangeToReference cc cc
+        Delete cc -> pure $ DeleteReference cc
+
+    doOp :: forall a. Card -> ExceptT AppError Aff a -> (a -> IndexUpdateAction) -> Widget HTML IndexUpdateAction
+    doOp currentCard op mapResult = do
+      res <- loadingDiv <|> (liftAff $ runExceptT $ op)
+      case res of
+        Right a -> pure $ mapResult a
+        Left err -> div [] [text ("Current operation could't be completed: " <> show err)
+                           , cardView currentCard >>= manageCardAction ]
+
+data CreateCardActions = JustCard Card | EitherReference (Either AppError CardEntry)
+
+createCardWidget :: Widget HTML IndexUpdateAction
+createCardWidget = go Default emptyCard
+  where 
+    go :: WidgetState -> Card -> Widget HTML IndexUpdateAction
+    go state c = do
+      res <- case state of
+        Default -> JustCard <$> (createCardView c)
+        Loading -> loadingDiv <|> (EitherReference <$> (liftAff $ runExceptT $ postCard c))
+        Error err -> div [] [text $ "Card could't be saved: " <> err, JustCard <$> (createCardView c)]
+      case res of
+        -- Right ref -> pure $ AddReference ref
+        JustCard card -> go Loading card
+        EitherReference e -> case e of
+          Right entry -> pure $ AddReference entry
+          Left err -> go (Error (show err)) c

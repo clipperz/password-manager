@@ -19,7 +19,7 @@ import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Cards (getIndex)
 import Views.SimpleWebComponents (simpleButton, loadingDiv)
-import OperationalWidgets.CardsManagerWidget (cardsManagerWidget)
+import OperationalWidgets.CardsManagerWidget (cardsManagerWidget, CardView(..))
 
 data HomePageAction = Loaded (Either AppError Index) | LogoutAction
 
@@ -32,11 +32,11 @@ homePageWidget indexReference = go Loading indexReference
         Loading -> loadingDiv <|> (Loaded <$> (liftAff $ runExceptT $ getIndex reference))
         Error err -> div [] [text err, simpleButton "Go back to login" false LogoutAction]
       case res of
-        Loaded (Right index) -> void $ homePage index Nothing         
+        Loaded (Right index) -> void $ homePage index NoCard         
         Loaded (Left err) -> go (Error (show err)) reference
         LogoutAction -> pure unit
     
-    homePage :: Index -> Maybe CardReference -> Widget HTML HomePageAction
+    homePage :: Index -> CardView -> Widget HTML HomePageAction
     homePage index cardReference = div [] [
       cardsManagerWidget index cardReference
     , simpleButton "Logout" false LogoutAction

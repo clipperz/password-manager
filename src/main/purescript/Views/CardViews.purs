@@ -1,16 +1,25 @@
 module Views.CardViews where
 
 import Concur.Core (Widget)
+import Concur.Core.FRP (Signal, loopS, loopW, demand, fireOnce)
 import Concur.React (HTML)
 import Concur.React.DOM (div, h3, li', p, text, ul)
 import Concur.React.Props as Props
+import Control.Applicative (pure)
+import Control.Bind (bind)
+import Control.Semigroupoid ((<<<))
+import Data.DateTime.Instant (unInstant)
 import Data.Function (($))
 import Data.Functor ((<$>))
+import Data.Int (ceil)
+import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
 import DataModel.Card (CardField(..), CardValues(..), Card(..))
+import Effect.Class (liftEffect)
+import Effect.Now (now)
 import Functions.Clipboard (copyToClipboard)
-import Views.SimpleWebComponents (simpleButton)
+import Views.SimpleWebComponents (simpleButton, simpleTextInputWidget, simpleCheckboxSignal)
 
 -- -----------------------------------
 
@@ -50,3 +59,34 @@ cardField (CardField_v1 {name, value, locked}) = div [] [
   text name
 , p ((if locked then [Props.className "PASSWORD"] else []) <> [(\_ -> copyToClipboard value) <$> Props.onClick]) [text value]
 ] --TODO add class based on content for urls and emails
+
+-----------------------
+
+createCardView :: Card -> Widget HTML Card
+createCardView card = do
+  (Card_v1 { content, timestamp }) <- div [] [demand formSignal] 
+  timestamp' <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
+  pure $ Card_v1 { content: content, timestamp: timestamp' }
+
+
+  where 
+    -- cardFieldSignal :: CardField -> Signal HTML CardField
+    -- cardFieldSignal field = loopS field $ \(CardField_v1 { name, value, locked }) -> do
+    --   name' :: String <- loopW name (simpleTextInputWidget "name" (text "Name"))
+    --   value' :: String <- loopW value (simpleTextInputWidget "value" (text "Value"))
+    --   locked' :: Boolean <- simpleCheckboxSignal "locked" (text "Locked") locked
+    --   pure CardField_v1 {name: name', value: value', locked: locked'}
+
+    formSignal = do
+      formValues :: Card <- loopS card $ \(Card_v1 {content: (CardValues_v1 {title, tags, fields, notes}), timestamp}) -> do
+        title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title"))
+        -- TODO: tags
+        let tags' = tags
+        let fields' = fields
+        -- div [] (cardFieldSignal <$> fields)
+        notes' :: String <- loopW notes (simpleTextInputWidget "notes" (text "Notes"))
+        pure $ Card_v1 {content: (CardValues_v1 {title: title', tags: tags', fields: fields', notes: notes'})
+                       , timestamp
+                       }
+      res <- fireOnce $ simpleButton "Save" false formValues
+      pure res

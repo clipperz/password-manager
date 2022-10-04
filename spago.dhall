@@ -33,6 +33,7 @@
   , "lists"
   , "maybe"
   , "newtype"
+  , "now"
   , "ordered-collections"
   , "prelude"
   , "record"

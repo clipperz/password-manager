@@ -13,6 +13,7 @@ import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
 import Data.List.Types (List(..), (:))
 import Data.Ord (class Ord, compare)
+import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.Tuple (Tuple(..))
 import DataModel.Card (Card(..), CardValues(..))
@@ -50,6 +51,14 @@ data CardEntry =
     , tags :: Array String
     -- , attachment :: Boolean
     }
+
+instance showCardEntry :: Show CardEntry where
+  show (CardEntry_v1
+        { title
+        , cardReference
+        , archived
+        , tags
+        }) = "Entry for " <> title
 
 instance ordCardEntry :: Ord CardEntry where
   compare (CardEntry_v1 { title: t }) (CardEntry_v1 {title: t'}) = compare t t'

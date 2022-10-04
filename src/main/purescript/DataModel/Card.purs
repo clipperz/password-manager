@@ -62,6 +62,14 @@ instance decodeJsonCard :: DecodeJson Card where
 
 -- --------------------------------------------
 
+emptyCard = Card_v1 { timestamp: 0
+                      , content: CardValues_v1 { title: ""
+                                                , tags: []
+                                                , fields: []
+                                                , notes: ""
+                                                }
+                      }
+    
 card0 :: CardValues
 card0 = CardValues_v1 { title: "Mail account (SAMPLE)"
                       , tags: ["mail"]

@@ -4,26 +4,29 @@ import Control.Applicative (pure)
 import Control.Bind (discard, bind)
 import Control.Monad.Except.Trans (ExceptT(..), withExceptT, except)
 import Control.Semigroupoid ((>>>))
-import Crypto.Subtle.Constants.AES (aesCTR)
+import Crypto.Subtle.Constants.AES (aesCTR, l256)
 import Crypto.Subtle.Key.Import as KI
-import Crypto.Subtle.Key.Types (encrypt, decrypt, raw, unwrapKey, CryptoKey)
+import Crypto.Subtle.Key.Generate as KG
+import Crypto.Subtle.Key.Types (encrypt, exportKey, decrypt, raw, unwrapKey, CryptoKey)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString, toArrayBuffer, fromArrayBuffer, splitHexInHalf)
 import Data.Maybe (Maybe(..))
+import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..))
 import DataModel.Card (Card)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.Index (CardReference(..), Index)
+import DataModel.Index (CardReference(..), Index, CardEntry(..), createCardEntry)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Effect.Exception as EX
 import Functions.CardsCache (getCardFromCache, addCardToCache)
-import Functions.Communication.Blobs (getDecryptedBlob)
+import Functions.Communication.Blobs (getDecryptedBlob, postBlob)
 import Functions.EncodeDecode (decryptArrayBuffer)
 import Functions.JSState (getAppState)
+import Functions.SRP (hashFuncSHA256)
 
 getCard :: CardReference -> ExceptT AppError Aff Card
 getCard (CardReference_v1 { reference, key }) = do
@@ -35,6 +38,21 @@ getCard (CardReference_v1 { reference, key }) = do
       card <- getDecryptedBlob reference cryptoKey
       addCardToCache reference card
       pure $ card
+
+postCard :: Card -> ExceptT AppError Aff CardEntry
+postCard card = do
+  key <- ExceptT $ Right <$> (KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey])
+  exportedKey <- ExceptT $ Right <$> (fromArrayBuffer <$> exportKey raw key)
+  Tuple encryptedCard cardEntry <- ExceptT $ Right <$> (createCardEntry card key hashFuncSHA256)
+  case cardEntry of
+    CardEntry_v1 { title
+                 , cardReference: cr@(CardReference_v1 { reference, key: savedKey })
+                 , archived
+                 , tags
+                 } -> do
+      _ <- postBlob encryptedCard (toArrayBuffer reference)
+      addCardToCache reference card
+      pure cardEntry
 
 getIndex :: HexString -> ExceptT AppError Aff Index
 getIndex encryptedRef = do 

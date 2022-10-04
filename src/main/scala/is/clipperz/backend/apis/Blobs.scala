@@ -20,7 +20,11 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
           archive.saveBlob(saveData.hash, ZStream.fromIterable(saveData.data.toByteArray))
         )
       )
-      .map(hash => Response.text(s"${hash}"))
+      .fold(
+        err => { println(s"ERROR ${err}"); Response(status = Status.InternalServerError) },
+        results => Response.text(s"${results}")
+      )
+      // .map(hash => Response.text(s"${hash}"))
 
   case request @ Method.DELETE -> !! / "blobs" / hash =>
     ZIO
