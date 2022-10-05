@@ -37,7 +37,7 @@ signupUser conf credentials = do
   sessionKey :: HexString <- ExceptT $ (lmap ProtocolError) <$> ((fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32) --- TODO: maybe to manage with session middleware
   ExceptT $ Right <$> modifyAppState (currentState { sessionKey = Just sessionKey })
   --- --------------------------- 
-  response :: AXW.Response String <- manageGenericRequest url PUT (Just body) RF.string
+  response :: AXW.Response String <- manageGenericRequest url POST (Just body) RF.string
   except $ if isStatusCodeOk response.status
            then Right $ hex response.body
            else Left (ProtocolError (ResponseError (unwrap response.status)))

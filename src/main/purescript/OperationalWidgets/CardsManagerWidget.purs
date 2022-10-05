@@ -2,8 +2,10 @@ module OperationalWidgets.CardsManagerWidget where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div)
+import Concur.React.DOM (div, text)
 import Control.Bind (bind)
+import Control.Monad.Except.Trans (runExceptT)
+import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.List ((:))
@@ -11,7 +13,10 @@ import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import DataModel.Index (CardReference, Index(..), CardEntry(..))
+import Effect.Aff.Class (liftAff)
 import Effect.Class.Console (log)
+import Functions.Communication.Cards (updateIndex)
+import Functions.SRP as SRP
 import Views.IndexView (indexView)
 import Views.SimpleWebComponents (simpleButton)
 import OperationalWidgets.CardWidget (cardWidget, IndexUpdateAction(..), createCardWidget)
@@ -24,8 +29,8 @@ instance showCardsViewAction :: Show CardsViewAction where
 
 data CardView = NoCard | JustCard CardReference | CardForm
 
-cardsManagerWidget :: forall a. Index -> CardView -> Widget HTML a
-cardsManagerWidget index@(Index_v1 list) mc = do
+cardsManagerWidget :: forall a. SRP.SRPConf -> Index -> CardView -> Widget HTML a
+cardsManagerWidget conf index@(Index_v1 list) mc = do
   res <- case mc of
     NoCard -> div [] [ 
       ShowCard <$> indexView index
@@ -46,7 +51,13 @@ cardsManagerWidget index@(Index_v1 list) mc = do
       case action of 
         AddReference entry@(CardEntry_v1 { title, cardReference, archived, tags}) -> do
           let newIndex = Index_v1 (entry : list)
-          cardsManagerWidget newIndex (JustCard cardReference)
-        _ -> cardsManagerWidget index mc
-    ShowCard ref -> cardsManagerWidget index (JustCard ref)
-    AddCard -> cardsManagerWidget index CardForm
+          updateResult <- liftAff $ runExceptT $ updateIndex conf newIndex
+          case updateResult of
+            Right _ -> cardsManagerWidget conf newIndex (JustCard cardReference)
+            Left err -> div [] [ --TODO: remove saved blob?
+              text $ "Couldn't save new index, the card hasn't been added: " <> show err
+            , cardsManagerWidget conf index NoCard
+            ]
+        _ -> cardsManagerWidget conf index mc
+    ShowCard ref -> cardsManagerWidget conf index (JustCard ref)
+    AddCard -> cardsManagerWidget conf index CardForm

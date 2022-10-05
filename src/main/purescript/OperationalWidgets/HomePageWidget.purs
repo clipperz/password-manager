@@ -18,13 +18,14 @@ import DataModel.Index (CardReference, Index, IndexReference)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Cards (getIndex)
+import Functions.SRP as SRP
 import Views.SimpleWebComponents (simpleButton, loadingDiv)
 import OperationalWidgets.CardsManagerWidget (cardsManagerWidget, CardView(..))
 
 data HomePageAction = Loaded (Either AppError Index) | LogoutAction
 
-homePageWidget :: IndexReference -> Widget HTML Unit
-homePageWidget indexReference = go Loading indexReference
+homePageWidget :: SRP.SRPConf -> IndexReference -> Widget HTML Unit
+homePageWidget conf indexReference = go Loading indexReference
   where 
     go widgetState reference = do
       res <- case widgetState of
@@ -38,7 +39,7 @@ homePageWidget indexReference = go Loading indexReference
     
     homePage :: Index -> CardView -> Widget HTML HomePageAction
     homePage index cardReference = div [] [
-      cardsManagerWidget index cardReference
+      cardsManagerWidget conf index cardReference
     , simpleButton "Logout" false LogoutAction
     ]
 

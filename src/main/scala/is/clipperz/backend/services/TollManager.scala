@@ -52,7 +52,7 @@ object TollManager:
           if binaryHash.take(challenge.cost) == binaryToll.take(challenge.cost) then
             true
           else
-            println(s" Toll -> ${binaryToll}; Receipt -> ${receipt}; Hash -> ${binaryHash}")
+            // println(s" Toll -> ${binaryToll}; Receipt -> ${receipt}; Hash -> ${binaryHash}")
             false
         ) // check if equal bits are more than the cost of the challenge
 

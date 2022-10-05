@@ -17,14 +17,14 @@ import is.clipperz.backend.services.{
 import is.clipperz.backend.Main.ClipperzHttpApp
 
 val usersApi: ClipperzHttpApp = Http.collectZIO {
-  case request @ Method.PUT -> !! / "users" / c =>
+  case request @ Method.POST -> !! / "users" / c =>
     ZIO.service[UserArchive]
       .zip(ZIO.service[BlobArchive])
       .zip(ZIO.service[SessionManager])
       .zip(ZIO.succeed(request.bodyAsStream))
       .flatMap((userArchive, blobArchive, sessionManager, content) =>
         userArchive.getUser(HexString(c)).flatMap(optionalUser => optionalUser match
-          case Some(_) => sessionManager.verifySessionUser(c, request) // TODO: manage put for modifing user (user is present && session is verified)
+          case Some(_) => sessionManager.verifySessionUser(c, request)
           case None    => ZIO.succeed(())
         ).flatMap(_ =>
           fromStream[SignupData](content)
@@ -48,6 +48,33 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
         results => Response.text(results._1.toString)
       )
 
+  case request @ Method.PUT -> !! / "users" / c =>
+    ZIO.service[UserArchive]
+      .zip(ZIO.service[BlobArchive])
+      .zip(ZIO.service[SessionManager])
+      .zip(ZIO.succeed(request.bodyAsStream))
+      .flatMap((userArchive, blobArchive, sessionManager, content) =>
+        userArchive.getUser(HexString(c)).flatMap(optionalUser => optionalUser match
+          case Some(_) => sessionManager.verifySessionUser(c, request)
+          case None    => ZIO.fail(new Exception(s"user ${c} does not exist"))
+        ).flatMap(_ =>
+          fromStream[UserCard](content)
+          .flatMap(user => {
+            if HexString(c) == user.c then
+              userArchive.saveUser(user, true)
+                .foldZIO(
+                  _      => ZIO.fail(new Exception("TODO")),
+                  result => ZIO.succeed(result)
+                )                
+            else  
+              ZIO.fail(new Exception("c in request path differs from c in request body "))
+          })
+        ) 
+      ).fold(
+        err => { println(s"ERROR ${err}"); Response(status = Status.Conflict) }, // TODO: check errors
+        results => Response.text(results._1.toString)
+      )
+
   case request @ Method.GET -> !! / "users" / c =>
     ZIO.service[UserArchive]
       .zip(ZIO.service[SessionManager])
@@ -59,6 +86,8 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
         maybeCard match
           case None => Response(status = Status.NotFound)
           case Some(card) => Response.json(card.toJson)
+      ).catchAll(
+        err => { println(s"ERROR ${err}"); ZIO.succeed(Response(status = Status.NotFound)) }, // TODO: check errors
       )
 
   case request @ Method.DELETE -> !! / "users" / c =>

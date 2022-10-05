@@ -22,5 +22,5 @@ app = do
   liftAff $ modifyAppState initialState
   _ <- do
     indexReference <- landingPageView SRP.baseConfiguration (LoginView Default emptyForm)
-    void $ HomePageWidget.homePageWidget indexReference
+    void $ HomePageWidget.homePageWidget SRP.baseConfiguration indexReference
   app
