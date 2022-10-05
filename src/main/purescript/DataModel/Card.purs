@@ -3,9 +3,21 @@ module DataModel.Card where
 import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
 import Data.Bifunctor (rmap)
+import Data.HexString (HexString)
 import Data.List.Types (List(..), (:))
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
+
+type UserCard = {
+    c :: HexString
+  , v :: HexString
+  , s :: HexString
+  , srpVersion :: String
+  , masterKeyEncodingVersion :: String
+  , masterKeyContent :: HexString
+}
+
+---------------------
 
 data CardField =
   CardField_v1

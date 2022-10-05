@@ -15,7 +15,7 @@ import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
 import Data.List.Types (List(..), (:))
 import Data.Tuple (Tuple(..), snd)
-import DataModel.Card (Card, defaultCards)
+import DataModel.Card (Card, defaultCards, UserCard)
 import DataModel.Credentials (Credentials)
 import DataModel.Index (Index(..), CardEntry(..), CardReference(..), createCardEntry)
 import Effect.Aff (Aff)
@@ -25,14 +25,6 @@ import Functions.ArrayBuffer (concatArrayBuffers)
 import Functions.SRP as SRP
 import Functions.EncodeDecode (encryptJson, encryptArrayBuffer)
 
-type UserCard = {
-    c :: HexString
-  , v :: HexString
-  , s :: HexString
-  , srpVersion :: String
-  , masterKeyEncodingVersion :: String
-  , masterKeyContent :: HexString
-}
 
 type RegisterUserRequest = {
     user :: UserCard

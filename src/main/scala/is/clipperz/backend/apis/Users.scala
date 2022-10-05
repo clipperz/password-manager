@@ -1,6 +1,7 @@
 package is.clipperz.backend.apis
 
 import zio.{ ZIO }
+import zio.json.EncoderOps
 import zio.stream.{ ZStream }
 import zhttp.http.{ Http, Method, Response, Status }
 import zhttp.http.* //TODO: fix How do you import `!!` and `/`?
@@ -10,7 +11,8 @@ import is.clipperz.backend.services.{
   BlobArchive,
   SessionManager,
   SignupData,
-  UserArchive
+  UserArchive,
+  UserCard
 }
 import is.clipperz.backend.Main.ClipperzHttpApp
 
@@ -44,6 +46,19 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
       ).fold(
         err => { println(s"ERROR ${err}"); Response(status = Status.Conflict) },
         results => Response.text(results._1.toString)
+      )
+
+  case request @ Method.GET -> !! / "users" / c =>
+    ZIO.service[UserArchive]
+      .zip(ZIO.service[SessionManager])
+      .flatMap((userArchive, sessionManager) =>
+        sessionManager.verifySessionUser(c, request)
+        .flatMap(_ => userArchive.getUser(HexString(c)))
+      )
+      .map(maybeCard => 
+        maybeCard match
+          case None => Response(status = Status.NotFound)
+          case Some(card) => Response.json(card.toJson)
       )
 
   case request @ Method.DELETE -> !! / "users" / c =>

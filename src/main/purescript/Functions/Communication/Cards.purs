@@ -1,5 +1,6 @@
 module Functions.Communication.Cards where
 
+import Affjax.ResponseFormat as RF
 import Control.Applicative (pure)
 import Control.Bind (discard, bind)
 import Control.Monad.Except.Trans (ExceptT(..), withExceptT, except)
@@ -8,21 +9,27 @@ import Crypto.Subtle.Constants.AES (aesCTR, l256)
 import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Generate as KG
 import Crypto.Subtle.Key.Types (encrypt, exportKey, decrypt, raw, unwrapKey, CryptoKey)
+import Data.Argonaut.Decode.Class (decodeJson)
 import Data.ArrayBuffer.Types (ArrayBuffer)
-import Data.Either (Either(..))
+import Data.Either (Either(..), note)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString, toArrayBuffer, fromArrayBuffer, splitHexInHalf)
+import Data.HTTP.Method (Method(..))
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
+import Data.Show (show)
+import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..))
-import DataModel.Card (Card)
+import DataModel.Card (Card, UserCard)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardReference(..), Index, CardEntry(..), createCardEntry)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Effect.Exception as EX
 import Functions.CardsCache (getCardFromCache, addCardToCache)
+import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
 import Functions.Communication.Blobs (getDecryptedBlob, postBlob)
 import Functions.EncodeDecode (decryptArrayBuffer)
 import Functions.JSState (getAppState)
@@ -54,6 +61,16 @@ postCard card = do
       addCardToCache reference card
       pure cardEntry
 
+getUserCard :: ExceptT AppError Aff UserCard
+getUserCard = do
+  { proxy: _, c: mc, p: _, sessionKey: _, toll: _ } <- ExceptT $ liftEffect $ getAppState
+  c <- except $ note (InvalidStateError "c is Nothing") mc
+  let url = joinWith "/" ["blobs", show c]
+  response <- manageGenericRequest url GET Nothing RF.json
+  if isStatusCodeOk response.status
+    then withExceptT (\e -> ProtocolError (DecodeError (show e))) (except $ decodeJson response.body)
+    else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
+
 getIndex :: HexString -> ExceptT AppError Aff Index
 getIndex encryptedRef = do 
   currentState <- ExceptT $ liftEffect getAppState
@@ -72,3 +89,5 @@ getIndex encryptedRef = do
     splitInHalf either = (fromArrayBuffer >>> splitHexInHalf) <$> either
     mapDecodeError :: ExceptT EX.Error Aff { before :: HexString, after :: HexString } -> ExceptT AppError Aff { before :: HexString, after :: HexString }
     mapDecodeError = withExceptT (\e -> ProtocolError $ DecodeError $ EX.message e)
+
+-- updateIndex :: Index -> HexString -> ExceptT AppError Aff HexString
