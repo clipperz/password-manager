@@ -74,10 +74,14 @@ instance decodeJsonCard :: DecodeJson Card where
 
 -- --------------------------------------------
 
+emptyCardField = CardField_v1 { name: "", value: "", locked: false }
+
 emptyCard = Card_v1 { timestamp: 0
                       , content: CardValues_v1 { title: ""
                                                 , tags: []
-                                                , fields: []
+                                                , fields: [ CardField_v1 { name: "username", value: "", locked: false }
+                                                          , CardField_v1 { name: "password", value: "", locked: true }
+                                                          ]
                                                 , notes: ""
                                                 }
                       }
