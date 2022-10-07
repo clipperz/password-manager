@@ -28,9 +28,9 @@ import Functions.Communication.Cards (getCard, postCard)
 import Views.CardViews (cardView, CardAction(..), createCardView)
 import Views.SimpleWebComponents (loadingDiv)
 
-data IndexUpdateAction = AddReference CardEntry | DeleteReference Card | ChangeToReference Card Card | NoUpdate
+data IndexUpdateAction = AddReference Card CardEntry | DeleteReference Card | ChangeToReference Card Card | NoUpdate
 instance showIndexUpdateAction :: Show IndexUpdateAction where
-  show (AddReference c) = "Add reference to " <> show c
+  show (AddReference c c') = "Add reference to " <> show c
   show (DeleteReference c) = "Delete reference to " <> show c
   show (ChangeToReference c c') = "Change reference of " <> show c <> " to " <> show c'
   show NoUpdate = "No update"
@@ -57,7 +57,7 @@ cardWidget reference = go Loading
         Edit cc -> pure $ ChangeToReference cc cc
         Clone cc@(Card_v1 cardRecord) -> do
           timestamp <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
-          doOp cc (postCard (Card_v1 $ cardRecord { timestamp = timestamp })) AddReference
+          doOp cc (postCard (Card_v1 $ cardRecord { timestamp = timestamp })) (AddReference cc)
         Archive cc -> pure $ ChangeToReference cc cc
         Delete cc -> pure $ DeleteReference cc
 
@@ -71,18 +71,18 @@ cardWidget reference = go Loading
 
 data CreateCardActions = JustCard Card | EitherReference (Either AppError CardEntry)
 
-createCardWidget :: Widget HTML IndexUpdateAction
-createCardWidget = go Default emptyCard
+createCardWidget :: Card -> Widget HTML IndexUpdateAction
+createCardWidget startingCard = go Default startingCard
   where 
     go :: WidgetState -> Card -> Widget HTML IndexUpdateAction
     go state c = do
       res <- case state of
         Default -> JustCard <$> (createCardView c)
-        Loading -> loadingDiv <|> (EitherReference <$> (liftAff $ runExceptT $ postCard c))
+        Loading -> loadingDiv <|> (EitherReference <$> (liftAff $ runExceptT $ postCard c)) -- TODO: draw loadingDiv over form
         Error err -> div [] [text $ "Card could't be saved: " <> err, JustCard <$> (createCardView c)]
       case res of
         -- Right ref -> pure $ AddReference ref
         JustCard card -> go Loading card
         EitherReference e -> case e of
-          Right entry -> pure $ AddReference entry
+          Right entry -> pure $ AddReference c entry
           Left err -> go (Error (show err)) c

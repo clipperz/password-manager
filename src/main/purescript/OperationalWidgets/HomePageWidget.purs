@@ -19,8 +19,9 @@ import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Cards (getIndex)
 import Functions.SRP as SRP
+import Views.CardsManagerView (CardView(..))
 import Views.SimpleWebComponents (simpleButton, loadingDiv)
-import OperationalWidgets.CardsManagerWidget (cardsManagerWidget, CardView(..))
+import OperationalWidgets.CardsManagerWidget (cardsManagerWidget)
 
 data HomePageAction = Loaded (Either AppError Index) | LogoutAction
 
