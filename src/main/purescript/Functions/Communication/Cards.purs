@@ -30,6 +30,7 @@ import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardReference(..), Index, CardEntry(..), createCardEntry, IndexReference)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
 import Effect.Exception as EX
 import Functions.ArrayBuffer (concatArrayBuffers)
 import Functions.CardsCache (getCardFromCache, addCardToCache)
@@ -103,11 +104,10 @@ updateIndex conf newIndex = do
       userCard <- getUserCard
       masterPassword :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       { before: masterKey, after: indexReference } <- mapDecodeError $ ExceptT $ splitInHalf <$> (decryptEncryptedRef masterPassword userCard.masterKeyContent)
-      cryptoKey      :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+      cryptoKey            :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       indexCardContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson cryptoKey newIndex
       indexCardContentHash :: ArrayBuffer <- ExceptT $ Right <$> conf.hash (indexCardContent : Nil)
-      cryptoKeyAb          :: ArrayBuffer <- ExceptT $ Right <$> exportKey raw cryptoKey
-      masterKeyContent     :: ArrayBuffer <- ExceptT $ Right <$> ((liftEffect $ concatArrayBuffers (cryptoKeyAb : indexCardContentHash : Nil)) >>= (encryptArrayBuffer masterPassword)) 
+      masterKeyContent     :: ArrayBuffer <- ExceptT $ Right <$> ((liftEffect $ concatArrayBuffers ((toArrayBuffer masterKey) : indexCardContentHash : Nil)) >>= (encryptArrayBuffer masterPassword)) 
       let newUserCard = userCard { masterKeyContent = fromArrayBuffer masterKeyContent }
       -- save new index card
       _ <- postBlob indexCardContent indexCardContentHash
