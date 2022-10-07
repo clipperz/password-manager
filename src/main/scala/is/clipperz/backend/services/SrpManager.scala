@@ -58,7 +58,7 @@ object SrpManager:
           val b = bytesToHex(randomValue)
           val bb = bigIntToHex(srpFunctions.computeB(b.toBigInt, v))
           
-          val newSessionContext = session + (("username", step1Data.c.toString)) + (("b", b.toString)) + (("B", bb.toString)) + (("A", step1Data.aa.toString))
+          val newSessionContext = session + (("c", step1Data.c.toString)) + (("b", b.toString)) + (("B", bb.toString)) + (("A", step1Data.aa.toString))
           (SRPStep1Response(s = s, bb = bb), newSessionContext)
         }
 
@@ -67,8 +67,8 @@ object SrpManager:
         val aa        = HexString(session("A").get)
         val bb        = HexString(session("B").get)
         val b         = HexString(session("b").get)
-        val username  = HexString(session("username").get)
-        val zioUser = userArchive.getUser(username).flatMap(u => ZIO.attempt(u.get))
+        val c         = HexString(session("c").get)
+        val zioUser = userArchive.getUser(c).flatMap(u => ZIO.attempt(u.get))
         val zioK : Task[Array[Byte]] = for {
           u: Array[Byte]  <- srpFunctions.computeU(aa.toByteArray, bb.toByteArray)
           user: UserCard  <- zioUser

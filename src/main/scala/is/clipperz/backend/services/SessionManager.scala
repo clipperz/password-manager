@@ -20,6 +20,7 @@ trait SessionManager:
   def verifySessionUser(c: String, request: Request): Task[Unit] =
     request.headers.headerValue(SessionManager.sessionKeyHeaderName) match
       case Some(sessionKey) => this.getSession(sessionKey).flatMap(session =>
+        println(session)
         session("c") match
           case Some(session_c) => if (session_c == c) ZIO.succeed(()) else ZIO.fail(new Exception("c in request path differs from c in session"))
           case None => ZIO.fail(new Exception("session does not contain c"))
