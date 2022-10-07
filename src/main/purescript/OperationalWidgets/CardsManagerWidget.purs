@@ -41,27 +41,28 @@ cardsManagerWidget :: forall a. SRP.SRPConf -> Index -> CardView -> Widget HTML 
 cardsManagerWidget conf index@(Index_v1 list) mc = go index (cardsManagerView index mc) Nothing Nothing
 
   where
-    cardsManagerView :: Index -> CardView -> Array (Widget HTML a) -> Widget HTML CardsViewAction
-    cardsManagerView i cv errorView = case cv of -- TODO: add error view
-      NoCard -> div [] [
-        ShowCard <$> indexView i
-        , simpleButton "Add card" false AddCard 
-      ]
-      JustCard c -> div [] [
-        ShowCard <$> indexView i
-        , UpdateIndex <$> cardWidget c
-        , simpleButton "Add card" false AddCard 
-      ]
-      CardForm -> div [] [
-        ShowCard <$> indexView i
-        , UpdateIndex <$> createCardWidget
-      ]
-    go :: Index -> (Array (Widget HTML a) -> Widget HTML CardsViewAction) -> Maybe AppError -> Maybe (Aff CardsViewResult) -> Widget HTML a
+    cardsManagerView :: Index -> CardView -> Maybe AppError -> Widget HTML CardsViewAction
+    cardsManagerView i cv error = 
+      let errorWidgets = (text <$> (fromMaybe (show <$> error))) :: Array (Widget HTML CardsViewAction)
+      in case cv of
+        NoCard -> div [] $ errorWidgets <> [
+          ShowCard <$> indexView i
+          , simpleButton "Add card" false AddCard 
+        ]
+        JustCard c -> div [] $ errorWidgets <> [
+          ShowCard <$> indexView i
+          , UpdateIndex <$> cardWidget c
+          , simpleButton "Add card" false AddCard 
+        ]
+        CardForm -> div [] $ errorWidgets <> [
+          ShowCard <$> indexView i
+          , UpdateIndex <$> createCardWidget
+        ]
+    go :: Index -> (Maybe AppError -> Widget HTML CardsViewAction) -> Maybe AppError -> Maybe (Aff CardsViewResult) -> Widget HTML a
     go index view me operation = do
-      let errorView = fromMaybe ((text <<< show) <$> me)
       res <- case operation of
-        Nothing -> CardsViewResult <$> (view errorView)
-        Just op -> (CardsViewResult <$> (view errorView)) <|> (liftAff $ op)
+        Nothing -> CardsViewResult <$> (view me)
+        Just op -> (CardsViewResult <$> (view me)) <|> (liftAff $ op)
       case res of
         CardsViewResult cva -> case cva of 
           UpdateIndex action -> do
