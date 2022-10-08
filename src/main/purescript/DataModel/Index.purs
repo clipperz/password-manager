@@ -55,9 +55,9 @@ data CardEntry =
 instance showCardEntry :: Show CardEntry where
   show (CardEntry_v1
         { title
-        , cardReference
-        , archived
-        , tags
+        , cardReference: _
+        , archived: _
+        , tags: _
         }) = "Entry for " <> title
 
 instance ordCardEntry :: Ord CardEntry where

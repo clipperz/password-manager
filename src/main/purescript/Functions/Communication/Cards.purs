@@ -30,7 +30,6 @@ import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardReference(..), Index, CardEntry(..), createCardEntry, IndexReference)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Effect.Exception as EX
 import Functions.ArrayBuffer (concatArrayBuffers)
 import Functions.CardsCache (getCardFromCache, addCardToCache)
@@ -54,13 +53,13 @@ getCard (CardReference_v1 { reference, key }) = do
 postCard :: Card -> ExceptT AppError Aff CardEntry
 postCard card = do
   key <- ExceptT $ Right <$> (KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey])
-  exportedKey <- ExceptT $ Right <$> (fromArrayBuffer <$> exportKey raw key)
+  _ <- ExceptT $ Right <$> (fromArrayBuffer <$> exportKey raw key)
   Tuple encryptedCard cardEntry <- ExceptT $ Right <$> (createCardEntry card key SRP.hashFuncSHA256)
   case cardEntry of
-    CardEntry_v1 { title
-                 , cardReference: cr@(CardReference_v1 { reference, key: savedKey })
-                 , archived
-                 , tags
+    CardEntry_v1 { title: _
+                 , cardReference: (CardReference_v1 { reference, key: _ })
+                 , archived: _
+                 , tags: _
                  } -> do
       _ <- postBlob encryptedCard (toArrayBuffer reference)
       addCardToCache reference card
@@ -103,7 +102,7 @@ updateIndex conf newIndex = do
       -- create user card with new index reference
       userCard <- getUserCard
       masterPassword :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      { before: masterKey, after: indexReference } <- mapDecodeError $ ExceptT $ splitInHalf <$> (decryptEncryptedRef masterPassword userCard.masterKeyContent)
+      { before: masterKey, after: _ } <- mapDecodeError $ ExceptT $ splitInHalf <$> (decryptEncryptedRef masterPassword userCard.masterKeyContent)
       cryptoKey            :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       indexCardContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson cryptoKey newIndex
       indexCardContentHash :: ArrayBuffer <- ExceptT $ Right <$> conf.hash (indexCardContent : Nil)
@@ -114,7 +113,7 @@ updateIndex conf newIndex = do
       -- save new user card
       let url = joinWith "/" ["users", show c]
       let body = (json $ encodeJson newUserCard) :: RequestBody
-      response <- manageGenericRequest url PUT (Just body) RF.string
+      _ <- manageGenericRequest url PUT (Just body) RF.string
       pure newUserCard.masterKeyContent
     _ -> except $ Left $ InvalidStateError "Missing p or c"
 

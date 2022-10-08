@@ -1,7 +1,7 @@
 module Views.CardViews where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, loopS, loopW, demand, fireOnce, dyn)
+import Concur.Core.FRP (Signal, loopS, loopW, demand, fireOnce)
 import Concur.React (HTML)
 import Concur.React.DOM (div, h3, li', p, text, ul)
 import Concur.React.Props as Props
@@ -11,7 +11,7 @@ import Control.Semigroupoid ((<<<))
 import Data.Array (snoc)
 import Data.DateTime.Instant (unInstant)
 import Data.Function (($))
-import Data.Functor ((<$>), (<$))
+import Data.Functor ((<$>))
 import Data.Int (ceil)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
@@ -20,7 +20,6 @@ import Data.Show (show, class Show)
 import Data.Traversable (sequence)
 import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Effect.Now (now)
 import Functions.Clipboard (copyToClipboard)
 import Views.SimpleWebComponents (simpleButton, simpleTextInputWidget, simpleCheckboxSignal)
@@ -68,7 +67,7 @@ cardField (CardField_v1 {name, value, locked}) = div [] [
 
 createCardView :: Card -> Widget HTML Card
 createCardView card = do
-  (Card_v1 { content, timestamp }) <- div [] [demand formSignal] 
+  (Card_v1 { content, timestamp: _ }) <- div [] [demand formSignal] 
   timestamp' <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
   pure $ Card_v1 { content: content, timestamp: timestamp' }
 

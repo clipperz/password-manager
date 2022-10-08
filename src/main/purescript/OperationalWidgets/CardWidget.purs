@@ -17,8 +17,8 @@ import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
 import DataModel.AppState (AppError)
-import DataModel.Card (Card(..), emptyCard)
-import DataModel.Index (CardEntry(..), CardReference)
+import DataModel.Card (Card(..))
+import DataModel.Index (CardEntry, CardReference)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
@@ -30,7 +30,7 @@ import Views.SimpleWebComponents (loadingDiv)
 
 data IndexUpdateAction = AddReference Card CardEntry | DeleteReference Card | ChangeToReference Card Card | NoUpdate
 instance showIndexUpdateAction :: Show IndexUpdateAction where
-  show (AddReference c c') = "Add reference to " <> show c
+  show (AddReference c _) = "Add reference to " <> show c
   show (DeleteReference c) = "Delete reference to " <> show c
   show (ChangeToReference c c') = "Change reference of " <> show c <> " to " <> show c'
   show NoUpdate = "No update"

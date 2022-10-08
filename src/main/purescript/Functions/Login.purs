@@ -12,9 +12,8 @@ import Data.Show (show)
 import DataModel.Credentials (Credentials)
 import DataModel.Index (IndexReference)
 import Effect.Aff (Aff)
-import Effect.Class (liftEffect)
 import Functions.Communication.Login (login)
-import Functions.JSState (modifyAppState, getAppState, updateAppState)
+import Functions.JSState (updateAppState)
 import Functions.SRP as SRP
 
 doLogin :: SRP.SRPConf -> Credentials -> ExceptT String Aff IndexReference
