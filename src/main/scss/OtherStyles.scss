@@ -5,3 +5,15 @@ div {
 .disabled {
 	background-color: grey;	
 }
+
+#cardsManager {
+	display: flex;	
+}
+
+#indexView {
+	flex-grow: 1;
+}
+
+#cardView {
+	flex-grow: 3;
+}

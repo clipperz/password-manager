@@ -28,18 +28,19 @@ data CardView = NoCard | JustCard CardReference | CardForm Card
 
 cardsManagerView :: Index -> CardView -> Maybe AppError -> Widget HTML CardViewAction
 cardsManagerView i cv error = 
-  let errorWidgets = (text <$> (fromMaybe (show <$> error))) :: Array (Widget HTML CardViewAction)
-  in case cv of
-    NoCard -> div [] $ errorWidgets <> [
-      ShowCard <$> indexView false i
-    , simpleButton "Add card" false ShowAddCard 
-    ]
-    JustCard ref -> div [] $ errorWidgets <> [
-      ShowCard <$> indexView false i
-    , UpdateIndex <$> cardWidget ref
-    , simpleButton "Add card" false ShowAddCard 
-    ]
-    CardForm card -> div [] $ errorWidgets <> [
-      ShowCard <$> indexView true i
-    , UpdateIndex <$> createCardWidget card
+  let disableIndex = case cv of
+                      NoCard     -> false
+                      JustCard _ -> false
+                      CardForm _ -> true
+  in  
+    div [Props._id "cardsManager"] $ (text <$> (fromMaybe $ show <$> error)) <> [
+      div [Props._id "indexView"] [
+        ShowCard <$> indexView disableIndex i
+      , simpleButton "Add card" disableIndex ShowAddCard 
+      ]
+    , div [Props._id "cardView"] $
+      case cv of
+        NoCard        -> []
+        JustCard ref  -> [UpdateIndex <$> cardWidget ref]
+        CardForm card -> [UpdateIndex <$> createCardWidget card]
     ]
