@@ -5,6 +5,7 @@ import Concur.Core.FRP (Signal, loopS, loopW, demand, fireOnce)
 import Concur.React (HTML)
 import Concur.React.DOM (div, h3, li', p, text, ul)
 import Concur.React.Props as Props
+import Control.Alt((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Semigroupoid ((<<<))
@@ -65,11 +66,14 @@ cardField (CardField_v1 {name, value, locked}) = div [] [
 
 -----------------------
 
-createCardView :: Card -> Widget HTML Card
+createCardView :: Card -> Widget HTML (Maybe Card)
 createCardView card = do
-  (Card_v1 { content, timestamp: _ }) <- div [] [demand formSignal] 
-  timestamp' <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
-  pure $ Card_v1 { content: content, timestamp: timestamp' }
+  mCard <- div [] [demand formSignal] 
+  case mCard of
+    Just (Card_v1 { content, timestamp: _ }) -> do
+      timestamp' <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
+      pure $ Just $ Card_v1 { content: content, timestamp: timestamp' }
+    Nothing -> pure Nothing
 
   where 
     cardFieldSignal :: CardField -> Signal HTML CardField
@@ -79,6 +83,7 @@ createCardView card = do
       locked' :: Boolean <- simpleCheckboxSignal "locked" (text "Locked") locked
       pure $ CardField_v1 {name: name', value: value', locked: locked'}
 
+    formSignal :: Signal HTML (Maybe (Maybe Card))
     formSignal = do
       formValues :: Card <- loopS card $ \(Card_v1 {content: (CardValues_v1 {title, tags, fields, notes}), timestamp}) -> do
         title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title"))
@@ -93,7 +98,7 @@ createCardView card = do
         pure $ Card_v1 { content: (CardValues_v1 {title: title', tags: tags', fields: fields'', notes: notes'})
                        , timestamp
                        }
-      res <- fireOnce $ simpleButton "Save" false formValues
+      res <- fireOnce (simpleButton "Cancel" false Nothing <|> simpleButton "Save" false (Just formValues))
       -- TODO: add check for form validity
       pure res
 

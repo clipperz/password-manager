@@ -31,14 +31,14 @@ cardsManagerView i cv error =
   in case cv of
     NoCard -> div [] $ errorWidgets <> [
       ShowCard <$> indexView i
-      , simpleButton "Add card" false AddCard 
+    , simpleButton "Add card" false AddCard 
     ]
-    JustCard c -> div [] $ errorWidgets <> [
+    JustCard ref -> div [] $ errorWidgets <> [
       ShowCard <$> indexView i
-      , UpdateIndex <$> cardWidget c
-      , simpleButton "Add card" false AddCard 
+    , UpdateIndex <$> cardWidget ref
+    , simpleButton "Add card" false AddCard 
     ]
     CardForm card -> div [] $ errorWidgets <> [
       ShowCard <$> indexView i
-      , UpdateIndex <$> createCardWidget card
+    , UpdateIndex <$> createCardWidget card
     ]

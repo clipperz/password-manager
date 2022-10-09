@@ -13,6 +13,7 @@ import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
 import Data.Int (ceil)
+import Data.Maybe (maybe)
 import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
@@ -69,7 +70,7 @@ cardWidget reference = go Loading
         Left err -> div [] [text ("Current operation could't be completed: " <> show err)
                            , cardView currentCard >>= manageCardAction ]
 
-data CreateCardActions = JustCard Card | EitherReference (Either AppError CardEntry)
+data CreateCardActions = JustCard Card | EitherReference (Either AppError CardEntry) | NoAction
 
 createCardWidget :: Card -> Widget HTML IndexUpdateAction
 createCardWidget startingCard = go Default startingCard
@@ -77,11 +78,11 @@ createCardWidget startingCard = go Default startingCard
     go :: WidgetState -> Card -> Widget HTML IndexUpdateAction
     go state c = do
       res <- case state of
-        Default -> JustCard <$> (createCardView c)
+        Default -> (maybe NoAction JustCard) <$> (createCardView c)
         Loading -> loadingDiv <|> (EitherReference <$> (liftAff $ runExceptT $ postCard c)) -- TODO: draw loadingDiv over form
-        Error err -> div [] [text $ "Card could't be saved: " <> err, JustCard <$> (createCardView c)]
+        Error err -> div [] [text $ "Card could't be saved: " <> err, (maybe NoAction JustCard) <$> (createCardView c)]
       case res of
-        -- Right ref -> pure $ AddReference ref
+        NoAction -> pure $ NoUpdate
         JustCard card -> go Loading card
         EitherReference e -> case e of
           Right entry -> pure $ AddReference c entry
