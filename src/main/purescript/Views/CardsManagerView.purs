@@ -17,11 +17,11 @@ import Views.IndexView (indexView)
 import Views.SimpleWebComponents (simpleButton)
 import OperationalWidgets.CardWidget (cardWidget, IndexUpdateAction, createCardWidget)
 
-data CardViewAction = UpdateIndex IndexUpdateAction | ShowCard CardReference | AddCard
+data CardViewAction = UpdateIndex IndexUpdateAction | ShowCard CardReference | ShowAddCard
 instance showCardViewAction :: Show CardViewAction where
   show (UpdateIndex a) = "UpdateIndex " <> show a
   show (ShowCard ref)  = "Show Card " <> show ref
-  show  AddCard        = "Add Card"
+  show  ShowAddCard    = "Show Add Card"
 
 data CardView = NoCard | JustCard CardReference | CardForm Card
 
@@ -31,12 +31,12 @@ cardsManagerView i cv error =
   in case cv of
     NoCard -> div [] $ errorWidgets <> [
       ShowCard <$> indexView i
-    , simpleButton "Add card" false AddCard 
+    , simpleButton "Add card" false ShowAddCard 
     ]
     JustCard ref -> div [] $ errorWidgets <> [
       ShowCard <$> indexView i
     , UpdateIndex <$> cardWidget ref
-    , simpleButton "Add card" false AddCard 
+    , simpleButton "Add card" false ShowAddCard 
     ]
     CardForm card -> div [] $ errorWidgets <> [
       ShowCard <$> indexView i

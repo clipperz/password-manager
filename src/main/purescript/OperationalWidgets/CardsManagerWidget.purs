@@ -39,12 +39,12 @@ cardsManagerWidget conf ind mc = go ind (cardsManagerView ind mc) Nothing Nothin
           UpdateIndex action -> do
             _ <- log $ show action
             go index (getUpdateIndexView index action) Nothing (Just (getUpdateIndexOp conf index action))
-          AddCard -> go index (cardsManagerView index (CardForm emptyCard)) Nothing Nothing
+          ShowAddCard -> go index (cardsManagerView index (CardForm emptyCard)) Nothing Nothing
           ShowCard ref -> go index (cardsManagerView index (JustCard ref)) Nothing Nothing
-        OpResult i cv e -> go index (cardsManagerView i cv) e Nothing
+        OpResult i cv e -> go i (cardsManagerView i cv) e Nothing
 
 getUpdateIndexOp :: SRP.SRPConf -> Index -> IndexUpdateAction -> Aff CardsViewResult
-getUpdateIndexOp conf index@(Index_v1 list) action = 
+getUpdateIndexOp conf index@(Index_v1 list) action =
   case action of 
     AddReference _ entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) -> do
       let newIndex = Index_v1 (entry : list)
