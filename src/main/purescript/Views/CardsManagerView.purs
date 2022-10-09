@@ -4,6 +4,7 @@ module Views.CardsManagerView where
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.React.DOM (div, text)
+import Concur.React.Props as Props
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Maybe (Maybe)
@@ -30,15 +31,15 @@ cardsManagerView i cv error =
   let errorWidgets = (text <$> (fromMaybe (show <$> error))) :: Array (Widget HTML CardViewAction)
   in case cv of
     NoCard -> div [] $ errorWidgets <> [
-      ShowCard <$> indexView i
+      ShowCard <$> indexView false i
     , simpleButton "Add card" false ShowAddCard 
     ]
     JustCard ref -> div [] $ errorWidgets <> [
-      ShowCard <$> indexView i
+      ShowCard <$> indexView false i
     , UpdateIndex <$> cardWidget ref
     , simpleButton "Add card" false ShowAddCard 
     ]
     CardForm card -> div [] $ errorWidgets <> [
-      ShowCard <$> indexView i
+      ShowCard <$> indexView true i
     , UpdateIndex <$> createCardWidget card
     ]

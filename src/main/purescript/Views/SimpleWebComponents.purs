@@ -97,8 +97,8 @@ checkboxesSignal ts lablesMap = loopS ts \m -> do
                             pure $ Tuple id res) <$> checkboxes) :: Array (Signal HTML (Tuple String Boolean))
   sequence checkboxes2
 
-clickableListItemWidget :: forall a. Widget HTML a -> a -> Widget HTML a
-clickableListItemWidget item reference = li [reference <$ Props.onClick] [item]
+clickableListItemWidget :: forall a. Boolean -> Widget HTML a -> a -> Widget HTML a
+clickableListItemWidget disable item reference = li [if disable then Props.emptyProp else reference <$ Props.onClick] [item]
 
 passwordStrengthShow :: forall a. PasswordStrength -> Widget HTML a
 passwordStrengthShow = text <<< show
