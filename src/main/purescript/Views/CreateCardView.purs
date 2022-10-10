@@ -20,6 +20,7 @@ import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
+import Data.Unit (unit)
 import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
 -- import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -39,7 +40,7 @@ createCardView card = do
   where 
     cardFieldSignal :: CardField -> Signal HTML (Maybe CardField)
     cardFieldSignal field = do
-      removeField <- fireOnce $ simpleButton "Remove field" false RemoveField
+      removeField <- fireOnce $ simpleButton "Remove field" false unit
       field' <- loopS field $ \(CardField_v1 { name, value, locked }) -> do
         name' :: String <- loopW name (simpleTextInputWidget "name" (text "Name"))
         value' :: String <- loopW value (simpleTextInputWidget "value" (text "Value"))
@@ -52,14 +53,14 @@ createCardView card = do
     fieldsSignal :: Array CardField -> Signal HTML (Array CardField)
     fieldsSignal fields = do
       fields' :: Array CardField <- (\fs -> (maybe [] singleton) =<< filter isJust fs) <$> (sequence $ cardFieldSignal <$> fields)
-      addField <- fireOnce $ simpleButton "Add field" false AddField
+      addField <- fireOnce $ simpleButton "Add field" false unit
       case addField of
         Nothing -> pure fields'
         Just _  -> pure $ snoc fields' emptyCardField
 
     tagSignal :: String -> Signal HTML (Maybe String)
     tagSignal tag = do
-      removeTag <- fireOnce $ simpleButton "x" false RemoveTag
+      removeTag <- fireOnce $ simpleButton "x" false unit
       tag' <- loopW tag text
       case removeTag of
         Nothing -> pure $ Just tag'
@@ -69,7 +70,7 @@ createCardView card = do
     tagsSignal newTag tags = do
       tags' <- (\ts -> ((maybe [] singleton) =<< filter isJust ts)) <$> (sequence $ tagSignal <$> sort tags)
       newTag' <- loopW newTag (simpleTextInputWidget "" (text "add tag"))
-      addTag <- fireOnce $ simpleButton "Add tag" false AddTag --TODO change with form that returns with `return` key
+      addTag <- fireOnce $ simpleButton "Add tag" false unit --TODO change with form that returns with `return` key
       case addTag of
         Nothing -> pure $ Tuple newTag' tags'
         Just _  -> pure $ Tuple "" $ snoc tags' newTag
@@ -87,5 +88,3 @@ createCardView card = do
       res <- fireOnce (simpleButton "Cancel" false Nothing <|> simpleButton "Save" false (Just formValues))
       -- TODO: add check for form validity
       pure res
-
-data FormSignalAction = AddField | RemoveField | AddTag | RemoveTag
