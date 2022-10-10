@@ -7,14 +7,14 @@ import Concur.React.DOM (div, h3, li', p, text, ul)
 import Concur.React.Props as Props
 import Control.Alt((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard, (=<<))
+import Control.Bind (bind, (=<<))
 import Control.Semigroupoid ((<<<))
 import Data.Array (snoc, filter, singleton, sort)
 import Data.DateTime.Instant (unInstant)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Int (ceil)
-import Data.Maybe (Maybe(..), isJust, fromJust, maybe)
+import Data.Maybe (Maybe(..), isJust, maybe)
 import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
@@ -26,8 +26,6 @@ import Effect.Class (liftEffect)
 import Effect.Now (now)
 import Functions.Clipboard (copyToClipboard)
 import Views.SimpleWebComponents (simpleButton, simpleTextInputWidget, simpleCheckboxSignal)
-
-import Effect.Class.Console (log)
 
 -- -----------------------------------
 
@@ -83,13 +81,13 @@ createCardView card = do
     cardFieldSignal :: CardField -> Signal HTML (Maybe CardField)
     cardFieldSignal field = do
       removeField <- fireOnce $ simpleButton "Remove field" false RemoveField
-      cardField <- loopS field $ \(CardField_v1 { name, value, locked }) -> do
+      field' <- loopS field $ \(CardField_v1 { name, value, locked }) -> do
         name' :: String <- loopW name (simpleTextInputWidget "name" (text "Name"))
         value' :: String <- loopW value (simpleTextInputWidget "value" (text "Value"))
         locked' :: Boolean <- simpleCheckboxSignal "locked" (text "Locked") locked
         pure $ CardField_v1 {name: name', value: value', locked: locked'}
       case removeField of
-        Nothing -> pure $ Just cardField
+        Nothing -> pure $ Just field'
         Just _  -> pure $ Nothing
 
     fieldsSignal :: Array CardField -> Signal HTML (Array CardField)
