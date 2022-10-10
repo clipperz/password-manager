@@ -17,3 +17,12 @@ div {
 #cardView {
 	flex-grow: 3;
 }
+
+#indexView > ol > li {
+	height: 20px;
+	border-bottom: 0.5px solid rgba(128, 128, 128, 0.658);
+}
+
+.selected {
+	background-color: rgba(123, 185, 224, 0.489);
+}

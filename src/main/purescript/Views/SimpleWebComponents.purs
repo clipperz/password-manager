@@ -26,7 +26,8 @@ simpleInputWidget id lbl disable value t = do
       label [Props.htmlFor id] [lbl]
     , (Props.unsafeTargetValue) <$> input [
         Props._type t
-      , Props._id id 
+      , Props._id id
+      , Props.placeholder ""
       , Props.value value
       , Props.disabled disable
       , Props.onChange

@@ -9,7 +9,7 @@ import Control.Alt((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (=<<))
 import Control.Semigroupoid ((<<<))
-import Data.Array (snoc, filter, singleton)
+import Data.Array (snoc, filter, singleton, sort)
 import Data.DateTime.Instant (unInstant)
 import Data.Function (($))
 import Data.Functor ((<$>))
@@ -19,6 +19,7 @@ import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
 import Data.Traversable (sequence)
+import Data.Tuple (Tuple(..))
 import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
 -- import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -71,7 +72,7 @@ cardField (CardField_v1 {name, value, locked}) = div [] [
 
 createCardView :: Card -> Widget HTML (Maybe Card)
 createCardView card = do
-  mCard <- div [] [demand formSignal] 
+  mCard <- div [] [demand formSignal]
   case mCard of
     Just (Card_v1 { content, timestamp: _ }) -> do
       timestamp' <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
@@ -93,26 +94,41 @@ createCardView card = do
 
     fieldsSignal :: Array CardField -> Signal HTML (Array CardField)
     fieldsSignal fields = do
-      fields' :: Array (Maybe CardField) <- sequence $ cardFieldSignal <$> fields
+      fields' :: Array CardField <- (\fs -> (maybe [] singleton) =<< filter isJust fs) <$> (sequence $ cardFieldSignal <$> fields)
       addField <- fireOnce $ simpleButton "Add field" false AddField
-      let fields'' = (maybe [] singleton) =<< filter isJust fields'
       case addField of
-        Nothing -> pure fields''
-        Just _  -> pure $ snoc fields'' emptyCardField
+        Nothing -> pure fields'
+        Just _  -> pure $ snoc fields' emptyCardField
+
+    tagSignal :: String -> Signal HTML (Maybe String)
+    tagSignal tag = do
+      removeTag <- fireOnce $ simpleButton "x" false RemoveTag
+      tag' <- loopW tag text
+      case removeTag of
+        Nothing -> pure $ Just tag'
+        Just _  -> pure $ Nothing
+
+    tagsSignal :: String -> Array String -> Signal HTML (Tuple String (Array String))
+    tagsSignal newTag tags = do
+      tags' <- (\ts -> ((maybe [] singleton) =<< filter isJust ts)) <$> (sequence $ tagSignal <$> sort tags)
+      newTag' <- loopW newTag (simpleTextInputWidget "" (text "add tag"))
+      addTag <- fireOnce $ simpleButton "Add tag" false AddTag --TODO change with form that returns with `return` key
+      case addTag of
+        Nothing -> pure $ Tuple newTag' tags'
+        Just _  -> pure $ Tuple "" $ snoc tags' newTag
 
     formSignal :: Signal HTML (Maybe (Maybe Card))
     formSignal = do
-      formValues :: Card <- loopS card $ \(Card_v1 {content: (CardValues_v1 {title, tags, fields, notes}), timestamp}) -> do
+      Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card_v1 {content: (CardValues_v1 {title, tags, fields, notes}), timestamp})) -> do
         title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title"))
-        -- TODO: tags
-        let tags' = tags
+        Tuple newTag' tags' <- tagsSignal newTag tags
         fields' <- fieldsSignal fields
         notes' :: String <- loopW notes (simpleTextInputWidget "notes" (text "Notes"))
-        pure $ Card_v1 { content: (CardValues_v1 {title: title', tags: tags', fields: fields', notes: notes'})
-                       , timestamp
-                       }
+        pure $ Tuple newTag' $ Card_v1 { content: (CardValues_v1 {title: title', tags: tags', fields: fields', notes: notes'})
+                                       , timestamp
+                                       }
       res <- fireOnce (simpleButton "Cancel" false Nothing <|> simpleButton "Save" false (Just formValues))
       -- TODO: add check for form validity
       pure res
 
-data FormSignalAction = AddField | RemoveField
+data FormSignalAction = AddField | RemoveField | AddTag | RemoveTag
