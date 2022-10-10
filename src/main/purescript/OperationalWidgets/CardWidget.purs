@@ -40,9 +40,8 @@ instance showIndexUpdateAction :: Show IndexUpdateAction where
 cardWidget :: CardReference -> WidgetState -> Widget HTML IndexUpdateAction
 cardWidget reference state = do
   eitherCard <- case state of 
-    Default -> div [] []
-    Loading -> loadingDiv <|> (liftAff $ runExceptT $ getCard reference)
     Error err -> div [] [text $ "Card could't be loaded: " <> err]
+    _ -> loadingDiv <|> (liftAff $ runExceptT $ getCard reference)
   case eitherCard of
     Right c -> do 
       res <- cardView c
