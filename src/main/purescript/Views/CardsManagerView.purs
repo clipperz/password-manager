@@ -14,6 +14,7 @@ import Data.Unfoldable (fromMaybe)
 import DataModel.AppState (AppError)
 import DataModel.Card (Card)
 import DataModel.Index (CardReference, Index)
+import DataModel.WidgetState (WidgetState)
 import Views.IndexView (indexView)
 import Views.SimpleWebComponents (simpleButton)
 import OperationalWidgets.CardWidget (cardWidget, IndexUpdateAction)
@@ -25,10 +26,12 @@ instance showCardViewAction :: Show CardViewAction where
   show (ShowCard ref)  = "Show Card " <> show ref
   show  ShowAddCard    = "Show Add Card"
 
+type CardViewState = { cardView :: CardView, cardViewState :: WidgetState }
+
 data CardView = NoCard | JustCard CardReference | CardForm Card
 
-cardsManagerView :: Index -> CardView -> Maybe AppError -> Widget HTML CardViewAction
-cardsManagerView i cv error = 
+cardsManagerView :: Index -> CardViewState -> Maybe AppError -> Widget HTML CardViewAction
+cardsManagerView i { cardView: cv, cardViewState } error = 
   let disableIndex = case cv of
                       NoCard     -> false
                       JustCard _ -> false
@@ -42,6 +45,6 @@ cardsManagerView i cv error =
     , div [Props._id "cardView"] $
       case cv of
         NoCard        -> []
-        JustCard ref  -> [UpdateIndex <$> cardWidget ref]
-        CardForm card -> [UpdateIndex <$> createCardWidget card]
+        JustCard ref  -> [UpdateIndex <$> cardWidget ref cardViewState]
+        CardForm card -> [UpdateIndex <$> createCardWidget card cardViewState]
     ]

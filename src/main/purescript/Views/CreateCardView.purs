@@ -22,15 +22,20 @@ import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
 import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
+import DataModel.WidgetState (WidgetState(..))
 -- import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Now (now)
 import Functions.Clipboard (copyToClipboard)
-import Views.SimpleWebComponents (simpleButton, simpleTextInputWidget, simpleCheckboxSignal)
+import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleTextInputWidget, simpleCheckboxSignal)
 
-createCardView :: Card -> Widget HTML (Maybe Card)
-createCardView card = do
-  mCard <- div [] [demand formSignal]
+createCardView :: Card -> WidgetState -> Widget HTML (Maybe Card)
+createCardView card state = do
+  mCard <- case state of
+    Default -> div [] [demand formSignal]
+    Loading -> div [] [loadingDiv, demand formSignal] -- TODO: deactivate form
+    Error err -> div [] [text err, demand formSignal]
+  -- mCard <- div [] [demand formSignal]
   case mCard of
     Just (Card_v1 { content, timestamp: _ }) -> do
       timestamp' <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now

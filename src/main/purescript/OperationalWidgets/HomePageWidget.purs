@@ -38,8 +38,8 @@ homePageWidget conf indexReference = go Loading indexReference
         LogoutAction -> pure unit
     
     homePage :: Index -> CardView -> Widget HTML HomePageAction
-    homePage index cardReference = div [] [
-      cardsManagerWidget conf index cardReference
+    homePage index cardView = div [] [
+      cardsManagerWidget conf index { cardView: cardView, cardViewState: Default }
     , simpleButton "Logout" false LogoutAction
     ]
 

@@ -33,18 +33,15 @@ import OperationalWidgets.CardWidget (IndexUpdateAction(..))
 
 data CreateCardActions = JustCard Card | EitherReference (Either AppError CardEntry) | NoAction
 
-createCardWidget :: Card -> Widget HTML IndexUpdateAction
-createCardWidget startingCard = go Default startingCard
-  where 
-    go :: WidgetState -> Card -> Widget HTML IndexUpdateAction
-    go state c = do
-      res <- case state of
-        Default -> (maybe NoAction JustCard) <$> (createCardView c)
-        Loading -> loadingDiv <|> (EitherReference <$> (liftAff $ runExceptT $ postCard c)) -- TODO: draw loadingDiv over form
-        Error err -> div [] [text $ "Card could't be saved: " <> err, (maybe NoAction JustCard) <$> (createCardView c)]
-      case res of
-        NoAction -> pure $ NoUpdate
-        JustCard card -> go Loading card
-        EitherReference e -> case e of
-          Right entry -> pure $ AddReference c entry
-          Left err -> go (Error (show err)) c
+createCardWidget :: Card -> WidgetState -> Widget HTML IndexUpdateAction
+createCardWidget startingCard state = do
+  res <- case state of
+    Default -> (maybe NoAction JustCard) <$> (createCardView startingCard Default)
+    Loading -> ((maybe NoAction JustCard) <$> (createCardView startingCard Loading)) <|> (EitherReference <$> (liftAff $ runExceptT $ postCard startingCard)) -- TODO: draw loadingDiv over form
+    Error err -> (maybe NoAction JustCard) <$> (createCardView startingCard (Error ("Card could't be saved: " <> err)))
+  case res of
+    NoAction -> pure $ NoUpdate
+    JustCard card -> createCardWidget card Loading
+    EitherReference e -> case e of
+      Right entry -> pure $ AddReference startingCard entry
+      Left err -> createCardWidget startingCard (Error (show err))

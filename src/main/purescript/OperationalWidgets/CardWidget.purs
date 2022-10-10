@@ -37,22 +37,21 @@ instance showIndexUpdateAction :: Show IndexUpdateAction where
   show (ChangeToReference c c') = "Change reference of " <> show c <> " to " <> show c'
   show NoUpdate = "No update"
 
-cardWidget :: CardReference -> Widget HTML IndexUpdateAction
-cardWidget reference = go Loading
-  where 
-    go state = do
-      eitherCard <- case state of 
-        Default -> div [] []
-        Loading -> loadingDiv <|> (liftAff $ runExceptT $ getCard reference)
-        Error err -> div [] [text $ "Card could't be loaded: " <> err]
-      case eitherCard of
-        Right c -> do 
-          res <- cardView c
-          manageCardAction res
-        Left err -> do
-          -- TODO: check error to decide what to do
-          NoUpdate <$ div [] [text $ show err]
+cardWidget :: CardReference -> WidgetState -> Widget HTML IndexUpdateAction
+cardWidget reference state = do
+  eitherCard <- case state of 
+    Default -> div [] []
+    Loading -> loadingDiv <|> (liftAff $ runExceptT $ getCard reference)
+    Error err -> div [] [text $ "Card could't be loaded: " <> err]
+  case eitherCard of
+    Right c -> do 
+      res <- cardView c
+      manageCardAction res
+    Left err -> do
+      -- TODO: check error to decide what to do
+      NoUpdate <$ div [] [text $ show err]
 
+  where
     manageCardAction :: CardAction -> Widget HTML IndexUpdateAction
     manageCardAction action = 
       case action of
