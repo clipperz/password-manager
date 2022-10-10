@@ -46,16 +46,21 @@ cardsManagerWidget conf ind mc = go ind (cardsManagerView ind mc) Nothing Nothin
 getUpdateIndexOp :: SRP.SRPConf -> Index -> IndexUpdateAction -> Aff CardsViewResult
 getUpdateIndexOp conf index@(Index_v1 list) action =
   case action of 
-    AddReference _ entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) -> do
+    AddReference _  entry -> addEntryToIndex entry 
+    CloneReference entry -> addEntryToIndex entry
+    _ -> pure $ OpResult index NoCard Nothing
+
+  where 
+    addEntryToIndex entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) = do
       let newIndex = Index_v1 (entry : list)
       updateResult <- liftAff $ runExceptT $ updateIndex conf newIndex
       case updateResult of
         Right _ -> pure $ OpResult newIndex (JustCard cardReference) Nothing
         Left err -> pure $ OpResult index NoCard (Just err) 
-    _ -> pure $ OpResult index NoCard Nothing
 
 getUpdateIndexView :: Index -> IndexUpdateAction -> (Maybe AppError -> Widget HTML CardViewAction)
 getUpdateIndexView index action = 
   case action of 
     AddReference card _ -> cardsManagerView index (CardForm card)
+    CloneReference entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) -> cardsManagerView index (JustCard cardReference)
     _ -> cardsManagerView index NoCard

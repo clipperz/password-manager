@@ -18,7 +18,7 @@ import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
 import DataModel.AppState (AppError)
-import DataModel.Card (Card(..))
+import DataModel.Card (Card(..), CardValues(..))
 import DataModel.Index (CardEntry, CardReference)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
@@ -29,9 +29,10 @@ import Functions.Communication.Cards (getCard, postCard)
 import Views.CardViews (cardView, CardAction(..))
 import Views.SimpleWebComponents (loadingDiv)
 
-data IndexUpdateAction = AddReference Card CardEntry | DeleteReference Card | ChangeToReference Card Card | NoUpdate
+data IndexUpdateAction = AddReference Card CardEntry | CloneReference CardEntry | DeleteReference Card | ChangeToReference Card Card | NoUpdate
 instance showIndexUpdateAction :: Show IndexUpdateAction where
   show (AddReference c _) = "Add reference to " <> show c
+  show (CloneReference c ) = "Clone reference to " <> show c
   show (DeleteReference c) = "Delete reference to " <> show c
   show (ChangeToReference c c') = "Change reference of " <> show c <> " to " <> show c'
   show NoUpdate = "No update"
@@ -57,8 +58,8 @@ cardWidget reference = go Loading
       case action of
         Edit cc -> pure $ ChangeToReference cc cc
         Clone cc@(Card_v1 cardRecord) -> do
-          timestamp <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
-          doOp cc (postCard (Card_v1 $ cardRecord { timestamp = timestamp })) (AddReference cc)
+          clonedCard <- liftAff $ cloneCardNow cc
+          doOp cc (postCard clonedCard) CloneReference
         Archive cc -> pure $ ChangeToReference cc cc
         Delete cc -> pure $ DeleteReference cc
 
@@ -69,3 +70,11 @@ cardWidget reference = go Loading
         Right a -> pure $ mapResult a
         Left err -> div [] [text ("Current operation could't be completed: " <> show err)
                            , cardView currentCard >>= manageCardAction ]
+
+cloneCardNow :: Card -> Aff Card
+cloneCardNow card@(Card_v1 { timestamp: t, content}) =
+  case content of
+    CardValues_v1 values -> do
+      timestamp <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
+      pure $ Card_v1 { timestamp, content: (CardValues_v1 (values { title = (values.title <> " - CLONE")}))}
+    _ -> pure card
