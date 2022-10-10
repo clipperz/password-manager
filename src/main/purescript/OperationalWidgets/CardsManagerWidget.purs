@@ -4,25 +4,27 @@ import Concur.Core (Widget)
 import Concur.React (HTML)
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind)
+import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (Either(..))
+import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.List ((:))
+import Data.List ((:), filter, difference)
 import Data.Maybe (Maybe(..))
 import Data.Show (show)
-import DataModel.AppState (AppError)
+import DataModel.AppState (AppError(..))
 import DataModel.Card (emptyCard)
 import DataModel.Index (Index(..), CardEntry(..))
+import DataModel.WidgetOperations (IndexUpdateAction(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
+import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Cards (updateIndex)
 import Functions.SRP as SRP
 import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState)
-import OperationalWidgets.CardWidget (IndexUpdateAction(..))
 
 data CardsViewResult = CardsViewResult CardViewAction | OpResult Index CardViewState (Maybe AppError)
 
@@ -49,6 +51,7 @@ getUpdateIndexOp conf index@(Index_v1 list) action =
   case action of 
     AddReference _  entry -> addEntryToIndex entry 
     CloneReference entry -> addEntryToIndex entry
+    ChangeToReference _ oldReference entry -> substituteEntry entry oldReference
     _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing
 
   where 
@@ -56,12 +59,27 @@ getUpdateIndexOp conf index@(Index_v1 list) action =
       let newIndex = Index_v1 (entry : list)
       updateResult <- liftAff $ runExceptT $ updateIndex conf newIndex
       case updateResult of
-        Right _ -> pure $ OpResult newIndex { cardView: (JustCard cardReference), cardViewState: Default }  Nothing
-        Left err -> pure $ OpResult index { cardView: NoCard, cardViewState: Default }  (Just err) 
+        Right _ -> pure $ OpResult newIndex { cardView: (JustCard cardReference), cardViewState: Default } Nothing
+        Left err -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) 
+    
+    substituteEntry newEntry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) oldReference = do
+      _ <- liftEffect $ log $ show newEntry
+      let indexWithEntry@(Index_v1 listWithEntry) = Index_v1 (newEntry : list)
+      _ <- liftEffect $ log $ show listWithEntry
+      let entries = filter (\(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) -> oldReference == cardReference) listWithEntry
+      _ <- liftEffect $ log $ show entries
+      let newList = difference listWithEntry entries
+      _ <- liftEffect $ log $ show newList
+      let newIndex = Index_v1 newList
+      updateResult <- liftAff $ runExceptT $ updateIndex conf newIndex
+      case updateResult of
+        Right _ -> pure $ OpResult newIndex { cardView: (JustCard cardReference), cardViewState: Default } Nothing
+        Left err -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) 
 
 getUpdateIndexView :: Index -> IndexUpdateAction -> (Maybe AppError -> Widget HTML CardViewAction)
 getUpdateIndexView index action = 
   case action of 
     AddReference card _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
     CloneReference entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) -> cardsManagerView index { cardView: (JustCard cardReference), cardViewState: Loading}
+    ChangeToReference card _ _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
     _ -> cardsManagerView index { cardView: NoCard, cardViewState: Default }

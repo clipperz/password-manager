@@ -12,16 +12,18 @@ import Data.Functor ((<$>))
 import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
+import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
 import DataModel.AppState (AppError)
 import DataModel.Card (Card)
 import DataModel.Index (CardReference, Index)
+import DataModel.WidgetOperations (IndexUpdateAction(..))
 import DataModel.WidgetState (WidgetState)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Views.IndexView (indexView)
 import Views.SimpleWebComponents (simpleButton)
-import OperationalWidgets.CardWidget (cardWidget, IndexUpdateAction)
+import OperationalWidgets.CardWidget (cardWidget)
 import OperationalWidgets.CreateCardWidget (createCardWidget)
 
 data CardViewAction = UpdateIndex IndexUpdateAction | ShowCard CardReference | ShowAddCard
@@ -44,6 +46,11 @@ cardsManagerView i { cardView: cv, cardViewState } error =
                       NoCard     -> false
                       JustCard _ -> false
                       CardForm _ -> true
+      createWidget card = do
+        res <- createCardWidget card cardViewState
+        case res of
+          Nothing -> pure $ ShowAddCard
+          Just (Tuple newCard newEntry) -> pure $ UpdateIndex $ AddReference newCard newEntry -- TODO: debatable using AddReference as a default
   in do 
     res <- div [Props._id "cardsManager"] $ (text <$> (fromMaybe $ show <$> error)) <> [
       div [Props._id "indexView"] [
@@ -54,7 +61,7 @@ cardsManagerView i { cardView: cv, cardViewState } error =
       case cv of
         NoCard        -> []
         JustCard ref  -> [UpdateIndex <$> cardWidget ref cardViewState]
-        CardForm card -> [UpdateIndex <$> createCardWidget card cardViewState]
+        CardForm card -> [createWidget card]
     ]
     case res of
       ShowCard ref -> cardsManagerView i { cardView: JustCard ref, cardViewState } Nothing -- TODO: discuss
