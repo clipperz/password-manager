@@ -16,7 +16,8 @@ import DataModel.Card (Card)
 import DataModel.Index (CardReference, Index)
 import Views.IndexView (indexView)
 import Views.SimpleWebComponents (simpleButton)
-import OperationalWidgets.CardWidget (cardWidget, IndexUpdateAction, createCardWidget)
+import OperationalWidgets.CardWidget (cardWidget, IndexUpdateAction)
+import OperationalWidgets.CreateCardWidget (createCardWidget)
 
 data CardViewAction = UpdateIndex IndexUpdateAction | ShowCard CardReference | ShowAddCard
 instance showCardViewAction :: Show CardViewAction where

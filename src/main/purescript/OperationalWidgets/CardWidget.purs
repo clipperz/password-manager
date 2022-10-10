@@ -26,7 +26,7 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Now (now)
 import Functions.Communication.Cards (getCard, postCard)
-import Views.CardViews (cardView, CardAction(..), createCardView)
+import Views.CardViews (cardView, CardAction(..))
 import Views.SimpleWebComponents (loadingDiv)
 
 data IndexUpdateAction = AddReference Card CardEntry | DeleteReference Card | ChangeToReference Card Card | NoUpdate
@@ -69,21 +69,3 @@ cardWidget reference = go Loading
         Right a -> pure $ mapResult a
         Left err -> div [] [text ("Current operation could't be completed: " <> show err)
                            , cardView currentCard >>= manageCardAction ]
-
-data CreateCardActions = JustCard Card | EitherReference (Either AppError CardEntry) | NoAction
-
-createCardWidget :: Card -> Widget HTML IndexUpdateAction
-createCardWidget startingCard = go Default startingCard
-  where 
-    go :: WidgetState -> Card -> Widget HTML IndexUpdateAction
-    go state c = do
-      res <- case state of
-        Default -> (maybe NoAction JustCard) <$> (createCardView c)
-        Loading -> loadingDiv <|> (EitherReference <$> (liftAff $ runExceptT $ postCard c)) -- TODO: draw loadingDiv over form
-        Error err -> div [] [text $ "Card could't be saved: " <> err, (maybe NoAction JustCard) <$> (createCardView c)]
-      case res of
-        NoAction -> pure $ NoUpdate
-        JustCard card -> go Loading card
-        EitherReference e -> case e of
-          Right entry -> pure $ AddReference c entry
-          Left err -> go (Error (show err)) c
