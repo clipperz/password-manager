@@ -50,6 +50,15 @@ getCard (CardReference_v1 { reference, key }) = do
       addCardToCache reference card
       pure $ card
 
+deleteCard :: CardReference -> ExceptT AppError Aff String
+deleteCard reference = 
+  let url = joinWith "/" ["blobs", show reference]
+  in do
+    response <- manageGenericRequest url DELETE Nothing RF.string
+    if isStatusCodeOk response.status
+      then except $ Right $ response.body
+      else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
+
 postCard :: Card -> ExceptT AppError Aff CardEntry
 postCard card = do
   key <- ExceptT $ Right <$> (KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey])

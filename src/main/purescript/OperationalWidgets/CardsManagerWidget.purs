@@ -7,9 +7,10 @@ import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (Either(..))
+import Data.Eq ((/=))
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.List ((:))
+import Data.List ((:), filter)
 import Data.Maybe (Maybe(..))
 import Data.Show (show)
 import DataModel.AppState (AppError)
@@ -47,8 +48,9 @@ cardsManagerWidget conf ind cardViewState = go ind (cardsManagerView ind cardVie
 getUpdateIndexOp :: SRP.SRPConf -> Index -> IndexUpdateData -> Aff CardsViewResult
 getUpdateIndexOp conf index@(Index_v1 list) (IndexUpdateData action _) =
   case action of 
-    AddReference entry -> addEntryToIndex entry 
+    AddReference entry   -> addEntryToIndex entry 
     CloneReference entry -> addEntryToIndex entry
+    DeleteReference ref  -> removeReferenceFromIndex ref
     _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing
 
   where 
@@ -58,10 +60,19 @@ getUpdateIndexOp conf index@(Index_v1 list) (IndexUpdateData action _) =
       case updateResult of
         Right _ -> pure $ OpResult newIndex { cardView: (CardFromReference cardReference), cardViewState: Default }  Nothing
         Left err -> pure $ OpResult index { cardView: NoCard, cardViewState: Default }  (Just err) 
+    
+    removeReferenceFromIndex reference = do
+      let newIndex = Index_v1 (filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
+      updateResult <- liftAff $ runExceptT $ updateIndex conf newIndex
+      case updateResult of
+        Right _ -> pure $ OpResult newIndex { cardView: NoCard, cardViewState: Default }  Nothing
+        Left err -> pure $ OpResult index { cardView: NoCard, cardViewState: Default }  (Just err) 
+
 
 getUpdateIndexView :: Index -> IndexUpdateData -> (Maybe AppError -> Widget HTML CardViewAction)
 getUpdateIndexView index (IndexUpdateData action card) = 
   case action of 
-    AddReference   _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
-    CloneReference _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading }
-    _                -> cardsManagerView index { cardView:  NoCard,         cardViewState: Default }
+    AddReference    _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
+    CloneReference  _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading }
+    DeleteReference _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading }
+    _                 -> cardsManagerView index { cardView:  NoCard,         cardViewState: Default }

@@ -26,7 +26,7 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Now (now)
-import Functions.Communication.Cards (getCard, postCard)
+import Functions.Communication.Cards (getCard, postCard, deleteCard)
 import Views.CardViews (cardView, CardAction(..))
 import Views.SimpleWebComponents (loadingDiv)
 
@@ -50,7 +50,8 @@ cardWidget reference state = do
           clonedCard <- liftAff $ cloneCardNow cc
           doOp cc (postCard clonedCard) (\entry -> IndexUpdateData (CloneReference entry) cc)
         Archive cc -> pure $ IndexUpdateData (ChangeToReference reference) cc
-        Delete cc -> pure $ IndexUpdateData (DeleteReference reference) cc
+        Delete cc -> doOp cc (deleteCard reference) (\_ -> IndexUpdateData (DeleteReference reference) cc)
+        -- Delete cc -> pure $ IndexUpdateData (DeleteReference reference) cc
 
     doOp :: forall a. Card -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData
     doOp currentCard op mapResult = do
