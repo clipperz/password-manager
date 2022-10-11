@@ -56,18 +56,20 @@ getUpdateIndexOp conf index@(Index_v1 list) (IndexUpdateData action _) =
   where 
     addEntryToIndex entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) = do
       let newIndex = Index_v1 (entry : list)
-      updateResult <- liftAff $ runExceptT $ updateIndex conf newIndex
-      case updateResult of
-        Right _ -> pure $ OpResult newIndex { cardView: (CardFromReference cardReference), cardViewState: Default }  Nothing
-        Left err -> pure $ OpResult index { cardView: NoCard, cardViewState: Default }  (Just err) 
+      manageUpdateIndex newIndex { cardView: (CardFromReference cardReference), cardViewState: Default }
     
     removeReferenceFromIndex reference = do
       let newIndex = Index_v1 (filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
+      manageUpdateIndex newIndex { cardView: NoCard, cardViewState: Default }
+
+    -- updateReferenceInIndex entry reference = do
+
+    manageUpdateIndex :: Index -> CardViewState -> Aff CardsViewResult
+    manageUpdateIndex newIndex cardViewState = do
       updateResult <- liftAff $ runExceptT $ updateIndex conf newIndex
       case updateResult of
-        Right _ -> pure $ OpResult newIndex { cardView: NoCard, cardViewState: Default }  Nothing
-        Left err -> pure $ OpResult index { cardView: NoCard, cardViewState: Default }  (Just err) 
-
+        Right _   -> pure $ OpResult newIndex   cardViewState                                Nothing
+        Left  err -> pure $ OpResult index    { cardView: NoCard, cardViewState: Default }  (Just err)
 
 getUpdateIndexView :: Index -> IndexUpdateData -> (Maybe AppError -> Widget HTML CardViewAction)
 getUpdateIndexView index (IndexUpdateData action card) = 
