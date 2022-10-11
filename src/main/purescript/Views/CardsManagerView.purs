@@ -8,7 +8,7 @@ import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Data.Function (($))
-import Data.Functor ((<$>))
+import Data.Functor ((<$>), (<$))
 import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
@@ -16,12 +16,11 @@ import Data.Unfoldable (fromMaybe)
 import DataModel.AppState (AppError)
 import DataModel.Card (Card)
 import DataModel.Index (CardReference, Index)
-import DataModel.WidgetState (WidgetState)
-import Effect.Class (liftEffect)
-import Effect.Console (log)
+import DataModel.WidgetState (WidgetState(..))
+import Views.CreateCardView (createCardView)
 import Views.IndexView (indexView)
 import Views.SimpleWebComponents (simpleButton)
-import OperationalWidgets.CardWidget (cardWidget, IndexUpdateAction)
+import OperationalWidgets.CardWidget (cardWidget, IndexUpdateAction(..))
 import OperationalWidgets.CreateCardWidget (createCardWidget)
 
 data CardViewAction = UpdateIndex IndexUpdateAction | ShowCard CardReference | ShowAddCard
@@ -39,7 +38,7 @@ instance showCardView :: Show CardView where
   show (CardForm c) = "CardForm " <> show c
 
 cardsManagerView :: Index -> CardViewState -> Maybe AppError -> Widget HTML CardViewAction
-cardsManagerView i { cardView: cv, cardViewState } error = 
+cardsManagerView i cvs@{ cardView: cv, cardViewState } error = 
   let disableIndex = case cv of
                       NoCard     -> false
                       JustCard _ -> false
@@ -51,10 +50,11 @@ cardsManagerView i { cardView: cv, cardViewState } error =
       , simpleButton "Add card" disableIndex ShowAddCard 
       ]
     , div [Props._id "cardView"] $
-      case cv of
-        NoCard        -> []
-        JustCard ref  -> [UpdateIndex <$> cardWidget ref cardViewState]
-        CardForm card -> [UpdateIndex <$> createCardWidget card cardViewState]
+      case cvs of
+        { cardView: CardForm card, cardViewState: Loading } -> [(UpdateIndex $ NoUpdate) <$ createCardView card cardViewState]
+        { cardView: CardForm card, cardViewState: _ }       -> [UpdateIndex <$> createCardWidget card cardViewState]
+        { cardView: JustCard ref , cardViewState: _ }       -> [UpdateIndex <$> cardWidget ref cardViewState]
+        { cardView: NoCard       , cardViewState: _ }       -> []
     ]
     case res of
       ShowCard ref -> cardsManagerView i { cardView: JustCard ref, cardViewState } Nothing -- TODO: discuss

@@ -27,7 +27,7 @@ import OperationalWidgets.CardWidget (IndexUpdateAction(..))
 data CardsViewResult = CardsViewResult CardViewAction | OpResult Index CardViewState (Maybe AppError)
 
 cardsManagerWidget :: forall a. SRP.SRPConf -> Index -> CardViewState -> Widget HTML a
-cardsManagerWidget conf ind cvs@{ cardView: mc, cardViewState: state } = go ind (cardsManagerView ind cvs) Nothing Nothing
+cardsManagerWidget conf ind cardViewState = go ind (cardsManagerView ind cardViewState) Nothing Nothing
 
   where
     go :: Index -> (Maybe AppError -> Widget HTML CardViewAction) -> Maybe AppError -> Maybe (Aff CardsViewResult) -> Widget HTML a
@@ -63,5 +63,5 @@ getUpdateIndexView :: Index -> IndexUpdateAction -> (Maybe AppError -> Widget HT
 getUpdateIndexView index action = 
   case action of 
     AddReference card _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
-    CloneReference entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) -> cardsManagerView index { cardView: (JustCard cardReference), cardViewState: Loading}
+    CloneReference (CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) -> cardsManagerView index { cardView: (JustCard cardReference), cardViewState: Loading}
     _ -> cardsManagerView index { cardView: NoCard, cardViewState: Default }
