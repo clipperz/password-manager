@@ -22,7 +22,7 @@ import Effect.Class.Console (log)
 import Functions.Communication.Cards (updateIndex)
 import Functions.SRP as SRP
 import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState)
-import OperationalWidgets.CardWidget (IndexUpdateAction(..))
+import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 
 data CardsViewResult = CardsViewResult CardViewAction | OpResult Index CardViewState (Maybe AppError)
 
@@ -37,17 +37,17 @@ cardsManagerWidget conf ind cardViewState = go ind (cardsManagerView ind cardVie
         Just op -> (CardsViewResult <$> (view mError)) <|> (liftAff $ op)
       case res of
         CardsViewResult cva -> case cva of 
-          UpdateIndex action -> do
-            _ <- log $ show action
-            go index (getUpdateIndexView index action) Nothing (Just (getUpdateIndexOp conf index action))
+          UpdateIndex updateData -> do
+            _ <- log $ show updateData
+            go index (getUpdateIndexView index updateData) Nothing (Just (getUpdateIndexOp conf index updateData))
           ShowAddCard -> go index (cardsManagerView index {cardView: (CardForm emptyCard), cardViewState: Default}) Nothing Nothing
-          ShowCard ref -> go index (cardsManagerView index {cardView: (JustCard ref), cardViewState: Default}) Nothing Nothing
+          ShowCard ref -> go index (cardsManagerView index {cardView: (CardFromReference ref), cardViewState: Default}) Nothing Nothing
         OpResult i cv e -> go i (cardsManagerView i cv) e Nothing
 
-getUpdateIndexOp :: SRP.SRPConf -> Index -> IndexUpdateAction -> Aff CardsViewResult
-getUpdateIndexOp conf index@(Index_v1 list) action =
+getUpdateIndexOp :: SRP.SRPConf -> Index -> IndexUpdateData -> Aff CardsViewResult
+getUpdateIndexOp conf index@(Index_v1 list) (IndexUpdateData action _) =
   case action of 
-    AddReference _  entry -> addEntryToIndex entry 
+    AddReference entry -> addEntryToIndex entry 
     CloneReference entry -> addEntryToIndex entry
     _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing
 
@@ -56,12 +56,12 @@ getUpdateIndexOp conf index@(Index_v1 list) action =
       let newIndex = Index_v1 (entry : list)
       updateResult <- liftAff $ runExceptT $ updateIndex conf newIndex
       case updateResult of
-        Right _ -> pure $ OpResult newIndex { cardView: (JustCard cardReference), cardViewState: Default }  Nothing
+        Right _ -> pure $ OpResult newIndex { cardView: (CardFromReference cardReference), cardViewState: Default }  Nothing
         Left err -> pure $ OpResult index { cardView: NoCard, cardViewState: Default }  (Just err) 
 
-getUpdateIndexView :: Index -> IndexUpdateAction -> (Maybe AppError -> Widget HTML CardViewAction)
-getUpdateIndexView index action = 
+getUpdateIndexView :: Index -> IndexUpdateData -> (Maybe AppError -> Widget HTML CardViewAction)
+getUpdateIndexView index (IndexUpdateData action card) = 
   case action of 
-    AddReference card _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
-    CloneReference (CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) -> cardsManagerView index { cardView: (JustCard cardReference), cardViewState: Loading}
-    _ -> cardsManagerView index { cardView: NoCard, cardViewState: Default }
+    AddReference   _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
+    CloneReference _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading }
+    _                -> cardsManagerView index { cardView:  NoCard,         cardViewState: Default }

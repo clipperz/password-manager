@@ -20,6 +20,7 @@ import Data.Show (show, class Show)
 import DataModel.AppState (AppError)
 import DataModel.Card (Card(..))
 import DataModel.Index (CardEntry, CardReference)
+import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
@@ -29,19 +30,18 @@ import Functions.Communication.Cards (getCard, postCard)
 import Views.CardViews (cardView, CardAction(..))
 import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (loadingDiv)
-import OperationalWidgets.CardWidget (IndexUpdateAction(..))
 
 data CreateCardActions = JustCard Card | EitherReference (Either AppError CardEntry) | NoAction
 
-createCardWidget :: Card -> WidgetState -> Widget HTML IndexUpdateAction
+createCardWidget :: Card -> WidgetState -> Widget HTML IndexUpdateData
 createCardWidget startingCard state = do
   res <- case state of
     Default -> (maybe NoAction JustCard) <$> (createCardView startingCard Default)
     Loading -> ((maybe NoAction JustCard) <$> (createCardView startingCard Loading)) <|> (EitherReference <$> (liftAff $ runExceptT $ postCard startingCard)) -- TODO: draw loadingDiv over form
     Error err -> (maybe NoAction JustCard) <$> (createCardView startingCard (Error ("Card could't be saved: " <> err)))
   case res of
-    NoAction -> pure $ NoUpdate
+    NoAction -> pure $ IndexUpdateData NoUpdate startingCard
     JustCard card -> createCardWidget card Loading
     EitherReference e -> case e of
-      Right entry -> pure $ AddReference startingCard entry
+      Right entry -> pure $ IndexUpdateData (AddReference entry) startingCard
       Left err -> createCardWidget startingCard (Error (show err))
