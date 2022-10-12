@@ -11,15 +11,14 @@ import Control.Semigroupoid ((<<<))
 import Data.DateTime.Instant (unInstant)
 import Data.Either (Either(..))
 import Data.Function (($))
-import Data.Functor ((<$), (<$>), void)
+import Data.Functor ((<$>))
 import Data.Int (ceil)
-import Data.Maybe (maybe)
 import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
-import Data.Show (show, class Show)
+import Data.Show (show)
 import DataModel.AppState (AppError)
 import DataModel.Card (Card(..), CardValues(..))
-import DataModel.Index (CardEntry, CardReference)
+import DataModel.Index (CardReference)
 import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
@@ -27,7 +26,9 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Now (now)
 import Functions.Communication.Cards (getCard, postCard, deleteCard)
+import OperationalWidgets.CreateCardWidget (createCardWidget)
 import Views.CardViews (cardView, CardAction(..))
+import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (loadingDiv)
 
 cardWidget :: CardReference -> WidgetState -> Widget HTML IndexUpdateData
@@ -45,17 +46,20 @@ cardWidget reference state = do
     manageCardAction :: CardAction -> Widget HTML IndexUpdateData
     manageCardAction action = 
       case action of
-        Edit cc -> pure $ IndexUpdateData (ChangeToReference reference) cc
-        Clone cc@(Card_v1 cardRecord) -> do
+        Edit cc -> do
+          IndexUpdateData indexUpdateAction newCard <- createCardWidget cc Default
+          case indexUpdateAction of
+            AddReference entry -> doOp newCard true (postCard newCard) (\_ -> IndexUpdateData (ChangeToReference reference entry) newCard)
+            _ -> cardWidget reference Default
+        Clone cc -> do
           clonedCard <- liftAff $ cloneCardNow cc
-          doOp cc (postCard clonedCard) (\entry -> IndexUpdateData (CloneReference entry) cc)
-        Archive cc -> pure $ IndexUpdateData (ChangeToReference reference) cc
-        Delete cc -> doOp cc (deleteCard reference) (\_ -> IndexUpdateData (DeleteReference reference) cc)
-        -- Delete cc -> pure $ IndexUpdateData (DeleteReference reference) cc
+          doOp cc false (postCard clonedCard) (\entry -> IndexUpdateData (CloneReference entry) cc)
+        Archive cc -> pure $ IndexUpdateData (NoUpdate) cc
+        Delete cc -> doOp cc false (deleteCard reference) (\_ -> IndexUpdateData (DeleteReference reference) cc)
 
-    doOp :: forall a. Card -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData
-    doOp currentCard op mapResult = do
-      res <- (inertCardView currentCard) <|> (liftAff $ runExceptT $ op)
+    doOp :: forall a. Card -> Boolean -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData
+    doOp currentCard showForm op mapResult = do
+      res <- (if showForm then inertCardFormView currentCard else inertCardView currentCard) <|> (liftAff $ runExceptT $ op)
       case res of
         Right a -> pure $ mapResult a
         Left err -> div [] [text ("Current operation could't be completed: " <> show err)
@@ -69,10 +73,15 @@ cardWidget reference state = do
       ]
       loadingDiv
 
+    inertCardFormView :: forall a. Card -> Widget HTML a
+    inertCardFormView card = do
+      _ <- createCardView card Loading -- TODO: need to deactivate buttons to avoid returning some value here
+      loadingDiv
+
+
 cloneCardNow :: Card -> Aff Card
-cloneCardNow card@(Card_v1 { timestamp: t, content}) =
+cloneCardNow (Card_v1 { timestamp: _, content}) =
   case content of
     CardValues_v1 values -> do
       timestamp <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
       pure $ Card_v1 { timestamp, content: (CardValues_v1 (values { title = (values.title <> " - CLONE")}))}
-    _ -> pure card

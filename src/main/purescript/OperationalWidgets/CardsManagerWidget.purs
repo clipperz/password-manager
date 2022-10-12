@@ -48,12 +48,13 @@ cardsManagerWidget conf ind cardViewState = go ind (cardsManagerView ind cardVie
 getUpdateIndexOp :: SRP.SRPConf -> Index -> IndexUpdateData -> Aff CardsViewResult
 getUpdateIndexOp conf index@(Index_v1 list) (IndexUpdateData action _) =
   case action of 
-    AddReference entry   -> addEntryToIndex entry 
-    CloneReference entry -> addEntryToIndex entry
-    DeleteReference ref  -> removeReferenceFromIndex ref
+    AddReference          entry -> addEntryToIndex entry 
+    CloneReference        entry -> addEntryToIndex entry
+    ChangeToReference ref entry -> updateReferenceInIndex ref entry
+    DeleteReference   ref       -> removeReferenceFromIndex ref
     _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing
 
-  where 
+  where
     addEntryToIndex entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) = do
       let newIndex = Index_v1 (entry : list)
       manageUpdateIndex newIndex { cardView: (CardFromReference cardReference), cardViewState: Default }
@@ -62,7 +63,9 @@ getUpdateIndexOp conf index@(Index_v1 list) (IndexUpdateData action _) =
       let newIndex = Index_v1 (filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
       manageUpdateIndex newIndex { cardView: NoCard, cardViewState: Default }
 
-    -- updateReferenceInIndex entry reference = do
+    updateReferenceInIndex reference entry@(CardEntry_v1 { cardReference: newCardReference }) = do --TODO finish implementation based on card versioning
+      let newIndex = Index_v1 (entry : filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
+      manageUpdateIndex newIndex { cardView: (CardFromReference newCardReference), cardViewState: Default }
 
     manageUpdateIndex :: Index -> CardViewState -> Aff CardsViewResult
     manageUpdateIndex newIndex cardViewState = do
@@ -74,7 +77,8 @@ getUpdateIndexOp conf index@(Index_v1 list) (IndexUpdateData action _) =
 getUpdateIndexView :: Index -> IndexUpdateData -> (Maybe AppError -> Widget HTML CardViewAction)
 getUpdateIndexView index (IndexUpdateData action card) = 
   case action of 
-    AddReference    _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
-    CloneReference  _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading }
-    DeleteReference _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading }
-    _                 -> cardsManagerView index { cardView:  NoCard,         cardViewState: Default }
+    AddReference        _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
+    CloneReference      _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading }
+    DeleteReference     _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading }
+    ChangeToReference _ _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
+    _                     -> cardsManagerView index { cardView:  NoCard,         cardViewState: Default }
