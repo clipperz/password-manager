@@ -40,7 +40,7 @@ cardWidget reference state = do
     _ -> loadingDiv <|> (liftAff $ runExceptT $ getCard reference)
   case eitherCard of
     Right c -> do 
-      res <- ({ reference: reference, action: _ }) <$> (cardView c)
+      res <- cardView c
       manageCardAction res
     Left err -> cardWidget reference (Error (show err))
 
@@ -65,7 +65,7 @@ cardWidget reference state = do
       case res of
         Right a -> pure $ mapResult a
         Left err -> div [] [text ("Current operation could't be completed: " <> show err)
-                           , cardView currentCard >>= (({ action: _, reference}) >>> manageCardAction) ]
+                           , cardView currentCard >>= manageCardAction ]
 
     inertCardView :: forall a. Card -> Widget HTML a
     inertCardView card = do
@@ -79,21 +79,6 @@ cardWidget reference state = do
     inertCardFormView card = do
       _ <- createCardView card Loading -- TODO: need to deactivate buttons to avoid returning some value here
       loadingDiv
-
-
-    inertCardView :: forall a. Card -> Widget HTML a
-    inertCardView card = do
-      _ <- div [] [
-        loadingDiv
-      , cardView card -- TODO: need to deactivate buttons to avoid returning some value here
-      ]
-      loadingDiv
-
-    inertCardFormView :: forall a. Card -> Widget HTML a
-    inertCardFormView card = do
-      _ <- createCardView card Loading -- TODO: need to deactivate buttons to avoid returning some value here
-      loadingDiv
-
 
 cloneCardNow :: Card -> Aff Card
 cloneCardNow (Card_v1 { timestamp: _, content}) =

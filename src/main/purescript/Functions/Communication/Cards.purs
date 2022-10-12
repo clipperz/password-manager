@@ -74,15 +74,6 @@ postCard card = do
       addCardToCache reference card
       pure cardEntry
 
-deleteCard :: CardReference -> ExceptT AppError Aff String
-deleteCard reference = 
-  let url = joinWith "/" ["blobs", show reference]
-  in do
-    response <- manageGenericRequest url DELETE Nothing RF.string
-    if isStatusCodeOk response.status
-      then except $ Right $ response.body
-      else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
-
 getUserCard :: ExceptT AppError Aff UserCard
 getUserCard = do
   { proxy: _, c: mc, p: _, sessionKey: _, toll: _ } <- ExceptT $ liftEffect $ getAppState
