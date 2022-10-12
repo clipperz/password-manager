@@ -49,9 +49,9 @@ cardWidget entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _})
     manageCardAction action = 
       case action of
         Edit cc -> do
-          IndexUpdateData indexUpdateAction newCard <- createCardWidget cc Default
+          IndexUpdateData indexUpdateAction newCard <- createCardWidget cc Default -- here the modified card has already been saved
           case indexUpdateAction of
-            AddReference newEntry -> doOp newCard true (postCard newCard) (\_ -> IndexUpdateData (AddReference newEntry) newCard)
+            AddReference newEntry -> pure $ IndexUpdateData (ChangeToReference entry newEntry) newCard
             _ -> cardWidget entry Default
         Clone cc -> do
           clonedCard <- liftAff $ cloneCardNow cc
