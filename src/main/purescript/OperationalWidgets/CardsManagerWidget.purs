@@ -48,10 +48,11 @@ cardsManagerWidget conf ind cardViewState = go ind (cardsManagerView ind cardVie
 getUpdateIndexOp :: SRP.SRPConf -> Index -> IndexUpdateData -> Aff CardsViewResult
 getUpdateIndexOp conf index@(Index_v1 list) (IndexUpdateData action _) =
   case action of 
-    AddReference               entry -> addEntryToIndex entry 
-    CloneReference             entry -> addEntryToIndex entry
-    ChangeToReference oldEntry entry -> updateReferenceInIndex oldEntry entry
-    DeleteReference   entry          -> removeReferenceFromIndex entry
+    AddReference                        entry -> addEntryToIndex entry 
+    CloneReference                      entry -> addEntryToIndex entry
+    ChangeReferenceWithEdit    oldEntry entry -> updateReferenceInIndex oldEntry entry
+    ChangeReferenceWithoutEdit oldEntry entry -> updateReferenceInIndex oldEntry entry
+    DeleteReference            oldEntry       -> removeReferenceFromIndex oldEntry
     _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing
 
   where
@@ -77,8 +78,9 @@ getUpdateIndexOp conf index@(Index_v1 list) (IndexUpdateData action _) =
 getUpdateIndexView :: Index -> IndexUpdateData -> (Maybe AppError -> Widget HTML CardViewAction)
 getUpdateIndexView index (IndexUpdateData action card) = 
   case action of 
-    AddReference        _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
-    CloneReference      _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading }
-    DeleteReference     _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading }
-    ChangeToReference _ _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
+    AddReference                 _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
+    CloneReference               _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading }
+    DeleteReference              _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading }
+    ChangeReferenceWithEdit    _ _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
+    ChangeReferenceWithoutEdit _ _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading } 
     _                     -> cardsManagerView index { cardView:  NoCard,         cardViewState: Default }

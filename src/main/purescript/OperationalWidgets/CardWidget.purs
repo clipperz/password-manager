@@ -50,7 +50,7 @@ cardWidget entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _ }
         Edit cc -> do
           IndexUpdateData indexUpdateAction newCard <- createCardWidget cc Default -- here the modified card has already been saved
           case indexUpdateAction of
-            AddReference newEntry -> pure $ IndexUpdateData (ChangeToReference entry newEntry) newCard
+            AddReference newEntry -> pure $ IndexUpdateData (ChangeReferenceWithEdit entry newEntry) newCard
             _ -> cardWidget entry Default
         Clone cc -> do
           clonedCard <- liftAff $ cloneCardNow cc
@@ -58,11 +58,11 @@ cardWidget entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _ }
         Archive (Card_v1 r) -> do
           timestamp' <- liftEffect $ getCurrentTimestamp
           let newCard = Card_v1 $ r { timestamp = timestamp', archived = true }
-          doOp newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeToReference entry newEntry) newCard)
+          doOp newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) newCard)
         Restore (Card_v1 r) -> do
           timestamp' <- liftEffect $ getCurrentTimestamp
           let newCard = Card_v1 $ r { timestamp = timestamp', archived = false }
-          doOp newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeToReference entry newEntry) newCard)
+          doOp newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) newCard)
         Delete cc -> doOp cc false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) cc)
 
     doOp :: forall a. Card -> Boolean -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData

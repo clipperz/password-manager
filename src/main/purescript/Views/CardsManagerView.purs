@@ -1,6 +1,5 @@
 module Views.CardsManagerView where
 
-
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.React.DOM (div, text)
