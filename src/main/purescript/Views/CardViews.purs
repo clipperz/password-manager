@@ -1,31 +1,16 @@
 module Views.CardViews where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, loopS, loopW, demand, fireOnce)
 import Concur.React (HTML)
 import Concur.React.DOM (div, h3, li', p, text, ul)
 import Concur.React.Props as Props
-import Control.Alt((<|>))
-import Control.Applicative (pure)
-import Control.Bind (bind, (=<<))
-import Control.Semigroupoid ((<<<))
-import Data.Array (snoc, filter, singleton, sort)
-import Data.DateTime.Instant (unInstant)
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.Int (ceil)
-import Data.Maybe (Maybe(..), isJust, maybe)
-import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
-import Data.Traversable (sequence)
-import Data.Tuple (Tuple(..))
-import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
--- import Effect.Aff.Class (liftAff)
-import Effect.Class (liftEffect)
-import Effect.Now (now)
+import DataModel.Card (CardField(..), CardValues(..), Card(..))
 import Functions.Clipboard (copyToClipboard)
-import Views.SimpleWebComponents (simpleButton, simpleTextInputWidget, simpleCheckboxSignal)
+import Views.SimpleWebComponents (simpleButton)
 
 -- -----------------------------------
 

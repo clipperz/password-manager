@@ -7,10 +7,10 @@ import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (Either(..))
-import Data.Eq ((==))
+import Data.Eq ((/=))
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.List ((:), filter, difference)
+import Data.List ((:), filter)
 import Data.Maybe (Maybe(..))
 import Data.Show (show)
 import DataModel.AppState (AppError(..))
@@ -25,11 +25,12 @@ import Effect.Class.Console (log)
 import Functions.Communication.Cards (updateIndex)
 import Functions.SRP as SRP
 import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState)
+import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 
 data CardsViewResult = CardsViewResult CardViewAction | OpResult Index CardViewState (Maybe AppError)
 
 cardsManagerWidget :: forall a. SRP.SRPConf -> Index -> CardViewState -> Widget HTML a
-cardsManagerWidget conf ind cvs@{ cardView: mc, cardViewState: state } = go ind (cardsManagerView ind cvs) Nothing Nothing
+cardsManagerWidget conf ind cardViewState = go ind (cardsManagerView ind cardViewState) Nothing Nothing
 
   where
     go :: Index -> (Maybe AppError -> Widget HTML CardViewAction) -> Maybe AppError -> Maybe (Aff CardsViewResult) -> Widget HTML a
@@ -39,47 +40,47 @@ cardsManagerWidget conf ind cvs@{ cardView: mc, cardViewState: state } = go ind 
         Just op -> (CardsViewResult <$> (view mError)) <|> (liftAff $ op)
       case res of
         CardsViewResult cva -> case cva of 
-          UpdateIndex action -> do
-            _ <- log $ show action
-            go index (getUpdateIndexView index action) Nothing (Just (getUpdateIndexOp conf index action))
+          UpdateIndex updateData -> do
+            _ <- log $ show updateData
+            go index (getUpdateIndexView index updateData) Nothing (Just (getUpdateIndexOp conf index updateData))
           ShowAddCard -> go index (cardsManagerView index {cardView: (CardForm emptyCard), cardViewState: Default}) Nothing Nothing
-          ShowCard ref -> go index (cardsManagerView index {cardView: (JustCard ref), cardViewState: Default}) Nothing Nothing
+          ShowCard ref -> go index (cardsManagerView index {cardView: (CardFromReference ref), cardViewState: Default}) Nothing Nothing
         OpResult i cv e -> go i (cardsManagerView i cv) e Nothing
 
-getUpdateIndexOp :: SRP.SRPConf -> Index -> IndexUpdateAction -> Aff CardsViewResult
-getUpdateIndexOp conf index@(Index_v1 list) action =
+getUpdateIndexOp :: SRP.SRPConf -> Index -> IndexUpdateData -> Aff CardsViewResult
+getUpdateIndexOp conf index@(Index_v1 list) (IndexUpdateData action _) =
   case action of 
-    AddReference _  entry -> addEntryToIndex entry 
-    CloneReference entry -> addEntryToIndex entry
-    ChangeToReference _ oldReference entry -> substituteEntry entry oldReference
+    AddReference          entry -> addEntryToIndex entry 
+    CloneReference        entry -> addEntryToIndex entry
+    ChangeToReference ref entry -> updateReferenceInIndex ref entry
+    DeleteReference   ref       -> removeReferenceFromIndex ref
     _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing
 
-  where 
+  where
     addEntryToIndex entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) = do
       let newIndex = Index_v1 (entry : list)
-      updateResult <- liftAff $ runExceptT $ updateIndex conf newIndex
-      case updateResult of
-        Right _ -> pure $ OpResult newIndex { cardView: (JustCard cardReference), cardViewState: Default } Nothing
-        Left err -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) 
+      manageUpdateIndex newIndex { cardView: (CardFromReference cardReference), cardViewState: Default }
     
-    substituteEntry newEntry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) oldReference = do
-      _ <- liftEffect $ log $ show newEntry
-      let indexWithEntry@(Index_v1 listWithEntry) = Index_v1 (newEntry : list)
-      _ <- liftEffect $ log $ show listWithEntry
-      let entries = filter (\(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) -> oldReference == cardReference) listWithEntry
-      _ <- liftEffect $ log $ show entries
-      let newList = difference listWithEntry entries
-      _ <- liftEffect $ log $ show newList
-      let newIndex = Index_v1 newList
+    removeReferenceFromIndex reference = do
+      let newIndex = Index_v1 (filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
+      manageUpdateIndex newIndex { cardView: NoCard, cardViewState: Default }
+
+    updateReferenceInIndex reference entry@(CardEntry_v1 { cardReference: newCardReference }) = do --TODO finish implementation based on card versioning
+      let newIndex = Index_v1 (entry : filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
+      manageUpdateIndex newIndex { cardView: (CardFromReference newCardReference), cardViewState: Default }
+
+    manageUpdateIndex :: Index -> CardViewState -> Aff CardsViewResult
+    manageUpdateIndex newIndex cardViewState = do
       updateResult <- liftAff $ runExceptT $ updateIndex conf newIndex
       case updateResult of
-        Right _ -> pure $ OpResult newIndex { cardView: (JustCard cardReference), cardViewState: Default } Nothing
-        Left err -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) 
+        Right _   -> pure $ OpResult newIndex   cardViewState                                Nothing
+        Left  err -> pure $ OpResult index    { cardView: NoCard, cardViewState: Default }  (Just err)
 
-getUpdateIndexView :: Index -> IndexUpdateAction -> (Maybe AppError -> Widget HTML CardViewAction)
-getUpdateIndexView index action = 
+getUpdateIndexView :: Index -> IndexUpdateData -> (Maybe AppError -> Widget HTML CardViewAction)
+getUpdateIndexView index (IndexUpdateData action card) = 
   case action of 
-    AddReference card _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
-    CloneReference entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) -> cardsManagerView index { cardView: (JustCard cardReference), cardViewState: Loading}
-    ChangeToReference card _ _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
-    _ -> cardsManagerView index { cardView: NoCard, cardViewState: Default }
+    AddReference        _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
+    CloneReference      _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading }
+    DeleteReference     _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading }
+    ChangeToReference _ _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
+    _                     -> cardsManagerView index { cardView:  NoCard,         cardViewState: Default }

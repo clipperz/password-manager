@@ -3,8 +3,7 @@ module Views.CreateCardView where
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopS, loopW, demand, fireOnce)
 import Concur.React (HTML)
-import Concur.React.DOM (div, h3, li', p, text, ul)
-import Concur.React.Props as Props
+import Concur.React.DOM (div, text)
 import Control.Alt((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, (=<<))
@@ -16,17 +15,13 @@ import Data.Functor ((<$>))
 import Data.Int (ceil)
 import Data.Maybe (Maybe(..), isJust, maybe)
 import Data.Newtype (unwrap)
-import Data.Semigroup ((<>))
-import Data.Show (show, class Show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
 import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
 import DataModel.WidgetState (WidgetState(..))
--- import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Now (now)
-import Functions.Clipboard (copyToClipboard)
 import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleTextInputWidget, simpleCheckboxSignal)
 
 createCardView :: Card -> WidgetState -> Widget HTML (Maybe Card)
@@ -35,7 +30,6 @@ createCardView card state = do
     Default -> div [] [demand formSignal]
     Loading -> div [] [loadingDiv, demand formSignal] -- TODO: deactivate form
     Error err -> div [] [text err, demand formSignal]
-  -- mCard <- div [] [demand formSignal]
   case mCard of
     Just (Card_v1 { content, timestamp: _ }) -> do
       timestamp' <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
