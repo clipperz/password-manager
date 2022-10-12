@@ -3,7 +3,7 @@ module DataModel.WidgetOperations where
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import DataModel.Card (Card)
-import DataModel.Index (CardReference, CardEntry)
+import DataModel.Index (CardEntry)
 
 data IndexUpdateData = IndexUpdateData IndexUpdateAction Card
 instance showIndexUpdateData :: Show IndexUpdateData where

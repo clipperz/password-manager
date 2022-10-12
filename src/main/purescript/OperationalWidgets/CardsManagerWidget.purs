@@ -4,7 +4,7 @@ import Concur.Core (Widget)
 import Concur.React (HTML)
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind)
 import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (Either(..))
 import Data.Eq ((/=))
@@ -13,19 +13,17 @@ import Data.Functor ((<$>))
 import Data.List ((:), filter)
 import Data.Maybe (Maybe(..))
 import Data.Show (show)
-import DataModel.AppState (AppError(..))
+import DataModel.AppState (AppError)
 import DataModel.Card (emptyCard)
 import DataModel.Index (Index(..), CardEntry(..))
-import DataModel.WidgetOperations (IndexUpdateAction(..))
+import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Cards (updateIndex)
 import Functions.SRP as SRP
 import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState)
-import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 
 data CardsViewResult = CardsViewResult CardViewAction | OpResult Index CardViewState (Maybe AppError)
 
@@ -61,11 +59,11 @@ getUpdateIndexOp conf index@(Index_v1 list) (IndexUpdateData action _) =
       let newIndex = Index_v1 (entry : list)
       manageUpdateIndex newIndex { cardView: (CardFromReference entry), cardViewState: Default }
     
-    removeReferenceFromIndex entry@(CardEntry_v1 { cardReference: reference }) = do
+    removeReferenceFromIndex (CardEntry_v1 { cardReference: reference }) = do
       let newIndex = Index_v1 (filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
       manageUpdateIndex newIndex { cardView: NoCard, cardViewState: Default }
 
-    updateReferenceInIndex (CardEntry_v1 { cardReference: reference }) entry@(CardEntry_v1 { cardReference: newCardReference }) = do --TODO finish implementation based on card versioning
+    updateReferenceInIndex (CardEntry_v1 { cardReference: reference }) entry = do --TODO finish implementation based on card versioning
       let newIndex = Index_v1 (entry : filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
       manageUpdateIndex newIndex { cardView: (CardFromReference entry), cardViewState: Default }
 

@@ -16,6 +16,6 @@ indexView disabled (Index_v1 cards) = do
   let sortedCards = fromFoldable $ sort cards :: Array CardEntry
   ol 
     [Props.className (if disabled then "disabled" else "")] 
-    ((\entry@(CardEntry_v1 { title, cardReference, archived }) -> 
+    ((\entry@(CardEntry_v1 { title, archived }) -> 
       clickableListItemWidget disabled (text title) (if archived then ["archived"] else []) entry
      ) <$> sortedCards)
