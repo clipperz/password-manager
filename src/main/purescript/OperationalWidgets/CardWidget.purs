@@ -18,7 +18,7 @@ import Data.Semigroup ((<>))
 import Data.Show (show)
 import DataModel.AppState (AppError)
 import DataModel.Card (Card(..), CardValues(..))
-import DataModel.Index (CardReference)
+import DataModel.Index (CardReference, CardEntry(..))
 import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
@@ -33,16 +33,16 @@ import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (loadingDiv)
 import OperationalWidgets.CreateCardWidget (createCardWidget)
 
-cardWidget :: CardReference -> WidgetState -> Widget HTML IndexUpdateData
-cardWidget reference state = do
+cardWidget :: CardEntry -> WidgetState -> Widget HTML IndexUpdateData
+cardWidget entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) state = do
   eitherCard <- case state of 
     Error err -> div [] [text $ "Card could't be loaded: " <> err]
-    _ -> loadingDiv <|> (liftAff $ runExceptT $ getCard reference)
+    _ -> loadingDiv <|> (liftAff $ runExceptT $ getCard cardReference)
   case eitherCard of
     Right c -> do 
       res <- cardView c
       manageCardAction res
-    Left err -> cardWidget reference (Error (show err))
+    Left err -> cardWidget entry (Error (show err))
 
   where
     manageCardAction :: CardAction -> Widget HTML IndexUpdateData
@@ -51,13 +51,13 @@ cardWidget reference state = do
         Edit cc -> do
           IndexUpdateData indexUpdateAction newCard <- createCardWidget cc Default
           case indexUpdateAction of
-            AddReference entry -> doOp newCard true (postCard newCard) (\_ -> IndexUpdateData (ChangeToReference reference entry) newCard)
-            _ -> cardWidget reference Default
+            AddReference newEntry -> doOp newCard true (postCard newCard) (\_ -> IndexUpdateData (AddReference newEntry) newCard)
+            _ -> cardWidget entry Default
         Clone cc -> do
           clonedCard <- liftAff $ cloneCardNow cc
-          doOp cc false (postCard clonedCard) (\entry -> IndexUpdateData (CloneReference entry) cc)
+          doOp cc false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) cc)
         Archive cc -> pure $ IndexUpdateData (NoUpdate) cc
-        Delete cc -> doOp cc false (deleteCard reference) (\_ -> IndexUpdateData (DeleteReference reference) cc)
+        Delete cc -> doOp cc false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) cc)
 
     doOp :: forall a. Card -> Boolean -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData
     doOp currentCard showForm op mapResult = do

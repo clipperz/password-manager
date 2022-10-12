@@ -11,8 +11,8 @@ instance showIndexUpdateData :: Show IndexUpdateData where
 
 data IndexUpdateAction = AddReference CardEntry
                        | CloneReference CardEntry 
-                       | DeleteReference CardReference
-                       | ChangeToReference CardReference CardEntry
+                       | DeleteReference CardEntry
+                       | ChangeToReference CardEntry CardEntry
                        | NoUpdate
 
 instance showIndexUpdateAction :: Show IndexUpdateAction where

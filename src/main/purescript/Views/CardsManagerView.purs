@@ -16,7 +16,7 @@ import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
 import DataModel.AppState (AppError)
 import DataModel.Card (Card)
-import DataModel.Index (CardReference, Index)
+import DataModel.Index (CardReference, Index, CardEntry)
 import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
 import Views.CardViews (cardView)
@@ -26,15 +26,15 @@ import Views.SimpleWebComponents (simpleButton, loadingDiv)
 import OperationalWidgets.CardWidget (cardWidget)
 import OperationalWidgets.CreateCardWidget (createCardWidget)
 
-data CardViewAction = UpdateIndex IndexUpdateData | ShowCard CardReference | ShowAddCard
+data CardViewAction = UpdateIndex IndexUpdateData | ShowCard CardEntry | ShowAddCard
 instance showCardViewAction :: Show CardViewAction where
   show (UpdateIndex (IndexUpdateData a _)) = "UpdateIndex " <> show a
-  show (ShowCard ref)  = "Show Card " <> show ref
+  show (ShowCard entry)  = "Show Card " <> show entry
   show  ShowAddCard    = "Show Add Card"
 
 type CardViewState = { cardView :: CardView, cardViewState :: WidgetState }
 
-data CardView = NoCard | CardFromReference CardReference | JustCard Card | CardForm Card
+data CardView = NoCard | CardFromReference CardEntry | JustCard Card | CardForm Card
 instance showCardView :: Show CardView where
   show NoCard = "NoCard"
   show (CardFromReference cr) = "CardFromReference " <> show cr

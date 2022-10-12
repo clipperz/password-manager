@@ -50,24 +50,24 @@ cardsManagerWidget conf ind cardViewState = go ind (cardsManagerView ind cardVie
 getUpdateIndexOp :: SRP.SRPConf -> Index -> IndexUpdateData -> Aff CardsViewResult
 getUpdateIndexOp conf index@(Index_v1 list) (IndexUpdateData action _) =
   case action of 
-    AddReference          entry -> addEntryToIndex entry 
-    CloneReference        entry -> addEntryToIndex entry
-    ChangeToReference ref entry -> updateReferenceInIndex ref entry
-    DeleteReference   ref       -> removeReferenceFromIndex ref
+    AddReference               entry -> addEntryToIndex entry 
+    CloneReference             entry -> addEntryToIndex entry
+    ChangeToReference oldEntry entry -> updateReferenceInIndex oldEntry entry
+    DeleteReference   entry          -> removeReferenceFromIndex entry
     _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing
 
   where
-    addEntryToIndex entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) = do
+    addEntryToIndex entry = do
       let newIndex = Index_v1 (entry : list)
-      manageUpdateIndex newIndex { cardView: (CardFromReference cardReference), cardViewState: Default }
+      manageUpdateIndex newIndex { cardView: (CardFromReference entry), cardViewState: Default }
     
-    removeReferenceFromIndex reference = do
+    removeReferenceFromIndex entry@(CardEntry_v1 { cardReference: reference }) = do
       let newIndex = Index_v1 (filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
       manageUpdateIndex newIndex { cardView: NoCard, cardViewState: Default }
 
-    updateReferenceInIndex reference entry@(CardEntry_v1 { cardReference: newCardReference }) = do --TODO finish implementation based on card versioning
+    updateReferenceInIndex (CardEntry_v1 { cardReference: reference }) entry@(CardEntry_v1 { cardReference: newCardReference }) = do --TODO finish implementation based on card versioning
       let newIndex = Index_v1 (entry : filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
-      manageUpdateIndex newIndex { cardView: (CardFromReference newCardReference), cardViewState: Default }
+      manageUpdateIndex newIndex { cardView: (CardFromReference entry), cardViewState: Default }
 
     manageUpdateIndex :: Index -> CardViewState -> Aff CardsViewResult
     manageUpdateIndex newIndex cardViewState = do
