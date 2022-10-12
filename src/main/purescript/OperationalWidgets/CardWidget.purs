@@ -40,7 +40,7 @@ cardWidget entry@(CardEntry_v1 { title, cardReference, archived, tags }) state =
     _ -> loadingDiv <|> (liftAff $ runExceptT $ getCard cardReference)
   case eitherCard of
     Right c -> do 
-      res <- cardView c
+      res <- cardView c archived
       manageCardAction res
     Left err -> cardWidget entry (Error (show err))
 
@@ -55,24 +55,26 @@ cardWidget entry@(CardEntry_v1 { title, cardReference, archived, tags }) state =
             _ -> cardWidget entry Default
         Clone cc -> do
           clonedCard <- liftAff $ cloneCardNow cc
-          doOp cc false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) cc)
+          doOp cc archived false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) cc)
         Archive cc -> let newEntry = CardEntry_v1 { title, cardReference, archived: true, tags}
                       in pure $ IndexUpdateData (ChangeToReference entry newEntry) cc
-        Delete cc -> doOp cc false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) cc)
+        Restore cc -> let newEntry = CardEntry_v1 { title, cardReference, archived: false, tags}
+                      in pure $ IndexUpdateData (ChangeToReference entry newEntry) cc
+        Delete cc -> doOp cc archived false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) cc)
 
-    doOp :: forall a. Card -> Boolean -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData
-    doOp currentCard showForm op mapResult = do
-      res <- (if showForm then inertCardFormView currentCard else inertCardView currentCard) <|> (liftAff $ runExceptT $ op)
+    doOp :: forall a. Card -> Boolean -> Boolean -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData
+    doOp currentCard archived showForm op mapResult = do
+      res <- (if showForm then inertCardFormView currentCard else inertCardView currentCard archived) <|> (liftAff $ runExceptT $ op)
       case res of
         Right a -> pure $ mapResult a
         Left err -> div [] [text ("Current operation could't be completed: " <> show err)
-                           , cardView currentCard >>= manageCardAction ]
+                           , cardView currentCard archived >>= manageCardAction ]
 
-    inertCardView :: forall a. Card -> Widget HTML a
-    inertCardView card = do
+    inertCardView :: forall a. Card -> Boolean -> Widget HTML a
+    inertCardView card archived = do
       _ <- div [] [
         loadingDiv
-      , cardView card -- TODO: need to deactivate buttons to avoid returning some value here
+      , cardView card archived -- TODO: need to deactivate buttons to avoid returning some value here
       ]
       loadingDiv
 

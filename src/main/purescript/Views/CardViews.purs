@@ -14,26 +14,27 @@ import Views.SimpleWebComponents (simpleButton)
 
 -- -----------------------------------
 
-data CardAction = Edit Card | Clone Card | Archive Card | Delete Card
+data CardAction = Edit Card | Clone Card | Archive Card | Restore Card | Delete Card
 instance showCardAction :: Show CardAction where
   show (Edit _)    = "Edit"
   show (Clone _)   = "Clone"
   show (Archive _) = "Archive"
+  show (Restore _) = "Restore"
   show (Delete _)  = "Delete"
 
 -- -----------------------------------
 
-cardView :: Card -> Widget HTML CardAction
-cardView c@(Card_v1 r) = div [] [
-    cardActions c
+cardView :: Card -> Boolean -> Widget HTML CardAction
+cardView c@(Card_v1 r) archived = div [] [
+    cardActions c archived
   , cardContent r.content
 ]
 
-cardActions :: Card -> Widget HTML CardAction
-cardActions c = div [] [
+cardActions :: Card -> Boolean -> Widget HTML CardAction
+cardActions c archived = div [] [
     simpleButton (show (Edit c))    false (Edit c)
   , simpleButton (show (Clone c))   false (Clone c)
-  , simpleButton (show (Archive c)) false (Archive c)
+  , if archived then simpleButton (show (Restore c)) false (Restore c) else simpleButton (show (Archive c)) false (Archive c)
   , simpleButton (show (Delete c))  false (Delete c)
 ]
 
