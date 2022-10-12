@@ -34,7 +34,7 @@ import Views.SimpleWebComponents (loadingDiv)
 import OperationalWidgets.CreateCardWidget (createCardWidget)
 
 cardWidget :: CardEntry -> WidgetState -> Widget HTML IndexUpdateData
-cardWidget entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _}) state = do
+cardWidget entry@(CardEntry_v1 { title, cardReference, archived, tags }) state = do
   eitherCard <- case state of 
     Error err -> div [] [text $ "Card could't be loaded: " <> err]
     _ -> loadingDiv <|> (liftAff $ runExceptT $ getCard cardReference)
@@ -56,7 +56,8 @@ cardWidget entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _})
         Clone cc -> do
           clonedCard <- liftAff $ cloneCardNow cc
           doOp cc false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) cc)
-        Archive cc -> pure $ IndexUpdateData (NoUpdate) cc
+        Archive cc -> let newEntry = CardEntry_v1 { title, cardReference, archived: true, tags}
+                      in pure $ IndexUpdateData (ChangeToReference entry newEntry) cc
         Delete cc -> doOp cc false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) cc)
 
     doOp :: forall a. Card -> Boolean -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData

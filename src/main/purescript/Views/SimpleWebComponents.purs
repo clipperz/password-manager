@@ -15,6 +15,7 @@ import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not)
 import Data.Map (Map, lookup)
 import Data.Maybe (fromMaybe)
+import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
@@ -98,8 +99,10 @@ checkboxesSignal ts lablesMap = loopS ts \m -> do
                             pure $ Tuple id res) <$> checkboxes) :: Array (Signal HTML (Tuple String Boolean))
   sequence checkboxes2
 
-clickableListItemWidget :: forall a. Boolean -> Widget HTML a -> a -> Widget HTML a
-clickableListItemWidget disable item reference = li [if disable then Props.emptyProp else reference <$ Props.onClick] [item]
+clickableListItemWidget :: forall a. Boolean -> Widget HTML a -> Array String -> a -> Widget HTML a
+clickableListItemWidget disable item classes reference = 
+  let classProps = Props.className <$> classes
+  in li ([if disable then Props.emptyProp else reference <$ Props.onClick] <> classProps) [item]
 
 passwordStrengthShow :: forall a. PasswordStrength -> Widget HTML a
 passwordStrengthShow = text <<< show
