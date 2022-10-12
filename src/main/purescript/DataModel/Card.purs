@@ -60,6 +60,7 @@ instance decodeJsonCardValue :: DecodeJson CardValues where
 data Card = 
   Card_v1 
     { content :: CardValues
+    , archived :: Boolean
     , timestamp :: Int
     }
 
@@ -79,14 +80,15 @@ emptyCardField = CardField_v1 { name: "", value: "", locked: false }
 
 emptyCard :: Card
 emptyCard = Card_v1 { timestamp: 0
-                      , content: CardValues_v1 { title: ""
-                                                , tags: []
-                                                , fields: [ CardField_v1 { name: "username", value: "", locked: false }
-                                                          , CardField_v1 { name: "password", value: "", locked: true }
-                                                          ]
-                                                , notes: ""
-                                                }
-                      }
+                    , archived: false
+                    , content: CardValues_v1 { title: ""
+                                              , tags: []
+                                              , fields: [ CardField_v1 { name: "username", value: "", locked: false }
+                                                        , CardField_v1 { name: "password", value: "", locked: true }
+                                                        ]
+                                              , notes: ""
+                                              }
+                    }
     
 card0 :: CardValues
 card0 = CardValues_v1 { title: "Mail account (SAMPLE)"
@@ -107,5 +109,5 @@ card1 = CardValues_v1 { title: "Bank account (SAMPLE)"
                       , notes: ""}
 
 defaultCards :: List Card
-defaultCards = Card_v1 { content: card0, timestamp: 1661377622} :
-               Card_v1 { content: card1, timestamp: 166137865 } : Nil
+defaultCards = Card_v1 { content: card0, timestamp: 1661377622, archived: false} :
+               Card_v1 { content: card1, timestamp: 166137865 , archived: false} : Nil

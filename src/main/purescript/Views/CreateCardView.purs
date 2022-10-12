@@ -7,21 +7,17 @@ import Concur.React.DOM (div, text)
 import Control.Alt((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, (=<<))
-import Control.Semigroupoid ((<<<))
 import Data.Array (snoc, filter, singleton, sort)
-import Data.DateTime.Instant (unInstant)
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.Int (ceil)
 import Data.Maybe (Maybe(..), isJust, maybe)
-import Data.Newtype (unwrap)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
 import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Class (liftEffect)
-import Effect.Now (now)
+import Functions.Time (getCurrentTimestamp)
 import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleTextInputWidget, simpleCheckboxSignal)
 
 createCardView :: Card -> WidgetState -> Widget HTML (Maybe Card)
@@ -32,8 +28,8 @@ createCardView card state = do
     Error err -> div [] [text err, demand formSignal]
   case mCard of
     Just (Card_v1 { content, timestamp: _ }) -> do
-      timestamp' <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
-      pure $ Just $ Card_v1 { content: content, timestamp: timestamp' }
+      timestamp' <- liftEffect $ getCurrentTimestamp
+      pure $ Just $ Card_v1 { content: content, archived: false, timestamp: timestamp' }
     Nothing -> pure Nothing
 
   where 
@@ -82,6 +78,7 @@ createCardView card state = do
         fields' <- fieldsSignal fields
         notes' :: String <- loopW notes (simpleTextInputWidget "notes" (text "Notes"))
         pure $ Tuple newTag' $ Card_v1 { content: (CardValues_v1 {title: title', tags: tags', fields: fields', notes: notes'})
+                                       , archived: false
                                        , timestamp
                                        }
       res <- fireOnce (simpleButton "Cancel" false Nothing <|> simpleButton "Save" false (Just formValues))

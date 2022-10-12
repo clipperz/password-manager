@@ -90,13 +90,13 @@ type IndexReference = HexString
 -- --------------------------------------------
 
 createCardEntry :: Card -> CryptoKey -> SRP.HashFunction -> Aff (Tuple ArrayBuffer CardEntry)
-createCardEntry card@(Card_v1 { content: (CardValues_v1 content) }) key hashf = do
+createCardEntry card@(Card_v1 { content: (CardValues_v1 content), archived, timestamp: _ }) key hashf = do
   encryptedCard <- encryptJson key card
   hash <- hashf (encryptedCard : Nil)
   exportedKey <- fromArrayBuffer <$> exportKey raw key
   let cardEntry = CardEntry_v1 { title: content.title
                                , cardReference: CardReference_v1 { reference: fromArrayBuffer hash, key: exportedKey }
-                               , archived: false
+                               , archived: archived
                                , tags: content.tags
                                }
   pure $ Tuple encryptedCard cardEntry

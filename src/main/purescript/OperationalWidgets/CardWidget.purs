@@ -26,19 +26,20 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Now (now)
 import Functions.Communication.Cards (getCard, postCard, deleteCard)
+import Functions.Time (getCurrentTimestamp)
 import OperationalWidgets.CreateCardWidget (createCardWidget)
 import Views.CardViews (cardView, CardAction(..))
 import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (loadingDiv)
 
 cardWidget :: CardEntry -> WidgetState -> Widget HTML IndexUpdateData
-cardWidget entry@(CardEntry_v1 { title, cardReference, archived, tags }) state = do
+cardWidget entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _ }) state = do
   eitherCard <- case state of 
     Error err -> div [] [text $ "Card could't be loaded: " <> err]
     _ -> loadingDiv <|> (liftAff $ runExceptT $ getCard cardReference)
   case eitherCard of
     Right c -> do 
-      res <- cardView c archived
+      res <- cardView c
       manageCardAction res
     Left err -> cardWidget entry (Error (show err))
 
@@ -53,26 +54,30 @@ cardWidget entry@(CardEntry_v1 { title, cardReference, archived, tags }) state =
             _ -> cardWidget entry Default
         Clone cc -> do
           clonedCard <- liftAff $ cloneCardNow cc
-          doOp cc archived false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) cc)
-        Archive cc -> let newEntry = CardEntry_v1 { title, cardReference, archived: true, tags}
-                      in pure $ IndexUpdateData (ChangeToReference entry newEntry) cc
-        Restore cc -> let newEntry = CardEntry_v1 { title, cardReference, archived: false, tags}
-                      in pure $ IndexUpdateData (ChangeToReference entry newEntry) cc
-        Delete cc -> doOp cc archived false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) cc)
+          doOp cc false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) cc)
+        Archive (Card_v1 r) -> do
+          timestamp' <- liftEffect $ getCurrentTimestamp
+          let newCard = Card_v1 $ r { timestamp = timestamp', archived = true }
+          doOp newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeToReference entry newEntry) newCard)
+        Restore (Card_v1 r) -> do
+          timestamp' <- liftEffect $ getCurrentTimestamp
+          let newCard = Card_v1 $ r { timestamp = timestamp', archived = false }
+          doOp newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeToReference entry newEntry) newCard)
+        Delete cc -> doOp cc false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) cc)
 
-    doOp :: forall a. Card -> Boolean -> Boolean -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData
-    doOp currentCard archived showForm op mapResult = do
-      res <- (if showForm then inertCardFormView currentCard else inertCardView currentCard archived) <|> (liftAff $ runExceptT $ op)
+    doOp :: forall a. Card -> Boolean -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData
+    doOp currentCard showForm op mapResult = do
+      res <- (if showForm then inertCardFormView currentCard else inertCardView currentCard) <|> (liftAff $ runExceptT $ op)
       case res of
         Right a -> pure $ mapResult a
-        Left err -> div [] [text ("Current operation could't be completed: " <> show err)
-                           , cardView currentCard archived >>= manageCardAction ]
+        Left err -> div [] [ text ("Current operation could't be completed: " <> show err)
+                           , cardView currentCard >>= manageCardAction ]
 
-    inertCardView :: forall a. Card -> Boolean -> Widget HTML a
-    inertCardView card archived = do
+    inertCardView :: forall a. Card -> Widget HTML a
+    inertCardView card = do
       _ <- div [] [
         loadingDiv
-      , cardView card archived -- TODO: need to deactivate buttons to avoid returning some value here
+      , cardView card -- TODO: need to deactivate buttons to avoid returning some value here
       ]
       loadingDiv
 
@@ -82,8 +87,8 @@ cardWidget entry@(CardEntry_v1 { title, cardReference, archived, tags }) state =
       loadingDiv
 
 cloneCardNow :: Card -> Aff Card
-cloneCardNow (Card_v1 { timestamp: _, content}) =
+cloneCardNow (Card_v1 { timestamp: _, content, archived}) =
   case content of
     CardValues_v1 values -> do
       timestamp <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
-      pure $ Card_v1 { timestamp, content: (CardValues_v1 (values { title = (values.title <> " - CLONE")}))}
+      pure $ Card_v1 { timestamp, archived, content: (CardValues_v1 (values { title = (values.title <> " - CLONE")}))}

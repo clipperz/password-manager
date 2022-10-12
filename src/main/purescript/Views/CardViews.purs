@@ -24,17 +24,17 @@ instance showCardAction :: Show CardAction where
 
 -- -----------------------------------
 
-cardView :: Card -> Boolean -> Widget HTML CardAction
-cardView c@(Card_v1 r) archived = div [] [
-    cardActions c archived
+cardView :: Card -> Widget HTML CardAction
+cardView c@(Card_v1 r) = div [] [
+    cardActions c
   , cardContent r.content
 ]
 
-cardActions :: Card -> Boolean -> Widget HTML CardAction
-cardActions c archived = div [] [
+cardActions :: Card -> Widget HTML CardAction
+cardActions c@(Card_v1 r) = div [] [
     simpleButton (show (Edit c))    false (Edit c)
   , simpleButton (show (Clone c))   false (Clone c)
-  , if archived then simpleButton (show (Restore c)) false (Restore c) else simpleButton (show (Archive c)) false (Archive c)
+  , if r.archived then simpleButton (show (Restore c)) false (Restore c) else simpleButton (show (Archive c)) false (Archive c)
   , simpleButton (show (Delete c))  false (Delete c)
 ]
 

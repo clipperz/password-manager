@@ -56,8 +56,8 @@ cardsManagerView i cvs@{ cardView: cv, cardViewState } error =
         { cardView: CardForm card,         cardViewState: Loading } -> [(UpdateIndex $ IndexUpdateData NoUpdate card) <$ createCardView card cardViewState]
         { cardView: CardForm card,         cardViewState: _ }       -> [UpdateIndex <$> createCardWidget card cardViewState]
         { cardView: CardFromReference ref, cardViewState: _ }       -> [UpdateIndex <$> cardWidget ref cardViewState]
-        { cardView: JustCard card,         cardViewState: Loading } -> [(UpdateIndex $ IndexUpdateData NoUpdate card) <$ (div [] [loadingDiv, cardView card false])] -- TODO:
-        { cardView: JustCard card,         cardViewState: _ }       -> [(UpdateIndex $ IndexUpdateData NoUpdate card) <$ cardView card false] -- TODO:
+        { cardView: JustCard card,         cardViewState: Loading } -> [(UpdateIndex $ IndexUpdateData NoUpdate card) <$ (div [] [loadingDiv, cardView card])]
+        { cardView: JustCard card,         cardViewState: _ }       -> [(UpdateIndex $ IndexUpdateData NoUpdate card) <$ cardView card]
         { cardView: NoCard       ,         cardViewState: _ }       -> []
     ]
     case res of
