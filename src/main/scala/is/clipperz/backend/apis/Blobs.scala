@@ -30,7 +30,12 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
     ZIO
       .service[BlobArchive]
       .zip(ZIO.succeed(request.bodyAsStream))
-      .flatMap((archive, blob) => archive.deleteBlob(blob))
+      .flatMap((archive, bytes) =>
+        fromStream[SaveBlobData](bytes)
+        .flatMap(saveData =>
+          archive.deleteBlob(ZStream.fromIterable(saveData.data.toByteArray))
+        )
+      )
       .map(_ => Response.ok)
 
   case request @ Method.GET -> !! / "blobs" / hash =>

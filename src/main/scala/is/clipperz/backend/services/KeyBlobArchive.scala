@@ -30,10 +30,15 @@ object KeyBlobArchive:
       }
 
     override def deleteBlob(key: Key): Task[Unit] =
+      println("Operation: " + key)
       ZIO.attempt {
-        Files.deleteIfExists(getBlobPath(key, false).get)
-        // TODO: delete empty folder?
-      }
+        getBlobPath(key, false)
+          .map(path => {println(path); path})
+          .map(path => ZIO.succeed(Files.deleteIfExists(path)))
+          .get
+          // .getOrElse(ZIO.fail(new Exception("Could not delete blob")))
+          // TODO: delete empty folder?
+      }.map(_ => ()) 
 
     private def getBlobFile(key: Key): File =
       val piecesLength: Int = key.length / levels
