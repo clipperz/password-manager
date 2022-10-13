@@ -22,7 +22,7 @@ instance showProtocolError :: Show ProtocolError where
   show (IllegalResponse err)  = "Illegal response: "   <> err
 
 instance prettyShowProtocolError :: PrettyShow ProtocolError where
-  prettyShow (RequestError err)     = "An network error happened during the operation, the servery may be unreachable: please retry."
+  prettyShow (RequestError err)     = "A network error happened during the operation, the server may be unreachable: please retry."
   prettyShow (ResponseError i)      = "The server could not satisfy your request, the HTTP Error code returned is " <> show i
   prettyShow (SRPError err)         = "There was an error in the completion of the SRP protocol, please retry."
   prettyShow (DecodeError err)      = "The data obtained from the server is not in a comprehensible format, please contact us!"
