@@ -90,7 +90,7 @@ getIndex encryptedRef = do
   case currentState of
     { c: _, p: Just p, proxy: _, sessionKey: _, toll: _ } -> do
       masterPassword :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      { before: masterKey, after: indexReference } <- mapDecodeError $ ExceptT $ splitInHalf <$> (decryptEncryptedRef masterPassword)
+      { before: masterKey, after: indexReference } <- mapCryptoError $ ExceptT $ splitInHalf <$> (decryptEncryptedRef masterPassword)
       cryptoKey      :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       getDecryptedBlob indexReference cryptoKey
     _ -> except $ Left $ InvalidStateError $ MissingValue "Missing p"
@@ -100,8 +100,8 @@ getIndex encryptedRef = do
     decryptEncryptedRef password = decryptArrayBuffer password (toArrayBuffer encryptedRef)
     splitInHalf :: Either EX.Error ArrayBuffer -> Either EX.Error { before :: HexString, after :: HexString }
     splitInHalf either = (fromArrayBuffer >>> splitHexInHalf) <$> either
-    mapDecodeError :: ExceptT EX.Error Aff { before :: HexString, after :: HexString } -> ExceptT AppError Aff { before :: HexString, after :: HexString }
-    mapDecodeError = withExceptT (\e -> ProtocolError $ DecodeError $ EX.message e)
+    mapCryptoError :: ExceptT EX.Error Aff { before :: HexString, after :: HexString } -> ExceptT AppError Aff { before :: HexString, after :: HexString }
+    mapCryptoError = withExceptT (\e -> ProtocolError $ CryptoError $ EX.message e)
 
 updateIndex :: SRP.SRPConf -> Index -> ExceptT AppError Aff IndexReference
 updateIndex conf newIndex = do
@@ -111,7 +111,7 @@ updateIndex conf newIndex = do
       -- create user card with new index reference
       userCard <- getUserCard
       masterPassword :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      { before: masterKey, after: _ } <- mapDecodeError $ ExceptT $ splitInHalf <$> (decryptEncryptedRef masterPassword userCard.masterKeyContent)
+      { before: masterKey, after: _ } <- mapCryptoError $ ExceptT $ splitInHalf <$> (decryptEncryptedRef masterPassword userCard.masterKeyContent)
       cryptoKey            :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       indexCardContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson cryptoKey newIndex
       indexCardContentHash :: ArrayBuffer <- ExceptT $ Right <$> conf.hash (indexCardContent : Nil)
@@ -132,6 +132,6 @@ updateIndex conf newIndex = do
     decryptEncryptedRef password encryptedRef = decryptArrayBuffer password (toArrayBuffer encryptedRef)
     splitInHalf :: Either EX.Error ArrayBuffer -> Either EX.Error { before :: HexString, after :: HexString }
     splitInHalf either = (fromArrayBuffer >>> splitHexInHalf) <$> either
-    mapDecodeError :: ExceptT EX.Error Aff { before :: HexString, after :: HexString } -> ExceptT AppError Aff { before :: HexString, after :: HexString }
-    mapDecodeError = withExceptT (\e -> ProtocolError $ DecodeError $ EX.message e)
+    mapCryptoError :: ExceptT EX.Error Aff { before :: HexString, after :: HexString } -> ExceptT AppError Aff { before :: HexString, after :: HexString }
+    mapCryptoError = withExceptT (\e -> ProtocolError $ CryptoError $ EX.message e)
 

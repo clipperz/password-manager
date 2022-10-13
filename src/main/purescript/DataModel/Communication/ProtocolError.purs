@@ -7,8 +7,8 @@ import Data.Show (class Show, show)
 data ProtocolError = RequestError AXW.Error 
                    | ResponseError Int 
                    | SRPError String 
-                   | DecodeError String 
-                   | CryptoError String
+                   | DecodeError String -- for errors while decoding JSONs
+                   | CryptoError String -- for errors while decoding crypted things
                    | IllegalRequest String
                    | IllegalResponse String
 instance showProtocolError :: Show ProtocolError where
