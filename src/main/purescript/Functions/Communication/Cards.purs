@@ -51,13 +51,16 @@ getCard (CardReference_v1 { reference, key }) = do
       pure $ card
 
 deleteCard :: CardReference -> ExceptT AppError Aff String
-deleteCard reference = 
+deleteCard cardReference@(CardReference_v1 { reference, key }) = do
   let url = joinWith "/" ["blobs", show reference]
-  in do
-    response <- manageGenericRequest url DELETE Nothing RF.string
-    if isStatusCodeOk response.status
-      then except $ Right $ response.body
-      else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
+  card <- getCard cardReference
+  cryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+  encryptedCard <- ExceptT $ Right <$> encryptJson cryptoKey card
+  let body = json $ encodeJson $ { data: fromArrayBuffer encryptedCard, hash: reference } :: RequestBody
+  response <- manageGenericRequest url DELETE (Just body) RF.string
+  if isStatusCodeOk response.status
+    then except $ Right $ response.body
+    else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
 
 postCard :: Card -> ExceptT AppError Aff CardEntry
 postCard card = do
@@ -123,6 +126,7 @@ updateIndex conf newIndex = do
       let url = joinWith "/" ["users", show c]
       let body = (json $ encodeJson newUserCard) :: RequestBody
       _ <- manageGenericRequest url PUT (Just body) RF.string
+      -- TODO: delete old index
       pure newUserCard.masterKeyContent
     _ -> except $ Left $ InvalidStateError $ MissingValue "Missing p or c"
 
