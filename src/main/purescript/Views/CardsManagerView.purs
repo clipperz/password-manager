@@ -9,6 +9,7 @@ import Control.Bind (bind)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.Maybe (Maybe(..))
+import Data.PrettyShow (prettyShow)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.Unfoldable (fromMaybe)
@@ -45,7 +46,7 @@ cardsManagerView i cvs@{ cardView: cv, cardViewState } error =
                       CardForm _ -> true
                       _          -> false
   in do 
-    res <- div [Props._id "cardsManager"] $ (text <$> (fromMaybe $ show <$> error)) <> [
+    res <- div [Props._id "cardsManager"] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
       div [Props._id "indexView"] [
         ShowCard <$> indexView disableIndex i
       , simpleButton "Add card" disableIndex ShowAddCard 

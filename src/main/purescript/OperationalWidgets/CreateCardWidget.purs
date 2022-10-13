@@ -4,12 +4,13 @@ import Concur.Core (Widget)
 import Concur.React (HTML)
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind)
+import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (either)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Maybe (maybe)
+import Data.PrettyShow (prettyShow)
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import DataModel.AppState (AppError)
@@ -18,6 +19,8 @@ import DataModel.Index (CardEntry)
 import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
+import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
 import Functions.Communication.Cards (postCard)
 import Views.CreateCardView (createCardView)
 
@@ -34,4 +37,6 @@ createCardWidget startingCard state = do
     NoAction -> pure $ IndexUpdateData NoUpdate startingCard
     JustCard card -> createCardWidget card Loading
     NewEntry e -> pure $ IndexUpdateData (AddReference e) startingCard
-    FailedCreation err card -> createCardWidget card (Error (show err))
+    FailedCreation err card -> do
+      _ <- liftEffect $ log $ show err
+      createCardWidget card (Error (prettyShow err))

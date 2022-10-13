@@ -76,7 +76,7 @@ signupFormView state formData =
               Right s         -> pure { username: username', password: s, verifyPassword: s, checkboxes: checkboxMap' }
           result :: Maybe Credentials <- fireOnce (submitWidget formValues)
           pure result
-        liftEffect $ log $ "signalResult " <> show signalResult
+        -- liftEffect $ log $ "signalResult " <> show signalResult
         pure signalResult
     ]
 

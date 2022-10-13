@@ -48,7 +48,7 @@ loginFormView state loginFormData =
                                           pure { username: username', password: password' }
                                         result <- fireOnce (submitButton formValues)
                                         pure result
-                                      liftEffect $ log $ "signalResult " <> show signalResult
+                                      -- liftEffect $ log $ "signalResult " <> show signalResult
                                       pure signalResult
                                   ]
 

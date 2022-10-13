@@ -5,7 +5,7 @@ import Concur.React (HTML)
 import Concur.React.DOM (div, text)
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, (>>=))
+import Control.Bind (bind, (>>=), discard)
 import Control.Monad.Except.Trans (runExceptT, ExceptT)
 import Control.Semigroupoid ((<<<))
 import Data.DateTime.Instant (unInstant)
@@ -14,6 +14,7 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Int (ceil)
 import Data.Newtype (unwrap)
+import Data.PrettyShow (prettyShow)
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import DataModel.AppState (AppError)
@@ -24,6 +25,7 @@ import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
 import Effect.Now (now)
 import Functions.Communication.Cards (getCard, postCard, deleteCard)
 import Functions.Time (getCurrentTimestamp)
@@ -41,7 +43,9 @@ cardWidget entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _ }
     Right c -> do 
       res <- cardView c
       manageCardAction res
-    Left err -> cardWidget entry (Error (show err))
+    Left err -> do
+      _ <- liftEffect $ log $ show err
+      cardWidget entry (Error (prettyShow err))
 
   where
     manageCardAction :: CardAction -> Widget HTML IndexUpdateData
@@ -70,7 +74,7 @@ cardWidget entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _ }
       res <- (if showForm then inertCardFormView currentCard else inertCardView currentCard) <|> (liftAff $ runExceptT $ op)
       case res of
         Right a -> pure $ mapResult a
-        Left err -> div [] [ text ("Current operation could't be completed: " <> show err)
+        Left err -> div [] [ text ("Current operation could't be completed: " <> prettyShow err)
                            , cardView currentCard >>= manageCardAction ]
 
     inertCardView :: forall a. Card -> Widget HTML a
