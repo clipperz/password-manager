@@ -13,8 +13,9 @@ import Data.Functor ((<$>))
 import Data.List ((:), filter)
 import Data.Maybe (Maybe(..))
 import Data.Show (show)
-import DataModel.AppState (AppError)
+import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Card (emptyCard)
+import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index(..), CardEntry(..))
 import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
@@ -72,8 +73,18 @@ getUpdateIndexOp conf index@(Index_v1 list) (IndexUpdateData action _) =
     manageUpdateIndex newIndex cardViewState = do
       updateResult <- liftAff $ runExceptT $ updateIndex conf newIndex
       case updateResult of
-        Right _   -> pure $ OpResult newIndex   cardViewState                                Nothing
-        Left  err -> pure $ OpResult index    { cardView: NoCard, cardViewState: Default }  (Just err)
+        Right _   -> pure $ OpResult newIndex cardViewState Nothing
+        Left  err -> 
+          case err of 
+            InvalidStateError (CorruptedState  s) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
+            InvalidStateError (MissingValue    s) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
+            ProtocolError     (RequestError    e) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
+            ProtocolError     (ResponseError   i) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
+            ProtocolError     (SRPError        s) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
+            ProtocolError     (DecodeError     s) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
+            ProtocolError     (CryptoError     s) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
+            ProtocolError     (IllegalRequest  s) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
+            ProtocolError     (IllegalResponse s) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
 
 getUpdateIndexView :: Index -> IndexUpdateData -> (Maybe AppError -> Widget HTML CardViewAction)
 getUpdateIndexView index (IndexUpdateData action card) = 

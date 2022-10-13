@@ -20,7 +20,12 @@ type AppState =
   , cardsCache :: Map HexString Card
   }
 
-data AppError = InvalidStateError String | ProtocolError ProtocolError
+data InvalidStateError = CorruptedState String | MissingValue String
+instance showInvalidStateError :: Show InvalidStateError where
+  show (CorruptedState s) = "Corrupted state: " <> s
+  show (MissingValue s) = "Missing value in state: " <> s
+
+data AppError = InvalidStateError InvalidStateError | ProtocolError ProtocolError
 instance showAppError :: Show AppError where
-  show (InvalidStateError err) = "Invalid state  Error: "  <> err
+  show (InvalidStateError err) = "Invalid state Error: "  <> show err
   show (ProtocolError err)     = "Protocol Error: " <> show err

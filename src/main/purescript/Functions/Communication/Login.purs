@@ -23,7 +23,7 @@ import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
-import DataModel.AppState (AppError(..))
+import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (IndexReference)
 import Effect.Aff (Aff)
@@ -68,7 +68,7 @@ type LoginStep1Result = { aa :: BigInt
 loginStep1 :: SRP.SRPConf -> ExceptT AppError Aff LoginStep1Result
 loginStep1 srpConf = do
   { proxy: _, c: mc, p: _, sessionKey: _, toll: _ } <- ExceptT $ liftEffect $ getAppState
-  c <- except $ note (InvalidStateError "c is Nothing") mc
+  c <- except $ note (InvalidStateError (MissingValue "Missing c")) mc
   (Tuple a aa) <- withExceptT (\err -> ProtocolError $ SRPError $ show err) (ExceptT $ SRP.prepareA srpConf)
   let url  = joinWith "/" ["login", "step1", show c] :: String
   let body = json $ encodeJson { c, aa: fromBigInt aa }  :: RequestBody
@@ -102,8 +102,8 @@ type LoginStep2Result = { m1 :: ArrayBuffer
 loginStep2 :: SRP.SRPConf -> LogintStep2Data -> ExceptT AppError Aff LoginStep2Result
 loginStep2 srpConf { aa, bb, a, s } = do
   { proxy: _, c: mc, p: mp, sessionKey: _, toll: _ } <- ExceptT $ liftEffect $ getAppState
-  c <- except $ note (InvalidStateError "c is Nothing") mc
-  p <- except $ note (InvalidStateError "p is Nothing") mp
+  c <- except $ note (InvalidStateError (MissingValue "Missing c")) mc
+  p <- except $ note (InvalidStateError (MissingValue "Missing p")) mp
   x  :: BigInt      <- ExceptT $ (\ab -> note (ProtocolError $ SRPError "Cannot convert x from ArrayBuffer to BigInt") (arrayBufferToBigInt ab)) <$> (srpConf.kdf (toArrayBuffer s) (toArrayBuffer p))
   ss :: BigInt      <- withExceptT (\err -> ProtocolError $ SRPError $ show err) (ExceptT $ SRP.prepareSClient srpConf aa bb x a)
   kk :: ArrayBuffer <- ExceptT $ Right <$> (SRP.prepareK srpConf ss)

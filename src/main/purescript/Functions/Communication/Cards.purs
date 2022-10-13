@@ -24,7 +24,7 @@ import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
-import DataModel.AppState (AppError(..))
+import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Card (Card, UserCard)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardReference(..), Index, CardEntry(..), createCardEntry, IndexReference)
@@ -77,7 +77,7 @@ postCard card = do
 getUserCard :: ExceptT AppError Aff UserCard
 getUserCard = do
   { proxy: _, c: mc, p: _, sessionKey: _, toll: _ } <- ExceptT $ liftEffect $ getAppState
-  c <- except $ note (InvalidStateError "c is Nothing") mc
+  c <- except $ note (InvalidStateError (MissingValue "c is Nothing")) mc
   let url = joinWith "/" ["users", show c]
   response <- manageGenericRequest url GET Nothing RF.json
   if isStatusCodeOk response.status
@@ -93,7 +93,7 @@ getIndex encryptedRef = do
       { before: masterKey, after: indexReference } <- mapDecodeError $ ExceptT $ splitInHalf <$> (decryptEncryptedRef masterPassword)
       cryptoKey      :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       getDecryptedBlob indexReference cryptoKey
-    _ -> except $ Left $ InvalidStateError "Missing p"
+    _ -> except $ Left $ InvalidStateError $ MissingValue "Missing p"
   
   where 
     decryptEncryptedRef :: CryptoKey -> Aff (Either EX.Error ArrayBuffer)
@@ -124,7 +124,7 @@ updateIndex conf newIndex = do
       let body = (json $ encodeJson newUserCard) :: RequestBody
       _ <- manageGenericRequest url PUT (Just body) RF.string
       pure newUserCard.masterKeyContent
-    _ -> except $ Left $ InvalidStateError "Missing p or c"
+    _ -> except $ Left $ InvalidStateError $ MissingValue "Missing p or c"
 
     
   where 

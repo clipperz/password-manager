@@ -11,9 +11,10 @@ import Data.Argonaut.Parser (jsonParser)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>), void)
+import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Unit (Unit, unit)
-import DataModel.AppState (AppState, AppError(..))
+import DataModel.AppState (AppState, AppError(..), InvalidStateError(..))
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
@@ -26,8 +27,8 @@ getAppState = do
   json <- jsonParser <$> (getJsonState unit)
   let appstate = decodeJson <$> json 
   case appstate of
-    Left s -> pure $ Left $ InvalidStateError s
-    Right (Left s) -> pure $ Left $ InvalidStateError $ show s
+    Left s -> pure $ Left $ InvalidStateError $ CorruptedState "The state currently saved is not a valid JSON string"
+    Right (Left s) -> pure $ Left $ InvalidStateError $ CorruptedState $ "The state currently saved is not JSON string representing a state: " <> show s
     Right (Right a) -> pure $ Right a
 
 foreign import updateJsonState :: String -> Effect Unit
