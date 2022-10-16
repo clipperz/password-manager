@@ -12,7 +12,7 @@ type Key = String
 trait KeyBlobArchive:
   def getBlob(key: Key): Task[ZStream[Any, Throwable, Byte]]
   def saveBlob(key: Key, content: ZStream[Any, Throwable, Byte]): Task[Unit]
-  def deleteBlob(key: Key): Task[Unit]
+  def deleteBlob(key: Key): Task[Boolean]
 
 object KeyBlobArchive:
   case class FileSystemKeyBlobArchive(basePath: Path, levels: Int) extends KeyBlobArchive:
@@ -29,16 +29,16 @@ object KeyBlobArchive:
           .get
       }
 
-    override def deleteBlob(key: Key): Task[Unit] =
+    override def deleteBlob(key: Key): Task[Boolean] =
       println("Operation: " + key)
       ZIO.attempt {
         getBlobPath(key, false)
           .map(path => {println(path); path})
-          .map(path => ZIO.succeed(Files.deleteIfExists(path)))
+          .map(path => Files.deleteIfExists(path))
           .get
           // .getOrElse(ZIO.fail(new Exception("Could not delete blob")))
           // TODO: delete empty folder?
-      }.map(_ => ()) 
+      }
 
     private def getBlobFile(key: Key): File =
       val piecesLength: Int = key.length / levels

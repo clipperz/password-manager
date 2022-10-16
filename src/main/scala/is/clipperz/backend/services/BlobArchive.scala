@@ -28,7 +28,7 @@ object SaveBlobData:
 trait BlobArchive:
   def getBlob(hash: BlobHash): Task[ZStream[Any, Throwable, Byte]]
   def saveBlob(key: BlobHash, content: ZStream[Any, Throwable, Byte]): Task[BlobHash]
-  def deleteBlob(content: ZStream[Any, Throwable, Byte]): Task[Unit]
+  def deleteBlob(content: ZStream[Any, Throwable, Byte]): Task[Boolean]
 
 object BlobArchive:
   case class FileSystemBlobArchive(keyBlobArchive: KeyBlobArchive, tmpDir: Path) extends BlobArchive:
@@ -54,11 +54,11 @@ object BlobArchive:
           ZIO.fail(new Exception(s"hash of content does not match with hash in request"))
       }
 
-    override def deleteBlob(content: ZStream[Any, Throwable, Byte]): Task[Unit] =
+    override def deleteBlob(content: ZStream[Any, Throwable, Byte]): Task[Boolean] =
       ZIO.scoped {
         HashFunction
           .hashSHA256(content)
-          .map(hash => keyBlobArchive.deleteBlob(bytesToHex(hash).toString))        
+          .flatMap(hash => keyBlobArchive.deleteBlob(bytesToHex(hash).toString))        
       }
 
   // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .

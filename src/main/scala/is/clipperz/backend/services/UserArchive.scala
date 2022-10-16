@@ -52,7 +52,7 @@ object UserArchive:
       )
 
     override def deleteUser(username: HexString): Task[Unit] =
-      keyBlobArchive.deleteBlob(username.toString)
+      keyBlobArchive.deleteBlob(username.toString).map(_ => ())
 
   def fs(basePath: Path, levels: Int): ZLayer[Any, Throwable, UserArchive] =
     val keyBlobArchive = new KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels);
