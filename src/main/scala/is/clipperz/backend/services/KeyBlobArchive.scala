@@ -30,10 +30,8 @@ object KeyBlobArchive:
       }
 
     override def deleteBlob(key: Key): Task[Boolean] =
-      println("Operation: " + key)
       ZIO.attempt {
         getBlobPath(key, false)
-          .map(path => {println(path); path})
           .map(path => Files.deleteIfExists(path))
           .get
           // .getOrElse(ZIO.fail(new Exception("Could not delete blob")))
