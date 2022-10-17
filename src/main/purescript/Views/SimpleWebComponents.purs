@@ -109,3 +109,10 @@ passwordStrengthShow = text <<< show
 
 loadingDiv :: forall a. Widget HTML a
 loadingDiv = div [ (Props.className "Loading") ] [text "LOADING"]  
+
+confirmationWidget :: String -> Widget HTML Boolean
+confirmationWidget message = div [] [
+  text message
+, simpleButton "Yes" false true
+, simpleButton "No" false false
+]
