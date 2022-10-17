@@ -21,6 +21,7 @@ import Data.HTTP.Method (Method(..))
 import Data.List (List(..), (:))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
+import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
@@ -30,11 +31,12 @@ import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardReference(..), Index, CardEntry(..), createCardEntry, IndexReference)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
 import Effect.Exception as EX
 import Functions.ArrayBuffer (concatArrayBuffers)
 import Functions.CardsCache (getCardFromCache, addCardToCache)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
-import Functions.Communication.Blobs (getDecryptedBlob, postBlob)
+import Functions.Communication.Blobs (getDecryptedBlob, postBlob, deleteBlob)
 import Functions.EncodeDecode (encryptArrayBuffer, decryptArrayBuffer, encryptJson)
 import Functions.JSState (getAppState)
 import Functions.SRP as SRP
@@ -52,6 +54,7 @@ getCard (CardReference_v1 { reference, key }) = do
 
 deleteCard :: CardReference -> ExceptT AppError Aff String
 deleteCard cardReference@(CardReference_v1 { reference, key }) = do
+  -- deleteBlob reference
   let url = joinWith "/" ["blobs", show reference]
   card <- getCard cardReference
   cryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
@@ -104,7 +107,7 @@ getIndex encryptedRef = do
     splitInHalf :: Either EX.Error ArrayBuffer -> Either EX.Error { before :: HexString, after :: HexString }
     splitInHalf either = (fromArrayBuffer >>> splitHexInHalf) <$> either
     mapCryptoError :: ExceptT EX.Error Aff { before :: HexString, after :: HexString } -> ExceptT AppError Aff { before :: HexString, after :: HexString }
-    mapCryptoError = withExceptT (\e -> ProtocolError $ CryptoError $ EX.message e)
+    mapCryptoError = withExceptT (\e -> ProtocolError $ CryptoError $ "Get index: " <> EX.message e)
 
 updateIndex :: SRP.SRPConf -> Index -> ExceptT AppError Aff IndexReference
 updateIndex conf newIndex = do
@@ -114,7 +117,7 @@ updateIndex conf newIndex = do
       -- create user card with new index reference
       userCard <- getUserCard
       masterPassword :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      { before: masterKey, after: _ } <- mapCryptoError $ ExceptT $ splitInHalf <$> (decryptEncryptedRef masterPassword userCard.masterKeyContent)
+      { before: masterKey, after: oldIndexReference } <- mapCryptoError $ ExceptT $ splitInHalf <$> (decryptEncryptedRef masterPassword userCard.masterKeyContent)
       cryptoKey            :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       indexCardContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson cryptoKey newIndex
       indexCardContentHash :: ArrayBuffer <- ExceptT $ Right <$> conf.hash (indexCardContent : Nil)
@@ -126,7 +129,7 @@ updateIndex conf newIndex = do
       let url = joinWith "/" ["users", show c]
       let body = (json $ encodeJson newUserCard) :: RequestBody
       _ <- manageGenericRequest url PUT (Just body) RF.string
-      -- TODO: delete old index
+      _ <- deleteBlob oldIndexReference -- TODO: manage errors
       pure newUserCard.masterKeyContent
     _ -> except $ Left $ InvalidStateError $ MissingValue "Missing p or c"
 
@@ -137,5 +140,5 @@ updateIndex conf newIndex = do
     splitInHalf :: Either EX.Error ArrayBuffer -> Either EX.Error { before :: HexString, after :: HexString }
     splitInHalf either = (fromArrayBuffer >>> splitHexInHalf) <$> either
     mapCryptoError :: ExceptT EX.Error Aff { before :: HexString, after :: HexString } -> ExceptT AppError Aff { before :: HexString, after :: HexString }
-    mapCryptoError = withExceptT (\e -> ProtocolError $ CryptoError $ EX.message e)
+    mapCryptoError = withExceptT (\e -> ProtocolError $ CryptoError $ "Update index: " <> EX.message e)
 

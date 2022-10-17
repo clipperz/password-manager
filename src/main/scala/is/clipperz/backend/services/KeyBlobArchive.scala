@@ -34,7 +34,6 @@ object KeyBlobArchive:
         getBlobPath(key, false)
           .map(path => Files.deleteIfExists(path))
           .get
-          // .getOrElse(ZIO.fail(new Exception("Could not delete blob")))
           // TODO: delete empty folder?
       }
 

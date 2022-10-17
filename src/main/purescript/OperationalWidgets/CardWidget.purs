@@ -74,7 +74,9 @@ cardWidget entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _ }
       res <- (if showForm then inertCardFormView currentCard else inertCardView currentCard) <|> (liftAff $ runExceptT $ op)
       case res of
         Right a -> pure $ mapResult a
-        Left err -> div [] [ text ("Current operation could't be completed: " <> prettyShow err)
+        Left err -> do
+          _ <- liftEffect $ log $ show err
+          div [] [ text ("Current operation could't be completed: " <> prettyShow err)
                            , cardView currentCard >>= manageCardAction ]
 
     inertCardView :: forall a. Card -> Widget HTML a
