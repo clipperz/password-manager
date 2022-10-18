@@ -4,6 +4,7 @@ import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopS, loopW, demand, fireOnce)
 import Concur.React (HTML)
 import Concur.React.DOM (div, text)
+import Concur.React.Props as Props
 import Control.Alt((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, (=<<))
@@ -18,14 +19,14 @@ import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Class (liftEffect)
 import Functions.Time (getCurrentTimestamp)
-import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleTextInputWidget, simpleCheckboxSignal)
+import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleTextInputWidget, simpleCheckboxSignal, disableOverlay)
 
 createCardView :: Card -> WidgetState -> Widget HTML (Maybe Card)
 createCardView card state = do
   mCard <- case state of
-    Default -> div [] [demand formSignal]
-    Loading -> div [] [loadingDiv, demand formSignal] -- TODO: deactivate form
-    Error err -> div [] [text err, demand formSignal]
+    Default -> div [] [disableOverlay, div [Props.className "cardForm"] [demand formSignal]]
+    Loading -> div [] [disableOverlay, loadingDiv, div [Props.className "cardForm"] [demand formSignal]] -- TODO: deactivate form
+    Error err -> div [] [disableOverlay, text err, div [Props.className "cardForm"] [demand formSignal]]
   case mCard of
     Just (Card_v1 { content, timestamp: _ }) -> do
       timestamp' <- liftEffect $ getCurrentTimestamp

@@ -41,26 +41,22 @@ instance showCardView :: Show CardView where
   show (CardForm c) = "CardForm " <> show c
 
 cardsManagerView :: Index -> CardViewState -> Maybe AppError -> Widget HTML CardViewAction
-cardsManagerView i cvs@{ cardView: cv, cardViewState } error = 
-  let disableIndex = case cv of
-                      CardForm _ -> true
-                      _          -> false
-  in do 
-    res <- div [Props._id "cardsManager"] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
-      div [Props._id "indexView"] [
-        ShowCard <$> indexView disableIndex i
-      , simpleButton "Add card" disableIndex ShowAddCard 
-      ]
-    , div [Props._id "cardView"] $
-      case cvs of
-        { cardView: CardForm card,         cardViewState: Loading } -> [(UpdateIndex $ IndexUpdateData NoUpdate card) <$ createCardView card cardViewState]
-        { cardView: CardForm card,         cardViewState: _ }       -> [UpdateIndex <$> createCardWidget card cardViewState]
-        { cardView: CardFromReference ref, cardViewState: _ }       -> [UpdateIndex <$> cardWidget ref cardViewState]
-        { cardView: JustCard card,         cardViewState: Loading } -> [(UpdateIndex $ IndexUpdateData NoUpdate card) <$ (div [] [loadingDiv, cardView card])]
-        { cardView: JustCard card,         cardViewState: _ }       -> [(UpdateIndex $ IndexUpdateData NoUpdate card) <$ cardView card]
-        { cardView: NoCard       ,         cardViewState: _ }       -> []
+cardsManagerView i cvs@{ cardView: cv, cardViewState } error = do 
+  res <- div [Props._id "cardsManager"] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
+    div [Props._id "indexView"] [
+      ShowCard <$> indexView i
+    , simpleButton "Add card" false ShowAddCard 
     ]
-    case res of
-      ShowCard ref -> cardsManagerView i { cardView: CardFromReference ref, cardViewState } Nothing -- TODO: discuss
-      _ -> pure res
+  , div [Props._id "cardView"] $
+    case cvs of
+      { cardView: CardForm card,         cardViewState: Loading } -> [(UpdateIndex $ IndexUpdateData NoUpdate card) <$ createCardView card cardViewState]
+      { cardView: CardForm card,         cardViewState: _ }       -> [UpdateIndex <$> createCardWidget card cardViewState]
+      { cardView: CardFromReference ref, cardViewState: _ }       -> [UpdateIndex <$> cardWidget ref cardViewState]
+      { cardView: JustCard card,         cardViewState: Loading } -> [(UpdateIndex $ IndexUpdateData NoUpdate card) <$ (div [] [loadingDiv, cardView card])]
+      { cardView: JustCard card,         cardViewState: _ }       -> [(UpdateIndex $ IndexUpdateData NoUpdate card) <$ cardView card]
+      { cardView: NoCard       ,         cardViewState: _ }       -> []
+  ]
+  case res of
+    ShowCard ref -> cardsManagerView i { cardView: CardFromReference ref, cardViewState } Nothing -- TODO: discuss
+    _ -> pure res
 

@@ -11,7 +11,8 @@ div {
 }
 
 #indexView {
-	flex-grow: 1;
+	width: 30%;
+
 }
 
 #cardView {
@@ -19,7 +20,7 @@ div {
 }
 
 #indexView > ol > li {
-	height: 20px;
+	min-height: 20px;
 	border-bottom: 0.5px solid rgba(128, 128, 128, 0.658);
 }
 
@@ -29,4 +30,36 @@ div {
 
 li.archived {
 	color: gray;
+}
+
+.disableOverlay {
+	position: fixed;
+	top: 0;
+	right: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(109, 109, 109, 0.682);
+	z-index: 8;
+}
+
+.loading {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(109, 109, 109, 0.682);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: bolder;
+	z-index: 10;
+}
+
+#cardView > div {
+	position: relative;
+}
+
+.cardForm {
+	position: relative;
+	background-color: white;
+	z-index: 9;
 }

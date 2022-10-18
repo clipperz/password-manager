@@ -11,11 +11,10 @@ import Data.List (sort)
 import DataModel.Index (Index(..), CardEntry(..))
 import Views.SimpleWebComponents (clickableListItemWidget)
 
-indexView :: Boolean -> Index -> Widget HTML CardEntry
-indexView disabled (Index_v1 cards) = do
+indexView :: Index -> Widget HTML CardEntry
+indexView (Index_v1 cards) = do
   let sortedCards = fromFoldable $ sort cards :: Array CardEntry
-  ol 
-    [Props.className (if disabled then "disabled" else "")] 
+  ol []
     ((\entry@(CardEntry_v1 { title, archived }) -> 
-      clickableListItemWidget disabled (text title) (if archived then ["archived"] else []) entry
+      clickableListItemWidget false (text title) (if archived then ["archived"] else []) entry
      ) <$> sortedCards)

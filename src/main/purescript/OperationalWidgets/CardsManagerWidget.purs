@@ -98,4 +98,4 @@ getUpdateIndexView index (IndexUpdateData action card) =
     DeleteReference              _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading }
     ChangeReferenceWithEdit    _ _ -> cardsManagerView index { cardView: (CardForm card), cardViewState: Loading } 
     ChangeReferenceWithoutEdit _ _ -> cardsManagerView index { cardView: (JustCard card), cardViewState: Loading } 
-    _                     -> cardsManagerView index { cardView:  NoCard,         cardViewState: Default }
+    _                              -> cardsManagerView index { cardView:  NoCard,         cardViewState: Default }
