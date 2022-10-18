@@ -108,7 +108,22 @@ passwordStrengthShow :: forall a. PasswordStrength -> Widget HTML a
 passwordStrengthShow = text <<< show
 
 loadingDiv :: forall a. Widget HTML a
-loadingDiv = div [ (Props.className "loading") ] [text "LOADING"]  
+loadingDiv = div [ (Props.className "loading") ] [
+  div [Props.className "lds-spinner"] [
+    div [] []
+  , div [] []
+  , div [] []
+  , div [] []
+  , div [] []
+  , div [] []
+  , div [] []
+  , div [] []
+  , div [] []
+  , div [] []
+  , div [] []
+  , div [] []
+  ]
+]  
 
 disableOverlay :: forall a. Widget HTML a
 disableOverlay = div [(Props.className "disableOverlay")] []

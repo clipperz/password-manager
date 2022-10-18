@@ -1,7 +1,3 @@
-div {
-    border: 1px solid gray;
-}
-
 .disabled {
 	background-color: grey;	
 }
@@ -12,7 +8,7 @@ div {
 
 #indexView {
 	width: 30%;
-
+    border: 1px solid gray;
 }
 
 #cardView {
@@ -52,6 +48,10 @@ li.archived {
 	justify-content: center;
 	font-weight: bolder;
 	z-index: 10;
+}
+
+#cardView {
+    border: 1px solid gray;
 }
 
 #cardView > div {
