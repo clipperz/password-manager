@@ -1,9 +1,11 @@
 package is.clipperz.backend.services
 
-import java.io.File
+import java.io.{ File, FileNotFoundException }
 import java.nio.file.{ Files, Path }
 import zio.{ Task, ZIO }
 import zio.stream.{ ZSink, ZStream }
+
+import is.clipperz.backed.exceptions.{NonWritableArchiveException, NonReadableArchiveException, ResourceNotFoundException}
 
 // ============================================================================
 
@@ -19,7 +21,8 @@ object KeyBlobArchive:
     override def getBlob(key: Key): Task[ZStream[Any, Throwable, Byte]] =
       getBlobPath(key, false)
         .map(path => ZIO.succeed(ZStream.fromPath(path)))
-        .getOrElse(ZIO.fail(new Exception("Path not found")))
+        .getOrElse(ZIO.fail(new ResourceNotFoundException("Blob not found")))
+        .foldZIO(err => ZIO.fail(new NonReadableArchiveException(err.toString())), data => ZIO.succeed(data))
 
     override def saveBlob(key: Key, content: ZStream[Any, Throwable, Byte]): Task[Unit] =
       ZIO.scoped {
@@ -27,7 +30,7 @@ object KeyBlobArchive:
           // .get // TODO: (DONE??) this takes time to create the file: needs a way to be sure the ZSink is applied after this has finished
           .map(path => content.run(ZSink.fromPath(path)).map(_ => ()))
           .get
-      }
+      }.foldZIO(err => ZIO.fail(new NonWritableArchiveException(err.toString())), data => ZIO.succeed(data))
 
     override def deleteBlob(key: Key): Task[Boolean] =
       ZIO.attempt {
@@ -35,7 +38,7 @@ object KeyBlobArchive:
           .map(path => Files.deleteIfExists(path))
           .get
           // TODO: delete empty folder?
-      }
+      }.foldZIO(err => ZIO.fail(new NonWritableArchiveException(err.toString())), data => ZIO.succeed(data))
 
     private def getBlobFile(key: Key): File =
       val piecesLength: Int = key.length / levels

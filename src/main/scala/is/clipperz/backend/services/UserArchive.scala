@@ -28,7 +28,7 @@ object UserCard:
 trait UserArchive:
   def getUser(username: HexString): Task[Option[UserCard]]
   def saveUser(user: UserCard, overwrite: Boolean): Task[HexString]
-  def deleteUser(username: HexString): Task[Unit]
+  def deleteUser(username: HexString): Task[Boolean]
 
 object UserArchive:
   case class FileSystemUserArchive(keyBlobArchive: KeyBlobArchive) extends UserArchive:
@@ -51,8 +51,8 @@ object UserArchive:
         case None => saveUserCard(userCard)
       )
 
-    override def deleteUser(username: HexString): Task[Unit] =
-      keyBlobArchive.deleteBlob(username.toString).map(_ => ())
+    override def deleteUser(username: HexString): Task[Boolean] =
+      keyBlobArchive.deleteBlob(username.toString)
 
   def fs(basePath: Path, levels: Int): ZLayer[Any, Throwable, UserArchive] =
     val keyBlobArchive = new KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels);
