@@ -25,7 +25,7 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
       .map(results => Response.text(s"${results}"))
       .catchSome {
         case _ : NonWritableArchiveException => ZIO.succeed(Response(status = Status.InternalServerError))
-        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.InternalServerError))
+        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.BadRequest))
       }
 
       // .map(hash => Response.text(s"${hash}"))
@@ -43,7 +43,7 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
       .map(b => if b then Response.ok else Response(status = Status.NotFound))
       .catchSome {
         case _ : NonWritableArchiveException => ZIO.succeed(Response(status = Status.InternalServerError))
-        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.InternalServerError))
+        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.BadRequest))
       }
 
   case request @ Method.GET -> !! / "blobs" / hash =>
@@ -60,6 +60,6 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
       .catchSome {
         case _ : ResourceNotFoundException => ZIO.succeed(Response(status = Status.NotFound))
         case _ : NonWritableArchiveException => ZIO.succeed(Response(status = Status.InternalServerError))
-        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.InternalServerError))
+        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.BadRequest))
       }
 }

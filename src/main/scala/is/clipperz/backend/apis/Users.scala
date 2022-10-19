@@ -57,7 +57,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
         case _ : ConflictualRequestException => ZIO.succeed(Response(status = Status.Conflict))
         case _ : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
         case _ : NonWritableArchiveException => ZIO.succeed(Response(status = Status.InternalServerError))
-        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.InternalServerError))
+        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.BadRequest))
       }
 
   case request @ Method.PUT -> !! / "users" / c =>
@@ -88,7 +88,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
         case _ : ResourceNotFoundException => ZIO.succeed(Response(status = Status.NotFound))
         case _ : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
         case _ : NonWritableArchiveException => ZIO.succeed(Response(status = Status.InternalServerError))
-        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.InternalServerError))
+        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.BadRequest))
       }
 
   case request @ Method.GET -> !! / "users" / c =>
