@@ -13,6 +13,7 @@ import is.clipperz.backend.services.{
   SRPStep2Data
 }
 import is.clipperz.backend.Main.ClipperzHttpApp
+import is.clipperz.backed.exceptions.{ BadRequestException, FailedConversionException }
 
 val loginApi: ClipperzHttpApp = Http.collectZIO {
   case request @ Method.POST -> !! / "login" / "step1" / c =>
@@ -30,11 +31,14 @@ val loginApi: ClipperzHttpApp = Http.collectZIO {
               _ <- sessionManager.saveSession(session)
             } yield step1Response
           else  
-            ZIO.fail(new Exception("c in request path differs from c in request body "))
+            ZIO.fail(new BadRequestException("c in request path differs from c in request body "))
         })
       )
-      .either
-      .map(e => e.fold(err => { println(s"LOGIN STEP 1: ERROR ${err}"); Response(status = Status.InternalServerError) }, (step1Response) => Response.json(step1Response.toJson)))
+      .map(step1Response => Response.json(step1Response.toJson))
+      .catchSome {
+        case _ : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
+        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.BadRequest))
+      }
 
   case request @ Method.POST -> !! / "login" / "step2" / c => 
     ZIO.service[SessionManager]
@@ -52,7 +56,8 @@ val loginApi: ClipperzHttpApp = Http.collectZIO {
             } yield step2Response
         })
       )
-      .either
-      .map(e => e.fold(err => { println(s"LOGIN STEP 2: ERROR ${err}"); Response(status = Status.InternalServerError) }, (step2Response) => Response.json(step2Response.toJson)))
-
+      .map(step2Response => Response.json(step2Response.toJson))
+      .catchSome {
+        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.BadRequest))
+      }
 }

@@ -5,6 +5,7 @@ import zhttp.http.{ Http, Method, Path, PathSyntax, Response }
 import zhttp.http.* //TODO: fix How do you import `!!` and `/`?
 import is.clipperz.backend.services.{ SessionManager }
 import is.clipperz.backend.Main.ClipperzHttpApp
+import is.clipperz.backed.exceptions.BadRequestException
 
 val logoutApi: ClipperzHttpApp = Http.collectZIO {
   case request @ Method.POST -> !! / "logout" => 
@@ -16,4 +17,7 @@ val logoutApi: ClipperzHttpApp = Http.collectZIO {
           .deleteSession(sessionKey)
           .map(_ => Response.text(""))
       )
+      .catchSome {
+        case _ : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
+      }
 }
