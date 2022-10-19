@@ -7,6 +7,7 @@ import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.*
 import is.clipperz.backend.functions.Conversions.*
 import is.clipperz.backend.functions.SrpFunctions.{ SrpFunctionsV6a }
+import is.clipperz.backed.exceptions.ResourceNotFoundException
 
 // ============================================================================
 
@@ -50,7 +51,11 @@ object SrpManager:
     val nn = configuration.group.nn
     override def srpStep1 (step1Data: SRPStep1Data, session: Session): Task[(SRPStep1Response, Session)] =
       userArchive
-        .getUser(step1Data.c).flatMap(u => ZIO.attempt(u.get))
+        .getUser(step1Data.c)
+        .flatMap(optionalUser => optionalUser match
+          case Some(u) => ZIO.succeed(u)
+          case None    => ZIO.fail(new ResourceNotFoundException(s"user ${step1Data.c} does not exist"))
+        )
         .zip(newRandomValue())
         .map { (userCard, randomValue) =>
           val v = userCard.v.toBigInt

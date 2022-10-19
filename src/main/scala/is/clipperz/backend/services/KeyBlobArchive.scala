@@ -22,7 +22,10 @@ object KeyBlobArchive:
       getBlobPath(key, false)
         .map(path => ZIO.succeed(ZStream.fromPath(path)))
         .getOrElse(ZIO.fail(new ResourceNotFoundException("Blob not found")))
-        .foldZIO(err => ZIO.fail(new NonReadableArchiveException(err.toString())), data => ZIO.succeed(data))
+        .catchSome {
+          case ex : ResourceNotFoundException => ZIO.fail(ex)
+          case ex => ZIO.fail(new NonReadableArchiveException(s"${ex}"))
+        }
 
     override def saveBlob(key: Key, content: ZStream[Any, Throwable, Byte]): Task[Unit] =
       ZIO.scoped {

@@ -54,10 +54,10 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
       )
       .map(results => Response.text(results._1.toString))
       .catchSome {
-        case _ : ConflictualRequestException => ZIO.succeed(Response(status = Status.Conflict))
-        case _ : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
-        case _ : NonWritableArchiveException => ZIO.succeed(Response(status = Status.InternalServerError))
-        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.BadRequest))
+        case ex : ConflictualRequestException => { println(ex); ZIO.succeed(Response(status = Status.Conflict)) }
+        case ex : BadRequestException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
+        case ex : NonWritableArchiveException => { println(ex); ZIO.succeed(Response(status = Status.InternalServerError)) }
+        case ex : FailedConversionException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
       }
 
   case request @ Method.PUT -> !! / "users" / c =>
@@ -85,10 +85,10 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
       )
       .map(results => Response.text(results._1.toString))
       .catchSome {
-        case _ : ResourceNotFoundException => ZIO.succeed(Response(status = Status.NotFound))
-        case _ : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
-        case _ : NonWritableArchiveException => ZIO.succeed(Response(status = Status.InternalServerError))
-        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.BadRequest))
+        case ex : ResourceNotFoundException => { println(ex); ZIO.succeed(Response(status = Status.NotFound)) }
+        case ex : BadRequestException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
+        case ex : NonWritableArchiveException => { println(ex); ZIO.succeed(Response(status = Status.InternalServerError)) }
+        case ex : FailedConversionException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
       }
 
   case request @ Method.GET -> !! / "users" / c =>
@@ -104,7 +104,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
           case Some(card) => Response.json(card.toJson)
       )
       .catchSome {
-        case _ : NonReadableArchiveException => ZIO.succeed(Response(status = Status.InternalServerError))
+        case ex : NonReadableArchiveException => { println(ex); ZIO.succeed(Response(status = Status.InternalServerError)) }
       }
 
   case request @ Method.DELETE -> !! / "users" / c =>
@@ -116,6 +116,6 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
       )
       .map(b => if b then Response.text(c) else Response(status = Status.NotFound))
       .catchSome {
-        case _ : NonWritableArchiveException => ZIO.succeed(Response(status = Status.InternalServerError))
+        case ex : NonWritableArchiveException => { println(ex); ZIO.succeed(Response(status = Status.InternalServerError)) }
       }
 }

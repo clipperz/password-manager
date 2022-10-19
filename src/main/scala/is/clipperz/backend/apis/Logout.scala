@@ -18,6 +18,6 @@ val logoutApi: ClipperzHttpApp = Http.collectZIO {
           .map(_ => Response.text(""))
       )
       .catchSome {
-        case _ : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
+        case ex : BadRequestException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
       }
 }

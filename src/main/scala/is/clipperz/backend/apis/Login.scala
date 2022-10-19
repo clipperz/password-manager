@@ -13,7 +13,7 @@ import is.clipperz.backend.services.{
   SRPStep2Data
 }
 import is.clipperz.backend.Main.ClipperzHttpApp
-import is.clipperz.backed.exceptions.{ BadRequestException, FailedConversionException }
+import is.clipperz.backed.exceptions.{ BadRequestException, FailedConversionException, ResourceNotFoundException }
 
 val loginApi: ClipperzHttpApp = Http.collectZIO {
   case request @ Method.POST -> !! / "login" / "step1" / c =>
@@ -36,8 +36,9 @@ val loginApi: ClipperzHttpApp = Http.collectZIO {
       )
       .map(step1Response => Response.json(step1Response.toJson))
       .catchSome {
-        case _ : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
-        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.BadRequest))
+        case ex : ResourceNotFoundException => { println(ex); ZIO.succeed(Response(status = Status.NotFound)) }
+        case ex : BadRequestException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
+        case ex : FailedConversionException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
       }
 
   case request @ Method.POST -> !! / "login" / "step2" / c => 
@@ -58,6 +59,7 @@ val loginApi: ClipperzHttpApp = Http.collectZIO {
       )
       .map(step2Response => Response.json(step2Response.toJson))
       .catchSome {
-        case _ : FailedConversionException => ZIO.succeed(Response(status = Status.BadRequest))
+        case ex : ResourceNotFoundException => { println(ex); ZIO.succeed(Response(status = Status.NotFound)) }
+        case ex : FailedConversionException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
       }
 }
