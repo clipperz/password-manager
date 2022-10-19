@@ -7,7 +7,7 @@ import zhttp.http.{ Header, Headers, HeaderNames, HeaderValues, Http, HttpApp, H
 import zhttp.service.{ EventLoopGroup, Server }
 import zhttp.service.server.ServerChannelFactory
 import is.clipperz.backend.apis.{ blobsApi, loginApi, logoutApi, staticApi, usersApi }
-import is.clipperz.backend.middleware.hashcash
+import is.clipperz.backend.middleware.{hashcash, sessionChecks}
 import is.clipperz.backend.services.{
   BlobArchive,
   PRNG,
@@ -33,7 +33,7 @@ object Main extends zio.ZIOAppDefault:
   val server =
     Server.port(PORT) ++
     Server.paranoidLeakDetection ++
-    Server.app(clipperzBackend @@ hashcash)
+    Server.app(clipperzBackend @@ (sessionChecks ++ hashcash))
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
     val nThreads: Int = args.headOption.flatMap(x => Try(x.toInt).toOption).getOrElse(0)

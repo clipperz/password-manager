@@ -4,6 +4,7 @@ import scala.collection.immutable.HashMap
 import zio.{ ZIO, Layer, ZLayer, Tag, Task }
 import zio.internal.stacktracer.Tracer
 import zhttp.http.Request
+import is.clipperz.backed.exceptions.BadRequestException
 
 type SessionKey = String
 type SessionContent = Map[String, String]
@@ -13,6 +14,8 @@ case class Session (val key: SessionKey, val content: SessionContent):
     Session(key, content + contentTuple)
   def apply(contentKey: String): Option[String] =
     content.get(contentKey)
+  def isEmpty: Boolean =
+    content.isEmpty
 
 trait SessionManager:
   def getSession(key: SessionKey): Task[Session]
@@ -21,10 +24,10 @@ trait SessionManager:
     request.headers.headerValue(SessionManager.sessionKeyHeaderName) match
       case Some(sessionKey) => this.getSession(sessionKey).flatMap(session =>
         session("c") match
-          case Some(session_c) => if (session_c == c) ZIO.succeed(()) else ZIO.fail(new Exception("c in request path differs from c in session"))
-          case None => ZIO.fail(new Exception("session does not contain c"))
+          case Some(session_c) => if (session_c == c) ZIO.succeed(()) else ZIO.fail(new BadRequestException("c in request path differs from c in session"))
+          case None => ZIO.fail(new BadRequestException("session does not contain c"))
       )
-      case None => ZIO.fail(new Exception("session key not found in header"))
+      case None => ZIO.fail(new BadRequestException("session key not found in header"))
   def deleteSession(key: SessionKey): Task[Unit]
       
 object SessionManager:

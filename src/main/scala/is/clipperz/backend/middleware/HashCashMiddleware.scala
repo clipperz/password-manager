@@ -6,7 +6,7 @@ import zhttp.http.{ Headers, Http, Middleware, Request, Response, Status }
 import zhttp.http.* //TODO: fix How do you import `!!` and `/`?
 import zhttp.http.middleware.{ HttpMiddleware }
 import is.clipperz.backend.data.HexString
-import is.clipperz.backend.functions.{ fromString }
+import is.clipperz.backend.functions.{ fromString, extractPath }
 import is.clipperz.backend.services.{
   ChallengeType,
   SessionManager,
@@ -16,11 +16,6 @@ import is.clipperz.backend.services.{
 import is.clipperz.backend.Main.ClipperzHttpApp
 
 type TollMiddleware = HttpMiddleware[TollManager & SessionManager, Throwable]
-
-def extractPath(req: Request): String = 
-    if req.path.leadingSlash 
-      then req.path.dropTrailingSlash.drop(1).take(1).toString 
-      else req.path.dropTrailingSlash.take(1).toString
 
 def verifyTollNecessity(req: Request): Boolean =
   List("users", "login", "blobs").contains(extractPath(req))
