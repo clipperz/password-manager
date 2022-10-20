@@ -14,7 +14,7 @@ import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
-import DataModel.SRP(group1024, bigInt0, hashFuncSHA256, getPrepareX, SRPError(..))
+import DataModel.SRP(group1024, bigInt0, hashFuncSHA256, concatKDF, SRPError(..))
 import Functions.SRP as SRP
 import Effect.Aff (Aff)
 import Test.Spec (describe, it, SpecT)
@@ -28,7 +28,7 @@ srpSpec =
       group: group1024,
       k: (fromMaybe bigInt0 (toBigInt $ hex "7556AA045AEF2CDD07ABAF0F665C3E818913186F")),
       hash: hashFuncSHA256,
-      kdf: getPrepareX hashFuncSHA256
+      kdf: concatKDF
     }
 
     let testGroup1024 = "uses group1024"

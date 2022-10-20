@@ -73,7 +73,7 @@ manageGenericRequest url method body responseFormat = do
     Loading Nothing  -> doRequest currentState
     Loading (Just _) -> do
       -- small delay to prevent js single thread to block in recourive calling and let the time to the computation of the toll receipt inside forkAff to finish
-      ExceptT $ Right <$> (delay $ Milliseconds 1.0) -- TODO: may be changed from budy waiting to waiting for a signal
+      ExceptT $ Right <$> (delay $ Milliseconds 1.0) -- TODO: may be changed from busy waiting to waiting for a signal
       manageGenericRequest url method body responseFormat
 
   where

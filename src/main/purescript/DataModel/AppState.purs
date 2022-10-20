@@ -57,8 +57,8 @@ instance showInvalidStateError :: Show InvalidStateError where
   show (MissingValue s) = "Missing value in state: " <> s
 
 instance prettyShowInvalidStateError :: PrettyShow InvalidStateError where
-  prettyShow (CorruptedState s) = "The application state is corrupted, please restart it."
-  prettyShow (MissingValue s) = "The application state is corrupted, please restart it."
+  prettyShow (CorruptedState _) = "The application state is corrupted, please restart it."
+  prettyShow (MissingValue _) = "The application state is corrupted, please restart it."
 
 data AppError = InvalidStateError InvalidStateError | ProtocolError ProtocolError
 instance showAppError :: Show AppError where

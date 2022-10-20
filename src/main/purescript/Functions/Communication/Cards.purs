@@ -32,7 +32,6 @@ import DataModel.Index (CardReference(..), Index, CardEntry(..), createCardEntry
 import DataModel.SRP (hashFuncSHA256)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Effect.Exception as EX
 import Functions.ArrayBuffer (concatArrayBuffers)
 import Functions.CardsCache (getCardFromCache, addCardToCache)

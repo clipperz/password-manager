@@ -26,13 +26,12 @@ import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (IndexReference)
-import DataModel.SRP (baseConfiguration)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
 import Functions.JSState (modifyAppState, getAppState)
-import Functions.State (getSRPConf)
+import Functions.State (getSRPConf, getSRPConfFromState)
 import Functions.SRP as SRP
     
 -- ----------------------------------------------------------------------------
@@ -43,6 +42,7 @@ sessionKeyHeaderName = "clipperz-UserSession-ID"
 login :: ExceptT AppError Aff IndexReference
 login = do
   currentState <- ExceptT $ liftEffect $ getAppState
+  let srpConf = getSRPConfFromState currentState
   if isJust currentState.sessionKey
     then ExceptT $ Right <$> modifyAppState currentState
     else do
@@ -50,7 +50,7 @@ login = do
       ExceptT $ Right <$> modifyAppState (currentState { sessionKey = Just sessionKey })
   loginStep1Result <- loginStep1
   { m1, kk, m2, encIndexReference: indexReference } <- loginStep2 loginStep1Result
-  check :: Boolean <- ExceptT $ Right <$> SRP.checkM2 baseConfiguration loginStep1Result.aa m1 kk (toArrayBuffer m2)
+  check :: Boolean <- ExceptT $ Right <$> SRP.checkM2 srpConf loginStep1Result.aa m1 kk (toArrayBuffer m2)
   case check of
     true  -> except $ Right indexReference
     false -> except $ Left (ProtocolError $ SRPError "Client M2 doesn't match with server M2")

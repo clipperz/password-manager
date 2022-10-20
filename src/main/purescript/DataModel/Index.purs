@@ -20,7 +20,6 @@ import DataModel.Card (Card(..), CardValues(..))
 import DataModel.SRP (HashFunction)
 import Effect.Aff (Aff)
 import Functions.EncodeDecode (encryptJson)
-import Functions.SRP as SRP
 
 -- --------------------------------------------
 

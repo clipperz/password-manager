@@ -1,30 +1,18 @@
 module DataModel.SRP where
 
-import Bytes (asArrayBuffer)
-import Control.Applicative (pure)
-import Control.Bind (bind, (>>=))
-import Control.Monad.Except.Trans (runExceptT, except)
+import Control.Bind (bind)
 import Crypto.Subtle.Hash (digest, sha256, sha1, HashingFunction)
 import Data.ArrayBuffer.Types (ArrayBuffer)
-import Data.BigInt (BigInt, fromInt, mod, modPow, toNumber, toString)
-import Data.Decimal as Decimal
-import Data.Either (Either(..), note)
-import Data.Eq ((==))
-import Data.EuclideanRing ((/))
+import Data.BigInt (BigInt, fromInt)
 import Data.Function (($))
-import Data.Functor ((<$>))
-import Data.HexString (HexString, fromArrayBuffer, hex, toArrayBuffer, toBigInt, fromBigInt)
+import Data.HexString (hex, toBigInt)
 import Data.List (List(..), (:))
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Ord ((>))
-import Data.Ring ((-), (*), (+))
+import Data.Maybe (fromMaybe)
 import Data.Show (class Show, show)
 import Data.Semigroup ((<>))
-import Data.Tuple (Tuple(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Effect.Fortuna (randomBytes)
-import Functions.ArrayBuffer (concatArrayBuffers, arrayBufferToBigInt, bigIntToArrayBuffer, xor)
+import Functions.ArrayBuffer (concatArrayBuffers)
 
 -- --------------------------------------------
 
@@ -59,9 +47,6 @@ type KDF = HashFunction -> ArrayBuffer -> ArrayBuffer -> Aff ArrayBuffer
 
 concatKDF :: KDF
 concatKDF hashFunc salt password = hashFunc $ salt : password : Nil 
-
-getPrepareX :: HashFunction -> KDF
-getPrepareX hashFunc = \hashFunc salt password -> concatKDF hashFunc salt password
 
 -- --------------------------------------------
 
@@ -119,10 +104,3 @@ k = (fromMaybe bigInt0 (toBigInt $ hex "7556AA045AEF2CDD07ABAF0F665C3E818913186F
 -- --------------------------------------------
 
 type SRPConf = { group :: SRPGroup, k :: BigInt, hash :: HashFunction, kdf :: KDF }
-
-baseConfiguration :: SRPConf
-baseConfiguration = { group: group1024
-                    , k: (fromMaybe bigInt0 (toBigInt $ hex "7556AA045AEF2CDD07ABAF0F665C3E818913186F"))
-                    , hash: hashFuncSHA256
-                    , kdf: getPrepareX hashFuncSHA256
-                    }
