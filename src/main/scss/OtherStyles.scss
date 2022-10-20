@@ -36,6 +36,9 @@ li.archived {
 	height: 100%;
 	background-color: rgba(109, 109, 109, 0.682);
 	z-index: 8;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .loading {

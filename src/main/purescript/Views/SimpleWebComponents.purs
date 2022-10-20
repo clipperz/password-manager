@@ -129,7 +129,7 @@ disableOverlay :: forall a. Widget HTML a
 disableOverlay = div [(Props.className "disableOverlay")] []
 
 confirmationWidget :: String -> Widget HTML Boolean
-confirmationWidget message = div [] [
+confirmationWidget message = div [(Props.className "disableOverlay")] [
   text message
 , simpleButton "Yes" false true
 , simpleButton "No" false false
