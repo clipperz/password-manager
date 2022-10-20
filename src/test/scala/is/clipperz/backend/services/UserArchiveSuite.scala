@@ -24,7 +24,9 @@ object UserSpec extends ZIOSpecDefault:
     ((UserArchive.fs(userBasePath, 2) ++ PRNG.live) >>> SrpManager.v6a()) ++
     (PRNG.live >>> TollManager.live)
 
-  def preparePut (c: HexString)=     
+  val sessionKey = "sessionKey"
+
+  def preparePost (c: HexString)=     
     val testUser = UserCard(c, HexString("s"), HexString("v"), "srpVersion_test", "masterKeyEncodingVersion_test", HexString("masterKeyContent_test"))
     val testRequest = SignupData(testUser, 
                                  HexString("af22025a81131eca3c315f2ef038ab2234a54730910a48530ce3f8d71e0ed718"), 
@@ -32,8 +34,8 @@ object UserSpec extends ZIOSpecDefault:
                                  Array[(HexString, HexString)]())
     Request(
       url = URL(!! / "users" / c.toString),
-      method = Method.PUT,
-      headers = Headers.empty,
+      method = Method.POST,
+      headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
       data = HttpData.fromString(testRequest.toJson, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
     )
@@ -42,7 +44,33 @@ object UserSpec extends ZIOSpecDefault:
     Request(
       url = URL(!! / "users" / c.toString),
       method = Method.GET,
-      headers = Headers.empty,
+      headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
+      version = Version.Http_1_1,
+    )
+
+  def preparePut (card: UserCard)=     
+    val testRequest = SignupData(card, 
+                                 HexString("af22025a81131eca3c315f2ef038ab2234a54730910a48530ce3f8d71e0ed718"), 
+                                 HexString("34f233155174be0c7cde653552919d4a6b37483830550c5542c6d3e626fb66b5514e93f4343997666c3638f52738e9"),
+                                 Array[(HexString, HexString)]())
+    Request(
+      url = URL(!! / "users" / card.c.toString),
+      method = Method.PUT,
+      headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
+      data = HttpData.fromString(testRequest.toJson, StandardCharsets.UTF_8.nn),
+      version = Version.Http_1_1,
+    )
+
+  def preparePostWithCard (card: UserCard)=     
+    val testRequest = SignupData(card, 
+                                 HexString("af22025a81131eca3c315f2ef038ab2234a54730910a48530ce3f8d71e0ed718"), 
+                                 HexString("34f233155174be0c7cde653552919d4a6b37483830550c5542c6d3e626fb66b5514e93f4343997666c3638f52738e9"),
+                                 Array[(HexString, HexString)]())
+    Request(
+      url = URL(!! / "users" / card.c.toString),
+      method = Method.POST,
+      headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
+      data = HttpData.fromString(testRequest.toJson, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
     )
 
@@ -51,22 +79,22 @@ object UserSpec extends ZIOSpecDefault:
       for {
         prng <- ZIO.service[PRNG]
         c <- prng.nextBytes(64).map(bytesToHex(_))
-        statusCode <- app(preparePut(c)).map(response => response.status.code)
+        statusCode <- app(preparePost(c)).map(response => response.status.code)
       } yield assertTrue(statusCode == 200)
     } +
     test("PUT -> hash response") {
       for {
         prng <- ZIO.service[PRNG]
         c <- prng.nextBytes(64).map(bytesToHex(_))
-        body <- app(preparePut(c)).flatMap(response => response.bodyAsString)
+        body <- app(preparePost(c)).flatMap(response => response.bodyAsString)
       } yield assertTrue(HexString(body) == c)
     } +
     test("UserArchive doesn't overwrite old users when creating a new user") {
       for {
         prng <- ZIO.service[PRNG]
         c <- prng.nextBytes(64).map(bytesToHex(_))
-        _ <- app(preparePut(c))
-        statusCode <- app(preparePut(c)).map(response => response.status.code)
+        _ <- app(preparePost(c))
+        statusCode <- app(preparePost(c)).map(response => response.status.code)
       } yield assertTrue(statusCode == 409)
     } +
     test("UserArchive overwrites user cards when requested") {
@@ -74,10 +102,13 @@ object UserSpec extends ZIOSpecDefault:
       for {
         prng <- ZIO.service[PRNG]
         card <- prng.nextBytes(64).map(bytesToHex(_)).map(UserCard(_, HexString("s"), HexString("v"), "srpVersion_test", "masterKeyEncodingVersion_test", HexString("masterKeyContent_test")))
-        userArchive <- ZIO.service[UserArchive]
-        _ <- userArchive.saveUser(card, false)
-        c <- userArchive.saveUser(card, true)
-      } yield assertTrue(c == card.c) 
+        _ <- app(preparePostWithCard(card))
+        firstSavedCardStr <- app(prepareGet(card.c)).flatMap(_.bodyAsString)
+        newCard <- ZIO.succeed(UserCard(card.c, HexString("st"), HexString("v"), "srpVersion_test", "masterKeyEncodingVersion_test", HexString("masterKeyContent_test")))
+        _ <- app(preparePut(newCard))
+        savedCard <- app(prepareGet(card.c))
+        savedCardStr <- savedCard.bodyAsString
+      } yield assertTrue(savedCardStr == firstSavedCardStr) 
     }
 
   ).provideCustomLayerShared(environment)

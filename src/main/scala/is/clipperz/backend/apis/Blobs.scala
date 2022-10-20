@@ -58,7 +58,7 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
         )
       )
       .catchSome {
-        case ex : ResourceNotFoundException => { println(ex); ZIO.succeed(Response(status = Status.NotFound)) }
+        case ex : ResourceNotFoundException => ZIO.succeed(Response(status = Status.NotFound))
         case ex : NonWritableArchiveException => { println(ex); ZIO.succeed(Response(status = Status.InternalServerError)) }
         case ex : FailedConversionException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
       }
