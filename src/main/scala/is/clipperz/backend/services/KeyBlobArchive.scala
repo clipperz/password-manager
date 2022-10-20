@@ -20,7 +20,7 @@ object KeyBlobArchive:
   case class FileSystemKeyBlobArchive(basePath: Path, levels: Int) extends KeyBlobArchive:
     override def getBlob(key: Key): Task[ZStream[Any, Throwable, Byte]] =
       getBlobPath(key, false)
-        .map(path => if (Files.exists(path)) then 
+        .map(path => if (Files.exists(path)) then
             ZIO.succeed(ZStream.fromPath(path))
           else 
             ZIO.fail(new ResourceNotFoundException("Blob not found")))

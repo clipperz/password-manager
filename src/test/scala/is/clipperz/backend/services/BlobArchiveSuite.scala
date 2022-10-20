@@ -10,7 +10,7 @@ import scala.language.postfixOps
 import zio.{ Chunk, ZIO }
 import zio.stream.{ ZStream, ZSink }
 import zio.test.Assertion.{ nothing }
-import zio.test.{ ZIOSpecDefault, assertTrue, assert }
+import zio.test.{ ZIOSpecDefault, assertTrue, assert, TestAspect }
 import zio.json.EncoderOps
 import zhttp.http.{ Version, Headers, Method, URL, Request, HttpData }
 import zhttp.http.*
@@ -18,6 +18,7 @@ import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.{ bytesToHex }
 import is.clipperz.backend.functions.crypto.HashFunction
+import java.nio.file.Path
 
 object BlobSpec extends ZIOSpecDefault:
   val app = Main.clipperzBackend
@@ -64,21 +65,24 @@ object BlobSpec extends ZIOSpecDefault:
   )
 
   def spec = suite("http - blob")(
-    test("POST -> status") {
+    test("DELETE -> status") {
       for {
-        statusCode <- app(post).map(response => response.status.code)
-      } yield assertTrue(statusCode == 200)
+        statusCodeDelete <- app(delete).map(response => response.status.code)
+      } yield assertTrue(statusCodeDelete == 404)
     } +
-    test("POST -> hash response") {
+    test("GET -> status") {
       for {
-        body <- app(post).flatMap(response => response.bodyAsString)
-      } yield assertTrue(body == "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63")
+        statusCode <- app(get).map(response => response.status.code)
+      } yield assertTrue(statusCode == 404)
     } +
     test("POST / GET") {
       for {
-        hash <- app(post).flatMap(_ =>
+        hash <- app(post).flatMap(h =>
           app(get).flatMap(response =>
-            HashFunction.hashSHA256(response.bodyAsStream).map(bytesToHex)
+            // HashFunction.hashSHA256(response.bodyAsStream).map(bytesToHex)
+            response.bodyAsStream
+                    .run(ZSink.digest(MessageDigest.getInstance("SHA-256").nn))
+                    .map((chunk: Chunk[Byte]) => HexString.bytesToHex(chunk.toArray))
           )
         )
       } yield assertTrue(hash == HexString("4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"))
@@ -90,10 +94,28 @@ object BlobSpec extends ZIOSpecDefault:
         statusCodeGet <- app(get).map(response => response.status.code)
       } yield assertTrue(statusCodePost == 200, statusCodeDelete == 200, statusCodeGet == 404)
     } +
-    test("DELETE -> status") {
+    test("POST -> status") {
       for {
-        statusCodeDelete <- app(delete).map(response => response.status.code)
-      } yield assertTrue(statusCodeDelete == 404)
-    }
+        statusCode <- app(post).map(response => response.status.code)
+      } yield assertTrue(statusCode == 200)
+    } +
+    test("POST -> hash response") {
+      for {
+        body <- app(post).flatMap(response => response.bodyAsString)
+      } yield assertTrue(body == "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63")
+    } +
+    test("POST / DELETE") {
+      for {
+        statusCode <- app(post).flatMap(_ => app(get).map(response => response.status.code))
+      } yield assertTrue(statusCode == 200)
+    } 
 
-  ).provideCustomLayerShared(environment)
+  ).provideCustomLayerShared(environment) @@ 
+    TestAspect.sequential @@ 
+    TestAspect.before(ZIO.succeed(deleteAllFiles(blobBasePath.toFile().nn)))
+
+  def deleteAllFiles(file: File): Unit =
+    if file.isDirectory() then
+      file.listFiles.nn.map(_.nn).foreach(deleteAllFiles(_))
+    else
+      Files.deleteIfExists(file.toPath())
