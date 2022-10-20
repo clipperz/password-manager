@@ -73,15 +73,15 @@ object BlobSpec extends ZIOSpecDefault:
       for {
         body <- app(post).flatMap(response => response.bodyAsString)
       } yield assertTrue(body == "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63")
-    // } +
-    // test("POST / GET") {
-    //   for {
-    //     hash <- app(post).flatMap(_ =>
-    //       app(get).flatMap(response =>
-    //         HashFunction.hashSHA256(response.bodyAsStream).map(bytesToHex)
-    //       )
-    //     )
-    //   } yield assertTrue(hash == HexString("4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"))
+    } +
+    test("POST / GET") {
+      for {
+        hash <- app(post).flatMap(_ =>
+          app(get).flatMap(response =>
+            HashFunction.hashSHA256(response.bodyAsStream).map(bytesToHex)
+          )
+        )
+      } yield assertTrue(hash == HexString("4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"))
     } +
     test("POST / DELETE / GET") {
       for {
