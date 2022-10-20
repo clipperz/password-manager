@@ -41,7 +41,7 @@ instance showCardView :: Show CardView where
   show (CardForm c) = "CardForm " <> show c
 
 cardsManagerView :: Index -> CardViewState -> Maybe AppError -> Widget HTML CardViewAction
-cardsManagerView i cvs@{ cardView: cv, cardViewState } error = do 
+cardsManagerView i cvs@{ cardView: _, cardViewState } error = do 
   res <- div [Props._id "cardsManager"] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
     div [Props._id "indexView"] [
       ShowCard <$> indexView i

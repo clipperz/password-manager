@@ -27,7 +27,7 @@ getAppState = do
   json <- jsonParser <$> (getJsonState unit)
   let appstate = decodeJson <$> json 
   case appstate of
-    Left s -> pure $ Left $ InvalidStateError $ CorruptedState "The state currently saved is not a valid JSON string"
+    Left _ -> pure $ Left $ InvalidStateError $ CorruptedState "The state currently saved is not a valid JSON string"
     Right (Left s) -> pure $ Left $ InvalidStateError $ CorruptedState $ "The state currently saved is not JSON string representing a state: " <> show s
     Right (Right a) -> pure $ Right a
 

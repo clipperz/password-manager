@@ -17,9 +17,9 @@ import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.Tuple (Tuple(..))
 import DataModel.Card (Card(..), CardValues(..))
+import DataModel.SRP (HashFunction)
 import Effect.Aff (Aff)
 import Functions.EncodeDecode (encryptJson)
-import Functions.SRP as SRP
 
 -- --------------------------------------------
 
@@ -89,7 +89,7 @@ type IndexReference = HexString
 
 -- --------------------------------------------
 
-createCardEntry :: Card -> CryptoKey -> SRP.HashFunction -> Aff (Tuple ArrayBuffer CardEntry)
+createCardEntry :: Card -> CryptoKey -> HashFunction -> Aff (Tuple ArrayBuffer CardEntry)
 createCardEntry card@(Card_v1 { content: (CardValues_v1 content), archived, timestamp: _ }) key hashf = do
   encryptedCard <- encryptJson key card
   hash <- hashf (encryptedCard : Nil)

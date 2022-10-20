@@ -9,7 +9,6 @@ import Data.Unit (Unit)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Functions.SRP as SRP
 import Functions.State (computeInitialState)
 import Functions.JSState (modifyAppState)
 import OperationalWidgets.HomePageWidget as HomePageWidget
@@ -21,6 +20,6 @@ app = do
   initialState <- liftEffect computeInitialState
   liftAff $ modifyAppState initialState
   _ <- do
-    indexReference <- landingPageView SRP.baseConfiguration (LoginView Default emptyForm)
-    void $ HomePageWidget.homePageWidget SRP.baseConfiguration indexReference
+    indexReference <- landingPageView (LoginView Default emptyForm)
+    void $ HomePageWidget.homePageWidget indexReference
   app

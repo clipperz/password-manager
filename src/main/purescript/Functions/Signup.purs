@@ -2,7 +2,7 @@ module Functions.Signup where
 
 import Control.Bind (bind, (>>=))
 import Control.Applicative (pure)
-import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
+import Control.Monad.Except.Trans (ExceptT(..), runExceptT, withExceptT)
 import Crypto.Subtle.Constants.AES (aesCTR, l256)
 import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Generate as KG
@@ -15,15 +15,18 @@ import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
 import Data.List.Types (List(..), (:))
 import Data.Tuple (Tuple(..), snd)
+import Data.PrettyShow (prettyShow)
 import DataModel.Card (Card, defaultCards, UserCard)
 import DataModel.Credentials (Credentials)
 import DataModel.Index (Index(..), CardEntry(..), CardReference(..), createCardEntry)
+import DataModel.SRP (SRPConf, SRPError(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.ArrayBuffer (concatArrayBuffers)
-import Functions.SRP as SRP
 import Functions.EncodeDecode (encryptJson, encryptArrayBuffer)
+import Functions.State (getSRPConf)
+import Functions.SRP as SRP
 
 
 type RegisterUserRequest = {
@@ -33,7 +36,7 @@ type RegisterUserRequest = {
   , cards :: Array (Tuple HexString HexString)
 }
 
-prepareCards :: SRP.SRPConf -> List Card -> Aff (List (Tuple ArrayBuffer CardEntry))
+prepareCards :: SRPConf -> List Card -> Aff (List (Tuple ArrayBuffer CardEntry))
 prepareCards conf cards = extractAff $ convertToCardEntry <$> cards
   where convertToCardEntry :: Card -> Aff (Tuple ArrayBuffer CardEntry)
         convertToCardEntry card = do
@@ -47,8 +50,9 @@ prepareCards conf cards = extractAff $ convertToCardEntry <$> cards
           l <- extractAff list
           pure $ Cons e l
 
-prepareSignupParameters :: SRP.SRPConf -> Credentials -> Aff (Either SRP.SRPError RegisterUserRequest)
-prepareSignupParameters conf form = runExceptT $ do
+prepareSignupParameters :: Credentials -> Aff (Either SRPError RegisterUserRequest)
+prepareSignupParameters form = runExceptT $ do
+  conf <- withExceptT (\e -> SRPError (prettyShow e)) (ExceptT $ liftEffect getSRPConf)
   cAb <- liftAff $ SRP.prepareC conf form.username form.password
   let c = fromArrayBuffer cAb
   pAb <- liftAff $ SRP.prepareP conf form.username form.password

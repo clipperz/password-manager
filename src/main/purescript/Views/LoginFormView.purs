@@ -1,7 +1,7 @@
 module Views.LoginFormView where
 
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind)
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, fireOnce, demand)
 import Concur.React (HTML)
@@ -9,12 +9,8 @@ import Concur.React.DOM (div', text)
 import Data.Eq ((/=))
 import Data.Function (($))
 import Data.HeytingAlgebra ((&&), not)
-import Data.Semigroup ((<>))
-import Data.Show (show)
 import DataModel.Credentials (Credentials)
 import DataModel.WidgetState (WidgetState(..))
-import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 
 import Views.SimpleWebComponents (simpleButton, simpleUserSignal, simplePasswordSignal, loadingDiv)
 
@@ -34,13 +30,13 @@ isFormValid { username, password } = username /= "" && password /= ""
 loginFormView :: WidgetState -> LoginForm -> Widget HTML Credentials
 loginFormView state loginFormData = 
   case state of
-    Default -> div' [form false loginFormData]
-    Loading -> div' [loadingDiv, form true loginFormData]
-    Error err -> div' [errorDiv err, form false loginFormData]
+    Default -> div' [form loginFormData]
+    Loading -> div' [loadingDiv, form loginFormData]
+    Error err -> div' [errorDiv err, form loginFormData]
   
   where
     errorDiv err = div' [text err]
-    form disabled formData = div' [ do
+    form formData = div' [ do
                                       signalResult <- demand $ do
                                         formValues <- loopS formData $ \{username: username, password: password} -> do
                                           username' <- simpleUserSignal username

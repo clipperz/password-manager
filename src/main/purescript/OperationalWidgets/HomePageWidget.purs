@@ -5,7 +5,7 @@ import Concur.React (HTML)
 import Concur.React.DOM (div, text)
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind)
 import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (Either(..))
 import Data.Function (($))
@@ -20,15 +20,14 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Cards (getIndex)
-import Functions.SRP as SRP
 import Views.CardsManagerView (CardView(..))
 import Views.SimpleWebComponents (simpleButton, loadingDiv)
 import OperationalWidgets.CardsManagerWidget (cardsManagerWidget)
 
 data HomePageAction = Loaded (Either AppError Index) | LogoutAction
 
-homePageWidget :: SRP.SRPConf -> IndexReference -> Widget HTML Unit
-homePageWidget conf indexReference = go Loading indexReference
+homePageWidget :: IndexReference -> Widget HTML Unit
+homePageWidget indexReference = go Loading indexReference
   where 
     go widgetState reference = do
       res <- case widgetState of
@@ -44,7 +43,7 @@ homePageWidget conf indexReference = go Loading indexReference
     
     homePage :: Index -> CardView -> Widget HTML HomePageAction
     homePage index cardView = div [] [
-      cardsManagerWidget conf index { cardView: cardView, cardViewState: Default }
+      cardsManagerWidget index { cardView: cardView, cardViewState: Default }
     , simpleButton "Logout" false LogoutAction
     ]
 

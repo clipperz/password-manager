@@ -29,9 +29,9 @@ import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Card (Card, UserCard)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardReference(..), Index, CardEntry(..), createCardEntry, IndexReference)
+import DataModel.SRP (hashFuncSHA256)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Effect.Exception as EX
 import Functions.ArrayBuffer (concatArrayBuffers)
 import Functions.CardsCache (getCardFromCache, addCardToCache)
@@ -39,7 +39,7 @@ import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGener
 import Functions.Communication.Blobs (getDecryptedBlob, postBlob, deleteBlob)
 import Functions.EncodeDecode (encryptArrayBuffer, decryptArrayBuffer, encryptJson)
 import Functions.JSState (getAppState)
-import Functions.SRP as SRP
+import Functions.State (getHashFromState)
 
 getCard :: CardReference -> ExceptT AppError Aff Card
 getCard (CardReference_v1 { reference, key }) = do
@@ -69,7 +69,7 @@ postCard :: Card -> ExceptT AppError Aff CardEntry
 postCard card = do
   key <- ExceptT $ Right <$> (KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey])
   _ <- ExceptT $ Right <$> (fromArrayBuffer <$> exportKey raw key)
-  Tuple encryptedCard cardEntry <- ExceptT $ Right <$> (createCardEntry card key SRP.hashFuncSHA256)
+  Tuple encryptedCard cardEntry <- ExceptT $ Right <$> (createCardEntry card key hashFuncSHA256)
   case cardEntry of
     CardEntry_v1 { title: _
                  , cardReference: (CardReference_v1 { reference, key: _ })
@@ -109,8 +109,8 @@ getIndex encryptedRef = do
     mapCryptoError :: ExceptT EX.Error Aff { before :: HexString, after :: HexString } -> ExceptT AppError Aff { before :: HexString, after :: HexString }
     mapCryptoError = withExceptT (\e -> ProtocolError $ CryptoError $ "Get index: " <> EX.message e)
 
-updateIndex :: SRP.SRPConf -> Index -> ExceptT AppError Aff IndexReference
-updateIndex conf newIndex = do
+updateIndex :: Index -> ExceptT AppError Aff IndexReference
+updateIndex newIndex = do
   currentState <- ExceptT $ liftEffect getAppState
   case currentState of
     { c: Just c, p: Just p, proxy: _, sessionKey: _, toll: _ } -> do
@@ -120,7 +120,7 @@ updateIndex conf newIndex = do
       { before: masterKey, after: oldIndexReference } <- mapCryptoError $ ExceptT $ splitInHalf <$> (decryptEncryptedRef masterPassword userCard.masterKeyContent)
       cryptoKey            :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       indexCardContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson cryptoKey newIndex
-      indexCardContentHash :: ArrayBuffer <- ExceptT $ Right <$> conf.hash (indexCardContent : Nil)
+      indexCardContentHash :: ArrayBuffer <- ExceptT $ Right <$> (getHashFromState $ currentState.hash) (indexCardContent : Nil)
       masterKeyContent     :: ArrayBuffer <- ExceptT $ Right <$> ((liftEffect $ concatArrayBuffers ((toArrayBuffer masterKey) : indexCardContentHash : Nil)) >>= (encryptArrayBuffer masterPassword)) 
       let newUserCard = userCard { masterKeyContent = fromArrayBuffer masterKeyContent }
       -- save new index card

@@ -3,7 +3,6 @@ module Views.IndexView where
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.React.DOM (ol, text)
-import Concur.React.Props as Props
 import Data.Array (fromFoldable)
 import Data.Function (($))
 import Data.Functor ((<$>))

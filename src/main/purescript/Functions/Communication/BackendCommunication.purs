@@ -31,12 +31,12 @@ import Data.Unfoldable (fromMaybe)
 import DataModel.AppState as AS
 import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue, toLoading)
 import DataModel.Proxy (Proxy(..))
+import DataModel.SRP (hashFuncSHA256)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff, forkAff, delay)
 import Effect.Class (liftEffect)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.JSState (getAppState, modifyAppState, updateAppState)
-import Functions.SRP (hashFuncSHA256)
 
 -- ----------------------------------------------------------------------------
 
@@ -73,7 +73,7 @@ manageGenericRequest url method body responseFormat = do
     Loading Nothing  -> doRequest currentState
     Loading (Just _) -> do
       -- small delay to prevent js single thread to block in recourive calling and let the time to the computation of the toll receipt inside forkAff to finish
-      ExceptT $ Right <$> (delay $ Milliseconds 1.0) -- TODO: may be changed from budy waiting to waiting for a signal
+      ExceptT $ Right <$> (delay $ Milliseconds 1.0) -- TODO: may be changed from busy waiting to waiting for a signal
       manageGenericRequest url method body responseFormat
 
   where

@@ -8,9 +8,10 @@ import Data.Functor ((<$>))
 import Data.HexString (HexString, toArrayBuffer, fromArrayBuffer)
 import Data.List (List(..), (:))
 import Data.String.CodeUnits (take)
+import DataModel.SRP (HashFunction)
 import Effect.Aff (Aff)
 import Functions.ArrayBuffer (toBitString)
-import Functions.SRP (HashFunction, randomArrayBuffer)
+import Functions.SRP (randomArrayBuffer)
 
 type Toll = HexString
 type Cost = Int
@@ -20,7 +21,6 @@ type TollChallenge = {toll :: Toll, cost :: Cost}
 
 computeReceipt :: HashFunction -> TollChallenge -> Aff Receipt
 computeReceipt hash challenge = do
-  -- _ <- log "PING"
   receipt <- fromArrayBuffer <$> randomArrayBuffer 32
   verification <- verifyReceipt hash challenge receipt
   case verification of
@@ -32,9 +32,4 @@ verifyReceipt hashFunc {toll, cost} receipt = do
   hash <- hashFunc $ (toArrayBuffer receipt) : Nil
   let tollBits = toBitString $ toArrayBuffer toll
   let hashBits = toBitString hash
-  -- pure $ (take cost tollBits) == (take cost hashBits)
-  if (take cost tollBits) == (take cost hashBits) 
-    then do
-      -- _ <- log $ "cost: " <> show cost <> "; Toll -> " <> tollBits <> "; Receipt -> " <> show receipt <> "; Hash -> " <> hashBits 
-      pure true 
-    else pure false
+  pure $ (take cost tollBits) == (take cost hashBits)
