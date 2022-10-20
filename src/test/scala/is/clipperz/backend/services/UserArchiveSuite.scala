@@ -10,6 +10,8 @@ import zhttp.http.*
 import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.{ bytesToHex }
+import zio.test.TestAspect
+import is.clipperz.backend.functions.FileSystem
 
 object UserSpec extends ZIOSpecDefault:
   val app = Main.clipperzBackend
@@ -111,4 +113,6 @@ object UserSpec extends ZIOSpecDefault:
       } yield assertTrue(savedCardStr == firstSavedCardStr) 
     }
 
-  ).provideCustomLayerShared(environment)
+  ).provideCustomLayerShared(environment) @@ 
+    TestAspect.sequential @@ 
+    TestAspect.before(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))

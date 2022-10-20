@@ -19,6 +19,7 @@ import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.{ bytesToHex }
 import is.clipperz.backend.functions.crypto.HashFunction
 import java.nio.file.Path
+import is.clipperz.backend.functions.FileSystem
 
 object BlobSpec extends ZIOSpecDefault:
   val app = Main.clipperzBackend
@@ -112,10 +113,5 @@ object BlobSpec extends ZIOSpecDefault:
 
   ).provideCustomLayerShared(environment) @@ 
     TestAspect.sequential @@ 
-    TestAspect.before(ZIO.succeed(deleteAllFiles(blobBasePath.toFile().nn)))
+    TestAspect.before(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))
 
-  def deleteAllFiles(file: File): Unit =
-    if file.isDirectory() then
-      file.listFiles.nn.map(_.nn).foreach(deleteAllFiles(_))
-    else
-      Files.deleteIfExists(file.toPath())
