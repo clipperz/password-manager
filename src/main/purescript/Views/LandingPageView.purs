@@ -14,23 +14,22 @@ import Views.LoginFormView (LoginForm)
 import Views.SignupFormView (SignupDataForm, emptyDataForm)
 import OperationalWidgets.LoginWidget (loginWidget)
 import OperationalWidgets.SignupWidget (signupWidgetWithLogin)
-import Functions.SRP as SRP
 
 data LandingPageView = SignupView WidgetState SignupDataForm | LoginView WidgetState LoginForm
 
 data LandingWidgetAction = LandingPageView LandingPageView | Login IndexReference
 
-landingPageView :: SRP.SRPConf -> LandingPageView -> Widget HTML IndexReference
-landingPageView conf view = do
+landingPageView :: LandingPageView -> Widget HTML IndexReference
+landingPageView view = do
   result <- case view of
     LoginView state form ->  div [] [
-                    Login <$> loginWidget conf state form
+                    Login <$> loginWidget state form
                   , simpleButton "Go to sign up" false (LandingPageView (SignupView Default (merge form emptyDataForm)))
                   ]
     SignupView state form -> div [] [
-                    Login <$> signupWidgetWithLogin conf state form -- TODO
+                    Login <$> signupWidgetWithLogin state form -- TODO
                   , simpleButton "Go to log in" false (LandingPageView (LoginView Default { username: form.username, password: form.password }))
                   ]
   case result of
-    LandingPageView v -> landingPageView conf v
+    LandingPageView v -> landingPageView v
     Login index       -> pure index

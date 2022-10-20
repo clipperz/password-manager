@@ -27,10 +27,10 @@ import Functions.JSState (modifyAppState, getAppState)
 import Functions.Signup (prepareSignupParameters)
 import Functions.SRP as SRP
 
-signupUser :: SRP.SRPConf -> Credentials -> ExceptT AppError Aff HexString
-signupUser conf credentials = do
+signupUser :: Credentials -> ExceptT AppError Aff HexString
+signupUser credentials = do
   currentState <- ExceptT $ liftEffect $ getAppState
-  request <- ExceptT $ (lmap (ProtocolError <<< SRPError <<< show)) <$> prepareSignupParameters conf credentials
+  request <- ExceptT $ (lmap (ProtocolError <<< SRPError <<< show)) <$> prepareSignupParameters credentials
   let url = joinWith "/" ["users", show request.user.c]
   let body = (json $ encodeJson request) :: RequestBody
   --- --------------------------- 

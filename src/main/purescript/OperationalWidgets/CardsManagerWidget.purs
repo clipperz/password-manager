@@ -23,13 +23,12 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class.Console (log)
 import Functions.Communication.Cards (updateIndex)
-import Functions.SRP as SRP
 import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState)
 
 data CardsViewResult = CardsViewResult CardViewAction | OpResult Index CardViewState (Maybe AppError)
 
-cardsManagerWidget :: forall a. SRP.SRPConf -> Index -> CardViewState -> Widget HTML a
-cardsManagerWidget conf ind cardViewState = go ind (cardsManagerView ind cardViewState) Nothing Nothing
+cardsManagerWidget :: forall a. Index -> CardViewState -> Widget HTML a
+cardsManagerWidget ind cardViewState = go ind (cardsManagerView ind cardViewState) Nothing Nothing
 
   where
     go :: Index -> (Maybe AppError -> Widget HTML CardViewAction) -> Maybe AppError -> Maybe (Aff CardsViewResult) -> Widget HTML a
@@ -41,13 +40,13 @@ cardsManagerWidget conf ind cardViewState = go ind (cardsManagerView ind cardVie
         CardsViewResult cva -> case cva of 
           UpdateIndex updateData -> do
             _ <- log $ show updateData
-            go index (getUpdateIndexView index updateData) Nothing (Just (getUpdateIndexOp conf index updateData))
+            go index (getUpdateIndexView index updateData) Nothing (Just (getUpdateIndexOp index updateData))
           ShowAddCard -> go index (cardsManagerView index {cardView: (CardForm emptyCard), cardViewState: Default}) Nothing Nothing
           ShowCard ref -> go index (cardsManagerView index {cardView: (CardFromReference ref), cardViewState: Default}) Nothing Nothing
         OpResult i cv e -> go i (cardsManagerView i cv) e Nothing
 
-getUpdateIndexOp :: SRP.SRPConf -> Index -> IndexUpdateData -> Aff CardsViewResult
-getUpdateIndexOp conf index@(Index_v1 list) (IndexUpdateData action _) =
+getUpdateIndexOp :: Index -> IndexUpdateData -> Aff CardsViewResult
+getUpdateIndexOp index@(Index_v1 list) (IndexUpdateData action _) =
   case action of 
     AddReference                        entry -> addEntryToIndex entry 
     CloneReference                      entry -> addEntryToIndex entry
@@ -71,24 +70,24 @@ getUpdateIndexOp conf index@(Index_v1 list) (IndexUpdateData action _) =
 
     manageUpdateIndex :: Index -> CardViewState -> Aff CardsViewResult
     manageUpdateIndex newIndex cardViewState = do
-      updateResult <- liftAff $ runExceptT $ updateIndex conf newIndex
+      updateResult <- liftAff $ runExceptT $ updateIndex newIndex
       case updateResult of
         Right _   -> pure $ OpResult newIndex cardViewState Nothing
         Left  err -> 
           case err of 
-            InvalidStateError (CorruptedState  s) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
-            InvalidStateError (MissingValue    s) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
-            ProtocolError     (RequestError    e) -> manageUpdateIndex newIndex cardViewState -- Retry at infinitum?
+            InvalidStateError (CorruptedState  _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
+            InvalidStateError (MissingValue    _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
+            ProtocolError     (RequestError    _) -> manageUpdateIndex newIndex cardViewState -- Retry at infinitum?
             ProtocolError     (ResponseError   i) -> -- Check values
               case i of
                 404 -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Something is really wrong with the server
                 500 -> manageUpdateIndex newIndex cardViewState -- Retry at infinitum hoping the server gets better?
                 _   -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Well...
-            ProtocolError     (SRPError        s) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Shouldn't happen, restart
-            ProtocolError     (DecodeError     s) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Wrong data has been saved on the server
-            ProtocolError     (CryptoError     s) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Corrupted data on server
-            ProtocolError     (IllegalRequest  s) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- The app is not working well
-            ProtocolError     (IllegalResponse s) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- The server did something wrong, but the operation should have worked
+            ProtocolError     (SRPError        _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Shouldn't happen, restart
+            ProtocolError     (DecodeError     _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Wrong data has been saved on the server
+            ProtocolError     (CryptoError     _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Corrupted data on server
+            ProtocolError     (IllegalRequest  _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- The app is not working well
+            ProtocolError     (IllegalResponse _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- The server did something wrong, but the operation should have worked
 
 getUpdateIndexView :: Index -> IndexUpdateData -> (Maybe AppError -> Widget HTML CardViewAction)
 getUpdateIndexView index (IndexUpdateData action card) = 

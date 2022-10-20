@@ -8,9 +8,10 @@ import Data.Functor ((<$>))
 import Data.HexString (HexString, toArrayBuffer, fromArrayBuffer)
 import Data.List (List(..), (:))
 import Data.String.CodeUnits (take)
+import DataModel.SRP (HashFunction)
 import Effect.Aff (Aff)
 import Functions.ArrayBuffer (toBitString)
-import Functions.SRP (HashFunction, randomArrayBuffer)
+import Functions.SRP (randomArrayBuffer)
 
 type Toll = HexString
 type Cost = Int

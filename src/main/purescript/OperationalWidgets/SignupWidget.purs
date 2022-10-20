@@ -20,7 +20,6 @@ import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Signup (signupUser)
 import Functions.Login (doLogin)
-import Functions.SRP as SRP
 import Record (merge)
 import OperationalWidgets.LoginWidget (LoginWidgetResults(..))
 import Views.SignupFormView (signupFormView, SignupDataForm)
@@ -33,28 +32,28 @@ instance showSignupWidgetResults :: Show SignupWidgetResults where
 
 --------------------------------
 
-signupWidgetWithLogin :: SRP.SRPConf -> WidgetState -> SignupDataForm -> Widget HTML IndexReference
-signupWidgetWithLogin conf state form = do
-  signupResult <- signupWidget conf state form
-  let login = liftAff $ (either LoginFailed LoginDone <$> (runExceptT $ doLogin conf signupResult)) 
+signupWidgetWithLogin :: WidgetState -> SignupDataForm -> Widget HTML IndexReference
+signupWidgetWithLogin state form = do
+  signupResult <- signupWidget state form
+  let login = liftAff $ (either LoginFailed LoginDone <$> (runExceptT $ doLogin signupResult)) 
   loginResult <- (Credentials <$> signupFormView Loading (merge signupResult form)) <|> login
   case loginResult of
-    Credentials credentials -> signupWidgetWithLogin conf Default (merge credentials form)
+    Credentials credentials -> signupWidgetWithLogin Default (merge credentials form)
     LoginDone index -> pure index
-    LoginFailed err -> signupWidgetWithLogin conf (Error ("Automatic login failed: " <> err)) (merge signupResult form) -- TODO: show login form?
+    LoginFailed err -> signupWidgetWithLogin (Error ("Automatic login failed: " <> err)) (merge signupResult form) -- TODO: show login form?
 
-signupWidget :: SRP.SRPConf -> WidgetState -> SignupDataForm -> Widget HTML Credentials
-signupWidget conf widgetState signupFormData = do
+signupWidget :: WidgetState -> SignupDataForm -> Widget HTML Credentials
+signupWidget widgetState signupFormData = do
   res <- case widgetState of
     Default -> SignupCredentials <$> signupFormView Default signupFormData
     Loading -> do
       let creds = { username: signupFormData.username, password: signupFormData.password }
       -- let res = runExceptT $ signupUser conf creds
-      let signup = liftAff $ runExceptT $ signupUser conf creds 
+      let signup = liftAff $ runExceptT $ signupUser creds 
       (SignupCredentials <$> signupFormView Loading signupFormData) <|> (either (SignupFailed <<< show) (\r -> SignupDone creds r) <$> signup)
     Error err -> SignupCredentials <$> div [] [text err, signupFormView (Error err) signupFormData]
   case res of
-    SignupCredentials credentials -> signupWidget conf Loading (merge credentials signupFormData)
+    SignupCredentials credentials -> signupWidget Loading (merge credentials signupFormData)
     SignupDone credentials _ -> pure credentials
-    SignupFailed err -> signupWidget conf (Error err) signupFormData
+    SignupFailed err -> signupWidget (Error err) signupFormData
 

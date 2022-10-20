@@ -26,11 +26,13 @@ import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (IndexReference)
+import DataModel.SRP (baseConfiguration)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
 import Functions.JSState (modifyAppState, getAppState)
+import Functions.State (getSRPConf)
 import Functions.SRP as SRP
     
 -- ----------------------------------------------------------------------------
@@ -38,17 +40,17 @@ import Functions.SRP as SRP
 sessionKeyHeaderName :: String
 sessionKeyHeaderName = "clipperz-UserSession-ID"
 
-login :: SRP.SRPConf -> ExceptT AppError Aff IndexReference
-login srpConf = do
+login :: ExceptT AppError Aff IndexReference
+login = do
   currentState <- ExceptT $ liftEffect $ getAppState
   if isJust currentState.sessionKey
     then ExceptT $ Right <$> modifyAppState currentState
     else do
       sessionKey :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32
       ExceptT $ Right <$> modifyAppState (currentState { sessionKey = Just sessionKey })
-  loginStep1Result <- loginStep1 srpConf
-  { m1, kk, m2, encIndexReference: indexReference } <- loginStep2 srpConf loginStep1Result
-  check :: Boolean <- ExceptT $ Right <$> SRP.checkM2 SRP.baseConfiguration loginStep1Result.aa m1 kk (toArrayBuffer m2)
+  loginStep1Result <- loginStep1
+  { m1, kk, m2, encIndexReference: indexReference } <- loginStep2 loginStep1Result
+  check :: Boolean <- ExceptT $ Right <$> SRP.checkM2 baseConfiguration loginStep1Result.aa m1 kk (toArrayBuffer m2)
   case check of
     true  -> except $ Right indexReference
     false -> except $ Left (ProtocolError $ SRPError "Client M2 doesn't match with server M2")
@@ -65,8 +67,9 @@ type LoginStep1Result = { aa :: BigInt
                         , bb :: BigInt
                         }
 
-loginStep1 :: SRP.SRPConf -> ExceptT AppError Aff LoginStep1Result
-loginStep1 srpConf = do
+loginStep1 :: ExceptT AppError Aff LoginStep1Result
+loginStep1 = do
+  srpConf <- ExceptT $ liftEffect getSRPConf
   { proxy: _, c: mc, p: _, sessionKey: _, toll: _ } <- ExceptT $ liftEffect $ getAppState
   c <- except $ note (InvalidStateError (MissingValue "Missing c")) mc
   (Tuple a aa) <- withExceptT (\err -> ProtocolError $ SRPError $ show err) (ExceptT $ SRP.prepareA srpConf)
@@ -99,12 +102,13 @@ type LoginStep2Result = { m1 :: ArrayBuffer
                         , encIndexReference :: HexString
                         }
 
-loginStep2 :: SRP.SRPConf -> LogintStep2Data -> ExceptT AppError Aff LoginStep2Result
-loginStep2 srpConf { aa, bb, a, s } = do
+loginStep2 :: LogintStep2Data -> ExceptT AppError Aff LoginStep2Result
+loginStep2 { aa, bb, a, s } = do
+  srpConf <- ExceptT $ liftEffect getSRPConf
   { proxy: _, c: mc, p: mp, sessionKey: _, toll: _ } <- ExceptT $ liftEffect $ getAppState
   c <- except $ note (InvalidStateError (MissingValue "Missing c")) mc
   p <- except $ note (InvalidStateError (MissingValue "Missing p")) mp
-  x  :: BigInt      <- ExceptT $ (\ab -> note (ProtocolError $ SRPError "Cannot convert x from ArrayBuffer to BigInt") (arrayBufferToBigInt ab)) <$> (srpConf.kdf (toArrayBuffer s) (toArrayBuffer p))
+  x  :: BigInt      <- ExceptT $ (\ab -> note (ProtocolError $ SRPError "Cannot convert x from ArrayBuffer to BigInt") (arrayBufferToBigInt ab)) <$> (srpConf.kdf srpConf.hash (toArrayBuffer s) (toArrayBuffer p))
   ss :: BigInt      <- withExceptT (\err -> ProtocolError $ SRPError $ show err) (ExceptT $ SRP.prepareSClient srpConf aa bb x a)
   kk :: ArrayBuffer <- ExceptT $ Right <$> (SRP.prepareK srpConf ss)
   m1 :: ArrayBuffer <- ExceptT $ Right <$> (SRP.prepareM1 srpConf c s aa bb kk)

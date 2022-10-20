@@ -1,5 +1,11 @@
 module DataModel.AppState where
 
+import Data.Argonaut.Decode.Class (class DecodeJson)
+import Data.Argonaut.Decode.Generic (genericDecodeJson)
+import Data.Argonaut.Encode.Class (class EncodeJson)
+import Data.Argonaut.Encode.Generic (genericEncodeJson)
+import Data.BigInt (BigInt)
+import Data.Generic.Rep (class Generic)
 import Data.Map.Internal (Map)
 import Data.Maybe (Maybe)
 import Data.HexString (HexString)
@@ -10,6 +16,7 @@ import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
 import DataModel.Proxy (Proxy)
 import DataModel.Communication.ProtocolError (ProtocolError)
+import DataModel.SRP(SRPGroup, group1024, k)
 
 type AppState =
   { proxy :: Proxy
@@ -17,9 +24,32 @@ type AppState =
   , toll :: AsyncValue HexString
   , c :: Maybe HexString
   , p :: Maybe HexString
-  -- , baseConfiguration :: SRPConf --TODO
+  , srpInfo :: SRPInfo
+  , hash :: HashState
   , cardsCache :: Map HexString Card
   }
+
+type SRPInfo = { group :: SRPGroup, k :: BigInt, kdf :: KDFState }
+baseSRPInfo :: SRPInfo
+baseSRPInfo = {
+  group: group1024
+, k: k
+, kdf: ConcatKDF
+}
+
+data KDFState = ConcatKDF
+derive instance genericKDFState :: Generic KDFState _
+instance encodeJsonKDFState :: EncodeJson KDFState where
+  encodeJson a = genericEncodeJson a
+instance decodeJsonKDFState :: DecodeJson KDFState where
+  decodeJson a = genericDecodeJson a
+
+data HashState = SHA256 | SHA1
+derive instance genericHashState :: Generic HashState _
+instance encodeJsonhashState :: EncodeJson HashState where
+  encodeJson a = genericEncodeJson a
+instance decodeJsonHashState :: DecodeJson HashState where
+  decodeJson a = genericDecodeJson a
 
 data InvalidStateError = CorruptedState String | MissingValue String
 instance showInvalidStateError :: Show InvalidStateError where

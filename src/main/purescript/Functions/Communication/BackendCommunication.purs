@@ -31,12 +31,12 @@ import Data.Unfoldable (fromMaybe)
 import DataModel.AppState as AS
 import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue, toLoading)
 import DataModel.Proxy (Proxy(..))
+import DataModel.SRP (hashFuncSHA256)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff, forkAff, delay)
 import Effect.Class (liftEffect)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.JSState (getAppState, modifyAppState, updateAppState)
-import Functions.SRP (hashFuncSHA256)
 
 -- ----------------------------------------------------------------------------
 
