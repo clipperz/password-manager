@@ -48,6 +48,14 @@ object BlobSpec extends ZIOSpecDefault:
     version = Version.Http_1_1,
   )
 
+  val delete = Request(
+    url = URL(!! / "blobs" / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
+    method = Method.DELETE,
+    headers = Headers.empty,
+    data = HttpData.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
+    version = Version.Http_1_1,
+  )
+
   val get = Request(
     url = URL(!! / "blobs" / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
     method = Method.GET,
@@ -65,18 +73,27 @@ object BlobSpec extends ZIOSpecDefault:
       for {
         body <- app(post).flatMap(response => response.bodyAsString)
       } yield assertTrue(body == "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63")
-    } +
-    test("POST / GET") {
-      for {
-        hash <- app(post).flatMap(_ =>
-          app(get).flatMap(response =>
-            HashFunction.hashSHA256(response.bodyAsStream).map(bytesToHex)
-          )
-        )
-      } yield assertTrue(hash == HexString("4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"))
+    // } +
+    // test("POST / GET") {
+    //   for {
+    //     hash <- app(post).flatMap(_ =>
+    //       app(get).flatMap(response =>
+    //         HashFunction.hashSHA256(response.bodyAsStream).map(bytesToHex)
+    //       )
+    //     )
+    //   } yield assertTrue(hash == HexString("4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"))
     } +
     test("POST / DELETE / GET") {
-      assert("TODO")(nothing)
+      for {
+        statusCodePost <- app(post).map(response => response.status.code)
+        statusCodeDelete <- app(delete).map(response => response.status.code)
+        statusCodeGet <- app(get).map(response => response.status.code)
+      } yield assertTrue(statusCodePost == 200, statusCodeDelete == 200, statusCodeGet == 404)
+    } +
+    test("DELETE -> status") {
+      for {
+        statusCodeDelete <- app(delete).map(response => response.status.code)
+      } yield assertTrue(statusCodeDelete == 404)
     }
 
   ).provideCustomLayerShared(environment)

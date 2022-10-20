@@ -32,11 +32,11 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
 
   case request @ Method.DELETE -> !! / "blobs" / hash =>
     ZIO
-      .service[BlobArchive]
-      .zip(ZIO.succeed(request.bodyAsStream))
-      .flatMap((archive, bytes) =>
-        fromStream[SaveBlobData](bytes)
-        .flatMap(saveData =>
+    .service[BlobArchive]
+    .zip(ZIO.succeed(request.bodyAsStream))
+    .flatMap((archive, bytes) =>
+      fromStream[SaveBlobData](bytes)
+      .flatMap(saveData =>
           archive.deleteBlob(ZStream.fromIterable(saveData.data.toByteArray))
         )
       )
@@ -44,7 +44,7 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
       .catchSome {
         case ex : NonWritableArchiveException => { println(ex); ZIO.succeed(Response(status = Status.InternalServerError)) }
         case ex : FailedConversionException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
-      }
+      }.catchAll(ex => { println(ex); ZIO.succeed(Response(status = Status.InternalServerError))})
 
   case request @ Method.GET -> !! / "blobs" / hash =>
     ZIO
