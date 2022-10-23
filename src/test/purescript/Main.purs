@@ -13,11 +13,13 @@ import Test.SRP (srpSpec)
 import Test.EncodeDecode (encodeDecodeSpec)
 import Test.HexString (hexSpec)
 import Test.HashCash (hashCashSpec)
+import Test.Import (importSpec)
 
 main :: Effect Unit
 main = launchAff_ $ runSpec [consoleReporter] do
-  utilitiesSpec
-  srpSpec
-  encodeDecodeSpec
-  hexSpec
-  hashCashSpec
+  -- utilitiesSpec
+  -- srpSpec
+  -- encodeDecodeSpec
+  -- hexSpec
+  -- hashCashSpec
+  importSpec

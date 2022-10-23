@@ -6,6 +6,7 @@ import Data.Argonaut.Decode.Generic (genericDecodeJson)
 import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
 import Data.BigInt (BigInt)
+import Data.Eq (class Eq)
 import Data.Generic.Rep (class Generic)
 import Data.Map.Internal (Map)
 import Data.Maybe (Maybe)
@@ -57,6 +58,8 @@ instance showInvalidStateError :: Show InvalidStateError where
   show (CorruptedState s) = "Corrupted state: " <> s
   show (MissingValue s) = "Missing value in state: " <> s
 
+derive instance eqInvalidStateError :: Eq InvalidStateError
+
 instance prettyShowInvalidStateError :: PrettyShow InvalidStateError where
   prettyShow (CorruptedState _) = "The application state is corrupted, please restart it."
   prettyShow (MissingValue _) = "The application state is corrupted, please restart it."
@@ -71,3 +74,5 @@ instance prettyShowAppError :: PrettyShow AppError where
   prettyShow (InvalidStateError err) = prettyShow err
   prettyShow (ProtocolError err)     = prettyShow err
   prettyShow (ImportError err)       = "Your imported values are not in the right format!"
+
+derive instance eqAppError :: Eq AppError

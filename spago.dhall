@@ -25,6 +25,7 @@
   , "encoding"
   , "exceptions"
   , "foldable-traversable"
+  , "foreign-object"
   , "fortuna"
   , "functions"
   , "http-methods"

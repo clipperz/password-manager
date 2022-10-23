@@ -1,6 +1,7 @@
 module DataModel.Communication.ProtocolError where
 
 import Affjax.Web as AXW
+import Data.Eq (class Eq, eq)
 import Data.PrettyShow (class PrettyShow)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
@@ -29,3 +30,6 @@ instance prettyShowProtocolError :: PrettyShow ProtocolError where
   prettyShow (CryptoError _)      = "Your encryption/decryption operation didn't work, please contact us!"
   prettyShow (IllegalRequest _)   = "The application is not working correctly, please restart it."
   prettyShow (IllegalResponse _)  = "The server is not working correctly, please retry in a bit."
+
+instance eqProtocolError :: Eq ProtocolError where
+  eq e1 e2 = eq (show e1) (show e2)

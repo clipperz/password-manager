@@ -3,6 +3,7 @@ module DataModel.Card where
 import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
 import Data.Bifunctor (rmap)
+import Data.Eq (class Eq, eq)
 import Data.HexString (HexString)
 import Data.List.Types (List(..), (:))
 import Data.Semigroup ((<>))
@@ -25,6 +26,9 @@ data CardField =
     , value  :: String
     , locked :: Boolean
     }
+  
+instance eqCardField :: Eq CardField where
+  eq (CardField_v1 r1) (CardField_v1 r2) = eq r1 r2
 
 instance showCardField :: Show CardField where
   show (CardField_v1 { name, value, locked }) = "[" <> show locked <> "] " <> name <> ": " <> value
@@ -46,6 +50,9 @@ data CardValues =
     , notes  :: String
     }
 
+instance eqCardValues :: Eq CardValues where
+  eq (CardValues_v1 r1) (CardValues_v1 r2) = eq r1 r2
+
 instance showCardValues :: Show CardValues where
   show (CardValues_v1 record) = show record
 
@@ -63,6 +70,9 @@ data Card =
     , archived :: Boolean
     , timestamp :: Int
     }
+
+instance eqCard :: Eq Card where
+  eq (Card_v1 r1) (Card_v1 r2) = eq r1 r2
 
 instance showCard :: Show Card where
   show (Card_v1 record) = show record
