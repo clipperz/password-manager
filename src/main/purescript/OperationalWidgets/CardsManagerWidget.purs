@@ -88,6 +88,7 @@ getUpdateIndexOp index@(Index_v1 list) (IndexUpdateData action _) =
             ProtocolError     (CryptoError     _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Corrupted data on server
             ProtocolError     (IllegalRequest  _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- The app is not working well
             ProtocolError     (IllegalResponse _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- The server did something wrong, but the operation should have worked
+            ImportError        _                  -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
 
 getUpdateIndexView :: Index -> IndexUpdateData -> (Maybe AppError -> Widget HTML CardViewAction)
 getUpdateIndexView index (IndexUpdateData action card) = 

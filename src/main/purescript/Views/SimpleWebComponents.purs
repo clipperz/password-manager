@@ -1,9 +1,9 @@
 module Views.SimpleWebComponents where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, loopW, loopS, display)
+import Concur.Core.FRP (Signal, loopW, loopS, display, demand, fireOnce)
 import Concur.React (HTML)
-import Concur.React.DOM (text, input, label, div', div, button, li)
+import Concur.React.DOM (text, textarea, input, label, div', div, button, li)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
@@ -20,6 +20,9 @@ import Data.Show (show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Functions.Password (PasswordStrengthFunction, PasswordStrength)
+
+simpleTextAreaWidget :: String -> Widget HTML String
+simpleTextAreaWidget s = Props.unsafeTargetValue <$> (textarea [Props.value s, Props.onChange] [])
 
 simpleInputWidget :: String -> Widget HTML String -> Boolean -> String -> String -> Widget HTML String
 simpleInputWidget id lbl disable value t = do
@@ -63,6 +66,14 @@ simpleCheckboxWidget id lbl v = do
 
 simpleButton :: forall a. String -> Boolean -> a -> Widget HTML a
 simpleButton label disable value = button [value <$ Props.onClick, Props.disabled disable] [text label]
+
+simpleTextAreaSignal :: String -> Signal HTML String
+simpleTextAreaSignal s = loopW s (simpleTextAreaWidget)
+
+textAreaWidget :: String -> String -> Widget HTML String
+textAreaWidget initialValue label = demand $ do
+  value <- simpleTextAreaSignal initialValue
+  fireOnce (simpleButton label false value)
 
 simpleUserSignal :: String -> Signal HTML String
 simpleUserSignal u = loopW u (simpleTextInputWidget "username" (text "Username"))

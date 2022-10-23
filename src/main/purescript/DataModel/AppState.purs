@@ -1,6 +1,7 @@
 module DataModel.AppState where
 
 import Data.Argonaut.Decode.Class (class DecodeJson)
+import Data.Argonaut.Decode.Error (JsonDecodeError)
 import Data.Argonaut.Decode.Generic (genericDecodeJson)
 import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
@@ -60,11 +61,13 @@ instance prettyShowInvalidStateError :: PrettyShow InvalidStateError where
   prettyShow (CorruptedState _) = "The application state is corrupted, please restart it."
   prettyShow (MissingValue _) = "The application state is corrupted, please restart it."
 
-data AppError = InvalidStateError InvalidStateError | ProtocolError ProtocolError
+data AppError = InvalidStateError InvalidStateError | ProtocolError ProtocolError | ImportError String
 instance showAppError :: Show AppError where
   show (InvalidStateError err) = "Invalid state Error: "  <> show err
   show (ProtocolError err)     = "Protocol Error: " <> show err
+  show (ImportError err)       = "Import Error: " <> err
 
 instance prettyShowAppError :: PrettyShow AppError where
   prettyShow (InvalidStateError err) = prettyShow err
   prettyShow (ProtocolError err)     = prettyShow err
+  prettyShow (ImportError err)       = "Your imported values are not in the right format!"
