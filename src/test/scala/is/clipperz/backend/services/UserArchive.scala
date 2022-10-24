@@ -52,9 +52,9 @@ object UserArchiveSpec extends ZIOSpecDefault:
         archive <- ZIO.service[UserArchive]
         fiber <- archive.saveUser(testUser, false).fork
         _ <- TestClock.adjust(Duration.fromMillis(10))
-        _ <- fiber.join
+        res <- fiber.join
         user <- archive.getUser(c)
-      } yield assertTrue(user == Some(testUser))
+      } yield assertTrue(user == Some(testUser), res == c)
     } + 
     test ("saveBlob with no overwrite - fail") {
       for {
@@ -69,9 +69,9 @@ object UserArchiveSpec extends ZIOSpecDefault:
         archive <- ZIO.service[UserArchive]
         fiber <- archive.saveUser(testUser2, true).fork
         _ <- TestClock.adjust(Duration.fromMillis(10))
-        _ <- fiber.join
-        s2 <- archive.getUser(c).map(_.map(_.s))
-      } yield assertTrue(s2 == Some(testUser2.s))
+        res <- fiber.join
+        user <- archive.getUser(c)
+      } yield assertTrue(user == Some(testUser2), res == c)
     } +
     test("getUser - success") {
       for {
