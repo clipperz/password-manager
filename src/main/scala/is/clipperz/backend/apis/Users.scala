@@ -6,7 +6,7 @@ import zio.stream.{ ZStream }
 import zhttp.http.{ Http, Method, Response, Status }
 import zhttp.http.* //TODO: fix How do you import `!!` and `/`?
 import is.clipperz.backend.data.HexString
-import is.clipperz.backed.exceptions.{
+import is.clipperz.backend.exceptions.{
   NonWritableArchiveException, 
   NonReadableArchiveException, 
   FailedConversionException, 

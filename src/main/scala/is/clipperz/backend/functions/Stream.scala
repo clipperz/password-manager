@@ -5,7 +5,7 @@ import zio.stream.{ ZSink, ZStream }
 import java.nio.charset.StandardCharsets
 import zio.json.{ JsonDecoder, DecoderOps }
 
-import is.clipperz.backed.exceptions.{FailedConversionException}
+import is.clipperz.backend.exceptions.{FailedConversionException}
 
 def fromStream[A] (using decoder: JsonDecoder[A])(content: ZStream[Any, Throwable, Byte]): Task[A] =
     content

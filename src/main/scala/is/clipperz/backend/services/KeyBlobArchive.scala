@@ -5,7 +5,13 @@ import java.nio.file.{ Files, Path }
 import zio.{ Task, ZIO }
 import zio.stream.{ ZSink, ZStream }
 
-import is.clipperz.backed.exceptions.{NonWritableArchiveException, NonReadableArchiveException, ResourceNotFoundException}
+import is.clipperz.backend.exceptions.{
+  NonWritableArchiveException, 
+  NonReadableArchiveException, 
+  ResourceNotFoundException, 
+  EmptyContentException
+}
+import zio.Duration
 
 // ============================================================================
 
@@ -17,6 +23,8 @@ trait KeyBlobArchive:
   def deleteBlob(key: Key): Task[Boolean]
 
 object KeyBlobArchive:
+  val WAIT_TIME = 1
+
   case class FileSystemKeyBlobArchive(basePath: Path, levels: Int) extends KeyBlobArchive:
     override def getBlob(key: Key): Task[ZStream[Any, Throwable, Byte]] =
       getBlobPath(key, false)
@@ -31,12 +39,18 @@ object KeyBlobArchive:
         }
 
     override def saveBlob(key: Key, content: ZStream[Any, Throwable, Byte]): Task[Unit] =
-      ZIO.scoped {
-        getBlobPath(key, true)
-          // .get // TODO: (DONE??) this takes time to create the file: needs a way to be sure the ZSink is applied after this has finished
-          .map(path => content.run(ZSink.fromPath(path)).map(_ => ()))
-          .get
-      }.foldZIO(err => ZIO.fail(new NonWritableArchiveException(err.toString())), data => ZIO.succeed(data))
+        ZIO
+          .fromOption(getBlobPath(key, true))
+          .mapError(_ => new NonWritableArchiveException("Could not create blob file"))
+          .flatMap(path => content
+                        .timeoutFail(new EmptyContentException)(Duration.fromMillis(WAIT_TIME))
+                        .run(ZSink.fromPath(path))
+                        .map(_ => ()))
+          .catchSome {
+            case ex : EmptyContentException => ZIO.fail(ex)
+            case ex : NonReadableArchiveException => ZIO.fail(ex)
+            case ex => ZIO.fail(new NonWritableArchiveException(s"${ex}"))
+          }
 
     override def deleteBlob(key: Key): Task[Boolean] =
       ZIO.attempt {

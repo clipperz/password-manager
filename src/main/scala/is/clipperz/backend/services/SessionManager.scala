@@ -4,7 +4,7 @@ import scala.collection.immutable.HashMap
 import zio.{ ZIO, Layer, ZLayer, Tag, Task }
 import zio.internal.stacktracer.Tracer
 import zhttp.http.Request
-import is.clipperz.backed.exceptions.BadRequestException
+import is.clipperz.backend.exceptions.BadRequestException
 
 type SessionKey = String
 type SessionContent = Map[String, String]

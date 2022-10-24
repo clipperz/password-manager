@@ -13,7 +13,7 @@ import is.clipperz.backend.services.{
   SRPStep2Data
 }
 import is.clipperz.backend.Main.ClipperzHttpApp
-import is.clipperz.backed.exceptions.{ BadRequestException, FailedConversionException, ResourceNotFoundException }
+import is.clipperz.backend.exceptions.{ BadRequestException, FailedConversionException, ResourceNotFoundException }
 
 val loginApi: ClipperzHttpApp = Http.collectZIO {
   case request @ Method.POST -> !! / "login" / "step1" / c =>

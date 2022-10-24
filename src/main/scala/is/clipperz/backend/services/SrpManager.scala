@@ -7,7 +7,7 @@ import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.*
 import is.clipperz.backend.functions.Conversions.*
 import is.clipperz.backend.functions.SrpFunctions.{ SrpFunctionsV6a }
-import is.clipperz.backed.exceptions.ResourceNotFoundException
+import is.clipperz.backend.exceptions.ResourceNotFoundException
 
 // ============================================================================
 
