@@ -1,15 +1,13 @@
 module Test.Import where
 
 import Control.Bind (discard)
-import Data.Array (length, head, filter, index)
+import Data.Array (length, head, filter)
 import Data.Either (Either(..))
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Identity (Identity)
 import Data.Maybe (Maybe(..))
-import Data.Semigroup ((<>))
-import Data.Show (show)
 import Data.Unit (Unit)
 import DataModel.Card (Card(..), CardValues(..), CardField(..))
 import Effect.Aff (Aff)
