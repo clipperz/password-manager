@@ -29,12 +29,10 @@ import Web.File.FileReader (fromEventTarget, FileReader)
 userAreaWidget :: Index -> Widget HTML (Either AppError Index)
 userAreaWidget index@(Index_v1 entries) = do
   result <- runExceptT $ do
-    -- s <- textAreaWidget "" "Import data"
-    -- reader <- ExceptT $ (note (ImportError "Could not load file")) <$> (simpleFileInputWidget "import" (text "Import"))
     content <- ExceptT $ Right <$> simpleFileInputWidget "import" (text "Import")
     codedCardData <- except $ parseHTMLImport content
     decodedCardData <- except $ Right $ decodeHTML codedCardData
-    liftEffect $ log decodedCardData
+    -- liftEffect $ log decodedCardData
     ExceptT $ liftEffect $ decodeImport decodedCardData
   case result of
     Left err -> do
