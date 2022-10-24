@@ -15,6 +15,7 @@ import Data.List.Types (List(..), (:))
 import Data.Ord (class Ord, compare)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
+import Data.String.Common (toLower)
 import Data.Tuple (Tuple(..))
 import DataModel.Card (Card(..), CardValues(..))
 import DataModel.SRP (HashFunction)
@@ -61,7 +62,7 @@ instance showCardEntry :: Show CardEntry where
         }) = "Entry for " <> title
 
 instance ordCardEntry :: Ord CardEntry where
-  compare (CardEntry_v1 { title: t }) (CardEntry_v1 {title: t'}) = compare t t'
+  compare (CardEntry_v1 { title: t }) (CardEntry_v1 {title: t'}) = compare (toLower t) (toLower t')
 
 instance eqCardEntry :: Eq CardEntry where
   eq (CardEntry_v1 { cardReference: cr }) (CardEntry_v1 { cardReference: cr' }) = eq cr cr'
