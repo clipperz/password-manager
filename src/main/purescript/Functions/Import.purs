@@ -2,7 +2,7 @@ module Functions.Import where
 
 import Control.Applicative (pure)
 import Control.Bind (bind, (=<<))
-import Control.Monad.Except (ExceptT(..), except, runExceptT, runExcept)
+import Control.Monad.Except (except, runExcept)
 import Data.Argonaut.Core (Json, caseJsonArray, caseJsonObject, toBoolean, toObject, toString)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (head, tail, elem, filter)
@@ -22,11 +22,12 @@ import Foreign.Object (Object, lookup, values)
 import Functions.Time (getCurrentTimestamp)
 
 decodeImport :: String -> Effect (Either AppError (Array Card))
-decodeImport s =
+decodeImport s = do
+  currentTime <- getCurrentTimestamp
   let eitherJson = jsonParser s
-  in case eitherJson of
-      Left err -> pure $ Left $ ImportError err
-      Right json -> caseJsonArray (pure $ Left $ ImportError "Cannot convert json to json array") (\a -> sequence <$> (sequence $ decodeCard <$> a)) json
+  pure $ case eitherJson of
+      Left err -> Left $ ImportError err
+      Right json -> caseJsonArray (Left $ ImportError "Cannot convert json to json array") (\a -> sequence $ (decodeCard currentTime) <$> a) json
 
 -- caseJsonArray :: forall a. a -> (Array Json -> a) -> Json -> a
 -- a :: Effect (Either Error (Array Card))
@@ -36,12 +37,12 @@ decodeImport s =
 -- t (m (m a))
 -- Array Effect Either -> Effect Either Error Array
 
-decodeCard :: Json -> Effect (Either AppError Card)
-decodeCard = caseJsonObject (pure $ Left $ ImportError "Cannot conver json to json object") decodeCardObject
+decodeCard :: Int -> Json -> Either AppError Card
+decodeCard timestamp = caseJsonObject (Left $ ImportError "Cannot conver json to json object") decodeCardObject
 
   where
-    decodeCardObject :: Object Json -> Effect (Either AppError Card)
-    decodeCardObject obj = runExceptT $ do
+    decodeCardObject :: Object Json -> Either AppError Card
+    decodeCardObject obj = runExcept $ do
       titleAndTags :: Array String <- split (Pattern " ") <$> (except $ note (ImportError "Cannot find card label") $ (toString =<< lookup "label" obj))
       let title    = fromMaybe "" $ head titleAndTags
       let tags     = filter (\s -> not $ eq "ARCH" s) $ fromMaybe [] $ tail titleAndTags
@@ -50,8 +51,7 @@ decodeCard = caseJsonObject (pure $ Left $ ImportError "Cannot conver json to js
         a <- except $ note (ImportError "Cannot find card fields") $ (values <$> (toObject =<< (lookup "fields") =<< toObject =<< lookup "currentVersion" obj))
         except $ sequence (decodeCardField <$> a)
       notes  <- except $ note (ImportError "Cannot find card notes") $ (toString =<< (lookup "notes") =<< toObject =<< lookup "data" obj)
-      currentTime <- ExceptT $ Right <$> getCurrentTimestamp
-      pure $ Card_v1 { timestamp: currentTime
+      pure $ Card_v1 { timestamp: timestamp
                      , archived: archived
                      , content: CardValues_v1 { title: title
                                               , tags: tags
