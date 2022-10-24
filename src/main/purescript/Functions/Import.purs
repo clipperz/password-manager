@@ -29,14 +29,6 @@ decodeImport s = do
       Left err -> Left $ ImportError err
       Right json -> caseJsonArray (Left $ ImportError "Cannot convert json to json array") (\a -> sequence $ (decodeCard currentTime) <$> a) json
 
--- caseJsonArray :: forall a. a -> (Array Json -> a) -> Json -> a
--- a :: Effect (Either Error (Array Card))
--- Array Json -> Effect (Either Error (Array Card))
--- arr
--- t (m a) -> m (t a)
--- t (m (m a))
--- Array Effect Either -> Effect Either Error Array
-
 decodeCard :: Int -> Json -> Either AppError Card
 decodeCard timestamp = caseJsonObject (Left $ ImportError "Cannot conver json to json object") decodeCardObject
 

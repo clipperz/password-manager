@@ -37,6 +37,7 @@
   , "now"
   , "ordered-collections"
   , "prelude"
+  , "react"
   , "record"
   , "spec"
   , "strings"
@@ -44,6 +45,8 @@
   , "transformers"
   , "tuples"
   , "unfoldable"
+  , "web-events"
+  , "web-file"
   ]
 , packages = ./packages.dhall
 }

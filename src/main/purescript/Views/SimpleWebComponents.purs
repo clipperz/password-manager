@@ -6,7 +6,7 @@ import Concur.React (HTML)
 import Concur.React.DOM (text, textarea, input, label, div', div, button, li)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind, discard, (=<<))
 import Control.Semigroupoid ((<<<))
 import Data.Either (Either(..))
 import Data.Eq ((==))
@@ -14,12 +14,19 @@ import Data.Function (($))
 import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not)
 import Data.Map (Map, lookup)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
+import Effect (Effect)
+import Effect.Aff.Class (liftAff)
+import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
+import Functions.Events (readFile)
 import Functions.Password (PasswordStrengthFunction, PasswordStrength)
+import React.SyntheticEvent (currentTarget, SyntheticEvent_, NativeEventTarget)
+import Web.File.FileReader (fromEventTarget, FileReader)
 
 simpleTextAreaWidget :: String -> Widget HTML String
 simpleTextAreaWidget s = Props.unsafeTargetValue <$> (textarea [Props.value s, Props.onChange] [])
@@ -38,6 +45,24 @@ simpleInputWidget id lbl disable value t = do
       ]
   ]
   pure res
+
+simpleFileInputWidget :: String -> Widget HTML String -> Widget HTML String
+simpleFileInputWidget id lbl = do
+  div' [
+      label [Props.htmlFor id] [lbl]
+    , fromSyntheticEvent =<< input [
+        Props._type "file"
+      , Props._id id
+      , Props.onChange
+      ]
+  ]
+
+  where 
+    fromSyntheticEvent :: forall r. SyntheticEvent_ (currentTarget :: NativeEventTarget | r) -> Widget HTML String
+    fromSyntheticEvent se = do
+      nve <- liftEffect $ currentTarget se
+      liftEffect $ log $ "Event acquired"
+      liftAff $ readFile nve
 
 simpleTextInputWidget :: String -> Widget HTML String -> String -> Widget HTML String
 simpleTextInputWidget id lbl s = simpleInputWidget id lbl false s "text"

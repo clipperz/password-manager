@@ -2,17 +2,19 @@ module OperationalWidgets.UserAreaWidget where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
+import Concur.React.DOM (text)
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (runExceptT, ExceptT(..))
-import Data.Either (Either(..))
+import Data.Either (Either(..), note)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.List (List(..), (:), concat, fromFoldable)
+import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Traversable (sequence)
-import DataModel.AppState (AppError)
+import DataModel.AppState (AppError(..))
 import DataModel.Card (Card)
 import DataModel.Index (Index(..), CardEntry)
 import Effect.Aff (Aff)
@@ -21,12 +23,16 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Cards (postCard, updateIndex)
 import Functions.Import (decodeImport)
-import Views.SimpleWebComponents (textAreaWidget, loadingDiv)
+import Views.SimpleWebComponents (textAreaWidget, loadingDiv, simpleFileInputWidget)
+import Web.File.FileReader (fromEventTarget, FileReader)
 
 userAreaWidget :: Index -> Widget HTML (Either AppError Index)
 userAreaWidget index@(Index_v1 entries) = do
-  s <- textAreaWidget "" "Import data"
-  result <- liftEffect $ decodeImport s
+  result <- runExceptT $ do
+    -- s <- textAreaWidget "" "Import data"
+    -- reader <- ExceptT $ (note (ImportError "Could not load file")) <$> (simpleFileInputWidget "import" (text "Import"))
+    content <- ExceptT $ Right <$> simpleFileInputWidget "import" (text "Import")
+    ExceptT $ liftEffect $ decodeImport content
   case result of
     Left err -> do
       liftEffect $ log $ show err
