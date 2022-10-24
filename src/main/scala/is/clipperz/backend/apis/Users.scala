@@ -45,7 +45,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
                 <&>
                 ZIO.foreach(signupData.cards) { (reference, content) => blobArchive.saveBlob(reference, ZStream.fromIterable(content.toByteArray)) }
               ).parallelErrors.foldZIO(
-                  _      => ZIO.fail(new Exception("TODO")),
+                  err      => ZIO.fail(new Exception(s"${err}")),
                   result => ZIO.succeed(result)
               )                
             else  
@@ -60,6 +60,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
         case ex : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
         case ex : NonWritableArchiveException => { println(ex); ZIO.succeed(Response(status = Status.InternalServerError)) }
         case ex : FailedConversionException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
+        case ex => { println(ex); ZIO.fail(ex)}
       }
 
   case request @ Method.PUT -> !! / "users" / c =>

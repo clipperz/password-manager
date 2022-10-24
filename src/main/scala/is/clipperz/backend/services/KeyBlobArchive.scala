@@ -23,7 +23,7 @@ trait KeyBlobArchive:
   def deleteBlob(key: Key): Task[Boolean]
 
 object KeyBlobArchive:
-  val WAIT_TIME = 1
+  val WAIT_TIME = 100
 
   case class FileSystemKeyBlobArchive(basePath: Path, levels: Int) extends KeyBlobArchive:
     override def getBlob(key: Key): Task[ZStream[Any, Throwable, Byte]] =

@@ -36,7 +36,7 @@ trait BlobArchive:
   def deleteBlob(content: ZStream[Any, Throwable, Byte]): Task[Boolean]
 
 object BlobArchive:
-  val WAIT_TIME = 1
+  val WAIT_TIME = 100
 
   case class FileSystemBlobArchive(keyBlobArchive: KeyBlobArchive, tmpDir: Path) extends BlobArchive:
     override def getBlob(hash: BlobHash): Task[ZStream[Any, Throwable, Byte]] =
