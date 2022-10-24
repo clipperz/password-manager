@@ -36,12 +36,7 @@ homePageWidget indexReference = go Loading indexReference
         Default -> div [] []
         Loading -> loadingDiv <|> (Loaded <$> (liftAff $ runExceptT $ getIndex reference))
         Error err -> div [] [text err, simpleButton "Go back to login" false LogoutAction]
-      case res of
-        Loaded (Right index) -> homePage index NoCard         
-        Loaded (Left err) -> do
-          _ <- liftEffect $ log $ show err
-          go (Error (prettyShow err)) reference
-        LogoutAction -> pure unit
+      interpretHomePageActions res
     
     homePage :: Index -> CardView -> Widget HTML Unit
     homePage index cardView = do
@@ -52,10 +47,13 @@ homePageWidget indexReference = go Loading indexReference
                   , simpleButton "Logout" false LogoutAction
                   ]
                 ]
+      interpretHomePageActions result
+
+    interpretHomePageActions :: HomePageAction -> Widget HTML Unit
+    interpretHomePageActions result =
       case result of
-        Loaded (Right index') -> homePage index' NoCard         
+        Loaded (Right index) -> homePage index NoCard         
         Loaded (Left err) -> do
           _ <- liftEffect $ log $ show err
           go (Error (prettyShow err)) indexReference
-        LogoutAction -> pure unit        
-
+        LogoutAction -> pure unit
