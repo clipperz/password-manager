@@ -61,7 +61,6 @@ simpleFileInputWidget id lbl = do
     fromSyntheticEvent :: forall r. SyntheticEvent_ (currentTarget :: NativeEventTarget | r) -> Widget HTML String
     fromSyntheticEvent se = do
       nve <- liftEffect $ currentTarget se
-      liftEffect $ log $ "Event acquired"
       liftAff $ readFile nve
 
 simpleTextInputWidget :: String -> Widget HTML String -> String -> Widget HTML String

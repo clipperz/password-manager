@@ -6,7 +6,7 @@ import Concur.React.DOM (text)
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
-import Control.Monad.Except.Trans (runExceptT, ExceptT(..))
+import Control.Monad.Except.Trans (runExceptT, ExceptT(..), except)
 import Data.Either (Either(..), note)
 import Data.Function (($))
 import Data.Functor ((<$>))
@@ -22,7 +22,7 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Cards (postCard, updateIndex)
-import Functions.Import (decodeImport)
+import Functions.Import (decodeImport, parseHTMLImport, decodeHTML)
 import Views.SimpleWebComponents (textAreaWidget, loadingDiv, simpleFileInputWidget)
 import Web.File.FileReader (fromEventTarget, FileReader)
 
@@ -32,7 +32,10 @@ userAreaWidget index@(Index_v1 entries) = do
     -- s <- textAreaWidget "" "Import data"
     -- reader <- ExceptT $ (note (ImportError "Could not load file")) <$> (simpleFileInputWidget "import" (text "Import"))
     content <- ExceptT $ Right <$> simpleFileInputWidget "import" (text "Import")
-    ExceptT $ liftEffect $ decodeImport content
+    codedCardData <- except $ parseHTMLImport content
+    decodedCardData <- except $ Right $ decodeHTML codedCardData
+    liftEffect $ log decodedCardData
+    ExceptT $ liftEffect $ decodeImport decodedCardData
   case result of
     Left err -> do
       liftEffect $ log $ show err
