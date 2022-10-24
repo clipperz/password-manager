@@ -17,6 +17,7 @@ import DataModel.Card (Card)
 import DataModel.Index (Index(..), CardEntry)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
+import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Cards (postCard, updateIndex)
 import Functions.Import (decodeImport)
@@ -25,10 +26,10 @@ import Views.SimpleWebComponents (textAreaWidget, loadingDiv)
 userAreaWidget :: Index -> Widget HTML (Either AppError Index)
 userAreaWidget index@(Index_v1 entries) = do
   s <- textAreaWidget "" "Import data"
-  let result = decodeImport s
+  result <- liftEffect $ decodeImport s
   case result of
     Left err -> do
-      log $ show err
+      liftEffect $ log $ show err
       userAreaWidget index
     Right cards -> loadingDiv <|> (liftAff $ saveImport cards)
 
