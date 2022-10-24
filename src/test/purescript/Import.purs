@@ -1,6 +1,6 @@
 module Test.Import where
 
-import Control.Bind (discard)
+import Control.Bind (discard, bind)
 import Data.Array (length, head, filter)
 import Data.Either (Either(..))
 import Data.Eq ((==))
@@ -11,6 +11,7 @@ import Data.Maybe (Maybe(..))
 import Data.Unit (Unit)
 import DataModel.Card (Card(..), CardValues(..), CardField(..))
 import Effect.Aff (Aff)
+import Effect.Class (liftEffect)
 import Functions.Import (decodeImport)
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
@@ -19,18 +20,21 @@ import TestUtilities (makeTestableOnBrowser)
 importSpec :: SpecT Aff Unit Identity Unit
 importSpec  =
   describe "Import" do
-    let decodeResult = decodeImport joe_clipperzData
+    -- decodeResult <- liftEffect $ decodeImport joe_clipperzData
 
     let emptyImport = "Empty json"
     it emptyImport do
-      makeTestableOnBrowser emptyImport (decodeImport "[]") shouldEqual (Right [])
+      res <- liftEffect $ decodeImport "[]"
+      makeTestableOnBrowser emptyImport (res) shouldEqual (Right [])
 
     let cardsNumber = "Import the correct number of cards"
     it cardsNumber do
+      decodeResult <- liftEffect $ decodeImport joe_clipperzData
       makeTestableOnBrowser cardsNumber (length <$> decodeResult) shouldEqual (Right 39)
 
     let importFirstCard = "Import correctly the first card"
     it importFirstCard do
+      decodeResult <- liftEffect $ decodeImport joe_clipperzData
       let result = Card_v1 { timestamp: 0
                            , archived: false
                            , content: CardValues_v1 { title: "Amazon.com"
@@ -47,6 +51,7 @@ importSpec  =
     
     let importArchivedCard = "Import archived card"
     it importArchivedCard do
+      decodeResult <- liftEffect $ decodeImport joe_clipperzData
       let result = Card_v1 { timestamp: 0
                            , archived: true
                            , content: CardValues_v1 { title: "AOL "

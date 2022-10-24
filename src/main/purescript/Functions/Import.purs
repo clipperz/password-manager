@@ -17,17 +17,28 @@ import Data.String.Pattern (Pattern(..))
 import Data.Traversable (sequence)
 import DataModel.AppState (AppError(..))
 import DataModel.Card (Card(..), CardValues(..), CardField(..))
+import Effect (Effect)
 import Foreign.Object (Object, lookup, values)
+import Functions.Time (getCurrentTimestamp)
 
-decodeImport :: String -> Either AppError (Array Card)
-decodeImport s =
+decodeImport :: String -> Effect (Either AppError (Array Card))
+decodeImport s = do
+  currentTime <- getCurrentTimestamp
   let eitherJson = jsonParser s
-  in case eitherJson of
+  pure $ case eitherJson of
       Left err -> Left $ ImportError err
-      Right json -> caseJsonArray (Left $ ImportError "Cannot convert json to json array") (\a -> sequence $ decodeCard <$> a) json
+      Right json -> caseJsonArray (Left $ ImportError "Cannot convert json to json array") (\a -> sequence $ (decodeCard currentTime) <$> a) json
 
-decodeCard :: Json -> Either AppError Card
-decodeCard = caseJsonObject (Left $ ImportError "Cannot conver json to json object") decodeCardObject
+-- caseJsonArray :: forall a. a -> (Array Json -> a) -> Json -> a
+-- a :: Effect (Either Error (Array Card))
+-- Array Json -> Effect (Either Error (Array Card))
+-- arr
+-- t (m a) -> m (t a)
+-- t (m (m a))
+-- Array Effect Either -> Effect Either Error Array
+
+decodeCard :: Int -> Json -> Either AppError Card
+decodeCard timestamp = caseJsonObject (Left $ ImportError "Cannot conver json to json object") decodeCardObject
 
   where
     decodeCardObject :: Object Json -> Either AppError Card
@@ -40,7 +51,7 @@ decodeCard = caseJsonObject (Left $ ImportError "Cannot conver json to json obje
         a <- except $ note (ImportError "Cannot find card fields") $ (values <$> (toObject =<< (lookup "fields") =<< toObject =<< lookup "currentVersion" obj))
         except $ sequence (decodeCardField <$> a)
       notes  <- except $ note (ImportError "Cannot find card notes") $ (toString =<< (lookup "notes") =<< toObject =<< lookup "data" obj)
-      pure $ Card_v1 { timestamp: 0
+      pure $ Card_v1 { timestamp: timestamp
                      , archived: archived
                      , content: CardValues_v1 { title: title
                                               , tags: tags

@@ -72,7 +72,7 @@ data Card =
     }
 
 instance eqCard :: Eq Card where
-  eq (Card_v1 r1) (Card_v1 r2) = eq r1 r2
+  eq (Card_v1 r1) (Card_v1 r2) = eq { content: r1.content, archived: r1.archived } { content: r2.content, archived: r2.archived }
 
 instance showCard :: Show Card where
   show (Card_v1 record) = show record
