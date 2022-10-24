@@ -10,6 +10,8 @@ import is.clipperz.backend.exceptions.{NonWritableArchiveException, NonReadableA
 import is.clipperz.backend.functions.{ fromStream }
 import is.clipperz.backend.services.{ BlobArchive, SaveBlobData }
 import is.clipperz.backend.Main.ClipperzHttpApp
+import is.clipperz.backend.exceptions.EmptyContentException
+import is.clipperz.backend.exceptions.BadRequestException
 
 val blobsApi: ClipperzHttpApp = Http.collectZIO {
   case request @ Method.POST -> !! / "blobs" =>
@@ -24,6 +26,8 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
       )
       .map(results => Response.text(s"${results}"))
       .catchSome {
+        case ex : EmptyContentException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
+        case ex : BadRequestException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
         case ex : NonWritableArchiveException => { println(ex); ZIO.succeed(Response(status = Status.InternalServerError)) }
         case ex : FailedConversionException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
       }

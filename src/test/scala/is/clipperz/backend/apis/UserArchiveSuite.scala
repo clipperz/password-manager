@@ -1,4 +1,4 @@
-package is.clipperz.backend.services
+package is.clipperz.backend.apis
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
@@ -12,6 +12,14 @@ import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.{ bytesToHex }
 import zio.test.TestAspect
 import is.clipperz.backend.functions.FileSystem
+import is.clipperz.backend.services.PRNG
+import is.clipperz.backend.services.SessionManager
+import is.clipperz.backend.services.UserArchive
+import is.clipperz.backend.services.BlobArchive
+import is.clipperz.backend.services.TollManager
+import is.clipperz.backend.services.SrpManager
+import is.clipperz.backend.services.UserCard
+import is.clipperz.backend.services.SignupData
 
 object UserSpec extends ZIOSpecDefault:
   val app = Main.clipperzBackend

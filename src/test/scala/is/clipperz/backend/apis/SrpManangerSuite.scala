@@ -1,4 +1,4 @@
-package is.clipperz.backend.services
+package is.clipperz.backend.apis
 
 import java.nio.file.FileSystems
 import zio.ZIO
@@ -10,6 +10,13 @@ import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.{ bigIntToHex, bytesToHex }
 import is.clipperz.backend.functions.Conversions.{ bytesToBigInt, bigIntToBytes }
 import is.clipperz.backend.functions.crypto.HashFunction
+import is.clipperz.backend.services.UserArchive
+import is.clipperz.backend.services.PRNG
+import is.clipperz.backend.services.SessionManager
+import is.clipperz.backend.services.SrpManager
+import is.clipperz.backend.services.UserCard
+import is.clipperz.backend.services.SRPStep1Data
+import is.clipperz.backend.services.SRPStep2Data
 
 object SrpManangerSuite extends ZIOSpecDefault:
   val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn

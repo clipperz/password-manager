@@ -1,4 +1,4 @@
-package is.clipperz.backend.services
+package is.clipperz.backend.apis
 
 import zio.ZIO
 import zio.test.{ ZIOSpecDefault, assertTrue }
@@ -7,6 +7,9 @@ import is.clipperz.backend.data.Base
 import is.clipperz.backend.services.TollManager.*
 import is.clipperz.backend.functions.ByteArrays
 import is.clipperz.backend.functions.crypto.HashFunction
+import is.clipperz.backend.services.PRNG
+import is.clipperz.backend.services.TollManager
+import is.clipperz.backend.services.TollChallenge
 
 object TollManagerSuite extends ZIOSpecDefault:
 

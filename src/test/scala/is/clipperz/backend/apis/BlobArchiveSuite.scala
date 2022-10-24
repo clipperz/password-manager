@@ -1,4 +1,4 @@
-package is.clipperz.backend.services
+package is.clipperz.backend.apis
 
 import org.scalacheck.Test
 
@@ -20,6 +20,13 @@ import is.clipperz.backend.data.HexString.{ bytesToHex }
 import is.clipperz.backend.functions.crypto.HashFunction
 import java.nio.file.Path
 import is.clipperz.backend.functions.FileSystem
+import is.clipperz.backend.services.SaveBlobData
+import is.clipperz.backend.services.PRNG
+import is.clipperz.backend.services.SessionManager
+import is.clipperz.backend.services.UserArchive
+import is.clipperz.backend.services.BlobArchive
+import is.clipperz.backend.services.TollManager
+import is.clipperz.backend.services.SrpManager
 
 object BlobSpec extends ZIOSpecDefault:
   val app = Main.clipperzBackend

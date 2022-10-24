@@ -9,6 +9,11 @@ import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.{ bytesToHex }
 import is.clipperz.backend.functions.crypto.HashFunction
+import is.clipperz.backend.exceptions.EmptyContentException
+import zio.Duration
+import java.io.FileNotFoundException
+import is.clipperz.backend.exceptions.NonWritableArchiveException
+import is.clipperz.backend.exceptions.BadRequestException
 
 // ----------------------------------------------------------------------------
 
@@ -31,6 +36,8 @@ trait BlobArchive:
   def deleteBlob(content: ZStream[Any, Throwable, Byte]): Task[Boolean]
 
 object BlobArchive:
+  val WAIT_TIME = 1
+
   case class FileSystemBlobArchive(keyBlobArchive: KeyBlobArchive, tmpDir: Path) extends BlobArchive:
     override def getBlob(hash: BlobHash): Task[ZStream[Any, Throwable, Byte]] =
       keyBlobArchive.getBlob(hash.toString)
@@ -39,6 +46,7 @@ object BlobArchive:
       val tmpFile = File.createTempFile("pre", "suff", tmpDir.toFile())
       ZIO.scoped {
         content
+          .timeoutFail(new EmptyContentException)(Duration.fromMillis(WAIT_TIME))
           .tapSink(ZSink.fromOutputStream(new FileOutputStream(tmpFile)))
           .run(ZSink.digest(MessageDigest.getInstance("SHA-256").nn))
           .map((chunk: Chunk[Byte]) => HexString.bytesToHex(chunk.toArray))
@@ -51,7 +59,14 @@ object BlobArchive:
               .map(_ => hash)
           }
         else
-          ZIO.fail(new Exception(s"hash of content does not match with hash in request"))
+          ZIO.fail(new BadRequestException(s"hash of content does not match with hash in request"))
+      }.catchSome {
+        case ex : FileNotFoundException => 
+          val str: String = if ex.getMessage() == null then "The temporary file or the blob could not be saved" else ex.getMessage().nn
+          ZIO.fail(new NonWritableArchiveException(str))
+        case ex : BadRequestException => ZIO.fail(ex)
+        case ex : EmptyContentException => ZIO.fail(ex)
+        case ex => ZIO.fail(new NonWritableArchiveException(s"${ex}"))
       }
 
     override def deleteBlob(content: ZStream[Any, Throwable, Byte]): Task[Boolean] =
