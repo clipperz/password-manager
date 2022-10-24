@@ -11,6 +11,7 @@ import is.clipperz.backend.exceptions.{
   NonReadableArchiveException, 
   FailedConversionException, 
   BadRequestException,
+  ResourceConflictException,
   ResourceNotFoundException,
   ConflictualRequestException
 }
@@ -54,6 +55,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
       )
       .map(results => Response.text(results._1.toString))
       .catchSome {
+        case ex : ResourceConflictException => ZIO.succeed(Response(status = Status.Conflict))
         case ex : ConflictualRequestException => ZIO.succeed(Response(status = Status.Conflict))
         case ex : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
         case ex : NonWritableArchiveException => { println(ex); ZIO.succeed(Response(status = Status.InternalServerError)) }

@@ -59,7 +59,7 @@ object BlobArchive:
               .map(_ => hash)
           }
         else
-          ZIO.fail(new BadRequestException(s"hash of content does not match with hash in request"))
+          ZIO.fail(new BadRequestException(s"Hash of content does not match with hash in request"))
       }.catchSome {
         case ex : FileNotFoundException => 
           val str: String = if ex.getMessage() == null then "The temporary file or the blob could not be saved" else ex.getMessage().nn
