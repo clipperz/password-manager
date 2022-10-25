@@ -3,7 +3,7 @@ package is.clipperz.backend.apis
 import java.nio.file.FileSystems
 import zio.ZIO
 import zio.stream.ZStream
-import zio.test.{ ZIOSpecDefault, assertTrue }
+import zio.test.{ ZIOSpecDefault, assertTrue, check }
 import zio.test.TestAspect.timeout
 import is.clipperz.backend.functions.SrpFunctions.{ baseConfiguration, SrpFunctionsV6a }
 import is.clipperz.backend.data.HexString
@@ -17,6 +17,7 @@ import is.clipperz.backend.services.SrpManager
 import is.clipperz.backend.services.UserCard
 import is.clipperz.backend.services.SRPStep1Data
 import is.clipperz.backend.services.SRPStep2Data
+import is.clipperz.backend.TestUtilities
 
 object SrpManangerSpec extends ZIOSpecDefault:
   val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
@@ -128,27 +129,29 @@ object SrpManangerSpec extends ZIOSpecDefault:
       assertTrue(srpFunctions.computeSecretClient(bb, x, a, u) == secret)
     } +
     test("test secret generation by client and server") {
-      val srpFunctions = new SrpFunctionsV6a()
-
-      val pHex = HexString("0123456789012345678901234567890123456789012345678901234567890123") //TODO: generate from library
-      val sHex = HexString("0123456789012345678901234567890123456789012345678901234567890123") //TODO: generate from library
-
-      val sBytes = sHex.toByteArray
-      val pBytes = pHex.toByteArray
-
       for {
         prng <- ZIO.service[PRNG]
-        a <- prng.nextBytes(64)
-        aa <- ZIO.succeed(srpFunctions.computeA(bytesToBigInt(a)))
-        b <- prng.nextBytes(64)
-        x <- srpFunctions.configuration.keyDerivationFunction(sBytes, pBytes)
-              .map(bytes => bytesToBigInt(bytes))
-        v <- ZIO.succeed(srpFunctions.computeV(x))
-        bb <- ZIO.succeed(srpFunctions.computeB(bytesToBigInt(b), v))
-        u <- srpFunctions.computeU(bigIntToBytes(aa), bigIntToBytes(bb))
-        secretClient <- ZIO.succeed(srpFunctions.computeSecretClient(bb, x, bytesToBigInt(a), bytesToBigInt(u)))
-        secretServer <- ZIO.succeed(srpFunctions.computeSecretServer(aa, bytesToBigInt(b), v, bytesToBigInt(u)))
-      } yield assertTrue(secretClient == secretServer)
+        res <- check(TestUtilities.getBytesGen(prng, 32), TestUtilities.getBytesGen(prng, 32)) { (pBytes, sBytes) =>
+          val srpFunctions = new SrpFunctionsV6a()
+
+          val pHex = HexString.bytesToHex(pBytes)
+          val sHex = HexString.bytesToHex(sBytes)
+
+          for {
+            prng <- ZIO.service[PRNG]
+            a <- prng.nextBytes(64)
+            aa <- ZIO.succeed(srpFunctions.computeA(bytesToBigInt(a)))
+            b <- prng.nextBytes(64)
+            x <- srpFunctions.configuration.keyDerivationFunction(sBytes, pBytes)
+                  .map(bytes => bytesToBigInt(bytes))
+            v <- ZIO.succeed(srpFunctions.computeV(x))
+            bb <- ZIO.succeed(srpFunctions.computeB(bytesToBigInt(b), v))
+            u <- srpFunctions.computeU(bigIntToBytes(aa), bigIntToBytes(bb))
+            secretClient <- ZIO.succeed(srpFunctions.computeSecretClient(bb, x, bytesToBigInt(a), bytesToBigInt(u)))
+            secretServer <- ZIO.succeed(srpFunctions.computeSecretServer(aa, bytesToBigInt(b), v, bytesToBigInt(u)))
+          } yield assertTrue(secretClient == secretServer)
+        }
+      } yield assertTrue(res.isSuccess)
     } +
     test("hash of byte array") {
       val hex = HexString("a27054ba67c93082d84d7c525f26ffa12d7de961419bbd5d09c4e09c01bb50280f1badda26f69993aea56d1689aebfb42947a63ccb09932de0d07cb457f9691853f765a16baf77ede507cf358b35de4cfb417b246745d875e70b1d463b200789e5edfd7ab6b3c888a296e690d52e7e235152a25ee6fa8354d1bc0138bf95cea")

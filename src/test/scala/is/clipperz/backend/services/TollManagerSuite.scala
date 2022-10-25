@@ -56,7 +56,7 @@ object TollManagerSpec extends ZIOSpecDefault:
       for {
         manager <- ZIO.service[TollManager]
         prng <- ZIO.service[PRNG]
-        res <- check(TestUtilities.getBytesGen(prng)) { bytes =>
+        res <- check(TestUtilities.getBytesGen(prng, tollByteSize)) { bytes =>
           for {
             hash <- ByteArrays.hashOfArrays(HashFunction.hashSHA256, bytes)
                               .map(HexString.bytesToHex)
@@ -69,7 +69,7 @@ object TollManagerSpec extends ZIOSpecDefault:
       for {
         manager <- ZIO.service[TollManager]
         prng <- ZIO.service[PRNG]
-        res <- check(TestUtilities.getBytesGen(prng)) { bytes =>
+        res <- check(TestUtilities.getBytesGen(prng, tollByteSize)) { bytes =>
           for {
             hash <- ByteArrays.hashOfArrays(HashFunction.hashSHA256, bytes)
                               .map(HexString.bytesToHex)
