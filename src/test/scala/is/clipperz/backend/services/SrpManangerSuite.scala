@@ -18,7 +18,7 @@ import is.clipperz.backend.services.UserCard
 import is.clipperz.backend.services.SRPStep1Data
 import is.clipperz.backend.services.SRPStep2Data
 
-object SrpManangerSuite extends ZIOSpecDefault:
+object SrpManangerSpec extends ZIOSpecDefault:
   val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
   val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
 
