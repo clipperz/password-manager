@@ -29,6 +29,7 @@ import zio.test.Gen
 import is.clipperz.backend.functions.ByteArrays
 import is.clipperz.backend.data.HexString
 import zio.test.Sized
+import is.clipperz.backend.TestUtilities
 
 object TollManagerSpec extends ZIOSpecDefault:
   val layers = PRNG.live ++ (PRNG.live >>> TollManager.live)
@@ -40,11 +41,6 @@ object TollManagerSpec extends ZIOSpecDefault:
                                FD5138FE8376435B9FC61D2FC0EB06E3""")
   val hexStringHash = ByteArrays.hashOfArrays(HashFunction.hashSHA256, hexString.toByteArray)
                                 .map(HexString.bytesToHex)
-
-  def getBytesGen(prng: PRNG): Gen[Any, Array[Byte]] = 
-    Gen.fromZIO(prng
-                .nextBytes(tollByteSize)
-                .catchAll(_ => ZIO.succeed(Array.emptyByteArray)))
 
   def spec = suite("TollManager")(
     test("getToll - correct toll cost") { // property test
@@ -62,7 +58,7 @@ object TollManagerSpec extends ZIOSpecDefault:
       for {
         manager <- ZIO.service[TollManager]
         prng <- ZIO.service[PRNG]
-        res <- check(getBytesGen(prng)) { bytes =>
+        res <- check(TestUtilities.getBytesGen(prng)) { bytes =>
           for {
             hash <- ByteArrays.hashOfArrays(HashFunction.hashSHA256, bytes)
                               .map(HexString.bytesToHex)
@@ -75,7 +71,7 @@ object TollManagerSpec extends ZIOSpecDefault:
       for {
         manager <- ZIO.service[TollManager]
         prng <- ZIO.service[PRNG]
-        res <- check(getBytesGen(prng)) { bytes =>
+        res <- check(TestUtilities.getBytesGen(prng)) { bytes =>
           for {
             hash <- ByteArrays.hashOfArrays(HashFunction.hashSHA256, bytes)
                               .map(HexString.bytesToHex)
