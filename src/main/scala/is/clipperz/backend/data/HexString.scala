@@ -6,9 +6,10 @@ import java.nio.charset.StandardCharsets
 enum Base:
   case Dec, Hex
 
-
-case class HexString(private val s: String):
-  private val hexString: String = normalizeHex (if HexString.isHex(s) then s else HexString.hexEncode(s).toString)
+class HexString private (private val s: String):
+  private val hexString: String = normalizeHex (
+    if HexString.isHex(s) then s 
+    else HexString.hexEncode(s).toString)
   
   private def normalizeHex(s: String): String =
     val hexWithoutSpaces = s.filterNot(_.isWhitespace).toUpperCase.nn
@@ -30,8 +31,13 @@ case class HexString(private val s: String):
     if x.isInstanceOf[HexString] then this.toBigInt == x.asInstanceOf[HexString].toBigInt else false
     //this.toString == x.toString
 
-
 object HexString:
+  def apply(s: String): HexString =
+    if s.isEmpty() then
+      throw new IllegalArgumentException("Cannot create HexString from empty string")
+    else
+      new HexString(s)
+
   implicit val decoder: JsonDecoder[HexString] = JsonDecoder[String].map(HexString(_))
   implicit val encoder: JsonEncoder[HexString] = JsonEncoder[String].contramap(_.toString)
 

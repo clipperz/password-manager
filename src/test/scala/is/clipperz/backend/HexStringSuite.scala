@@ -1,6 +1,7 @@
 package is.clipperz.backend
 
-import zio.test.{ ZIOSpecDefault, assertTrue, check }
+import zio.test.Assertion.{ isTrue, fails, isSubtype, anything }
+import zio.test.{ ZIOSpecDefault, assertTrue, assertCompletes, assertZIO, check }
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.Base
 import is.clipperz.backend.TestUtilities
@@ -9,8 +10,11 @@ import is.clipperz.backend.services.TollManager
 import is.clipperz.backend.services.PRNG
 import zio.test.TestAspect
 import zio.test.Gen
+import java.nio.charset.StandardCharsets
 
 object HexStringSuite extends ZIOSpecDefault:
+  val samples = 10
+
   def spec = suite("hexString")(
     test("isHex - success and fail") {
       val hexString = """EEAF0AB9ADB38DD69C33F80AFA8FC5E86072618775FF3C0B9EA2314C
@@ -22,19 +26,19 @@ object HexStringSuite extends ZIOSpecDefault:
       assertTrue(HexString.isHex(hexString), !HexString.isHex(string))
     },
     test("create HexString") {
-      check(Gen.stringN(10)(Gen.hexCharUpper)) { hexString =>
+      check(Gen.stringN(samples)(Gen.hexCharUpper)) { hexString =>
         val lowercaseHex = hexString.toLowerCase().nn
         val hexStringFromConstructor = (HexString(hexString)).toString()
         assertTrue(lowercaseHex == hexStringFromConstructor)
       }
-    } @@ TestAspect.samples(10),
+    } @@ TestAspect.samples(samples),
     test("compare HexString") {
       check(Gen.stringN(9)(Gen.hexCharUpper)) { hexString =>
         val hexStringOdd = HexString(hexString)
         val hexStringEven = HexString(s"0${hexString}")
         assertTrue(hexStringEven == hexStringOdd)
       }
-    } @@ TestAspect.samples(10),
+    } @@ TestAspect.samples(samples),
     test("check hexEncode correctness") {
       val fromString = HexString("tschüs")
       val fromHex = HexString("74736368c3bc73")
@@ -50,12 +54,34 @@ object HexStringSuite extends ZIOSpecDefault:
         val hex = HexString(hexString)
         assertTrue(HexString.bytesToHex(hex.toByteArray) == hex)
       }
-    } @@ TestAspect.samples(10),
+    } @@ TestAspect.samples(samples),
     test("hex to bigint and back") {
       check(Gen.stringN(9)(Gen.hexCharLower)) { hexString =>
         val hex = HexString(hexString)
         assertTrue(HexString.bigIntToHex(hex.toBigInt) == hex)
       }
-    } @@ TestAspect.samples(10)
+    } @@ TestAspect.samples(samples),
+    test("isHex - success") {
+      check(Gen.stringN(9)(Gen.hexChar)) { s => assertTrue(HexString.isHex(s)) }
+    } @@ TestAspect.samples(samples),
+    test("isHex - fail") {
+      check(Gen.alphaNumericString) { s => 
+        if s.matches("^[0-9a-fA-F\\s]+$") then 
+          assertCompletes 
+        else 
+          assertTrue(!HexString.isHex(s))
+      }
+    } @@ TestAspect.samples(samples),
+    test("hex from empty string - fail") {
+      assertZIO(ZIO.attempt(HexString("")).exit)(fails(isSubtype[IllegalArgumentException](anything)))
+    },
+    test("hex encode and decode roundtrip") {
+      check(Gen.alphaNumericStringBounded(1, 50)) { s =>
+        if HexString.isHex(s) then // checked in previous tests
+          assertCompletes
+        else
+          assertTrue(HexString(s).toString(Base.Dec) == s)
+      }
+    } @@ TestAspect.samples(samples)
   )
 

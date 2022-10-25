@@ -86,7 +86,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
           })
         )
       )
-      .map(results => Response.text(results._1.toString))
+      .map(results => Response.text(results.toString))
       .catchSome {
         case ex : ResourceNotFoundException => ZIO.succeed(Response(status = Status.NotFound))
         case ex : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
