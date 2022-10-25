@@ -94,8 +94,8 @@ lazy val dependencies = Seq(
     "io.d11" %% "zhttp" % zio_http_version,
   ),
   libraryDependencies ++= Seq(
-    org.scalatest.scalatest,
-    org.scalatestplus.`scalacheck-1-15`,
+    // org.scalatest.scalatest,
+    // org.scalatestplus.`scalacheck-1-15`,
     "dev.zio" %% "zio-test" % zio_version,
     "dev.zio" %% "zio-test-sbt" % zio_version,
   ).map(_ % Test),

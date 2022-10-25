@@ -1,7 +1,5 @@
 package is.clipperz.backend.services
 
-import org.scalacheck.Test
-
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.{ Files, Paths, FileSystems }

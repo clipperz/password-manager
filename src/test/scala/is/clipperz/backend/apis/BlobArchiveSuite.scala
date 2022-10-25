@@ -1,6 +1,5 @@
 package is.clipperz.backend.apis
 
-import org.scalacheck.Test
 
 import java.io.File
 import java.nio.charset.StandardCharsets
