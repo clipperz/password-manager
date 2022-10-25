@@ -48,16 +48,19 @@ object TollManager:
         ZIO.fail(new IllegalArgumentException("Toll cost can not be negative"))
       
     override def verifyToll(challenge: TollChallenge, receipt: TollReceipt): Task[Boolean] =
-      val binaryToll = challenge.toll.toByteArray.map(byteToBinary).mkString
-      ByteArrays.hashOfArrays(HashFunction.hashSHA256, receipt.toByteArray) // receipt hash
-        .map(hash => hash.map(byteToBinary).mkString) // get binary string
-        .map(binaryHash => 
-          if binaryHash.take(challenge.cost) == binaryToll.take(challenge.cost) then
-            true
-          else
-            // println(s" Toll -> ${binaryToll}; Receipt -> ${receipt}; Hash -> ${binaryHash}")
-            false
-        ) // check if equal bits are more than the cost of the challenge
+      if challenge.cost >= 0 then
+        val binaryToll = challenge.toll.toByteArray.map(byteToBinary).mkString
+        ByteArrays.hashOfArrays(HashFunction.hashSHA256, receipt.toByteArray) // receipt hash
+          .map(hash => hash.map(byteToBinary).mkString) // get binary string
+          .map(binaryHash => 
+            if binaryHash.take(challenge.cost) == binaryToll.take(challenge.cost) then
+              true
+            else
+              // println(s" Toll -> ${binaryToll}; Receipt -> ${receipt}; Hash -> ${binaryHash}")
+              false
+          ) // check if equal bits are more than the cost of the challenge
+      else
+        ZIO.fail(new IllegalArgumentException("Invalid challenge cost"))
 
     override def getChallengeCost(challengeType: ChallengeType): TollCost =
       challengeType match

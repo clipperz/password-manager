@@ -33,6 +33,14 @@ import zio.test.Sized
 object TollManagerSpec extends ZIOSpecDefault:
   val layers = PRNG.live ++ (PRNG.live >>> TollManager.live)
 
+  val hexString = HexString("""EEAF0AB9ADB38DD69C33F80AFA8FC5E86072618775FF3C0B9EA2314C
+                               9C256576D674DF7496EA81D3383B4813D692C6E0E0D5D8E250B98BE4
+                               8E495C1D6089DAD15DC7D7B46154D6B6CE8EF4AD69B15D4982559B29
+                               7BCF1885C529F566660E57EC68EDBC3C05726CC02FD4CBF4976EAA9A
+                               FD5138FE8376435B9FC61D2FC0EB06E3""")
+  val hexStringHash = ByteArrays.hashOfArrays(HashFunction.hashSHA256, hexString.toByteArray)
+                                .map(HexString.bytesToHex)
+
   def getBytesGen(prng: PRNG): Gen[Any, Array[Byte]] = 
     Gen.fromZIO(prng
                 .nextBytes(tollByteSize)
@@ -73,6 +81,18 @@ object TollManagerSpec extends ZIOSpecDefault:
                               .map(HexString.bytesToHex)
             res <- assertZIO(manager.verifyToll(TollChallenge(hash, 15), HexString("0000000000000")))(isFalse)
           } yield assertTrue(res.isSuccess)
+        }
+      } yield assertTrue(res.isSuccess)
+    } @@ TestAspect.samples(10) +
+    test("verifyToll - fail - invalid challenge cost") { // TODO: improve
+      for {
+        manager <- ZIO.service[TollManager]
+        hash <- hexStringHash
+        res <- check(Gen.int) { i =>
+          if i >= 0 then
+            assertZIO(manager.verifyToll(TollChallenge(hash, i), hexString))(isTrue)
+          else
+            assertZIO(manager.verifyToll(TollChallenge(hash, i), hexString).exit)(fails(isSubtype[IllegalArgumentException](anything)))
         }
       } yield assertTrue(res.isSuccess)
     } @@ TestAspect.samples(10)
