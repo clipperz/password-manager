@@ -41,8 +41,11 @@ object TollManager:
 
   case class DefaultTollManager(prng: PRNG) extends TollManager:
     override def getToll(cost: TollCost): Task[TollChallenge] =
-      prng.nextBytes(tollByteSize)
-      .map(bytes => TollChallenge(HexString.bytesToHex(bytes), cost))
+      if cost >= 0 then
+        prng.nextBytes(tollByteSize)
+        .map(bytes => TollChallenge(HexString.bytesToHex(bytes), cost))
+      else
+        ZIO.fail(new IllegalArgumentException("Toll cost can not be negative"))
       
     override def verifyToll(challenge: TollChallenge, receipt: TollReceipt): Task[Boolean] =
       val binaryToll = challenge.toll.toByteArray.map(byteToBinary).mkString
