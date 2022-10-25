@@ -138,7 +138,6 @@ object SrpManangerSpec extends ZIOSpecDefault:
           val sHex = HexString.bytesToHex(sBytes)
 
           for {
-            prng <- ZIO.service[PRNG]
             a <- prng.nextBytes(64)
             aa <- ZIO.succeed(srpFunctions.computeA(bytesToBigInt(a)))
             b <- prng.nextBytes(64)
@@ -162,57 +161,57 @@ object SrpManangerSpec extends ZIOSpecDefault:
       } yield assertTrue (hash == result)
     } +
     test("SRP full round-trip") {
-      val srpFunctions = new SrpFunctionsV6a()
-      val config = srpFunctions.configuration
-      
-      val cHex = HexString("0123456789012345678901234567890123456789012345678901234567890123") //TODO: generate from library
-      val pHex = HexString("0123456789012345678901234567890123456789012345678901234567890123") //TODO: generate from library
-      val sHex = HexString("0123456789012345678901234567890123456789012345678901234567890123") //TODO: generate from library
-
-      val sBytes = sHex.toByteArray
-
-      val pBytes = pHex.toByteArray
-
-      val c: Array[Byte] = cHex.toByteArray
-      val s: Array[Byte] = sHex.toByteArray
-
-      val nn = srpFunctions.configuration.group.nn
-
       for {
-        x <- config.keyDerivationFunction(sBytes, pBytes)
-              .map(bytes => bytesToBigInt(bytes))
-        v <- ZIO.succeed(srpFunctions.computeV(x))
-        card <- ZIO.succeed(UserCard(
-          c = cHex,
-          s = sHex,
-          v = bigIntToHex(v),
-          srpVersion = "srpVersion_testFullTrip",
-          masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
-          masterKeyContent = HexString("masterKeyContent_testFullTrip"),
-        ))
-        
-        //-------------------
-        
-        userAchive <- ZIO.service[UserArchive]
-        username <- userAchive.saveUser(card, true)
-        
-        //-------------------
-
-        session <- ZIO.service[SessionManager]
-        sessionContext <- session.getSession("test")
-        srp <- ZIO.service[SrpManager]
         prng <- ZIO.service[PRNG]
-        a <- prng.nextBytes(64)
-        aa <- ZIO.succeed(srpFunctions.computeA(bytesToBigInt(a)))
-        (step1Response, context) <- srp.srpStep1(SRPStep1Data(cHex, bigIntToHex(aa)), sessionContext)
-        u <- srpFunctions.computeU(bigIntToBytes(aa), step1Response.bb.toByteArray)
-        config <- ZIO.succeed(srpFunctions.configuration)
-        x <- config.keyDerivationFunction(step1Response.s.toByteArray, pHex.toByteArray).map(bytes => bytesToBigInt(bytes))
-        clientSecret <- ZIO.succeed(srpFunctions.computeSecretClient(step1Response.bb.toBigInt, x, bytesToBigInt(a), bytesToBigInt(u)))
-        kk <- srpFunctions.configuration.hash(ZStream.fromIterable(bigIntToBytes(clientSecret)))
-        m1 <- srpFunctions.computeM1(c, s, bigIntToBytes(aa), step1Response.bb.toByteArray, kk)
-        (step2Response, context) <- srp.srpStep2(SRPStep2Data(bytesToHex(m1)), context)
-        m2 <- srpFunctions.computeM2(bigIntToBytes(aa), m1, kk)
-      } yield assertTrue(bytesToBigInt(m2) == step2Response.m2.toBigInt)
+        res <- check(TestUtilities.getBytesGen(prng, 32), 
+                     TestUtilities.getBytesGen(prng, 32), 
+                     TestUtilities.getBytesGen(prng, 32)) { (c, p, s) =>
+          val srpFunctions = new SrpFunctionsV6a()
+          val config = srpFunctions.configuration
+          
+          val cHex = HexString.bytesToHex(c)
+          val pHex = HexString.bytesToHex(p)
+          val sHex = HexString.bytesToHex(s)
+
+          val nn = srpFunctions.configuration.group.nn
+
+          for {
+            x <- config.keyDerivationFunction(s, p)
+                  .map(bytes => bytesToBigInt(bytes))
+            v <- ZIO.succeed(srpFunctions.computeV(x))
+            card <- ZIO.succeed(UserCard(
+              c = cHex,
+              s = sHex,
+              v = bigIntToHex(v),
+              srpVersion = "srpVersion_testFullTrip",
+              masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
+              masterKeyContent = HexString("masterKeyContent_testFullTrip"),
+            ))
+            
+            //-------------------
+            
+            userAchive <- ZIO.service[UserArchive]
+            username <- userAchive.saveUser(card, true)
+            
+            //-------------------
+
+            session <- ZIO.service[SessionManager]
+            sessionContext <- session.getSession("test")
+            srp <- ZIO.service[SrpManager]
+            prng <- ZIO.service[PRNG]
+            a <- prng.nextBytes(64)
+            aa <- ZIO.succeed(srpFunctions.computeA(bytesToBigInt(a)))
+            (step1Response, context) <- srp.srpStep1(SRPStep1Data(cHex, bigIntToHex(aa)), sessionContext)
+            u <- srpFunctions.computeU(bigIntToBytes(aa), step1Response.bb.toByteArray)
+            config <- ZIO.succeed(srpFunctions.configuration)
+            x <- config.keyDerivationFunction(step1Response.s.toByteArray, pHex.toByteArray).map(bytes => bytesToBigInt(bytes))
+            clientSecret <- ZIO.succeed(srpFunctions.computeSecretClient(step1Response.bb.toBigInt, x, bytesToBigInt(a), bytesToBigInt(u)))
+            kk <- srpFunctions.configuration.hash(ZStream.fromIterable(bigIntToBytes(clientSecret)))
+            m1 <- srpFunctions.computeM1(c, s, bigIntToBytes(aa), step1Response.bb.toByteArray, kk)
+            (step2Response, context) <- srp.srpStep2(SRPStep2Data(bytesToHex(m1)), context)
+            m2 <- srpFunctions.computeM2(bigIntToBytes(aa), m1, kk)
+          } yield assertTrue(bytesToBigInt(m2) == step2Response.m2.toBigInt)
+        }
+      } yield assertTrue(res.isSuccess)
     }
   ).provideCustomLayerShared(environment)
