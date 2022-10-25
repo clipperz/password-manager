@@ -29,9 +29,9 @@ object HexStringSuite extends ZIOSpecDefault:
       }
     } @@ TestAspect.samples(10),
     test("compare HexString") {
-      check(Gen.stringN(10)(Gen.hexCharUpper)) { hexString =>
-        val hexStringEven = HexString(hexString)
-        val hexStringOdd = HexString("0" + hexString)
+      check(Gen.stringN(9)(Gen.hexCharUpper)) { hexString =>
+        val hexStringOdd = HexString(hexString)
+        val hexStringEven = HexString(s"0${hexString}")
         assertTrue(hexStringEven == hexStringOdd)
       }
     } @@ TestAspect.samples(10),
