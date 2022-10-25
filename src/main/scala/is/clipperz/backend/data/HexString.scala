@@ -26,7 +26,9 @@ case class HexString(private val s: String):
 
   override def toString(): String = this.toString(Base.Hex)
 
-  override def equals(x: Any): Boolean = this.toString == x.toString
+  override def equals(x: Any): Boolean = 
+    if x.isInstanceOf[HexString] then this.toBigInt == x.asInstanceOf[HexString].toBigInt else false
+    //this.toString == x.toString
 
 
 object HexString:

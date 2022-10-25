@@ -24,7 +24,7 @@ object HexStringSuite extends ZIOSpecDefault:
     test("create HexString") {
       check(Gen.stringN(10)(Gen.hexCharUpper)) { hexString =>
         val lowercaseHex = hexString.toLowerCase().nn
-        val hexStringFromConstructor = HexString(hexString).toString()
+        val hexStringFromConstructor = (HexString(hexString)).toString()
         assertTrue(lowercaseHex == hexStringFromConstructor)
       }
     } @@ TestAspect.samples(10),
@@ -44,6 +44,18 @@ object HexStringSuite extends ZIOSpecDefault:
       val str = "tschüs"
       val fromHex = HexString("74736368c3bc73").toString(Base.Dec)
       assertTrue(str == fromHex)
-    }
+    },
+    test("hex to bytes and back") {
+      check(Gen.stringN(9)(Gen.hexCharLower)) { hexString =>
+        val hex = HexString(hexString)
+        assertTrue(HexString.bytesToHex(hex.toByteArray) == hex)
+      }
+    } @@ TestAspect.samples(10),
+    test("hex to bigint and back") {
+      check(Gen.stringN(9)(Gen.hexCharLower)) { hexString =>
+        val hex = HexString(hexString)
+        assertTrue(HexString.bigIntToHex(hex.toBigInt) == hex)
+      }
+    } @@ TestAspect.samples(10)
   )
 
