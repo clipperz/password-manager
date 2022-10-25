@@ -40,7 +40,7 @@ object KeyBlobArchiveSpec extends ZIOSpecDefault:
     test("saveBlob - success") {
       for {
         fiber <- keyBlobArchive.saveBlob(testKey, testContent).fork
-        _ <- TestClock.adjust(Duration.fromMillis(10))
+        _ <- TestClock.adjust(Duration.fromMillis(KeyBlobArchive.WAIT_TIME + 10))
         _ <- fiber.join
         content <- keyBlobArchive.getBlob(testKey)
         result <- testContent.zip(content).map((a, b) => a == b).toIterator.map(_.map(_.getOrElse(false)).reduce(_ && _))
@@ -49,7 +49,7 @@ object KeyBlobArchiveSpec extends ZIOSpecDefault:
     test ("saveBlob with failing stream - success") {
       for {
        fiber <- keyBlobArchive.saveBlob(failingKey, failingContent).fork
-        _ <- TestClock.adjust(Duration.fromMillis(10))
+        _ <- TestClock.adjust(Duration.fromMillis(KeyBlobArchive.WAIT_TIME + 10))
         res <- assertZIO(fiber.await)(fails(isSubtype[EmptyContentException](anything)))
       } yield assertTrue(res.isSuccess)
     } +

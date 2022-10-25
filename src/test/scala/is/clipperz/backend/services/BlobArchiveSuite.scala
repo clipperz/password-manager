@@ -49,7 +49,7 @@ object BlobArchiveSpec extends ZIOSpecDefault:
       for {
         archive <- ZIO.service[BlobArchive]
         fiber <- archive.saveBlob(testKey, testContent).fork
-        _ <- TestClock.adjust(Duration.fromMillis(10))
+        _ <- TestClock.adjust(Duration.fromMillis(BlobArchive.WAIT_TIME + 10))
         _ <- fiber.join
         content <- archive.getBlob(testKey)
         result <- testContent.zip(content).map((a, b) => a == b).toIterator.map(_.map(_.getOrElse(false)).reduce(_ && _))
@@ -59,7 +59,7 @@ object BlobArchiveSpec extends ZIOSpecDefault:
       for {
        archive <- ZIO.service[BlobArchive]
        fiber <- archive.saveBlob(failingKey, failingContent).fork
-        _ <- TestClock.adjust(Duration.fromMillis(10))
+        _ <- TestClock.adjust(Duration.fromMillis(BlobArchive.WAIT_TIME + 10))
         res <- assertZIO(fiber.await)(fails(isSubtype[EmptyContentException](anything)))
       } yield assertTrue(res.isSuccess)
     } + 
@@ -67,7 +67,7 @@ object BlobArchiveSpec extends ZIOSpecDefault:
       for {
        archive <- ZIO.service[BlobArchive]
        fiber <- archive.saveBlob(failingKey, testContent).fork
-        _ <- TestClock.adjust(Duration.fromMillis(10))
+        _ <- TestClock.adjust(Duration.fromMillis(BlobArchive.WAIT_TIME + 10))
         res <- assertZIO(fiber.await)(fails(isSubtype[BadRequestException](anything)))
       } yield assertTrue(res.isSuccess)
     } +
