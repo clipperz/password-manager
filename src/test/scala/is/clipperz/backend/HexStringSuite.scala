@@ -61,6 +61,12 @@ object HexStringSuite extends ZIOSpecDefault:
         assertTrue(HexString.bigIntToHex(hex.toBigInt) == hex)
       }
     } @@ TestAspect.samples(samples),
+    test("bigint to hex and back") {
+      check(Gen.int) { i =>
+        val bi = BigInt(i)
+        assertTrue(HexString.bigIntToHex(bi).toBigInt == bi)
+      }
+    } @@ TestAspect.samples(samples),
     test("isHex - success") {
       check(Gen.stringN(9)(Gen.hexChar)) { s => assertTrue(HexString.isHex(s)) }
     } @@ TestAspect.samples(samples),
