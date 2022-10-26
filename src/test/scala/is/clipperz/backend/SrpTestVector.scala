@@ -1,4 +1,4 @@
-package is.clipperz.backend
+package is.clipperz.backend.data.srp
 
 import is.clipperz.backend.data.HexString
 

@@ -3,13 +3,16 @@ package is.clipperz.backend.apis
 import java.nio.file.FileSystems
 import zio.ZIO
 import zio.stream.ZStream
-import zio.test.{ ZIOSpecDefault, assertTrue, check }
+import zio.test.Assertion.{ isTrue }
+import zio.test.{ ZIOSpecDefault, assertTrue, assertZIO, check }
 import zio.test.TestAspect.timeout
 import is.clipperz.backend.functions.SrpFunctions.{ baseConfiguration, SrpFunctionsV6a }
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.{ bigIntToHex, bytesToHex }
 import is.clipperz.backend.functions.Conversions.{ bytesToBigInt, bigIntToBytes }
 import is.clipperz.backend.functions.crypto.HashFunction
+import is.clipperz.backend.functions.crypto.HashFunction.{ hashSHA256 }
+import is.clipperz.backend.functions.crypto.KeyDerivationFunction.{ kdfSHA256 }
 import is.clipperz.backend.services.UserArchive
 import is.clipperz.backend.services.PRNG
 import is.clipperz.backend.services.SessionManager
@@ -17,32 +20,47 @@ import is.clipperz.backend.services.SrpManager
 import is.clipperz.backend.services.UserCard
 import is.clipperz.backend.services.SRPStep1Data
 import is.clipperz.backend.services.SRPStep2Data
-import is.clipperz.backend.{TestUtilities, SrpTestVector, RFCTestVector}
+import is.clipperz.backend.TestUtilities
 import zio.test.TestAspect
 import zio.test.Gen
 import zio.test.Spec
+import is.clipperz.backend.data.srp.SRPGroup.apply
+import is.clipperz.backend.data.srp.SRPConfigV6a
+import is.clipperz.backend.data.srp.SRPGroup
+import is.clipperz.backend.data.srp.{SrpTestVector, RFCTestVector}
 
 object SrpFunctionsSpec extends ZIOSpecDefault:
   val samples = 10
 
   val testVectors = List(RFCTestVector)
 
-  def makeTestsFromVectors(testVector: SrpTestVector): Spec[Any, Nothing] =
+  def makeTestsFromVectors(testVector: SrpTestVector) =
+    val srpFunctions = new SrpFunctionsV6a(SRPConfigV6a(SRPGroup(testVector.nn, testVector.g), testVector.k, hashSHA256, kdfSHA256))
     test(s"compute aa - ${testVector}") {
-      val srpFunctions = new SrpFunctionsV6a()
       assertTrue(srpFunctions.computeA(testVector.a) == testVector.aa)
     } +
     test(s"compute bb - ${testVector}") {  
-      val srpFunctions = new SrpFunctionsV6a()
       assertTrue(srpFunctions.computeB(testVector.b, testVector.v) == testVector.bb) 
     } +
     test(s"compute server secret - ${testVector}") {
-      val srpFunctions = new SrpFunctionsV6a()
       assertTrue(srpFunctions.computeSecretServer(testVector.aa, testVector.b, testVector.v, testVector.u) == testVector.secret) 
     } +
     test(s"compute client secret - ${testVector}") {
-      val srpFunctions = new SrpFunctionsV6a()
       assertTrue(srpFunctions.computeSecretClient(testVector.bb, testVector.x, testVector.a, testVector.u) == testVector.secret) 
+    } +
+    test(s"compute u - ${testVector}") {
+      srpFunctions
+        .computeU(testVector.aa.toByteArray, testVector.bb.toByteArray)
+        .map(bytes => bytesToHex(bytes).toString())
+        .map(hex => assertTrue(hex == testVector.u.toString(16)))
+    } + 
+    test(s"compute v - ${testVector}") {
+      assertTrue(srpFunctions.computeV(testVector.x) == testVector.v) 
+    } +
+    test(s"compute k - ${testVector}") {
+      srpFunctions
+        .computeK(testVector.s)
+        .map(bytes => assertTrue(bytesToBigInt(bytes) == testVector.k))
     }
 
   def spec = suite("SrpFunctions")(
