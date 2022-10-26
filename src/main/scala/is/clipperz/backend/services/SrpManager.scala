@@ -8,6 +8,7 @@ import is.clipperz.backend.data.HexString.*
 import is.clipperz.backend.functions.Conversions.*
 import is.clipperz.backend.functions.SrpFunctions.{ SrpFunctionsV6a }
 import is.clipperz.backend.exceptions.ResourceNotFoundException
+import is.clipperz.backend.exceptions.BadRequestException
 
 // ============================================================================
 
@@ -68,42 +69,39 @@ object SrpManager:
         }
 
     override def srpStep2 (step2Data: SRPStep2Data, session: Session): Task[(SRPStep2Response, Session)] =
-      try
-        val aa        = HexString(session("A").get)
-        val bb        = HexString(session("B").get)
-        val b         = HexString(session("b").get)
-        val c         = HexString(session("c").get)
-        val zioUser = userArchive.getUser(c).flatMap(u => ZIO.attempt(u.get))
-        val zioK : Task[Array[Byte]] = for {
-          u: Array[Byte]  <- srpFunctions.computeU(aa.toByteArray, bb.toByteArray)
-          user: UserCard  <- zioUser
-          v: BigInt       <- ZIO.attempt(user.v.toBigInt)
-          secret: BigInt  <- ZIO.succeed(srpFunctions.computeSecretServer(aa.toBigInt, b.toBigInt, v, bytesToBigInt(u)))
-          kk: Array[Byte] <- srpFunctions.computeK(secret)
-          kk: Array[Byte] <- configuration.hash(ZStream.fromIterable(bigIntToBytes(secret)))
-        } yield kk
-        val zioM1: Task[Array[Byte]] = for {
-          user: UserCard  <- zioUser
-          kk: Array[Byte] <- zioK
-          m1: Array[Byte] <- srpFunctions.computeM1(user.c.toByteArray, user.s.toByteArray, aa.toByteArray, bb.toByteArray, kk)
-        } yield m1
-  
-        zioM1.flatMap(m1 => {
-          val m1Server = bytesToBigInt(m1)
-          val m1Client = step2Data.m1.toBigInt
-          if m1Server == m1Client then {
-            for {
-              user: UserCard  <- zioUser
-              kk: Array[Byte] <- zioK
-              m2: Array[Byte] <- srpFunctions.computeM2(aa.toByteArray, step2Data.m1.toByteArray, kk)
-              result <- ZIO.succeed((SRPStep2Response(bytesToHex(m2), user.masterKeyContent), session)) //TODO: what to put in sessione context
-            } yield result
-          } else {
-            ZIO.fail(new Exception(s"M1 is not correct => M1 SERVER ${bytesToHex(m1)} != M1 CLIENT ${step2Data.m1}"))
-          }
-        })
-      catch
-        case e: Exception => ZIO.fail(e)
+      val aa        = HexString(session("A").get)
+      val bb        = HexString(session("B").get)
+      val b         = HexString(session("b").get)
+      val c         = HexString(session("c").get)
+      val zioUser = userArchive.getUser(c).flatMap(u => ZIO.attempt(u.get))
+      val zioK : Task[Array[Byte]] = for {
+        u: Array[Byte]  <- srpFunctions.computeU(aa.toByteArray, bb.toByteArray)
+        user: UserCard  <- zioUser
+        v: BigInt       <- ZIO.attempt(user.v.toBigInt)
+        secret: BigInt  <- ZIO.succeed(srpFunctions.computeSecretServer(aa.toBigInt, b.toBigInt, v, bytesToBigInt(u)))
+        kk: Array[Byte] <- srpFunctions.computeK(secret)
+        kk: Array[Byte] <- configuration.hash(ZStream.fromIterable(bigIntToBytes(secret)))
+      } yield kk
+      val zioM1: Task[Array[Byte]] = for {
+        user: UserCard  <- zioUser
+        kk: Array[Byte] <- zioK
+        m1: Array[Byte] <- srpFunctions.computeM1(user.c.toByteArray, user.s.toByteArray, aa.toByteArray, bb.toByteArray, kk)
+      } yield m1
+
+      zioM1.flatMap(m1 => {
+        val m1Server = bytesToBigInt(m1)
+        val m1Client = step2Data.m1.toBigInt
+        if m1Server == m1Client then {
+          for {
+            user: UserCard  <- zioUser
+            kk: Array[Byte] <- zioK
+            m2: Array[Byte] <- srpFunctions.computeM2(aa.toByteArray, step2Data.m1.toByteArray, kk)
+            result <- ZIO.succeed((SRPStep2Response(bytesToHex(m2), user.masterKeyContent), session)) //TODO: what to put in sessione context
+          } yield result
+        } else {
+          ZIO.fail(new BadRequestException(s"M1 is not correct => M1 SERVER ${bytesToHex(m1)} != M1 CLIENT ${step2Data.m1}"))
+        }
+      })
 
   def v6a(): ZLayer[UserArchive & PRNG, Throwable, SrpManager] =
     val srpFunctions = new SrpFunctionsV6a()
