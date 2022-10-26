@@ -34,6 +34,20 @@ def getNextChallengeType(req: Request): ChallengeType =
     case "login" => ChallengeType.MESSAGE
     case "blobs" => ChallengeType.MESSAGE
 
+def isTollInSession(req: Request): ZIO[SessionManager, Throwable, Boolean] =
+  ZIO
+    .service[SessionManager]
+    .zip(ZIO.attempt(req.headers.headerValue(SessionManager.sessionKeyHeaderName).get))
+    .flatMap((sessionManager, sessionKey) =>
+      sessionManager
+        .getSession(sessionKey)
+        .map(session => session(TollManager.tollChallengeContentKey))
+        .map(_.isDefined)
+    )
+    .catchSome {
+      case ex => ZIO.succeed(false)
+    }
+
 def checkReceipt(req: Request): ZIO[TollManager & SessionManager, Throwable, Boolean] = 
   ZIO
     .service[TollManager]
@@ -53,7 +67,7 @@ def checkReceipt(req: Request): ZIO[TollManager & SessionManager, Throwable, Boo
       case ex => ZIO.succeed(false)
     }
 
-val wrongTollMiddleware : Request => TollMiddleware = req =>
+def wrongTollMiddleware(responseStatus: Status) : Request => TollMiddleware = req =>
   Middleware.fromHttp(
       Http.responseZIO (
         ZIO
@@ -69,7 +83,7 @@ val wrongTollMiddleware : Request => TollMiddleware = req =>
           )
           .map(tollChallenge => 
             Response(
-              status = Status.PaymentRequired,
+              status = responseStatus,
               headers = Headers((TollManager.tollHeader, tollChallenge.toll.toString), 
                                 (TollManager.tollCostHeader, tollChallenge.cost.toString))
             )
@@ -81,7 +95,7 @@ val wrongTollMiddleware : Request => TollMiddleware = req =>
     )
 
 val missingTollMiddleware: Request => TollMiddleware = req =>
-  wrongTollMiddleware(req)
+  wrongTollMiddleware(Status.PaymentRequired)(req)
 
 val correctReceiptMiddleware: Request => TollMiddleware = req =>
   Middleware.patchZIO(_ =>
@@ -107,10 +121,14 @@ val correctReceiptMiddleware: Request => TollMiddleware = req =>
 
 val tollPresentMiddleware: Request => TollMiddleware = req =>
   Middleware.ifThenElseZIO[Request]
-    (req => checkReceipt(req))
-    ( correctReceiptMiddleware //keep the request going and add headers with the new toll to the response
-    , wrongTollMiddleware //
-    )
+    (req => isTollInSession(req))
+      (r => Middleware.ifThenElseZIO[Request]
+              (r => checkReceipt(r))
+              ( correctReceiptMiddleware //keep the request going and add headers with the new toll to the response
+              , wrongTollMiddleware(Status.PaymentRequired) //
+              )
+      , wrongTollMiddleware(Status.BadRequest)
+      )
 
 val hashcash: TollMiddleware = Middleware.ifThenElse[Request]
   (req => req.headers.hasHeader(TollManager.tollReceiptHeader))

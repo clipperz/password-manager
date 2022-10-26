@@ -75,7 +75,7 @@ object HashCashMiddleareSpec extends ZIOSpecDefault:
       assertZIO(response.map(res => res.headers.hasHeader(TollManager.tollCostHeader)))(isTrue)
     },
     test("400 if hashcash present but never issued") {
-      assertZIO(idApp(getWithFixedToll).map(res => res.status == Status.PaymentRequired))(isTrue)
+      assertZIO(idApp(getWithFixedToll).map(res => res.status == Status.BadRequest))(isTrue)
     },
     test("402 if hashcash is present but incorrect") {
       for {
