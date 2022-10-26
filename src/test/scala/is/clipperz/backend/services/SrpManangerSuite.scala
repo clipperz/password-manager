@@ -18,8 +18,11 @@ import is.clipperz.backend.services.UserCard
 import is.clipperz.backend.services.SRPStep1Data
 import is.clipperz.backend.services.SRPStep2Data
 import is.clipperz.backend.TestUtilities
+import zio.test.TestAspect
 
 object SrpManangerSpec extends ZIOSpecDefault:
+  val samples = 10
+
   val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
   val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
 
@@ -129,18 +132,18 @@ object SrpManangerSpec extends ZIOSpecDefault:
     test("test secret generation by client and server") {
       for {
         prng <- ZIO.service[PRNG]
-        res <- check(TestUtilities.getBytesGen(prng, 32), TestUtilities.getBytesGen(prng, 32)) { (pBytes, sBytes) =>
+        res <- check(TestUtilities.getBytesGen(prng, 32),
+                     TestUtilities.getBytesGen(prng, 32),
+                     TestUtilities.getBytesGen(prng, 64),
+                     TestUtilities.getBytesGen(prng, 64)) { (pBytes, sBytes, a, b) =>
           val srpFunctions = new SrpFunctionsV6a()
 
           val pHex = HexString.bytesToHex(pBytes)
           val sHex = HexString.bytesToHex(sBytes)
 
           for {
-            a <- prng.nextBytes(64)
             aa <- ZIO.succeed(srpFunctions.computeA(bytesToBigInt(a)))
-            b <- prng.nextBytes(64)
-            x <- srpFunctions.configuration.keyDerivationFunction(sBytes, pBytes)
-                  .map(bytes => bytesToBigInt(bytes))
+            x <- srpFunctions.configuration.keyDerivationFunction(sBytes, pBytes).map(bytes => bytesToBigInt(bytes))
             v <- ZIO.succeed(srpFunctions.computeV(x))
             bb <- ZIO.succeed(srpFunctions.computeB(bytesToBigInt(b), v))
             u <- srpFunctions.computeU(bigIntToBytes(aa), bigIntToBytes(bb))
@@ -149,7 +152,7 @@ object SrpManangerSpec extends ZIOSpecDefault:
           } yield assertTrue(secretClient == secretServer)
         }
       } yield res
-    } +
+    } @@ TestAspect.samples(samples) +
     test("hash of byte array") {
       val hex = HexString("a27054ba67c93082d84d7c525f26ffa12d7de961419bbd5d09c4e09c01bb50280f1badda26f69993aea56d1689aebfb42947a63ccb09932de0d07cb457f9691853f765a16baf77ede507cf358b35de4cfb417b246745d875e70b1d463b200789e5edfd7ab6b3c888a296e690d52e7e235152a25ee6fa8354d1bc0138bf95cea")
       val ab = hex.toByteArray
@@ -163,7 +166,8 @@ object SrpManangerSpec extends ZIOSpecDefault:
         prng <- ZIO.service[PRNG]
         res <- check(TestUtilities.getBytesGen(prng, 32), 
                      TestUtilities.getBytesGen(prng, 32), 
-                     TestUtilities.getBytesGen(prng, 32)) { (c, p, s) =>
+                     TestUtilities.getBytesGen(prng, 32),
+                     TestUtilities.getBytesGen(prng, 64)) { (c, p, s, a) =>
           val srpFunctions = new SrpFunctionsV6a()
           val config = srpFunctions.configuration
           
@@ -174,8 +178,7 @@ object SrpManangerSpec extends ZIOSpecDefault:
           val nn = srpFunctions.configuration.group.nn
 
           for {
-            x <- config.keyDerivationFunction(s, p)
-                  .map(bytes => bytesToBigInt(bytes))
+            x <- config.keyDerivationFunction(s, p).map(bytes => bytesToBigInt(bytes))
             v <- ZIO.succeed(srpFunctions.computeV(x))
             card <- ZIO.succeed(UserCard(
               c = cHex,
@@ -185,19 +188,13 @@ object SrpManangerSpec extends ZIOSpecDefault:
               masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
               masterKeyContent = HexString("masterKeyContent_testFullTrip"),
             ))
-            
-            //-------------------
-            
+
             userAchive <- ZIO.service[UserArchive]
             username <- userAchive.saveUser(card, true)
-            
-            //-------------------
 
             session <- ZIO.service[SessionManager]
             sessionContext <- session.getSession("test")
             srp <- ZIO.service[SrpManager]
-            prng <- ZIO.service[PRNG]
-            a <- prng.nextBytes(64)
             aa <- ZIO.succeed(srpFunctions.computeA(bytesToBigInt(a)))
             (step1Response, context) <- srp.srpStep1(SRPStep1Data(cHex, bigIntToHex(aa)), sessionContext)
             u <- srpFunctions.computeU(bigIntToBytes(aa), step1Response.bb.toByteArray)
@@ -211,5 +208,5 @@ object SrpManangerSpec extends ZIOSpecDefault:
           } yield assertTrue(bytesToBigInt(m2) == step2Response.m2.toBigInt)
         }
       } yield res
-    }
+    } @@ TestAspect.samples(samples)
   ).provideCustomLayerShared(environment)

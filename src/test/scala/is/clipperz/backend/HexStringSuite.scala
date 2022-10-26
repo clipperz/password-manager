@@ -71,6 +71,7 @@ object HexStringSuite extends ZIOSpecDefault:
     } @@ TestAspect.samples(samples),
     test("bigint to hex and back") {
       check(Gen.int) { i =>
+        // TODO: cannot directly convert from int to bigint because negative numbers are not correctly managed when covnerting from bigint to hexstring
         val bi = BigInt(i.toHexString, 16)
         assertTrue(HexString.bigIntToHex(bi).toBigInt == bi)
       }
