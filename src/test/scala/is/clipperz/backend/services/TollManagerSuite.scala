@@ -50,7 +50,7 @@ object TollManagerSpec extends ZIOSpecDefault:
           else
             assertZIO(manager.getToll(i).map(_.cost == i).exit)(fails(isSubtype[IllegalArgumentException](anything)))
         }
-      } yield assertTrue(res.isSuccess)
+      } yield res
     } @@ TestAspect.samples(10) +
     test("verifyToll - success") {
       for {
@@ -61,9 +61,9 @@ object TollManagerSpec extends ZIOSpecDefault:
             hash <- ByteArrays.hashOfArrays(HashFunction.hashSHA256, bytes)
                               .map(HexString.bytesToHex)
             res <- assertZIO(manager.verifyToll(TollChallenge(hash, 15), HexString.bytesToHex(bytes)))(isTrue)
-          } yield assertTrue(res.isSuccess)
+          } yield res
         }
-      } yield assertTrue(res.isSuccess)
+      } yield res
     } @@ TestAspect.samples(10) +
     test("verifyToll - fail") { // TODO: improve
       for {
@@ -74,9 +74,9 @@ object TollManagerSpec extends ZIOSpecDefault:
             hash <- ByteArrays.hashOfArrays(HashFunction.hashSHA256, bytes)
                               .map(HexString.bytesToHex)
             res <- assertZIO(manager.verifyToll(TollChallenge(hash, 15), HexString("0000000000000")))(isFalse)
-          } yield assertTrue(res.isSuccess)
+          } yield res
         }
-      } yield assertTrue(res.isSuccess)
+      } yield res
     } @@ TestAspect.samples(10) +
     test("verifyToll - fail - invalid challenge cost") { // TODO: improve
       for {
@@ -88,6 +88,6 @@ object TollManagerSpec extends ZIOSpecDefault:
           else
             assertZIO(manager.verifyToll(TollChallenge(hash, i), hexString).exit)(fails(isSubtype[IllegalArgumentException](anything)))
         }
-      } yield assertTrue(res.isSuccess)
+      } yield res
     } @@ TestAspect.samples(10)
   ).provideSomeLayerShared(layers)

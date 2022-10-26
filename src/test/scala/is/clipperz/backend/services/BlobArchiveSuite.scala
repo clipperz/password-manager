@@ -41,7 +41,7 @@ object BlobArchiveSpec extends ZIOSpecDefault:
       for {
         archive <- ZIO.service[BlobArchive]
         res <- assertZIO(archive.getBlob(testKey).exit)(fails(isSubtype[ResourceNotFoundException](anything)))
-      } yield assertTrue(res.isSuccess)
+      } yield res
     } +
     test("saveBlob - success") {
       for {
@@ -59,7 +59,7 @@ object BlobArchiveSpec extends ZIOSpecDefault:
        fiber <- archive.saveBlob(failingKey, failingContent).fork
         _ <- TestClock.adjust(Duration.fromMillis(BlobArchive.WAIT_TIME + 10))
         res <- assertZIO(fiber.await)(fails(isSubtype[EmptyContentException](anything)))
-      } yield assertTrue(res.isSuccess)
+      } yield res
     } + 
     test ("saveBlob with wrong hash - success") {
       for {
@@ -67,7 +67,7 @@ object BlobArchiveSpec extends ZIOSpecDefault:
        fiber <- archive.saveBlob(failingKey, testContent).fork
         _ <- TestClock.adjust(Duration.fromMillis(BlobArchive.WAIT_TIME + 10))
         res <- assertZIO(fiber.await)(fails(isSubtype[BadRequestException](anything)))
-      } yield assertTrue(res.isSuccess)
+      } yield res
     } +
     test("getBlob - success") {
       for {

@@ -62,19 +62,17 @@ object SrpManangerSpec extends ZIOSpecDefault:
         EB4012B7 D7665238 A8E3FB00 4B117B58  
       """.filterNot(_.isWhitespace), 16)
 
-      for {
-        srpFunctions <- ZIO.succeed(new SrpFunctionsV6a())
-        b <- ZIO.succeed(HexString("E487CB59 D31AC550 471E81F0 0F6928E0 1DDA08E9 74A004F4 9E61F5D1 05284D20".filterNot(_.isWhitespace)).toBigInt)
-        v <- ZIO.succeed(BigInt("""
-          7E273DE8 696FFC4F 4E337D05 B4B375BE B0DDE156 9E8FA00A 9886D812
-          9BADA1F1 822223CA 1A605B53 0E379BA4 729FDC59 F105B478 7E5186F5
-          C671085A 1447B52A 48CF1970 B4FB6F84 00BBF4CE BFBB1681 52E08AB5
-          EA53D15C 1AFF87B2 B9DA6E04 E058AD51 CC72BFC9 033B564E 26480D78
-          E955A5E2 9E7AB245 DB2BE315 E2099AFB
-        """.filterNot(_.isWhitespace), 16))
-        computedB <- ZIO.succeed(srpFunctions.computeB(b, v))
-      } yield assertTrue(computedB == bb)
-
+      val srpFunctions = new SrpFunctionsV6a()
+      val b = HexString("E487CB59 D31AC550 471E81F0 0F6928E0 1DDA08E9 74A004F4 9E61F5D1 05284D20".filterNot(_.isWhitespace)).toBigInt
+      val v = BigInt("""
+        7E273DE8 696FFC4F 4E337D05 B4B375BE B0DDE156 9E8FA00A 9886D812
+        9BADA1F1 822223CA 1A605B53 0E379BA4 729FDC59 F105B478 7E5186F5
+        C671085A 1447B52A 48CF1970 B4FB6F84 00BBF4CE BFBB1681 52E08AB5
+        EA53D15C 1AFF87B2 B9DA6E04 E058AD51 CC72BFC9 033B564E 26480D78
+        E955A5E2 9E7AB245 DB2BE315 E2099AFB
+      """.filterNot(_.isWhitespace), 16)
+      val computedB = srpFunctions.computeB(b, v)
+      assertTrue(computedB == bb)
     } +
     test("compute server secret") {
       val srpFunctions = new SrpFunctionsV6a()
@@ -150,7 +148,7 @@ object SrpManangerSpec extends ZIOSpecDefault:
             secretServer <- ZIO.succeed(srpFunctions.computeSecretServer(aa, bytesToBigInt(b), v, bytesToBigInt(u)))
           } yield assertTrue(secretClient == secretServer)
         }
-      } yield assertTrue(res.isSuccess)
+      } yield res
     } +
     test("hash of byte array") {
       val hex = HexString("a27054ba67c93082d84d7c525f26ffa12d7de961419bbd5d09c4e09c01bb50280f1badda26f69993aea56d1689aebfb42947a63ccb09932de0d07cb457f9691853f765a16baf77ede507cf358b35de4cfb417b246745d875e70b1d463b200789e5edfd7ab6b3c888a296e690d52e7e235152a25ee6fa8354d1bc0138bf95cea")
@@ -212,6 +210,6 @@ object SrpManangerSpec extends ZIOSpecDefault:
             m2 <- srpFunctions.computeM2(bigIntToBytes(aa), m1, kk)
           } yield assertTrue(bytesToBigInt(m2) == step2Response.m2.toBigInt)
         }
-      } yield assertTrue(res.isSuccess)
+      } yield res
     }
   ).provideCustomLayerShared(environment)

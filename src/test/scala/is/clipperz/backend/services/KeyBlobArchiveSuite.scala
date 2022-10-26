@@ -49,7 +49,7 @@ object KeyBlobArchiveSpec extends ZIOSpecDefault:
        fiber <- keyBlobArchive.saveBlob(failingKey, failingContent).fork
         _ <- TestClock.adjust(Duration.fromMillis(KeyBlobArchive.WAIT_TIME + 10))
         res <- assertZIO(fiber.await)(fails(isSubtype[EmptyContentException](anything)))
-      } yield assertTrue(res.isSuccess)
+      } yield res
     } +
     test("getBlob - success") {
       for {

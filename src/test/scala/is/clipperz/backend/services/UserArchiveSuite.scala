@@ -60,7 +60,7 @@ object UserArchiveSpec extends ZIOSpecDefault:
         fiber <- archive.saveUser(testUser2, false).fork
         _ <- TestClock.adjust(Duration.fromMillis(10))
         res <- assertZIO(fiber.await)(fails(isSubtype[ResourceConflictException](anything)))
-      } yield assertTrue(res.isSuccess)
+      } yield res
     } + 
     test ("saveBlob with overwrite - success") {
       for {

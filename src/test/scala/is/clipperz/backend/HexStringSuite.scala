@@ -61,9 +61,17 @@ object HexStringSuite extends ZIOSpecDefault:
         assertTrue(HexString.bigIntToHex(hex.toBigInt) == hex)
       }
     } @@ TestAspect.samples(samples),
+    test("bytes to hex and back") {
+      for {
+        prng <- ZIO.service[PRNG]
+        res <- check(TestUtilities.getBytesGen(prng, 16)) { bytes =>
+          assertTrue(HexString.bytesToHex(bytes).toByteArray == bytes)
+        }
+      } yield res
+    } @@ TestAspect.samples(samples),
     test("bigint to hex and back") {
       check(Gen.int) { i =>
-        val bi = BigInt(i)
+        val bi = BigInt(i.toHexString, 16)
         assertTrue(HexString.bigIntToHex(bi).toBigInt == bi)
       }
     } @@ TestAspect.samples(samples),
@@ -89,5 +97,5 @@ object HexStringSuite extends ZIOSpecDefault:
           assertTrue(HexString(s).toString(Base.Dec) == s)
       }
     } @@ TestAspect.samples(samples)
-  )
+  ).provideSomeLayer(PRNG.live)
 

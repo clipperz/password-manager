@@ -80,7 +80,7 @@ object SessionManagerSpec extends ZIOSpecDefault:
       for {
         manager <- ZIO.service[SessionManager]
         res <- assertZIO(manager.verifySessionUser(cfail, testRequestFail).exit)(fails(isSubtype[BadRequestException](anything)))
-      } yield assertTrue(res.isSuccess)
+      } yield res
     } +
     test("deleteSession - success") {
       for {
@@ -93,12 +93,12 @@ object SessionManagerSpec extends ZIOSpecDefault:
       for {
         manager <- ZIO.service[SessionManager]
         res <- assertZIO(manager.verifySessionUser(c, testRequestSuccess).exit)(fails(isSubtype[BadRequestException](anything)))
-      } yield assertTrue(res.isSuccess)
+      } yield res
     } +
     test("verifySessionUser - fail - no header") {
       for {
         manager <- ZIO.service[SessionManager]
         res <- assertZIO(manager.verifySessionUser(c, testRequestNoHeader).exit)(fails(isSubtype[BadRequestException](anything)))
-      } yield assertTrue(res.isSuccess)
+      } yield res
     }
   ).provideLayerShared(layers) @@ TestAspect.sequential 
