@@ -1,4 +1,4 @@
-package is.clipperz.backend.apis
+package is.clipperz.backend.middleware
 
 
 import java.io.File
@@ -31,7 +31,7 @@ import is.clipperz.backend.middleware.{ hashcash, tollPresentMiddleware, correct
 import is.clipperz.backend.services.TollChallenge
 import is.clipperz.backend.services.TollReceipt
 
-object HashCashMiddleareSpec extends ZIOSpecDefault:
+object HashCashMiddlewareSpec extends ZIOSpecDefault:
   val layers =
     PRNG.live ++
     SessionManager.live ++
@@ -62,7 +62,7 @@ object HashCashMiddleareSpec extends ZIOSpecDefault:
 
   val idApp: HttpApp[TollManager & SessionManager, Throwable] = Http.ok @@ hashcash
 
-  def spec = suite("http - blob")(
+  def spec = suite("HashCashMiddleware")(
     test("400 if no session is active") {
       assertZIO(idApp(get).map(res => res.status == Status.BadRequest))(isTrue)
     },
