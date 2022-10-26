@@ -10,6 +10,7 @@ import zio.{ Chunk, ZIO, Task }
 import zio.stream.{ ZStream, ZSink }
 import zio.test.Assertion.{ nothing, isTrue }
 import zio.test.{ ZIOSpecDefault, assertTrue, assertNever, assert, assertZIO, TestAspect }
+import zio.test.TestResult.{ all }
 import zio.json.EncoderOps
 import zhttp.http.{ Version, Headers, Method, URL, Request, HttpData }
 import zhttp.http.*
@@ -37,19 +38,25 @@ object SessionMiddlewareSpec extends ZIOSpecDefault:
 
   val sessionKey = "sessionKey"
 
-  val get = Request(
-    url = URL(!! / "blobs" / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
-    method = Method.GET,
-    headers = Headers.empty,
-    version = Version.Http_1_1,
-  )
+   def getFromPath(path: String): Request =
+    Request(
+      url = URL(!! / path / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
+      method = Method.GET,
+      headers = Headers.empty,
+      version = Version.Http_1_1,
+    )
 
-  val getWithSession = Request(
-    url = URL(!! / "blobs" / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
-    method = Method.GET,
-    headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
-    version = Version.Http_1_1,
-  )
+  def withSessionFromPath(path: String, method: Method): Request =
+    Request(
+      url = URL(!! / path / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
+      method = method,
+      headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
+      version = Version.Http_1_1,
+    )
+
+  val getWithSession = withSessionFromPath("blobs", Method.GET)
+
+  val get = getFromPath("ciao")
 
   val createSession = Request(
     url = URL(!! / "create" / sessionKey),
@@ -71,16 +78,41 @@ object SessionMiddlewareSpec extends ZIOSpecDefault:
 
   val idApp: HttpApp[SessionManager, Throwable] = createSessionApi ++ (Http.ok @@ sessionChecks)
 
+  val sessionHeaderNecessary = List("users", "login", "blobs", "logout")
+  val validSessionNecessary = List(("blobs", List(Method.PUT, Method.POST, Method.GET, Method.DELETE)), 
+                                   ("logout", List(Method.POST)),
+                                   ("users", List(Method.PUT, Method.GET, Method.DELETE))
+                                  )
+  val validSessionNonNecessary = List(("login", List(Method.POST)),
+                                      ("users", List(Method.POST))
+                                     )
+
   def spec = suite("SessionMiddleware")(
-    test("400 if no session header") {
-      assertZIO(idApp(get).map(res => res.status == Status.BadRequest))(isTrue)
+    test("200 if no session header when not necessary") {
+      assertZIO(idApp(get).map(res => res.status == Status.Ok))(isTrue)
     },
-    test("401 if session is not present/empty") {
-      assertZIO(idApp(getWithSession).map(res => res.status == Status.Unauthorized))(isTrue)
+    test("400 if no session header when necessary") {
+      sessionHeaderNecessary.map(path =>
+        assertZIO(idApp(getFromPath(path)).map(res => res.status == Status.BadRequest))(isTrue)
+      ).reduce((zio1, zio2) => zio1.flatMap(z1 => zio2.map(z1 && _)))
+    },
+    test("401 if session is not present/empty when it should be valid") {
+      validSessionNecessary.map((path, methods) =>
+        methods.map(method =>
+          assertZIO(idApp(withSessionFromPath(path, method)).map(res => res.status == Status.Unauthorized))(isTrue)
+        ).reduce((zio1, zio2) => zio1.flatMap(z1 => zio2.map(z1 && _)))
+      ).reduce((zio1, zio2) => zio1.flatMap(z1 => zio2.map(z1 && _)))
+    },
+    test("200 if session is not present/empty when it is not necessary for it to be valid") {
+      validSessionNonNecessary.map((path, methods) =>
+        methods.map(method =>
+          assertZIO(idApp(withSessionFromPath(path, method)).map(res => res.status == Status.Ok))(isTrue)
+        ).reduce((zio1, zio2) => zio1.flatMap(z1 => zio2.map(z1 && _)))
+      ).reduce((zio1, zio2) => zio1.flatMap(z1 => zio2.map(z1 && _)))
     },
     test("200 if session is present and correct") {
       assertZIO(idApp(createSession).flatMap(_ => idApp(getWithSession).map(res => res.status == Status.Ok)))(isTrue)
-    }
+    },
   ).provideSomeLayer(layers) @@ 
     TestAspect.sequential
 
