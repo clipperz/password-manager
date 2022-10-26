@@ -12,3 +12,9 @@ object HashFunction:
       .run(ZSink.digest(MessageDigest.getInstance("SHA-256").nn))
       .map((chunk: Chunk[Byte]) => chunk.toArray)
   }
+
+  val hashSHA1: HashFunction = (bytes: ZStream[Any, Throwable, Byte]) => {
+    bytes
+      .run(ZSink.digest(MessageDigest.getInstance("SHA-1").nn))
+      .map((chunk: Chunk[Byte]) => chunk.toArray)
+  }

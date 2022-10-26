@@ -11,3 +11,7 @@ object KeyDerivationFunction:
     HashFunction.hashSHA256(ZStream.fromIterable(salt ++ password))
   }
 
+  val kdfSHA1: KeyDerivationFunction = (salt: Array[Byte], password: Array[Byte]) => {
+    HashFunction.hashSHA1(ZStream.fromIterable(salt ++ password))
+  }
+

@@ -11,8 +11,8 @@ import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.{ bigIntToHex, bytesToHex }
 import is.clipperz.backend.functions.Conversions.{ bytesToBigInt, bigIntToBytes }
 import is.clipperz.backend.functions.crypto.HashFunction
-import is.clipperz.backend.functions.crypto.HashFunction.{ hashSHA256 }
-import is.clipperz.backend.functions.crypto.KeyDerivationFunction.{ kdfSHA256 }
+import is.clipperz.backend.functions.crypto.HashFunction.{ hashSHA1 }
+import is.clipperz.backend.functions.crypto.KeyDerivationFunction.{ kdfSHA1 }
 import is.clipperz.backend.services.UserArchive
 import is.clipperz.backend.services.PRNG
 import is.clipperz.backend.services.SessionManager
@@ -35,7 +35,7 @@ object SrpFunctionsSpec extends ZIOSpecDefault:
   val testVectors = List(RFCTestVector)
 
   def makeTestsFromVectors(testVector: SrpTestVector) =
-    val srpFunctions = new SrpFunctionsV6a(SRPConfigV6a(SRPGroup(testVector.nn, testVector.g), testVector.k, hashSHA256, kdfSHA256))
+    val srpFunctions = new SrpFunctionsV6a(SRPConfigV6a(SRPGroup(testVector.nn, testVector.g), testVector.k, hashSHA1, kdfSHA1))
     test(s"compute aa - ${testVector}") {
       assertTrue(srpFunctions.computeA(testVector.a) == testVector.aa)
     } +
@@ -48,20 +48,20 @@ object SrpFunctionsSpec extends ZIOSpecDefault:
     test(s"compute client secret - ${testVector}") {
       assertTrue(srpFunctions.computeSecretClient(testVector.bb, testVector.x, testVector.a, testVector.u) == testVector.secret) 
     } +
+    test(s"compute v - ${testVector}") {
+      assertTrue(srpFunctions.computeV(testVector.x) == testVector.v) 
+    }/* +
     test(s"compute u - ${testVector}") {
       srpFunctions
         .computeU(testVector.aa.toByteArray, testVector.bb.toByteArray)
         .map(bytes => bytesToHex(bytes).toString())
         .map(hex => assertTrue(hex == testVector.u.toString(16)))
     } + 
-    test(s"compute v - ${testVector}") {
-      assertTrue(srpFunctions.computeV(testVector.x) == testVector.v) 
-    } +
     test(s"compute k - ${testVector}") {
       srpFunctions
         .computeK(testVector.s)
         .map(bytes => assertTrue(bytesToBigInt(bytes) == testVector.k))
-    }
+    } */
 
   def spec = suite("SrpFunctions")(
     testVectors.map(makeTestsFromVectors(_)).reduce(_ + _) +
