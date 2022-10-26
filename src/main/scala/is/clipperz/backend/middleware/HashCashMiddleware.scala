@@ -14,6 +14,8 @@ import is.clipperz.backend.services.{
   TollChallenge,
 }
 import is.clipperz.backend.Main.ClipperzHttpApp
+import java.util.NoSuchElementException
+import is.clipperz.backend.exceptions.BadRequestException
 
 type TollMiddleware = HttpMiddleware[TollManager & SessionManager, Throwable]
 
@@ -42,10 +44,14 @@ def checkReceipt(req: Request): ZIO[TollManager & SessionManager, Throwable, Boo
       for {
         session <- sessionManager.getSession(sessionKey)
         challengeJson <- ZIO.attempt(session(TollManager.tollChallengeContentKey).get)
+                            .mapError(e => new BadRequestException("No challenge related to this session"))
         challenge <- fromString[TollChallenge](challengeJson)
         res <- tollManager.verifyToll(challenge, HexString(receipt))
       } yield res
     })
+    .catchSome {
+      case ex => ZIO.succeed(false)
+    }
 
 val wrongTollMiddleware : Request => TollMiddleware = req =>
   Middleware.fromHttp(
@@ -68,6 +74,9 @@ val wrongTollMiddleware : Request => TollMiddleware = req =>
                                 (TollManager.tollCostHeader, tollChallenge.cost.toString))
             )
           )
+          .catchSome {
+            case ex : NoSuchElementException => ZIO.succeed(Response.status(Status.BadRequest))
+          }
       )
     )
 

@@ -30,6 +30,7 @@ import zio.test.Sized
 import is.clipperz.backend.TestUtilities
 
 object TollManagerSpec extends ZIOSpecDefault:
+  val samples = 10
   val layers = PRNG.live ++ (PRNG.live >>> TollManager.live)
 
   val hexString = HexString("""EEAF0AB9ADB38DD69C33F80AFA8FC5E86072618775FF3C0B9EA2314C
@@ -51,7 +52,7 @@ object TollManagerSpec extends ZIOSpecDefault:
             assertZIO(manager.getToll(i).map(_.cost == i).exit)(fails(isSubtype[IllegalArgumentException](anything)))
         }
       } yield res
-    } @@ TestAspect.samples(10) +
+    } @@ TestAspect.samples(samples) +
     test("verifyToll - success") {
       for {
         manager <- ZIO.service[TollManager]
@@ -64,7 +65,7 @@ object TollManagerSpec extends ZIOSpecDefault:
           } yield res
         }
       } yield res
-    } @@ TestAspect.samples(10) +
+    } @@ TestAspect.samples(samples) +
     test("verifyToll - fail") { // TODO: improve
       for {
         manager <- ZIO.service[TollManager]
@@ -77,7 +78,7 @@ object TollManagerSpec extends ZIOSpecDefault:
           } yield res
         }
       } yield res
-    } @@ TestAspect.samples(10) +
+    } @@ TestAspect.samples(samples) +
     test("verifyToll - fail - invalid challenge cost") { // TODO: improve
       for {
         manager <- ZIO.service[TollManager]
@@ -89,5 +90,19 @@ object TollManagerSpec extends ZIOSpecDefault:
             assertZIO(manager.verifyToll(TollChallenge(hash, i), hexString).exit)(fails(isSubtype[IllegalArgumentException](anything)))
         }
       } yield res
-    } @@ TestAspect.samples(10)
+    } @@ TestAspect.samples(samples) +
+    test("computeReceipt") {
+      for {
+        manager <- ZIO.service[TollManager]
+        prng <- ZIO.service[PRNG]
+        res <- check(TestUtilities.getBytesGen(prng, tollByteSize)) { bytes =>
+          for {
+            challenge <- ByteArrays.hashOfArrays(HashFunction.hashSHA256, bytes)
+                              .map(HexString.bytesToHex).map(TollChallenge(_, 2))
+            receipt <- TollManager.computeReceipt(prng, manager)(challenge)
+            res <- assertZIO(manager.verifyToll(challenge, HexString.bytesToHex(bytes)))(isTrue)
+          } yield res
+        }
+      } yield res
+    } @@ TestAspect.samples(samples)
   ).provideSomeLayerShared(layers)

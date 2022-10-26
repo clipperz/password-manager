@@ -74,3 +74,16 @@ object TollManager:
         prng <- ZIO.service[PRNG]
       } yield DefaultTollManager(prng)
     )
+
+  def computeReceipt(prng: PRNG, tollManager: TollManager)(challenge: TollChallenge): Task[TollReceipt] =
+    prng
+      .nextBytes(tollByteSize)
+      .map(HexString.bytesToHex(_))
+      .flatMap(receipt => 
+        ZIO.ifZIO(tollManager.verifyToll(challenge, receipt)).apply(
+          ZIO.succeed(receipt)
+        , computeReceipt(prng, tollManager)(challenge)
+        )
+      )
+
+
