@@ -2,7 +2,7 @@ package is.clipperz.backend.data.srp
 
 import is.clipperz.backend.data.HexString
 
-trait SrpTestVector:
+trait SRPTestVector:
   val c: String // I
   val p: String // P
   val s: BigInt
@@ -19,7 +19,7 @@ trait SrpTestVector:
   val secret: BigInt
 
  
-object RFCTestVector extends SrpTestVector:
+object RFCTestVector extends SRPTestVector:
   override def toString(): String = "RFCTestVector"
   val c = "alice"
 

@@ -24,17 +24,18 @@ import is.clipperz.backend.TestUtilities
 import zio.test.TestAspect
 import zio.test.Gen
 import zio.test.Spec
+import is.clipperz.backend.data.srp.RFCTestVector
 import is.clipperz.backend.data.srp.SRPGroup.apply
 import is.clipperz.backend.data.srp.SRPConfigV6a
 import is.clipperz.backend.data.srp.SRPGroup
-import is.clipperz.backend.data.srp.{SrpTestVector, RFCTestVector}
+import is.clipperz.backend.data.srp.SRPTestVector
 
 object SrpFunctionsSpec extends ZIOSpecDefault:
   val samples = 10
 
   val testVectors = List(RFCTestVector)
 
-  def makeTestsFromVectors(testVector: SrpTestVector) =
+  def makeTestsFromVectors(testVector: SRPTestVector) =
     val srpFunctions = new SrpFunctionsV6a(SRPConfigV6a(SRPGroup(testVector.nn, testVector.g), testVector.k, hashSHA1, kdfSHA1))
     test(s"compute aa - ${testVector}") {
       assertTrue(srpFunctions.computeA(testVector.a) == testVector.aa)
