@@ -12,10 +12,10 @@ import zio.test.TestAspect
 import zio.test.Gen
 import java.nio.charset.StandardCharsets
 
-object HexStringSuite extends ZIOSpecDefault:
+object HexStringSpec extends ZIOSpecDefault:
   val samples = 10
 
-  def spec = suite("hexString")(
+  def spec = suite("HexString")(
     test("isHex - success and fail") {
       val hexString = """EEAF0AB9ADB38DD69C33F80AFA8FC5E86072618775FF3C0B9EA2314C
                          9C256576D674DF7496EA81D3383B4813D692C6E0E0D5D8E250B98BE4

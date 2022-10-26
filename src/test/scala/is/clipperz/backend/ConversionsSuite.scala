@@ -11,10 +11,10 @@ import zio.test.TestAspect
 import is.clipperz.backend.functions.ByteArrays
 import zio.test.TestResult
 
-object SrpFunctionsConversionsSuite extends ZIOSpecDefault:
+object ConversionsSpec extends ZIOSpecDefault:
   val samples = 10
 
-  def spec = suite("conversions")(
+  def spec = suite("Conversions")(
     test("bigint to byte array and back") {
       check(Gen.int) { i =>
         val bigInt = BigInt(i.toHexString, 16)
