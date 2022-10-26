@@ -14,6 +14,7 @@ import is.clipperz.backend.services.{
 }
 import is.clipperz.backend.Main.ClipperzHttpApp
 import is.clipperz.backend.exceptions.{ BadRequestException, FailedConversionException, ResourceNotFoundException }
+import java.util
 
 val loginApi: ClipperzHttpApp = Http.collectZIO {
   case request @ Method.POST -> !! / "login" / "step1" / c =>
@@ -38,7 +39,8 @@ val loginApi: ClipperzHttpApp = Http.collectZIO {
       .catchSome {
         case ex : ResourceNotFoundException => ZIO.succeed(Response(status = Status.NotFound))
         case ex : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
-        case ex : FailedConversionException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
+        case ex : FailedConversionException => { /* println(ex); */ ZIO.succeed(Response(status = Status.BadRequest)) }
+        case ex : NoSuchElementException => ZIO.succeed(Response(status = Status.BadRequest))
       }
 
   case request @ Method.POST -> !! / "login" / "step2" / c => 
@@ -61,5 +63,7 @@ val loginApi: ClipperzHttpApp = Http.collectZIO {
       .catchSome {
         case ex : ResourceNotFoundException => ZIO.succeed(Response(status = Status.NotFound))
         case ex : FailedConversionException => ZIO.succeed(Response(status = Status.BadRequest))
+        case ex : BadRequestException => ZIO.succeed(Response(status = Status.Forbidden))
+        case ex : NoSuchElementException => ZIO.succeed(Response(status = Status.BadRequest))
       }
 }
