@@ -76,5 +76,5 @@ prepareSignupParameters form = runExceptT $ do
                 }
         , indexCardReference : fromArrayBuffer indexCardContentHash
         , indexCardContent   : fromArrayBuffer indexCardContent
-        , cards : fromFoldable ((\(Tuple encryptedCard (CardEntry_v1 { cardReference: (CardReference_v1 { reference }) })) -> (Tuple reference (fromArrayBuffer encryptedCard))) <$> cards)
+        , cards : fromFoldable ((\(Tuple encryptedCard (CardEntry { cardReference: (CardReference_v1 { reference }) })) -> (Tuple reference (fromArrayBuffer encryptedCard))) <$> cards)
         }

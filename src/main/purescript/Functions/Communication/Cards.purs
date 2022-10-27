@@ -72,7 +72,7 @@ postCard card = do
   _ <- ExceptT $ Right <$> (fromArrayBuffer <$> exportKey raw key)
   Tuple encryptedCard cardEntry <- ExceptT $ Right <$> (createCardEntry card key hashFuncSHA256)
   case cardEntry of
-    CardEntry_v1 { title: _
+    CardEntry { title: _
                  , cardReference: (CardReference_v1 { reference, key: _ })
                  , archived: _
                  , tags: _

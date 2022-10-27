@@ -35,7 +35,7 @@ import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (loadingDiv)
 
 cardWidget :: CardEntry -> WidgetState -> Widget HTML IndexUpdateData
-cardWidget entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _ }) state = do
+cardWidget entry@(CardEntry { title: _, cardReference, archived: _, tags: _ }) state = do
   eitherCard <- case state of 
     Error err -> div [] [text $ "Card could't be loaded: " <> err]
     _ -> loadingDiv <|> (liftAff $ runExceptT $ getCard cardReference)

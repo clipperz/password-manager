@@ -60,12 +60,12 @@ getUpdateIndexOp index@(Index list) (IndexUpdateData action _) =
       let newIndex = Index (entry : list)
       manageUpdateIndex newIndex { cardView: (CardFromReference entry), cardViewState: Default }
     
-    removeReferenceFromIndex (CardEntry_v1 { cardReference: reference }) = do
-      let newIndex = Index (filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
+    removeReferenceFromIndex (CardEntry { cardReference: reference }) = do
+      let newIndex = Index (filter (\(CardEntry { cardReference }) -> cardReference /= reference) list)
       manageUpdateIndex newIndex { cardView: NoCard, cardViewState: Default }
 
-    updateReferenceInIndex (CardEntry_v1 { cardReference: reference }) entry = do --TODO finish implementation based on card versioning
-      let newIndex = Index (entry : filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
+    updateReferenceInIndex (CardEntry { cardReference: reference }) entry = do --TODO finish implementation based on card versioning
+      let newIndex = Index (entry : filter (\(CardEntry { cardReference }) -> cardReference /= reference) list)
       manageUpdateIndex newIndex { cardView: (CardFromReference entry), cardViewState: Default }
 
     manageUpdateIndex :: Index -> CardViewState -> Aff CardsViewResult

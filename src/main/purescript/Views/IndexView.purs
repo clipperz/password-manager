@@ -14,6 +14,6 @@ indexView :: Index -> Widget HTML CardEntry
 indexView (Index cards) = do
   let sortedCards = fromFoldable $ sort cards :: Array CardEntry
   ol []
-    ((\entry@(CardEntry_v1 { title, archived }) -> 
+    ((\entry@(CardEntry { title, archived }) -> 
       clickableListItemWidget false (text title) (if archived then ["archived"] else []) entry
      ) <$> sortedCards)
