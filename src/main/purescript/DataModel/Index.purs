@@ -24,27 +24,27 @@ import Functions.EncodeDecode (encryptJson)
 
 -- --------------------------------------------
 
-data CardReference =
-  CardReference_v1
+newtype CardReference =
+  CardReference
     { reference :: HexString
     , key :: HexString
     }
 
 instance showCardReference :: Show CardReference where
-  show (CardReference_v1 record) = show record
+  show (CardReference record) = show record
 
 instance eqCardReference :: Eq CardReference where
-  eq (CardReference_v1 { reference: r }) (CardReference_v1 { reference: r' }) = eq r r'
+  eq (CardReference { reference: r }) (CardReference { reference: r' }) = eq r r'
 
 instance encodeJsonCardReference :: EncodeJson CardReference where
-  encodeJson (CardReference_v1 record) = encodeJson record
+  encodeJson (CardReference record) = encodeJson record
 
 instance decodeJsonCardReference :: DecodeJson CardReference where
-  decodeJson json = rmap (\record -> CardReference_v1 record) (decodeJson json)
+  decodeJson json = rmap (\record -> CardReference record) (decodeJson json)
 
 -- --------------------------------------------
 
-data CardEntry =
+newtype CardEntry =
   CardEntry
     { title :: String
     , cardReference :: CardReference
@@ -75,7 +75,7 @@ instance decodeJsonCardEntry :: DecodeJson CardEntry where
 
 -- --------------------------------------------
 
-data Index = 
+newtype Index = 
   Index (List CardEntry)
 
 instance encodeJsonIndex :: EncodeJson Index where
@@ -96,7 +96,7 @@ createCardEntry card@(Card { content: (CardValues content), archived, timestamp:
   hash <- hashf (encryptedCard : Nil)
   exportedKey <- fromArrayBuffer <$> exportKey raw key
   let cardEntry = CardEntry { title: content.title
-                               , cardReference: CardReference_v1 { reference: fromArrayBuffer hash, key: exportedKey }
+                               , cardReference: CardReference { reference: fromArrayBuffer hash, key: exportedKey }
                                , archived: archived
                                , tags: content.tags
                                }

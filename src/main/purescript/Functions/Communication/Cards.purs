@@ -43,7 +43,7 @@ import Functions.JSState (getAppState)
 import Functions.State (getHashFromState)
 
 getCard :: CardReference -> ExceptT AppError Aff Card
-getCard (CardReference_v1 { reference, key }) = do
+getCard (CardReference { reference, key }) = do
   maybeCard <- getCardFromCache reference
   case maybeCard of
     Just card -> pure $ card
@@ -54,7 +54,7 @@ getCard (CardReference_v1 { reference, key }) = do
       pure $ card
 
 deleteCard :: CardReference -> ExceptT AppError Aff String
-deleteCard cardReference@(CardReference_v1 { reference, key }) = do
+deleteCard cardReference@(CardReference { reference, key }) = do
   -- deleteBlob reference
   let url = joinWith "/" ["blobs", show reference]
   card <- getCard cardReference
@@ -73,7 +73,7 @@ postCard card = do
   Tuple encryptedCard cardEntry <- ExceptT $ Right <$> (createCardEntry card key hashFuncSHA256)
   case cardEntry of
     CardEntry { title: _
-                 , cardReference: (CardReference_v1 { reference, key: _ })
+                 , cardReference: (CardReference { reference, key: _ })
                  , archived: _
                  , tags: _
                  } -> do

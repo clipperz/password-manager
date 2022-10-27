@@ -29,7 +29,7 @@ instance decodeJsonCardField :: DecodeJson CardField where
 
 -- --------------------------------------------
 
-data CardValues = 
+newtype CardValues = 
   CardValues
     { title  :: String
     , tags   :: Array String
@@ -52,7 +52,7 @@ instance decodeJsonCardValue :: DecodeJson CardValues where
 
 -- --------------------------------------------
 
-data Card = 
+newtype Card = 
   Card 
     { content :: CardValues
     , archived :: Boolean
