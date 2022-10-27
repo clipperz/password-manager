@@ -34,12 +34,18 @@ def isTollInSession(req: Request): ZIO[SessionManager, Throwable, Boolean] =
   ZIO
     .service[SessionManager]
     .zip(ZIO.attempt(req.headers.headerValue(SessionManager.sessionKeyHeaderName).get))
-    .flatMap((sessionManager, sessionKey) =>
-      sessionManager
-        .getSession(sessionKey)
-        .map(session => session(TollManager.tollChallengeContentKey))
-        .map(_.isDefined)
-    )
+    .zip(ZIO.attempt(req.headers.headerValue(TollManager.tollHeader).map(HexString(_)).get))
+    .zip(ZIO.attempt(req.headers.headerValue(TollManager.tollCostHeader).map(_.toInt).get))
+    .flatMap((sessionManager, sessionKey, challengeToll, cost) =>
+      for {
+        session <- sessionManager.getSession(sessionKey)
+        challengeJson <- ZIO
+          .attempt(session(TollManager.tollChallengeContentKey).get)
+          .mapError(e => new BadRequestException("No challenge related to this session"))
+        challenge <- fromString[TollChallenge](challengeJson)
+        res <- ZIO.succeed(if (challengeToll == challenge.toll && cost == challenge.cost) then true else false)
+      } yield res
+    )      
     .catchSome {
       case ex => ZIO.logDebugCause(s"${ex.getMessage()}", Cause.fail(ex)).as(false)
     }
@@ -130,8 +136,7 @@ val tollPresentMiddleware: Request => TollMiddleware = req =>
   Middleware.ifThenElseZIO[Request](req => isTollInSession(req))(
     r =>
       Middleware.ifThenElseZIO[Request](r => checkReceipt(r))(
-        correctReceiptMiddleware // keep the request going and add headers with the new toll to the response
-        ,
+        correctReceiptMiddleware, // keep the request going and add headers with the new toll to the response
         wrongTollMiddleware(Status.PaymentRequired), //
       ),
     wrongTollMiddleware(Status.BadRequest),

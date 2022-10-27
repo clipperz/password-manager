@@ -97,6 +97,8 @@ object HashCashMiddlewareSpec extends ZIOSpecDefault:
             method = Method.GET,
             headers = Headers(
               (SessionManager.sessionKeyHeaderName, getWithSession.headerValue(SessionManager.sessionKeyHeaderName).get),
+              (TollManager.tollHeader, toll.toString()),
+              (TollManager.tollCostHeader, cost.toString()),
               (TollManager.tollReceiptHeader, receipt.toString()),
             ),
             version = Version.Http_1_1,
@@ -104,6 +106,30 @@ object HashCashMiddlewareSpec extends ZIOSpecDefault:
         )
         response2 <- idApp(newGet)
       } yield assertTrue(response2.status == Status.PaymentRequired)
+    },
+    test("400 if hashcash challenge is not the one issued") {
+      for {
+        prng <- ZIO.service[PRNG]
+        tollManager <- ZIO.service[TollManager]
+        response <- idApp(getWithSession)
+        toll <- ZIO.attempt(response.headerValue(TollManager.tollHeader).map(HexString(_)).get)
+        cost <- ZIO.attempt(response.headerValue(TollManager.tollCostHeader).map(_.toInt).get)
+        receipt <- computeWrongReceipt(prng, tollManager)(TollChallenge(toll, cost))
+        newGet <- ZIO.succeed(
+          Request(
+            url = URL(!! / "blobs" / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
+            method = Method.GET,
+            headers = Headers(
+              (SessionManager.sessionKeyHeaderName, getWithSession.headerValue(SessionManager.sessionKeyHeaderName).get),
+              (TollManager.tollHeader, s"cc${toll.toString()}"),
+              (TollManager.tollCostHeader, s"ss${cost.toString()}"),
+              (TollManager.tollReceiptHeader, receipt.toString()),
+            ),
+            version = Version.Http_1_1,
+          )
+        )
+        response2 <- idApp(newGet)
+      } yield assertTrue(response2.status == Status.BadRequest)
     },
     test("200 if hashcash is present and correct") {
       for {
@@ -119,6 +145,8 @@ object HashCashMiddlewareSpec extends ZIOSpecDefault:
             method = Method.GET,
             headers = Headers(
               (SessionManager.sessionKeyHeaderName, getWithSession.headerValue(SessionManager.sessionKeyHeaderName).get),
+              (TollManager.tollHeader, toll.toString()),
+              (TollManager.tollCostHeader, cost.toString()),
               (TollManager.tollReceiptHeader, receipt.toString()),
             ),
             version = Version.Http_1_1,

@@ -27,7 +27,7 @@ import is.clipperz.backend.services.{ BlobArchive, PRNG, SessionManager, SrpMana
 
 import zio.logging.LogFormat
 import zio.logging.backend.SLF4J
-import zio.{LogLevel, Runtime}
+import zio.{ LogLevel, Runtime }
 import zio.ZLogger
 import zio.Trace
 import zio.FiberId
@@ -36,7 +36,6 @@ import zio.FiberRefs
 import zio.LogSpan
 
 object Main extends zio.ZIOAppDefault:
-
   override val bootstrap = Runtime.removeDefaultLoggers >>> SLF4J.slf4j(LogLevel.Info, LogFormat.colored)
 
   private val PORT = 8090
