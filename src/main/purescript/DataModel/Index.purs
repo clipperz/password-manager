@@ -91,7 +91,7 @@ type IndexReference = HexString
 -- --------------------------------------------
 
 createCardEntry :: Card -> CryptoKey -> HashFunction -> Aff (Tuple ArrayBuffer CardEntry)
-createCardEntry card@(Card_v1 { content: (CardValues content), archived, timestamp: _ }) key hashf = do
+createCardEntry card@(Card { content: (CardValues content), archived, timestamp: _ }) key hashf = do
   encryptedCard <- encryptJson key card
   hash <- hashf (encryptedCard : Nil)
   exportedKey <- fromArrayBuffer <$> exportKey raw key

@@ -53,23 +53,23 @@ instance decodeJsonCardValue :: DecodeJson CardValues where
 -- --------------------------------------------
 
 data Card = 
-  Card_v1 
+  Card 
     { content :: CardValues
     , archived :: Boolean
     , timestamp :: Int
     }
 
 instance eqCard :: Eq Card where
-  eq (Card_v1 r1) (Card_v1 r2) = eq { content: r1.content, archived: r1.archived } { content: r2.content, archived: r2.archived }
+  eq (Card r1) (Card r2) = eq { content: r1.content, archived: r1.archived } { content: r2.content, archived: r2.archived }
 
 instance showCard :: Show Card where
-  show (Card_v1 record) = show record
+  show (Card record) = show record
 
 instance encodeJsonCard :: EncodeJson Card where
-  encodeJson (Card_v1 record) = encodeJson record
+  encodeJson (Card record) = encodeJson record
 
 instance decodeJsonCard :: DecodeJson Card where
-  decodeJson json = rmap (\record -> Card_v1 record) (decodeJson json)
+  decodeJson json = rmap (\record -> Card record) (decodeJson json)
 
 -- --------------------------------------------
 
@@ -77,7 +77,7 @@ emptyCardField :: CardField
 emptyCardField = CardField { name: "", value: "", locked: false }
 
 emptyCard :: Card
-emptyCard = Card_v1 { timestamp: 0
+emptyCard = Card { timestamp: 0
                     , archived: false
                     , content: CardValues { title: ""
                                               , tags: []
@@ -107,5 +107,5 @@ card1 = CardValues { title: "Bank account (SAMPLE)"
                       , notes: ""}
 
 defaultCards :: List Card
-defaultCards = Card_v1 { content: card0, timestamp: 1661377622, archived: false} :
-               Card_v1 { content: card1, timestamp: 166137865 , archived: false} : Nil
+defaultCards = Card { content: card0, timestamp: 1661377622, archived: false} :
+               Card { content: card1, timestamp: 166137865 , archived: false} : Nil

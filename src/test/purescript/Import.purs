@@ -35,7 +35,7 @@ importSpec  =
     let importFirstCard = "Import correctly the first card"
     it importFirstCard do
       decodeResult <- liftEffect $ decodeImport joe_clipperzData
-      let result = Card_v1 { timestamp: 0
+      let result = Card { timestamp: 0
                            , archived: false
                            , content: CardValues { title: "Amazon.com"
                                                      , tags: ["shopping"]
@@ -52,7 +52,7 @@ importSpec  =
     let importArchivedCard = "Import archived card"
     it importArchivedCard do
       decodeResult <- liftEffect $ decodeImport joe_clipperzData
-      let result = Card_v1 { timestamp: 0
+      let result = Card { timestamp: 0
                            , archived: true
                            , content: CardValues { title: "AOL "
                                                      , tags: ["", "social"]
@@ -63,7 +63,7 @@ importSpec  =
                                                      , notes: "Ah the good old times. :)"
                                                      }
                            }
-      makeTestableOnBrowser importArchivedCard ((\a -> filter (\(Card_v1 { content: CardValues { title } }) -> title == "AOL ") a) <$> decodeResult) shouldEqual (Right $ [result])
+      makeTestableOnBrowser importArchivedCard ((\a -> filter (\(Card { content: CardValues { title } }) -> title == "AOL ") a) <$> decodeResult) shouldEqual (Right $ [result])
       -- makeTestableOnBrowser importArchivedCard ((\a -> index a 3) <$> decodeResult) shouldEqual (Right $ Just result)
          
     where

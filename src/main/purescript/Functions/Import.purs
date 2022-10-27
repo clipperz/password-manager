@@ -74,7 +74,7 @@ decodeCard timestamp = caseJsonObject (Left $ ImportError "Cannot conver json to
         a <- except $ note (ImportError "Cannot find card fields") $ (values <$> (toObject =<< (lookup "fields") =<< toObject =<< lookup "currentVersion" obj))
         except $ sequence (decodeCardField <$> a)
       notes  <- except $ note (ImportError "Cannot find card notes") $ (toString =<< (lookup "notes") =<< toObject =<< lookup "data" obj)
-      pure $ Card_v1 { timestamp: timestamp
+      pure $ Card { timestamp: timestamp
                      , archived: archived
                      , content: CardValues { title: title
                                               , tags: tags

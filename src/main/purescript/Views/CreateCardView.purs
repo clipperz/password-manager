@@ -28,9 +28,9 @@ createCardView card state = do
     Loading -> div [] [disableOverlay, loadingDiv, div [Props.className "cardForm"] [demand formSignal]] -- TODO: deactivate form
     Error err -> div [] [disableOverlay, text err, div [Props.className "cardForm"] [demand formSignal]]
   case mCard of
-    Just (Card_v1 { content, timestamp: _ }) -> do
+    Just (Card { content, timestamp: _ }) -> do
       timestamp' <- liftEffect $ getCurrentTimestamp
-      pure $ Just $ Card_v1 { content: content, archived: false, timestamp: timestamp' }
+      pure $ Just $ Card { content: content, archived: false, timestamp: timestamp' }
     Nothing -> pure Nothing
 
   where 
@@ -73,12 +73,12 @@ createCardView card state = do
 
     formSignal :: Signal HTML (Maybe (Maybe Card))
     formSignal = do
-      Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card_v1 {content: (CardValues {title, tags, fields, notes}), timestamp})) -> do
+      Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card {content: (CardValues {title, tags, fields, notes}), timestamp})) -> do
         title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title"))
         Tuple newTag' tags' <- tagsSignal newTag tags
         fields' <- fieldsSignal fields
         notes' :: String <- loopW notes (simpleTextInputWidget "notes" (text "Notes"))
-        pure $ Tuple newTag' $ Card_v1 { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
+        pure $ Tuple newTag' $ Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
                                        , archived: false
                                        , timestamp
                                        }

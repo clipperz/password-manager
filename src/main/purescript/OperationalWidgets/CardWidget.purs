@@ -59,13 +59,13 @@ cardWidget entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _ }
         Clone cc -> do
           clonedCard <- liftAff $ cloneCardNow cc
           doOp cc false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) cc)
-        Archive (Card_v1 r) -> do
+        Archive (Card r) -> do
           timestamp' <- liftEffect $ getCurrentTimestamp
-          let newCard = Card_v1 $ r { timestamp = timestamp', archived = true }
+          let newCard = Card $ r { timestamp = timestamp', archived = true }
           doOp newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) newCard)
-        Restore (Card_v1 r) -> do
+        Restore (Card r) -> do
           timestamp' <- liftEffect $ getCurrentTimestamp
-          let newCard = Card_v1 $ r { timestamp = timestamp', archived = false }
+          let newCard = Card $ r { timestamp = timestamp', archived = false }
           doOp newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) newCard)
         Delete cc -> doOp cc false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) cc)
 
@@ -93,8 +93,8 @@ cardWidget entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _ }
       loadingDiv
 
 cloneCardNow :: Card -> Aff Card
-cloneCardNow (Card_v1 { timestamp: _, content, archived}) =
+cloneCardNow (Card { timestamp: _, content, archived}) =
   case content of
     CardValues values -> do
       timestamp <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
-      pure $ Card_v1 { timestamp, archived, content: (CardValues (values { title = (values.title <> " - CLONE")}))}
+      pure $ Card { timestamp, archived, content: (CardValues (values { title = (values.title <> " - CLONE")}))}
