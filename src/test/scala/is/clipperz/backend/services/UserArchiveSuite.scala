@@ -77,17 +77,24 @@ object UserArchiveSpec extends ZIOSpecDefault:
         user <- archive.getUser(c)
       } yield assertTrue(user == Some(testUser2))
     } + 
+    test("deleteBlob - fail - different user") {
+      for {
+        archive <- ZIO.service[UserArchive]
+        res <- assertZIO(archive.deleteUser(testUser).exit)(fails(isSubtype[BadRequestException](anything)))
+      } yield res
+    } + 
     test("deleteBlob - success") {
       for {
         archive <- ZIO.service[UserArchive]
-        res <- archive.deleteUser(c)
-      } yield assertTrue(res)
+        resDelete <- archive.deleteUser(testUser2)
+        resGet <- archive.getUser(c).map(_.isDefined)
+      } yield assertTrue(resDelete, !resGet)
     } + 
-    test("deleteBlob - fail") {
+    test("deleteBlob - fail - not present") {
       for {
         archive <- ZIO.service[UserArchive]
-        res <- archive.deleteUser(c)
-      } yield assertTrue(!res)
+        res <- assertZIO(archive.deleteUser(testUser2).exit)(fails(isSubtype[ResourceNotFoundException](anything)))
+      } yield res
     }
   ).provideSomeLayerShared(environment) @@ 
     TestAspect.sequential @@ 

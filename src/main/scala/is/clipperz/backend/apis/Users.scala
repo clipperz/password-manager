@@ -76,11 +76,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
           fromStream[UserCard](content)
           .flatMap(user => {
             if HexString(c) == user.c then
-              userArchive.saveUser(user, true)
-                .foldZIO(
-                  _      => ZIO.fail(new Exception("TODO")),
-                  result => ZIO.succeed(result)
-                )                
+              userArchive.saveUser(user, true).map(result => ZIO.succeed(result))
             else  
               ZIO.fail(new BadRequestException("c in request path differs from c in request body "))
           })
@@ -108,19 +104,25 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
       )
       .catchSome {
         case ex : NonReadableArchiveException => { println(ex); ZIO.succeed(Response(status = Status.InternalServerError)) }
-        case ex : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
+        case ex : BadRequestException => { /* println(ex); */ ZIO.succeed(Response(status = Status.BadRequest)) }
       }
 
   case request @ Method.DELETE -> !! / "users" / c =>
     ZIO.service[UserArchive]
       .zip(ZIO.service[SessionManager])
-      .flatMap((userArchive, sessionManager) =>
-        sessionManager.verifySessionUser(c, request)
-        .flatMap(_ => userArchive.deleteUser(HexString(c)))
+      .zip(ZIO.succeed(request.bodyAsStream))
+      .flatMap((userArchive, sessionManager, content) =>
+        sessionManager
+          .verifySessionUser(c, request)
+          .flatMap(_ =>
+            fromStream[UserCard](content)
+              .flatMap(userCard => userArchive.deleteUser(userCard))  
+          )
       )
       .map(b => if b then Response.text(c) else Response(status = Status.NotFound))
       .catchSome {
         case ex : NonWritableArchiveException => { println(ex); ZIO.succeed(Response(status = Status.InternalServerError)) }
         case ex : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
+        case ex : ResourceNotFoundException => ZIO.succeed(Response(status = Status.NotFound))
       }
 }

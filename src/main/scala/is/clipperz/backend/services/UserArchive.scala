@@ -9,6 +9,7 @@ import is.clipperz.backend.data.HexString
 import is.clipperz.backend.functions.fromStream
 import is.clipperz.backend.exceptions.ResourceNotFoundException
 import is.clipperz.backend.exceptions.ResourceConflictException
+import is.clipperz.backend.exceptions.BadRequestException
 
 // ============================================================================
 
@@ -30,7 +31,7 @@ object UserCard:
 trait UserArchive:
   def getUser(username: HexString): Task[Option[UserCard]]
   def saveUser(user: UserCard, overwrite: Boolean): Task[HexString]
-  def deleteUser(username: HexString): Task[Boolean]
+  def deleteUser(user: UserCard): Task[Boolean]
 
 object UserArchive:
   case class FileSystemUserArchive(keyBlobArchive: KeyBlobArchive) extends UserArchive:
@@ -56,8 +57,19 @@ object UserArchive:
         case None => saveUserCard(userCard)
       )
 
-    override def deleteUser(username: HexString): Task[Boolean] =
-      keyBlobArchive.deleteBlob(username.toString)
+    override def deleteUser(user: UserCard): Task[Boolean] =
+      this
+        .getUser(user.c)
+        .flatMap(o =>
+          if o.isDefined then
+            if o.contains(user) then
+              keyBlobArchive.deleteBlob(user.c.toString)
+            else 
+              ZIO.fail(new BadRequestException("User card is different than the one saved"))
+          else
+            ZIO.fail(new ResourceNotFoundException("User does not exist"))  
+        )
+
 
   def fs(basePath: Path, levels: Int): ZLayer[Any, Throwable, UserArchive] =
     val keyBlobArchive = new KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels);
