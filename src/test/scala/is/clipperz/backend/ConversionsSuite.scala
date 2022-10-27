@@ -1,7 +1,7 @@
 package is.clipperz.backend
 
 import zio.ZIO
-import zio.test.TestResult.{ any }
+import zio.test.TestResult.any
 import zio.test.{ ZIOSpecDefault, assertTrue, check }
 import is.clipperz.backend.functions.Conversions.{ bytesToBigInt, bigIntToBytes }
 import is.clipperz.backend.data.HexString.{ bytesToHex, bigIntToHex }
@@ -34,11 +34,8 @@ object ConversionsSpec extends ZIOSpecDefault:
           equalsUpToEmptyByte(bytes, bytesToBigInt(bytes).toByteArray)
         }
       } yield res
-    } @@ TestAspect.samples(samples)
+    } @@ TestAspect.samples(samples),
   ).provideSomeLayer(PRNG.live)
 
   def equalsUpToEmptyByte(bytes1: Array[Byte], bytes2: Array[Byte]): TestResult =
-    any( assertTrue((0.toByte +: bytes1) == bytes2)
-       , assertTrue(bytes1 == bytes2)
-       , assertTrue(bytes1 == (0.toByte +: bytes2))
-       )
+    any(assertTrue((0.toByte +: bytes1) == bytes2), assertTrue(bytes1 == bytes2), assertTrue(bytes1 == (0.toByte +: bytes2)))

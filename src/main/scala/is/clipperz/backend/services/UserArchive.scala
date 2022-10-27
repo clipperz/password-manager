@@ -41,20 +41,23 @@ object UserArchive:
         .flatMap(fromStream[UserCard])
         .map(cr => Some(cr))
         .catchSome {
-          case ex : ResourceNotFoundException => ZIO.succeed(None)
+          case ex: ResourceNotFoundException => ZIO.succeed(None)
           case ex => ZIO.fail(ex)
         }
 
     override def saveUser(userCard: UserCard, overwrite: Boolean): Task[HexString] =
       def saveUserCard(userCard: UserCard): Task[HexString] =
         keyBlobArchive
-        .saveBlob (
-          userCard.c.toString,
-          ZStream.fromChunks(Chunk.fromArray(userCard.toJson.getBytes(StandardCharsets.UTF_8).nn)),
-        ).map(_ => userCard.c)
-      getUser(userCard.c).flatMap(optionalUser => optionalUser match
-        case Some(user) => if (overwrite) saveUserCard(userCard) else ZIO.fail(new ResourceConflictException("User already present"))
-        case None => saveUserCard(userCard)
+          .saveBlob(
+            userCard.c.toString,
+            ZStream.fromChunks(Chunk.fromArray(userCard.toJson.getBytes(StandardCharsets.UTF_8).nn)),
+          )
+          .map(_ => userCard.c)
+      getUser(userCard.c).flatMap(optionalUser =>
+        optionalUser match
+          case Some(user) =>
+            if (overwrite) saveUserCard(userCard) else ZIO.fail(new ResourceConflictException("User already present"))
+          case None => saveUserCard(userCard)
       )
 
     override def deleteUser(user: UserCard): Task[Boolean] =
@@ -62,14 +65,10 @@ object UserArchive:
         .getUser(user.c)
         .flatMap(o =>
           if o.isDefined then
-            if o.contains(user) then
-              keyBlobArchive.deleteBlob(user.c.toString)
-            else 
-              ZIO.fail(new BadRequestException("User card is different than the one saved"))
-          else
-            ZIO.fail(new ResourceNotFoundException("User does not exist"))  
+            if o.contains(user) then keyBlobArchive.deleteBlob(user.c.toString)
+            else ZIO.fail(new BadRequestException("User card is different than the one saved"))
+          else ZIO.fail(new ResourceNotFoundException("User does not exist"))
         )
-
 
   def fs(basePath: Path, levels: Int): ZLayer[Any, Throwable, UserArchive] =
     val keyBlobArchive = new KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels);

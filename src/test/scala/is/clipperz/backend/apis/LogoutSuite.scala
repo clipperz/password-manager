@@ -14,7 +14,7 @@ import zhttp.http.{ Version, Headers, Method, URL, Request, HttpData }
 import zhttp.http.*
 import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
-import is.clipperz.backend.data.HexString.{ bytesToHex }
+import is.clipperz.backend.data.HexString.bytesToHex
 import is.clipperz.backend.functions.crypto.HashFunction
 import java.nio.file.Path
 import is.clipperz.backend.functions.FileSystem
@@ -26,7 +26,7 @@ import is.clipperz.backend.services.BlobArchive
 import is.clipperz.backend.services.TollManager
 import is.clipperz.backend.services.SrpManager
 import is.clipperz.backend.functions.Conversions.{ bytesToBigInt, bigIntToBytes }
-import is.clipperz.backend.functions.{ fromStream }
+import is.clipperz.backend.functions.fromStream
 import is.clipperz.backend.services.UserCard
 import java.sql.Blob
 import zio.test.ZIOSpec
@@ -47,27 +47,27 @@ object LogoutSpec extends ZIOSpecDefault:
 
   val environment =
     PRNG.live ++
-    SessionManager.live ++
-    UserArchive.fs(userBasePath, 2) ++
-    BlobArchive.fs(blobBasePath, 2) ++
-    ((UserArchive.fs(userBasePath, 2) ++ PRNG.live) >>> SrpManager.v6a()) ++
-    (PRNG.live >>> TollManager.live)
+      SessionManager.live ++
+      UserArchive.fs(userBasePath, 2) ++
+      BlobArchive.fs(blobBasePath, 2) ++
+      ((UserArchive.fs(userBasePath, 2) ++ PRNG.live) >>> SrpManager.v6a()) ++
+      (PRNG.live >>> TollManager.live)
 
   val sessionKey = "sessionKey"
 
   val logoutWithSession = Request(
-      url = URL(!! / "logout" ),
-      method = Method.POST,
-      headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
-      version = Version.Http_1_1,
-    )
+    url = URL(!! / "logout"),
+    method = Method.POST,
+    headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
+    version = Version.Http_1_1,
+  )
 
   val logoutNoSession = Request(
-      url = URL(!! / "logout" ),
-      method = Method.POST,
-      headers = Headers.empty,
-      version = Version.Http_1_1,
-    )
+    url = URL(!! / "logout"),
+    method = Method.POST,
+    headers = Headers.empty,
+    version = Version.Http_1_1,
+  )
 
   def spec = suite("LogoutApis")(
     test("logout - fail - no session key in header") {
@@ -86,8 +86,8 @@ object LogoutSpec extends ZIOSpecDefault:
       for {
         responseCode <- app(logoutWithSession).map(response => response.status.code)
       } yield assertTrue(responseCode == 200)
-    }
-  ).provideCustomLayerShared(environment) @@ 
-    TestAspect.sequential @@ 
+    },
+  ).provideCustomLayerShared(environment) @@
+    TestAspect.sequential @@
     TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))
-    TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))
+  TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))

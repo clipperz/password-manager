@@ -7,14 +7,14 @@ import java.security.MessageDigest
 import scala.language.postfixOps
 import zio.{ Chunk, ZIO }
 import zio.stream.{ ZStream, ZSink }
-import zio.test.Assertion.{ nothing }
+import zio.test.Assertion.nothing
 import zio.test.{ ZIOSpecDefault, assertTrue, assert, TestAspect }
 import zio.json.EncoderOps
 import zhttp.http.{ Version, Headers, Method, URL, Request, HttpData }
 import zhttp.http.*
 import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
-import is.clipperz.backend.data.HexString.{ bytesToHex }
+import is.clipperz.backend.data.HexString.bytesToHex
 import is.clipperz.backend.functions.crypto.HashFunction
 import java.nio.file.Path
 import is.clipperz.backend.functions.FileSystem
@@ -26,8 +26,7 @@ import is.clipperz.backend.services.BlobArchive
 import is.clipperz.backend.services.TollManager
 import is.clipperz.backend.services.SrpManager
 
-import is.clipperz.backend.functions.{ fromStream }
-
+import is.clipperz.backend.functions.fromStream
 
 object BlobSpec extends ZIOSpecDefault:
   val app = Main.clipperzBackend
@@ -36,19 +35,23 @@ object BlobSpec extends ZIOSpecDefault:
 
   val environment =
     PRNG.live ++
-    SessionManager.live ++
-    UserArchive.fs(userBasePath, 2) ++
-    BlobArchive.fs(blobBasePath, 2) ++
-    ((UserArchive.fs(userBasePath, 2) ++ PRNG.live) >>> SrpManager.v6a()) ++
-    (PRNG.live >>> TollManager.live)
+      SessionManager.live ++
+      UserArchive.fs(userBasePath, 2) ++
+      BlobArchive.fs(blobBasePath, 2) ++
+      ((UserArchive.fs(userBasePath, 2) ++ PRNG.live) >>> SrpManager.v6a()) ++
+      (PRNG.live >>> TollManager.live)
 
   val testFile = new File(
     "src/test/resources/blobs/4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63.blob"
   )
 
-  val blobData : SaveBlobData = SaveBlobData(
-    data = bytesToHex(Files.readAllBytes(Paths.get( "src/test/resources/blobs/4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63.blob")).nn),
-    hash = HexString("4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63")
+  val blobData: SaveBlobData = SaveBlobData(
+    data = bytesToHex(
+      Files
+        .readAllBytes(Paths.get("src/test/resources/blobs/4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63.blob"))
+        .nn
+    ),
+    hash = HexString("4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
   )
 
   val post = Request(
@@ -58,7 +61,6 @@ object BlobSpec extends ZIOSpecDefault:
     data = HttpData.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
     version = Version.Http_1_1,
   )
-
 
   val delete = Request(
     url = URL(!! / "blobs" / blobData.hash.toString()),
@@ -87,7 +89,7 @@ object BlobSpec extends ZIOSpecDefault:
   val invalidBlobContent = "invalid"
 
   val postInvalid = Request(
-    url = URL(!! / "blobs" ),
+    url = URL(!! / "blobs"),
     method = Method.POST,
     headers = Headers.empty,
     data = HttpData.fromString(invalidBlobContent, StandardCharsets.UTF_8.nn),
@@ -95,7 +97,7 @@ object BlobSpec extends ZIOSpecDefault:
   )
 
   val postEmpty = Request(
-    url = URL(!! / "blobs" ),
+    url = URL(!! / "blobs"),
     method = Method.POST,
     headers = Headers.empty,
     data = HttpData.fromString("", StandardCharsets.UTF_8.nn),
@@ -148,26 +150,26 @@ object BlobSpec extends ZIOSpecDefault:
       for {
         postReseponse <- app(post)
         hash <- app(get).flatMap(response =>
-            response.bodyAsStream
-                    .run(ZSink.digest(MessageDigest.getInstance("SHA-256").nn))
-                    .map((chunk: Chunk[Byte]) => HexString.bytesToHex(chunk.toArray))
-          )
+          response
+            .bodyAsStream
+            .run(ZSink.digest(MessageDigest.getInstance("SHA-256").nn))
+            .map((chunk: Chunk[Byte]) => HexString.bytesToHex(chunk.toArray))
+        )
       } yield assertTrue(hash == blobData.hash)
     },
     test("POST / DELETE -> _, 200") {
       for {
         statusCode <- app(post).flatMap(_ => app(get).map(response => response.status.code))
       } yield assertTrue(statusCode == 200)
-    }, 
+    },
     test("POST / DELETE / GET -> 200, 200, 404") {
       for {
         statusCodePost <- app(post).map(response => response.status.code)
         statusCodeDelete <- app(delete).map(response => response.status.code)
         statusCodeGet <- app(get).map(response => response.status.code)
       } yield assertTrue(statusCodePost == 200, statusCodeDelete == 200, statusCodeGet == 404)
-    }
-  ).provideCustomLayerShared(environment) @@ 
-    TestAspect.sequential @@ 
+    },
+  ).provideCustomLayerShared(environment) @@
+    TestAspect.sequential @@
     TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))
-    TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))
-
+  TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))

@@ -1,6 +1,5 @@
 package is.clipperz.backend.middleware
 
-
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.{ Files, Paths, FileSystems }
@@ -15,7 +14,7 @@ import zhttp.http.{ Version, Headers, Method, URL, Request, HttpData }
 import zhttp.http.*
 import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
-import is.clipperz.backend.data.HexString.{ bytesToHex }
+import is.clipperz.backend.data.HexString.bytesToHex
 import is.clipperz.backend.functions.crypto.HashFunction
 import java.nio.file.Path
 import is.clipperz.backend.functions.FileSystem
@@ -27,15 +26,22 @@ import is.clipperz.backend.services.BlobArchive
 import is.clipperz.backend.services.TollManager
 import is.clipperz.backend.services.tollByteSize
 import is.clipperz.backend.services.SrpManager
-import is.clipperz.backend.middleware.{ hashcash, tollPresentMiddleware, correctReceiptMiddleware, missingTollMiddleware, wrongTollMiddleware, checkReceipt }
+import is.clipperz.backend.middleware.{
+  hashcash,
+  tollPresentMiddleware,
+  correctReceiptMiddleware,
+  missingTollMiddleware,
+  wrongTollMiddleware,
+  checkReceipt,
+}
 import is.clipperz.backend.services.TollChallenge
 import is.clipperz.backend.services.TollReceipt
 
 object HashCashMiddlewareSpec extends ZIOSpecDefault:
   val layers =
     PRNG.live ++
-    SessionManager.live ++
-    (PRNG.live >>> TollManager.live)
+      SessionManager.live ++
+      (PRNG.live >>> TollManager.live)
 
   val sessionKey = "sessionKey"
 
@@ -85,13 +91,17 @@ object HashCashMiddlewareSpec extends ZIOSpecDefault:
         toll <- ZIO.attempt(response.headerValue(TollManager.tollHeader).map(HexString(_)).get)
         cost <- ZIO.attempt(response.headerValue(TollManager.tollCostHeader).map(_.toInt).get)
         receipt <- computeWrongReceipt(prng, tollManager)(TollChallenge(toll, cost))
-        newGet <- ZIO.succeed(Request(
-          url = URL(!! / "blobs" / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
-          method = Method.GET,
-          headers = Headers((SessionManager.sessionKeyHeaderName, getWithSession.headerValue(SessionManager.sessionKeyHeaderName).get),
-                            (TollManager.tollReceiptHeader, receipt.toString())),
-          version = Version.Http_1_1,
-        ))
+        newGet <- ZIO.succeed(
+          Request(
+            url = URL(!! / "blobs" / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
+            method = Method.GET,
+            headers = Headers(
+              (SessionManager.sessionKeyHeaderName, getWithSession.headerValue(SessionManager.sessionKeyHeaderName).get),
+              (TollManager.tollReceiptHeader, receipt.toString()),
+            ),
+            version = Version.Http_1_1,
+          )
+        )
         response2 <- idApp(newGet)
       } yield assertTrue(response2.status == Status.PaymentRequired)
     },
@@ -103,26 +113,32 @@ object HashCashMiddlewareSpec extends ZIOSpecDefault:
         toll <- ZIO.attempt(response.headerValue(TollManager.tollHeader).map(HexString(_)).get)
         cost <- ZIO.attempt(response.headerValue(TollManager.tollCostHeader).map(_.toInt).get)
         receipt <- TollManager.computeReceipt(prng, tollManager)(TollChallenge(toll, cost))
-        newGet <- ZIO.succeed(Request(
-          url = URL(!! / "blobs" / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
-          method = Method.GET,
-          headers = Headers((SessionManager.sessionKeyHeaderName, getWithSession.headerValue(SessionManager.sessionKeyHeaderName).get),
-                            (TollManager.tollReceiptHeader, receipt.toString())),
-          version = Version.Http_1_1,
-        ))
+        newGet <- ZIO.succeed(
+          Request(
+            url = URL(!! / "blobs" / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
+            method = Method.GET,
+            headers = Headers(
+              (SessionManager.sessionKeyHeaderName, getWithSession.headerValue(SessionManager.sessionKeyHeaderName).get),
+              (TollManager.tollReceiptHeader, receipt.toString()),
+            ),
+            version = Version.Http_1_1,
+          )
+        )
         response2 <- idApp(newGet)
       } yield assertTrue(response2.status == Status.Ok)
-    }
-  ).provideSomeLayer(layers) @@ 
+    },
+  ).provideSomeLayer(layers) @@
     TestAspect.sequential
 
   def computeWrongReceipt(prng: PRNG, tollManager: TollManager)(challenge: TollChallenge): Task[TollReceipt] =
     prng
       .nextBytes(tollByteSize)
       .map(HexString.bytesToHex(_))
-      .flatMap(receipt => 
-        ZIO.ifZIO(tollManager.verifyToll(challenge, receipt)).apply(
-          computeWrongReceipt(prng, tollManager)(challenge)
-        , ZIO.succeed(receipt)
-        )
+      .flatMap(receipt =>
+        ZIO
+          .ifZIO(tollManager.verifyToll(challenge, receipt))
+          .apply(
+            computeWrongReceipt(prng, tollManager)(challenge),
+            ZIO.succeed(receipt),
+          )
       )

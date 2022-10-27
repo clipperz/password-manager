@@ -77,14 +77,12 @@ object HexStringSpec extends ZIOSpecDefault:
       }
     } @@ TestAspect.samples(samples),
     test("isHex - success") {
-      check(Gen.stringN(9)(Gen.hexChar)) { s => assertTrue(HexString.isHex(s)) }
+      check(Gen.stringN(9)(Gen.hexChar))(s => assertTrue(HexString.isHex(s)))
     } @@ TestAspect.samples(samples),
     test("isHex - fail") {
-      check(Gen.alphaNumericString) { s => 
-        if s.matches("^[0-9a-fA-F\\s]+$") then 
-          assertCompletes 
-        else 
-          assertTrue(!HexString.isHex(s))
+      check(Gen.alphaNumericString) { s =>
+        if s.matches("^[0-9a-fA-F\\s]+$") then assertCompletes
+        else assertTrue(!HexString.isHex(s))
       }
     } @@ TestAspect.samples(samples),
     test("hex from empty string - fail") {
@@ -94,9 +92,7 @@ object HexStringSpec extends ZIOSpecDefault:
       check(Gen.alphaNumericStringBounded(1, 50)) { s =>
         if HexString.isHex(s) then // checked in previous tests
           assertCompletes
-        else
-          assertTrue(HexString(s).toString(Base.Dec) == s)
+        else assertTrue(HexString(s).toString(Base.Dec) == s)
       }
-    } @@ TestAspect.samples(samples)
+    } @@ TestAspect.samples(samples),
   ).provideSomeLayer(PRNG.live)
-

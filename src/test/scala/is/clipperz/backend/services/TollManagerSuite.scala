@@ -38,71 +38,75 @@ object TollManagerSpec extends ZIOSpecDefault:
                                8E495C1D6089DAD15DC7D7B46154D6B6CE8EF4AD69B15D4982559B29
                                7BCF1885C529F566660E57EC68EDBC3C05726CC02FD4CBF4976EAA9A
                                FD5138FE8376435B9FC61D2FC0EB06E3""")
-  val hexStringHash = ByteArrays.hashOfArrays(HashFunction.hashSHA256, hexString.toByteArray)
-                                .map(HexString.bytesToHex)
+  val hexStringHash = ByteArrays
+    .hashOfArrays(HashFunction.hashSHA256, hexString.toByteArray)
+    .map(HexString.bytesToHex)
 
   def spec = suite("TollManager")(
     test("getToll - correct toll cost") { // property test
       for {
         manager <- ZIO.service[TollManager]
         res <- check(Gen.int) { i =>
-          if i >= 0 then
-            assertZIO(manager.getToll(i).map(_.cost == i))(isTrue)
-          else
-            assertZIO(manager.getToll(i).map(_.cost == i).exit)(fails(isSubtype[IllegalArgumentException](anything)))
+          if i >= 0 then assertZIO(manager.getToll(i).map(_.cost == i))(isTrue)
+          else assertZIO(manager.getToll(i).map(_.cost == i).exit)(fails(isSubtype[IllegalArgumentException](anything)))
         }
       } yield res
     } @@ TestAspect.samples(samples) +
-    test("verifyToll - success") {
-      for {
-        manager <- ZIO.service[TollManager]
-        prng <- ZIO.service[PRNG]
-        res <- check(TestUtilities.getBytesGen(prng, tollByteSize)) { bytes =>
-          for {
-            hash <- ByteArrays.hashOfArrays(HashFunction.hashSHA256, bytes)
-                              .map(HexString.bytesToHex)
-            res <- assertZIO(manager.verifyToll(TollChallenge(hash, 15), HexString.bytesToHex(bytes)))(isTrue)
-          } yield res
-        }
-      } yield res
-    } @@ TestAspect.samples(samples) +
-    test("verifyToll - fail") { // TODO: improve
-      for {
-        manager <- ZIO.service[TollManager]
-        prng <- ZIO.service[PRNG]
-        res <- check(TestUtilities.getBytesGen(prng, tollByteSize)) { bytes =>
-          for {
-            hash <- ByteArrays.hashOfArrays(HashFunction.hashSHA256, bytes)
-                              .map(HexString.bytesToHex)
-            res <- assertZIO(manager.verifyToll(TollChallenge(hash, 15), HexString("0000000000000")))(isFalse)
-          } yield res
-        }
-      } yield res
-    } @@ TestAspect.samples(samples) +
-    test("verifyToll - fail - invalid challenge cost") { // TODO: improve
-      for {
-        manager <- ZIO.service[TollManager]
-        hash <- hexStringHash
-        res <- check(Gen.int) { i =>
-          if i >= 0 then
-            assertZIO(manager.verifyToll(TollChallenge(hash, i), hexString))(isTrue)
-          else
-            assertZIO(manager.verifyToll(TollChallenge(hash, i), hexString).exit)(fails(isSubtype[IllegalArgumentException](anything)))
-        }
-      } yield res
-    } @@ TestAspect.samples(samples) +
-    test("computeReceipt") {
-      for {
-        manager <- ZIO.service[TollManager]
-        prng <- ZIO.service[PRNG]
-        res <- check(TestUtilities.getBytesGen(prng, tollByteSize)) { bytes =>
-          for {
-            challenge <- ByteArrays.hashOfArrays(HashFunction.hashSHA256, bytes)
-                              .map(HexString.bytesToHex).map(TollChallenge(_, 2))
-            receipt <- TollManager.computeReceipt(prng, manager)(challenge)
-            res <- assertZIO(manager.verifyToll(challenge, HexString.bytesToHex(bytes)))(isTrue)
-          } yield res
-        }
-      } yield res
-    } @@ TestAspect.samples(samples)
+      test("verifyToll - success") {
+        for {
+          manager <- ZIO.service[TollManager]
+          prng <- ZIO.service[PRNG]
+          res <- check(TestUtilities.getBytesGen(prng, tollByteSize)) { bytes =>
+            for {
+              hash <- ByteArrays
+                .hashOfArrays(HashFunction.hashSHA256, bytes)
+                .map(HexString.bytesToHex)
+              res <- assertZIO(manager.verifyToll(TollChallenge(hash, 15), HexString.bytesToHex(bytes)))(isTrue)
+            } yield res
+          }
+        } yield res
+      } @@ TestAspect.samples(samples) +
+      test("verifyToll - fail") { // TODO: improve
+        for {
+          manager <- ZIO.service[TollManager]
+          prng <- ZIO.service[PRNG]
+          res <- check(TestUtilities.getBytesGen(prng, tollByteSize)) { bytes =>
+            for {
+              hash <- ByteArrays
+                .hashOfArrays(HashFunction.hashSHA256, bytes)
+                .map(HexString.bytesToHex)
+              res <- assertZIO(manager.verifyToll(TollChallenge(hash, 15), HexString("0000000000000")))(isFalse)
+            } yield res
+          }
+        } yield res
+      } @@ TestAspect.samples(samples) +
+      test("verifyToll - fail - invalid challenge cost") { // TODO: improve
+        for {
+          manager <- ZIO.service[TollManager]
+          hash <- hexStringHash
+          res <- check(Gen.int) { i =>
+            if i >= 0 then assertZIO(manager.verifyToll(TollChallenge(hash, i), hexString))(isTrue)
+            else
+              assertZIO(manager.verifyToll(TollChallenge(hash, i), hexString).exit)(
+                fails(isSubtype[IllegalArgumentException](anything))
+              )
+          }
+        } yield res
+      } @@ TestAspect.samples(samples) +
+      test("computeReceipt") {
+        for {
+          manager <- ZIO.service[TollManager]
+          prng <- ZIO.service[PRNG]
+          res <- check(TestUtilities.getBytesGen(prng, tollByteSize)) { bytes =>
+            for {
+              challenge <- ByteArrays
+                .hashOfArrays(HashFunction.hashSHA256, bytes)
+                .map(HexString.bytesToHex)
+                .map(TollChallenge(_, 2))
+              receipt <- TollManager.computeReceipt(prng, manager)(challenge)
+              res <- assertZIO(manager.verifyToll(challenge, HexString.bytesToHex(bytes)))(isTrue)
+            } yield res
+          }
+        } yield res
+      } @@ TestAspect.samples(samples)
   ).provideSomeLayerShared(layers)
