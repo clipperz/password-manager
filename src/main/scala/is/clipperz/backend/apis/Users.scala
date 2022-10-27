@@ -57,9 +57,9 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
       .catchSome {
         case ex : ResourceConflictException => ZIO.succeed(Response(status = Status.Conflict))
         case ex : ConflictualRequestException => ZIO.succeed(Response(status = Status.Conflict))
-        case ex : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
+        case ex : BadRequestException => { /* println(ex); */ ZIO.succeed(Response(status = Status.BadRequest)) }
         case ex : NonWritableArchiveException => { println(ex); ZIO.succeed(Response(status = Status.InternalServerError)) }
-        case ex : FailedConversionException => { println(ex); ZIO.succeed(Response(status = Status.BadRequest)) }
+        case ex : FailedConversionException => { /* println(ex);  */ZIO.succeed(Response(status = Status.BadRequest)) }
         case ex => { println(ex); ZIO.fail(ex)}
       }
 
@@ -69,9 +69,11 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
       .zip(ZIO.service[SessionManager])
       .zip(ZIO.succeed(request.bodyAsStream))
       .flatMap((userArchive, blobArchive, sessionManager, content) =>
-        userArchive.getUser(HexString(c)).flatMap(optionalUser => optionalUser match
-          case Some(_) => sessionManager.verifySessionUser(c, request)
-          case None    => ZIO.fail(new ResourceNotFoundException(s"user ${c} does not exist"))
+        sessionManager.verifySessionUser(c, request).flatMap(_ =>
+          userArchive.getUser(HexString(c)).flatMap(optionalUser => optionalUser match
+            case Some(u) => ZIO.succeed(u)
+            case None    => ZIO.fail(new ResourceNotFoundException(s"user ${c} does not exist"))  
+          )
         ).flatMap(_ =>
           fromStream[UserCard](content)
           .flatMap(user => {
@@ -85,9 +87,9 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
       .map(results => Response.text(results.toString))
       .catchSome {
         case ex : ResourceNotFoundException => ZIO.succeed(Response(status = Status.NotFound))
-        case ex : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
+        case ex : BadRequestException => { /* println(ex); */ ZIO.succeed(Response(status = Status.BadRequest)) }
         case ex : NonWritableArchiveException => { println(ex); ZIO.succeed(Response(status = Status.InternalServerError)) }
-        case ex : FailedConversionException => ZIO.succeed(Response(status = Status.BadRequest))
+        case ex : FailedConversionException => { /* println(ex);  */ZIO.succeed(Response(status = Status.BadRequest)) }
       }
 
   case request @ Method.GET -> !! / "users" / c =>
@@ -116,10 +118,10 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
           .verifySessionUser(c, request)
           .flatMap(_ =>
             fromStream[UserCard](content)
-              .flatMap(userCard => userArchive.deleteUser(userCard))  
+              .flatMap(userCard => userArchive.deleteUser(userCard))
+              .map(b => if b then Response.text(c) else Response(status = Status.NotFound))
           )
       )
-      .map(b => if b then Response.text(c) else Response(status = Status.NotFound))
       .catchSome {
         case ex : NonWritableArchiveException => { println(ex); ZIO.succeed(Response(status = Status.InternalServerError)) }
         case ex : BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
