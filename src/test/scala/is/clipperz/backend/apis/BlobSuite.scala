@@ -70,6 +70,14 @@ object BlobSpec extends ZIOSpecDefault:
     version = Version.Http_1_1,
   )
 
+  val deleteDifferentHashes = Request(
+    url = URL(!! / "blobs" / "aaaaaa" ),
+    method = Method.DELETE,
+    headers = Headers.empty,
+    data = HttpData.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
+    version = Version.Http_1_1,
+  )
+
   val invalidDelete = Request(
     url = URL(!! / "blobs" / blobData.hash.toString()),
     method = Method.DELETE,
@@ -159,8 +167,13 @@ object BlobSpec extends ZIOSpecDefault:
     },
     test("POST / DELETE -> _, 200") {
       for {
-        statusCode <- app(post).flatMap(_ => app(get).map(response => response.status.code))
+        statusCode <- app(post).flatMap(_ => app(delete).map(response => response.status.code))
       } yield assertTrue(statusCode == 200)
+    },
+    test("POST / DELETE different hashes -> _, 400") {
+      for {
+        statusCode <- app(post).flatMap(_ => app(deleteDifferentHashes).map(response => response.status.code))
+      } yield assertTrue(statusCode == 400)
     },
     test("POST / DELETE / GET -> 200, 200, 404") {
       for {
