@@ -11,7 +11,7 @@ import DataModel.Index (Index(..), CardEntry(..))
 import Views.SimpleWebComponents (clickableListItemWidget)
 
 indexView :: Index -> Widget HTML CardEntry
-indexView (Index_v1 cards) = do
+indexView (Index cards) = do
   let sortedCards = fromFoldable $ sort cards :: Array CardEntry
   ol []
     ((\entry@(CardEntry_v1 { title, archived }) -> 

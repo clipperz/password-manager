@@ -62,7 +62,7 @@ prepareSignupParameters form = runExceptT $ do
   cards                :: List (Tuple ArrayBuffer CardEntry) <- ExceptT $ Right <$> prepareCards conf defaultCards 
   v                    :: HexString   <- ExceptT $ SRP.prepareV conf sAb pAb
   masterKey            :: CryptoKey   <- ExceptT $ Right <$> KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
-  indexCardContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson masterKey (Index_v1 (snd <$> cards))
+  indexCardContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson masterKey (Index (snd <$> cards))
   masterPassword       :: CryptoKey   <- ExceptT $ Right <$> KI.importKey raw pAb (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   indexCardContentHash :: ArrayBuffer <- ExceptT $ Right <$> conf.hash (indexCardContent : Nil)
   masterKeyAb          :: ArrayBuffer <- ExceptT $ Right <$> exportKey raw masterKey

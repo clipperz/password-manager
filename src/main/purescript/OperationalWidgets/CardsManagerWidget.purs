@@ -46,7 +46,7 @@ cardsManagerWidget ind cardViewState = go ind (cardsManagerView ind cardViewStat
         OpResult i cv e -> go i (cardsManagerView i cv) e Nothing
 
 getUpdateIndexOp :: Index -> IndexUpdateData -> Aff CardsViewResult
-getUpdateIndexOp index@(Index_v1 list) (IndexUpdateData action _) =
+getUpdateIndexOp index@(Index list) (IndexUpdateData action _) =
   case action of 
     AddReference                        entry -> addEntryToIndex entry 
     CloneReference                      entry -> addEntryToIndex entry
@@ -57,15 +57,15 @@ getUpdateIndexOp index@(Index_v1 list) (IndexUpdateData action _) =
 
   where
     addEntryToIndex entry = do
-      let newIndex = Index_v1 (entry : list)
+      let newIndex = Index (entry : list)
       manageUpdateIndex newIndex { cardView: (CardFromReference entry), cardViewState: Default }
     
     removeReferenceFromIndex (CardEntry_v1 { cardReference: reference }) = do
-      let newIndex = Index_v1 (filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
+      let newIndex = Index (filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
       manageUpdateIndex newIndex { cardView: NoCard, cardViewState: Default }
 
     updateReferenceInIndex (CardEntry_v1 { cardReference: reference }) entry = do --TODO finish implementation based on card versioning
-      let newIndex = Index_v1 (entry : filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
+      let newIndex = Index (entry : filter (\(CardEntry_v1 { cardReference }) -> cardReference /= reference) list)
       manageUpdateIndex newIndex { cardView: (CardFromReference entry), cardViewState: Default }
 
     manageUpdateIndex :: Index -> CardViewState -> Aff CardsViewResult

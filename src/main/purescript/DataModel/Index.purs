@@ -76,13 +76,13 @@ instance decodeJsonCardEntry :: DecodeJson CardEntry where
 -- --------------------------------------------
 
 data Index = 
-  Index_v1 (List CardEntry)
+  Index (List CardEntry)
 
 instance encodeJsonIndex :: EncodeJson Index where
-  encodeJson (Index_v1 list) = encodeJson list
+  encodeJson (Index list) = encodeJson list
 
 instance decodeJsonIndex :: DecodeJson Index where
-  decodeJson json = rmap (\list -> Index_v1 list) (decodeJson json)
+  decodeJson json = rmap (\list -> Index list) (decodeJson json)
 
 -- --------------------------------------------
 

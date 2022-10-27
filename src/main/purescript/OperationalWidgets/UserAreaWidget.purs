@@ -25,7 +25,7 @@ import Functions.Import (decodeImport, parseHTMLImport, decodeHTML)
 import Views.SimpleWebComponents (loadingDiv, simpleFileInputWidget)
 
 userAreaWidget :: Index -> Widget HTML (Either AppError Index)
-userAreaWidget index@(Index_v1 entries) = do
+userAreaWidget index@(Index entries) = do
   result <- runExceptT $ do
     content <- ExceptT $ Right <$> simpleFileInputWidget "import" (text "Import")
     codedCardData <- except $ parseHTMLImport content
@@ -42,6 +42,6 @@ userAreaWidget index@(Index_v1 entries) = do
     saveImport :: Array Card -> Aff (Either AppError Index)
     saveImport cards = runExceptT $ do
       newEntries :: Array CardEntry <- sequence (postCard <$> cards)
-      let newIndex = Index_v1 (concat $ entries : (fromFoldable newEntries) : Nil)
+      let newIndex = Index (concat $ entries : (fromFoldable newEntries) : Nil)
       _ <- updateIndex newIndex
       ExceptT $ pure $ Right newIndex
