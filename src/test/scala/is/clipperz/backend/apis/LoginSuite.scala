@@ -99,7 +99,7 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
       version = Version.Http_1_1,
     )
 
-  def spec = suite("BlobApis")(
+  def spec = suite("LoginApis")(
     test("Login step 1 - fail - user not found") {
       val stepData = SRPStep1Data(HexString("aaa"), HexString("aaa"))
       val request = loginRequestStep1("aaa", stepData.toJson, true)
