@@ -45,7 +45,6 @@
   , "transformers"
   , "tuples"
   , "unfoldable"
-  , "web-file"
   ]
 , packages = ./packages.dhall
 }
