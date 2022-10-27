@@ -20,6 +20,7 @@ import Data.String.Common (joinWith)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials)
 import DataModel.AppState (AppError(..))
+import DataModel.User (UserCard(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
@@ -30,8 +31,8 @@ import Functions.SRP as SRP
 signupUser :: Credentials -> ExceptT AppError Aff HexString
 signupUser credentials = do
   currentState <- ExceptT $ liftEffect $ getAppState
-  request <- ExceptT $ (lmap (ProtocolError <<< SRPError <<< show)) <$> prepareSignupParameters credentials
-  let url = joinWith "/" ["users", show request.user.c]
+  request@{user: UserCard u} <- ExceptT $ (lmap (ProtocolError <<< SRPError <<< show)) <$> prepareSignupParameters credentials
+  let url = joinWith "/" ["users", show u.c]
   let body = (json $ encodeJson request) :: RequestBody
   --- --------------------------- 
   sessionKey :: HexString <- ExceptT $ (lmap ProtocolError) <$> ((fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32) --- TODO: maybe to manage with session middleware

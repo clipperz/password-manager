@@ -30,7 +30,7 @@ import DataModel.Card (Card)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardReference(..), Index, CardEntry(..), createCardEntry, IndexReference)
 import DataModel.SRP (hashFuncSHA256)
-import DataModel.User (UserCard)
+import DataModel.User (UserCard(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Effect.Exception as EX
@@ -116,19 +116,19 @@ updateIndex newIndex = do
   case currentState of
     { c: Just c, p: Just p, proxy: _, sessionKey: _, toll: _ } -> do
       -- create user card with new index reference
-      userCard <- getUserCard
+      UserCard userCard <- getUserCard
       masterPassword :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       { before: masterKey, after: oldIndexReference } <- mapCryptoError $ ExceptT $ splitInHalf <$> (decryptEncryptedRef masterPassword userCard.masterKeyContent)
       cryptoKey            :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       indexCardContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson cryptoKey newIndex
       indexCardContentHash :: ArrayBuffer <- ExceptT $ Right <$> (getHashFromState $ currentState.hash) (indexCardContent : Nil)
       masterKeyContent     :: ArrayBuffer <- ExceptT $ Right <$> ((liftEffect $ concatArrayBuffers ((toArrayBuffer masterKey) : indexCardContentHash : Nil)) >>= (encryptArrayBuffer masterPassword)) 
-      let newUserCard = userCard { masterKeyContent = fromArrayBuffer masterKeyContent }
+      let nUC@(UserCard newUserCard) = UserCard $ userCard { masterKeyContent = fromArrayBuffer masterKeyContent }
       -- save new index card
       _ <- postBlob indexCardContent indexCardContentHash
       -- save new user card
       let url = joinWith "/" ["users", show c]
-      let body = (json $ encodeJson newUserCard) :: RequestBody
+      let body = (json $ encodeJson nUC) :: RequestBody
       _ <- manageGenericRequest url PUT (Just body) RF.string
       _ <- deleteBlob oldIndexReference -- TODO: manage errors
       pure newUserCard.masterKeyContent

@@ -20,7 +20,7 @@ import DataModel.Card (Card, defaultCards)
 import DataModel.Credentials (Credentials)
 import DataModel.Index (Index(..), CardEntry(..), CardReference(..), createCardEntry)
 import DataModel.SRP (SRPConf, SRPError(..))
-import DataModel.User (UserCard)
+import DataModel.User (UserCard(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -67,13 +67,15 @@ prepareSignupParameters form = runExceptT $ do
   indexCardContentHash :: ArrayBuffer <- ExceptT $ Right <$> conf.hash (indexCardContent : Nil)
   masterKeyAb          :: ArrayBuffer <- ExceptT $ Right <$> exportKey raw masterKey
   masterKeyContent     :: ArrayBuffer <- ExceptT $ Right <$> ((liftEffect $ concatArrayBuffers (masterKeyAb : indexCardContentHash : Nil)) >>= (encryptArrayBuffer masterPassword)) 
-  pure  { user: { c: c
-                , v: v
-                , s: salt
-                , srpVersion : "6a"
-                , masterKeyEncodingVersion : "1.0"
-                , masterKeyContent : fromArrayBuffer masterKeyContent
-                }
+  pure  { user:
+            UserCard
+              { c: c
+              , v: v
+              , s: salt
+              , srpVersion : "6a"
+              , masterKeyEncodingVersion : "1.0"
+              , masterKeyContent : fromArrayBuffer masterKeyContent
+              }
         , indexCardReference : fromArrayBuffer indexCardContentHash
         , indexCardContent   : fromArrayBuffer indexCardContent
         , cards : fromFoldable ((\(Tuple encryptedCard (CardEntry { cardReference: (CardReference { reference }) })) -> (Tuple reference (fromArrayBuffer encryptedCard))) <$> cards)
