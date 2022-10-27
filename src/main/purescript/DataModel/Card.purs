@@ -8,6 +8,9 @@ import Data.List.Types (List(..), (:))
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 
+currentCardVersion :: String
+currentCardVersion = "V1"
+
 newtype CardField =
   CardField
     { name   :: String

@@ -17,7 +17,7 @@ import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.String.Common (toLower)
 import Data.Tuple (Tuple(..))
-import DataModel.Card (Card(..), CardValues(..))
+import DataModel.Card (Card(..), CardValues(..), currentCardVersion)
 import DataModel.SRP (HashFunction)
 import Effect.Aff (Aff)
 import Functions.EncodeDecode (encryptJson)
@@ -28,6 +28,7 @@ newtype CardReference =
   CardReference
     { reference :: HexString
     , key :: HexString
+    , cardVersion :: String
     }
 
 instance showCardReference :: Show CardReference where
@@ -96,7 +97,7 @@ createCardEntry card@(Card { content: (CardValues content), archived, timestamp:
   hash <- hashf (encryptedCard : Nil)
   exportedKey <- fromArrayBuffer <$> exportKey raw key
   let cardEntry = CardEntry { title: content.title
-                               , cardReference: CardReference { reference: fromArrayBuffer hash, key: exportedKey }
+                               , cardReference: CardReference { reference: fromArrayBuffer hash, key: exportedKey, cardVersion: currentCardVersion }
                                , archived: archived
                                , tags: content.tags
                                }
