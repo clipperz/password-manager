@@ -9,17 +9,6 @@ import Data.List.Types (List(..), (:))
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 
-type UserCard = {
-    c :: HexString
-  , v :: HexString
-  , s :: HexString
-  , srpVersion :: String
-  , masterKeyEncodingVersion :: String
-  , masterKeyContent :: HexString
-}
-
----------------------
-
 data CardField =
   CardField_v1
     { name   :: String
