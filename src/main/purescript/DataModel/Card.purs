@@ -8,24 +8,24 @@ import Data.List.Types (List(..), (:))
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 
-data CardField =
-  CardField_v1
+newtype CardField =
+  CardField
     { name   :: String
     , value  :: String
     , locked :: Boolean
     }
   
 instance eqCardField :: Eq CardField where
-  eq (CardField_v1 r1) (CardField_v1 r2) = eq r1 r2
+  eq (CardField r1) (CardField r2) = eq r1 r2
 
 instance showCardField :: Show CardField where
-  show (CardField_v1 { name, value, locked }) = "[" <> show locked <> "] " <> name <> ": " <> value
+  show (CardField { name, value, locked }) = "[" <> show locked <> "] " <> name <> ": " <> value
 
 instance encodeJsonCardField :: EncodeJson CardField where
-  encodeJson (CardField_v1 record) = encodeJson record
+  encodeJson (CardField record) = encodeJson record
 
 instance decodeJsonCardField :: DecodeJson CardField where
-  decodeJson json = rmap (\record -> CardField_v1 record) (decodeJson json)
+  decodeJson json = rmap (\record -> CardField record) (decodeJson json)
 
 -- --------------------------------------------
 
@@ -74,15 +74,15 @@ instance decodeJsonCard :: DecodeJson Card where
 -- --------------------------------------------
 
 emptyCardField :: CardField
-emptyCardField = CardField_v1 { name: "", value: "", locked: false }
+emptyCardField = CardField { name: "", value: "", locked: false }
 
 emptyCard :: Card
 emptyCard = Card_v1 { timestamp: 0
                     , archived: false
                     , content: CardValues_v1 { title: ""
                                               , tags: []
-                                              , fields: [ CardField_v1 { name: "username", value: "", locked: false }
-                                                        , CardField_v1 { name: "password", value: "", locked: true }
+                                              , fields: [ CardField { name: "username", value: "", locked: false }
+                                                        , CardField { name: "password", value: "", locked: true }
                                                         ]
                                               , notes: ""
                                               }
@@ -91,19 +91,19 @@ emptyCard = Card_v1 { timestamp: 0
 card0 :: CardValues
 card0 = CardValues_v1 { title: "Mail account (SAMPLE)"
                       , tags: ["mail"]
-                      , fields: [ (CardField_v1 {name: "username", value: "sample@mail.com", locked: false})
-                                , (CardField_v1 {name: "password", value: "i3k^{flhadhse93na[{%oq[;6-", locked: true})]
+                      , fields: [ (CardField {name: "username", value: "sample@mail.com", locked: false})
+                                , (CardField {name: "password", value: "i3k^{flhadhse93na[{%oq[;6-", locked: true})]
                       , notes: "Mail account notes"}
 
 card1 :: CardValues
 card1 = CardValues_v1 { title: "Bank account (SAMPLE)"
                       , tags: ["finance", "sample"]
-                      , fields: [ (CardField_v1 {name: "IBAN", value: "DE89370400440532015007", locked: false})
-                                , (CardField_v1 {name: "password", value: "?)E%[9=GcgzaAftgP[LSEK7JJv", locked: true})
-                                , (CardField_v1 {name: "User ID", value: "76238784", locked: false})
-                                , (CardField_v1 {name: "Web", value: "https://www.db.com", locked: false})
-                                , (CardField_v1 {name: "Bank", value: "Deutsche Bank", locked: false})
-                                , (CardField_v1 {name: "Branch n.", value: "774942", locked: false})]
+                      , fields: [ (CardField {name: "IBAN", value: "DE89370400440532015007", locked: false})
+                                , (CardField {name: "password", value: "?)E%[9=GcgzaAftgP[LSEK7JJv", locked: true})
+                                , (CardField {name: "User ID", value: "76238784", locked: false})
+                                , (CardField {name: "Web", value: "https://www.db.com", locked: false})
+                                , (CardField {name: "Bank", value: "Deutsche Bank", locked: false})
+                                , (CardField {name: "Branch n.", value: "774942", locked: false})]
                       , notes: ""}
 
 defaultCards :: List Card

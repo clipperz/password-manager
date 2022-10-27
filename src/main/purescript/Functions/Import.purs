@@ -89,4 +89,4 @@ decodeCard timestamp = caseJsonObject (Left $ ImportError "Cannot conver json to
       label  <- except $ note (ImportError "Cannot find field label")  $ (toString  =<< lookup "label"  obj)
       value  <- except $ note (ImportError "Cannot find field value")  $ (toString  =<< lookup "value"  obj)
       let hidden = fromMaybe false $ (toBoolean =<< lookup "hidden" obj)
-      pure $ CardField_v1 {name: label, value: value, locked: hidden}
+      pure $ CardField {name: label, value: value, locked: hidden}
