@@ -37,11 +37,12 @@ object Main extends zio.ZIOAppDefault:
   ]
 
   val clipperzBackend: ClipperzHttpApp = { usersApi ++ loginApi ++ logoutApi ++ blobsApi ++ staticApi }
+  val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (sessionChecks ++ hashcash)
 
   val server =
     Server.port(PORT) ++
       Server.paranoidLeakDetection ++
-      Server.app(clipperzBackend @@ (sessionChecks ++ hashcash))
+      Server.app(completeClipperzBackend)
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
     val nThreads: Int = args.headOption.flatMap(x => Try(x.toInt).toOption).getOrElse(0)

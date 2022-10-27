@@ -102,17 +102,14 @@ object SrpManager:
       zioM1.flatMap { m1 =>
         val m1Server = bytesToBigInt(m1)
         val m1Client = step2Data.m1.toBigInt
-        if m1Server == m1Client then {
+        if m1Server == m1Client then
           for {
             user: UserCard <- zioUser
             kk: Array[Byte] <- zioK
             m2: Array[Byte] <- srpFunctions.computeM2(aa.toByteArray, step2Data.m1.toByteArray, kk)
             result <- ZIO.succeed((SRPStep2Response(bytesToHex(m2), user.masterKeyContent), session)) // TODO: what to put in sessione context
           } yield result
-        }
-        else {
-          ZIO.fail(new BadRequestException(s"M1 is not correct => M1 SERVER ${bytesToHex(m1)} != M1 CLIENT ${step2Data.m1}"))
-        }
+        else ZIO.fail(new BadRequestException(s"M1 is not correct => M1 SERVER ${bytesToHex(m1)} != M1 CLIENT ${step2Data.m1}"))
       }
 
   def v6a(): ZLayer[UserArchive & PRNG, Throwable, SrpManager] =
