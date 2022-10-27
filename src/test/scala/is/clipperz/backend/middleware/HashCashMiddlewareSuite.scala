@@ -127,6 +127,12 @@ object HashCashMiddlewareSpec extends ZIOSpecDefault:
         response2 <- idApp(newGet)
       } yield assertTrue(response2.status == Status.Ok)
     },
+    // test("402 if repeated hashcash") {
+    //   assertNever("Yet to be implemented")
+    // },
+    // test("Can manage multiple challenges simultaneously") {
+    //   assertNever("Yet to be implemented")
+    // },
   ).provideSomeLayer(layers) @@
     TestAspect.sequential
 
