@@ -76,7 +76,7 @@ decodeCard timestamp = caseJsonObject (Left $ ImportError "Cannot conver json to
       notes  <- except $ note (ImportError "Cannot find card notes") $ (toString =<< (lookup "notes") =<< toObject =<< lookup "data" obj)
       pure $ Card_v1 { timestamp: timestamp
                      , archived: archived
-                     , content: CardValues_v1 { title: title
+                     , content: CardValues { title: title
                                               , tags: tags
                                               , fields: fields
                                               , notes: notes

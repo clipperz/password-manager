@@ -51,7 +51,7 @@ cardActions c@(Card_v1 r) disabled = div [] [
 ]
 
 cardContent :: forall a. CardValues -> Widget HTML a
-cardContent (CardValues_v1 {title: t, tags: ts, fields: fs, notes: n}) = div [Props._id "cardContent"] [
+cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) = div [Props._id "cardContent"] [
   h3  [Props.className "card_title"]  [text t]
 , ul  [Props.className "card_tags"]   $ (\s -> li' [text s]) <$> ts
 , div [Props.className "card_fields"] $ cardField <$> fs

@@ -37,7 +37,7 @@ importSpec  =
       decodeResult <- liftEffect $ decodeImport joe_clipperzData
       let result = Card_v1 { timestamp: 0
                            , archived: false
-                           , content: CardValues_v1 { title: "Amazon.com"
+                           , content: CardValues { title: "Amazon.com"
                                                      , tags: ["shopping"]
                                                      , fields: [ CardField { name: "email", value: "joe@clipperz.com", locked: false }
                                                                , CardField { name: "password", value: "8gJcYP~bJh#PMfA[|eU", locked: true }
@@ -54,7 +54,7 @@ importSpec  =
       decodeResult <- liftEffect $ decodeImport joe_clipperzData
       let result = Card_v1 { timestamp: 0
                            , archived: true
-                           , content: CardValues_v1 { title: "AOL "
+                           , content: CardValues { title: "AOL "
                                                      , tags: ["", "social"]
                                                      , fields: [ CardField { name: "URL", value: "http://www.aol.com", locked: false }
                                                                , CardField { name: "ID", value: "88440023", locked: false }
@@ -63,7 +63,7 @@ importSpec  =
                                                      , notes: "Ah the good old times. :)"
                                                      }
                            }
-      makeTestableOnBrowser importArchivedCard ((\a -> filter (\(Card_v1 { content: CardValues_v1 { title } }) -> title == "AOL ") a) <$> decodeResult) shouldEqual (Right $ [result])
+      makeTestableOnBrowser importArchivedCard ((\a -> filter (\(Card_v1 { content: CardValues { title } }) -> title == "AOL ") a) <$> decodeResult) shouldEqual (Right $ [result])
       -- makeTestableOnBrowser importArchivedCard ((\a -> index a 3) <$> decodeResult) shouldEqual (Right $ Just result)
          
     where

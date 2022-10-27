@@ -73,12 +73,12 @@ createCardView card state = do
 
     formSignal :: Signal HTML (Maybe (Maybe Card))
     formSignal = do
-      Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card_v1 {content: (CardValues_v1 {title, tags, fields, notes}), timestamp})) -> do
+      Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card_v1 {content: (CardValues {title, tags, fields, notes}), timestamp})) -> do
         title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title"))
         Tuple newTag' tags' <- tagsSignal newTag tags
         fields' <- fieldsSignal fields
         notes' :: String <- loopW notes (simpleTextInputWidget "notes" (text "Notes"))
-        pure $ Tuple newTag' $ Card_v1 { content: (CardValues_v1 {title: title', tags: tags', fields: fields', notes: notes'})
+        pure $ Tuple newTag' $ Card_v1 { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
                                        , archived: false
                                        , timestamp
                                        }

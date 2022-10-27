@@ -95,6 +95,6 @@ cardWidget entry@(CardEntry_v1 { title: _, cardReference, archived: _, tags: _ }
 cloneCardNow :: Card -> Aff Card
 cloneCardNow (Card_v1 { timestamp: _, content, archived}) =
   case content of
-    CardValues_v1 values -> do
+    CardValues values -> do
       timestamp <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
-      pure $ Card_v1 { timestamp, archived, content: (CardValues_v1 (values { title = (values.title <> " - CLONE")}))}
+      pure $ Card_v1 { timestamp, archived, content: (CardValues (values { title = (values.title <> " - CLONE")}))}
