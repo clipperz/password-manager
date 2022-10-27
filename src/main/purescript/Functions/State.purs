@@ -17,7 +17,7 @@ baseUrl :: String
 baseUrl = "http://localhost:8090" --TODO: get from configuration file/build
 
 computeInitialState :: Effect AppState
-computeInitialState = pure { proxy: (OnlineProxy baseUrl), sessionKey: Nothing, toll: (Loading Nothing), c: Nothing, p: Nothing, srpInfo: baseSRPInfo, hash: SHA256, cardsCache: empty }
+computeInitialState = pure { proxy: (OnlineProxy baseUrl), sessionKey: Nothing, currentChallenge: Nothing, toll: (Loading Nothing), c: Nothing, p: Nothing, srpInfo: baseSRPInfo, hash: SHA256, cardsCache: empty }
 
 getKDFFromState :: KDFState -> KDF
 getKDFFromState kdfState =
