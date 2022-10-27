@@ -11,6 +11,7 @@ import is.clipperz.backend.services.{ ChallengeType, SessionManager, TollManager
 import is.clipperz.backend.Main.ClipperzHttpApp
 import java.util.NoSuchElementException
 import is.clipperz.backend.exceptions.BadRequestException
+import zio.Cause
 
 type TollMiddleware = HttpMiddleware[TollManager & SessionManager, Throwable]
 
@@ -40,7 +41,7 @@ def isTollInSession(req: Request): ZIO[SessionManager, Throwable, Boolean] =
         .map(_.isDefined)
     )
     .catchSome {
-      case ex => ZIO.succeed(false)
+      case ex => ZIO.logDebugCause(s"${ex.getMessage()}", Cause.fail(ex)).as(false)
     }
 
 def checkReceipt(req: Request): ZIO[TollManager & SessionManager, Throwable, Boolean] =
@@ -60,7 +61,7 @@ def checkReceipt(req: Request): ZIO[TollManager & SessionManager, Throwable, Boo
       } yield res
     }
     .catchSome {
-      case ex => ZIO.succeed(false)
+      case ex => ZIO.logDebugCause(s"${ex.getMessage()}", Cause.fail(ex)).as(false)
     }
 
 def wrongTollMiddleware(responseStatus: Status): Request => TollMiddleware = req =>
@@ -87,7 +88,8 @@ def wrongTollMiddleware(responseStatus: Status): Request => TollMiddleware = req
           )
         )
         .catchSome {
-          case ex: NoSuchElementException => ZIO.succeed(Response.status(Status.BadRequest))
+          case ex: NoSuchElementException =>
+            ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response.status(Status.BadRequest))
         }
     )
   )
@@ -116,6 +118,12 @@ val correctReceiptMiddleware: Request => TollMiddleware = req =>
         println(msg)
         Some(new Exception(msg))
       ) // THIS IS SO STUPID 🤬 e 🤬
+      .catchSome {
+        case ex =>
+          ZIO
+            .logWarningCause(s"${ex.getOrElse(new Exception("An exception was launched but not?")).getMessage()}", Cause.fail(ex))
+            .flatMap(_ => ZIO.fail(ex))
+      }
   )
 
 val tollPresentMiddleware: Request => TollMiddleware = req =>

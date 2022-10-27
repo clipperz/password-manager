@@ -92,6 +92,9 @@ lazy val dependencies = Seq(
     "dev.zio" %% "zio-json" % zio_json,
     "dev.zio" %% "zio-cache" % "0.2.0",
     "io.d11" %% "zhttp" % zio_http_version,
+    "dev.zio" %% "zio-logging"       % "2.0.0",
+    "dev.zio" %% "zio-logging-slf4j" % "2.0.0",
+    "org.slf4j" % "slf4j-simple" % "1.7.36",
   ),
   libraryDependencies ++= Seq(
     // org.scalatest.scalatest,

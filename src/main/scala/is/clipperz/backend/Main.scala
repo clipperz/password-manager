@@ -25,7 +25,20 @@ import is.clipperz.backend.apis.{ blobsApi, loginApi, logoutApi, staticApi, user
 import is.clipperz.backend.middleware.{ hashcash, sessionChecks }
 import is.clipperz.backend.services.{ BlobArchive, PRNG, SessionManager, SrpManager, TollManager, UserArchive }
 
+import zio.logging.LogFormat
+import zio.logging.backend.SLF4J
+import zio.{LogLevel, Runtime}
+import zio.ZLogger
+import zio.Trace
+import zio.FiberId
+import zio.Cause
+import zio.FiberRefs
+import zio.LogSpan
+
 object Main extends zio.ZIOAppDefault:
+
+  override val bootstrap = Runtime.removeDefaultLoggers >>> SLF4J.slf4j(LogLevel.Info, LogFormat.colored)
+
   private val PORT = 8090
 
   type ClipperzEnvironment =
@@ -52,7 +65,8 @@ object Main extends zio.ZIOAppDefault:
 
     server
       .make
-      .flatMap(start => zio.Console.printLine(s"Server started on port ${start.port}") *> ZIO.never)
+      // .flatMap(start => zio.Console.printLine(s"Server started on port ${start.port}") *> ZIO.never)
+      .flatMap(start => ZIO.logInfo(s"Server started on port ${start.port}") *> ZIO.never)
       .provide(
         PRNG.live,
         SessionManager.live,

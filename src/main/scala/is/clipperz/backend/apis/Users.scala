@@ -18,6 +18,7 @@ import is.clipperz.backend.exceptions.{
 import is.clipperz.backend.functions.fromStream
 import is.clipperz.backend.services.{ BlobArchive, SessionManager, SignupData, UserArchive, UserCard }
 import is.clipperz.backend.Main.ClipperzHttpApp
+import zio.Cause
 
 val usersApi: ClipperzHttpApp = Http.collectZIO {
   case request @ Method.POST -> !! / "users" / c =>
@@ -57,12 +58,17 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
       )
       .map(results => Response.text(results._1.toString))
       .catchSome {
-        case ex: ResourceConflictException => ZIO.succeed(Response(status = Status.Conflict))
-        case ex: ConflictualRequestException => ZIO.succeed(Response(status = Status.Conflict))
-        case ex: BadRequestException => /* println(ex); */ ZIO.succeed(Response(status = Status.BadRequest))
-        case ex: NonWritableArchiveException => println(ex); ZIO.succeed(Response(status = Status.InternalServerError))
-        case ex: FailedConversionException => /* println(ex);  */ ZIO.succeed(Response(status = Status.BadRequest))
-        case ex => println(ex); ZIO.fail(ex)
+        case ex: ResourceConflictException =>
+          ZIO.logDebugCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.Conflict))
+        case ex: ConflictualRequestException =>
+          ZIO.logDebugCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.Conflict))
+        case ex: BadRequestException =>
+          ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
+        case ex: NonWritableArchiveException =>
+          ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
+        case ex: FailedConversionException =>
+          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
+        case ex => ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).flatMap(_ => ZIO.fail(ex))
       }
 
   case request @ Method.PUT -> !! / "users" / c =>
@@ -93,10 +99,14 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
       )
       .map(results => Response.text(results.toString))
       .catchSome {
-        case ex: ResourceNotFoundException => ZIO.succeed(Response(status = Status.NotFound))
-        case ex: BadRequestException => /* println(ex); */ ZIO.succeed(Response(status = Status.BadRequest))
-        case ex: NonWritableArchiveException => println(ex); ZIO.succeed(Response(status = Status.InternalServerError))
-        case ex: FailedConversionException => /* println(ex);  */ ZIO.succeed(Response(status = Status.BadRequest))
+        case ex: ResourceNotFoundException =>
+          ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.NotFound))
+        case ex: BadRequestException =>
+          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
+        case ex: NonWritableArchiveException =>
+          ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
+        case ex: FailedConversionException =>
+          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
       }
 
   case request @ Method.GET -> !! / "users" / c =>
@@ -114,8 +124,10 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
           case Some(card) => Response.json(card.toJson)
       )
       .catchSome {
-        case ex: NonReadableArchiveException => println(ex); ZIO.succeed(Response(status = Status.InternalServerError))
-        case ex: BadRequestException => /* println(ex); */ ZIO.succeed(Response(status = Status.BadRequest))
+        case ex: NonReadableArchiveException =>
+          ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
+        case ex: BadRequestException =>
+          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
       }
 
   case request @ Method.DELETE -> !! / "users" / c =>
@@ -133,8 +145,11 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
           )
       )
       .catchSome {
-        case ex: NonWritableArchiveException => println(ex); ZIO.succeed(Response(status = Status.InternalServerError))
-        case ex: BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
-        case ex: ResourceNotFoundException => ZIO.succeed(Response(status = Status.NotFound))
+        case ex: NonWritableArchiveException =>
+          ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
+        case ex: BadRequestException =>
+          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
+        case ex: ResourceNotFoundException =>
+          ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.NotFound))
       }
 }

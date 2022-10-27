@@ -10,6 +10,7 @@ import is.clipperz.backend.services.{ SessionManager, SrpManager, SRPStep1Data, 
 import is.clipperz.backend.Main.ClipperzHttpApp
 import is.clipperz.backend.exceptions.{ BadRequestException, FailedConversionException, ResourceNotFoundException }
 import java.util
+import zio.Cause
 
 val loginApi: ClipperzHttpApp = Http.collectZIO {
   case request @ Method.POST -> !! / "login" / "step1" / c =>
@@ -32,10 +33,14 @@ val loginApi: ClipperzHttpApp = Http.collectZIO {
       )
       .map(step1Response => Response.json(step1Response.toJson))
       .catchSome {
-        case ex: ResourceNotFoundException => ZIO.succeed(Response(status = Status.NotFound))
-        case ex: BadRequestException => ZIO.succeed(Response(status = Status.BadRequest))
-        case ex: FailedConversionException => /* println(ex); */ ZIO.succeed(Response(status = Status.BadRequest))
-        case ex: NoSuchElementException => ZIO.succeed(Response(status = Status.BadRequest))
+        case ex: ResourceNotFoundException =>
+          ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.NotFound))
+        case ex: BadRequestException =>
+          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
+        case ex: FailedConversionException =>
+          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
+        case ex: NoSuchElementException =>
+          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
       }
 
   case request @ Method.POST -> !! / "login" / "step2" / c =>
@@ -57,9 +62,13 @@ val loginApi: ClipperzHttpApp = Http.collectZIO {
       )
       .map(step2Response => Response.json(step2Response.toJson))
       .catchSome {
-        case ex: ResourceNotFoundException => ZIO.succeed(Response(status = Status.NotFound))
-        case ex: FailedConversionException => ZIO.succeed(Response(status = Status.BadRequest))
-        case ex: BadRequestException => ZIO.succeed(Response(status = Status.Forbidden))
-        case ex: NoSuchElementException => ZIO.succeed(Response(status = Status.BadRequest))
+        case ex: ResourceNotFoundException =>
+          ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.NotFound))
+        case ex: FailedConversionException =>
+          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
+        case ex: BadRequestException =>
+          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.Forbidden))
+        case ex: NoSuchElementException =>
+          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
       }
 }
