@@ -202,8 +202,8 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
     }
   ).provideCustomLayerShared(environment) @@ 
     TestAspect.sequential @@ 
-    // TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))) // TODO: doesn't work
-    TestAspect.beforeAll(saveUser)
-    TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))
+    TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))) @@
+    TestAspect.beforeAll(saveUser) @@
+    TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn))) @@
     TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))
 
