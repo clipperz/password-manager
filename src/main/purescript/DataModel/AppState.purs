@@ -16,6 +16,7 @@ import Data.Show (class Show, show)
 import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
 import DataModel.Proxy (Proxy)
+import DataModel.User (IndexReference)
 import DataModel.Communication.ProtocolError (ProtocolError)
 import DataModel.SRP(SRPGroup, group1024, k)
 
@@ -28,6 +29,7 @@ type AppState =
   , srpInfo :: SRPInfo
   , hash :: HashState
   , cardsCache :: Map HexString Card
+  , indexReference :: Maybe IndexReference
   }
 
 type SRPInfo = { group :: SRPGroup, k :: BigInt, kdf :: KDFState }

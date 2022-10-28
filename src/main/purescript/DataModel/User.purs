@@ -20,3 +20,16 @@ instance encodeJsonUserCard :: EncodeJson UserCard where
 
 instance decodeJsonUserCard :: DecodeJson UserCard where
   decodeJson json = rmap (\record -> UserCard record) (decodeJson json)
+
+newtype IndexReference =
+  IndexReference
+    { reference :: HexString
+    , masterKey :: HexString
+    , indexVersion :: String
+    }
+
+instance encodeJsonIndexReference :: EncodeJson IndexReference where
+  encodeJson (IndexReference record) = encodeJson record
+
+instance decodeJsonIndexReference :: DecodeJson IndexReference where
+  decodeJson json = rmap (\record -> IndexReference record) (decodeJson json)

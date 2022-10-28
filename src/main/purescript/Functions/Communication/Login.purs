@@ -23,14 +23,16 @@ import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
+import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.Index (IndexReference)
+import DataModel.User (IndexReference)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
-import Functions.JSState (modifyAppState, getAppState)
+import Functions.Index (decryptIndexReference)
+import Functions.JSState (modifyAppState, getAppState, updateAppState)
 import Functions.State (getSRPConf, getSRPConfFromState)
 import Functions.SRP as SRP
     
@@ -39,7 +41,7 @@ import Functions.SRP as SRP
 sessionKeyHeaderName :: String
 sessionKeyHeaderName = "clipperz-UserSession-ID"
 
-login :: ExceptT AppError Aff IndexReference
+login :: ExceptT AppError Aff Unit
 login = do
   currentState <- ExceptT $ liftEffect $ getAppState
   let srpConf = getSRPConfFromState currentState
@@ -49,10 +51,11 @@ login = do
       sessionKey :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32
       ExceptT $ Right <$> modifyAppState (currentState { sessionKey = Just sessionKey })
   loginStep1Result <- loginStep1
-  { m1, kk, m2, encIndexReference: indexReference } <- loginStep2 loginStep1Result
+  { m1, kk, m2, indexReference } <- loginStep2 loginStep1Result
+  ExceptT $ updateAppState { indexReference: Just indexReference }
   check :: Boolean <- ExceptT $ Right <$> SRP.checkM2 srpConf loginStep1Result.aa m1 kk (toArrayBuffer m2)
   case check of
-    true  -> except $ Right indexReference
+    true  -> except $ Right unit
     false -> except $ Left (ProtocolError $ SRPError "Client M2 doesn't match with server M2")
 
 -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -99,7 +102,7 @@ type LoginStep2Response = { m2 :: HexString
 type LoginStep2Result = { m1 :: ArrayBuffer
                         , kk :: ArrayBuffer
                         , m2 :: HexString
-                        , encIndexReference :: HexString
+                        , indexReference :: IndexReference
                         }
 
 loginStep2 :: LogintStep2Data -> ExceptT AppError Aff LoginStep2Result
@@ -118,4 +121,5 @@ loginStep2 { aa, bb, a, s } = do
   responseBody :: LoginStep2Response <- except $ if isStatusCodeOk step2Response.status
                                                  then lmap (\err -> ProtocolError $ DecodeError $ show err) (decodeJson step2Response.body)
                                                  else Left (ProtocolError $ ResponseError (unwrap step2Response.status))
-  except $ Right { m1, kk, m2: responseBody.m2, encIndexReference: responseBody.encIndexReference }
+  indexReference <- decryptIndexReference responseBody.encIndexReference
+  except $ Right { m1, kk, m2: responseBody.m2, indexReference: indexReference }

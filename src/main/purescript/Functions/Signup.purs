@@ -1,8 +1,9 @@
 module Functions.Signup where
 
-import Control.Bind (bind, (>>=))
+import Control.Bind (bind)
 import Control.Applicative (pure)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT, withExceptT)
+import Control.Semigroupoid ((>>>))
 import Crypto.Subtle.Constants.AES (aesCTR, l256)
 import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Generate as KG
@@ -18,14 +19,13 @@ import Data.Tuple (Tuple(..), snd)
 import Data.PrettyShow (prettyShow)
 import DataModel.Card (Card, defaultCards)
 import DataModel.Credentials (Credentials)
-import DataModel.Index (Index(..), CardEntry(..), CardReference(..), createCardEntry)
+import DataModel.Index (Index(..), CardEntry(..), CardReference(..), createCardEntry, currentIndexVersion)
 import DataModel.SRP (SRPConf, SRPError(..))
-import DataModel.User (UserCard(..))
+import DataModel.User (UserCard(..), IndexReference(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Functions.ArrayBuffer (concatArrayBuffers)
-import Functions.EncodeDecode (encryptJson, encryptArrayBuffer)
+import Functions.EncodeDecode (encryptJson)
 import Functions.State (getSRPConf)
 import Functions.SRP as SRP
 
@@ -64,9 +64,10 @@ prepareSignupParameters form = runExceptT $ do
   masterKey            :: CryptoKey   <- ExceptT $ Right <$> KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
   indexCardContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson masterKey (Index (snd <$> cards))
   masterPassword       :: CryptoKey   <- ExceptT $ Right <$> KI.importKey raw pAb (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-  indexCardContentHash :: ArrayBuffer <- ExceptT $ Right <$> conf.hash (indexCardContent : Nil)
-  masterKeyAb          :: ArrayBuffer <- ExceptT $ Right <$> exportKey raw masterKey
-  masterKeyContent     :: ArrayBuffer <- ExceptT $ Right <$> ((liftEffect $ concatArrayBuffers (masterKeyAb : indexCardContentHash : Nil)) >>= (encryptArrayBuffer masterPassword)) 
+  indexCardContentHash :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> conf.hash (indexCardContent : Nil)
+  masterKeyHex         :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> exportKey raw masterKey
+  let indexReference   = IndexReference { reference: indexCardContentHash, masterKey: masterKeyHex, indexVersion: currentIndexVersion }
+  masterKeyContent     :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> encryptJson masterPassword indexReference
   pure  { user:
             UserCard
               { c: c
@@ -74,9 +75,9 @@ prepareSignupParameters form = runExceptT $ do
               , s: salt
               , srpVersion : "6a"
               , masterKeyEncodingVersion : "1.0"
-              , masterKeyContent : fromArrayBuffer masterKeyContent
+              , masterKeyContent : masterKeyContent
               }
-        , indexCardReference : fromArrayBuffer indexCardContentHash
+        , indexCardReference : indexCardContentHash
         , indexCardContent   : fromArrayBuffer indexCardContent
         , cards : fromFoldable ((\(Tuple encryptedCard (CardEntry { cardReference: (CardReference { reference }) })) -> (Tuple reference (fromArrayBuffer encryptedCard))) <$> cards)
         }

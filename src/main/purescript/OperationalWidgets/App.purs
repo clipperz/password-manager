@@ -20,6 +20,6 @@ app = do
   initialState <- liftEffect computeInitialState
   liftAff $ modifyAppState initialState
   _ <- do
-    indexReference <- landingPageView (LoginView Default emptyForm)
-    void $ HomePageWidget.homePageWidget indexReference
+    landingPageView (LoginView Default emptyForm)
+    void $ HomePageWidget.homePageWidget
   app

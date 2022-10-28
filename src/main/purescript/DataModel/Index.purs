@@ -24,6 +24,11 @@ import Functions.EncodeDecode (encryptJson)
 
 -- --------------------------------------------
 
+currentIndexVersion :: String
+currentIndexVersion = "V1"
+
+-- --------------------------------------------
+
 newtype CardReference =
   CardReference
     { reference :: HexString
@@ -84,10 +89,6 @@ instance encodeJsonIndex :: EncodeJson Index where
 
 instance decodeJsonIndex :: DecodeJson Index where
   decodeJson json = rmap (\list -> Index list) (decodeJson json)
-
--- --------------------------------------------
-
-type IndexReference = HexString
 
 -- --------------------------------------------
 
