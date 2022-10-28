@@ -58,26 +58,26 @@ cardWidget entry@(CardEntry { title: _, cardReference, archived: _, tags: _ }) s
             _ -> cardWidget entry Default
         Clone cc -> do
           clonedCard <- liftAff $ cloneCardNow cc
-          doOp cc false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) cc)
-        Archive (Card r) -> do
+          doOp cc cc false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) cc)
+        Archive oldCard@(Card r) -> do
           timestamp' <- liftEffect $ getCurrentTimestamp
           let newCard = Card $ r { timestamp = timestamp', archived = true }
-          doOp newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) newCard)
-        Restore (Card r) -> do
+          doOp oldCard newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) newCard)
+        Restore oldCard@(Card r) -> do
           timestamp' <- liftEffect $ getCurrentTimestamp
           let newCard = Card $ r { timestamp = timestamp', archived = false }
-          doOp newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) newCard)
-        Delete cc -> doOp cc false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) cc)
+          doOp oldCard newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) newCard)
+        Delete cc -> doOp cc cc false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) cc)
 
-    doOp :: forall a. Card -> Boolean -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData
-    doOp currentCard showForm op mapResult = do
+    doOp :: forall a. Card -> Card -> Boolean -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData
+    doOp oldCard currentCard showForm op mapResult = do
       res <- (if showForm then inertCardFormView currentCard else inertCardView currentCard) <|> (liftAff $ runExceptT $ op)
       case res of
         Right a -> pure $ mapResult a
         Left err -> do
           _ <- liftEffect $ log $ show err
           div [] [ text ("Current operation could't be completed: " <> prettyShow err)
-                           , cardView currentCard >>= manageCardAction ]
+                           , cardView oldCard >>= manageCardAction ]
 
     inertCardView :: forall a. Card -> Widget HTML a
     inertCardView card = do
