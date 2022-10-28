@@ -8,6 +8,9 @@ import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.List (sort, filter)
+import Data.String (contains)
+import Data.String.Common (toLower)
+import Data.String.Pattern (Pattern(..))
 import DataModel.Index (Index(..), CardEntry(..))
 import Views.SimpleWebComponents (clickableListItemWidget)
 
@@ -22,6 +25,6 @@ indexView (Index cards) indexFilter = do
      ) <$> sortedCards)
 
   where
-    toFilterFunc (TitleFilter title) = \(CardEntry r) -> if title == "" then true else r.title == title
+    toFilterFunc (TitleFilter title) = \(CardEntry r) -> if title == "" then true else contains (Pattern (toLower title)) (toLower r.title)
     toFilterFunc (TagFilter tag)     = \(CardEntry r) -> elem tag r.tags
     toFilterFunc  NoFilter           = \_ -> true
