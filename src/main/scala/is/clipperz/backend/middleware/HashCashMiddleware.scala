@@ -67,7 +67,7 @@ def checkReceipt(req: Request): ZIO[TollManager & SessionManager, Throwable, Boo
       } yield res
     }
     .catchSome {
-      case ex => ZIO.logDebugCause(s"${ex.getMessage()}", Cause.fail(ex)).as(false)
+      case ex => ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(false)
     }
 
 def wrongTollMiddleware(responseStatus: Status): Request => TollMiddleware = req =>

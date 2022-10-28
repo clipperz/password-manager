@@ -35,6 +35,7 @@ import DataModel.SRP (hashFuncSHA256)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff, forkAff, delay)
 import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.JSState (getAppState, modifyAppState, updateAppState)
 
@@ -90,6 +91,7 @@ manageGenericRequest url method body responseFormat = do
                                                                   }
                               OfflineProxy  -> OfflineRequestInfo { url, method, body, responseFormat }
           response <- withExceptT (\e -> AS.ProtocolError e) (ExceptT $ doGenericRequest proxy requestInfo)
+          _ <- log $ show $ extractChallenge response.headers
           manageResponse response.status response
 
         manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AS.AppError Aff (AXW.Response a))
@@ -97,9 +99,8 @@ manageGenericRequest url method body responseFormat = do
           | n == 402            = \response -> do
               case (extractChallenge response.headers) of
                 Just challenge -> do
-                  ExceptT $ updateAppState { currentChallenge: Just challenge }
                   receipt <- ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
-                  ExceptT $ updateAppState { toll: Done receipt }
+                  ExceptT $ updateAppState { toll: Done receipt, currentChallenge: Just challenge }
                   manageGenericRequest url method body responseFormat
                 Nothing -> except $ Left $  AS.ProtocolError $ IllegalResponse "HashCash headers not present or wrong"
           | isStatusCodeOk code = \response -> do     
@@ -109,16 +110,15 @@ manageGenericRequest url method body responseFormat = do
               
               case (extractChallenge response.headers) of
                 Just challenge -> do
-                  ExceptT $ updateAppState { currentChallenge: Just challenge }
                   -- compute the new toll in forkAff to keep the program going
                   ExceptT $ Right <$> (void $ forkAff $ runExceptT $ do                    
                     receipt <- ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
-                    ExceptT $ updateAppState { toll: Done receipt }
+                    ExceptT $ updateAppState { toll: Done receipt, currentChallenge: Just challenge }
                   )
                   pure response
                 Nothing -> pure response
-          | otherwise           = \_ -> do
-              ExceptT $ updateAppState { toll: Loading Nothing, currentChallenge: Nothing }
+          | otherwise           = \response -> do
+              ExceptT $ updateAppState { toll: Loading Nothing }
               except $ Left $ AS.ProtocolError $ ResponseError n
         
         extractChallenge :: Array ResponseHeader -> Maybe TollChallenge
