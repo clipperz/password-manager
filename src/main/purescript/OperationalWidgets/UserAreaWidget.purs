@@ -2,7 +2,8 @@ module OperationalWidgets.UserAreaWidget where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (text)
+import Concur.React.DOM (text, div)
+import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
@@ -22,26 +23,24 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Cards (postCard, updateIndex)
 import Functions.Import (decodeImport, parseHTMLImport, decodeHTML)
-import Views.SimpleWebComponents (loadingDiv, simpleFileInputWidget)
+import Views.SimpleWebComponents (loadingDiv, simpleFileInputWidget, simpleButton)
+import OperationalWidgets.ImportWidget (importWidget)
 
-userAreaWidget :: Index -> Widget HTML (Either AppError Index)
-userAreaWidget index@(Index entries) = do
-  result <- runExceptT $ do
-    content <- ExceptT $ Right <$> simpleFileInputWidget "import" (text "Import")
-    codedCardData <- except $ parseHTMLImport content
-    decodedCardData <- except $ Right $ decodeHTML codedCardData
-    -- liftEffect $ log decodedCardData
-    ExceptT $ liftEffect $ decodeImport decodedCardData
-  case result of
-    Left err -> do
-      liftEffect $ log $ show err
-      userAreaWidget index
-    Right cards -> loadingDiv <|> (liftAff $ saveImport cards)
+data UserAreaAction = Loaded (Either AppError Index) | Logout
 
-  where 
-    saveImport :: Array Card -> Aff (Either AppError Index)
-    saveImport cards = runExceptT $ do
-      newEntries :: Array CardEntry <- sequence (postCard <$> cards)
-      let newIndex = Index (concat $ entries : (fromFoldable newEntries) : Nil)
-      _ <- updateIndex newIndex
-      ExceptT $ pure $ Right newIndex
+userAreaWidget :: Index -> Widget HTML UserAreaAction
+userAreaWidget index@(Index entries) = 
+  div [Props._id "userSidebar"] [
+    Loaded <$> importWidget index
+  -- , changePasswordWidget Default emptyChangePasswordDataForm
+  , simpleButton "Logout" false Logout
+  ]
+
+-- type ChangePasswordDataForm = { username       :: String
+--                               , password       :: String
+--                               , verifyPassword :: String
+--                               , checkboxes     :: Tuple String Boolean
+--                               }
+
+-- changePasswordWidget :: WidgetState -> ChangePasswordDataForm -> forall a. Widget HTML a
+-- changePasswordWidget state changeForm = do

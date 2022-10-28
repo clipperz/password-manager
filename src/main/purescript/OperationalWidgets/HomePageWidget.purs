@@ -8,6 +8,7 @@ import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (runExceptT)
+import Control.Semigroupoid ((<<<))
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
@@ -24,9 +25,9 @@ import Functions.Communication.Cards (getIndex)
 import Views.CardsManagerView (CardView(..))
 import Views.SimpleWebComponents (simpleButton, loadingDiv)
 import OperationalWidgets.CardsManagerWidget (cardsManagerWidget)
-import OperationalWidgets.UserAreaWidget (userAreaWidget)
+import OperationalWidgets.UserAreaWidget (userAreaWidget, UserAreaAction(..))
 
-data HomePageAction = Loaded (Either AppError Index) | LogoutAction 
+data HomePageAction = UserAreaAction UserAreaAction | LogoutAction
 
 homePageWidget :: Widget HTML Unit
 homePageWidget = go Loading
@@ -34,7 +35,7 @@ homePageWidget = go Loading
     go widgetState = do
       res <- case widgetState of
         Default -> div [] []
-        Loading -> loadingDiv <|> (Loaded <$> (liftAff $ runExceptT $ getIndex))
+        Loading -> loadingDiv <|> ((UserAreaAction <<< Loaded) <$> (liftAff $ runExceptT $ getIndex))
         Error err -> div [] [text err, simpleButton "Go back to login" false LogoutAction]
       interpretHomePageActions res
     
@@ -42,18 +43,16 @@ homePageWidget = go Loading
     homePage index cardView = do
       result <- div [Props._id "homePage"] [
                   cardsManagerWidget index { cardView: cardView, cardViewState: Default }
-                , div [Props._id "userSidebar"] [
-                    Loaded <$> userAreaWidget index
-                  , simpleButton "Logout" false LogoutAction
-                  ]
+                , UserAreaAction <$> userAreaWidget index
                 ]
       interpretHomePageActions result
 
     interpretHomePageActions :: HomePageAction -> Widget HTML Unit
     interpretHomePageActions result =
       case result of
-        Loaded (Right index) -> homePage index NoCard         
-        Loaded (Left err) -> do
+        UserAreaAction (Loaded (Right index)) -> homePage index NoCard         
+        UserAreaAction (Loaded (Left err)) -> do
           _ <- liftEffect $ log $ show err
           go (Error (prettyShow err))
+        UserAreaAction (Logout) -> pure unit
         LogoutAction -> pure unit

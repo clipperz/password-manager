@@ -93,7 +93,7 @@ emptyCard = Card { timestamp: 0
     
 card0 :: CardValues
 card0 = CardValues { title: "Mail account (SAMPLE)"
-                      , tags: ["mail"]
+                      , tags: ["mail", "sample"]
                       , fields: [ (CardField {name: "username", value: "sample@mail.com", locked: false})
                                 , (CardField {name: "password", value: "i3k^{flhadhse93na[{%oq[;6-", locked: true})]
                       , notes: "Mail account notes"}
