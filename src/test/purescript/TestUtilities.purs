@@ -48,11 +48,6 @@ makeQuickCheckOnBrowser n testName checkFunction = do
         sequence $ log <$> errorLogStrings
   fail $ show errorLogStrings
 
-  where
-    foldFunction :: List String -> Result -> List String
-    foldFunction list Success = list
-    foldFunction list (Failed s) = s : list
-
 -- failOnBrowser :: forall m. MonadThrow Error m => String -> m Unit
 -- failOnBrowser :: forall m. Bind m => MonadEffect m => MonadThrow Error m => String -> String -> m Unit
 failOnBrowser testName failString = do
