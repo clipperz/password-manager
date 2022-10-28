@@ -3,21 +3,41 @@ package is.clipperz.backend
 import java.nio.file.FileSystems
 import scala.util.Try
 import zio.{ ZIO, Scope, ZIOAppArgs, ZIOAppDefault }
-import zhttp.http.{ Header, Headers, HeaderNames, HeaderValues, Http, HttpApp, HttpData, Method, Middleware, Path, PathSyntax, Request, Response, Status }
+import zhttp.http.{
+  Header,
+  Headers,
+  HeaderNames,
+  HeaderValues,
+  Http,
+  HttpApp,
+  HttpData,
+  Method,
+  Middleware,
+  Path,
+  PathSyntax,
+  Request,
+  Response,
+  Status,
+}
 import zhttp.service.{ EventLoopGroup, Server }
 import zhttp.service.server.ServerChannelFactory
 import is.clipperz.backend.apis.{ blobsApi, loginApi, logoutApi, staticApi, usersApi }
-import is.clipperz.backend.middleware.{hashcash, sessionChecks}
-import is.clipperz.backend.services.{
-  BlobArchive,
-  PRNG,
-  SessionManager,
-  SrpManager,
-  TollManager,
-  UserArchive
-}
+import is.clipperz.backend.middleware.{ hashcash, sessionChecks }
+import is.clipperz.backend.services.{ BlobArchive, PRNG, SessionManager, SrpManager, TollManager, UserArchive }
+
+import zio.logging.LogFormat
+import zio.logging.backend.SLF4J
+import zio.{ LogLevel, Runtime }
+import zio.ZLogger
+import zio.Trace
+import zio.FiberId
+import zio.Cause
+import zio.FiberRefs
+import zio.LogSpan
 
 object Main extends zio.ZIOAppDefault:
+  override val bootstrap = Runtime.removeDefaultLoggers >>> SLF4J.slf4j(LogLevel.Info, LogFormat.colored)
+
   private val PORT = 8090
 
   type ClipperzEnvironment =
@@ -29,11 +49,12 @@ object Main extends zio.ZIOAppDefault:
   ]
 
   val clipperzBackend: ClipperzHttpApp = { usersApi ++ loginApi ++ logoutApi ++ blobsApi ++ staticApi }
+  val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (sessionChecks ++ hashcash)
 
   val server =
     Server.port(PORT) ++
-    Server.paranoidLeakDetection ++
-    Server.app(clipperzBackend @@ (sessionChecks ++ hashcash))
+      Server.paranoidLeakDetection ++
+      Server.app(completeClipperzBackend)
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
     val nThreads: Int = args.headOption.flatMap(x => Try(x.toInt).toOption).getOrElse(0)
@@ -43,7 +64,8 @@ object Main extends zio.ZIOAppDefault:
 
     server
       .make
-      .flatMap(start => zio.Console.printLine(s"Server started on port ${start.port}") *> ZIO.never)
+      // .flatMap(start => zio.Console.printLine(s"Server started on port ${start.port}") *> ZIO.never)
+      .flatMap(start => ZIO.logInfo(s"Server started on port ${start.port}") *> ZIO.never)
       .provide(
         PRNG.live,
         SessionManager.live,

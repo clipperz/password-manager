@@ -7,7 +7,7 @@ import zio.{ ZIO, ZLayer, Task, Chunk }
 import zio.stream.{ ZStream, ZSink }
 import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder }
 import is.clipperz.backend.data.HexString
-import is.clipperz.backend.data.HexString.{ bytesToHex }
+import is.clipperz.backend.data.HexString.bytesToHex
 import is.clipperz.backend.functions.crypto.HashFunction
 import is.clipperz.backend.exceptions.EmptyContentException
 import zio.Duration
@@ -20,9 +20,9 @@ import is.clipperz.backend.exceptions.BadRequestException
 type BlobHash = HexString
 
 case class SaveBlobData(
-  data: HexString,
-  hash: BlobHash
-)
+    data: HexString,
+    hash: BlobHash,
+  )
 
 object SaveBlobData:
   implicit val decoder: JsonDecoder[SaveBlobData] = DeriveJsonDecoder.gen[SaveBlobData]
@@ -44,36 +44,40 @@ object BlobArchive:
 
     override def saveBlob(key: BlobHash, content: ZStream[Any, Throwable, Byte]): Task[BlobHash] =
       val tmpFile = File.createTempFile("pre", "suff", tmpDir.toFile())
-      ZIO.scoped {
-        content
-          .timeoutFail(new EmptyContentException)(Duration.fromMillis(WAIT_TIME))
-          .tapSink(ZSink.fromOutputStream(new FileOutputStream(tmpFile)))
-          .run(ZSink.digest(MessageDigest.getInstance("SHA-256").nn))
-          .map((chunk: Chunk[Byte]) => HexString.bytesToHex(chunk.toArray))
-      }.flatMap { hash =>
-        if (hash == key)
-          ZIO.scoped {
-            keyBlobArchive
-              .saveBlob(hash.toString, ZStream.fromPath(tmpFile.nn.toPath().nn))
-              .map(_ => tmpFile.nn.delete())
-              .map(_ => hash)
-          }
-        else
-          ZIO.fail(new BadRequestException(s"Hash of content does not match with hash in request"))
-      }.catchSome {
-        case ex : FileNotFoundException => 
-          val str: String = if ex.getMessage() == null then "The temporary file or the blob could not be saved" else ex.getMessage().nn
-          ZIO.fail(new NonWritableArchiveException(str))
-        case ex : BadRequestException => ZIO.fail(ex)
-        case ex : EmptyContentException => ZIO.fail(ex)
-        case ex => ZIO.fail(new NonWritableArchiveException(s"${ex}"))
-      }
+      ZIO
+        .scoped {
+          content
+            .timeoutFail(new EmptyContentException)(Duration.fromMillis(WAIT_TIME))
+            .tapSink(ZSink.fromOutputStream(new FileOutputStream(tmpFile)))
+            .run(ZSink.digest(MessageDigest.getInstance("SHA-256").nn))
+            .map((chunk: Chunk[Byte]) => HexString.bytesToHex(chunk.toArray))
+        }
+        .flatMap { hash =>
+          if (hash == key)
+            ZIO.scoped {
+              keyBlobArchive
+                .saveBlob(hash.toString, ZStream.fromPath(tmpFile.nn.toPath().nn))
+                .map(_ => tmpFile.nn.delete())
+                .map(_ => hash)
+            }
+          else
+            ZIO.fail(new BadRequestException(s"Hash of content does not match with hash in request"))
+        }
+        .catchSome {
+          case ex: FileNotFoundException =>
+            val str: String =
+              if ex.getMessage() == null then "The temporary file or the blob could not be saved" else ex.getMessage().nn
+            ZIO.fail(new NonWritableArchiveException(str))
+          case ex: BadRequestException => ZIO.fail(ex)
+          case ex: EmptyContentException => ZIO.fail(ex)
+          case ex => ZIO.fail(new NonWritableArchiveException(s"${ex}"))
+        }
 
     override def deleteBlob(content: ZStream[Any, Throwable, Byte]): Task[Boolean] =
       ZIO.scoped {
         HashFunction
           .hashSHA256(content)
-          .flatMap(hash => keyBlobArchive.deleteBlob(bytesToHex(hash).toString))        
+          .flatMap(hash => keyBlobArchive.deleteBlob(bytesToHex(hash).toString))
       }
 
   // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .

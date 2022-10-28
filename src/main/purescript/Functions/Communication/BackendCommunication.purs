@@ -57,11 +57,13 @@ tollReceiptHeaderName :: String
 tollReceiptHeaderName = "clipperz-hashcash-tollreceipt"
 
 createHeaders :: AS.AppState -> Array RequestHeader
-createHeaders { toll, sessionKey } = 
+createHeaders { toll, sessionKey, currentChallenge } = 
   let
-    tollReceiptHeader = (\t ->   RequestHeader tollReceiptHeaderName (show t))   <$> arrayFromAsyncValue toll
-    sessionHeader     = (\key -> RequestHeader sessionKeyHeaderName  (show key)) <$> fromMaybe sessionKey
-  in tollReceiptHeader <> sessionHeader
+    tollChallengeHeader = (\t ->   RequestHeader tollHeaderName        (show t.toll))   <$> fromMaybe currentChallenge
+    tollCostHeader      = (\t ->   RequestHeader tollCostHeaderName    (show t.cost))   <$> fromMaybe currentChallenge
+    tollReceiptHeader   = (\t ->   RequestHeader tollReceiptHeaderName (show t))   <$> arrayFromAsyncValue toll
+    sessionHeader       = (\key -> RequestHeader sessionKeyHeaderName  (show key)) <$> fromMaybe sessionKey
+  in tollChallengeHeader <> tollCostHeader <> tollReceiptHeader <> sessionHeader
 
 -- ----------------------------------------------------------------------------
 
@@ -95,6 +97,7 @@ manageGenericRequest url method body responseFormat = do
           | n == 402            = \response -> do
               case (extractChallenge response.headers) of
                 Just challenge -> do
+                  ExceptT $ updateAppState { currentChallenge: Just challenge }
                   receipt <- ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
                   ExceptT $ updateAppState { toll: Done receipt }
                   manageGenericRequest url method body responseFormat
@@ -106,6 +109,7 @@ manageGenericRequest url method body responseFormat = do
               
               case (extractChallenge response.headers) of
                 Just challenge -> do
+                  ExceptT $ updateAppState { currentChallenge: Just challenge }
                   -- compute the new toll in forkAff to keep the program going
                   ExceptT $ Right <$> (void $ forkAff $ runExceptT $ do                    
                     receipt <- ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
@@ -114,7 +118,7 @@ manageGenericRequest url method body responseFormat = do
                   pure response
                 Nothing -> pure response
           | otherwise           = \_ -> do
-              ExceptT $ updateAppState { toll: Loading Nothing }
+              ExceptT $ updateAppState { toll: Loading Nothing, currentChallenge: Nothing }
               except $ Left $ AS.ProtocolError $ ResponseError n
         
         extractChallenge :: Array ResponseHeader -> Maybe TollChallenge

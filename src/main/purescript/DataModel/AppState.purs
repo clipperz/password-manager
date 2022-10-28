@@ -19,11 +19,13 @@ import DataModel.Proxy (Proxy)
 import DataModel.User (IndexReference)
 import DataModel.Communication.ProtocolError (ProtocolError)
 import DataModel.SRP(SRPGroup, group1024, k)
+import Functions.HashCash (TollChallenge)
 
 type AppState =
   { proxy :: Proxy
   , sessionKey :: Maybe HexString
   , toll :: AsyncValue HexString
+  , currentChallenge :: Maybe TollChallenge
   , c :: Maybe HexString
   , p :: Maybe HexString
   , srpInfo :: SRPInfo
