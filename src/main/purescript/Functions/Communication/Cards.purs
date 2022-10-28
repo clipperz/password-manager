@@ -33,21 +33,22 @@ import DataModel.SRP (hashFuncSHA256)
 import DataModel.User (UserCard(..), IndexReference(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
+import Functions.Card (getCardContent)
 import Functions.CardsCache (getCardFromCache, addCardToCache)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
-import Functions.Communication.Blobs (getDecryptedBlob, postBlob, deleteBlob)
+import Functions.Communication.Blobs (getDecryptedBlob, postBlob, getBlob, deleteBlob)
 import Functions.EncodeDecode (encryptJson)
 import Functions.JSState (getAppState, modifyAppState)
 import Functions.State (getHashFromState)
 
 getCard :: CardReference -> ExceptT AppError Aff Card
-getCard (CardReference { reference, key }) = do
+getCard cardRef@(CardReference { reference }) = do
   maybeCard <- getCardFromCache reference
   case maybeCard of
     Just card -> pure $ card
     Nothing -> do
-      cryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      card <- getDecryptedBlob reference cryptoKey
+      blob <- getBlob reference
+      card <- getCardContent blob cardRef
       addCardToCache reference card
       pure $ card
 
