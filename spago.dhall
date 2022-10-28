@@ -37,6 +37,7 @@
   , "now"
   , "ordered-collections"
   , "prelude"
+  , "quickcheck"
   , "react"
   , "record"
   , "spec"
