@@ -2,13 +2,15 @@ module Views.CardsManagerView where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text)
+import Concur.React.DOM (div, text, ol)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Semigroupoid ((<<<))
 import Control.Bind (bind)
+import Data.Array (nub, sort)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
+import Data.List (fold)
 import Data.Maybe (Maybe(..))
 import Data.PrettyShow (prettyShow)
 import Data.Semigroup ((<>))
@@ -17,13 +19,13 @@ import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
 import DataModel.AppState (AppError)
 import DataModel.Card (Card)
-import DataModel.Index (Index, CardEntry)
+import DataModel.Index (Index(..), CardEntry(..))
 import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
 import Views.CardViews (cardView)
 import Views.CreateCardView (createCardView)
 import Views.IndexView (indexView, IndexFilter(..))
-import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleTextInputWidget)
+import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleTextInputWidget, clickableListItemWidget)
 import OperationalWidgets.CardWidget (cardWidget)
 import OperationalWidgets.CreateCardWidget (createCardWidget)
 
@@ -45,10 +47,12 @@ instance showCardView :: Show CardView where
 data InternalAction = CardViewAction CardViewAction | ChangeFilter IndexFilter
 
 cardsManagerView :: Index -> IndexFilter -> CardViewState -> Maybe AppError -> Widget HTML (Tuple IndexFilter CardViewAction)
-cardsManagerView i indexFilter cvs@{ cardView: _, cardViewState } error = do 
+cardsManagerView i@(Index entries) indexFilter cvs@{ cardView: _, cardViewState } error = do 
   res <- div [Props._id "cardsManager"] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
     div [Props._id "filterView"] [
       (ChangeFilter <<< TitleFilter) <$> simpleTextInputWidget "titleFilter" (text "Title") currentTitleFilter
+    , ol [Props._id "tagFilter"]
+      ((\tag -> clickableListItemWidget false (text tag) [] (ChangeFilter (TagFilter tag))) <$> allSortedTags)
     ]
   , div [Props._id "indexView"] [
       (CardViewAction <<< ShowCard) <$> indexView i indexFilter
@@ -72,3 +76,5 @@ cardsManagerView i indexFilter cvs@{ cardView: _, cardViewState } error = do
     currentTitleFilter = case indexFilter of
       TitleFilter t -> t
       _ -> ""
+
+    allSortedTags = sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) <$> entries
