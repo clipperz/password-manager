@@ -9,7 +9,7 @@ import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (Either(..))
 import Data.Eq ((/=))
 import Data.Function (($))
-import Data.Functor ((<$>))
+import Data.Functor ((<$>), flap)
 import Data.List ((:), filter)
 import Data.Maybe (Maybe(..))
 import Data.Show (show)
@@ -27,7 +27,7 @@ import Functions.Communication.Cards (updateIndex)
 import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState)
 import Views.IndexView (IndexFilter(..))
 
-data CardsViewResult = CardsViewResult (Tuple IndexFilter CardViewAction) | OpResult Index CardViewState (Maybe AppError)
+data CardsViewResult = CardsViewResult (Tuple IndexFilter CardViewAction) | OpResult Index CardViewState (Maybe AppError) IndexFilter
 
 cardsManagerWidget :: forall a. Index -> CardViewState -> Widget HTML a
 cardsManagerWidget ind cardViewState = go ind NoFilter (\f -> cardsManagerView ind f cardViewState) Nothing Nothing
@@ -42,20 +42,20 @@ cardsManagerWidget ind cardViewState = go ind NoFilter (\f -> cardsManagerView i
         CardsViewResult (Tuple f cva) -> case cva of 
           UpdateIndex updateData -> do
             _ <- log $ show updateData
-            go index f (\ff -> getUpdateIndexView index ff updateData) Nothing (Just (getUpdateIndexOp index updateData))
+            go index f (\ff -> getUpdateIndexView index ff updateData) Nothing (Just (getUpdateIndexOp index f updateData))
           ShowAddCard -> go index f (\ff -> cardsManagerView index ff {cardView: (CardForm emptyCard), cardViewState: Default}) Nothing Nothing
           ShowCard ref -> go index f (\ff -> cardsManagerView index ff {cardView: (CardFromReference ref), cardViewState: Default}) Nothing Nothing
-        OpResult i cv e -> go i indexFilter (\ff -> cardsManagerView i ff cv) e Nothing
+        OpResult i cv e f -> go i f (\ff -> cardsManagerView i ff cv) e Nothing
 
-getUpdateIndexOp :: Index -> IndexUpdateData -> Aff CardsViewResult
-getUpdateIndexOp index@(Index list) (IndexUpdateData action _) =
+getUpdateIndexOp :: Index -> IndexFilter -> IndexUpdateData -> Aff CardsViewResult
+getUpdateIndexOp index@(Index list) indexFilter (IndexUpdateData action _) =
   case action of 
-    AddReference                        entry -> addEntryToIndex entry 
-    CloneReference                      entry -> addEntryToIndex entry
-    ChangeReferenceWithEdit    oldEntry entry -> updateReferenceInIndex oldEntry entry
-    ChangeReferenceWithoutEdit oldEntry entry -> updateReferenceInIndex oldEntry entry
-    DeleteReference            oldEntry       -> removeReferenceFromIndex oldEntry
-    _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing
+    AddReference                        entry -> flap (addEntryToIndex entry) NoFilter 
+    CloneReference                      entry -> flap (addEntryToIndex entry) indexFilter
+    ChangeReferenceWithEdit    oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) indexFilter
+    ChangeReferenceWithoutEdit oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) indexFilter
+    DeleteReference            oldEntry       -> flap (removeReferenceFromIndex oldEntry) indexFilter
+    _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing indexFilter
 
   where
     addEntryToIndex entry = do
@@ -70,7 +70,7 @@ getUpdateIndexOp index@(Index list) (IndexUpdateData action _) =
       let newIndex = Index (entry : filter (\(CardEntry { cardReference }) -> cardReference /= reference) list)
       manageUpdateIndex newIndex { cardView: (CardFromReference entry), cardViewState: Default }
 
-    manageUpdateIndex :: Index -> CardViewState -> Aff CardsViewResult
+    manageUpdateIndex :: Index -> CardViewState -> Aff (IndexFilter -> CardsViewResult)
     manageUpdateIndex newIndex cardViewState = do
       updateResult <- liftAff $ runExceptT $ updateIndex newIndex
       case updateResult of
