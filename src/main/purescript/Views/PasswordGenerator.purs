@@ -28,7 +28,7 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 
-import Functions.Password (randomPassword)
+import Functions.Password (randomPassword, characterSets, CharacterSet(..))
 import Views.SimpleWebComponents (simpleButton, simpleNumberInputWidget, disabledSimpleTextInputWidget, simpleTextInputWidget, simpleCheckboxWidget)
 
 extractValue :: forall a. Monoid a => AsyncValue a -> a
@@ -43,21 +43,6 @@ type Settings = {
     characterSets       :: Array (Tuple String Boolean),
     characters          :: String
 }
-
-newtype CharacterSet = CharacterSet String
-instance characterSetShow :: Show CharacterSet where
-  show (CharacterSet s) = s
-derive newtype instance characterSetSemigroup :: Semigroup CharacterSet
-derive newtype instance characterSetMonoid :: Monoid CharacterSet
-
-characterSets :: Map String CharacterSet
-characterSets = fromFoldable [
-    Tuple "A-Z" (CharacterSet "ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
-    Tuple "a-z" (CharacterSet "abcdefghijklmnopqrstuvwxyz"),
-    Tuple "0-9" (CharacterSet "0123456789"),
-    Tuple "space" (CharacterSet " "),
-    Tuple "!#?" (CharacterSet """~`!@#$%^&*()-_=+,.<>/?[]{}\|";':""")
-]
 
 defaultCharacterSets :: Array (Tuple String Boolean)
 defaultCharacterSets = (\k -> Tuple k (k /= "space")) <$> (Set.toUnfoldable (keys characterSets))

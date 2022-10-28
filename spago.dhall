@@ -35,6 +35,7 @@
   , "maybe"
   , "newtype"
   , "now"
+  , "numbers"
   , "ordered-collections"
   , "prelude"
   , "quickcheck"
