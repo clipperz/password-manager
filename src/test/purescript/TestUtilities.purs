@@ -20,7 +20,7 @@ import Effect.Exception (message)
 import Test.Spec.Assertions (fail)
 -- import Test.Spec.QuickCheck (quickCheck)
 import Test.QuickCheck (class Testable, (<?>))
-import Test.QuickCheck (quickCheck, quickCheckPure, randomSeed, Result(..))
+import Test.QuickCheck (quickCheck, quickCheckPure', checkResults, printSummary, randomSeed, Result(..))
 
 parseErrorString :: String -> (String -> String)
 parseErrorString s = \n -> "❌ Test '" <> n <> "' failed: " <> s
@@ -39,13 +39,12 @@ makeTestableOnBrowser testName t1 testFunction t2 = do
 -- makeQuickCheckOnBrowser :: forall prop. Testable prop => Int -> String -> prop -> Aff Unit
 makeQuickCheckOnBrowser n testName checkFunction = do
   seed <- liftEffect $ randomSeed
-  let result = quickCheckPure seed n checkFunction
-  -- foldl :: forall a b. (b -> a -> b) -> b -> f a -> b
-  let cumulativeResult = foldl foldFunction Nil result
-  let errorLogStrings = ((flip parseErrorString) testName) <$> cumulativeResult
-  _ <- if null cumulativeResult then
+  let result = checkResults $ quickCheckPure' seed n checkFunction
+  let errorLogStrings = ((flip parseErrorString) testName) <$> ((_.message) <$> result.failures)
+  _ <- if null errorLogStrings then
         sequence $ (log <<< (parseGoodString "")) <$> (testName : Nil)
-      else
+      else do
+        log $ "Test '" <> testName <> "': " <> (printSummary result)
         sequence $ log <$> errorLogStrings
   fail $ show errorLogStrings
 
