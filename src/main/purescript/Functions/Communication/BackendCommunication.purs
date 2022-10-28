@@ -59,10 +59,10 @@ tollReceiptHeaderName = "clipperz-hashcash-tollreceipt"
 createHeaders :: AS.AppState -> Array RequestHeader
 createHeaders { toll, sessionKey, currentChallenge } = 
   let
-    tollChallengeHeader = (\t ->   RequestHeader tollHeaderName        (show t.toll))   <$> fromMaybe currentChallenge
-    tollCostHeader      = (\t ->   RequestHeader tollCostHeaderName    (show t.cost))   <$> fromMaybe currentChallenge
-    tollReceiptHeader   = (\t ->   RequestHeader tollReceiptHeaderName (show t))   <$> arrayFromAsyncValue toll
-    sessionHeader       = (\key -> RequestHeader sessionKeyHeaderName  (show key)) <$> fromMaybe sessionKey
+    tollChallengeHeader = (\t ->   RequestHeader tollHeaderName        (show t.toll)) <$> fromMaybe currentChallenge
+    tollCostHeader      = (\t ->   RequestHeader tollCostHeaderName    (show t.cost)) <$> fromMaybe currentChallenge
+    tollReceiptHeader   = (\t ->   RequestHeader tollReceiptHeaderName (show t))      <$> arrayFromAsyncValue toll
+    sessionHeader       = (\key -> RequestHeader sessionKeyHeaderName  (show key))    <$> fromMaybe sessionKey
   in tollChallengeHeader <> tollCostHeader <> tollReceiptHeader <> sessionHeader
 
 -- ----------------------------------------------------------------------------

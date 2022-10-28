@@ -3,17 +3,25 @@ module Views.IndexView where
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.React.DOM (ol, text)
-import Data.Array (fromFoldable)
+import Data.Array (fromFoldable, elem)
+import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.List (sort)
+import Data.List (sort, filter)
 import DataModel.Index (Index(..), CardEntry(..))
 import Views.SimpleWebComponents (clickableListItemWidget)
 
-indexView :: Index -> Widget HTML CardEntry
-indexView (Index cards) = do
-  let sortedCards = fromFoldable $ sort cards :: Array CardEntry
+data IndexFilter = TitleFilter String | TagFilter String | NoFilter
+
+indexView :: Index -> IndexFilter -> Widget HTML CardEntry
+indexView (Index cards) indexFilter = do
+  let sortedCards = fromFoldable $ filter (toFilterFunc indexFilter) $ sort cards :: Array CardEntry
   ol []
     ((\entry@(CardEntry { title, archived }) -> 
       clickableListItemWidget false (text title) (if archived then ["archived"] else []) entry
      ) <$> sortedCards)
+
+  where
+    toFilterFunc (TitleFilter title) = \(CardEntry r) -> if title == "" then true else r.title == title
+    toFilterFunc (TagFilter tag)     = \(CardEntry r) -> elem tag r.tags
+    toFilterFunc  NoFilter           = \_ -> true
