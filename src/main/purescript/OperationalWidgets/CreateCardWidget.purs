@@ -7,6 +7,7 @@ import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (either)
+import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Maybe (maybe)
@@ -35,7 +36,9 @@ createCardWidget startingCard state = do
     Error err -> (maybe NoAction JustCard) <$> (createCardView startingCard (Error ("Card could't be saved: " <> err)))
   case res of
     NoAction -> pure $ IndexUpdateData NoUpdate startingCard
-    JustCard card -> createCardWidget card Loading
+    JustCard card -> do
+      if card == startingCard then pure $ IndexUpdateData NoUpdate startingCard 
+      else createCardWidget card Loading
     NewEntry e -> pure $ IndexUpdateData (AddReference e) startingCard
     FailedCreation err card -> do
       _ <- liftEffect $ log $ show err

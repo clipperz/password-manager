@@ -91,7 +91,6 @@ manageGenericRequest url method body responseFormat = do
                                                                   }
                               OfflineProxy  -> OfflineRequestInfo { url, method, body, responseFormat }
           response <- withExceptT (\e -> AS.ProtocolError e) (ExceptT $ doGenericRequest proxy requestInfo)
-          _ <- log $ show $ extractChallenge response.headers
           manageResponse response.status response
 
         manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AS.AppError Aff (AXW.Response a))
