@@ -25,6 +25,7 @@ import is.clipperz.backend.services.Session
 import zio.test.ZIOSpec
 import zio.{ Scope, ZLayer, Layer }
 import zio.test.TestResult.all
+import is.clipperz.backend.services.ModifyUserCard
 
 object UserSpec extends ZIOSpec[SessionManager]:
   override def bootstrap: ZLayer[Scope, Any, SessionManager] =
@@ -129,14 +130,14 @@ object UserSpec extends ZIOSpec[SessionManager]:
 
   def preparePut(
       c: String,
-      signupData: String,
+      putData: String,
       session: Boolean,
     ): Request =
     Request(
       url = URL(!! / "users" / c),
       method = Method.PUT,
       headers = if (session) Headers((SessionManager.sessionKeyHeaderName, sessionKey)) else Headers.empty,
-      data = HttpData.fromString(signupData, StandardCharsets.UTF_8.nn),
+      data = HttpData.fromString(putData, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
     )
 
@@ -228,13 +229,13 @@ object UserSpec extends ZIOSpec[SessionManager]:
       TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
     test("PUT no session -> 400") {
       for {
-        res <- app(preparePut(c.toString(), testUser2.toJson, true)).map(r => r.status.code)
+        res <- app(preparePut(c.toString(), ModifyUserCard(c, testUser, testUser2).toJson, true)).map(r => r.status.code)
       } yield assertTrue(res == 400)
     } @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
     test("PUT no session header -> 400") {
       for {
         _ <- prepareSession(c.toString())
-        putCode <- app(preparePut(c.toString(), testUser2.toJson, false)).map(res => res.status.code)
+        putCode <- app(preparePut(c.toString(), ModifyUserCard(c, testUser, testUser2).toJson, false)).map(res => res.status.code)
       } yield assertTrue(putCode == 400)
     } @@
       TestAspect.after(deleteSession()) @@
@@ -242,7 +243,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
     test("PUT non existent user -> 404") {
       for {
         _ <- prepareSession(c.toString())
-        putCode <- app(preparePut(c.toString(), testUser2.toJson, true)).map(res => res.status.code)
+        putCode <- app(preparePut(c.toString(), ModifyUserCard(c, testUser, testUser2).toJson, true)).map(res => res.status.code)
       } yield assertTrue(putCode == 404)
     } @@
       TestAspect.after(deleteSession()) @@
@@ -251,7 +252,16 @@ object UserSpec extends ZIOSpec[SessionManager]:
       for {
         _ <- app(preparePost(c.toString(), testSignupData.toJson, false)).map(res => res.status.code)
         _ <- prepareSession(c.toString())
-        putCode <- app(preparePut(c.toString(), testUserDifferentC.toJson, true)).map(res => res.status.code)
+        putCode <- app(preparePut(c.toString(), ModifyUserCard(HexString("ccc"), testUser, testUser2).toJson, true)).map(res => res.status.code)
+      } yield assertTrue(putCode == 400)
+    } @@
+      TestAspect.after(deleteSession()) @@
+      TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
+    test("POST / PUT bad old user -> _, 400") {
+      for {
+        _ <- app(preparePost(c.toString(), testSignupData.toJson, false)).map(res => res.status.code)
+        _ <- prepareSession(c.toString())
+        putCode <- app(preparePut(c.toString(), ModifyUserCard(c, testUserDifferentC, testUser2).toJson, true)).map(res => res.status.code)
       } yield assertTrue(putCode == 400)
     } @@
       TestAspect.after(deleteSession()) @@
@@ -269,7 +279,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
       for {
         _ <- app(preparePost(c.toString(), testSignupData.toJson, false))
         _ <- prepareSession(c.toString())
-        putCode <- app(preparePut(c.toString(), testUser2.toJson, true)).map(res => res.status.code)
+        putCode <- app(preparePut(c.toString(), ModifyUserCard(c, testUser, testUser2).toJson, true)).map(res => res.status.code)
         res <- app(prepareGet(c.toString(), true)).flatMap(result =>
           if result.status.code == 200 then
             fromStream[UserCard](result.bodyAsStream)

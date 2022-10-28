@@ -26,6 +26,16 @@ object UserCard:
   implicit val decoder: JsonDecoder[UserCard] = DeriveJsonDecoder.gen[UserCard]
   implicit val encoder: JsonEncoder[UserCard] = DeriveJsonEncoder.gen[UserCard]
 
+case class ModifyUserCard(
+  c: HexString,
+  oldUserCard: UserCard,
+  newUserCard: UserCard
+)
+
+object ModifyUserCard:
+  implicit val decoder: JsonDecoder[ModifyUserCard] = DeriveJsonDecoder.gen[ModifyUserCard]
+  implicit val encoder: JsonEncoder[ModifyUserCard] = DeriveJsonEncoder.gen[ModifyUserCard]
+
 // ============================================================================
 
 trait UserArchive:

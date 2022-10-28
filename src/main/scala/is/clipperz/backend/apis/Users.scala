@@ -19,6 +19,7 @@ import is.clipperz.backend.functions.fromStream
 import is.clipperz.backend.services.{ BlobArchive, SessionManager, SignupData, UserArchive, UserCard }
 import is.clipperz.backend.Main.ClipperzHttpApp
 import zio.Cause
+import is.clipperz.backend.services.ModifyUserCard
 
 val usersApi: ClipperzHttpApp = Http.collectZIO {
   case request @ Method.POST -> !! / "users" / c =>
@@ -90,9 +91,16 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
               )
           )
           .flatMap(_ =>
-            fromStream[UserCard](content)
-              .flatMap { user =>
-                if HexString(c) == user.c then userArchive.saveUser(user, true).map(result => ZIO.succeed(result))
+            fromStream[ModifyUserCard](content)
+              .flatMap { modifyData =>
+                if HexString(c) == modifyData.c then 
+                  userArchive.getUser(modifyData.c).flatMap(currentUser =>
+                    if (currentUser.isDefined && currentUser.get == modifyData.oldUserCard) then
+                      userArchive.saveUser(modifyData.newUserCard, true)
+                    else
+                      ZIO.logDebug(s"${currentUser} is different than ${modifyData.oldUserCard}")
+                      ZIO.fail(new BadRequestException("old user card is not the current one saved"))
+                  )
                 else ZIO.fail(new BadRequestException("c in request path differs from c in request body "))
               }
           )
