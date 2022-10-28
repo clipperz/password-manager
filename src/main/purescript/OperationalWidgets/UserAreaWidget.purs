@@ -7,14 +7,13 @@ import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (runExceptT, ExceptT(..), except)
-import Data.Either (Either(..), note)
+import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.List (List(..), (:), concat, fromFoldable)
-import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Traversable (sequence)
-import DataModel.AppState (AppError(..))
+import DataModel.AppState (AppError)
 import DataModel.Card (Card)
 import DataModel.Index (Index(..), CardEntry)
 import Effect.Aff (Aff)
@@ -23,11 +22,10 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Cards (postCard, updateIndex)
 import Functions.Import (decodeImport, parseHTMLImport, decodeHTML)
-import Views.SimpleWebComponents (textAreaWidget, loadingDiv, simpleFileInputWidget)
-import Web.File.FileReader (fromEventTarget, FileReader)
+import Views.SimpleWebComponents (loadingDiv, simpleFileInputWidget)
 
 userAreaWidget :: Index -> Widget HTML (Either AppError Index)
-userAreaWidget index@(Index_v1 entries) = do
+userAreaWidget index@(Index entries) = do
   result <- runExceptT $ do
     content <- ExceptT $ Right <$> simpleFileInputWidget "import" (text "Import")
     codedCardData <- except $ parseHTMLImport content
@@ -44,6 +42,6 @@ userAreaWidget index@(Index_v1 entries) = do
     saveImport :: Array Card -> Aff (Either AppError Index)
     saveImport cards = runExceptT $ do
       newEntries :: Array CardEntry <- sequence (postCard <$> cards)
-      let newIndex = Index_v1 (concat $ entries : (fromFoldable newEntries) : Nil)
+      let newIndex = Index (concat $ entries : (fromFoldable newEntries) : Nil)
       _ <- updateIndex newIndex
       ExceptT $ pure $ Right newIndex

@@ -13,9 +13,9 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString)
 import Data.Semigroup ((<>))
+import Data.Unit (Unit, unit)
 import Data.Show (class Show, show)
 import DataModel.Credentials (Credentials)
-import DataModel.Index (IndexReference)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Signup (signupUser)
@@ -32,14 +32,14 @@ instance showSignupWidgetResults :: Show SignupWidgetResults where
 
 --------------------------------
 
-signupWidgetWithLogin :: WidgetState -> SignupDataForm -> Widget HTML IndexReference
+signupWidgetWithLogin :: WidgetState -> SignupDataForm -> Widget HTML Unit
 signupWidgetWithLogin state form = do
   signupResult <- signupWidget state form
-  let login = liftAff $ (either LoginFailed LoginDone <$> (runExceptT $ doLogin signupResult)) 
+  let login = liftAff $ (either LoginFailed (\_ -> LoginDone) <$> (runExceptT $ doLogin signupResult)) 
   loginResult <- (Credentials <$> signupFormView Loading (merge signupResult form)) <|> login
   case loginResult of
     Credentials credentials -> signupWidgetWithLogin Default (merge credentials form)
-    LoginDone index -> pure index
+    LoginDone -> pure unit
     LoginFailed err -> signupWidgetWithLogin (Error ("Automatic login failed: " <> err)) (merge signupResult form) -- TODO: show login form?
 
 signupWidget :: WidgetState -> SignupDataForm -> Widget HTML Credentials
@@ -48,7 +48,6 @@ signupWidget widgetState signupFormData = do
     Default -> SignupCredentials <$> signupFormView Default signupFormData
     Loading -> do
       let creds = { username: signupFormData.username, password: signupFormData.password }
-      -- let res = runExceptT $ signupUser conf creds
       let signup = liftAff $ runExceptT $ signupUser creds 
       (SignupCredentials <$> signupFormView Loading signupFormData) <|> (either (SignupFailed <<< show) (\r -> SignupDone creds r) <$> signup)
     Error err -> SignupCredentials <$> div [] [text err, signupFormView (Error err) signupFormData]

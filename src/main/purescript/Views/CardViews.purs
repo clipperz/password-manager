@@ -27,7 +27,7 @@ instance showCardAction :: Show CardAction where
 -- -----------------------------------
 
 cardView :: Card -> Widget HTML CardAction
-cardView c@(Card_v1 r) = do
+cardView c@(Card r) = do
   res <- div [Props._id "card"] [
       cardActions c false
     , cardContent r.content
@@ -43,7 +43,7 @@ cardView c@(Card_v1 r) = do
     _ -> pure res
 
 cardActions :: Card -> Boolean -> Widget HTML CardAction
-cardActions c@(Card_v1 r) disabled = div [] [
+cardActions c@(Card r) disabled = div [] [
     simpleButton (show (Edit c))    disabled (Edit c)
   , simpleButton (show (Clone c))   disabled (Clone c)
   , if r.archived then simpleButton (show (Restore c)) disabled (Restore c) else simpleButton (show (Archive c)) disabled (Archive c)
@@ -51,7 +51,7 @@ cardActions c@(Card_v1 r) disabled = div [] [
 ]
 
 cardContent :: forall a. CardValues -> Widget HTML a
-cardContent (CardValues_v1 {title: t, tags: ts, fields: fs, notes: n}) = div [Props._id "cardContent"] [
+cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) = div [Props._id "cardContent"] [
   h3  [Props.className "card_title"]  [text t]
 , ul  [Props.className "card_tags"]   $ (\s -> li' [text s]) <$> ts
 , div [Props.className "card_fields"] $ cardField <$> fs
@@ -59,7 +59,7 @@ cardContent (CardValues_v1 {title: t, tags: ts, fields: fs, notes: n}) = div [Pr
 ]
 
 cardField :: forall a. CardField -> Widget HTML a
-cardField (CardField_v1 {name, value, locked}) = div [] [
+cardField (CardField {name, value, locked}) = div [] [
   text name
 , p ((if locked then [Props.className "PASSWORD"] else []) <> [(\_ -> copyToClipboard value) <$> Props.onClick]) [text value]
 ] --TODO add class based on content for urls and emails

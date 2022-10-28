@@ -35,14 +35,14 @@ importSpec  =
     let importFirstCard = "Import correctly the first card"
     it importFirstCard do
       decodeResult <- liftEffect $ decodeImport joe_clipperzData
-      let result = Card_v1 { timestamp: 0
+      let result = Card { timestamp: 0
                            , archived: false
-                           , content: CardValues_v1 { title: "Amazon.com"
+                           , content: CardValues { title: "Amazon.com"
                                                      , tags: ["shopping"]
-                                                     , fields: [ CardField_v1 { name: "email", value: "joe@clipperz.com", locked: false }
-                                                               , CardField_v1 { name: "password", value: "8gJcYP~bJh#PMfA[|eU", locked: true }
-                                                               , CardField_v1 { name: "URL", value: "https://www.amazon.com", locked: false }
-                                                               , CardField_v1 { name: "", value: "", locked: true }
+                                                     , fields: [ CardField { name: "email", value: "joe@clipperz.com", locked: false }
+                                                               , CardField { name: "password", value: "8gJcYP~bJh#PMfA[|eU", locked: true }
+                                                               , CardField { name: "URL", value: "https://www.amazon.com", locked: false }
+                                                               , CardField { name: "", value: "", locked: true }
                                                                ]
                                                      , notes: ""
                                                      }
@@ -52,18 +52,18 @@ importSpec  =
     let importArchivedCard = "Import archived card"
     it importArchivedCard do
       decodeResult <- liftEffect $ decodeImport joe_clipperzData
-      let result = Card_v1 { timestamp: 0
+      let result = Card { timestamp: 0
                            , archived: true
-                           , content: CardValues_v1 { title: "AOL "
+                           , content: CardValues { title: "AOL "
                                                      , tags: ["", "social"]
-                                                     , fields: [ CardField_v1 { name: "URL", value: "http://www.aol.com", locked: false }
-                                                               , CardField_v1 { name: "ID", value: "88440023", locked: false }
-                                                               , CardField_v1 { name: "password", value: "I9EJpXaOzNoNATZB0NjUcUZYBa", locked: true }
+                                                     , fields: [ CardField { name: "URL", value: "http://www.aol.com", locked: false }
+                                                               , CardField { name: "ID", value: "88440023", locked: false }
+                                                               , CardField { name: "password", value: "I9EJpXaOzNoNATZB0NjUcUZYBa", locked: true }
                                                                ]
                                                      , notes: "Ah the good old times. :)"
                                                      }
                            }
-      makeTestableOnBrowser importArchivedCard ((\a -> filter (\(Card_v1 { content: CardValues_v1 { title } }) -> title == "AOL ") a) <$> decodeResult) shouldEqual (Right $ [result])
+      makeTestableOnBrowser importArchivedCard ((\a -> filter (\(Card { content: CardValues { title } }) -> title == "AOL ") a) <$> decodeResult) shouldEqual (Right $ [result])
       -- makeTestableOnBrowser importArchivedCard ((\a -> index a 3) <$> decodeResult) shouldEqual (Right $ Just result)
          
     where

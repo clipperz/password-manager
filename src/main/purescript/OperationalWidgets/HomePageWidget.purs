@@ -15,7 +15,7 @@ import Data.PrettyShow (prettyShow)
 import Data.Show (show)
 import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError)
-import DataModel.Index (Index, IndexReference)
+import DataModel.Index (Index)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -28,13 +28,13 @@ import OperationalWidgets.UserAreaWidget (userAreaWidget)
 
 data HomePageAction = Loaded (Either AppError Index) | LogoutAction 
 
-homePageWidget :: IndexReference -> Widget HTML Unit
-homePageWidget indexReference = go Loading indexReference
+homePageWidget :: Widget HTML Unit
+homePageWidget = go Loading
   where 
-    go widgetState reference = do
+    go widgetState = do
       res <- case widgetState of
         Default -> div [] []
-        Loading -> loadingDiv <|> (Loaded <$> (liftAff $ runExceptT $ getIndex reference))
+        Loading -> loadingDiv <|> (Loaded <$> (liftAff $ runExceptT $ getIndex))
         Error err -> div [] [text err, simpleButton "Go back to login" false LogoutAction]
       interpretHomePageActions res
     
@@ -55,5 +55,5 @@ homePageWidget indexReference = go Loading indexReference
         Loaded (Right index) -> homePage index NoCard         
         Loaded (Left err) -> do
           _ <- liftEffect $ log $ show err
-          go (Error (prettyShow err)) indexReference
+          go (Error (prettyShow err))
         LogoutAction -> pure unit

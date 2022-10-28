@@ -16,13 +16,12 @@ import Data.Eq (eq, (==))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HeytingAlgebra (not)
-import Data.Maybe (fromMaybe, Maybe(..))
+import Data.Maybe (fromMaybe, Maybe)
 import Data.String (split)
 import Data.String.Common (replace)
 import Data.String.Pattern (Pattern(..), Replacement(..))
 import Data.String.Regex (Regex, regex, match)
 import Data.String.Regex.Flags (global)
-import Data.String.Pattern (Pattern(..))
 import Data.Traversable (sequence)
 import DataModel.AppState (AppError(..))
 import DataModel.Card (Card(..), CardValues(..), CardField(..))
@@ -75,9 +74,9 @@ decodeCard timestamp = caseJsonObject (Left $ ImportError "Cannot conver json to
         a <- except $ note (ImportError "Cannot find card fields") $ (values <$> (toObject =<< (lookup "fields") =<< toObject =<< lookup "currentVersion" obj))
         except $ sequence (decodeCardField <$> a)
       notes  <- except $ note (ImportError "Cannot find card notes") $ (toString =<< (lookup "notes") =<< toObject =<< lookup "data" obj)
-      pure $ Card_v1 { timestamp: timestamp
+      pure $ Card { timestamp: timestamp
                      , archived: archived
-                     , content: CardValues_v1 { title: title
+                     , content: CardValues { title: title
                                               , tags: tags
                                               , fields: fields
                                               , notes: notes
@@ -90,4 +89,4 @@ decodeCard timestamp = caseJsonObject (Left $ ImportError "Cannot conver json to
       label  <- except $ note (ImportError "Cannot find field label")  $ (toString  =<< lookup "label"  obj)
       value  <- except $ note (ImportError "Cannot find field value")  $ (toString  =<< lookup "value"  obj)
       let hidden = fromMaybe false $ (toBoolean =<< lookup "hidden" obj)
-      pure $ CardField_v1 {name: label, value: value, locked: hidden}
+      pure $ CardField {name: label, value: value, locked: hidden}

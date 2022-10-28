@@ -28,20 +28,20 @@ createCardView card state = do
     Loading -> div [] [disableOverlay, loadingDiv, div [Props.className "cardForm"] [demand formSignal]] -- TODO: deactivate form
     Error err -> div [] [disableOverlay, text err, div [Props.className "cardForm"] [demand formSignal]]
   case mCard of
-    Just (Card_v1 { content, timestamp: _ }) -> do
+    Just (Card { content, timestamp: _ }) -> do
       timestamp' <- liftEffect $ getCurrentTimestamp
-      pure $ Just $ Card_v1 { content: content, archived: false, timestamp: timestamp' }
+      pure $ Just $ Card { content: content, archived: false, timestamp: timestamp' }
     Nothing -> pure Nothing
 
   where 
     cardFieldSignal :: CardField -> Signal HTML (Maybe CardField)
     cardFieldSignal field = do
       removeField <- fireOnce $ simpleButton "Remove field" false unit
-      field' <- loopS field $ \(CardField_v1 { name, value, locked }) -> do
+      field' <- loopS field $ \(CardField { name, value, locked }) -> do
         name' :: String <- loopW name (simpleTextInputWidget "name" (text "Name"))
         value' :: String <- loopW value (simpleTextInputWidget "value" (text "Value"))
         locked' :: Boolean <- simpleCheckboxSignal "locked" (text "Locked") locked
-        pure $ CardField_v1 {name: name', value: value', locked: locked'}
+        pure $ CardField {name: name', value: value', locked: locked'}
       case removeField of
         Nothing -> pure $ Just field'
         Just _  -> pure $ Nothing
@@ -73,12 +73,12 @@ createCardView card state = do
 
     formSignal :: Signal HTML (Maybe (Maybe Card))
     formSignal = do
-      Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card_v1 {content: (CardValues_v1 {title, tags, fields, notes}), timestamp})) -> do
+      Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card {content: (CardValues {title, tags, fields, notes}), timestamp})) -> do
         title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title"))
         Tuple newTag' tags' <- tagsSignal newTag tags
         fields' <- fieldsSignal fields
         notes' :: String <- loopW notes (simpleTextInputWidget "notes" (text "Notes"))
-        pure $ Tuple newTag' $ Card_v1 { content: (CardValues_v1 {title: title', tags: tags', fields: fields', notes: notes'})
+        pure $ Tuple newTag' $ Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
                                        , archived: false
                                        , timestamp
                                        }

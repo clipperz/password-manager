@@ -9,8 +9,8 @@ import Data.Functor ((<$>))
 import Data.HexString (fromArrayBuffer)
 import Data.Maybe (Maybe(..))
 import Data.PrettyShow (prettyShow)
+import Data.Unit (Unit)
 import DataModel.Credentials (Credentials)
-import DataModel.Index (IndexReference)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Login (login)
@@ -18,7 +18,7 @@ import Functions.JSState (updateAppState)
 import Functions.State (getSRPConf)
 import Functions.SRP as SRP
 
-doLogin :: Credentials -> ExceptT String Aff IndexReference
+doLogin :: Credentials -> ExceptT String Aff Unit
 doLogin { username, password } = do
   conf <- withExceptT (prettyShow) (ExceptT $ liftEffect getSRPConf)
   c    <- ExceptT $ Right <$> fromArrayBuffer <$> SRP.prepareC conf username password

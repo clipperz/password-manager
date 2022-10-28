@@ -17,35 +17,41 @@ import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.String.Common (toLower)
 import Data.Tuple (Tuple(..))
-import DataModel.Card (Card(..), CardValues(..))
+import DataModel.Card (Card(..), CardValues(..), currentCardVersion)
 import DataModel.SRP (HashFunction)
 import Effect.Aff (Aff)
 import Functions.EncodeDecode (encryptJson)
 
 -- --------------------------------------------
 
-data CardReference =
-  CardReference_v1
-    { reference :: HexString
-    , key :: HexString
-    }
-
-instance showCardReference :: Show CardReference where
-  show (CardReference_v1 record) = show record
-
-instance eqCardReference :: Eq CardReference where
-  eq (CardReference_v1 { reference: r }) (CardReference_v1 { reference: r' }) = eq r r'
-
-instance encodeJsonCardReference :: EncodeJson CardReference where
-  encodeJson (CardReference_v1 record) = encodeJson record
-
-instance decodeJsonCardReference :: DecodeJson CardReference where
-  decodeJson json = rmap (\record -> CardReference_v1 record) (decodeJson json)
+currentIndexVersion :: String
+currentIndexVersion = "V1"
 
 -- --------------------------------------------
 
-data CardEntry =
-  CardEntry_v1
+newtype CardReference =
+  CardReference
+    { reference :: HexString
+    , key :: HexString
+    , cardVersion :: String
+    }
+
+instance showCardReference :: Show CardReference where
+  show (CardReference record) = show record
+
+instance eqCardReference :: Eq CardReference where
+  eq (CardReference { reference: r }) (CardReference { reference: r' }) = eq r r'
+
+instance encodeJsonCardReference :: EncodeJson CardReference where
+  encodeJson (CardReference record) = encodeJson record
+
+instance decodeJsonCardReference :: DecodeJson CardReference where
+  decodeJson json = rmap (\record -> CardReference record) (decodeJson json)
+
+-- --------------------------------------------
+
+newtype CardEntry =
+  CardEntry
     { title :: String
     , cardReference :: CardReference
     , archived :: Boolean
@@ -54,7 +60,7 @@ data CardEntry =
     }
 
 instance showCardEntry :: Show CardEntry where
-  show (CardEntry_v1
+  show (CardEntry
         { title
         , cardReference: _
         , archived: _
@@ -62,41 +68,37 @@ instance showCardEntry :: Show CardEntry where
         }) = "Entry for " <> title
 
 instance ordCardEntry :: Ord CardEntry where
-  compare (CardEntry_v1 { title: t }) (CardEntry_v1 {title: t'}) = compare (toLower t) (toLower t')
+  compare (CardEntry { title: t }) (CardEntry {title: t'}) = compare (toLower t) (toLower t')
 
 instance eqCardEntry :: Eq CardEntry where
-  eq (CardEntry_v1 { cardReference: cr }) (CardEntry_v1 { cardReference: cr' }) = eq cr cr'
+  eq (CardEntry { cardReference: cr }) (CardEntry { cardReference: cr' }) = eq cr cr'
 
 instance encodeJsonCardEntry :: EncodeJson CardEntry where
-  encodeJson (CardEntry_v1 record) = encodeJson record
+  encodeJson (CardEntry record) = encodeJson record
 
 instance decodeJsonCardEntry :: DecodeJson CardEntry where
-  decodeJson json = rmap (\record -> CardEntry_v1 record) (decodeJson json)
+  decodeJson json = rmap (\record -> CardEntry record) (decodeJson json)
 
 -- --------------------------------------------
 
-data Index = 
-  Index_v1 (List CardEntry)
+newtype Index = 
+  Index (List CardEntry)
 
 instance encodeJsonIndex :: EncodeJson Index where
-  encodeJson (Index_v1 list) = encodeJson list
+  encodeJson (Index list) = encodeJson list
 
 instance decodeJsonIndex :: DecodeJson Index where
-  decodeJson json = rmap (\list -> Index_v1 list) (decodeJson json)
-
--- --------------------------------------------
-
-type IndexReference = HexString
+  decodeJson json = rmap (\list -> Index list) (decodeJson json)
 
 -- --------------------------------------------
 
 createCardEntry :: Card -> CryptoKey -> HashFunction -> Aff (Tuple ArrayBuffer CardEntry)
-createCardEntry card@(Card_v1 { content: (CardValues_v1 content), archived, timestamp: _ }) key hashf = do
+createCardEntry card@(Card { content: (CardValues content), archived, timestamp: _ }) key hashf = do
   encryptedCard <- encryptJson key card
   hash <- hashf (encryptedCard : Nil)
   exportedKey <- fromArrayBuffer <$> exportKey raw key
-  let cardEntry = CardEntry_v1 { title: content.title
-                               , cardReference: CardReference_v1 { reference: fromArrayBuffer hash, key: exportedKey }
+  let cardEntry = CardEntry { title: content.title
+                               , cardReference: CardReference { reference: fromArrayBuffer hash, key: exportedKey, cardVersion: currentCardVersion }
                                , archived: archived
                                , tags: content.tags
                                }
