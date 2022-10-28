@@ -36,8 +36,9 @@ import Effect.Class (liftEffect)
 import Functions.Card (getCardContent)
 import Functions.CardsCache (getCardFromCache, addCardToCache)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
-import Functions.Communication.Blobs (getDecryptedBlob, postBlob, getBlob, deleteBlob)
+import Functions.Communication.Blobs (postBlob, getBlob, deleteBlob)
 import Functions.EncodeDecode (encryptJson)
+import Functions.Index (getIndexContent)
 import Functions.JSState (getAppState, modifyAppState)
 import Functions.State (getHashFromState)
 
@@ -94,9 +95,9 @@ getIndex :: ExceptT AppError Aff Index
 getIndex = do 
   currentState <- ExceptT $ liftEffect getAppState
   case currentState of
-    { indexReference: Just (IndexReference ref) } -> do
-      cryptoKey :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer ref.masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      getDecryptedBlob ref.reference cryptoKey
+    { indexReference: Just indexRef@(IndexReference { reference }) } -> do
+      blob <- getBlob reference
+      getIndexContent blob indexRef
     _ -> except $ Left $ InvalidStateError $ MissingValue "Missing index reference"
 
 updateIndex :: Index -> ExceptT AppError Aff Unit

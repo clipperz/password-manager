@@ -5,10 +5,8 @@ import Control.Bind (bind)
 import Control.Monad.Except.Trans (ExceptT(..), withExceptT, except)
 import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Key.Import as KI
-import Crypto.Subtle.Key.Generate as KG
 import Crypto.Subtle.Key.Types (encrypt, decrypt, raw, unwrapKey, CryptoKey)
-import Data.Argonaut.Core (Json)
-import Data.Argonaut.Encode.Class (encodeJson)
+import Data.Argonaut.Core (Json) 
 import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.ArrayBuffer.Types (ArrayBuffer)
@@ -25,8 +23,6 @@ import DataModel.Index (CardReference(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.EncodeDecode (decryptWithAesCTR)
-
-import Effect.Exception as EX
 
 getCardContent :: ArrayBuffer -> CardReference -> ExceptT AppError Aff Card
 getCardContent bytes (CardReference ref) =
