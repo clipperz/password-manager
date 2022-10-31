@@ -46,7 +46,7 @@ runTestPurescript := {
 //=====================================================================
 
 ThisBuild / organization := "is.clipperz"
-ThisBuild / scalaVersion := "3.1.2"
+ThisBuild / scalaVersion := "3.2.0"
 
 ThisBuild / scalacOptions ++=
   Seq(
@@ -83,6 +83,7 @@ lazy val commonScalacOptions = Seq(
 
 val zio_version = "2.0.0"
 val zio_http_version = "2.0.0-RC10"
+val zio_logging_version = "2.0.0" // "2.1.3"
 val zio_json = "0.3.0-RC11"
 
 lazy val dependencies = Seq(
@@ -92,8 +93,8 @@ lazy val dependencies = Seq(
     "dev.zio" %% "zio-json" % zio_json,
     "dev.zio" %% "zio-cache" % "0.2.0",
     "io.d11" %% "zhttp" % zio_http_version,
-    "dev.zio" %% "zio-logging"       % "2.0.0",
-    "dev.zio" %% "zio-logging-slf4j" % "2.0.0",
+    "dev.zio" %% "zio-logging"       % zio_logging_version,
+    "dev.zio" %% "zio-logging-slf4j" % zio_logging_version,
     "org.slf4j" % "slf4j-simple" % "1.7.36",
   ),
   libraryDependencies ++= Seq(
