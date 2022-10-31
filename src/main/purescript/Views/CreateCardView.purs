@@ -7,18 +7,21 @@ import Concur.React.DOM (div, text)
 import Concur.React.Props as Props
 import Control.Alt((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, (=<<))
+import Control.Bind (bind, (=<<), discard)
 import Data.Array (snoc, filter, singleton, sort)
 import Data.Function (($))
-import Data.Functor ((<$>))
+import Data.Functor ((<$>), (<$))
 import Data.Maybe (Maybe(..), isJust, maybe)
+import Data.Show (show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
 import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
 import Functions.Time (getCurrentTimestamp)
+import Views.PasswordGenerator (passwordGenerator)
 import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleTextInputWidget, simpleCheckboxSignal, disableOverlay)
 
 createCardView :: Card -> WidgetState -> Widget HTML (Maybe Card)
@@ -29,19 +32,35 @@ createCardView card state = do
     Error err -> div [] [disableOverlay, text err, div [Props.className "cardForm"] [demand formSignal]]
   case mCard of
     Just (Card { content, timestamp: _ }) -> do
+      liftEffect $ log $ show content
       timestamp' <- liftEffect $ getCurrentTimestamp
       pure $ Just $ Card { content: content, archived: false, timestamp: timestamp' }
     Nothing -> pure Nothing
 
   where 
     cardFieldSignal :: CardField -> Signal HTML (Maybe CardField)
-    cardFieldSignal field = do
+    cardFieldSignal field@(CardField { name, value, locked: false }) = do
       removeField <- fireOnce $ simpleButton "Remove field" false unit
       field' <- loopS field $ \(CardField { name, value, locked }) -> do
         name' :: String <- loopW name (simpleTextInputWidget "name" (text "Name"))
         value' :: String <- loopW value (simpleTextInputWidget "value" (text "Value"))
         locked' :: Boolean <- simpleCheckboxSignal "locked" (text "Locked") locked
         pure $ CardField {name: name', value: value', locked: locked'}
+      case removeField of
+        Nothing -> pure $ Just field'
+        Just _  -> pure $ Nothing
+    cardFieldSignal field@(CardField { name, value, locked: true }) = do
+      removeField <- fireOnce $ simpleButton "Remove field" false unit
+      field' <- loopS field $ \(CardField { name, value, locked }) -> do
+        name' :: String <- loopW name (simpleTextInputWidget "name" (text "Name"))
+        generatePassword <- fireOnce $ do
+          simpleButton "Generate password" false unit
+          passwordGenerator
+        value' :: String <- loopW value (simpleTextInputWidget "value" (text "Value"))
+        locked' :: Boolean <- simpleCheckboxSignal "locked" (text "Locked") locked
+        pure $ case generatePassword of
+          Nothing -> CardField {name: name', value: value', locked: locked'}
+          Just generatedValue -> CardField {name: name', value: generatedValue, locked: locked'}
       case removeField of
         Nothing -> pure $ Just field'
         Just _  -> pure $ Nothing
