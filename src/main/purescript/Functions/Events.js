@@ -21,31 +21,6 @@ const _readFile = function (target) {
     }; 
 };
 
-const _redFile = function (target) {
-    return function (onError, onSuccess) {
-        var file = target.files[0];
-        if (!file) {
-            onError("File not readable");
-        }
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            var contents = e.target.result;
-            console.log("read contents " + contents)
-            onSuccess(contents)
-        };
-            
-        // result.then(onSuccess).catch(onError);
-        // return (cancelError, cancelerError, cancelerSuccess) => {
-            //     console.log(cancelError)
-            // // Handle however you'd cancel the `o` (if the API supports it)
-            // }
-            
-        return function (cancelError, cancelerError, cancelerSuccess) {
-            cancelerSuccess()
-        }
-    }
-}
-
 export {
     _readFile
 }
