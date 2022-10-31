@@ -27,10 +27,10 @@ object UserCard:
   implicit val encoder: JsonEncoder[UserCard] = DeriveJsonEncoder.gen[UserCard]
 
 case class ModifyUserCard(
-  c: HexString,
-  oldUserCard: UserCard,
-  newUserCard: UserCard
-)
+    c: HexString,
+    oldUserCard: UserCard,
+    newUserCard: UserCard,
+  )
 
 object ModifyUserCard:
   implicit val decoder: JsonDecoder[ModifyUserCard] = DeriveJsonDecoder.gen[ModifyUserCard]

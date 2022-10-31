@@ -47,7 +47,10 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
       .zip(ZIO.succeed(request.bodyAsStream))
       .flatMap((archive, bytes) =>
         fromStream[SaveBlobData](bytes)
-          .flatMap(blobData => if (blobData.hash.toString() == hash) ZIO.succeed(blobData) else ZIO.fail(new BadRequestException("Different hashes")))
+          .flatMap(blobData =>
+            if (blobData.hash.toString() == hash) ZIO.succeed(blobData)
+            else ZIO.fail(new BadRequestException("Different hashes"))
+          )
           .flatMap(blobData => archive.deleteBlob(ZStream.fromIterable(blobData.data.toByteArray)))
       )
       .map(b => if b then Response.ok else Response(status = Status.NotFound))

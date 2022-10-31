@@ -93,14 +93,16 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
           .flatMap(_ =>
             fromStream[ModifyUserCard](content)
               .flatMap { modifyData =>
-                if HexString(c) == modifyData.c then 
-                  userArchive.getUser(modifyData.c).flatMap(currentUser =>
-                    if (currentUser.isDefined && currentUser.get == modifyData.oldUserCard) then
-                      userArchive.saveUser(modifyData.newUserCard, true)
-                    else
-                      ZIO.logDebug(s"${currentUser} is different than ${modifyData.oldUserCard}")
-                      ZIO.fail(new BadRequestException("old user card is not the current one saved"))
-                  )
+                if HexString(c) == modifyData.c then
+                  userArchive
+                    .getUser(modifyData.c)
+                    .flatMap(currentUser =>
+                      if currentUser.isDefined && currentUser.get == modifyData.oldUserCard then
+                        userArchive.saveUser(modifyData.newUserCard, true)
+                      else
+                        ZIO.logDebug(s"${currentUser} is different than ${modifyData.oldUserCard}")
+                        ZIO.fail(new BadRequestException("old user card is not the current one saved"))
+                    )
                 else ZIO.fail(new BadRequestException("c in request path differs from c in request body "))
               }
           )

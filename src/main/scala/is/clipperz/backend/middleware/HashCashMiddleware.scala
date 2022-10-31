@@ -43,9 +43,9 @@ def isTollInSession(req: Request): ZIO[SessionManager, Throwable, Boolean] =
           .attempt(session(TollManager.tollChallengeContentKey).get)
           .mapError(e => new BadRequestException("No challenge related to this session"))
         challenge <- fromString[TollChallenge](challengeJson)
-        res <- ZIO.succeed(if (challengeToll == challenge.toll && cost == challenge.cost) then true else false)
+        res <- ZIO.succeed(if challengeToll == challenge.toll && cost == challenge.cost then true else false)
       } yield res
-    )      
+    )
     .catchSome {
       case ex => ZIO.logDebugCause(s"${ex.getMessage()}", Cause.fail(ex)).as(false)
     }
