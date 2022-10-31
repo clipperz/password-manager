@@ -24,7 +24,7 @@ import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
-import Data.Unit (Unit)
+import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Card (Card)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
@@ -80,43 +80,3 @@ postCard card = do
       _ <- postBlob encryptedCard (toArrayBuffer reference)
       addCardToCache reference card
       pure cardEntry
-
-getUserCard :: ExceptT AppError Aff UserCard
-getUserCard = do
-  { proxy: _, c: mc, p: _, sessionKey: _, toll: _ } <- ExceptT $ liftEffect $ getAppState
-  c <- except $ note (InvalidStateError (MissingValue "c is Nothing")) mc
-  let url = joinWith "/" ["users", show c]
-  response <- manageGenericRequest url GET Nothing RF.json
-  if isStatusCodeOk response.status
-    then withExceptT (\e -> ProtocolError (DecodeError (show e))) (except $ decodeJson response.body)
-    else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
-
-getIndex :: ExceptT AppError Aff Index
-getIndex = do 
-  currentState <- ExceptT $ liftEffect getAppState
-  case currentState of
-    { indexReference: Just indexRef@(IndexReference { reference }) } -> do
-      blob <- getBlob reference
-      getIndexContent blob indexRef
-    _ -> except $ Left $ InvalidStateError $ MissingValue "Missing index reference"
-
-updateIndex :: Index -> ExceptT AppError Aff Unit
-updateIndex newIndex = do
-  currentState <- ExceptT $ liftEffect getAppState
-  case currentState of
-    { c: Just c, p: Just p, indexReference: Just (IndexReference oldReference) } -> do
-      UserCard userCard <- getUserCard
-      masterPassword :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      cryptoKey            :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer oldReference.masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      indexCardContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson cryptoKey newIndex
-      indexCardContentHash :: ArrayBuffer <- ExceptT $ Right <$> (getHashFromState $ currentState.hash) (indexCardContent : Nil)
-      let newIndexReference = IndexReference $ oldReference { reference = fromArrayBuffer indexCardContentHash }
-      masterKeyContent <- ExceptT $ (fromArrayBuffer >>> Right) <$> encryptJson masterPassword newIndexReference
-      let newUserCard = UserCard $ userCard { masterKeyContent = masterKeyContent }
-      _ <- postBlob indexCardContent indexCardContentHash
-      let url = joinWith "/" ["users", show c]
-      let body = (json $ encodeJson newUserCard) :: RequestBody
-      _ <- manageGenericRequest url PUT (Just body) RF.string
-      _ <- deleteBlob oldReference.reference -- TODO: manage errors
-      ExceptT $ Right <$> (modifyAppState $ currentState { indexReference = Just newIndexReference})
-    _ -> except $ Left $ InvalidStateError $ MissingValue "Missing p, c or indexReference"

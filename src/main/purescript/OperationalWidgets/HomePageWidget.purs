@@ -21,7 +21,7 @@ import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
-import Functions.Communication.Cards (getIndex)
+import Functions.Communication.Users (getIndex)
 import Views.CardsManagerView (CardView(..))
 import Views.SimpleWebComponents (simpleButton, loadingDiv)
 import OperationalWidgets.CardsManagerWidget (cardsManagerWidget)
@@ -55,4 +55,5 @@ homePageWidget = go Loading
           _ <- liftEffect $ log $ show err
           go (Error (prettyShow err))
         UserAreaAction (Logout) -> pure unit
+        UserAreaAction (DeleteAccount) -> pure unit
         LogoutAction -> pure unit

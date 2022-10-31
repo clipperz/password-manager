@@ -23,7 +23,7 @@ import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class.Console (log)
-import Functions.Communication.Cards (updateIndex)
+import Functions.Communication.Users (updateIndex)
 import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState)
 import Views.IndexView (IndexFilter(..))
 

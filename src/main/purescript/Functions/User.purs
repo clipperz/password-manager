@@ -21,14 +21,18 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
+import Data.Traversable (sequence)
 import Data.Unit (Unit, unit)
-import DataModel.AppState (AppError(..), InvalidStateError(..))
+import DataModel.AppState (AppState, AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
+import DataModel.Index (Index(..), CardEntry(..))
 import DataModel.User (UserCard(..), IndexReference(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
-import Functions.Communication.Cards (getUserCard)
+import Functions.Communication.Blobs (deleteBlob)
+import Functions.Communication.Cards (deleteCard)
+import Functions.Communication.Users (getUserCard, deleteUserCard)
 import Functions.EncodeDecode (encryptJson, decryptJson)
 import Functions.JSState (getAppState)
 import Functions.SRP as SRP
@@ -61,3 +65,17 @@ changeUserPassword username password = do
   except $ if isStatusCodeOk response.status
            then Right unit
            else Left (ProtocolError (ResponseError (unwrap response.status)))
+
+deleteUser :: Index -> ExceptT AppError Aff Unit
+deleteUser index@(Index entries) = do
+  indexReference@(IndexReference record) <- ExceptT $ extractIndexReference <$> (liftEffect getAppState)
+  _ <- sequence $ (deleteCard <<< entryToReference) <$> entries -- TODO: update index after every delete, to avoid dangling cards in case of failure?
+  _ <- deleteBlob record.reference
+  deleteUserCard
+
+  where
+    entryToReference (CardEntry r) = r.cardReference
+
+    extractIndexReference :: Either AppError AppState -> Either AppError IndexReference
+    extractIndexReference (Left err) = Left err
+    extractIndexReference (Right state) = note (InvalidStateError $ MissingValue $ "indexReference not present") state.indexReference
