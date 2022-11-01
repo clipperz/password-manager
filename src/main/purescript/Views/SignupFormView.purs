@@ -3,7 +3,7 @@ module Views.SignupFormView where
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (text, a, p, div', fieldset)
+import Concur.React.DOM (text, a, p, div, div', fieldset)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind)
@@ -54,12 +54,12 @@ checkboxesLabels = fromFoldable [
 signupFormView :: WidgetState -> SignupDataForm -> Widget HTML Credentials -- TODO: return SignupDataForm to show the compiled form in loading
 signupFormView state formData = 
   case state of
-    Default   -> div' [form false]
-    Loading   -> div' [loadingDiv, form true]
-    Error err -> div' [errorDiv err, form false]
+    Default   -> div [] [              form false]
+    Loading   -> div [] [loadingDiv,   form true ]
+    Error err -> div [] [errorDiv err, form false]
 
-  where 
-    errorDiv err = div' [text err ]
+  where
+    errorDiv err = div' [text err]
     form disabled = fieldset [(Props.disabled disabled)] [
       do
         signalResult <- demand $ do

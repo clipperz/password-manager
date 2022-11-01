@@ -1,0 +1,150 @@
+div.page {
+
+    &.login {
+        background-color: $main-color;
+        color: $main-text-color;
+    }
+
+    &.signup {
+        background-color: $core-alternate-color;
+        color: $core-alternate-text-color;
+    }
+
+    div.content {
+
+        div.body {
+            text-align: center;
+
+            div.bodyContent {
+                margin-left: auto;
+                margin-right: auto;
+
+                div.form {
+                    background: $alternate-color;
+                    padding: 20px;
+                    max-width: 400px;
+
+                    label {
+                        display: none;
+                        visibility: hidden;
+                    }
+
+                    input {
+                        border: 1px solid #ccc;
+
+                        display: block;
+                        padding: 5px;
+                        margin-top: 5px;
+                        margin-bottom: 10px;
+                        font-size: 100%;
+                        font-size: 24pt;
+                        width: 100%;
+                        border-radius: 0px;                
+                    }
+                }
+
+                button {
+                    background-color: $main-color;
+                    border: 1px solid $main-text-color;                             
+                    color: $main-text-color;
+
+                    display: inline-block;
+                    margin-top: 25px;
+                    margin-bottom: 25px;
+                    line-height: 34pt;
+
+                    min-height: 46px;
+                    min-width: 46px;
+                    font-size: 24pt;
+                    font-weight: 500;
+                    border: 0px;
+                    padding: 10px 25px;
+
+                    cursor: pointer;
+
+                    &:disabled {
+                        background-color: #c0c0c0;
+                        cursor: default;
+
+                        &:hover {
+                        };
+                    }
+
+                    &.registrationLink {
+                        background-color: #c0c0c0;
+
+                        &:hover {
+                            background-color: black;
+                        };
+        
+                    }
+                }
+            }
+        }
+
+        .other {
+            text-align: center;
+			a {
+                color: white;
+				cursor: pointer;
+                text-decoration: none;
+			}
+
+			.links {
+				ul {
+					padding: 3px;
+					padding-bottom: 6px;
+					li {
+						color: white;
+
+                        display: inline-block;
+						cursor: pointer;
+			
+						&:after {
+							content: '-';
+							padding-left: 4px;
+							padding-right: 4px;
+							cursor: default;
+						};
+
+						&:last-child:after {
+							content: '';
+							padding-left: 0px;
+							padding-right: 0px;
+						}
+					}
+				}
+			}
+
+        }
+
+        footer {
+            .footerContent {
+                text-align: center;
+
+                max-height: 50px;
+
+                .applicationVersion {
+                    padding: 2px;
+                    font-size: 8pt;
+                    
+                    span {
+                        white-space: nowrap;
+                        &:after {
+                            content: ":";
+                        };
+                    }
+    
+                    a {
+						color: white;
+
+                        text-decoration: none;
+                        padding-left: 5px;
+                        font-weight: bold;
+                    }
+                }
+                    
+            }
+        }
+    }
+}
