@@ -87,7 +87,7 @@ object LogoutSpec extends ZIOSpecDefault:
         responseCode <- app(logoutWithSession).map(response => response.status.code)
       } yield assertTrue(responseCode == 200)
     },
-  ).provideCustomLayerShared(environment) @@
+  ).provideLayerShared(environment) @@
     TestAspect.sequential @@
     TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn))) @@
     TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))

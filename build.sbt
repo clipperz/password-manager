@@ -81,7 +81,7 @@ lazy val commonScalacOptions = Seq(
     (Compile / console / scalacOptions).value,
 )
 
-val zio_version = "2.0.0"
+val zio_version = "2.0.2"
 val zio_http_version = "2.0.0-RC10"
 val zio_logging_version = "2.0.0" // "2.1.3"
 val zio_json = "0.3.0-RC11"

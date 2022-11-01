@@ -50,11 +50,11 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
 
   val environment =
     PRNG.live ++
-      SessionManager.live ++
-      UserArchive.fs(userBasePath, 2) ++
-      BlobArchive.fs(blobBasePath, 2) ++
-      ((UserArchive.fs(userBasePath, 2) ++ PRNG.live) >>> SrpManager.v6a()) ++
-      (PRNG.live >>> TollManager.live)
+    SessionManager.live ++
+    UserArchive.fs(userBasePath, 2) ++
+    BlobArchive.fs(blobBasePath, 2) ++
+    ((UserArchive.fs(userBasePath, 2) ++ PRNG.live) >>> SrpManager.v6a()) ++
+    (PRNG.live >>> TollManager.live)
 
   val c = HexString("7815018e9d84b5b0f319c87dee46c8876e85806823500e03e72c5d66e5d40456")
   val p = HexString("597ed0c523f50c6db089a92845693a3f2454590026d71d6a9028a69967d33f6d")
@@ -222,9 +222,9 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
         stepResponse <- fromStream[SRPStep2Response](response2.bodyAsStream)
       } yield assertTrue(response2.status.code == 200, stepResponse.encIndexReference == testUser.masterKeyContent)
     },
-  ).provideCustomLayerShared(environment) @@
+  ).provideLayerShared(environment) @@
     TestAspect.sequential @@
-    TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))) @@
-    TestAspect.beforeAll(saveUser) @@
     TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn))) @@
+    TestAspect.beforeAll(saveUser) @@
+    TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))) @@
     TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))

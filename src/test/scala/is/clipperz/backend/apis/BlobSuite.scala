@@ -182,7 +182,7 @@ object BlobSpec extends ZIOSpecDefault:
         statusCodeGet <- app(get).map(response => response.status.code)
       } yield assertTrue(statusCodePost == 200, statusCodeDelete == 200, statusCodeGet == 404)
     },
-  ).provideCustomLayerShared(environment) @@
+  ).provideLayerShared(environment) @@
     TestAspect.sequential @@
     TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn))) @@
     TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))

@@ -90,7 +90,7 @@ object AppSpec extends ZIOSpecDefault:
         logoutResult2,
       )
     }
-  ).provideCustomLayerShared(environment) @@
+  ).provideLayerShared(environment) @@
     TestAspect.sequential @@
     TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn))) @@
     TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn))) @@

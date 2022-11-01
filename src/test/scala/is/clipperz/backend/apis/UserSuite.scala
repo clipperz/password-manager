@@ -309,7 +309,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
     } @@
       TestAspect.after(deleteSession()) @@
       TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-  ).provideCustomLayerShared(environment) @@
+  ).provideLayerShared(environment) @@
     TestAspect.sequential @@
     TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn))) @@
     TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn)))

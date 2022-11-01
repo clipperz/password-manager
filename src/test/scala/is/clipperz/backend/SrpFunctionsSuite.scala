@@ -111,4 +111,4 @@ object SrpFunctionsSpec extends ZIOSpecDefault:
           hash <- HashFunction.hashSHA256(ZStream.fromIterable(ab)).map(b => bytesToHex(b))
         } yield assertTrue(hash == result)
       }
-  ).provideCustomLayerShared(PRNG.live)
+  ).provideLayerShared(PRNG.live)
