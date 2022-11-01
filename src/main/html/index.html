@@ -3,8 +3,38 @@
 	<title>password-generator</title>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" type="text/css" href="../scss/main.scss" />
-    <script type="module" src="../purescript/_main.js" charset="utf-8"></script>
+    <!-- script type="module" src="../purescript/_main.js" charset="utf-8"></script -->
 </head>
 <body>
-    <div id="app"/>
+    <div id="app">
+        <div class="page">
+            <header>
+                <h1>clipperz</h1>
+                <h3 class="clipperzPayoff">keep it to yourself</h3>
+            </header>
+        </div>
+        <div class="overlay" id="overlay">
+            <div class="spinner">
+                <div class="bar01"></div>
+                <div class="bar02"></div>
+                <div class="bar03"></div>
+                <div class="bar04"></div>
+                <div class="bar05"></div>
+                <div class="bar06"></div>
+                <div class="bar07"></div>
+                <div class="bar08"></div>
+                <div class="bar09"></div>
+                <div class="bar10"></div>
+                <div class="bar11"></div>
+                <div class="bar12"></div>
+            </div>
+            <!-- span class="icon done"   style="display:none">done</span -->
+            <!-- span class="icon failed" style="display:none">failed</span -->
+            <!-- span class="icon custom" style="display:none"></span -->
+            <!-- span class="progressBar" style="display:none"><span class="progress"></span></span -->
+            <span class="title">loading</span>
+            <!-- div class="mask hidden"></div -->
+        </div>
+    </div>
+    <script type="module" src="../purescript/_main.js" charset="utf-8"></script>
 </body>

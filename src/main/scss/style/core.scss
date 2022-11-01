@@ -1,0 +1,68 @@
+@import "./palette.scss";
+
+html, input, button {
+    font-family: clipperz-font;
+}
+
+body {
+    background-color: $main-color;
+}
+
+
+div.page {
+    color: $main-text-color;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    // display: flex;
+
+    div.content {
+        display: flex;
+        flex-direction: column;
+
+        header {
+            width: 100%;
+            text-align: center;
+            padding: 10px 0px;
+
+            flex: auto;
+            // align-items: flex-end;
+
+            h1 {
+                font-size: 40pt;
+                font-weight: bold;
+                // color: $main-alternate-text-color;
+                margin-top: 10%;
+                margin-bottom: 5px;
+            }
+
+            h3 {
+                font-size: 18pt;
+                // color: $main-alternate-text-color;
+                margin: 0px;
+            }
+        }
+
+        div.body {
+            flex: auto;
+            align-items: flex-start;
+            display: flex;
+
+            margin-left: auto;
+            margin-right: auto;
+            // position: relative;
+        }
+
+        div.other {
+            width: 100%;
+            flex: none;
+        }
+
+        footer {
+            width: 100%;
+            flex: none;
+        }
+    }
+}
+        
