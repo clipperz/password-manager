@@ -22,13 +22,12 @@ div.page {
         flex-direction: column;
 
         header {
-            vertical-align: middle;
             width: 100%;
             text-align: center;
             padding: 10px 0px;
 
             flex: auto;
-            align-items: flex-end;
+            // align-items: flex-end;
 
             h1 {
                 font-size: 40pt;
