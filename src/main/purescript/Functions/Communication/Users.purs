@@ -86,7 +86,7 @@ updateIndex newIndex = do
       let newUserCard = UserCard $ userCard { masterKeyContent = masterKeyContent }
       _ <- postBlob indexCardContent indexCardContentHash
       let url = joinWith "/" ["users", show c]
-      let body = (json $ encodeJson newUserCard) :: RequestBody
+      let body = (json $ encodeJson {c: c, oldUserCard: userCard, newUserCard: newUserCard}) :: RequestBody
       _ <- manageGenericRequest url PUT (Just body) RF.string
       _ <- deleteBlob oldReference.reference -- TODO: manage errors
       ExceptT $ Right <$> (modifyAppState $ currentState { indexReference = Just newIndexReference})
