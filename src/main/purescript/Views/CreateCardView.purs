@@ -3,12 +3,13 @@ module Views.CreateCardView where
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopS, loopW, demand, fireOnce)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text)
+import Concur.React.DOM (div, div', text, div_, label, input, datalist, option)
 import Concur.React.Props as Props
 import Control.Alt((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, (=<<), discard)
 import Data.Array (snoc, filter, singleton, sort)
+import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.Maybe (Maybe(..), isJust, maybe)
@@ -22,14 +23,15 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Time (getCurrentTimestamp)
 import Views.PasswordGenerator (passwordGenerator)
-import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleTextInputWidget, simpleCheckboxSignal, disableOverlay)
+import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleTextInputWidget, simpleCheckboxSignal, disableOverlay, simpleTextAreaSignal)
 
 createCardView :: Card -> WidgetState -> Widget HTML (Maybe Card)
 createCardView card state = do
-  mCard <- case state of
-    Default -> div [] [disableOverlay, div [Props.className "cardForm"] [demand formSignal]]
-    Loading -> div [] [disableOverlay, loadingDiv, div [Props.className "cardForm"] [demand formSignal]] -- TODO: deactivate form
-    Error err -> div [] [disableOverlay, text err, div [Props.className "cardForm"] [demand formSignal]]
+  mCard <- div [Props._id "cardForm"] do
+    case state of
+      Default   -> [disableOverlay, div [Props.className "cardForm"] [demand formSignal]]
+      Loading   -> [disableOverlay, loadingDiv, div [Props.className "cardForm"] [demand formSignal]] -- TODO: deactivate form
+      Error err -> [disableOverlay, text err, div [Props.className "cardForm"] [demand formSignal]]
   case mCard of
     Just (Card { content, timestamp: _ }) -> do
       liftEffect $ log $ show content
@@ -39,28 +41,24 @@ createCardView card state = do
 
   where 
     cardFieldSignal :: CardField -> Signal HTML (Maybe CardField)
-    cardFieldSignal field@(CardField { locked: false }) = do
-      removeField <- fireOnce $ simpleButton "Remove field" false unit
+    cardFieldSignal field = div_ [Props.className "cardField"] do
+      removeField <- fireOnce $ simpleButton "x" false unit
       field' <- loopS field $ \(CardField { name, value, locked }) -> do
-        name' :: String <- loopW name (simpleTextInputWidget "name" (text "Name"))
-        value' :: String <- loopW value (simpleTextInputWidget "value" (text "Value"))
-        locked' :: Boolean <- simpleCheckboxSignal "locked" (text "Locked") locked
-        pure $ CardField {name: name', value: value', locked: locked'}
-      case removeField of
-        Nothing -> pure $ Just field'
-        Just _  -> pure $ Nothing
-    cardFieldSignal field@(CardField { locked: true }) = do
-      removeField <- fireOnce $ simpleButton "Remove field" false unit
-      field' <- loopS field $ \(CardField { name, value, locked }) -> do
-        name' :: String <- loopW name (simpleTextInputWidget "name" (text "Name"))
-        generatePassword <- fireOnce $ do
-          simpleButton "Generate password" false unit
-          div [Props.className "passwordGeneratorOverlay"] [
-            div [value <$ Props.onClick] []
-          , passwordGenerator
-          ]
-        value' :: String <- loopW value (simpleTextInputWidget "value" (text "Value"))
-        locked' :: Boolean <- simpleCheckboxSignal "locked" (text "Locked") locked
+        { name', value' } <- div_ [Props.className "inputs"] do
+          name' :: String <- loopW name (simpleTextInputWidget "name" (text "Name"))
+          value' :: String <- loopW value (simpleTextInputWidget "value" (text "Value"))
+          pure { name', value' }
+        { generatePassword, locked' } <- div_ [] do
+          generatePassword <- case locked of
+            false -> pure $ Nothing 
+            true ->  fireOnce $ do
+              simpleButton "Gen Pass" false unit
+              div [Props.className "passwordGeneratorOverlay"] [
+                div [value <$ Props.onClick] []
+              , passwordGenerator
+              ]
+          locked' :: Boolean <- simpleCheckboxSignal "locked" (text "Locked") locked
+          pure { generatePassword, locked' }
         pure $ case generatePassword of
           Nothing -> CardField {name: name', value: value', locked: locked'}
           Just generatedValue -> CardField {name: name', value: generatedValue, locked: locked'}
@@ -85,7 +83,7 @@ createCardView card state = do
         Just _  -> pure $ Nothing
 
     tagsSignal :: String -> Array String -> Signal HTML (Tuple String (Array String))
-    tagsSignal newTag tags = do
+    tagsSignal newTag tags = div_ [] do
       tags' <- (\ts -> ((maybe [] singleton) =<< filter isJust ts)) <$> (sequence $ tagSignal <$> sort tags)
       newTag' <- loopW newTag (simpleTextInputWidget "" (text "add tag"))
       addTag <- fireOnce $ simpleButton "Add tag" false unit --TODO change with form that returns with `return` key
@@ -95,15 +93,16 @@ createCardView card state = do
 
     formSignal :: Signal HTML (Maybe (Maybe Card))
     formSignal = do
-      Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card {content: (CardValues {title, tags, fields, notes}), timestamp})) -> do
-        title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title"))
-        Tuple newTag' tags' <- tagsSignal newTag tags
-        fields' <- fieldsSignal fields
-        notes' :: String <- loopW notes (simpleTextInputWidget "notes" (text "Notes"))
-        pure $ Tuple newTag' $ Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
-                                       , archived: false
-                                       , timestamp
-                                       }
-      res <- fireOnce (simpleButton "Cancel" false Nothing <|> simpleButton "Save" false (Just formValues))
+      Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card {content: (CardValues {title, tags, fields, notes}), timestamp})) ->
+        div_ [Props.className "cardFormFields"] do
+          title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title"))
+          Tuple newTag' tags' <- tagsSignal newTag tags
+          fields' <- fieldsSignal fields
+          notes' :: String <- simpleTextAreaSignal "notes" (text "Notes") "notes" notes
+          pure $ Tuple newTag' $ Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
+                                      , archived: false
+                                      , timestamp
+                                      }
+      res <- fireOnce (div [Props.className "submitButtons"] [simpleButton "Cancel" false Nothing <|> simpleButton "Save" false (Just formValues)])
       -- TODO: add check for form validity
       pure res

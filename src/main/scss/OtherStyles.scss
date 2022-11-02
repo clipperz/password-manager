@@ -21,7 +21,6 @@ body {
 	width: 30%;
 	display: flex;
 	flex-direction: column;
-	
 }
 
 #cardsManager {
@@ -35,21 +34,31 @@ body {
     border: 1px solid gray;
 	display: flex;
 	flex-direction: column;
+	justify-content: space-between;
 }
 
 #indexView > ol {
 	overflow-y: auto;
 }
 
-#cardView {
+#card {
 	height: 100%;
 	width: 70%;
+	border: 1px solid gray;
+
+	.cardActions {
+		display: flex;
+		
+		button {
+			flex-grow: 1;
+		}
+	}
 }
 
-#cardView > div {
-	display: flex;
-	flex-direction: column;
+#cardForm {
 	height: 100%;
+	width: 70%;
+	border: 1px solid gray;
 }
 
 #cardContent {
@@ -57,16 +66,83 @@ body {
 	overflow-y: auto;
 }
 
-#cardForm {
-	height: 100%;
-}
-
 .cardForm {
 	height: 100%;
 	position: relative;
+	display: flex;
+	flex-direction: column;
 	background-color: white;
 	z-index: 9;
 	overflow-y: auto;
+	align-items: stretch;
+	justify-content: space-between;
+	
+	.cardFormFields {
+		overflow-y: auto;
+		
+		.cardField {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-end;
+		
+			button {
+				align-self: flex-start;
+			}
+		
+			.inputs {
+				flex-grow: 1;
+				padding-left: 10px;
+				padding-right: 10px;
+		
+				label {
+					@include hide-element
+				}
+				
+				input {
+					width: 100%;
+				}
+			}
+		}
+		
+		div.textarea {
+			display: flex;
+	
+			textarea {
+				flex-grow: 1;
+				resize: none;
+				padding: 3px;
+				margin: 10px;
+			}
+		}
+	}
+
+	.submitButtons {
+		display: flex;
+
+		button {
+			flex-grow: 1;
+		}
+	}
+
+	.passwordGeneratorOverlay {
+		position: absolute;
+		left: 0;
+
+		& > div:first-child {
+			position: fixed;
+			width: 100%;
+			height: 100%;
+			top: 0;
+			z-index: 10;
+		}
+		
+		& > div:nth-child(2) {
+			position: relative;
+			background-color: rgba(51, 51, 51);
+			z-index: 11;
+		}
+		
+	}
 }
 
 #indexView > ol > li {
@@ -113,37 +189,4 @@ li.archived {
 	justify-content: center;
 	font-weight: bolder;
 	z-index: 10;
-}
-
-.passwordGeneratorOverlay {
-	position: absolute;
-	height: 100%;
-	width: 100%;
-	top: 0;
-}
-
-.passwordGeneratorOverlay > div:first-child {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	// background-color: rgba(231, 69, 69, 0.682);
-	// display: flex;
-	// align-items: center;
-	// justify-content: center;
-	// font-weight: bolder;
-	z-index: 10;
-}
-
-.passwordGeneratorOverlay > div:nth-child(2) {
-	position: relative;
-	background-color: rgba(51, 51, 51);
-	z-index: 11;
-}
-
-#cardView {
-    border: 1px solid gray;
-}
-
-#cardView > div {
-	position: relative;
 }
