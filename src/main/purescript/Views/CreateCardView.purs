@@ -25,8 +25,8 @@ import Functions.Time (getCurrentTimestamp)
 import Views.PasswordGenerator (passwordGenerator)
 import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleTextInputWidget, simpleCheckboxSignal, disableOverlay, simpleTextAreaSignal)
 
-createCardView :: Card -> WidgetState -> Widget HTML (Maybe Card)
-createCardView card state = do
+createCardView :: Card -> Array String -> WidgetState -> Widget HTML (Maybe Card)
+createCardView card allTags state = do
   mCard <- div [Props._id "cardForm"] do
     case state of
       Default   -> [disableOverlay, div [Props.className "cardForm"] [demand formSignal]]
@@ -82,11 +82,25 @@ createCardView card state = do
         Nothing -> pure $ Just tag'
         Just _  -> pure $ Nothing
 
-    tagsSignal :: String -> Array String -> Signal HTML (Tuple String (Array String))
+    inputTagSignal :: String -> Signal HTML String
+    inputTagSignal newTag = loopW newTag (\value -> div' [
+      label [Props.htmlFor "new-tag", Props.className "hide-element"] [text "New Tag"]
+    , (Props.unsafeTargetValue) <$> input [
+        Props._type "text"
+      , Props._id "new-tag"
+      , Props.placeholder "add tag"
+      , Props.value value
+      , Props.onChange
+      , Props.list "tags-list"
+      ]
+    , datalist [Props._id "tags-list"] ((\t -> option [] [text t]) <$> allTags)
+    ])
+
     tagsSignal newTag tags = div_ [] do
       tags' <- (\ts -> ((maybe [] singleton) =<< filter isJust ts)) <$> (sequence $ tagSignal <$> sort tags)
-      newTag' <- loopW newTag (simpleTextInputWidget "" (text "add tag"))
-      addTag <- fireOnce $ simpleButton "Add tag" false unit --TODO change with form that returns with `return` key
+      newTag' <- inputTagSignal newTag
+      -- newTag' <- loopW newTag (simpleTextInputWidget "" (text "add tag"))
+      addTag  <- fireOnce $ simpleButton "Add tag" (newTag' == "") unit --TODO change with form that returns with `return` key
       case addTag of
         Nothing -> pure $ Tuple newTag' tags'
         Just _  -> pure $ Tuple "" $ snoc tags' newTag
