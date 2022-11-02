@@ -3,13 +3,12 @@ module Functions.Communication.Users where
 import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
 import Control.Applicative (pure)
-import Control.Bind (discard, bind)
+import Control.Bind (bind)
 import Control.Monad.Except.Trans (ExceptT(..), withExceptT, except)
 import Control.Semigroupoid ((>>>))
-import Crypto.Subtle.Constants.AES (aesCTR, l256)
+import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Key.Import as KI
-import Crypto.Subtle.Key.Generate as KG
-import Crypto.Subtle.Key.Types (encrypt, exportKey, decrypt, raw, unwrapKey, CryptoKey)
+import Crypto.Subtle.Key.Types (encrypt, decrypt, raw, unwrapKey, CryptoKey)
 import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.ArrayBuffer.Types (ArrayBuffer)
@@ -23,18 +22,13 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
-import Data.Tuple (Tuple(..))
 import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
-import DataModel.Card (Card)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.Index (CardReference(..), Index, CardEntry(..), createCardEntry)
-import DataModel.SRP (hashFuncSHA256)
+import DataModel.Index (Index)
 import DataModel.User (UserCard(..), IndexReference(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Functions.Card (getCardContent)
-import Functions.CardsCache (getCardFromCache, addCardToCache)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
 import Functions.Communication.Blobs (postBlob, getBlob, deleteBlob)
 import Functions.EncodeDecode (encryptJson)
@@ -77,7 +71,7 @@ updateIndex newIndex = do
   case currentState of
     { c: Just c, p: Just p, indexReference: Just (IndexReference oldReference) } -> do
       UserCard userCard <- getUserCard
-      masterPassword :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+      masterPassword       :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       cryptoKey            :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer oldReference.masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       indexCardContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson cryptoKey newIndex
       indexCardContentHash :: ArrayBuffer <- ExceptT $ Right <$> (getHashFromState $ currentState.hash) (indexCardContent : Nil)

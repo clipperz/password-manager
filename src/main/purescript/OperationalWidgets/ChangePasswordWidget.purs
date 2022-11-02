@@ -1,7 +1,7 @@
 module OperationalWidgets.ChangePasswordWidget where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (loopS, fireOnce, demand, loopW, hold)
+import Concur.Core.FRP (demand, fireOnce, loopS, loopW)
 import Concur.React (HTML)
 import Concur.React.DOM (text, div, div', fieldset)
 import Concur.React.Props as Props
@@ -13,35 +13,24 @@ import Data.Either (Either(..), either)
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
-import Data.HexString (HexString, hex, fromArrayBuffer)
+import Data.HexString (fromArrayBuffer)
 import Data.HeytingAlgebra ((&&), (||), not)
-import Data.List (List(..), (:), concat, fromFoldable)
-import Data.Maybe (Maybe(..), isJust, fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.PrettyShow (prettyShow)
-import Data.Semigroup ((<>))
-import Data.Show (class Show, show)
-import Data.Traversable (sequence)
-import Data.Tuple (Tuple(..))
+import Data.Show (show)
 import DataModel.AppState (AppError)
-import DataModel.Card (Card)
-import DataModel.Credentials (Credentials)
-import DataModel.Index (Index(..), CardEntry)
-import DataModel.SRP as SRP
+import DataModel.SRP (SRPConf)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
-import Functions.Communication.Cards (postCard)
-import Functions.Communication.Users (updateIndex)
-import Functions.Import (decodeImport, parseHTMLImport, decodeHTML)
 import Functions.JSState (getAppState)
 import Functions.Password (standardPasswordStrengthFunction)
-import Functions.SRP as SRP
+import Functions.SRP (prepareC)
 import Functions.State (getSRPConf)
 import Functions.User (changeUserPassword)
-import Views.SimpleWebComponents (loadingDiv, simplePasswordInputWidget, simpleFileInputWidget, simpleButton, simpleUserSignal, simplePasswordSignal, simpleCheckboxSignal, simpleVerifiedPasswordSignal, PasswordForm)
-import OperationalWidgets.ImportWidget (importWidget)
+import Views.SimpleWebComponents (PasswordForm, loadingDiv, simpleButton, simpleCheckboxSignal, simplePasswordInputWidget, simpleUserSignal, simpleVerifiedPasswordSignal)
 import Record (merge)
 
 type ChangePasswordDataForm = { username       :: String
@@ -50,7 +39,13 @@ type ChangePasswordDataForm = { username       :: String
                               , verifyPassword :: String
                               , notRecoverable :: Boolean
                               }
-
+emptyChangePasswordDataForm :: { 
+    notRecoverable :: Boolean
+  , oldPassword :: String
+  , password :: String
+  , username :: String
+  , verifyPassword :: String
+  }
 emptyChangePasswordDataForm = { username: "", oldPassword: "", password: "", verifyPassword: "", notRecoverable: false}
 
 data ChangePasswordWidgetAction = Change ChangePasswordDataForm | ChangeFailed AppError | DoNothing | Done
@@ -63,7 +58,7 @@ changePasswordWidget state changeForm = do
     Right c -> go (Just c) state changeForm 
 
   where 
-    go :: Maybe SRP.SRPConf -> WidgetState -> ChangePasswordDataForm -> forall a. Widget HTML a
+    go :: Maybe SRPConf -> WidgetState -> ChangePasswordDataForm -> forall a. Widget HTML a
     go conf s cf@{ username, password } = do
       res <- case s of
         Default   -> div [Props._id "changePasswordArea"] [Change <$> form conf false]
@@ -79,7 +74,7 @@ changePasswordWidget state changeForm = do
 
     errorDiv err = div' [text err ]
 
-    form :: Maybe SRP.SRPConf -> Boolean -> Widget HTML ChangePasswordDataForm
+    form :: Maybe SRPConf -> Boolean -> Widget HTML ChangePasswordDataForm
     form Nothing _ = pure emptyChangePasswordDataForm
     form (Just conf) disabled = fieldset [(Props.disabled disabled)] [
       do
@@ -97,7 +92,7 @@ changePasswordWidget state changeForm = do
         pure signalResult
     ]
 
-    submitWidget :: Maybe SRP.SRPConf -> ChangePasswordDataForm -> Widget HTML ChangePasswordDataForm
+    submitWidget :: Maybe SRPConf -> ChangePasswordDataForm -> Widget HTML ChangePasswordDataForm
     submitWidget conf f@{ username, oldPassword } = do
       check <- liftAff $ if username == "" || oldPassword == "" then pure (Right false) else checkC conf f -- to avoid Aff failures
       case check of
@@ -108,12 +103,12 @@ changePasswordWidget state changeForm = do
           let enable = b && (isNewDataValid f)
           simpleButton "Change password" (not enable) f
     
-    checkC :: Maybe SRP.SRPConf -> ChangePasswordDataForm -> Aff (Either AppError Boolean)
+    checkC :: Maybe SRPConf -> ChangePasswordDataForm -> Aff (Either AppError Boolean)
     checkC Nothing _ = pure $ Right false
-    checkC (Just conf) f@{ username, oldPassword } = runExceptT $ do
+    checkC (Just conf) { username, oldPassword } = runExceptT $ do
       appState <- ExceptT $ liftEffect $ getAppState
-      oldC <- ExceptT $ Right <$> fromArrayBuffer <$> (SRP.prepareC conf username oldPassword)
+      oldC <- ExceptT $ Right <$> fromArrayBuffer <$> (prepareC conf username oldPassword)
       except $ Right $ fromMaybe false $ ((==) oldC) <$> appState.c
 
     isNewDataValid :: ChangePasswordDataForm -> Boolean
-    isNewDataValid f@{password, verifyPassword, notRecoverable} = password == verifyPassword && notRecoverable
+    isNewDataValid {password, verifyPassword, notRecoverable} = password == verifyPassword && notRecoverable

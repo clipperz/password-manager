@@ -13,11 +13,11 @@ import Data.Functor ((<$>))
 import Data.Show (show)
 import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError)
-import DataModel.Index (Index(..))
+import DataModel.Index (Index)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Functions.User (deleteUser)
-import Views.SimpleWebComponents (loadingDiv, simpleButton, confirmationWidget, simpleButton)
+import Views.SimpleWebComponents (loadingDiv, simpleButton, confirmationWidget)
 
 data DeleteUserWidgetAction = PleaseDelete | DoNothing | FailedDelete AppError | Done
 

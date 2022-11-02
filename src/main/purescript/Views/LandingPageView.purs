@@ -33,7 +33,6 @@ landingPageView view = do
         (case view of
           LoginView state form ->  div [Props.className "bodyContent"] [
                           Login <$ loginWidget state form
-                        -- , simpleButton "sign up" false (LandingPageView (SignupView Default (merge form emptyDataForm)))
                         , (\value -> button [value <$ Props.onClick, Props.disabled false, Props.className "registrationLink"] [text "sign up"]) (LandingPageView (SignupView Default (merge form emptyDataForm)))
                         ]
           SignupView state form -> div [Props.className "bodyContent"] [

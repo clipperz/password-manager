@@ -35,7 +35,6 @@ import DataModel.SRP (hashFuncSHA256)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff, forkAff, delay)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.JSState (getAppState, modifyAppState, updateAppState)
 
@@ -116,7 +115,7 @@ manageGenericRequest url method body responseFormat = do
                   )
                   pure response
                 Nothing -> pure response
-          | otherwise           = \response -> do
+          | otherwise           = \_ -> do
               ExceptT $ updateAppState { toll: Loading Nothing }
               except $ Left $ AS.ProtocolError $ ResponseError n
         

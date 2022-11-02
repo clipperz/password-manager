@@ -39,7 +39,7 @@ createCardView card state = do
 
   where 
     cardFieldSignal :: CardField -> Signal HTML (Maybe CardField)
-    cardFieldSignal field@(CardField { name, value, locked: false }) = do
+    cardFieldSignal field@(CardField { locked: false }) = do
       removeField <- fireOnce $ simpleButton "Remove field" false unit
       field' <- loopS field $ \(CardField { name, value, locked }) -> do
         name' :: String <- loopW name (simpleTextInputWidget "name" (text "Name"))
@@ -49,7 +49,7 @@ createCardView card state = do
       case removeField of
         Nothing -> pure $ Just field'
         Just _  -> pure $ Nothing
-    cardFieldSignal field@(CardField { name, value, locked: true }) = do
+    cardFieldSignal field@(CardField { locked: true }) = do
       removeField <- fireOnce $ simpleButton "Remove field" false unit
       field' <- loopS field $ \(CardField { name, value, locked }) -> do
         name' :: String <- loopW name (simpleTextInputWidget "name" (text "Name"))
