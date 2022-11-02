@@ -68,6 +68,22 @@ simpleFileInputWidget id lbl = do
       nve <- liftEffect $ currentTarget se
       liftAff $ readFile nve
 
+simpleTextInputWidgetWithFocus :: String -> Widget HTML String -> String -> Widget HTML String
+simpleTextInputWidgetWithFocus id lbl s = do
+  res <- div' [
+      label [Props.htmlFor id] [lbl]
+    , input [
+        Props._type "text"
+      , Props._id id
+      , Props.placeholder ""
+      , Props.value s
+      , Props.disabled false
+      , Props.unsafeTargetValue <$> Props.onChange
+      , Props.unsafeTargetValue <$> Props.onFocus
+      ]
+  ]
+  pure res
+
 simpleTextInputWidget :: String -> Widget HTML String -> String -> Widget HTML String
 simpleTextInputWidget id lbl s = simpleInputWidget id lbl false s "text"
 

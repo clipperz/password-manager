@@ -8,6 +8,8 @@ import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.List (sort, filter)
+import Data.Show (class Show, show)
+import Data.Semigroup ((<>))
 import Data.String (contains)
 import Data.String.Common (toLower)
 import Data.String.Pattern (Pattern(..))
@@ -15,6 +17,10 @@ import DataModel.Index (Index(..), CardEntry(..))
 import Views.SimpleWebComponents (clickableListItemWidget)
 
 data IndexFilter = TitleFilter String | TagFilter String | NoFilter
+instance showIndexFilter :: Show IndexFilter where
+  show (TitleFilter title) = "Title filter: " <> title
+  show (TagFilter tag) = "Tag filter: " <> tag
+  show (NoFilter) = "No filter"
 
 indexView :: Index -> IndexFilter -> Widget HTML CardEntry
 indexView (Index cards) indexFilter = do

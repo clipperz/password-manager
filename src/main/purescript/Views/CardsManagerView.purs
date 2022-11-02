@@ -25,7 +25,7 @@ import DataModel.WidgetState (WidgetState(..))
 import Views.CardViews (cardView)
 import Views.CreateCardView (createCardView)
 import Views.IndexView (indexView, IndexFilter(..))
-import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleTextInputWidget, clickableListItemWidget)
+import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleTextInputWidgetWithFocus, clickableListItemWidget)
 import OperationalWidgets.CardWidget (cardWidget)
 import OperationalWidgets.CreateCardWidget (createCardWidget)
 
@@ -50,7 +50,7 @@ cardsManagerView :: Index -> IndexFilter -> CardViewState -> Maybe AppError -> W
 cardsManagerView i@(Index entries) indexFilter cvs@{ cardView: _, cardViewState } error = do 
   res <- div [Props._id "cardsManager"] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
     div [Props._id "filterView"] [
-      (ChangeFilter <<< TitleFilter) <$> simpleTextInputWidget "titleFilter" (text "Title") currentTitleFilter
+      (ChangeFilter <<< TitleFilter) <$> simpleTextInputWidgetWithFocus "titleFilter" (text "Title") currentTitleFilter
     , ol [Props._id "tagFilter"]
       ((\tag -> clickableListItemWidget false (text tag) [] (ChangeFilter (TagFilter tag))) <$> allSortedTags)
     ]
