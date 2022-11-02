@@ -9,8 +9,8 @@
         "go": "parcel --host 0.0.0.0 --https --no-cache --no-hmr --dist-dir ./target/output.parcel ./src/main/html/index.html target/output.purescript/*",
         "nuke": "yarn clean; rm -rf node_modules; rm -rf .spago",
         "package": "parcel build --cache-dir ./target/.parcel-cache --dist-dir ./target/output.parcel ./src/main/html/index.html /target/output.purescript/*",
-
-        "keep-packaging": "parcel serve --cache-dir ./target/.parcel-cache --dist-dir ./target/output.parcel ./src/main/html/index.html /target/output.purescript/*",
+		
+        "keep-packaging": "parcel watch --cache-dir ./target/.parcel-cache --dist-dir ./target/output.parcel ./src/main/html/index.html /target/output.purescript/*",
 
         "rebuild": "clear; yarn clean; yarn build",
         "test-package": "parcel build --no-cache --cache-dir ./target/.parcel-cache --dist-dir ./target/output.parcel.test ./src/test/html/index.html /target/output.purescript/*",

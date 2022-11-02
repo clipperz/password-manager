@@ -18,6 +18,12 @@ packagePurescript := {
   "yarn package" !
 }
 
+lazy val keepPackagingPurescript = TaskKey[Unit]("keepPackagingPurescript", "Keep packaging frontend")
+keepPackagingPurescript := {
+  import sys.process._
+  "yarn keep-packaging" !
+}
+
 lazy val servePurescript = TaskKey[Unit]("servePurescript", "Serve frontend")
 servePurescript := {
   import sys.process._
