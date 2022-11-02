@@ -3,15 +3,14 @@ module Functions.User where
 import Affjax.Web as AXW
 import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
-import Crypto.Subtle.Constants.AES (aesCTR, l256)
+import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Key.Import as KI
-import Crypto.Subtle.Key.Types (encrypt, exportKey, decrypt, raw, unwrapKey, CryptoKey)
-import Control.Applicative (pure)
+import Crypto.Subtle.Key.Types (decrypt, encrypt, raw, unwrapKey)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (ExceptT(..), except)
 import Control.Semigroupoid ((<<<))
 import Data.Argonaut.Encode.Class (encodeJson)
-import Data.Bifunctor (lmap, rmap, bimap)
+import Data.Bifunctor (lmap, bimap)
 import Data.Either (note, Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
@@ -47,7 +46,7 @@ changeUserPassword :: String -> String -> ExceptT AppError Aff Unit
 changeUserPassword username password = do
   conf <- ExceptT $ liftEffect getSRPConf
   appState <- ExceptT $ liftEffect getAppState
-  oldC <- except $ note (InvalidStateError $ MissingValue $ "c not present") $ toArrayBuffer <$> appState.c
+  -- oldC <- except $ note (InvalidStateError $ MissingValue $ "c not present") $ toArrayBuffer <$> appState.c
   oldP <- except $ note (InvalidStateError $ MissingValue $ "p not present") $ toArrayBuffer <$> appState.p
   newC <- ExceptT $ Right <$> (SRP.prepareC conf username password)
   newP <- ExceptT $ Right <$> (SRP.prepareP conf username password)
@@ -67,8 +66,8 @@ changeUserPassword username password = do
            else Left (ProtocolError (ResponseError (unwrap response.status)))
 
 deleteUser :: Index -> ExceptT AppError Aff Unit
-deleteUser index@(Index entries) = do
-  indexReference@(IndexReference record) <- ExceptT $ extractIndexReference <$> (liftEffect getAppState)
+deleteUser (Index entries) = do
+  (IndexReference record) <- ExceptT $ extractIndexReference <$> (liftEffect getAppState)
   _ <- sequence $ (deleteCard <<< entryToReference) <$> entries -- TODO: update index after every delete, to avoid dangling cards in case of failure?
   _ <- deleteBlob record.reference
   deleteUserCard

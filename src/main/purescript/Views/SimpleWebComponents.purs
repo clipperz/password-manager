@@ -1,7 +1,7 @@
 module Views.SimpleWebComponents where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, loopW, loopS, display, demand, fireOnce)
+import Concur.Core.FRP (Signal, loopW, loopS, display)
 import Concur.React (HTML)
 import Concur.React.DOM (text, textarea, input, label, div', div, button, li)
 import Concur.React.Props as Props
@@ -25,8 +25,16 @@ import Functions.Events (readFile)
 import Functions.Password (PasswordStrengthFunction, PasswordStrength)
 import React.SyntheticEvent (currentTarget, SyntheticEvent_, NativeEventTarget)
 
-simpleTextAreaWidget :: String -> Widget HTML String
-simpleTextAreaWidget s = Props.unsafeTargetValue <$> (textarea [Props.value s, Props.onChange] [])
+simpleTextAreaWidget :: String -> Widget HTML String -> String -> String -> Widget HTML String
+simpleTextAreaWidget id lbl placeholder content = do
+  div [Props.className "textarea"] [
+    label [Props.htmlFor id, Props.className "hide-element"] [lbl]
+    , Props.unsafeTargetValue <$> textarea [
+        Props.value content
+      , Props.onChange
+      , Props.placeholder placeholder
+    ] []
+  ]
 
 simpleInputWidget :: String -> Widget HTML String -> Boolean -> String -> String -> Widget HTML String
 simpleInputWidget id lbl disable value t = do
@@ -88,13 +96,8 @@ simpleCheckboxWidget id lbl v = do
 simpleButton :: forall a. String -> Boolean -> a -> Widget HTML a
 simpleButton label disable value = button [value <$ Props.onClick, Props.disabled disable] [text label]
 
-simpleTextAreaSignal :: String -> Signal HTML String
-simpleTextAreaSignal s = loopW s (simpleTextAreaWidget)
-
-textAreaWidget :: String -> String -> Widget HTML String
-textAreaWidget initialValue label = demand $ do
-  value <- simpleTextAreaSignal initialValue
-  fireOnce (simpleButton label false value)
+simpleTextAreaSignal :: String -> Widget HTML String -> String -> String -> Signal HTML String
+simpleTextAreaSignal id label placeholder content = loopW content (simpleTextAreaWidget id label placeholder)
 
 simpleUserSignal :: String -> Signal HTML String
 simpleUserSignal u = loopW u (simpleTextInputWidget "username" (text "Username"))

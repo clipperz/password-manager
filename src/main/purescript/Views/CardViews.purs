@@ -43,7 +43,7 @@ cardView c@(Card r) = do
     _ -> pure res
 
 cardActions :: Card -> Boolean -> Widget HTML CardAction
-cardActions c@(Card r) disabled = div [] [
+cardActions c@(Card r) disabled = div [Props.className "cardActions"] [
     simpleButton (show (Edit c))    disabled (Edit c)
   , simpleButton (show (Clone c))   disabled (Clone c)
   , if r.archived then simpleButton (show (Restore c)) disabled (Restore c) else simpleButton (show (Archive c)) disabled (Archive c)

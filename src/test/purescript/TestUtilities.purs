@@ -1,26 +1,21 @@
 module TestUtilities where
 
-import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Error.Class (try)
 import Control.Semigroupoid ((<<<))
 import Data.Either (either)
-import Data.Foldable (foldl)
 import Data.Function (($), flip)
 import Data.Functor ((<$>))
 import Data.List (List(..), (:), null)
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Traversable (sequence)
-import Data.Unit (Unit, unit)
-import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Effect.Exception (message)
 import Test.Spec.Assertions (fail)
 -- import Test.Spec.QuickCheck (quickCheck)
-import Test.QuickCheck (class Testable, (<?>))
-import Test.QuickCheck (quickCheck, quickCheckPure', checkResults, printSummary, randomSeed, Result(..))
+import Test.QuickCheck (quickCheckPure', checkResults, printSummary, randomSeed)
 
 parseErrorString :: String -> (String -> String)
 parseErrorString s = \n -> "❌ Test '" <> n <> "' failed: " <> s

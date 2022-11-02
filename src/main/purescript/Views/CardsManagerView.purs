@@ -58,14 +58,13 @@ cardsManagerView i@(Index entries) indexFilter cvs@{ cardView: _, cardViewState 
       (CardViewAction <<< ShowCard) <$> indexView i indexFilter
     , simpleButton "Add card" false (CardViewAction ShowAddCard) 
     ]
-  , div [Props._id "cardView"] $
-    case cvs of
-      { cardView: CardForm card,         cardViewState: Loading } -> [((CardViewAction <<< UpdateIndex) $ IndexUpdateData NoUpdate card) <$ createCardView card cardViewState]
-      { cardView: CardForm card,         cardViewState: _ }       -> [(CardViewAction <<< UpdateIndex) <$> createCardWidget card cardViewState]
-      { cardView: CardFromReference ref, cardViewState: _ }       -> [(CardViewAction <<< UpdateIndex) <$> cardWidget ref cardViewState]
-      { cardView: JustCard card,         cardViewState: Loading } -> [((CardViewAction <<< UpdateIndex) $ IndexUpdateData NoUpdate card) <$ (div [] [loadingDiv, cardView card])]
-      { cardView: JustCard card,         cardViewState: _ }       -> [((CardViewAction <<< UpdateIndex) $ IndexUpdateData NoUpdate card) <$ cardView card]
-      { cardView: NoCard       ,         cardViewState: _ }       -> []
+  , case cvs of
+      { cardView: CardForm card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ createCardView card allSortedTags cardViewState
+      { cardView: CardForm card,         cardViewState: _ }       -> (CardViewAction  <<< UpdateIndex) <$> createCardWidget card allSortedTags cardViewState
+      { cardView: CardFromReference ref, cardViewState: _ }       -> (CardViewAction  <<< UpdateIndex) <$> cardWidget ref allSortedTags cardViewState
+      { cardView: JustCard card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ (div [] [loadingDiv, cardView card])
+      { cardView: JustCard card,         cardViewState: _ }       -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ cardView card
+      { cardView: NoCard       ,         cardViewState: _ }       -> div [Props._id "card"] []
   ]
   case res of
     CardViewAction (ShowCard ref) -> cardsManagerView i indexFilter { cardView: CardFromReference ref, cardViewState } Nothing -- TODO: discuss

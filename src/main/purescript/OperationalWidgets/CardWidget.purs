@@ -34,8 +34,8 @@ import Views.CardViews (cardView, CardAction(..))
 import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (loadingDiv)
 
-cardWidget :: CardEntry -> WidgetState -> Widget HTML IndexUpdateData
-cardWidget entry@(CardEntry { title: _, cardReference, archived: _, tags: _ }) state = do
+cardWidget :: CardEntry -> Array String -> WidgetState -> Widget HTML IndexUpdateData
+cardWidget entry@(CardEntry { title: _, cardReference, archived: _, tags: _ }) tags state = do
   eitherCard <- case state of 
     Error err -> div [] [text $ "Card could't be loaded: " <> err]
     _ -> loadingDiv <|> (liftAff $ runExceptT $ getCard cardReference)
@@ -45,17 +45,17 @@ cardWidget entry@(CardEntry { title: _, cardReference, archived: _, tags: _ }) s
       manageCardAction res
     Left err -> do
       _ <- liftEffect $ log $ show err
-      cardWidget entry (Error (prettyShow err))
+      cardWidget entry tags (Error (prettyShow err))
 
   where
     manageCardAction :: CardAction -> Widget HTML IndexUpdateData
     manageCardAction action = 
       case action of
         Edit cc -> do
-          IndexUpdateData indexUpdateAction newCard <- createCardWidget cc Default -- here the modified card has already been saved
+          IndexUpdateData indexUpdateAction newCard <- createCardWidget cc tags Default -- here the modified card has already been saved
           case indexUpdateAction of
             AddReference newEntry -> pure $ IndexUpdateData (ChangeReferenceWithEdit entry newEntry) newCard
-            _ -> cardWidget entry Default
+            _ -> cardWidget entry tags Default
         Clone cc -> do
           clonedCard <- liftAff $ cloneCardNow cc
           doOp cc cc false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) cc)
@@ -89,7 +89,7 @@ cardWidget entry@(CardEntry { title: _, cardReference, archived: _, tags: _ }) s
 
     inertCardFormView :: forall a. Card -> Widget HTML a
     inertCardFormView card = do
-      _ <- createCardView card Loading -- TODO: need to deactivate buttons to avoid returning some value here
+      _ <- createCardView card tags Loading -- TODO: need to deactivate buttons to avoid returning some value here
       loadingDiv
 
 cloneCardNow :: Card -> Aff Card
