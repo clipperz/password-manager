@@ -55,7 +55,10 @@ createCardView card state = do
         name' :: String <- loopW name (simpleTextInputWidget "name" (text "Name"))
         generatePassword <- fireOnce $ do
           simpleButton "Generate password" false unit
-          passwordGenerator
+          div [Props.className "passwordGeneratorOverlay"] [
+            div [value <$ Props.onClick] []
+          , passwordGenerator
+          ]
         value' :: String <- loopW value (simpleTextInputWidget "value" (text "Value"))
         locked' :: Boolean <- simpleCheckboxSignal "locked" (text "Locked") locked
         pure $ case generatePassword of
