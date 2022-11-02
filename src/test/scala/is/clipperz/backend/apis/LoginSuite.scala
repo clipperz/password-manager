@@ -143,7 +143,7 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
         response <- app(request)
         stepResponse <- fromStream[SRPStep1Response](response.bodyAsStream)
       } yield assertTrue(response.status.code == 200, stepResponse.s == testUser.s)
-    },
+    } @@ TestAspect.before(saveUser),
     test("Login step 1, 2 - fail - invalid data") {
       val aa = RFCTestVector.aa
       val stepData = SRPStep1Data(c, HexString.bigIntToHex(aa))
@@ -224,7 +224,4 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
     },
   ).provideLayerShared(environment) @@
     TestAspect.sequential @@
-    TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn))) @@
-    TestAspect.beforeAll(saveUser) @@
-    TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))) @@
     TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))
