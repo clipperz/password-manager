@@ -12,6 +12,12 @@ buildPurescript := {
   "yarn build" !
 }
 
+// lazy val keepBuildingPurescript = TaskKey[Unit]("keepBuildingPurescript", "Keep building frontend")
+// keepBuildingPurescript := {
+//   import sys.process._
+//   "yarn keep-building" !
+// }
+
 lazy val packagePurescript = TaskKey[Unit]("packagePurescript", "Package frontend")
 packagePurescript := {
   import sys.process._
