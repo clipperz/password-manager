@@ -27,7 +27,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
       .service[UserArchive]
       .zip(ZIO.service[BlobArchive])
       .zip(ZIO.service[SessionManager])
-      .zip(ZIO.succeed(request.bodyAsStream))
+      .zip(ZIO.succeed(request.body.asStream))
       .flatMap((userArchive, blobArchive, sessionManager, content) =>
         userArchive
           .getUser(HexString(c))
@@ -77,7 +77,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
       .service[UserArchive]
       .zip(ZIO.service[BlobArchive])
       .zip(ZIO.service[SessionManager])
-      .zip(ZIO.succeed(request.bodyAsStream))
+      .zip(ZIO.succeed(request.body.asStream))
       .flatMap((userArchive, blobArchive, sessionManager, content) =>
         sessionManager
           .verifySessionUser(c, request)
@@ -144,7 +144,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
     ZIO
       .service[UserArchive]
       .zip(ZIO.service[SessionManager])
-      .zip(ZIO.succeed(request.bodyAsStream))
+      .zip(ZIO.succeed(request.body.asStream))
       .flatMap((userArchive, sessionManager, content) =>
         sessionManager
           .verifySessionUser(c, request)

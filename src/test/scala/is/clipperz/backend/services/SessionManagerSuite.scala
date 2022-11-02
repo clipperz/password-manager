@@ -10,7 +10,7 @@ import zio.stream.{ ZStream, ZSink }
 import zio.test.Assertion.{ nothing, throws, throwsA, fails, isSubtype, anything }
 import zio.test.{ ZIOSpecDefault, assertTrue, assert, assertCompletes, assertNever, assertZIO, TestAspect }
 import zio.json.EncoderOps
-import zhttp.http.{ Version, Headers, Method, URL, Request, HttpData }
+import zhttp.http.{ Version, Headers, Method, URL, Request, Body }
 import zhttp.http.*
 import is.clipperz.backend.Main
 import java.nio.file.Path

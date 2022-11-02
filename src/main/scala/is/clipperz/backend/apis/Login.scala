@@ -18,7 +18,7 @@ val loginApi: ClipperzHttpApp = Http.collectZIO {
       .service[SessionManager]
       .zip(ZIO.service[SrpManager])
       .zip(ZIO.attempt(request.headers.headerValue(SessionManager.sessionKeyHeaderName).get))
-      .zip(ZIO.succeed(request.bodyAsStream))
+      .zip(ZIO.succeed(request.body.asStream))
       .flatMap((sessionManager, srpManager, sessionKey, content) =>
         fromStream[SRPStep1Data](content)
           .flatMap { loginStep1Data =>
@@ -48,7 +48,7 @@ val loginApi: ClipperzHttpApp = Http.collectZIO {
       .service[SessionManager]
       .zip(ZIO.service[SrpManager])
       .zip(ZIO.attempt(request.headers.headerValue(SessionManager.sessionKeyHeaderName).get)) // TODO: return significant status in response
-      .zip(ZIO.succeed(request.bodyAsStream))
+      .zip(ZIO.succeed(request.body.asStream))
       .flatMap((sessionManager, srpManager, sessionKey, content) =>
         fromStream[SRPStep2Data](content)
           .flatMap { loginStep2Data =>

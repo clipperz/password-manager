@@ -10,7 +10,7 @@ import zio.stream.{ ZStream, ZSink }
 import zio.test.Assertion.nothing
 import zio.test.{ ZIOSpecDefault, assertTrue, assert, TestAspect }
 import zio.json.EncoderOps
-import zhttp.http.{ Version, Headers, Method, URL, Request, HttpData }
+import zhttp.http.{ Version, Headers, Method, URL, Request, Body }
 import zhttp.http.*
 import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
@@ -58,7 +58,7 @@ object BlobSpec extends ZIOSpecDefault:
     url = URL(!! / "blobs"),
     method = Method.POST,
     headers = Headers.empty,
-    data = HttpData.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
+    body = Body.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
     version = Version.Http_1_1,
   )
 
@@ -66,7 +66,7 @@ object BlobSpec extends ZIOSpecDefault:
     url = URL(!! / "blobs" / blobData.hash.toString()),
     method = Method.DELETE,
     headers = Headers.empty,
-    data = HttpData.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
+    body = Body.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
     version = Version.Http_1_1,
   )
 
@@ -74,7 +74,7 @@ object BlobSpec extends ZIOSpecDefault:
     url = URL(!! / "blobs" / "aaaaaa" ),
     method = Method.DELETE,
     headers = Headers.empty,
-    data = HttpData.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
+    body = Body.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
     version = Version.Http_1_1,
   )
 
@@ -82,7 +82,7 @@ object BlobSpec extends ZIOSpecDefault:
     url = URL(!! / "blobs" / blobData.hash.toString()),
     method = Method.DELETE,
     headers = Headers.empty,
-    data = HttpData.fromString("invalidData", StandardCharsets.UTF_8.nn),
+    body = Body.fromString("invalidData", StandardCharsets.UTF_8.nn),
     version = Version.Http_1_1,
   )
 
@@ -100,7 +100,7 @@ object BlobSpec extends ZIOSpecDefault:
     url = URL(!! / "blobs"),
     method = Method.POST,
     headers = Headers.empty,
-    data = HttpData.fromString(invalidBlobContent, StandardCharsets.UTF_8.nn),
+    body = Body.fromString(invalidBlobContent, StandardCharsets.UTF_8.nn),
     version = Version.Http_1_1,
   )
 
@@ -108,7 +108,7 @@ object BlobSpec extends ZIOSpecDefault:
     url = URL(!! / "blobs"),
     method = Method.POST,
     headers = Headers.empty,
-    data = HttpData.fromString("", StandardCharsets.UTF_8.nn),
+    body = Body.fromString("", StandardCharsets.UTF_8.nn),
     version = Version.Http_1_1,
   )
 
@@ -145,7 +145,7 @@ object BlobSpec extends ZIOSpecDefault:
     },
     test("POST -> hash response") {
       for {
-        body <- app(post).flatMap(response => response.bodyAsString)
+        body <- app(post).flatMap(response => response.body.asString)
       } yield assertTrue(body == blobData.hash.toString())
     },
     test("POST / GET -> 200") {
@@ -159,7 +159,7 @@ object BlobSpec extends ZIOSpecDefault:
         postReseponse <- app(post)
         hash <- app(get).flatMap(response =>
           response
-            .bodyAsStream
+            .body.asStream
             .run(ZSink.digest(MessageDigest.getInstance("SHA-256").nn))
             .map((chunk: Chunk[Byte]) => HexString.bytesToHex(chunk.toArray))
         )

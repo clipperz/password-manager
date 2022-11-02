@@ -10,7 +10,6 @@ import zhttp.http.{
   HeaderValues,
   Http,
   HttpApp,
-  HttpData,
   Method,
   Middleware,
   Path,
@@ -36,7 +35,7 @@ import zio.FiberRefs
 import zio.LogSpan
 
 object Main extends zio.ZIOAppDefault:
-  override val bootstrap = Runtime.removeDefaultLoggers >>> SLF4J.slf4j(LogLevel.Info, LogFormat.colored)
+  override val bootstrap = Runtime.removeDefaultLoggers >>> SLF4J.slf4j(LogFormat.colored)
 
   private val PORT = 8090
 

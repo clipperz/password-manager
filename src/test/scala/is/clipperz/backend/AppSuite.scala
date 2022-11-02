@@ -11,7 +11,7 @@ import zio.test.Assertion.nothing
 import zio.test.TestResult.all
 import zio.test.{ ZIOSpecDefault, assertTrue, assertNever, assert, TestAspect }
 import zio.json.EncoderOps
-import zhttp.http.{ Version, Headers, Method, URL, Request, HttpData }
+import zhttp.http.{ Version, Headers, Method, URL, Request, Body }
 import zhttp.http.*
 import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
@@ -145,7 +145,7 @@ object AppSpec extends ZIOSpecDefault:
       url = URL(!! / "users" / userCard.c.toString()),
       method = Method.POST,
       headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
-      data = HttpData.fromString(signupData.toJson, StandardCharsets.UTF_8.nn),
+      body = Body.fromString(signupData.toJson, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
     )
     for {
@@ -160,7 +160,7 @@ object AppSpec extends ZIOSpecDefault:
       url = URL(!! / "login" / "step1" / userCard.c.toString()),
       method = Method.POST,
       headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
-      data = HttpData.fromString(stepData.toJson, StandardCharsets.UTF_8.nn),
+      body = Body.fromString(stepData.toJson, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
     )
     val step2Request: SRPStep2Data => Request = data =>
@@ -168,12 +168,12 @@ object AppSpec extends ZIOSpecDefault:
         url = URL(!! / "login" / "step2" / userCard.c.toString()),
         method = Method.POST,
         headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
-        data = HttpData.fromString(data.toJson, StandardCharsets.UTF_8.nn),
+        body = Body.fromString(data.toJson, StandardCharsets.UTF_8.nn),
         version = Version.Http_1_1,
       )
     for {
       response1 <- manageRequestWithTollPayment(step1Request)
-      stepResponse1 <- fromStream[SRPStep1Response](response1.bodyAsStream)
+      stepResponse1 <- fromStream[SRPStep1Response](response1.body.asStream)
       u <- srpFunctions.computeU(bigIntToBytes(aa), stepResponse1.bb.toByteArray)
       config <- ZIO.succeed(srpFunctions.configuration)
       x <- config.keyDerivationFunction(stepResponse1.s.toByteArray, p.toByteArray).map(bytes => bytesToBigInt(bytes))
@@ -194,7 +194,7 @@ object AppSpec extends ZIOSpecDefault:
       url = URL(!! / "blobs"),
       method = Method.POST,
       headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
-      data = HttpData.fromString(blob.toJson, StandardCharsets.UTF_8.nn),
+      body = Body.fromString(blob.toJson, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
     )
     for {
@@ -217,7 +217,7 @@ object AppSpec extends ZIOSpecDefault:
       url = URL(!! / "blobs" / blob.hash.toString() ),
       method = Method.DELETE,
       headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
-      data = HttpData.fromString(blob.toJson, StandardCharsets.UTF_8.nn),
+      body = Body.fromString(blob.toJson, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
     )
     for {

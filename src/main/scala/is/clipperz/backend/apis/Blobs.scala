@@ -3,7 +3,7 @@ package is.clipperz.backend.apis
 import java.io.FileNotFoundException
 import zio.ZIO
 import zio.stream.ZStream
-import zhttp.http.{ Headers, HeaderNames, HeaderValues, Http, HttpData, Method, Path, PathSyntax, Response, Status }
+import zhttp.http.{ Headers, HeaderNames, HeaderValues, Http, Body, Method, Path, PathSyntax, Response, Status }
 import zhttp.http.* //TODO: fix How do you import `!!` and `/`?
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.exceptions.{
@@ -23,7 +23,7 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
   case request @ Method.POST -> !! / "blobs" =>
     ZIO
       .service[BlobArchive]
-      .zip(ZIO.succeed(request.bodyAsStream))
+      .zip(ZIO.succeed(request.body.asStream))
       .flatMap((archive, bytes) =>
         fromStream[SaveBlobData](bytes)
           .flatMap(saveData => archive.saveBlob(saveData.hash, ZStream.fromIterable(saveData.data.toByteArray)))
@@ -44,7 +44,7 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
   case request @ Method.DELETE -> !! / "blobs" / hash =>
     ZIO
       .service[BlobArchive]
-      .zip(ZIO.succeed(request.bodyAsStream))
+      .zip(ZIO.succeed(request.body.asStream))
       .flatMap((archive, bytes) =>
         fromStream[SaveBlobData](bytes)
           .flatMap(blobData =>
@@ -71,7 +71,7 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
       .map((bytes: ZStream[Any, Throwable, Byte]) =>
         Response(
           status = Status.Ok,
-          data = HttpData.fromStream(bytes),
+          body = Body.fromStream(bytes),
           headers = Headers(HeaderNames.contentType, HeaderValues.applicationOctetStream),
         )
       )

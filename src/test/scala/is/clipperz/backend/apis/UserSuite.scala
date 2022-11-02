@@ -5,7 +5,7 @@ import java.nio.file.FileSystems
 import zio.ZIO
 import zio.json.EncoderOps
 import zio.test.{ ZIOSpecDefault, assertNever, assertTrue }
-import zhttp.http.{ Version, Headers, Method, URL, Request, HttpData }
+import zhttp.http.{ Version, Headers, Method, URL, Request, Body }
 import zhttp.http.*
 import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
@@ -28,7 +28,7 @@ import zio.test.TestResult.all
 import is.clipperz.backend.services.ModifyUserCard
 
 object UserSpec extends ZIOSpec[SessionManager]:
-  override def bootstrap: ZLayer[Scope, Any, SessionManager] =
+  override def bootstrap: ZLayer[Any, Any, SessionManager] =
     sessionManagerLayer
 
   val app = Main.clipperzBackend
@@ -103,7 +103,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
       url = URL(!! / "users" / c),
       method = Method.POST,
       headers = if (session) Headers((SessionManager.sessionKeyHeaderName, sessionKey)) else Headers.empty,
-      data = HttpData.fromString(signupData, StandardCharsets.UTF_8.nn),
+      body = Body.fromString(signupData, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
     )
 
@@ -124,7 +124,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
       url = URL(!! / "users" / c),
       method = Method.DELETE,
       headers = if (session) Headers((SessionManager.sessionKeyHeaderName, sessionKey)) else Headers.empty,
-      data = HttpData.fromString(userData, StandardCharsets.UTF_8.nn),
+      body = Body.fromString(userData, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
     )
 
@@ -137,7 +137,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
       url = URL(!! / "users" / c),
       method = Method.PUT,
       headers = if (session) Headers((SessionManager.sessionKeyHeaderName, sessionKey)) else Headers.empty,
-      data = HttpData.fromString(putData, StandardCharsets.UTF_8.nn),
+      body = Body.fromString(putData, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
     )
 
@@ -219,7 +219,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
         _ <- prepareSession(c.toString())
         res <- app(prepareGet(c.toString(), true)).flatMap(result =>
           if result.status.code == 200 then
-            fromStream[UserCard](result.bodyAsStream)
+            fromStream[UserCard](result.body.asStream)
               .map(card => assertTrue(result.status.code == 200, card == testUser))
           else ZIO.succeed(assertNever(s"Wrong GET result code: ${result.status.code}"))
         )
@@ -282,7 +282,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
         putCode <- app(preparePut(c.toString(), ModifyUserCard(c, testUser, testUser2).toJson, true)).map(res => res.status.code)
         res <- app(prepareGet(c.toString(), true)).flatMap(result =>
           if result.status.code == 200 then
-            fromStream[UserCard](result.bodyAsStream)
+            fromStream[UserCard](result.body.asStream)
               .map(card => assertTrue(result.status.code == 200, card == testUser2))
           else ZIO.succeed(assertNever(s"Wrong GET result code: ${result.status.code}"))
         )
