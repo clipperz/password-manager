@@ -28,6 +28,7 @@ import Data.String.Common (joinWith)
 import Data.Time.Duration (Milliseconds(..))
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
+import Data.Unit (unit)
 import DataModel.AppState as AS
 import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue, toLoading)
 import DataModel.Proxy (Proxy(..))
@@ -38,6 +39,7 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.JSState (getAppState, modifyAppState, updateAppState)
+import Functions.State (getHashFunctionFromAppState)
 
 -- ----------------------------------------------------------------------------
 
@@ -98,7 +100,8 @@ manageGenericRequest url method body responseFormat = do
           | n == 402            = \response -> do
               case (extractChallenge response.headers) of
                 Just challenge -> do
-                  receipt <- ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
+                  hashFunc <- ExceptT $ liftEffect $ ((<$>) getHashFunctionFromAppState) <$> getAppState
+                  receipt <- ExceptT $ Right <$> computeReceipt hashFunc challenge --TODO change hash function with the one in state
                   ExceptT $ updateAppState { toll: Done receipt, currentChallenge: Just challenge }
                   manageGenericRequest url method body responseFormat
                 Nothing -> except $ Left $  AS.ProtocolError $ IllegalResponse "HashCash headers not present or wrong"
@@ -110,9 +113,14 @@ manageGenericRequest url method body responseFormat = do
               case (extractChallenge response.headers) of
                 Just challenge -> do
                   -- compute the new toll in forkAff to keep the program going
-                  ExceptT $ Right <$> (void $ forkAff $ runExceptT $ do                    
-                    receipt <- ExceptT $ Right <$> computeReceipt hashFuncSHA256 challenge --TODO change hash function with the one in state
-                    ExceptT $ updateAppState { toll: Done receipt, currentChallenge: Just challenge }
+                  ExceptT $ Right <$> (void $ forkAff $ runExceptT $ do 
+                    hashFunc <- ExceptT $ liftEffect $ ((<$>) getHashFunctionFromAppState) <$> getAppState
+                    receipt <- ExceptT $ Right <$> computeReceipt hashFunc challenge --TODO change hash function with the one in state
+                    appState <- ExceptT $ liftEffect getAppState
+                    if appState.c == Nothing then -- logout or delete done
+                      except $ Right unit
+                    else
+                      ExceptT $ updateAppState { toll: Done receipt, currentChallenge: Just challenge }
                   )
                   pure response
                 Nothing -> pure response

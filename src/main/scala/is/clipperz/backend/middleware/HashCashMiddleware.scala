@@ -79,6 +79,7 @@ def wrongTollMiddleware(responseStatus: Status): Request => TollMiddleware = req
         .zip(ZIO.attempt(req.headers.headerValue(SessionManager.sessionKeyHeaderName).get))
         .flatMap((tollManager, sessionManager, sessionKey) =>
           for {
+            _ <- ZIO.logInfo(s"Wrong toll, answering with new challenge and ${responseStatus}")
             tollChallenge <- tollManager.getToll(tollManager.getChallengeCost(getChallengeType(req)))
             session <- sessionManager.getSession(sessionKey)
             _ <- sessionManager.saveSession(session + (TollManager.tollChallengeContentKey, tollChallenge.toJson))
@@ -96,6 +97,8 @@ def wrongTollMiddleware(responseStatus: Status): Request => TollMiddleware = req
         .catchSome {
           case ex: NoSuchElementException =>
             ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response.status(Status.BadRequest))
+          case ex =>
+            ZIO.logErrorCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response.status(Status.InternalServerError))
         }
     )
   )

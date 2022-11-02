@@ -36,7 +36,7 @@ val presentSessionHeaderMiddleware: SessionMiddleware =
 
 val missingSessionHeaderMiddleware: Request => SessionMiddleware = req =>
   Middleware.fromHttp(
-    Http.response(Response(status = Status.BadRequest))
+    Http.responseZIO(ZIO.logInfo("Received request with no session header").as(Response(status = Status.BadRequest)))
   )
 
 val sessionChecks: SessionMiddleware = Middleware

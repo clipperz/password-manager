@@ -6,7 +6,7 @@ import Concur.React.DOM (div, text)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind)
+import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (runExceptT)
 import Control.Semigroupoid ((<<<))
 import Data.Either (Either(..))
@@ -22,6 +22,7 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Users (getIndex)
+import Functions.State (resetState)
 import Views.CardsManagerView (CardView(..))
 import Views.SimpleWebComponents (simpleButton, loadingDiv)
 import OperationalWidgets.CardsManagerWidget (cardsManagerWidget)
@@ -54,6 +55,12 @@ homePageWidget = go Loading
         UserAreaAction (Loaded (Left err)) -> do
           _ <- liftEffect $ log $ show err
           go (Error (prettyShow err))
-        UserAreaAction (Logout) -> pure unit
-        UserAreaAction (DeleteAccount) -> pure unit
-        LogoutAction -> pure unit
+        UserAreaAction (Logout) -> do
+          liftAff $ resetState
+          pure unit
+        UserAreaAction (DeleteAccount) -> do
+          liftAff $ resetState
+          pure unit
+        LogoutAction -> do
+          liftAff $ resetState
+          pure unit
