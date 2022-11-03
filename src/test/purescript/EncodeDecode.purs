@@ -44,13 +44,13 @@ encodeDecodeSpec =
       quickCheckAffInBrowser encryptDecrypt 10 encryptDecryptText
     let encryptDecryptJson = "encrypt then decrypt using json"
     it encryptDecryptJson do
-      let card = Card { content: card0, timestamp: 1661377622, archived: false }
+      let card@(Card r) = Card { content: card0, timestamp: 1661377622, archived: false }
       masterKey :: Key.Types.CryptoKey <- Key.Generate.generateKey (Key.Generate.aes AES.aesCTR AES.l256) true [Key.Types.encrypt, Key.Types.decrypt, Key.Types.unwrapKey]
       encrypted <- encryptJson masterKey card
       result <- decryptJson masterKey encrypted
       case result of
         Left err -> failOnBrowser encryptDecryptJson (show err)
-        Right (Card decrypted) -> makeTestableOnBrowser encryptDecryptJson decrypted.timestamp shouldEqual 1661377622
+        Right (Card decrypted) -> makeTestableOnBrowser encryptDecryptJson decrypted shouldEqual r
 
 
 encryptDecryptText :: String -> Aff Result
