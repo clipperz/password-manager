@@ -65,7 +65,7 @@ instance showHexString :: Show HexString where
   show hexString = toString Hex hexString
 
 instance arbitraryHexString :: Arbitrary HexString where
-  arbitrary = (toArray >>> fromCharArray >>> HexString) <$> (arrayOf1 (elements hexChars))
+  arbitrary = (toArray >>> fromCharArray >>> hex) <$> (arrayOf1 (elements hexChars))
 
 hexChars = fromMaybe (singleton '0') $ fromArray ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F']
 -- ----------------------------------------------------------------
