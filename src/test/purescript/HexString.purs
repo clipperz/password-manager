@@ -16,7 +16,8 @@ import Data.Unit (Unit)
 import Effect.Aff (Aff)
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
-import Test.QuickCheck ((<?>), (===))
+import Test.QuickCheck ((<?>), (===), Result)
+import Test.QuickCheck.Gen (Gen)
 import TestUtilities (makeTestableOnBrowser, quickCheckAffInBrowser)
 
 hexSpec :: SpecT Aff Unit Identity Unit
@@ -31,7 +32,9 @@ hexSpec =
       makeTestableOnBrowser checksNotHex (isHex nonHexString) shouldEqual false
     let checksHex = "checks if a string is hex formatted"
     it checksHex do
-      let prop = \(h :: HexString) -> pure $ isHex (show h) <?> (show h <> " is not recognized as hex string")
+      -- let prop = \(h :: HexString) -> pure $ isHex (show h) <?> (show h <> " is not recognized as hex string")
+      -- quickCheckAffInBrowser checksHex 10 prop
+      let prop = (\(h :: HexString) -> pure $ pure $ isHex (show h) <?> (show h <> " is not recognized as hex string")) :: HexString -> Gen (Aff Result)
       quickCheckAffInBrowser checksHex 10 prop
     let constructor = "costructs hex"
     it constructor do
@@ -48,5 +51,5 @@ hexSpec =
       makeTestableOnBrowser constructor (show hexStringFromConstructor) shouldEqual (toLower hexString)
     let constructAfterShow = "constructs from show result"
     it constructAfterShow do
-      let prop = \(h :: HexString) -> pure $ h === (hex (show h))
+      let prop = (\(h :: HexString) -> pure $ pure $ h === (hex (show h))) :: HexString -> Gen (Aff Result)
       quickCheckAffInBrowser constructAfterShow 10 prop

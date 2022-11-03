@@ -34,7 +34,8 @@ import Test.Spec.Assertions (fail)
 -- import Test.Spec.QuickCheck (quickCheck)
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (Gen(..), runGen, GenState, unGen)
-import Test.QuickCheck (quickCheckPure', class Testable, Result, withHelp, checkResults, printSummary, randomSeed)
+import Test.QuickCheck (quickCheckPure', class Testable, Result(..), withHelp, checkResults, printSummary, randomSeed)
+import TestClasses (class TestableAff, testAff, quickCheckPureAff)
 
 parseErrorString :: String -> (String -> String)
 parseErrorString s = \n -> "❌ Test '" <> n <> "' failed: " <> s
@@ -67,31 +68,10 @@ showQuickCheckResultsInBrowser testName resultList = do
         sequence $ log <$> errorLogStrings
   fail $ show errorLogStrings
 
-quickCheckAffInBrowser :: forall a. Arbitrary a => String -> Int -> (a -> Aff Result) -> Aff Unit
+quickCheckAffInBrowser :: forall prop. TestableAff prop => String -> Int -> prop -> Aff Unit
 quickCheckAffInBrowser testName n prop = do
   seed <- liftEffect $ randomSeed
   (quickCheckPureAff seed n prop) >>= (showQuickCheckResultsInBrowser testName)
-
-type PureLoopState = { seed:: Seed, index:: Int, results:: List (Tuple Seed Result)}
-
-quickCheckPureAff :: forall a. Arbitrary a => Seed -> Int -> (a -> Aff Result) -> Aff (List (Tuple Seed Result))
-quickCheckPureAff s n prop = tailRecM loop { seed: s, index: 0, results: mempty }
-  where
-    loop :: PureLoopState -> Aff (Step PureLoopState (List (Tuple Seed Result)))
-    loop { seed, index, results }
-      | index == n = pure $ Done $ reverse results
-      | otherwise = do
-          -- runGen :: forall a. Gen a -> GenState -> Tuple a GenState
-          -- runGen = runState <<< unGen
-          -- test :: forall prop. Testable prop => prop -> Gen Result
-          case runGen (prop <$> arbitrary) { newSeed: seed, size: 10 } of
-            Tuple r {newSeed} -> do -- r :: Aff Result
-              r' <- r
-              pure $ Loop
-                { seed: newSeed
-                , index: index + 1
-                , results: (Tuple seed r') : results
-                }
 
 -- failOnBrowser :: forall m. MonadThrow Error m => String -> m Unit
 -- failOnBrowser :: forall m. Bind m => MonadEffect m => MonadThrow Error m => String -> String -> m Unit
