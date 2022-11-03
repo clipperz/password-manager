@@ -19,7 +19,9 @@ import Functions.SRP as SRP
 import Effect.Aff (Aff)
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
-import TestUtilities (makeTestableOnBrowser, failOnBrowser)
+import Test.QuickCheck (Result(..), (===))
+import Test.QuickCheck.Gen (Gen)
+import TestUtilities (makeTestableOnBrowser, failOnBrowser, quickCheckAffInBrowser)
 
 srpSpec :: SpecT Aff Unit Identity Unit
 srpSpec =
@@ -32,16 +34,6 @@ srpSpec =
     }
 
     let testGroup1024 = "uses group1024"
-    it testGroup1024 do
-      let n = "167609434410335061345139523764350090260135525329813904557420930309800865859473551531551523800013916573891864789934747039010546328480848979516637673776605610374669426214776197828492691384519453218253702788022233205683635831626913357154941914129985489522629902540768368409482248290641036967659389658897350067939"
-      makeTestableOnBrowser (testGroup1024 <> " 1") (toString group1024.nn) shouldEqual n
-      makeTestableOnBrowser (testGroup1024 <> " 2") group1024.g shouldEqual (fromInt 2)
-      
-    let testk = "uses k"
-    it testk do
-      let k = "669884594844073113358786362162819048475760728175"
-      makeTestableOnBrowser testk (toString srpConfiguration.k) shouldEqual k
-
     let srpConfigurationForRFC = {
       group: {
         nn: rfcTestVector.nn
@@ -52,28 +44,39 @@ srpSpec =
       kdf: concatKDF
     }
 
+    it testGroup1024 do
+      let n = "167609434410335061345139523764350090260135525329813904557420930309800865859473551531551523800013916573891864789934747039010546328480848979516637673776605610374669426214776197828492691384519453218253702788022233205683635831626913357154941914129985489522629902540768368409482248290641036967659389658897350067939"
+      makeTestableOnBrowser (testGroup1024 <> " 1") (toString group1024.nn) shouldEqual n
+      makeTestableOnBrowser (testGroup1024 <> " 2") group1024.g shouldEqual (fromInt 2)
+      
+    let testk = "uses k"
+    it testk do
+      let k = "669884594844073113358786362162819048475760728175"
+      makeTestableOnBrowser testk (toString srpConfiguration.k) shouldEqual k
+
     testSrpBasicFunctions srpConfigurationForRFC "RFC Test Vector" rfcTestVector 
     
     let srpCorrectness = "computes the same secret on client and server"
     it srpCorrectness do
-      let username = "joe"
-      let password = "clipperz"
-      p <- SRP.prepareP srpConfiguration username password
-      s <- SRP.randomArrayBuffer 32
-      result :: Either SRPError (Tuple BigInt BigInt) <- runExceptT $ do
-        vHex :: HexString <- (ExceptT $ SRP.prepareV srpConfiguration s p)
-        v    :: BigInt <- except $ note (SRPError "Cannot covert v from HexString to BigInt") (toBigInt vHex)
-        (Tuple a aa) <- ExceptT $ SRP.prepareA srpConfiguration
-        (Tuple b bb) <- ExceptT $ SRP.prepareB srpConfiguration v
-        xAb <- ExceptT $ Right <$> srpConfiguration.kdf srpConfiguration.hash s p
-        x   <- except $ note (SRPError "Cannot convert x from HexString to BigInt") (toBigInt (fromArrayBuffer xAb))
-        sClient <- ExceptT $ SRP.prepareSClient srpConfiguration aa bb x a
-        sServer <- ExceptT $ SRP.prepareSServer srpConfiguration aa bb v b
-        pure $ Tuple sClient sServer
-      case result of
-        Left err -> failOnBrowser srpCorrectness (show err)
-        Right (Tuple sClient sServer) -> makeTestableOnBrowser srpCorrectness sClient shouldEqual sServer
+      quickCheckAffInBrowser srpCorrectness 1 (sameSecretProp srpConfiguration)
 
+sameSecretProp :: SRPConf -> String -> String -> Gen (Aff Result)
+sameSecretProp srpConfiguration username password = pure $ do
+  p <- SRP.prepareP srpConfiguration username password
+  s <- SRP.randomArrayBuffer 32
+  result :: Either SRPError (Tuple BigInt BigInt) <- runExceptT $ do
+    vHex :: HexString <- (ExceptT $ SRP.prepareV srpConfiguration s p)
+    v    :: BigInt <- except $ note (SRPError "Cannot covert v from HexString to BigInt") (toBigInt vHex)
+    (Tuple a aa) <- ExceptT $ SRP.prepareA srpConfiguration
+    (Tuple b bb) <- ExceptT $ SRP.prepareB srpConfiguration v
+    xAb <- ExceptT $ Right <$> srpConfiguration.kdf srpConfiguration.hash s p
+    x   <- except $ note (SRPError "Cannot convert x from HexString to BigInt") (toBigInt (fromArrayBuffer xAb))
+    sClient <- ExceptT $ SRP.prepareSClient srpConfiguration aa bb x a
+    sServer <- ExceptT $ SRP.prepareSServer srpConfiguration aa bb v b
+    pure $ Tuple sClient sServer
+  pure $ case result of
+    Left err -> Failed (show err)
+    Right (Tuple sClient sServer) -> sClient === sServer
 -----
 
 type TestVector = { c :: String -- I

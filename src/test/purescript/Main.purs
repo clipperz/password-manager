@@ -20,8 +20,8 @@ main :: Effect Unit
 main = launchAff_ $ do
   _ <- runSpec [consoleReporter] do
     -- utilitiesSpec
-    -- srpSpec
-    encodeDecodeSpec
+    srpSpec
+    -- encodeDecodeSpec
     hexSpec
     -- hashCashSpec
     -- importSpec
