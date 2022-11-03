@@ -7,9 +7,12 @@ import Control.Semigroupoid ((<<<))
 import Data.Boolean (otherwise)
 import Data.Eq ((==))
 import Data.Function (flip, ($))
+import Data.Functor ((<$>))
 import Data.List (List, reverse, (:))
 import Data.Monoid (mempty)
+import Data.Newtype (class Newtype)
 import Data.Semiring ((+))
+import Data.String.Gen (genAsciiString)
 import Data.Tuple (Tuple(..))
 import Effect.Aff (Aff)
 import Random.LCG (Seed, randomSeed)
@@ -54,3 +57,10 @@ quickCheckPureAff s n prop = tailRecM loop { seed: s, index: 0, results: mempty 
                 , index: index + 1
                 , results: (Tuple seed r') : results
                 }
+
+newtype AsciiString = Ascii String
+
+derive instance asciiStringNewtype :: Newtype AsciiString _
+
+instance asciiStringGen :: Arbitrary AsciiString where
+  arbitrary = Ascii <$> genAsciiString 

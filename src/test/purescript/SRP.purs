@@ -10,17 +10,21 @@ import Data.Functor ((<$>))
 import Data.HexString (HexString, hex, toBigInt, fromArrayBuffer, fromBigInt, toArrayBuffer)
 import Data.Identity (Identity)
 import Data.Maybe (fromMaybe)
+import Data.Newtype (unwrap, class Newtype)
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
 import DataModel.SRP(group1024, SRPConf, bigInt0, hashFuncSHA256, hashFuncSHA1, concatKDF, SRPError(..))
+import Debug (traceM)
 import Functions.SRP as SRP
 import Effect.Aff (Aff)
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
 import Test.QuickCheck (Result(..), (===))
+import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (Gen)
+import TestClasses (AsciiString)
 import TestUtilities (makeTestableOnBrowser, failOnBrowser, quickCheckAffInBrowser)
 
 srpSpec :: SpecT Aff Unit Identity Unit
@@ -58,10 +62,12 @@ srpSpec =
     
     let srpCorrectness = "computes the same secret on client and server"
     it srpCorrectness do
-      quickCheckAffInBrowser srpCorrectness 1 (sameSecretProp srpConfiguration)
+      quickCheckAffInBrowser srpCorrectness 10 (sameSecretProp srpConfiguration)
 
-sameSecretProp :: SRPConf -> String -> String -> Gen (Aff Result)
-sameSecretProp srpConfiguration username password = pure $ do
+sameSecretProp :: SRPConf -> AsciiString -> AsciiString -> Gen (Aff Result)
+sameSecretProp srpConfiguration username' password' = pure $ do
+  let username = unwrap username'
+  let password = unwrap password'
   p <- SRP.prepareP srpConfiguration username password
   s <- SRP.randomArrayBuffer 32
   result :: Either SRPError (Tuple BigInt BigInt) <- runExceptT $ do

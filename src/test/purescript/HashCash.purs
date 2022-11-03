@@ -22,10 +22,10 @@ hashCashSpec =
   describe "HashCash" do
     let testReceipt = "test receipt"
     it testReceipt do
-      quickCheckAffInBrowser testReceipt 2 testReceiptProp
+      quickCheckAffInBrowser testReceipt 10 testReceiptProp
     let computeReceiptTest = "compute receipt"
     it computeReceiptTest $ invincible $ do
-      quickCheckAffInBrowser computeReceiptTest 2 computeReceiptProp
+      quickCheckAffInBrowser computeReceiptTest 10 computeReceiptProp
 
 computeReceiptProp :: HexString -> Aff Result
 computeReceiptProp toll = do

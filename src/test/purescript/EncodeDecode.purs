@@ -14,6 +14,7 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Identity (Identity)
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
 import Data.Ring ((*))
 import Data.Semigroup ((<>))
 import Data.Show (show)
@@ -33,13 +34,14 @@ import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
 import Test.QuickCheck ((<?>), (===), Result(..))
 -- import Test.Spec.QuickCheck (quickCheck)
+import TestClasses (AsciiString)
 import TestUtilities (makeTestableOnBrowser, quickCheckAffInBrowser, failOnBrowser, makeQuickCheckOnBrowser)
 import Functions.ArrayBuffer (emptyByteArrayBuffer)
 
 encodeDecodeSpec :: SpecT Aff Unit Identity Unit
 encodeDecodeSpec = 
   describe "EncodeDecode" do
-    let encryptDecrypt = "encrypt then decrypt"
+    let encryptDecrypt = "encrypt then decrypt ascii strings"
     it encryptDecrypt do
       quickCheckAffInBrowser encryptDecrypt 10 encryptDecryptText
     let encryptDecryptJson = "encrypt then decrypt using json"
@@ -53,8 +55,9 @@ encodeDecodeSpec =
         Right (Card decrypted) -> makeTestableOnBrowser encryptDecryptJson decrypted shouldEqual r
 
 
-encryptDecryptText :: String -> Aff Result
-encryptDecryptText text = do
+encryptDecryptText :: AsciiString -> Aff Result
+encryptDecryptText text' = do
+  let text = unwrap text'
   let encodedText = Encoder.encode Encoder.Utf8 text :: ArrayView Uint8   -- Uint8Array
   let textBuffer = Data.ArrayBuffer.Typed.buffer encodedText :: ArrayBuffer
   let blockSize' = 16 :: Int
