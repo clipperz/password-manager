@@ -31,27 +31,17 @@ import Functions.EncodeDecode
 -- import Crypto.Subtle.Key.Types (encrypt, exportKey, decrypt, raw, unwrapKey, CryptoKey)
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
-import Test.QuickCheck ((<?>))
+import Test.QuickCheck ((<?>), (===), Result(..))
 -- import Test.Spec.QuickCheck (quickCheck)
-import TestUtilities (makeTestableOnBrowser, failOnBrowser, makeQuickCheckOnBrowser)
+import TestUtilities (makeTestableOnBrowser, quickCheckAffInBrowser, failOnBrowser, makeQuickCheckOnBrowser)
 import Functions.ArrayBuffer (emptyByteArrayBuffer)
 
 encodeDecodeSpec :: SpecT Aff Unit Identity Unit
 encodeDecodeSpec = 
   describe "EncodeDecode" do
-    it "example" do
-      makeQuickCheckOnBrowser 3 "example" $ \(n :: String) ->
-        let
-          result = n
-          expected = (n <> "a")
-        in result == expected <?> (show result) <> " is not equal to " <> (show expected)
     let encryptDecrypt = "encrypt then decrypt"
     it encryptDecrypt do
-      let text = "The quick brown fox jumps over the lazy dog" :: String
-      decryptedDataText <- encryptDecryptText text
-      case decryptedDataText of 
-        Left err -> failOnBrowser encryptDecrypt (show err)
-        Right decrypted -> makeTestableOnBrowser encryptDecrypt decrypted shouldEqual text
+      quickCheckAffInBrowser encryptDecrypt 10 encryptDecryptText
     let encryptDecryptJson = "encrypt then decrypt using json"
     it encryptDecryptJson do
       let card = Card { content: card0, timestamp: 1661377622, archived: false }
@@ -63,7 +53,7 @@ encodeDecodeSpec =
         Right (Card decrypted) -> makeTestableOnBrowser encryptDecryptJson decrypted.timestamp shouldEqual 1661377622
 
 
-encryptDecryptText :: String -> Aff (Either Error String)
+encryptDecryptText :: String -> Aff Result
 encryptDecryptText text = do
   let encodedText = Encoder.encode Encoder.Utf8 text :: ArrayView Uint8   -- Uint8Array
   let textBuffer = Data.ArrayBuffer.Typed.buffer encodedText :: ArrayBuffer
@@ -81,4 +71,7 @@ encryptDecryptText text = do
       Nothing -> pure $ Left (error "Something went wrong")
       Just d  -> liftEffect $ Right <$> (Data.ArrayBuffer.Typed.whole d)
 
-  pure $ (decryptedDataView >>= (Decoder.decode Decoder.Utf8)  :: (Either Error String))
+  let decoded = (decryptedDataView >>= (Decoder.decode Decoder.Utf8)  :: (Either Error String))
+  pure $ case decoded of
+    Left err -> Failed $ show err
+    Right s -> text === s

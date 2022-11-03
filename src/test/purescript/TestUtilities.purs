@@ -1,21 +1,40 @@
 module TestUtilities where
 
-import Control.Bind (bind, discard)
+import Control.Applicative (pure)
+import Control.Bind (bind, discard, (>>=))
 import Control.Monad.Error.Class (try)
+import Control.Monad.Morph (generalize)
+import Control.Monad.Rec.Class (Step(..), tailRecM)
+import Control.Monad.State (State, runState)
+import Control.Monad.State.Trans (mapStateT, StateT(..))
 import Control.Semigroupoid ((<<<))
+import Data.Boolean (otherwise)
 import Data.Either (either)
+import Data.Eq ((==))
 import Data.Function (($), flip)
 import Data.Functor ((<$>))
-import Data.List (List(..), (:), null)
+import Data.Functor.Coproduct.Inject (inj)
+import Data.Identity (Identity)
+import Data.List (List(..), (:), null, reverse)
+import Data.Monoid (mempty)
+import Data.Newtype (unwrap, wrap, class Newtype)
 import Data.Semigroup ((<>))
+import Data.Semiring ((+))
 import Data.Show (show)
 import Data.Traversable (sequence)
+import Data.Tuple (Tuple(..))
+import Data.Unit (Unit)
+import Effect.Aff (Aff)
+import Effect.Aff.Class (liftAff, class MonadAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Effect.Exception (message)
+import Random.LCG (Seed, randomSeed)
 import Test.Spec.Assertions (fail)
 -- import Test.Spec.QuickCheck (quickCheck)
-import Test.QuickCheck (quickCheckPure', checkResults, printSummary, randomSeed)
+import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
+import Test.QuickCheck.Gen (Gen(..), runGen, GenState, unGen)
+import Test.QuickCheck (quickCheckPure', class Testable, Result, withHelp, checkResults, printSummary, randomSeed)
 
 parseErrorString :: String -> (String -> String)
 parseErrorString s = \n -> "❌ Test '" <> n <> "' failed: " <> s
@@ -34,7 +53,12 @@ makeTestableOnBrowser testName t1 testFunction t2 = do
 -- makeQuickCheckOnBrowser :: forall prop. Testable prop => Int -> String -> prop -> Aff Unit
 makeQuickCheckOnBrowser n testName checkFunction = do
   seed <- liftEffect $ randomSeed
-  let result = checkResults $ quickCheckPure' seed n checkFunction
+  let resultList = quickCheckPure' seed n checkFunction
+  showQuickCheckResultsInBrowser testName resultList
+
+showQuickCheckResultsInBrowser :: String -> List (Tuple Seed Result) -> Aff Unit
+showQuickCheckResultsInBrowser testName resultList = do
+  let result = checkResults resultList
   let errorLogStrings = ((flip parseErrorString) testName) <$> ((_.message) <$> result.failures)
   _ <- if null errorLogStrings then
         sequence $ (log <<< (parseGoodString "")) <$> (testName : Nil)
@@ -42,6 +66,32 @@ makeQuickCheckOnBrowser n testName checkFunction = do
         log $ "Test '" <> testName <> "': " <> (printSummary result)
         sequence $ log <$> errorLogStrings
   fail $ show errorLogStrings
+
+quickCheckAffInBrowser :: forall a. Arbitrary a => String -> Int -> (a -> Aff Result) -> Aff Unit
+quickCheckAffInBrowser testName n prop = do
+  seed <- liftEffect $ randomSeed
+  (quickCheckPureAff seed n prop) >>= (showQuickCheckResultsInBrowser testName)
+
+type PureLoopState = { seed:: Seed, index:: Int, results:: List (Tuple Seed Result)}
+
+quickCheckPureAff :: forall a. Arbitrary a => Seed -> Int -> (a -> Aff Result) -> Aff (List (Tuple Seed Result))
+quickCheckPureAff s n prop = tailRecM loop { seed: s, index: 0, results: mempty }
+  where
+    loop :: PureLoopState -> Aff (Step PureLoopState (List (Tuple Seed Result)))
+    loop { seed, index, results }
+      | index == n = pure $ Done $ reverse results
+      | otherwise = do
+          -- runGen :: forall a. Gen a -> GenState -> Tuple a GenState
+          -- runGen = runState <<< unGen
+          -- test :: forall prop. Testable prop => prop -> Gen Result
+          case runGen (prop <$> arbitrary) { newSeed: seed, size: 10 } of
+            Tuple r {newSeed} -> do -- r :: Aff Result
+              r' <- r
+              pure $ Loop
+                { seed: newSeed
+                , index: index + 1
+                , results: (Tuple seed r') : results
+                }
 
 -- failOnBrowser :: forall m. MonadThrow Error m => String -> m Unit
 -- failOnBrowser :: forall m. Bind m => MonadEffect m => MonadThrow Error m => String -> String -> m Unit
