@@ -15,12 +15,12 @@ module Data.HexString
 import Control.Semigroupoid ((>>>))
 import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
-import Data.Array.NonEmpty (fromArray, singleton)
+import Data.Array.NonEmpty (fromArray, toArray, singleton)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Bifunctor (rmap)
 import Data.BigInt (BigInt, fromBase, toBase)
 import Data.Either(hush)
-import Data.Eq (class Eq, (==))
+import Data.Eq (class Eq, eq, (==))
 import Data.EuclideanRing (mod, (/))
 import Data.Function (($))
 import Data.Functor ((<$>))
@@ -35,7 +35,7 @@ import Data.String.Pattern (Pattern(..), Replacement(..))
 import Data.String.Regex (regex, test)
 import Data.String.Regex.Flags (noFlags)
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
-import Test.QuickCheck.Gen (arrayOf, elements)
+import Test.QuickCheck.Gen (arrayOf1, elements)
 
 foreign import hexEncode :: String -> String
 foreign import hexDecode :: String -> String
@@ -48,7 +48,12 @@ data HexString = HexString String
 
 derive instance ordHexString :: Ord HexString
 
-derive instance eqHexString :: Eq HexString
+instance eqHexString :: Eq HexString where
+  eq (HexString h) (HexString h') =
+    if eq h h' then true
+    else if eq ("0" <> h) h' then true
+    else if eq h ("0" <> h') then true
+    else false
 
 instance decodeJsonHexString :: DecodeJson HexString where
   decodeJson json = rmap (\s -> hex s) (decodeJson json)
@@ -60,7 +65,7 @@ instance showHexString :: Show HexString where
   show hexString = toString Hex hexString
 
 instance arbitraryHexString :: Arbitrary HexString where
-  arbitrary = (fromCharArray >>> HexString) <$> (arrayOf (elements hexChars))
+  arbitrary = (toArray >>> fromCharArray >>> HexString) <$> (arrayOf1 (elements hexChars))
 
 hexChars = fromMaybe (singleton '0') $ fromArray ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F']
 -- ----------------------------------------------------------------

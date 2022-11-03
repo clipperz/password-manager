@@ -1,9 +1,10 @@
 module Test.HexString where
 
+import Control.Applicative (pure)
 import Control.Bind (discard)
 import Data.Either (hush)
 import Data.Function (($))
-import Data.HexString (hex, isHex)
+import Data.HexString (HexString, hex, isHex)
 import Data.Identity (Identity)
 import Data.Maybe (isJust)
 import Data.Semigroup ((<>))
@@ -15,7 +16,8 @@ import Data.Unit (Unit)
 import Effect.Aff (Aff)
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
-import TestUtilities (makeTestableOnBrowser)
+import Test.QuickCheck ((<?>), (===))
+import TestUtilities (makeTestableOnBrowser, quickCheckAffInBrowser)
 
 hexSpec :: SpecT Aff Unit Identity Unit
 hexSpec =
@@ -23,12 +25,14 @@ hexSpec =
     let createRegex = "create regex"
     it createRegex do
       makeTestableOnBrowser createRegex (isJust $ hush $ regex "^[0-9a-fA-F]+$" noFlags) shouldEqual true
+    let checksNotHex = "checks if a string is not hex formatted"
+    it checksNotHex do
+      let nonHexString = "fuffa"
+      makeTestableOnBrowser checksNotHex (isHex nonHexString) shouldEqual false
     let checksHex = "checks if a string is hex formatted"
     it checksHex do
-      let hexString = "e1a3c425"
-      let nonHexString = "fuffa"
-      makeTestableOnBrowser (checksHex <> " - true")  (isHex hexString)    shouldEqual true
-      makeTestableOnBrowser (checksHex <> " - false") (isHex nonHexString) shouldEqual false
+      let prop = \(h :: HexString) -> pure $ isHex (show h) <?> (show h <> " is not recognized as hex string")
+      quickCheckAffInBrowser checksHex 10 prop
     let constructor = "costructs hex"
     it constructor do
       let hexStringFromConstructor = hex $ "EEAF0AB9 ADB38DD6 9C33F80A FA8FC5E8 60726187 75FF3C0B 9EA2314C"
@@ -42,3 +46,7 @@ hexSpec =
                 <> "7BCF1885C529F566660E57EC68EDBC3C05726CC02FD4CBF4976EAA9A"
                 <> "FD5138FE8376435B9FC61D2FC0EB06E3"
       makeTestableOnBrowser constructor (show hexStringFromConstructor) shouldEqual (toLower hexString)
+    let constructAfterShow = "constructs from show result"
+    it constructAfterShow do
+      let prop = \(h :: HexString) -> pure $ h === (hex (show h))
+      quickCheckAffInBrowser constructAfterShow 10 prop

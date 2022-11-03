@@ -22,7 +22,7 @@ main = launchAff_ $ do
     -- utilitiesSpec
     -- srpSpec
     encodeDecodeSpec
-    -- hexSpec
-    hashCashSpec
+    hexSpec
+    -- hashCashSpec
     -- importSpec
   liftEffect $ log "END TESTS"

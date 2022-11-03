@@ -15,7 +15,7 @@ import Data.Function (($), flip)
 import Data.Functor ((<$>))
 import Data.Functor.Coproduct.Inject (inj)
 import Data.Identity (Identity)
-import Data.List (List(..), (:), null, reverse)
+import Data.List (List(..), (:), null, length, reverse)
 import Data.Monoid (mempty)
 import Data.Newtype (unwrap, wrap, class Newtype)
 import Data.Semigroup ((<>))
@@ -61,7 +61,7 @@ showQuickCheckResultsInBrowser testName resultList = do
   let result = checkResults resultList
   let errorLogStrings = ((flip parseErrorString) testName) <$> ((_.message) <$> result.failures)
   _ <- if null errorLogStrings then
-        sequence $ (log <<< (parseGoodString "")) <$> (testName : Nil)
+        sequence $ (log <<< (parseGoodString "")) <$> ((testName <> " (" <> (show (length resultList)) <> " tests)") : Nil)
       else do
         log $ "Test '" <> testName <> "': " <> (printSummary result)
         sequence $ log <$> errorLogStrings
