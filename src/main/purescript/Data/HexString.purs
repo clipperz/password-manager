@@ -29,7 +29,7 @@ import Data.Ord (class Ord)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.String (toLower, toUpper)
-import Data.String.CodeUnits (length, splitAt, fromCharArray)
+import Data.String.CodeUnits (length, splitAt, dropWhile, fromCharArray)
 import Data.String.Common (replaceAll)
 import Data.String.Pattern (Pattern(..), Replacement(..))
 import Data.String.Regex (regex, test)
@@ -49,11 +49,7 @@ data HexString = HexString String
 derive instance ordHexString :: Ord HexString
 
 instance eqHexString :: Eq HexString where
-  eq (HexString h) (HexString h') =
-    if eq h h' then true
-    else if eq ("0" <> h) h' then true
-    else if eq h ("0" <> h') then true
-    else false
+  eq (HexString h) (HexString h') = eq (dropWhile (_ == '0') h) (dropWhile (_ == '0') h')
 
 instance decodeJsonHexString :: DecodeJson HexString where
   decodeJson json = rmap (\s -> hex s) (decodeJson json)
