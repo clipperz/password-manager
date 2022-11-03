@@ -19,10 +19,10 @@ import Test.Import (importSpec)
 main :: Effect Unit
 main = launchAff_ $ do
   _ <- runSpec [consoleReporter] do
-    -- utilitiesSpec
-    srpSpec
+    utilitiesSpec
+    -- srpSpec
     -- encodeDecodeSpec
-    hexSpec
+    -- hexSpec
     -- hashCashSpec
     -- importSpec
   liftEffect $ log "END TESTS"

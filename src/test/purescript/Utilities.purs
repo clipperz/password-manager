@@ -1,21 +1,29 @@
 module Test.Utilities where
 
+import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Data.Argonaut.Core as A
 import Data.BigInt (fromInt, toString, fromString)
+import Data.Eq ((==))
 import Data.Function (($))
-import Data.HexString (hex, toArrayBuffer, fromArrayBuffer, toBigInt, Base(..))
+import Data.Functor ((<$>))
+import Data.HexString (hex, toArrayBuffer, fromArrayBuffer, toBigInt, fromBigInt, Base(..))
 import Data.HexString as HexString
 import Data.Identity (Identity)
 import Data.List (List(..), (:))
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
+import Data.Show (show)
 import Data.Unit (Unit)
 import DataModel.SRP (hashFuncSHA256)
 import Effect.Aff (Aff)
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
-import TestUtilities (makeTestableOnBrowser, failOnBrowser)
+import Test.QuickCheck ((===), Result(..))
+import Test.QuickCheck.Gen (Gen)
+import TestClasses (AsciiString)
+import TestUtilities (makeTestableOnBrowser, failOnBrowser, quickCheckAffInBrowser)
 import Functions.ArrayBuffer (emptyByteArrayBuffer, xor, arrayBufferToBigInt, bigIntToArrayBuffer)
 
 utilitiesSpec :: SpecT Aff Unit Identity Unit
@@ -59,20 +67,18 @@ utilitiesSpec =
 
     let hexStringAb = "converts Hex String to ArrayBuffer and ArrayBuffer to Hex String"
     it hexStringAb do
-      let initialString = hex $ "7556aa045aef2cdd07abaf0f665c3e818913186f"
-      let s = fromArrayBuffer (toArrayBuffer initialString)
-      makeTestableOnBrowser hexStringAb initialString shouldEqual s
+      let prop = (\(h :: HexString.HexString) -> pure $ pure $ h === (fromArrayBuffer (toArrayBuffer h))) :: HexString.HexString -> Gen (Aff Result)
+      quickCheckAffInBrowser hexStringAb 10 prop
 
     let hexStringToBigInt = "converts Hex String to BigInt and BigInt to Hex String"
     it hexStringToBigInt do
-      let hexString = hex $ "8e450b3ad3793a4b7e83d01d312f745b84593eed5fe61da138d73d57579c06b72a3d7a8e139eb610c1d33d7f0fb20dfcde1feefffb1922667b0f1fecd524c403ad6a338c950db11724b45af9519ba19c4f09edbd86f2ba2a022fdcddf61a26ae74d26c137876136b470e131d8e0b2ba4a14488030bb1fbde2e3dc0b650880896"
-      let bigInt = fromMaybe (fromInt 0) (fromString "99905182682926710034291505584774964118706026472968269892820516099472446894131080528280228945656820340253787827762984065893078244231584865127194615626559242385750842515189538992818614416042581168624977993291417312000510083931042565737037728892271188331053661275313041128939302890592560743204670369750965553302")
-      makeTestableOnBrowser (hexStringToBigInt <> " 1 upper") bigInt shouldEqual (fromMaybe (fromInt 0) (toBigInt hexString))
-
+      let prop = (\(h :: HexString.HexString) -> pure $ pure $ (Just h) === (fromBigInt <$> (toBigInt h))) :: HexString.HexString -> Gen (Aff Result)
+      quickCheckAffInBrowser hexStringToBigInt 10 prop
+      
     let stringToHexAndBack = "converts String to Hex String and Hex String to String"
     it stringToHexAndBack do
-      let initialString = "tschüs"
-      makeTestableOnBrowser stringToHexAndBack initialString shouldEqual (HexString.toString Dec $ hex initialString)
+      let prop = (\(as :: AsciiString) -> let s = unwrap as in pure $ pure $ s === (HexString.toString Dec $ hex s)) :: AsciiString -> Gen (Aff Result)
+      quickCheckAffInBrowser stringToHexAndBack 10 prop
 
     let stringToHex = "converts String to Hex string"
     it stringToHex do
@@ -88,6 +94,8 @@ utilitiesSpec =
 
     let bigIntAb = "converts BigInt to ArrayBuffer and ArrayBuffer to BigInt"
     it bigIntAb do
+      -- let prop = (\i -> let bi = fromInt i in pure $ pure $ bi === (fromMaybe (fromInt 0) $ arrayBufferToBigInt (bigIntToArrayBuffer bi))) :: Int -> Gen (Aff Result)
+      -- quickCheckAffInBrowser bigIntAb 10 prop
       let initialBigInt = fromInt 94125839
       let bi = fromMaybe (fromInt 0) $ arrayBufferToBigInt (bigIntToArrayBuffer initialBigInt)
       makeTestableOnBrowser bigIntAb initialBigInt shouldEqual bi
