@@ -30,6 +30,8 @@ import TestUtilities (makeTestableOnBrowser, failOnBrowser, quickCheckAffInBrows
 srpSpec :: SpecT Aff Unit Identity Unit
 srpSpec =
   describe "SRP" do
+    let samples = 50
+
     let srpConfiguration = {
       group: group1024,
       k: (fromMaybe bigInt0 (toBigInt $ hex "7556AA045AEF2CDD07ABAF0F665C3E818913186F")),
@@ -62,7 +64,7 @@ srpSpec =
     
     let srpCorrectness = "computes the same secret on client and server"
     it srpCorrectness do
-      quickCheckAffInBrowser srpCorrectness 10 (sameSecretProp srpConfiguration)
+      quickCheckAffInBrowser srpCorrectness samples (sameSecretProp srpConfiguration)
 
 sameSecretProp :: SRPConf -> AsciiString -> AsciiString -> Gen (Aff Result)
 sameSecretProp srpConfiguration username' password' = pure $ do

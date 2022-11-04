@@ -19,7 +19,7 @@ import Test.Import (importSpec)
 main :: Effect Unit
 main = launchAff_ $ do
   _ <- runSpec [consoleReporter] do
-    -- utilitiesSpec
+    utilitiesSpec
     -- srpSpec
     encodeDecodeSpec
     hexSpec

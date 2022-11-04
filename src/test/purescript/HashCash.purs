@@ -24,15 +24,16 @@ import TestUtilities (makeTestableOnBrowser, quickCheckAffInBrowser)
 hashCashSpec :: SpecT Aff Unit Identity Unit
 hashCashSpec =
   describe "HashCash" do
+    let samples = 50
     let testReceipt = "Correctly checks that a challenge is satisfied by a receipt"
     it testReceipt do
-      quickCheckAffInBrowser testReceipt 10 testReceiptProp
+      quickCheckAffInBrowser testReceipt samples testReceiptProp
     let testReceiptFalse = "Correctly checks that a challenge is not satisfied by a receipt"
     it testReceiptFalse do
-      quickCheckAffInBrowser testReceiptFalse 10 testReceiptFalseProp
+      quickCheckAffInBrowser testReceiptFalse samples testReceiptFalseProp
     let computeReceiptTest = "Correctly computes a receipt"
     it computeReceiptTest $ invincible $ do
-      quickCheckAffInBrowser computeReceiptTest 10 computeReceiptProp
+      quickCheckAffInBrowser computeReceiptTest samples computeReceiptProp
 
 computeReceiptProp :: HexString -> Aff Result
 computeReceiptProp toll = do
