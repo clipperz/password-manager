@@ -6,6 +6,7 @@ module Data.HexString
   , hex
   , hexChars
   , isHex
+  , isHexRegex
   , splitHexInHalf
   , toArrayBuffer
   , toBigInt
@@ -20,7 +21,7 @@ import Data.Array.NonEmpty (fromArray, toArray, singleton)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Bifunctor (rmap)
 import Data.BigInt (BigInt, fromBase, toBase)
-import Data.Either(hush)
+import Data.Either(hush, Either)
 import Data.Eq (class Eq, eq, (==))
 import Data.EuclideanRing (mod, (/))
 import Data.Function (($))
@@ -33,7 +34,7 @@ import Data.String (toLower, toUpper)
 import Data.String.CodeUnits (length, splitAt, dropWhile, fromCharArray)
 import Data.String.Common (replaceAll)
 import Data.String.Pattern (Pattern(..), Replacement(..))
-import Data.String.Regex (regex, test)
+import Data.String.Regex (regex, Regex, test)
 import Data.String.Regex.Flags (noFlags)
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (arrayOf1, elements)
@@ -76,8 +77,11 @@ fromBigInt n = hex $ toBase 16 n
 hex :: String -> HexString
 hex s = normalizeHex $ HexString if isHex s then s else hexEncode s
 
+isHexRegex :: Either String Regex
+isHexRegex = (regex "^[0-9a-fA-F ]+$" noFlags)
+
 isHex :: String -> Boolean
-isHex s = maybe false (\reg -> test reg s) (hush (regex "^[0-9a-fA-F ]+$" noFlags))
+isHex s = maybe false (\reg -> test reg s) (hush isHexRegex)
 
 splitHexInHalf :: HexString -> { before :: HexString, after :: HexString }
 splitHexInHalf (HexString s) = let split = (splitAt ((length s) / 2) s)
