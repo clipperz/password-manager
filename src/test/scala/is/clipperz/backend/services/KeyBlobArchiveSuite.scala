@@ -24,7 +24,7 @@ import zio.Duration
 
 object KeyBlobArchiveSpec extends ZIOSpecDefault:
   val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
-  val keyBlobArchive = KeyBlobArchive.FileSystemKeyBlobArchive(blobBasePath, 1)
+  val keyBlobArchive = KeyBlobArchive.FileSystemKeyBlobArchive(blobBasePath, 1, false)
 
   val testContent = ZStream.fromIterable("testContent".getBytes().nn)
   val failingContent = ZStream.never

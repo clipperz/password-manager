@@ -61,6 +61,9 @@ object Main extends zio.ZIOAppDefault:
     val blobBasePath = FileSystems.getDefault().nn.getPath("target", "archive", "blobs").nn
     val userBasePath = FileSystems.getDefault().nn.getPath("target", "archive", "users").nn
 
+    blobBasePath.toFile().nn.mkdirs()
+    userBasePath.toFile().nn.mkdirs()
+
     server
       .make
       // .flatMap(start => zio.Console.printLine(s"Server started on port ${start.port}") *> ZIO.never)
@@ -69,8 +72,8 @@ object Main extends zio.ZIOAppDefault:
         PRNG.live,
         SessionManager.live,
         TollManager.live,
-        UserArchive.fs(userBasePath, 2),
-        BlobArchive.fs(blobBasePath, 2),
+        UserArchive.fs(userBasePath, 2, true),
+        BlobArchive.fs(blobBasePath, 2, true),
         SrpManager.v6a(),
         ServerChannelFactory.auto,
         EventLoopGroup.auto(nThreads),

@@ -95,8 +95,8 @@ object BlobArchive:
         throw new IOException("Failed initialization of temporary blob directory")
     }
 
-  def fs(basePath: Path, levels: Int): ZLayer[Any, Throwable, BlobArchive] =
-    val keyBlobArchive = new KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels)
+  def fs(basePath: Path, levels: Int, requireExistingPath: Boolean = true): ZLayer[Any, Throwable, BlobArchive] =
+    val keyBlobArchive = KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels, requireExistingPath)
     val baseTmpPath = basePath.resolve("tmp").nn
 
     ZLayer.scoped(

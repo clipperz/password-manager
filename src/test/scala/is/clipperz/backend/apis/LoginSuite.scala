@@ -42,7 +42,7 @@ import is.clipperz.backend.services.SRPStep2Response
 
 object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
   override def bootstrap: ZLayer[Any, Any, UserArchive & BlobArchive] =
-    UserArchive.fs(userBasePath, 2) ++ BlobArchive.fs(blobBasePath, 2)
+    UserArchive.fs(userBasePath, 2, false) ++ BlobArchive.fs(blobBasePath, 2, false)
 
   val app = Main.clipperzBackend
   val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
@@ -51,9 +51,9 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
   val environment =
     PRNG.live ++
     SessionManager.live ++
-    UserArchive.fs(userBasePath, 2) ++
-    BlobArchive.fs(blobBasePath, 2) ++
-    ((UserArchive.fs(userBasePath, 2) ++ PRNG.live) >>> SrpManager.v6a()) ++
+    UserArchive.fs(userBasePath, 2, false) ++
+    BlobArchive.fs(blobBasePath, 2, false) ++
+    ((UserArchive.fs(userBasePath, 2, false) ++ PRNG.live) >>> SrpManager.v6a()) ++
     (PRNG.live >>> TollManager.live)
 
   val c = HexString("7815018e9d84b5b0f319c87dee46c8876e85806823500e03e72c5d66e5d40456")

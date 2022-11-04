@@ -80,6 +80,6 @@ object UserArchive:
           else ZIO.fail(new ResourceNotFoundException("User does not exist"))
         )
 
-  def fs(basePath: Path, levels: Int): ZLayer[Any, Throwable, UserArchive] =
-    val keyBlobArchive = new KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels);
+  def fs(basePath: Path, levels: Int, requireExistingPath: Boolean = true): ZLayer[Any, Throwable, UserArchive] =
+    val keyBlobArchive = KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels, requireExistingPath);
     ZLayer.succeed[UserArchive](new FileSystemUserArchive(keyBlobArchive))

@@ -25,7 +25,7 @@ trait KeyBlobArchive:
 object KeyBlobArchive:
   val WAIT_TIME = 100
 
-  case class FileSystemKeyBlobArchive(basePath: Path, levels: Int) extends KeyBlobArchive:
+  class FileSystemKeyBlobArchive private (basePath: Path, levels: Int) extends KeyBlobArchive:
     override def getBlob(key: Key): Task[ZStream[Any, Throwable, Byte]] =
       getBlobPath(key, false)
         .map(path =>
@@ -85,3 +85,10 @@ object KeyBlobArchive:
         file.createNewFile()
 
       optionalPath
+
+  object FileSystemKeyBlobArchive:
+    def apply(basePath: Path, levels: Int, requireExistingPath: Boolean = true): FileSystemKeyBlobArchive =
+      if ((Files.exists(basePath) && Files.isDirectory(basePath)) || !requireExistingPath) then
+        new FileSystemKeyBlobArchive(basePath, levels)
+      else
+        throw new IllegalArgumentException("Base path does not exist")

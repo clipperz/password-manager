@@ -31,7 +31,7 @@ import zio.test.TestConsole
 object UserArchiveSpec extends ZIOSpecDefault:
   val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
 
-  val environment = UserArchive.fs(userBasePath, 2)
+  val environment = UserArchive.fs(userBasePath, 2, false)
 
   val c = HexString("abcdef0192837465")
   val testUser = UserCard(

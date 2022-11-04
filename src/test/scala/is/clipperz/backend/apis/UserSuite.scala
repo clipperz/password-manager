@@ -40,9 +40,9 @@ object UserSpec extends ZIOSpec[SessionManager]:
   val environment =
     PRNG.live ++
       sessionManagerLayer ++
-      UserArchive.fs(userBasePath, 2) ++
-      BlobArchive.fs(blobBasePath, 2) ++
-      ((UserArchive.fs(userBasePath, 2) ++ PRNG.live) >>> SrpManager.v6a()) ++
+      UserArchive.fs(userBasePath, 2, false) ++
+      BlobArchive.fs(blobBasePath, 2, false) ++
+      ((UserArchive.fs(userBasePath, 2, false) ++ PRNG.live) >>> SrpManager.v6a()) ++
       (PRNG.live >>> TollManager.live)
 
   val sessionKey = "sessionKey"
