@@ -4,25 +4,30 @@ import Control.Applicative (pure)
 import Control.Bind (bind, (>>=))
 import Control.Monad.Rec.Class (Step(..), tailRecM)
 import Control.Semigroupoid ((<<<))
-import Data.Array.NonEmpty (toArray)
+import Data.Array.NonEmpty (toArray, cons, singleton)
 import Data.Boolean (otherwise)
+import Data.Bounded (bottom, top)
+import Data.Char (fromCharCode)
+import Data.Enum (toEnumWithDefaults)
 import Data.Eq ((==))
 import Data.Function (flip, ($))
 import Data.Functor ((<$>))
 import Data.HexString (hexChars)
+import Data.HeytingAlgebra ((&&))
 import Data.List (List, reverse, (:))
+import Data.Maybe (fromMaybe)
 import Data.Monoid (mempty)
 import Data.Newtype (class Newtype)
-import Data.Ord ((>))
+import Data.Ord ((>), (<))
 import Data.Semiring ((+))
 import Data.String.CodeUnits (fromCharArray)
-import Data.String.Gen (genAsciiString)
+import Data.String.Gen (genAsciiString, genString)
 import Data.Tuple (Tuple(..))
 import Effect.Aff (Aff)
 import Random.LCG (Seed, randomSeed)
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck (Result(..))
-import Test.QuickCheck.Gen (Gen, runGen, suchThat, arrayOf1, elements)
+import Test.QuickCheck.Gen (Gen, runGen, suchThat, chooseInt, arrayOf1, oneOf, elements)
 
 class TestableAff prop where
   testAff :: prop -> Gen (Aff Result)
@@ -68,6 +73,17 @@ derive instance asciiStringNewtype :: Newtype AsciiString _
 
 instance asciiStringArbitrary :: Arbitrary AsciiString where
   arbitrary = Ascii <$> genAsciiString 
+
+{- Unicode strings without not defined codepoints -}
+newtype UnicodeString = Unicode String
+
+derive instance unicodeStringNewtype :: Newtype UnicodeString _
+
+instance unicodeStringArbitrary :: Arbitrary UnicodeString where
+  arbitrary = let ranges = cons (Tuple 63744 65535) $ singleton (Tuple 0 55295)
+                  toCharGen = \(Tuple b t) -> toEnumWithDefaults (fromMaybe 'a' (fromCharCode b)) (fromMaybe 'a' (fromCharCode t)) <$> chooseInt b t
+                  charGen = oneOf $ (toCharGen <$> ranges)
+              in Unicode <$> genString charGen
 
 newtype HexCharsString = HexChars String
 

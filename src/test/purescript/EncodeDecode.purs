@@ -18,6 +18,7 @@ import Data.Newtype (unwrap)
 import Data.Ring ((*))
 import Data.Semigroup ((<>))
 import Data.Show (show)
+import Data.String.CodePoints (toCodePointArray)
 import Data.TextDecoder as Decoder
 import Data.TextEncoder as Encoder
 import Data.Unit (Unit)
@@ -34,16 +35,21 @@ import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
 import Test.QuickCheck ((<?>), (===), Result(..))
 -- import Test.Spec.QuickCheck (quickCheck)
-import TestClasses (AsciiString)
+import TestClasses (AsciiString, UnicodeString)
 import TestUtilities (makeTestableOnBrowser, quickCheckAffInBrowser, failOnBrowser, makeQuickCheckOnBrowser)
 import Functions.ArrayBuffer (emptyByteArrayBuffer)
 
 encodeDecodeSpec :: SpecT Aff Unit Identity Unit
 encodeDecodeSpec = 
   describe "EncodeDecode" do
+    let samples = 50
+
+    let encodeDecode = "encodes then decode unicode strings"
+    it encodeDecode do
+      makeQuickCheckOnBrowser encodeDecode samples encodeDecodeText
     let encryptDecrypt = "encrypt then decrypt ascii strings"
     it encryptDecrypt do
-      quickCheckAffInBrowser encryptDecrypt 10 encryptDecryptText
+      quickCheckAffInBrowser encryptDecrypt samples encryptDecryptText
     let encryptDecryptJson = "encrypt then decrypt using json"
     it encryptDecryptJson do
       let card@(Card r) = Card { content: card0, timestamp: 1661377622, archived: false }
@@ -78,3 +84,12 @@ encryptDecryptText text' = do
   pure $ case decoded of
     Left err -> Failed $ show err
     Right s -> text === s
+
+encodeDecodeText :: UnicodeString -> Result
+encodeDecodeText text' = do
+  let text = unwrap text'
+  let encodedText = Encoder.encode Encoder.Utf8 text :: ArrayView Uint8   -- Uint8Array
+  let decoded = Decoder.decode Decoder.Utf8 encodedText
+  case decoded of
+    Left err -> Failed (show err)
+    Right t -> text == t <?> (text <> " /= " <> t <> " => " <> (show (toCodePointArray text)) <> " /= " <> (show (toCodePointArray t)))

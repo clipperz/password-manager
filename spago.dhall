@@ -24,6 +24,7 @@
   , "effect"
   , "either"
   , "encoding"
+  , "enums"
   , "exceptions"
   , "foldable-traversable"
   , "foreign-object"
