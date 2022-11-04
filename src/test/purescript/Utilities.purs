@@ -22,7 +22,7 @@ import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
 import Test.QuickCheck ((===), Result(..))
 import Test.QuickCheck.Gen (Gen)
-import TestClasses (AsciiString)
+import TestClasses (AsciiString, PositiveInt)
 import TestUtilities (makeTestableOnBrowser, failOnBrowser, quickCheckAffInBrowser)
 import Functions.ArrayBuffer (emptyByteArrayBuffer, xor, arrayBufferToBigInt, bigIntToArrayBuffer)
 
@@ -94,30 +94,22 @@ utilitiesSpec =
 
     let bigIntAb = "converts BigInt to ArrayBuffer and ArrayBuffer to BigInt"
     it bigIntAb do
-      -- let prop = (\i -> let bi = fromInt i in pure $ pure $ bi === (fromMaybe (fromInt 0) $ arrayBufferToBigInt (bigIntToArrayBuffer bi))) :: Int -> Gen (Aff Result)
-      -- quickCheckAffInBrowser bigIntAb 10 prop
-      let initialBigInt = fromInt 94125839
-      let bi = fromMaybe (fromInt 0) $ arrayBufferToBigInt (bigIntToArrayBuffer initialBigInt)
-      makeTestableOnBrowser bigIntAb initialBigInt shouldEqual bi
+      let prop = (\i -> let bi = fromInt (unwrap i) in pure $ pure $ bi === (fromMaybe (fromInt 0) $ arrayBufferToBigInt (bigIntToArrayBuffer bi))) :: PositiveInt -> Gen (Aff Result)
+      quickCheckAffInBrowser bigIntAb 10 prop
     
     let bigIntAbHex = "converts BigInt to ArrayBuffer to Hex and back (fromArrayBuffer)"
     it bigIntAbHex do
-      let initialBigInt = fromInt 94   
-      let res = fromArrayBuffer (bigIntToArrayBuffer initialBigInt)
-      let eebi = toBigInt res
-      case eebi of
-        Nothing -> failOnBrowser bigIntAbHex "fromArrayBuffer doesn't return an hex string"
-        Just bi -> do
-          makeTestableOnBrowser (bigIntAbHex) initialBigInt shouldEqual bi
+      let prop = (\i -> let bi = fromInt (unwrap i) 
+                            hx = fromArrayBuffer (bigIntToArrayBuffer bi)
+                            mbi = toBigInt hx
+                        in pure $ pure $ (Just bi) === mbi) :: PositiveInt -> Gen (Aff Result)
+      quickCheckAffInBrowser bigIntAbHex 10 prop
 
-    let hexToJson = "converts String to Json and Back"
-    it hexToJson do
-      let initialHexString = "7556AA045AEF2CDD07ABAF0F665C3E818913186F"
-      let maybeHex = A.toString (A.fromString initialHexString)
-      case maybeHex of
-        Nothing  -> failOnBrowser hexToJson "Cannot convert json to string"
-        Just hex -> do
-          makeTestableOnBrowser hexToJson initialHexString shouldEqual hex
+    -- This tests functions of libraries not written by us, it is necessary?
+    -- let hexToJson = "converts String to Json and Back"
+    -- it hexToJson do
+    --   let prop = (\s -> pure $ pure $ s === A.toString (A.fromString s)) :: String -> Gen (Aff Result)
+    --   quickCheckAffInBrowser bigIntAbHex 10 prop
 
     let hashOfArrayBuffer = "computes hash of array buffer"
     it hashOfArrayBuffer do
