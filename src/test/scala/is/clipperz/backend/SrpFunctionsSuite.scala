@@ -66,49 +66,49 @@ object SrpFunctionsSpec extends ZIOSpecDefault:
 
   def spec = suite("SrpFunctions")(
     testVectors.map(makeTestsFromVectors(_)).reduce(_ + _) +
-      test("test core SRP base configuration parameters") {
-        val nn =
-          "167609434410335061345139523764350090260135525329813904557420930309800865859473551531551523800013916573891864789934747039010546328480848979516637673776605610374669426214776197828492691384519453218253702788022233205683635831626913357154941914129985489522629902540768368409482248290641036967659389658897350067939"
-        assertTrue(baseConfiguration.group.nn.toString() == nn)
-        val g = BigInt(2)
-        assertTrue(baseConfiguration.group.g == BigInt(2))
-        val k = BigInt("669884594844073113358786362162819048475760728175", 10)
-        assertTrue(baseConfiguration.k == k)
-      } +
-      test("test secret generation by client and server") {
-        for {
-          prng <- ZIO.service[PRNG]
-          res <- check(
-            TestUtilities.getBytesGen(prng, 32),
-            TestUtilities.getBytesGen(prng, 32),
-            TestUtilities.getBytesGen(prng, 64),
-            TestUtilities.getBytesGen(prng, 64),
-          ) { (pBytes, sBytes, a, b) =>
-            val srpFunctions = new SrpFunctionsV6a()
+    test("test core SRP base configuration parameters") {
+      val nn =
+        "167609434410335061345139523764350090260135525329813904557420930309800865859473551531551523800013916573891864789934747039010546328480848979516637673776605610374669426214776197828492691384519453218253702788022233205683635831626913357154941914129985489522629902540768368409482248290641036967659389658897350067939"
+      assertTrue(baseConfiguration.group.nn.toString() == nn)
+      val g = BigInt(2)
+      assertTrue(baseConfiguration.group.g == BigInt(2))
+      val k = BigInt("669884594844073113358786362162819048475760728175", 10)
+      assertTrue(baseConfiguration.k == k)
+    } +
+    test("test secret generation by client and server") {
+      for {
+        prng <- ZIO.service[PRNG]
+        res <- check(
+          TestUtilities.getBytesGen(prng, 32),
+          TestUtilities.getBytesGen(prng, 32),
+          TestUtilities.getBytesGen(prng, 64),
+          TestUtilities.getBytesGen(prng, 64),
+        ) { (pBytes, sBytes, a, b) =>
+          val srpFunctions = new SrpFunctionsV6a()
 
-            val pHex = HexString.bytesToHex(pBytes)
-            val sHex = HexString.bytesToHex(sBytes)
+          val pHex = HexString.bytesToHex(pBytes)
+          val sHex = HexString.bytesToHex(sBytes)
 
-            for {
-              aa <- ZIO.succeed(srpFunctions.computeA(bytesToBigInt(a)))
-              x <- srpFunctions.configuration.keyDerivationFunction(sBytes, pBytes).map(bytes => bytesToBigInt(bytes))
-              v <- ZIO.succeed(srpFunctions.computeV(x))
-              bb <- ZIO.succeed(srpFunctions.computeB(bytesToBigInt(b), v))
-              u <- srpFunctions.computeU(bigIntToBytes(aa), bigIntToBytes(bb))
-              secretClient <- ZIO.succeed(srpFunctions.computeSecretClient(bb, x, bytesToBigInt(a), bytesToBigInt(u)))
-              secretServer <- ZIO.succeed(srpFunctions.computeSecretServer(aa, bytesToBigInt(b), v, bytesToBigInt(u)))
-            } yield assertTrue(secretClient == secretServer)
-          }
-        } yield res
-      } @@ TestAspect.samples(samples) +
-      test("hash of byte array") {
-        val hex = HexString(
-          "a27054ba67c93082d84d7c525f26ffa12d7de961419bbd5d09c4e09c01bb50280f1badda26f69993aea56d1689aebfb42947a63ccb09932de0d07cb457f9691853f765a16baf77ede507cf358b35de4cfb417b246745d875e70b1d463b200789e5edfd7ab6b3c888a296e690d52e7e235152a25ee6fa8354d1bc0138bf95cea"
-        )
-        val ab = hex.toByteArray
-        val result = HexString("3612c14a51e43e9dd998731caafbe956cda617279d62cb5d36fd249347e08dad")
-        for {
-          hash <- HashFunction.hashSHA256(ZStream.fromIterable(ab)).map(b => bytesToHex(b))
-        } yield assertTrue(hash == result)
-      }
+          for {
+            aa <- ZIO.succeed(srpFunctions.computeA(bytesToBigInt(a)))
+            x <- srpFunctions.configuration.keyDerivationFunction(sBytes, pBytes).map(bytes => bytesToBigInt(bytes))
+            v <- ZIO.succeed(srpFunctions.computeV(x))
+            bb <- ZIO.succeed(srpFunctions.computeB(bytesToBigInt(b), v))
+            u <- srpFunctions.computeU(bigIntToBytes(aa), bigIntToBytes(bb))
+            secretClient <- ZIO.succeed(srpFunctions.computeSecretClient(bb, x, bytesToBigInt(a), bytesToBigInt(u)))
+            secretServer <- ZIO.succeed(srpFunctions.computeSecretServer(aa, bytesToBigInt(b), v, bytesToBigInt(u)))
+          } yield assertTrue(secretClient == secretServer)
+        }
+      } yield res
+    } @@ TestAspect.samples(samples) +
+    test("hash of byte array") {
+      val hex = HexString(
+        "a27054ba67c93082d84d7c525f26ffa12d7de961419bbd5d09c4e09c01bb50280f1badda26f69993aea56d1689aebfb42947a63ccb09932de0d07cb457f9691853f765a16baf77ede507cf358b35de4cfb417b246745d875e70b1d463b200789e5edfd7ab6b3c888a296e690d52e7e235152a25ee6fa8354d1bc0138bf95cea"
+      )
+      val ab = hex.toByteArray
+      val result = HexString("3612c14a51e43e9dd998731caafbe956cda617279d62cb5d36fd249347e08dad")
+      for {
+        hash <- HashFunction.hashSHA256(ZStream.fromIterable(ab)).map(b => bytesToHex(b))
+      } yield assertTrue(hash == result)
+    }
   ).provideLayerShared(PRNG.live)
