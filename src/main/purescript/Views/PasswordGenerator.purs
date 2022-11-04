@@ -102,7 +102,7 @@ suggestionWidget av =
     go :: Boolean -> String -> Widget HTML (Either String String)
     go b s = do
       res <- div' [
-        PasswordChange <$> disabledSimpleTextInputWidget "generated_password" (text "Generated password") b s
+        PasswordChange <$> disabledSimpleTextInputWidget "generated_password" (text "Generated password") b "" s
       , InsertPassword <$> simpleButton "Insert" b s
       ]
       case res of
@@ -123,7 +123,7 @@ passwordWidget settings str =
     go s = do
       liftEffect $ log s
       res <- div' [
-        PasswordChange <$> simpleTextInputWidget "generated_password" (text "GeneratedPassword") s
+        PasswordChange <$> simpleTextInputWidget "generated_password" (text "GeneratedPassword") "" s
       , simpleButton "Regenerate" false UpdatePassword
       , InsertPassword <$> simpleButton "Insert" false s
       ]
@@ -137,8 +137,8 @@ passwordWidget settings str =
 data SettingsWidgetAction = LengthChange Int | CharSetToggle String | Chars String
 settingsWidget :: Settings -> Widget HTML Settings
 settingsWidget s = do
-  let lengthWidget = (LengthChange <<< (fromMaybe s.length) <<< fromString) <$> simpleNumberInputWidget "password_length" (text "Password Length") (show s.length)
-  let charsWidget = Chars <$> simpleTextInputWidget "password_characters" (text "Possible characters") s.characters
+  let lengthWidget = (LengthChange <<< (fromMaybe s.length) <<< fromString) <$> simpleNumberInputWidget "password_length" (text "Password Length") "" (show s.length)
+  let charsWidget = Chars <$> simpleTextInputWidget "password_characters" (text "Possible characters") "" s.characters
   let setsWidgets = (\(Tuple id v) -> (CharSetToggle id) <$ simpleCheckboxWidget ("char_set_" <> id) (text id) v) <$> s.characterSets
   res <- div' $ concat [[lengthWidget], setsWidgets, [charsWidget]]
   case res of

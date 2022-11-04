@@ -55,7 +55,7 @@ cardsManagerView i@(Index entries) indexFilter cvs@{ cardView: _, cardViewState 
       , getFilterListElement RecentFilter "Recent (TODO)"
       , getFilterListElement UntaggedFilter "Untagged"
       ]
-    , (ChangeFilter <<< TitleFilter) <$> simpleTextInputWidgetWithFocus "titleFilter" (text "Title") currentTitleFilter
+    , (ChangeFilter <<< TitleFilter) <$> simpleTextInputWidgetWithFocus "titleFilter" (text "Title") "Card title" currentTitleFilter
     , div [] [
       text "Tags"
       ,  ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag) <$> allSortedTags)

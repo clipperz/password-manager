@@ -45,8 +45,8 @@ createCardView card allTags state = do
       removeField <- fireOnce $ simpleButton "x" false unit
       field' <- loopS field $ \(CardField { name, value, locked }) -> do
         { name', value' } <- div_ [Props.className "inputs"] do
-          name' :: String <- loopW name (simpleTextInputWidget "name" (text "Name"))
-          value' :: String <- loopW value (simpleTextInputWidget "value" (text "Value"))
+          name' :: String <- loopW name (simpleTextInputWidget "name" (text "Name") "Field name")
+          value' :: String <- loopW value (simpleTextInputWidget "value" (text "Value") "Field value")
           pure { name', value' }
         { generatePassword, locked' } <- div_ [] do
           generatePassword <- case locked of
@@ -109,7 +109,7 @@ createCardView card allTags state = do
     formSignal = do
       Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card {content: (CardValues {title, tags, fields, notes}), timestamp})) ->
         div_ [Props.className "cardFormFields"] do
-          title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title"))
+          title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title") "Card title")
           Tuple newTag' tags' <- tagsSignal newTag tags
           fields' <- fieldsSignal fields
           notes' :: String <- simpleTextAreaSignal "notes" (text "Notes") "notes" notes

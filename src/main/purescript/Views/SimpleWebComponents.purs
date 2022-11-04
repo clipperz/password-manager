@@ -36,14 +36,14 @@ simpleTextAreaWidget id lbl placeholder content = do
     ] []
   ]
 
-simpleInputWidget :: String -> Widget HTML String -> Boolean -> String -> String -> Widget HTML String
-simpleInputWidget id lbl disable value t = do
+simpleInputWidget :: String -> Widget HTML String -> Boolean -> String -> String -> String -> Widget HTML String
+simpleInputWidget id lbl disable placeholder value t = do
   res <- div' [
       label [Props.htmlFor id] [lbl]
     , (Props.unsafeTargetValue) <$> input [
         Props._type t
       , Props._id id
-      , Props.placeholder ""
+      , Props.placeholder placeholder
       , Props.value value
       , Props.disabled disable
       , Props.onChange
@@ -68,14 +68,14 @@ simpleFileInputWidget id lbl = do
       nve <- liftEffect $ currentTarget se
       liftAff $ readFile nve
 
-simpleTextInputWidgetWithFocus :: String -> Widget HTML String -> String -> Widget HTML String
-simpleTextInputWidgetWithFocus id lbl s = do
+simpleTextInputWidgetWithFocus :: String -> Widget HTML String -> String -> String -> Widget HTML String
+simpleTextInputWidgetWithFocus id lbl placeholder s = do
   res <- div' [
       label [Props.htmlFor id] [lbl]
     , input [
         Props._type "text"
       , Props._id id
-      , Props.placeholder ""
+      , Props.placeholder placeholder
       , Props.value s
       , Props.disabled false
       , Props.unsafeTargetValue <$> Props.onChange
@@ -84,17 +84,17 @@ simpleTextInputWidgetWithFocus id lbl s = do
   ]
   pure res
 
-simpleTextInputWidget :: String -> Widget HTML String -> String -> Widget HTML String
-simpleTextInputWidget id lbl s = simpleInputWidget id lbl false s "text"
+simpleTextInputWidget :: String -> Widget HTML String -> String -> String -> Widget HTML String
+simpleTextInputWidget id lbl placeholder s = simpleInputWidget id lbl false placeholder s "text"
 
-disabledSimpleTextInputWidget :: String -> Widget HTML String -> Boolean -> String -> Widget HTML String
-disabledSimpleTextInputWidget id lbl disable s = simpleInputWidget id lbl disable s "text"
+disabledSimpleTextInputWidget :: String -> Widget HTML String -> Boolean -> String -> String -> Widget HTML String
+disabledSimpleTextInputWidget id lbl disable placeholder s = simpleInputWidget id lbl disable placeholder s "text"
 
 simplePasswordInputWidget :: String -> Widget HTML String -> String -> Widget HTML String
-simplePasswordInputWidget id lbl s = simpleInputWidget id lbl false s "password"
+simplePasswordInputWidget id lbl s = simpleInputWidget id lbl false "password" s "password"
 
-simpleNumberInputWidget :: String -> Widget HTML String -> String -> Widget HTML String
-simpleNumberInputWidget id lbl s = simpleInputWidget id lbl false s "number"
+simpleNumberInputWidget :: String -> Widget HTML String -> String -> String -> Widget HTML String
+simpleNumberInputWidget id lbl placeholder s = simpleInputWidget id lbl false placeholder s "number"
 
 simpleCheckboxWidget :: String -> Widget HTML Boolean -> Boolean -> Widget HTML Boolean 
 simpleCheckboxWidget id lbl v = do
@@ -116,7 +116,7 @@ simpleTextAreaSignal :: String -> Widget HTML String -> String -> String -> Sign
 simpleTextAreaSignal id label placeholder content = loopW content (simpleTextAreaWidget id label placeholder)
 
 simpleUserSignal :: String -> Signal HTML String
-simpleUserSignal u = loopW u (simpleTextInputWidget "username" (text "Username"))
+simpleUserSignal u = loopW u (simpleTextInputWidget "username" (text "Username") "username")
 
 simplePasswordSignal :: String -> Signal HTML String
 simplePasswordSignal p = loopW p (simplePasswordInputWidget "password" (text "Password"))
