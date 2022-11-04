@@ -12,6 +12,7 @@ import is.clipperz.backend.Main.ClipperzHttpApp
 import java.util.NoSuchElementException
 import is.clipperz.backend.exceptions.BadRequestException
 import zio.Cause
+import is.clipperz.backend.LogAspect
 
 type TollMiddleware = HttpMiddleware[TollManager & SessionManager, Throwable]
 
@@ -48,7 +49,7 @@ def isTollInSession(req: Request): ZIO[SessionManager, Throwable, Boolean] =
     )
     .catchSome {
       case ex => ZIO.logDebugCause(s"${ex.getMessage()}", Cause.fail(ex)).as(false)
-    }
+    } @@ LogAspect.logAnnotateRequestData(req)
 
 def checkReceipt(req: Request): ZIO[TollManager & SessionManager, Throwable, Boolean] =
   ZIO
@@ -68,7 +69,7 @@ def checkReceipt(req: Request): ZIO[TollManager & SessionManager, Throwable, Boo
     }
     .catchSome {
       case ex => ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(false)
-    }
+    } @@ LogAspect.logAnnotateRequestData(req)
 
 def wrongTollMiddleware(responseStatus: Status): Request => TollMiddleware = req =>
   Middleware.fromHttp(
@@ -99,7 +100,7 @@ def wrongTollMiddleware(responseStatus: Status): Request => TollMiddleware = req
             ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response.status(Status.BadRequest))
           case ex =>
             ZIO.logErrorCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response.status(Status.InternalServerError))
-        }
+        } @@ LogAspect.logAnnotateRequestData(req)
     )
   )
 

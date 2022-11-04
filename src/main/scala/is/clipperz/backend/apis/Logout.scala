@@ -8,6 +8,7 @@ import is.clipperz.backend.Main.ClipperzHttpApp
 import is.clipperz.backend.exceptions.BadRequestException
 import java.util
 import zio.Cause
+import is.clipperz.backend.LogAspect
 
 val logoutApi: ClipperzHttpApp = Http.collectZIO {
   case request @ Method.POST -> !! / "logout" =>
@@ -24,5 +25,5 @@ val logoutApi: ClipperzHttpApp = Http.collectZIO {
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
         case ex: NoSuchElementException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-      }
+      } @@ LogAspect.logAnnotateRequestData(request)
 }

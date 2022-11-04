@@ -20,6 +20,7 @@ import is.clipperz.backend.services.{ BlobArchive, SessionManager, SignupData, U
 import is.clipperz.backend.Main.ClipperzHttpApp
 import zio.Cause
 import is.clipperz.backend.services.ModifyUserCard
+import is.clipperz.backend.LogAspect
 
 val usersApi: ClipperzHttpApp = Http.collectZIO {
   case request @ Method.POST -> !! / "users" / c =>
@@ -70,7 +71,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
         case ex: FailedConversionException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
         case ex => ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).flatMap(_ => ZIO.fail(ex))
-      }
+      } @@ LogAspect.logAnnotateRequestData(request)
 
   case request @ Method.PUT -> !! / "users" / c =>
     ZIO
@@ -117,7 +118,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
           ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
         case ex: FailedConversionException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-      }
+      } @@ LogAspect.logAnnotateRequestData(request)
 
   case request @ Method.GET -> !! / "users" / c =>
     ZIO
@@ -138,7 +139,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
           ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
         case ex: BadRequestException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-      }
+      } @@ LogAspect.logAnnotateRequestData(request)
 
   case request @ Method.DELETE -> !! / "users" / c =>
     ZIO
@@ -168,5 +169,5 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
         case ex: ResourceNotFoundException =>
           ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.NotFound))
-      }
+      } @@ LogAspect.logAnnotateRequestData(request)
 }

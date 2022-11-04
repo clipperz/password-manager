@@ -33,9 +33,12 @@ import zio.FiberId
 import zio.Cause
 import zio.FiberRefs
 import zio.LogSpan
+import zhttp.http.HttpError.Custom
 
 object Main extends zio.ZIOAppDefault:
-  override val bootstrap = Runtime.removeDefaultLoggers >>> SLF4J.slf4j(LogFormat.colored)
+  override val bootstrap = 
+    val logFormat = LogFormat.colored |-| LogFormat.spans
+    Runtime.removeDefaultLoggers ++ Runtime.addLogger(CustomLogger.coloredLogger(LogLevel.Info)) // >>> SLF4J.slf4j(logFormat)
 
   private val PORT = 8090
 

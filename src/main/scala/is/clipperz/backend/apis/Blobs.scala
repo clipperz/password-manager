@@ -18,6 +18,7 @@ import is.clipperz.backend.Main.ClipperzHttpApp
 import is.clipperz.backend.exceptions.EmptyContentException
 import is.clipperz.backend.exceptions.BadRequestException
 import zio.Cause
+import is.clipperz.backend.LogAspect
 
 val blobsApi: ClipperzHttpApp = Http.collectZIO {
   case request @ Method.POST -> !! / "blobs" =>
@@ -39,7 +40,7 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
         case ex: FailedConversionException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
         case ex => ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-      }
+      } @@ LogAspect.logAnnotateRequestData(request)
 
   case request @ Method.DELETE -> !! / "blobs" / hash =>
     ZIO
@@ -62,7 +63,7 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
         case ex: FailedConversionException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
         case ex => ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-      }
+      } @@ LogAspect.logAnnotateRequestData(request)
 
   case request @ Method.GET -> !! / "blobs" / hash =>
     ZIO
@@ -77,10 +78,10 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
       )
       .catchSome {
         case ex: ResourceNotFoundException =>
-          ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.NotFound))
+          ZIO.logInfo(s"${ex.getMessage()}").as(Response(status = Status.NotFound))
         case ex: NonWritableArchiveException =>
           ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
         case ex: FailedConversionException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-      }
+      } @@ LogAspect.logAnnotateRequestData(request)
 }
