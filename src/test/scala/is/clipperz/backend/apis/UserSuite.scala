@@ -299,11 +299,22 @@ object UserSpec extends ZIOSpec[SessionManager]:
     } @@
       TestAspect.after(deleteSession()) @@
       TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
+    test("POST / DELETE / GET -> _, 200, 400") {
+      for {
+        _ <- app(preparePost(c.toString(), testSignupData.toJson, false))
+        _ <- prepareSession(c.toString())
+        deleteCode <- app(prepareDelete(c.toString(), testUser.toJson, true)).map(res => res.status.code)
+        getCode <- app(prepareGet(c.toString(), true)).map(res => res.status.code)
+      } yield assertTrue(deleteCode == 200, getCode == 400)
+    } @@
+      TestAspect.after(deleteSession()) @@
+      TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
     test("POST / DELETE / GET -> _, 200, 404") {
       for {
         _ <- app(preparePost(c.toString(), testSignupData.toJson, false))
         _ <- prepareSession(c.toString())
         deleteCode <- app(prepareDelete(c.toString(), testUser.toJson, true)).map(res => res.status.code)
+        _ <- prepareSession(c.toString())
         getCode <- app(prepareGet(c.toString(), true)).map(res => res.status.code)
       } yield assertTrue(deleteCode == 200, getCode == 404)
     } @@
