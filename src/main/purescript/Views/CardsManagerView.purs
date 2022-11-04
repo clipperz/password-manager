@@ -10,7 +10,7 @@ import Control.Bind (bind)
 import Data.Array (nub, sort)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
-import Data.List (fold)
+import Data.List (fold, filter, length)
 import Data.Maybe (Maybe(..))
 import Data.PrettyShow (prettyShow)
 import Data.Semigroup ((<>))
@@ -24,7 +24,7 @@ import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
 import Views.CardViews (cardView)
 import Views.CreateCardView (createCardView)
-import Views.IndexView (indexView, IndexFilter(..))
+import Views.IndexView (indexView, IndexFilter(..), toFilterFunc)
 import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleTextInputWidgetWithFocus, clickableListItemWidget)
 import OperationalWidgets.CardWidget (cardWidget)
 import OperationalWidgets.CreateCardWidget (createCardWidget)
@@ -50,21 +50,33 @@ cardsManagerView :: Index -> IndexFilter -> CardViewState -> Maybe AppError -> W
 cardsManagerView i@(Index entries) indexFilter cvs@{ cardView: _, cardViewState } error = do 
   res <- div [Props._id "cardsManager"] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
     div [Props._id "filterView"] [
-      (ChangeFilter <<< TitleFilter) <$> simpleTextInputWidgetWithFocus "titleFilter" (text "Title") currentTitleFilter
-    , ol [Props._id "tagFilter"]
-      ((\tag -> clickableListItemWidget false (text tag) [] (ChangeFilter (TagFilter tag))) <$> allSortedTags)
+      ol [][
+        getFilterListElement NoFilter "All"
+      , getFilterListElement RecentFilter "Recent (TODO)"
+      , getFilterListElement UntaggedFilter "Untagged"
+      ]
+    , (ChangeFilter <<< TitleFilter) <$> simpleTextInputWidgetWithFocus "titleFilter" (text "Title") currentTitleFilter
+    , div [] [
+      text "Tags"
+      ,  ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag) <$> allSortedTags)
+      ]
     ]
-  , div [Props._id "indexView"] [
-      (CardViewAction <<< ShowCard) <$> indexView i indexFilter
-    , simpleButton "Add card" false (CardViewAction ShowAddCard) 
+  , div [] [
+      div [Props._id "filterHeader"] [ getFilterHeader ]
+    , div [Props._id "mainView" ] [
+        div [Props._id "indexView"] [
+          (CardViewAction <<< ShowCard) <$> indexView i indexFilter
+        , simpleButton "Add card" false (CardViewAction ShowAddCard) 
+        ]
+      , case cvs of
+        { cardView: CardForm card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ createCardView card allSortedTags cardViewState
+        { cardView: CardForm card,         cardViewState: _       } -> (CardViewAction  <<< UpdateIndex) <$> createCardWidget card allSortedTags cardViewState
+        { cardView: CardFromReference ref, cardViewState: _       } -> (CardViewAction  <<< UpdateIndex) <$> cardWidget ref allSortedTags cardViewState
+        { cardView: JustCard card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ (div [] [loadingDiv, cardView card])
+        { cardView: JustCard card,         cardViewState: _       } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ cardView card
+        { cardView: NoCard       ,         cardViewState: _       } -> div [Props._id "card"] []
+      ]
     ]
-  , case cvs of
-      { cardView: CardForm card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ createCardView card allSortedTags cardViewState
-      { cardView: CardForm card,         cardViewState: _ }       -> (CardViewAction  <<< UpdateIndex) <$> createCardWidget card allSortedTags cardViewState
-      { cardView: CardFromReference ref, cardViewState: _ }       -> (CardViewAction  <<< UpdateIndex) <$> cardWidget ref allSortedTags cardViewState
-      { cardView: JustCard card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ (div [] [loadingDiv, cardView card])
-      { cardView: JustCard card,         cardViewState: _ }       -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ cardView card
-      { cardView: NoCard       ,         cardViewState: _ }       -> div [Props._id "card"] []
   ]
   case res of
     CardViewAction (ShowCard ref) -> cardsManagerView i indexFilter { cardView: CardFromReference ref, cardViewState } Nothing -- TODO: discuss
@@ -77,3 +89,17 @@ cardsManagerView i@(Index entries) indexFilter cvs@{ cardView: _, cardViewState 
       _ -> ""
 
     allSortedTags = sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) <$> entries
+
+    getFilterHeader =
+      case indexFilter of
+        TitleFilter title -> text title
+        TagFilter tag     -> text tag
+        RecentFilter      -> text "recent"
+        UntaggedFilter    -> text "untagged"
+        NoFilter          -> text "clipperz logo"
+
+    countCards :: IndexFilter -> Int
+    countCards indexFilt = length $ filter (toFilterFunc indexFilt) entries
+
+    getFilterListElement :: IndexFilter -> String -> Widget HTML InternalAction
+    getFilterListElement indexFilt s = clickableListItemWidget false (div [] [ text s, div [] [text $ show $ countCards indexFilt]]) [] (ChangeFilter indexFilt)
