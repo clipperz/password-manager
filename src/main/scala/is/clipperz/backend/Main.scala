@@ -40,8 +40,6 @@ object Main extends zio.ZIOAppDefault:
     val logFormat = LogFormat.colored |-| LogFormat.spans
     Runtime.removeDefaultLoggers ++ Runtime.addLogger(CustomLogger.coloredLogger(LogLevel.Info)) // >>> SLF4J.slf4j(logFormat)
 
-  private val PORT = 8090
-
   type ClipperzEnvironment =
     PRNG & SessionManager & TollManager & UserArchive & BlobArchive & SrpManager
 
@@ -53,33 +51,40 @@ object Main extends zio.ZIOAppDefault:
   val clipperzBackend: ClipperzHttpApp = { usersApi ++ loginApi ++ logoutApi ++ blobsApi ++ staticApi }
   val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (sessionChecks ++ hashcash)
 
-  val server =
-    Server.port(PORT) ++
-      Server.paranoidLeakDetection ++
-      Server.app(completeClipperzBackend)
-
   val run = ZIOAppArgs.getArgs.flatMap { args =>
-    val nThreads: Int = args.headOption.flatMap(x => Try(x.toInt).toOption).getOrElse(0)
+    if (args.length == 3) then
+      val blobsArchivePath = args(0).split("/").nn
+      val usersArchivePath = args(1).split("/").nn
+      val port = args(2).toInt
 
-    val blobBasePath = FileSystems.getDefault().nn.getPath("target", "archive", "blobs").nn
-    val userBasePath = FileSystems.getDefault().nn.getPath("target", "archive", "users").nn
+      val server =
+        Server.port(port) ++
+          Server.paranoidLeakDetection ++
+          Server.app(completeClipperzBackend)
 
-    blobBasePath.toFile().nn.mkdirs()
-    userBasePath.toFile().nn.mkdirs()
+      val nThreads: Int = args.headOption.flatMap(x => Try(x.toInt).toOption).getOrElse(0)
 
-    server
-      .make
-      // .flatMap(start => zio.Console.printLine(s"Server started on port ${start.port}") *> ZIO.never)
-      .flatMap(start => ZIO.logInfo(s"Server started on port ${start.port}") *> ZIO.never)
-      .provide(
-        PRNG.live,
-        SessionManager.live,
-        TollManager.live,
-        UserArchive.fs(userBasePath, 2, true),
-        BlobArchive.fs(blobBasePath, 2, true),
-        SrpManager.v6a(),
-        ServerChannelFactory.auto,
-        EventLoopGroup.auto(nThreads),
-        Scope.default,
-      )
+      val blobBasePath = FileSystems.getDefault().nn.getPath(blobsArchivePath(0), blobsArchivePath.drop(1)*).nn
+      val userBasePath = FileSystems.getDefault().nn.getPath(usersArchivePath(0), usersArchivePath.drop(1)*).nn
+
+      blobBasePath.toFile().nn.mkdirs()
+      userBasePath.toFile().nn.mkdirs()
+
+      server
+        .make
+        // .flatMap(start => zio.Console.printLine(s"Server started on port ${start.port}") *> ZIO.never)
+        .flatMap(start => ZIO.logInfo(s"Server started on port ${start.port}") *> ZIO.never)
+        .provide(
+          PRNG.live,
+          SessionManager.live,
+          TollManager.live,
+          UserArchive.fs(userBasePath, 2, true),
+          BlobArchive.fs(blobBasePath, 2, true),
+          SrpManager.v6a(),
+          ServerChannelFactory.auto,
+          EventLoopGroup.auto(nThreads),
+          Scope.default,
+        )
+    else
+      ZIO.logFatal("Not enough arguments")
   }
