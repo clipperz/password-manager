@@ -4,22 +4,25 @@ import Control.Applicative (pure)
 import Control.Bind (bind, (>>=))
 import Control.Monad.Rec.Class (Step(..), tailRecM)
 import Control.Semigroupoid ((<<<))
+import Data.Array.NonEmpty (toArray)
 import Data.Boolean (otherwise)
 import Data.Eq ((==))
 import Data.Function (flip, ($))
 import Data.Functor ((<$>))
+import Data.HexString (hexChars)
 import Data.List (List, reverse, (:))
 import Data.Monoid (mempty)
 import Data.Newtype (class Newtype)
 import Data.Ord ((>))
 import Data.Semiring ((+))
+import Data.String.CodeUnits (fromCharArray)
 import Data.String.Gen (genAsciiString)
 import Data.Tuple (Tuple(..))
 import Effect.Aff (Aff)
 import Random.LCG (Seed, randomSeed)
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck (Result(..))
-import Test.QuickCheck.Gen (Gen, runGen, suchThat)
+import Test.QuickCheck.Gen (Gen, runGen, suchThat, arrayOf1, elements)
 
 class TestableAff prop where
   testAff :: prop -> Gen (Aff Result)
@@ -65,6 +68,13 @@ derive instance asciiStringNewtype :: Newtype AsciiString _
 
 instance asciiStringArbitrary :: Arbitrary AsciiString where
   arbitrary = Ascii <$> genAsciiString 
+
+newtype HexCharsString = HexChars String
+
+derive instance hexCharsStringNewtype :: Newtype HexCharsString _
+
+instance hexCharsStringArbitrary :: Arbitrary HexCharsString where
+  arbitrary = HexChars <$> (fromCharArray <<< toArray) <$> (arrayOf1 (elements hexChars))
 
 newtype PositiveInt = Positive Int
 

@@ -52,7 +52,7 @@ makeTestableOnBrowser testName t1 testFunction t2 = do
   testFunction t1 t2
 
 -- makeQuickCheckOnBrowser :: forall prop. Testable prop => Int -> String -> prop -> Aff Unit
-makeQuickCheckOnBrowser n testName checkFunction = do
+makeQuickCheckOnBrowser testName n checkFunction = do
   seed <- liftEffect $ randomSeed
   let resultList = quickCheckPure' seed n checkFunction
   showQuickCheckResultsInBrowser testName resultList

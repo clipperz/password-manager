@@ -4,6 +4,7 @@ module Data.HexString
   , fromArrayBuffer
   , fromBigInt
   , hex
+  , hexChars
   , isHex
   , splitHexInHalf
   , toArrayBuffer

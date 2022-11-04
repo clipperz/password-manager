@@ -23,7 +23,7 @@ import Test.Spec.Assertions (shouldEqual)
 import Test.QuickCheck ((===), Result(..))
 import Test.QuickCheck.Gen (Gen)
 import TestClasses (AsciiString, PositiveInt)
-import TestUtilities (makeTestableOnBrowser, failOnBrowser, quickCheckAffInBrowser)
+import TestUtilities (makeTestableOnBrowser, failOnBrowser, makeQuickCheckOnBrowser, quickCheckAffInBrowser)
 import Functions.ArrayBuffer (emptyByteArrayBuffer, xor, arrayBufferToBigInt, bigIntToArrayBuffer)
 
 utilitiesSpec :: SpecT Aff Unit Identity Unit
@@ -67,18 +67,18 @@ utilitiesSpec =
 
     let hexStringAb = "converts Hex String to ArrayBuffer and ArrayBuffer to Hex String"
     it hexStringAb do
-      let prop = (\(h :: HexString.HexString) -> pure $ pure $ h === (fromArrayBuffer (toArrayBuffer h))) :: HexString.HexString -> Gen (Aff Result)
-      quickCheckAffInBrowser hexStringAb 10 prop
+      let prop = (\(h :: HexString.HexString) -> h === (fromArrayBuffer (toArrayBuffer h))) :: HexString.HexString -> Result
+      makeQuickCheckOnBrowser hexStringAb 10 prop
 
     let hexStringToBigInt = "converts Hex String to BigInt and BigInt to Hex String"
     it hexStringToBigInt do
-      let prop = (\(h :: HexString.HexString) -> pure $ pure $ (Just h) === (fromBigInt <$> (toBigInt h))) :: HexString.HexString -> Gen (Aff Result)
-      quickCheckAffInBrowser hexStringToBigInt 10 prop
+      let prop = (\(h :: HexString.HexString) -> (Just h) === (fromBigInt <$> (toBigInt h))) :: HexString.HexString -> Result
+      makeQuickCheckOnBrowser hexStringToBigInt 10 prop
       
     let stringToHexAndBack = "converts String to Hex String and Hex String to String"
     it stringToHexAndBack do
-      let prop = (\(as :: AsciiString) -> let s = unwrap as in pure $ pure $ s === (HexString.toString Dec $ hex s)) :: AsciiString -> Gen (Aff Result)
-      quickCheckAffInBrowser stringToHexAndBack 10 prop
+      let prop = (\(as :: AsciiString) -> let s = unwrap as in s === (HexString.toString Dec $ hex s)) :: AsciiString -> Result
+      makeQuickCheckOnBrowser stringToHexAndBack 10 prop
 
     let stringToHex = "converts String to Hex string"
     it stringToHex do
@@ -94,22 +94,22 @@ utilitiesSpec =
 
     let bigIntAb = "converts BigInt to ArrayBuffer and ArrayBuffer to BigInt"
     it bigIntAb do
-      let prop = (\i -> let bi = fromInt (unwrap i) in pure $ pure $ bi === (fromMaybe (fromInt 0) $ arrayBufferToBigInt (bigIntToArrayBuffer bi))) :: PositiveInt -> Gen (Aff Result)
-      quickCheckAffInBrowser bigIntAb 10 prop
+      let prop = (\i -> let bi = fromInt (unwrap i) in bi === (fromMaybe (fromInt 0) $ arrayBufferToBigInt (bigIntToArrayBuffer bi))) :: PositiveInt -> Result
+      makeQuickCheckOnBrowser bigIntAb 10 prop
     
     let bigIntAbHex = "converts BigInt to ArrayBuffer to Hex and back (fromArrayBuffer)"
     it bigIntAbHex do
       let prop = (\i -> let bi = fromInt (unwrap i) 
                             hx = fromArrayBuffer (bigIntToArrayBuffer bi)
                             mbi = toBigInt hx
-                        in pure $ pure $ (Just bi) === mbi) :: PositiveInt -> Gen (Aff Result)
-      quickCheckAffInBrowser bigIntAbHex 10 prop
+                        in (Just bi) === mbi) :: PositiveInt -> Result
+      makeQuickCheckOnBrowser bigIntAbHex 10 prop
 
     -- This tests functions of libraries not written by us, it is necessary?
     -- let hexToJson = "converts String to Json and Back"
     -- it hexToJson do
-    --   let prop = (\s -> pure $ pure $ s === A.toString (A.fromString s)) :: String -> Gen (Aff Result)
-    --   quickCheckAffInBrowser bigIntAbHex 10 prop
+    --   let prop = (\s -> s === A.toString (A.fromString s)) :: String -> Result 
+    --   makeQuickCheckOnBrowser bigIntAbHex 10 prop
 
     let hashOfArrayBuffer = "computes hash of array buffer"
     it hashOfArrayBuffer do
