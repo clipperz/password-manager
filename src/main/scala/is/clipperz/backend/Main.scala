@@ -21,7 +21,7 @@ import zhttp.http.{
 import zhttp.service.{ EventLoopGroup, Server }
 import zhttp.service.server.ServerChannelFactory
 import is.clipperz.backend.apis.{ blobsApi, loginApi, logoutApi, staticApi, usersApi }
-import is.clipperz.backend.middleware.{ hashcash, sessionChecks }
+import is.clipperz.backend.middleware.{ delays, hashcash, sessionChecks }
 import is.clipperz.backend.services.{ BlobArchive, PRNG, SessionManager, SrpManager, TollManager, UserArchive }
 
 import zio.logging.LogFormat
