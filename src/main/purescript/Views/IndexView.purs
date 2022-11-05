@@ -3,12 +3,16 @@ module Views.IndexView where
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.React.DOM (ol, text)
+import Control.Semigroupoid ((<<<))
 import Data.Array (fromFoldable, elem, null)
-import Data.Eq ((==))
+import Data.Array.NonEmpty (NonEmptyArray)
+import Data.Eq ((==), class Eq)
+import Data.Foldable (fold, foldr)
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.List (sort, filter)
-import Data.Show (class Show)
+import Data.HeytingAlgebra ((&&), (||), not)
+import Data.List (sort, filter, List(..))
+import Data.Show (class Show, show)
 import Data.Semigroup ((<>))
 import Data.String (contains)
 import Data.String.Common (toLower)
@@ -16,25 +20,36 @@ import Data.String.Pattern (Pattern(..))
 import DataModel.Index (Index(..), CardEntry(..))
 import Views.SimpleWebComponents (clickableListItemWidget)
 
-data IndexFilter = TitleFilter String | TagFilter String | RecentFilter | UntaggedFilter | NoFilter
+data IndexFilter = ComposedAndFilter IndexFilter IndexFilter | ComposedOrFilter IndexFilter IndexFilter | TitleFilter String | TagFilter String | RecentFilter | UntaggedFilter | NoFilter
 instance showIndexFilter :: Show IndexFilter where
+  show (ComposedAndFilter f f') = "Composed and filter: " <> show f <> " and " <> show f'
+  show (ComposedOrFilter f f') = "Composed or filter: " <> show f <> " or " <> show f'
   show (TitleFilter title) = "Title filter: " <> title
   show (TagFilter tag) = "Tag filter: " <> tag
   show (RecentFilter) = "Recent filter"
   show (UntaggedFilter) = "Untagged"
   show (NoFilter) = "No filter"
 
-indexView :: Index -> IndexFilter -> Widget HTML CardEntry
-indexView (Index cards) indexFilter = do
-  let sortedCards = fromFoldable $ filter (toFilterFunc indexFilter) $ sort cards :: Array CardEntry
+derive instance eqIndexFilter :: Eq IndexFilter
+
+type ComplexIndexFilter = { archived :: Boolean, indexFilter :: IndexFilter }
+
+indexView :: Index -> ComplexIndexFilter -> Widget HTML CardEntry
+indexView (Index cards) complexIndexFilter = do
+  let sortedCards = fromFoldable $ filter (complexToFilterFunc complexIndexFilter) $ sort cards :: Array CardEntry
   ol []
     ((\entry@(CardEntry { title, archived }) -> 
       clickableListItemWidget false (text title) (if archived then ["archived"] else []) entry
      ) <$> sortedCards)
 
+complexToFilterFunc :: ComplexIndexFilter -> (CardEntry -> Boolean)
+complexToFilterFunc { archived, indexFilter } = \ce@(CardEntry r) -> ((archived) || (not archived && r.archived == false)) && (toFilterFunc indexFilter) ce
+
 toFilterFunc :: IndexFilter -> (CardEntry -> Boolean)
-toFilterFunc (TitleFilter title) = \(CardEntry r) -> if title == "" then true else contains (Pattern (toLower title)) (toLower r.title)
-toFilterFunc (TagFilter tag)     = \(CardEntry r) -> elem tag r.tags
-toFilterFunc (RecentFilter)      = \(CardEntry _) -> true --TODO
-toFilterFunc (UntaggedFilter)    = \(CardEntry r) -> null r.tags
-toFilterFunc  NoFilter           = \_ -> true
+toFilterFunc (ComposedOrFilter f f')  = \a -> (toFilterFunc f) a || (toFilterFunc f') a
+toFilterFunc (ComposedAndFilter f f') = \a -> (toFilterFunc f) a && (toFilterFunc f') a
+toFilterFunc (TitleFilter title)   = \(CardEntry r) -> if title == "" then true else contains (Pattern (toLower title)) (toLower r.title)
+toFilterFunc (TagFilter tag)       = \(CardEntry r) -> elem tag r.tags
+toFilterFunc (RecentFilter)        = \(CardEntry _) -> true --TODO
+toFilterFunc (UntaggedFilter)      = \(CardEntry r) -> null r.tags
+toFilterFunc  NoFilter             = \_ -> true
