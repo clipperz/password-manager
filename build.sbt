@@ -1,4 +1,6 @@
+import complete.DefaultParsers._
 import Dependencies._
+import java.nio.file.Paths
 
 lazy val installPurescript = TaskKey[Unit]("installPurescript", "Install purescript")
 installPurescript := {
@@ -53,6 +55,14 @@ lazy val runTestPurescript = TaskKey[Unit]("runTestPurescript", "Run test fronte
 runTestPurescript := {
   import sys.process._
   "yarn test-browser" !
+}
+
+lazy val cleanTargetSubdir = inputKey[Unit]("Clean the given subdirectory of the target directory")
+cleanTargetSubdir := {
+  import sys.process._
+  val directory: String = spaceDelimited("<arg>").parsed(0)
+  val path = Paths.get(baseDirectory.value.toString(), "target", directory)
+  s"rm -rf ${path}" !
 }
 
 //=====================================================================
