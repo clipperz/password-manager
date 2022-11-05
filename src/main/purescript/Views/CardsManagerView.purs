@@ -14,7 +14,7 @@ import Data.Eq ((==), (/=))
 import Data.Foldable (any)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
-import Data.HeytingAlgebra ((||))
+import Data.HeytingAlgebra ((||), not)
 import Data.List (fold, filter, length, toUnfoldable, List(..))
 import Data.Maybe (Maybe(..))
 import Data.PrettyShow (prettyShow)
@@ -54,7 +54,6 @@ data InternalAction = CardViewAction CardViewAction | ChangeFilter ComplexIndexF
 
 cardsManagerView :: Index -> ComplexIndexFilter -> CardViewState -> Maybe AppError -> Widget HTML (Tuple ComplexIndexFilter CardViewAction)
 cardsManagerView i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: _, cardViewState } error = do 
-  log $ show $ indexFilter
   res <- div [Props._id "cardsManager"] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
     ChangeFilter <$> div [Props._id "filterView"] [
       prepareFilter <$> ol [][
@@ -65,7 +64,7 @@ cardsManagerView i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: _
     , (prepareFilter <<< TitleFilter) <$> simpleTextInputWidgetWithFocus "titleFilter" (text "Title") "Card title" currentTitleFilter
     , prepareFilter <$> div [] [
       text "Tags"
-      ,  ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag) <$> allSortedTags)
+      ,  ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag) <$> shownSortedTags)
       ]
     , toggleArchivedButton
     ]
@@ -106,6 +105,8 @@ cardsManagerView i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: _
       _ -> ""
 
     allSortedTags = sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) <$> entries
+
+    shownSortedTags = sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) <$> (filter (\(CardEntry r) -> archived || (not r.archived)) entries)
 
     getFilterHeader :: forall a. IndexFilter -> Widget HTML a
     getFilterHeader f =
