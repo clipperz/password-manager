@@ -86,11 +86,20 @@ cardsManagerView i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: _
     ]
   ]
   case res of
-    CardViewAction (ShowCard ref) -> cardsManagerView i cif { cardView: CardFromReference ref, cardViewState } Nothing -- TODO: discuss
-    CardViewAction action -> pure $ Tuple cif action
+    CardViewAction (ShowCard ref) -> cardsManagerView i (removeLastCardFilter cif (Just ref)) { cardView: CardFromReference ref, cardViewState } Nothing -- TODO: discuss
+    CardViewAction action -> pure $ Tuple (removeLastCardFilter cif Nothing) action
     ChangeFilter newFilter -> cardsManagerView i newFilter cvs Nothing
 
   where
+    removeLastCardFilter cf@{ archived: archived', indexFilter: indexFilter' } mRef =
+      case indexFilter' of
+        ComposedAndFilter (SpecificCardFilter ce) filter -> if (Just ce) == mRef then cf else{ archived: archived', indexFilter: filter }
+        ComposedAndFilter filter (SpecificCardFilter ce) -> if (Just ce) == mRef then cf else{ archived: archived', indexFilter: filter }
+        ComposedOrFilter (SpecificCardFilter ce) filter -> if (Just ce) == mRef then cf else{ archived: archived', indexFilter: filter }
+        ComposedOrFilter filter (SpecificCardFilter ce) -> if (Just ce) == mRef then cf else{ archived: archived', indexFilter: filter }
+        SpecificCardFilter ce -> if (Just ce) == mRef then cf else { archived: archived', indexFilter: NoFilter }
+        _ -> cf
+
     toggleArchivedButton = 
       if cif.archived then
         simpleButton "Don't show archived cards" false { archived: false, indexFilter }
@@ -106,7 +115,9 @@ cardsManagerView i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: _
 
     allSortedTags = sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) <$> entries
 
-    shownSortedTags = sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) <$> (filter (\(CardEntry r) -> archived || (not r.archived)) entries)
+    shownEntries = filter (\(CardEntry r) -> archived || (not r.archived)) entries
+
+    shownSortedTags = sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) <$> shownEntries
 
     getFilterHeader :: forall a. IndexFilter -> Widget HTML a
     getFilterHeader f =
@@ -114,13 +125,14 @@ cardsManagerView i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: _
         ComposedAndFilter f' f'' -> p' [getFilterHeader f', text " and ", getFilterHeader f'']
         ComposedOrFilter f' f''  -> p' [getFilterHeader f', text " or ", getFilterHeader f'']
         TitleFilter title      -> text title
+        SpecificCardFilter ce  -> text "last created card"
         TagFilter tag          -> text tag
         RecentFilter           -> text "recent"
         UntaggedFilter         -> text "untagged"
         NoFilter               -> text "clipperz logo"
 
-    countCards :: IndexFilter -> Int
-    countCards indexFilt = length $ filter (toFilterFunc indexFilt) entries
+    countShownCards :: IndexFilter -> Int
+    countShownCards indexFilt = length $ filter (toFilterFunc indexFilt) shownEntries
 
     getFilterListElement :: IndexFilter -> String -> Widget HTML IndexFilter
-    getFilterListElement indexFilt s = clickableListItemWidget false (div [] [ text s, div [] [text $ show $ countCards indexFilt]]) [] indexFilt
+    getFilterListElement indexFilt s = clickableListItemWidget false (div [] [ text s, div [] [text $ show $ countShownCards indexFilt]]) [] indexFilt

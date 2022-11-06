@@ -50,7 +50,7 @@ cardsManagerWidget ind cardViewState = go ind { archived: false, indexFilter: No
 getUpdateIndexOp :: Index -> ComplexIndexFilter -> IndexUpdateData -> Aff CardsViewResult
 getUpdateIndexOp index@(Index list) indexFilter (IndexUpdateData action _) =
   case action of 
-    AddReference                        entry -> flap (addEntryToIndex entry) { archived: false, indexFilter: NoFilter } 
+    AddReference                        entry -> flap (addEntryToIndex entry) { archived: false, indexFilter: ComposedOrFilter (SpecificCardFilter entry) indexFilter.indexFilter } 
     CloneReference                      entry -> flap (addEntryToIndex entry) indexFilter
     ChangeReferenceWithEdit    oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) indexFilter
     ChangeReferenceWithoutEdit oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) indexFilter
