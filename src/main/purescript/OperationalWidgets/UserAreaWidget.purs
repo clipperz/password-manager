@@ -14,7 +14,7 @@ import OperationalWidgets.ImportWidget (importWidget)
 import OperationalWidgets.ChangePasswordWidget (changePasswordWidget, emptyChangePasswordDataForm)
 import OperationalWidgets.DeleteUserWidget (deleteUserWidget)
 
-data UserAreaAction = Loaded (Either AppError Index) | Logout | DeleteAccount
+data UserAreaAction = Loaded (Either AppError Index) | Lock | Logout | DeleteAccount
 
 userAreaWidget :: Index -> Widget HTML UserAreaAction
 userAreaWidget index = 
@@ -22,5 +22,6 @@ userAreaWidget index =
     Loaded <$> importWidget index
   , changePasswordWidget Default emptyChangePasswordDataForm
   , DeleteAccount <$ deleteUserWidget index Default
+  , simpleButton "Lock" false Lock
   , simpleButton "Logout" false Logout
   ]

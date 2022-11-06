@@ -26,6 +26,7 @@ type AppState =
   , sessionKey :: Maybe HexString
   , toll :: AsyncValue HexString
   , currentChallenge :: Maybe TollChallenge
+  , username :: Maybe String
   , c :: Maybe HexString
   , p :: Maybe HexString
   , srpInfo :: SRPInfo

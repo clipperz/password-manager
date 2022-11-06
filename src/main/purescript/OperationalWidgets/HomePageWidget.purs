@@ -12,15 +12,18 @@ import Control.Semigroupoid ((<<<))
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
+import Data.Maybe (Maybe(..), maybe)
 import Data.PrettyShow (prettyShow)
 import Data.Show (show)
 import Data.Unit (Unit, unit)
 import DataModel.Index (Index)
 import DataModel.WidgetState (WidgetState(..))
+import Effect (Effect)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Users (getIndex)
+import Functions.JSState (getAppState)
 import Functions.State (resetState)
 import Views.CardsManagerView (CardView(..))
 import Views.SimpleWebComponents (simpleButton, loadingDiv)
@@ -29,7 +32,9 @@ import OperationalWidgets.UserAreaWidget (userAreaWidget, UserAreaAction(..))
 
 data HomePageAction = UserAreaAction UserAreaAction | LogoutAction
 
-homePageWidget :: Widget HTML Unit
+data HomePageExitStatus = Clean | ReadyForLogin String
+
+homePageWidget :: Widget HTML HomePageExitStatus
 homePageWidget = go Loading
   where 
     go widgetState = do
@@ -39,7 +44,7 @@ homePageWidget = go Loading
         Error err -> div [] [text err, simpleButton "Go back to login" false LogoutAction]
       interpretHomePageActions res
     
-    homePage :: Index -> CardView -> Widget HTML Unit
+    homePage :: Index -> CardView -> Widget HTML HomePageExitStatus
     homePage index cardView = do
       result <- div [Props._id "homePage"] [
                   cardsManagerWidget index { cardView: cardView, cardViewState: Default }
@@ -47,19 +52,30 @@ homePageWidget = go Loading
                 ]
       interpretHomePageActions result
 
-    interpretHomePageActions :: HomePageAction -> Widget HTML Unit
+    interpretHomePageActions :: HomePageAction -> Widget HTML HomePageExitStatus
     interpretHomePageActions result =
       case result of
         UserAreaAction (Loaded (Right index)) -> homePage index NoCard         
         UserAreaAction (Loaded (Left err)) -> do
           _ <- liftEffect $ log $ show err
           go (Error (prettyShow err))
-        UserAreaAction (Logout) -> do
+        UserAreaAction Lock -> do
+          maybeUser <- liftEffect $ getUsername
           liftAff $ resetState
-          pure unit
-        UserAreaAction (DeleteAccount) -> do
+          pure $ maybe Clean ReadyForLogin maybeUser
+        UserAreaAction Logout -> do
           liftAff $ resetState
-          pure unit
+          pure $ Clean
+        UserAreaAction DeleteAccount -> do
+          liftAff $ resetState
+          pure $ Clean
         LogoutAction -> do
           liftAff $ resetState
-          pure unit
+          pure $ Clean
+
+    getUsername :: Effect (Maybe String)
+    getUsername = do
+      state <- liftEffect $ getAppState
+      case state of
+        Left err -> pure $ Nothing
+        Right r@{username} -> pure $ username      

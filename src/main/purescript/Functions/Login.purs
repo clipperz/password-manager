@@ -24,7 +24,7 @@ doLogin { username, password } = do
   c    <- ExceptT $ Right <$> fromArrayBuffer <$> SRP.prepareC conf username password
   p    <- ExceptT $ Right <$> fromArrayBuffer <$> SRP.prepareP conf username password
 
-  withExceptT (prettyShow) (ExceptT $ updateAppState { c: Just c, p: Just p })
+  withExceptT (prettyShow) (ExceptT $ updateAppState { username: Just username, c: Just c, p: Just p })
 
   indexReference <- withExceptT (\_ -> "Login failed") login
   pure $ indexReference
