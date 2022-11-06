@@ -28,6 +28,7 @@
   , "exceptions"
   , "foldable-traversable"
   , "foreign-object"
+  , "formatters"
   , "fortuna"
   , "functions"
   , "functors"

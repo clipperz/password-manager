@@ -1,43 +1,51 @@
 @import "mixin";
 
 div.overlay {
-	@include mask;
 
-	.mask {
-		position: fixed;
-		z-index: -2;
-		
-		&.hidden {
-			display: none;
-		}
+    &.visible {
+	    @include mask;
 
-		&.card {
+        .mask {
+            position: fixed;
+            z-index: -2;
+            
+            &.hidden {
+                display: none;
+            }
 
-			top: 48px;
+            &.card {
 
-			.extra-wide & {
-				left: 46.6%;
-			}
+                top: 48px;
 
-			.wide & {
-				left: 33.3%;
-			}
+                .extra-wide & {
+                    left: 46.6%;
+                }
 
-			.narrow & {
-				left: 100%;
-			}
-		}
-	}
-	z-index: 99999;
-	position: fixed;
-	top: 50%;
-	left: 50%;
-	width: 200px;
-	height: 200px;
-	margin-left: -100px;
-	margin-top: -100px;
-	background: rgba(0,0,0,0.8);
-	@include border-radius(20px);
+                .wide & {
+                    left: 33.3%;
+                }
+
+                .narrow & {
+                    left: 100%;
+                }
+            }
+        }
+        z-index: 99999;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 200px;
+        height: 200px;
+        margin-left: -100px;
+        margin-top: -100px;
+        background: rgba(0,0,0,0.8);
+        @include border-radius(20px);
+    }
+
+    &.hidden {
+        visibility: hidden;
+        display: none;
+    }
 
 	&.card {
 		.extra-wide & {
@@ -50,7 +58,6 @@ div.overlay {
 
 	.title {
 		color: #FFF;
-//		font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
 		font-weight: bold;
 		text-align: center;
 		display: block;
@@ -83,7 +90,7 @@ div.overlay {
 			font-size: 80pt;
 		}
 	}
-
+/*
 	&.ios-overlay-show {
 		&:not(.card) {
 			@include animation(ios-overlay-show, 750ms);
@@ -122,6 +129,7 @@ div.overlay {
 			@include border-radius(2px);
 		}
 	}
+*/
 }
 
 //	http://37signals.com/svn/posts/2577-loading-spinner-animation-using-css-and-webkit

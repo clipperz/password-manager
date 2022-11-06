@@ -4,6 +4,7 @@
 .dotty-ide*
 .idea/
 .metals/
+.psc-ide-port
 .scala/
 .spago/
 .vscode/
