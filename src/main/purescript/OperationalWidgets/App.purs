@@ -46,34 +46,20 @@ app = do
 commitHash :: String
 commitHash = "epsilon"
 
+app :: forall a. Widget HTML a
+app = app' Loading
+
+-- ==================================================
+
+type PageStatus =
+{ page    :: Page
+, login   :: LoginForm
+, signin  ::            
+}
 data Page = Loading | Login | Signup | Main
 
-data PagePosition = Left | Center | Right
-instance showPagePosition :: Show PagePosition where
-  show Left   = "left"
-  show Center = "center"
-  show Right  = "right"
-
-pageClassName :: Page -> String
-pageClassName Loading = "loading"
-pageClassName Login   = "login"
-pageClassName Signup  = "signup"
-pageClassName Main    = "main"
-
-headerPage :: forall a. Page -> Page -> Array (Widget HTML a) -> Widget HTML a
-headerPage currentPage page innerContent =
-  div [Props.classList (Just <$> ["page", pageClassName page, location currentPage page])] [
-    div [Props.className "content"] [
-      headerComponent,
-      div [Props.className "content"] innerContent,
-      otherComponent,
-      footerComponent commitHash
-    ]
-  ]
-    
-
-app :: forall a. Page -> Widget HTML a
-app page = do
+app' :: forall a. Page -> Widget HTML a
+app' page = do
   newPage:: Page <- exitBooting page <|>
     div [Props.className "mainDiv"] [
       headerPage page Loading [],
@@ -90,13 +76,36 @@ app page = do
     <|>
     overlay { status: Hidden, message: "loading" }
   log $ "changing page " <> pageClassName newPage
-  app newPage
+  app' newPage
 
 -- ==================================================
+
+data PagePosition = Left | Center | Right
+instance showPagePosition :: Show PagePosition where
+  show Left   = "left"
+  show Center = "center"
+  show Right  = "right"
+
+pageClassName :: Page -> String
+pageClassName Loading = "loading"
+pageClassName Login   = "login"
+pageClassName Signup  = "signup"
+pageClassName Main    = "main"
 
 exitBooting :: Page -> Widget HTML Page
 exitBooting Loading = liftAff $ Login   <$ delay (Milliseconds 1.0)
 exitBooting _       = liftAff $ Loading <$ never
+
+headerPage :: forall a. Page -> Page -> Array (Widget HTML a) -> Widget HTML a
+headerPage currentPage page innerContent =
+  div [Props.classList (Just <$> ["page", pageClassName page, location currentPage page])] [
+    div [Props.className "content"] [
+      headerComponent,
+      div [Props.className "content"] innerContent,
+      otherComponent,
+      footerComponent commitHash
+    ]
+  ]
 
 headerComponent :: forall a. Widget HTML a
 headerComponent =

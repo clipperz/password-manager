@@ -28,5 +28,5 @@ loginWidget widgetState loginData = do
     Error err -> Credentials <$> loginFormView (Error err) loginData
   case res of
     Credentials credentials -> loginWidget Loading credentials
-    LoginDone -> pure unit
-    LoginFailed err -> loginWidget (Error err) loginData
+    LoginDone               -> pure unit
+    LoginFailed err         -> loginWidget (Error err) loginData
