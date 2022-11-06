@@ -31,7 +31,7 @@ import Effect.Class.Console (log)
 import Views.CardViews (cardView)
 import Views.CreateCardView (createCardView)
 import Views.IndexView (indexView, ComplexIndexFilter, IndexFilter(..), toFilterFunc)
-import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleTextInputWidgetWithFocus, clickableListItemWidget)
+import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleCheckboxWidget, simpleTextInputWidgetWithFocus, clickableListItemWidget)
 import OperationalWidgets.CardWidget (cardWidget)
 import OperationalWidgets.CreateCardWidget (createCardWidget)
 
@@ -61,7 +61,7 @@ cardsManagerView i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: _
       , getFilterListElement RecentFilter "Recent (TODO)"
       , getFilterListElement UntaggedFilter "Untagged"
       ]
-    , (prepareFilter <<< TitleFilter) <$> simpleTextInputWidgetWithFocus "titleFilter" (text "Title") "Card title" currentTitleFilter
+    , (prepareFilter <<< TitleFilter) <$> div [Props._id "generalFilterArea"] [simpleTextInputWidgetWithFocus "titleFilter" (text "Title") "Card title" currentTitleFilter]
     , prepareFilter <$> div [] [
       text "Tags"
       ,  ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag) <$> shownSortedTags)
@@ -101,10 +101,14 @@ cardsManagerView i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: _
         _ -> cf
 
     toggleArchivedButton = 
-      if cif.archived then
-        simpleButton "Don't show archived cards" false { archived: false, indexFilter }
-      else
-        simpleButton "Show archived cards" false { archived: true, indexFilter }
+      (\b -> { archived: b, indexFilter }) <$> div [Props._id "archivedFilterArea"] [ simpleCheckboxWidget 
+                                                          "show_archived_checkbox" 
+                                                          (div [] [ text "Show archived cards", div [] [text $ show countArchivedCards]]) 
+                                                          true
+                                                          archived
+                                                      ]
+
+    countArchivedCards = length $ filter (\(CardEntry r) -> r.archived) entries
 
     prepareFilter :: IndexFilter -> ComplexIndexFilter
     prepareFilter newFilter = {archived, indexFilter: newFilter}

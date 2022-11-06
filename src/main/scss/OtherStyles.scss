@@ -34,10 +34,6 @@ body {
 		background-color: $core-alternate-color;
 		color: $main-text-color;
 
-		label {
-			@include hide-element
-		}
-
 		li {
 			& > div {
 				display: flex;
@@ -57,7 +53,36 @@ body {
 				font-weight: bold;
 			}
 		}
+
+		#archivedFilterArea > div {
+			position: absolute;
+			bottom: 0;
+			display: flex;
+			& > label {
+				font-size: 70%;
+				& > div {
+					display: flex;
+					justify-content: space-between;
+					padding-right: 5px;
+
+					& > div {
+						display: block;
+						color: $alternate-text-color;
+						background-color: $alternate-color;
+						border-radius: 5px;
+						padding: 3px 5px;
+					}
+				}
+				
+				&:hover {
+					font-weight: bold;
+				}
+			}
+		}
 		
+		#generalFilterArea > div > label {
+			@include hide-element
+		}
 
 		#tagFilter {
 			padding-left: 10px;

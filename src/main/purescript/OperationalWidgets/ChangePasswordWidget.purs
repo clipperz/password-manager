@@ -83,7 +83,7 @@ changePasswordWidget state changeForm = do
             username' :: String <- simpleUserSignal username
             oldPassword' :: String <- loopW oldPassword (simplePasswordInputWidget "password" (text "Old password"))
             eitherPassword :: Either PasswordForm String <- simpleVerifiedPasswordSignal standardPasswordStrengthFunction $ Left {password, verifyPassword}
-            checkbox' :: Boolean <- simpleCheckboxSignal "not_recoverable" (text "I understand Clipperz won't be able to recover a lost password") notRecoverable
+            checkbox' :: Boolean <- simpleCheckboxSignal "not_recoverable" (text "I understand Clipperz won't be able to recover a lost password") false notRecoverable
             case eitherPassword of
               Left  passwords -> pure $ merge passwords { username: username', oldPassword: oldPassword', notRecoverable: checkbox'}
               Right s         -> pure { username: username', oldPassword: oldPassword', password: s, verifyPassword: s, notRecoverable: checkbox' }

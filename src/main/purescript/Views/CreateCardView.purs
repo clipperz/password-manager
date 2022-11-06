@@ -57,7 +57,7 @@ createCardView card allTags state = do
                 div [value <$ Props.onClick] []
               , passwordGenerator
               ]
-          locked' :: Boolean <- simpleCheckboxSignal "locked" (text "Locked") locked
+          locked' :: Boolean <- simpleCheckboxSignal "locked" (text "Locked") false locked
           pure { generatePassword, locked' }
         pure $ case generatePassword of
           Nothing -> CardField {name: name', value: value', locked: locked'}
