@@ -14,11 +14,11 @@ import DataModel.Credentials (Credentials)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Functions.Login (doLogin)
-import Views.LoginFormView (loginFormView, LoginForm)
+import Views.LoginFormView (loginFormView, LoginDataForm)
 
 data LoginWidgetResults = Credentials Credentials | LoginDone | LoginFailed String
 
-loginWidget :: WidgetState -> LoginForm -> Widget HTML Unit
+loginWidget :: WidgetState -> LoginDataForm -> Widget HTML Unit
 loginWidget widgetState loginData = do
   res <- case widgetState of
     Default -> Credentials <$> loginFormView Default loginData

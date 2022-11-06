@@ -12,12 +12,12 @@ import Data.Unit (Unit, unit)
 import DataModel.WidgetState (WidgetState(..))
 import Record (merge)
 import Views.SimpleWebComponents (simpleButton)
-import Views.LoginFormView (LoginForm)
+import Views.LoginFormView (LoginDataForm)
 import Views.SignupFormView (SignupDataForm, emptyDataForm)
 import OperationalWidgets.LoginWidget (loginWidget)
 import OperationalWidgets.SignupWidget (signupWidgetWithLogin)
 
-data LandingPageView = SignupView WidgetState SignupDataForm | LoginView WidgetState LoginForm
+data LandingPageView = SignupView WidgetState SignupDataForm | LoginView WidgetState LoginDataForm
 
 data LandingWidgetAction = LandingPageView LandingPageView | Login
 

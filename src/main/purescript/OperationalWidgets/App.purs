@@ -24,7 +24,8 @@ import Effect.Class.Console (log)
 -- import Functions.State (computeInitialState)
 -- import Functions.JSState (modifyAppState)
 -- import OperationalWidgets.HomePageWidget as HomePageWidget
--- import Views.LoginFormView (emptyForm)
+import Views.LoginFormView (LoginDataForm, emptyForm)
+import Views.SignupFormView (SignupDataForm, emptyDataForm)
 -- import Views.LandingPageView (landingPageView, LandingPageView(..))
 
 {-
@@ -52,10 +53,10 @@ app = app' Loading
 -- ==================================================
 
 type PageStatus =
-{ page    :: Page
-, login   :: LoginForm
-, signin  ::            
-}
+  { page    :: Page
+  , login   :: LoginDataForm
+  , signin  :: SignupDataForm
+  }
 data Page = Loading | Login | Signup | Main
 
 app' :: forall a. Page -> Widget HTML a

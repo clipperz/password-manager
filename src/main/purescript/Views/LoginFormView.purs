@@ -18,19 +18,19 @@ import DataModel.WidgetState (WidgetState(..))
 import Views.SimpleWebComponents (simpleButton, loadingDiv)
 
 -- | The data of the login form
-type LoginForm =  { username :: String
-                  , password :: String
-                  }
+type LoginDataForm =  { username :: String
+                      , password :: String
+                      }
 
-emptyForm :: LoginForm
+emptyForm :: LoginDataForm
 emptyForm = { username: "", password: "" }
 -- For testing purpose
 -- emptyForm = {username: "joe", password: "clipperz"}
 
-isFormValid :: LoginForm -> Boolean
+isFormValid :: LoginDataForm -> Boolean
 isFormValid { username, password } = username /= "" && password /= ""
 
-loginFormView :: WidgetState -> LoginForm -> Widget HTML Credentials
+loginFormView :: WidgetState -> LoginDataForm -> Widget HTML Credentials
 loginFormView state loginFormData = 
   case state of
     Default   -> div [] [              form loginFormData]
@@ -41,7 +41,7 @@ loginFormView state loginFormData =
     errorDiv :: forall a. String -> Widget HTML a
     errorDiv err = div' [text err]
 
-    form :: LoginForm -> Widget HTML Credentials
+    form :: LoginDataForm -> Widget HTML Credentials
     form formData = div [Props.className "form"] [ do
         signalResult <- demand $ do
           formValues <- loopS formData $ \{username: username, password: password} -> do
@@ -76,5 +76,5 @@ loginFormView state loginFormData =
         pure signalResult
     ]
 
-    submitButton :: LoginForm -> Widget HTML LoginForm
+    submitButton :: LoginDataForm -> Widget HTML LoginDataForm
     submitButton f = simpleButton "login" (not (isFormValid f)) f
