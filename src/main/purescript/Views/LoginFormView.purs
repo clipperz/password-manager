@@ -59,9 +59,9 @@ loginFormView state loginFormData = do
   storage <- liftEffect $ window >>= localStorage
   maybeSavedUser <- liftEffect $ getItem (makeKey "user") storage
   maybeSavedPassphrase <- liftEffect $ getItem (makeKey "passphrase") storage
-  case (Tuple maybeSavedUser maybeSavedPassphrase) of
-    Tuple (Just user) (Just passphrase) -> formPin user passphrase state storage
-    _ -> formNoPassphrase state loginFormData
+  case maybeSavedUser, maybeSavedPassphrase of
+    (Just user), (Just passphrase) -> formPin user passphrase state storage
+    _, _ -> formNoPassphrase state loginFormData
   
   where
     formNoPassphrase :: WidgetState -> LoginForm -> Widget HTML Credentials

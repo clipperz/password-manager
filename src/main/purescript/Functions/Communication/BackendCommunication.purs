@@ -131,9 +131,9 @@ manageGenericRequest url method body responseFormat = do
         extractChallenge headers =
           let tollArray = filter (\a -> name a == tollHeaderName) headers
               costArray = filter (\a -> name a == tollCostHeaderName) headers
-          in case (Tuple tollArray costArray) of
-              Tuple [tollHeader] [costHeader] -> (\cost -> { toll: hex $ value tollHeader, cost }) <$> fromString (value costHeader)
-              _                               -> Nothing
+          in case tollArray, costArray of
+              [tollHeader], [costHeader] -> (\cost -> { toll: hex $ value tollHeader, cost }) <$> fromString (value costHeader)
+              _, _                               -> Nothing
 
 doGenericRequest :: forall a. Proxy -> RequestInfo a -> Aff (Either ProtocolError (AXW.Response a))
 doGenericRequest (OnlineProxy baseUrl) (OnlineRequestInfo { url, method, headers, body, responseFormat }) =
