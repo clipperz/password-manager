@@ -82,9 +82,7 @@ loginFormView state loginFormData = do
         Loading -> div [] [pinView]
         Error err -> div [] [errorDiv err, pinView]
       case maybePin of
-        NormalLogin -> do
-          log "there"
-          formNoPassphrase state (emptyForm { username = user })
+        NormalLogin -> formNoPassphrase state (emptyForm { username = user })
         Pin pin -> do
           ei :: Either AppError Credentials <- liftAff $ runExceptT $ do
             state@{ username, password } <- ExceptT $ liftEffect getAppState
@@ -150,7 +148,7 @@ loginFormView state loginFormData = do
             pin <- loopW "" (simpleNumberInputWidget "pinField" (text "Login") "PIN")
             pure $ (fromString pin) >>= (\p -> if pinValid p then Just p else Nothing) 
           pure signalResult
-      , NormalLogin <$ a [] [text "Use credentials to login"]
+      , NormalLogin <$ a [Props.onClick] [text "Use credentials to login"]
       ] 
 
     submitButton :: LoginForm -> Widget HTML LoginForm
