@@ -13,6 +13,7 @@ import Views.SimpleWebComponents (simpleButton)
 import OperationalWidgets.ImportWidget (importWidget)
 import OperationalWidgets.ChangePasswordWidget (changePasswordWidget, emptyChangePasswordDataForm)
 import OperationalWidgets.DeleteUserWidget (deleteUserWidget)
+import OperationalWidgets.PinWidget (setPinWidget)
 
 data UserAreaAction = Loaded (Either AppError Index) | Lock | Logout | DeleteAccount
 
@@ -20,6 +21,7 @@ userAreaWidget :: Index -> Widget HTML UserAreaAction
 userAreaWidget index = 
   div [Props._id "userSidebar"] [
     Loaded <$> importWidget index
+  , setPinWidget Default
   , changePasswordWidget Default emptyChangePasswordDataForm
   , DeleteAccount <$ deleteUserWidget index Default
   , simpleButton "Lock" false Lock

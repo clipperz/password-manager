@@ -25,6 +25,7 @@ computeInitialState = pure { proxy: (OnlineProxy baseUrl)
                            , currentChallenge: Nothing
                            , toll: (Loading Nothing)
                            , username: Nothing
+                           , password: Nothing
                            , c: Nothing
                            , p: Nothing
                            , srpInfo: baseSRPInfo

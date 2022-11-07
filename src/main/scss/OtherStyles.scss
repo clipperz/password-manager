@@ -272,3 +272,7 @@ li.archived {
 	font-weight: bolder;
 	z-index: 10;
 }
+
+input[type=number] {
+	-moz-appearance: textfield;
+}

@@ -27,6 +27,7 @@
   , "enums"
   , "exceptions"
   , "foldable-traversable"
+  , "foreign"
   , "foreign-object"
   , "fortuna"
   , "functions"
@@ -53,6 +54,8 @@
   , "transformers"
   , "tuples"
   , "unfoldable"
+  , "web-html"
+  , "web-storage"
   ]
 , packages = ./packages.dhall
 }
