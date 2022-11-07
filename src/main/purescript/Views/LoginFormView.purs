@@ -2,6 +2,7 @@ module Views.LoginFormView where
 
 import Control.Applicative (pure)
 import Control.Bind (bind, (>>=), discard)
+import Control.Semigroupoid ((<<<))
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, loopW, fireOnce, demand)
 import Concur.React (HTML)
@@ -15,11 +16,12 @@ import Data.Functor ((<$>), (<$))
 import Data.HexString (hex, toArrayBuffer, toString, Base(..))
 import Data.HeytingAlgebra ((&&), not)
 import Data.Int (fromString)
-import Data.Maybe (maybe, Maybe(..))
+import Data.Maybe (maybe, Maybe(..), fromMaybe)
 import Data.PrettyShow (prettyShow)
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
-import Data.Semiring ((*))
+import Data.Semiring ((*), (+))
+import Data.Show (show)
 import Data.String.CodeUnits (splitAt, length)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Credentials (Credentials)
@@ -62,26 +64,29 @@ loginFormView state loginFormData = do
       maybeSavedPassphrase <- liftEffect $ getItem (makeKey "passphrase") storage
       case maybeSavedPassphrase of
         Nothing -> formNoPassphrase state (loginFormData { username = user })
-        Just passphrase -> formPin user passphrase state
+        Just passphrase -> formPin user passphrase state storage
     Nothing -> formNoPassphrase state loginFormData
   
   where
+    formNoPassphrase :: WidgetState -> LoginForm -> Widget HTML Credentials
     formNoPassphrase state formData = 
       case state of
         Default   -> div [] [              form formData]
         Loading   -> div [] [loadingDiv,   form formData]
         Error err -> div [] [errorDiv err, form formData]
 
-    formPin :: String -> String -> WidgetState -> Widget HTML Credentials
-    formPin user encryptedPassphrase state = do
+    formPin :: String -> String -> WidgetState -> Storage -> Widget HTML Credentials
+    formPin user encryptedPassphrase state storage = do
       maybePin <- case state of
         Default -> div [] [pinView]
         Loading -> div [] [pinView]
         Error err -> div [] [errorDiv err, pinView]
       case maybePin of
-        NormalLogin -> formNoPassphrase state (emptyForm { username = user })
+        NormalLogin -> do
+          log "there"
+          formNoPassphrase state (emptyForm { username = user })
         Pin pin -> do
-          ei <- liftAff $ runExceptT $ do
+          ei :: Either AppError Credentials <- liftAff $ runExceptT $ do
             state@{ username, password } <- ExceptT $ liftEffect getAppState
             let hashf = getHashFunctionFromAppState state
             key <- ExceptT $ Right <$> (liftAff $ generateKeyFromPin hashf pin)
@@ -91,8 +96,14 @@ loginFormView state loginFormData = do
             log split
             pure { username: user, password: split }
           case ei of
-            Right f -> pure f
-            Left err -> formPin user encryptedPassphrase (Error "Wrong pin")
+            Right f -> do
+              liftEffect $ setItem (makeKey "failures") (show 0) storage
+              pure f
+            Left err -> do
+              failures <- liftEffect $ getItem (makeKey "failures") storage
+              let count = (((fromMaybe 0) <<< fromString <<< (fromMaybe "")) failures) + 1
+              liftEffect $ setItem (makeKey "failures") (show count) storage
+              formPin user encryptedPassphrase (Error "Wrong pin") storage
 
     errorDiv :: forall a. String -> Widget HTML a
     errorDiv err = div' [text err]
