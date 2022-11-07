@@ -42,20 +42,26 @@ homePageWidget = go Loading
         Default -> div [] []
         Loading -> loadingDiv <|> ((UserAreaAction <<< Loaded) <$> (liftAff $ runExceptT $ getIndex))
         Error err -> div [] [text err, simpleButton "Go back to login" false LogoutAction]
-      interpretHomePageActions res
+      interpretHomePageActions Nothing Nothing res
     
     homePage :: Index -> CardView -> Widget HTML HomePageExitStatus
     homePage index cardView = do
       result <- div [Props._id "homePage"] [
                   cardsManagerWidget index { cardView: cardView, cardViewState: Default }
-                , UserAreaAction <$> userAreaWidget index
+                , do
+                    simpleButton "Open user area" false unit
+                    UserAreaAction <$> userAreaWidget index
                 ]
-      interpretHomePageActions result
+      interpretHomePageActions (Just index) (Just cardView) result
 
-    interpretHomePageActions :: HomePageAction -> Widget HTML HomePageExitStatus
-    interpretHomePageActions result =
+    interpretHomePageActions :: Maybe Index -> Maybe CardView -> HomePageAction -> Widget HTML HomePageExitStatus
+    interpretHomePageActions ix cv result =
       case result of
         UserAreaAction (Loaded (Right index)) -> homePage index NoCard         
+        UserAreaAction NoAction -> 
+          case ix, cv of
+            (Just ix), (Just cv) -> homePage ix cv
+            _, _ -> go (Error "Inconsistent state")
         UserAreaAction (Loaded (Left err)) -> do
           _ <- liftEffect $ log $ show err
           go (Error (prettyShow err))

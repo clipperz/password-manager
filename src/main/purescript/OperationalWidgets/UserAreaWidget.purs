@@ -15,12 +15,13 @@ import OperationalWidgets.ChangePasswordWidget (changePasswordWidget, emptyChang
 import OperationalWidgets.DeleteUserWidget (deleteUserWidget)
 import OperationalWidgets.PinWidget (setPinWidget)
 
-data UserAreaAction = Loaded (Either AppError Index) | Lock | Logout | DeleteAccount
+data UserAreaAction = Loaded (Either AppError Index) | Lock | Logout | DeleteAccount | NoAction
 
 userAreaWidget :: Index -> Widget HTML UserAreaAction
 userAreaWidget index = 
   div [Props._id "userSidebar"] [
-    Loaded <$> importWidget index
+    simpleButton "Close user area" false NoAction
+  , Loaded <$> importWidget index
   , setPinWidget Default
   , changePasswordWidget Default emptyChangePasswordDataForm
   , DeleteAccount <$ deleteUserWidget index Default
