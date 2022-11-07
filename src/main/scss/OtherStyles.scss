@@ -25,6 +25,13 @@ body {
 	color: $core-alternate-text-color;
 }
 
+.form > a {
+	&:hover {
+		font-weight: bold;
+	}
+	color: $alternate-text-color;
+}
+
 #cardsManager {
 	width: 100%;
 	height: 100%;

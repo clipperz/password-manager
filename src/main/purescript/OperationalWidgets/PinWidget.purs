@@ -52,6 +52,7 @@ import Foreign (ForeignError(..))
 import Functions.ArrayBuffer (bigIntToArrayBuffer, concatArrayBuffers)
 import Functions.EncodeDecode (encryptJson)
 import Functions.JSState (getAppState)
+import Functions.Pin (generateKeyFromPin)
 import Functions.State (getHashFunctionFromAppState)
 import Views.SimpleWebComponents (simpleButton, simpleNumberInputWidget)
 import Web.HTML (window)
@@ -60,6 +61,9 @@ import Web.Storage.Storage (getItem, setItem, removeItem, Storage)
 
 makeKey :: String -> String
 makeKey = (<>) "clipperz.is."
+
+pinValid :: Int -> Boolean
+pinValid p = p > 9999 && p < 100000
 
 setPinWidget :: forall a. WidgetState -> Widget HTML a
 setPinWidget ws = do
@@ -88,7 +92,7 @@ setPinWidget ws = do
 
     submitWidget pin =
       case fromString pin of
-        Just p -> simpleButton "Save" (not (p > 9999 && p < 100000)) p
+        Just p -> simpleButton "Save" (not (pinValid p)) p
         Nothing -> simpleButton "Save" true 0
 
     saveCredentials :: Int -> Storage -> ExceptT AppError (Widget HTML) Unit
@@ -97,8 +101,7 @@ setPinWidget ws = do
       u <- except $ note (InvalidStateError (MissingValue "Missing username from state")) username
       p <- except $ note (InvalidStateError (MissingValue "Missing password from state")) password
       let hashf = getHashFunctionFromAppState state
-      pinBuffer <- ExceptT $ Right <$> (liftAff $ hashf $ (bigIntToArrayBuffer $ fromInt pin) : Nil)
-      key <- ExceptT $ Right <$> (liftAff $ KI.importKey raw pinBuffer (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey])
+      key <- ExceptT $ Right <$> (liftAff $ generateKeyFromPin hashf pin)
 
       -- 256 bits
       let paddingBytesLength = (256 - 16 * length (show (hex p))) / 8

@@ -58,16 +58,18 @@ instance encodeJsonhashState :: EncodeJson HashState where
 instance decodeJsonHashState :: DecodeJson HashState where
   decodeJson a = genericDecodeJson a
 
-data InvalidStateError = CorruptedState String | MissingValue String
+data InvalidStateError = CorruptedState String | MissingValue String | CorruptedSavedPassphrase String
 instance showInvalidStateError :: Show InvalidStateError where
   show (CorruptedState s) = "Corrupted state: " <> s
   show (MissingValue s) = "Missing value in state: " <> s
+  show (CorruptedSavedPassphrase s) =" Corrupted passphrase in local storage: " <> s
 
 derive instance eqInvalidStateError :: Eq InvalidStateError
 
 instance prettyShowInvalidStateError :: PrettyShow InvalidStateError where
   prettyShow (CorruptedState _) = "The application state is corrupted, please restart it."
   prettyShow (MissingValue _) = "The application state is corrupted, please restart it."
+  prettyShow (CorruptedSavedPassphrase _) = "Clipperz could not decrypt your credentials, please log in without using the device PIN."
 
 data AppError = InvalidStateError InvalidStateError | ProtocolError ProtocolError | ImportError String
 instance showAppError :: Show AppError where

@@ -1,21 +1,44 @@
 module Views.LoginFormView where
 
 import Control.Applicative (pure)
-import Control.Bind (bind)
+import Control.Bind (bind, (>>=), discard)
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, loopW, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', text, label, input)
+import Concur.React.DOM (div, div', text, label, input, a, fieldset)
 import Concur.React.Props as Props
+import Control.Monad.Except.Trans (ExceptT(..), runExceptT, except, withExceptT)
+import Data.Either (Either(..))
 import Data.Eq ((/=))
 import Data.Function (($))
-import Data.Functor ((<$>))
+import Data.Functor ((<$>), (<$))
+import Data.HexString (hex, toArrayBuffer, toString, Base(..))
 import Data.HeytingAlgebra ((&&), not)
+import Data.Int (fromString)
+import Data.Maybe (maybe, Maybe(..))
+import Data.PrettyShow (prettyShow)
+import Data.Ring ((-))
+import Data.Semigroup ((<>))
+import Data.Semiring ((*))
+import Data.String.CodeUnits (splitAt, length)
+import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Credentials (Credentials)
 import DataModel.WidgetState (WidgetState(..))
+import Effect.Aff.Class (liftAff)
+import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
+import Effect.Exception as EX
+import Functions.EncodeDecode (decryptJson)
+import Functions.JSState (getAppState)
+import Functions.Pin (generateKeyFromPin)
+import Functions.State (getHashFunctionFromAppState)
+import OperationalWidgets.PinWidget (makeKey, pinValid)
+import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleNumberInputWidget)
+import Web.HTML (window)
+import Web.HTML.Window (localStorage)
+import Web.Storage.Storage (getItem, setItem, removeItem, Storage)
 
--- import Views.SimpleWebComponents (simpleButton, simpleUserSignal, simplePasswordSignal, loadingDiv, simpleTextInputWidget)
-import Views.SimpleWebComponents (simpleButton, loadingDiv)
+data PinViewResult = Pin Int | NormalLogin
 
 -- | The data of the login form
 type LoginForm =  { username :: String
@@ -31,13 +54,46 @@ isFormValid :: LoginForm -> Boolean
 isFormValid { username, password } = username /= "" && password /= ""
 
 loginFormView :: WidgetState -> LoginForm -> Widget HTML Credentials
-loginFormView state loginFormData = 
-  case state of
-    Default   -> div [] [              form loginFormData]
-    Loading   -> div [] [loadingDiv,   form loginFormData]
-    Error err -> div [] [errorDiv err, form loginFormData]
+loginFormView state loginFormData = do
+  storage <- liftEffect $ window >>= localStorage
+  maybeSavedUser <- liftEffect $ getItem (makeKey "user") storage
+  case maybeSavedUser of
+    Just user -> do
+      maybeSavedPassphrase <- liftEffect $ getItem (makeKey "passphrase") storage
+      case maybeSavedPassphrase of
+        Nothing -> formNoPassphrase state (loginFormData { username = user })
+        Just passphrase -> formPin user passphrase state
+    Nothing -> formNoPassphrase state loginFormData
   
   where
+    formNoPassphrase state formData = 
+      case state of
+        Default   -> div [] [              form formData]
+        Loading   -> div [] [loadingDiv,   form formData]
+        Error err -> div [] [errorDiv err, form formData]
+
+    formPin :: String -> String -> WidgetState -> Widget HTML Credentials
+    formPin user encryptedPassphrase state = do
+      maybePin <- case state of
+        Default -> div [] [pinView]
+        Loading -> div [] [pinView]
+        Error err -> div [] [errorDiv err, pinView]
+      case maybePin of
+        NormalLogin -> formNoPassphrase state (emptyForm { username = user })
+        Pin pin -> do
+          ei <- liftAff $ runExceptT $ do
+            state@{ username, password } <- ExceptT $ liftEffect getAppState
+            let hashf = getHashFunctionFromAppState state
+            key <- ExceptT $ Right <$> (liftAff $ generateKeyFromPin hashf pin)
+            let ab = toArrayBuffer $ hex $ encryptedPassphrase
+            { padding: padding, passphrase: passphrase } :: { padding :: Int, passphrase :: String } <- withExceptT (\e -> InvalidStateError $ CorruptedSavedPassphrase $ "Decrypt passphrase: " <> EX.message e) $ ExceptT $ decryptJson key ab
+            let split = toString Dec $ hex $ (splitAt ((length passphrase) - (padding * 2)) passphrase).before
+            log split
+            pure { username: user, password: split }
+          case ei of
+            Right f -> pure f
+            Left err -> formPin user encryptedPassphrase (Error "Wrong pin")
+
     errorDiv :: forall a. String -> Widget HTML a
     errorDiv err = div' [text err]
 
@@ -75,6 +131,16 @@ loginFormView state loginFormData =
         -- liftEffect $ log $ "signalResult " <> show signalResult
         pure signalResult
     ]
+
+    pinView :: Widget HTML PinViewResult
+    pinView = div [Props.className "form"] [
+        Pin <$> do
+          signalResult <- demand $ do
+            pin <- loopW "" (simpleNumberInputWidget "pinField" (text "Login") "PIN")
+            pure $ (fromString pin) >>= (\p -> if pinValid p then Just p else Nothing) 
+          pure signalResult
+      , NormalLogin <$ a [] [text "Use credentials to login"]
+      ] 
 
     submitButton :: LoginForm -> Widget HTML LoginForm
     submitButton f = simpleButton "login" (not (isFormValid f)) f
