@@ -23,6 +23,7 @@ import DataModel.SRP (SRPConf)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
+import Effect (Effect)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.JSState (getAppState)
@@ -94,7 +95,7 @@ changePasswordWidget state changeForm = do
 
     submitWidget :: Maybe SRPConf -> ChangePasswordDataForm -> Widget HTML ChangePasswordDataForm
     submitWidget conf f@{ username, oldPassword } = do
-      check <- liftAff $ if username == "" || oldPassword == "" then pure (Right false) else checkC conf f -- to avoid Aff failures
+      check <- liftEffect $ if username == "" || oldPassword == "" then pure (Right false) else checkC conf f -- to avoid Aff/getAppState failures
       case check of
         Left err -> do
           log $ show err
@@ -103,12 +104,13 @@ changePasswordWidget state changeForm = do
           let enable = b && (isNewDataValid f)
           simpleButton "Change password" (not enable) f
     
-    checkC :: Maybe SRPConf -> ChangePasswordDataForm -> Aff (Either AppError Boolean)
+    checkC :: Maybe SRPConf -> ChangePasswordDataForm -> Effect (Either AppError Boolean)
     checkC Nothing _ = pure $ Right false
     checkC (Just conf) { username, oldPassword } = runExceptT $ do
-      appState <- ExceptT $ liftEffect $ getAppState
-      oldC <- ExceptT $ Right <$> fromArrayBuffer <$> (prepareC conf username oldPassword)
-      except $ Right $ fromMaybe false $ ((==) oldC) <$> appState.c
+      appState@{ username: u, password } <- ExceptT $ liftEffect $ getAppState
+      except $ Right $ u == (Just username) && password == (Just oldPassword)
+      -- oldC <- ExceptT $ Right <$> fromArrayBuffer <$> (prepareC conf username oldPassword)
+      -- except $ Right $ fromMaybe false $ ((==) oldC) <$> appState.c
 
     isNewDataValid :: ChangePasswordDataForm -> Boolean
     isNewDataValid {password, verifyPassword, notRecoverable} = password == verifyPassword && notRecoverable
