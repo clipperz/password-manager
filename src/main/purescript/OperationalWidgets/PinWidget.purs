@@ -54,7 +54,7 @@ import Functions.EncodeDecode (encryptJson)
 import Functions.JSState (getAppState)
 import Functions.Pin (generateKeyFromPin)
 import Functions.State (getHashFunctionFromAppState)
-import Views.SimpleWebComponents (simpleButton, simpleNumberInputWidget)
+import Views.SimpleWebComponents (simpleButton, simpleInputWidget)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
 import Web.Storage.Storage (getItem, setItem, removeItem, Storage)
@@ -65,35 +65,41 @@ makeKey = (<>) "clipperz.is."
 pinValid :: Int -> Boolean
 pinValid p = p > 9999 && p < 100000
 
+data PinWidgetAction = Reset | SetPin Int
+
 setPinWidget :: forall a. WidgetState -> Widget HTML a
 setPinWidget ws = do
   storage <- liftEffect $ window >>= localStorage
   maybeSavedUser <- liftEffect $ getItem (makeKey "user") storage
-  pin <- case ws of
+  pinAction <- case ws of
     Default -> div [] [form (isJust maybeSavedUser)]
     Loading -> div [] [form (isJust maybeSavedUser)]
     Error e -> div [] [div [] [text e], form (isJust maybeSavedUser)]
-  eitherRes <- runExceptT (saveCredentials pin storage) 
+  eitherRes <- case pinAction of
+    Reset -> runExceptT (deleteCredentials storage)
+    SetPin pin -> runExceptT (saveCredentials pin storage) 
   log $ show eitherRes
   case eitherRes of
     Left err -> setPinWidget (Error (show err))
     _        -> setPinWidget Default
 
   where 
-    form :: Boolean -> Widget HTML Int
-    form pinExists = fieldset [(Props.disabled false)] [
+    form :: Boolean -> Widget HTML PinWidgetAction
+    form pinExists = fieldset [] [
       do
         signalResult <- demand $ do
-          pin <- loopW "" (simpleNumberInputWidget "pinField" (text "PIN") (if pinExists then "*****" else "PIN"))
-          result :: Maybe Int <- fireOnce (submitWidget pin)
+          pin <- loopW "" (\value -> simpleInputWidget "pinField" (text "PIN") pinExists (if pinExists then "*****" else "PIN") value "number")
+          result :: Maybe PinWidgetAction <- fireOnce (submitWidget pin pinExists)
           pure result
         pure signalResult
     ]
 
-    submitWidget pin =
-      case fromString pin of
-        Just p -> simpleButton "Save" (not (pinValid p)) p
-        Nothing -> simpleButton "Save" true 0
+    submitWidget pin pinExists =
+      if pinExists then
+        simpleButton "Reset" false Reset
+      else case fromString pin of
+        Just p -> simpleButton "Save" (not (pinValid p)) (SetPin p)
+        Nothing -> simpleButton "Save" true (SetPin 0)
 
     saveCredentials :: Int -> Storage -> ExceptT AppError (Widget HTML) Unit
     saveCredentials pin storage = do
@@ -113,5 +119,11 @@ setPinWidget ws = do
       liftEffect $ setItem (makeKey "user") u storage -- save username  
       liftEffect $ setItem (makeKey "passphrase") (show $ fromArrayBuffer encryptedCredentials) storage -- save password
       log "Done"
+
+    deleteCredentials :: Storage -> ExceptT AppError (Widget HTML) Unit
+    deleteCredentials storage = liftEffect $ do
+      removeItem (makeKey "user") storage
+      removeItem (makeKey "passphrase") storage
+      removeItem (makeKey "failures") storage
 
 
