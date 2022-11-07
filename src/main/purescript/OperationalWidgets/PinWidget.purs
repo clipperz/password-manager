@@ -52,18 +52,12 @@ import Foreign (ForeignError(..))
 import Functions.ArrayBuffer (bigIntToArrayBuffer, concatArrayBuffers)
 import Functions.EncodeDecode (encryptJson)
 import Functions.JSState (getAppState)
-import Functions.Pin (generateKeyFromPin)
+import Functions.Pin (generateKeyFromPin, makeKey, isPinValid)
 import Functions.State (getHashFunctionFromAppState)
 import Views.SimpleWebComponents (simpleButton, simpleInputWidget)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
 import Web.Storage.Storage (getItem, setItem, removeItem, Storage)
-
-makeKey :: String -> String
-makeKey = (<>) "clipperz.is."
-
-pinValid :: Int -> Boolean
-pinValid p = p > 9999 && p < 100000
 
 data PinWidgetAction = Reset | SetPin Int
 
@@ -71,10 +65,11 @@ setPinWidget :: forall a. WidgetState -> Widget HTML a
 setPinWidget ws = do
   storage <- liftEffect $ window >>= localStorage
   maybeSavedUser <- liftEffect $ getItem (makeKey "user") storage
+  let pinForm = form (isJust maybeSavedUser)
   pinAction <- case ws of
-    Default -> div [] [form (isJust maybeSavedUser)]
-    Loading -> div [] [form (isJust maybeSavedUser)]
-    Error e -> div [] [div [] [text e], form (isJust maybeSavedUser)]
+    Default -> div [] [pinForm]
+    Loading -> div [] [pinForm]
+    Error e -> div [] [div [] [text e], pinForm]
   eitherRes <- case pinAction of
     Reset -> runExceptT (deleteCredentials storage)
     SetPin pin -> runExceptT (saveCredentials pin storage) 
@@ -98,7 +93,7 @@ setPinWidget ws = do
       if pinExists then
         simpleButton "Reset" false Reset
       else case fromString pin of
-        Just p -> simpleButton "Save" (not (pinValid p)) (SetPin p)
+        Just p -> simpleButton "Save" (not (isPinValid p)) (SetPin p)
         Nothing -> simpleButton "Save" true (SetPin 0)
 
     saveCredentials :: Int -> Storage -> ExceptT AppError (Widget HTML) Unit

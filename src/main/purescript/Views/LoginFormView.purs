@@ -18,23 +18,22 @@ import Data.HeytingAlgebra ((&&), not)
 import Data.Int (fromString)
 import Data.Maybe (maybe, Maybe(..), fromMaybe)
 import Data.PrettyShow (prettyShow)
-import Data.Ring ((-))
 import Data.Semigroup ((<>))
 import Data.Semiring ((*), (+))
 import Data.Show (show)
-import Data.String.CodeUnits (splitAt, length)
+import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Credentials (Credentials)
 import DataModel.WidgetState (WidgetState(..))
+import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Effect.Exception as EX
 import Functions.EncodeDecode (decryptJson)
 import Functions.JSState (getAppState)
-import Functions.Pin (generateKeyFromPin)
+import Functions.Pin (generateKeyFromPin, decryptPassphrase, makeKey, isPinValid)
 import Functions.State (getHashFunctionFromAppState)
-import OperationalWidgets.PinWidget (makeKey, pinValid)
 import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleNumberInputWidget)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
@@ -59,13 +58,10 @@ loginFormView :: WidgetState -> LoginForm -> Widget HTML Credentials
 loginFormView state loginFormData = do
   storage <- liftEffect $ window >>= localStorage
   maybeSavedUser <- liftEffect $ getItem (makeKey "user") storage
-  case maybeSavedUser of
-    Just user -> do
-      maybeSavedPassphrase <- liftEffect $ getItem (makeKey "passphrase") storage
-      case maybeSavedPassphrase of
-        Nothing -> formNoPassphrase state (loginFormData { username = user })
-        Just passphrase -> formPin user passphrase state storage
-    Nothing -> formNoPassphrase state loginFormData
+  maybeSavedPassphrase <- liftEffect $ getItem (makeKey "passphrase") storage
+  case (Tuple maybeSavedUser maybeSavedPassphrase) of
+    Tuple (Just user) (Just passphrase) -> formPin user passphrase state storage
+    _ -> formNoPassphrase state loginFormData
   
   where
     formNoPassphrase :: WidgetState -> LoginForm -> Widget HTML Credentials
@@ -84,15 +80,7 @@ loginFormView state loginFormData = do
       case maybePin of
         NormalLogin -> formNoPassphrase state (emptyForm { username = user })
         Pin pin -> do
-          ei :: Either AppError Credentials <- liftAff $ runExceptT $ do
-            state@{ username, password } <- ExceptT $ liftEffect getAppState
-            let hashf = getHashFunctionFromAppState state
-            key <- ExceptT $ Right <$> (liftAff $ generateKeyFromPin hashf pin)
-            let ab = toArrayBuffer $ hex $ encryptedPassphrase
-            { padding: padding, passphrase: passphrase } :: { padding :: Int, passphrase :: String } <- withExceptT (\e -> InvalidStateError $ CorruptedSavedPassphrase $ "Decrypt passphrase: " <> EX.message e) $ ExceptT $ decryptJson key ab
-            let split = toString Dec $ hex $ (splitAt ((length passphrase) - (padding * 2)) passphrase).before
-            log split
-            pure { username: user, password: split }
+          ei :: Either AppError Credentials <- liftAff $ runExceptT $ decryptPassphrase pin user encryptedPassphrase
           case ei of
             Right f -> do
               liftEffect $ setItem (makeKey "failures") (show 0) storage
@@ -146,7 +134,7 @@ loginFormView state loginFormData = do
         Pin <$> do
           signalResult <- demand $ do
             pin <- loopW "" (simpleNumberInputWidget "pinField" (text "Login") "PIN")
-            pure $ (fromString pin) >>= (\p -> if pinValid p then Just p else Nothing) 
+            pure $ (fromString pin) >>= (\p -> if isPinValid p then Just p else Nothing) 
           pure signalResult
       , NormalLogin <$ a [Props.onClick] [text "Use credentials to login"]
       ] 
