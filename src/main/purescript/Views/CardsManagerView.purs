@@ -61,7 +61,7 @@ cardsManagerView i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: _
       , getFilterListElement RecentFilter "Recent (TODO)"
       , getFilterListElement UntaggedFilter "Untagged"
       ]
-    , (prepareFilter <<< TitleFilter) <$> div [Props._id "generalFilterArea"] [simpleTextInputWidgetWithFocus "titleFilter" (text "Title") "Card title" currentTitleFilter]
+    , (prepareFilter <<< GeneralFilter) <$> div [Props._id "generalFilterArea"] [simpleTextInputWidgetWithFocus "generalFilter" (text "Search") "Search" currentGeneralFilter]
     , prepareFilter <$> div [] [
       text "Tags"
       ,  ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag) <$> shownSortedTags)
@@ -113,8 +113,8 @@ cardsManagerView i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: _
     prepareFilter :: IndexFilter -> ComplexIndexFilter
     prepareFilter newFilter = {archived, indexFilter: newFilter}
 
-    currentTitleFilter = case indexFilter of
-      TitleFilter t -> t
+    currentGeneralFilter = case indexFilter of
+      GeneralFilter t -> t
       _ -> ""
 
     allSortedTags = sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) <$> entries
@@ -128,7 +128,7 @@ cardsManagerView i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: _
       case f of
         ComposedAndFilter f' f'' -> p' [getFilterHeader f', text " and ", getFilterHeader f'']
         ComposedOrFilter f' f''  -> p' [getFilterHeader f', text " or ", getFilterHeader f'']
-        TitleFilter title      -> text title
+        GeneralFilter title      -> text title
         SpecificCardFilter ce  -> text "last created card"
         TagFilter tag          -> text tag
         RecentFilter           -> text "recent"

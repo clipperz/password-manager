@@ -4,10 +4,10 @@ import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.React.DOM (ol, text)
 import Control.Semigroupoid ((<<<))
-import Data.Array (fromFoldable, elem, null)
+import Data.Array (fromFoldable, elem, null, (:))
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Eq ((==), class Eq)
-import Data.Foldable (fold, foldr)
+import Data.Foldable (any, fold, foldr)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HeytingAlgebra ((&&), (||), not)
@@ -20,11 +20,11 @@ import Data.String.Pattern (Pattern(..))
 import DataModel.Index (Index(..), CardEntry(..))
 import Views.SimpleWebComponents (clickableListItemWidget)
 
-data IndexFilter = ComposedAndFilter IndexFilter IndexFilter | ComposedOrFilter IndexFilter IndexFilter | TitleFilter String | TagFilter String | SpecificCardFilter CardEntry | RecentFilter | UntaggedFilter | NoFilter
+data IndexFilter = ComposedAndFilter IndexFilter IndexFilter | ComposedOrFilter IndexFilter IndexFilter | GeneralFilter String | TagFilter String | SpecificCardFilter CardEntry | RecentFilter | UntaggedFilter | NoFilter
 instance showIndexFilter :: Show IndexFilter where
   show (ComposedAndFilter f f') = "Composed and filter: " <> show f <> " and " <> show f'
   show (ComposedOrFilter f f') = "Composed or filter: " <> show f <> " or " <> show f'
-  show (TitleFilter title) = "Title filter: " <> title
+  show (GeneralFilter query) = "General filter: " <> query
   show (SpecificCardFilter (CardEntry r)) = "Specific card filter: " <> r.title
   show (TagFilter tag) = "Tag filter: " <> tag
   show (RecentFilter) = "Recent filter"
@@ -49,7 +49,7 @@ complexToFilterFunc { archived, indexFilter } = \ce@(CardEntry r) -> ((archived)
 toFilterFunc :: IndexFilter -> (CardEntry -> Boolean)
 toFilterFunc (ComposedOrFilter f f')  = \a -> (toFilterFunc f) a || (toFilterFunc f') a
 toFilterFunc (ComposedAndFilter f f') = \a -> (toFilterFunc f) a && (toFilterFunc f') a
-toFilterFunc (TitleFilter title)   = \(CardEntry r) -> if title == "" then true else contains (Pattern (toLower title)) (toLower r.title)
+toFilterFunc (GeneralFilter query)   = \(CardEntry r) -> if query == "" then true else any (contains (Pattern (toLower query))) (toLower <$> (r.title : r.tags))
 toFilterFunc (SpecificCardFilter ce) = \ce' -> ce == ce'
 toFilterFunc (TagFilter tag)       = \(CardEntry r) -> elem tag r.tags
 toFilterFunc (RecentFilter)        = \(CardEntry _) -> true --TODO
