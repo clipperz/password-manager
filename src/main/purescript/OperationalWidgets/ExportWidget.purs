@@ -43,6 +43,7 @@ import Functions.Communication.BackendCommunication (manageGenericRequest, isSta
 import Functions.Communication.Blobs (getBlob)
 import Functions.Events (renderElement)
 import Functions.JSState (getAppState)
+import Functions.State (offlineDataId)
 import Web.DOM.Document (Document, documentElement, toNode, createElement)
 import Web.DOM.Element as EL
 import Web.DOM.Node (childNodes, nodeName, lastChild, appendChild, setTextContent)
@@ -92,7 +93,9 @@ appendCardsDataInPlace doc blobList = do
   html <- ExceptT $ (note "") <$> (liftEffect $ lastChild asNode)
   body <- ExceptT $ (note "") <$> (liftEffect $ lastChild html)
 
-  newNode <- ExceptT $ Right <$> (liftEffect $ EL.toNode <$> (createElement "script" doc))
+  scriptElement <- ExceptT $ Right <$> (liftEffect $ createElement "script" doc)
+  ExceptT $ Right <$> (liftEffect $ EL.setId offlineDataId scriptElement)
+  let newNode = EL.toNode scriptElement
   ExceptT $ Right <$> (liftEffect $ setTextContent nodeContent newNode)
   ExceptT $ Right <$> (liftEffect $ appendChild newNode body)
 

@@ -67,16 +67,16 @@ homePageWidget = go Loading
           go (Error (prettyShow err))
         UserAreaAction Lock -> do
           maybeUser <- liftEffect $ getUsername
-          liftAff $ resetState
+          _ <- liftAff $ runExceptT $ resetState
           pure $ maybe Clean ReadyForLogin maybeUser
         UserAreaAction Logout -> do
-          liftAff $ resetState
+          _ <- liftAff $ runExceptT $ resetState
           pure $ Clean
         UserAreaAction DeleteAccount -> do
-          liftAff $ resetState
+          _ <- liftAff $ runExceptT $ resetState
           pure $ Clean
         LogoutAction -> do
-          liftAff $ resetState
+          _ <- liftAff $ runExceptT $ resetState
           pure $ Clean
 
     getUsername :: Effect (Maybe String)

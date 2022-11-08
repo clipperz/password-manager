@@ -71,15 +71,17 @@ instance prettyShowInvalidStateError :: PrettyShow InvalidStateError where
   prettyShow (MissingValue _) = "The application state is corrupted, please restart it."
   prettyShow (CorruptedSavedPassphrase _) = "Clipperz could not decrypt your credentials, please log in without using the device PIN."
 
-data AppError = InvalidStateError InvalidStateError | ProtocolError ProtocolError | ImportError String
+data AppError = InvalidStateError InvalidStateError | ProtocolError ProtocolError | ImportError String | CannotInitState String
 instance showAppError :: Show AppError where
   show (InvalidStateError err) = "Invalid state Error: "  <> show err
   show (ProtocolError err)     = "Protocol Error: " <> show err
   show (ImportError err)       = "Import Error: " <> err
+  show (CannotInitState err)   = "Cannot init state: " <> err
 
 instance prettyShowAppError :: PrettyShow AppError where
   prettyShow (InvalidStateError err) = prettyShow err
   prettyShow (ProtocolError err)     = prettyShow err
   prettyShow (ImportError err)       = "Your imported values are not in the right format! (" <> err <> ")" 
+  prettyShow (CannotInitState err)   = "Cannot init state, please try to reload"
 
 derive instance eqAppError :: Eq AppError

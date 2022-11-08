@@ -77,6 +77,7 @@ getUpdateIndexOp index@(Index list) indexFilter (IndexUpdateData action _) =
         Right _   -> pure $ OpResult newIndex cardViewState Nothing
         Left  err -> 
           case err of 
+            CannotInitState    _                           -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
             InvalidStateError (CorruptedState           _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
             InvalidStateError (MissingValue             _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
             InvalidStateError (CorruptedSavedPassphrase _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app

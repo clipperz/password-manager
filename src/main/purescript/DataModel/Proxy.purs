@@ -9,6 +9,8 @@ import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
 import Data.Generic.Rep (class Generic)
 
+-- import Data.Map (Map)
+
 data Proxy = OnlineProxy String | OfflineProxy
 
 derive instance genericProxy :: Generic Proxy _
