@@ -13,7 +13,7 @@ module Functions.Communication.BackendCommunication
   where
 
 import Affjax.Web as AXW
-import Affjax.RequestBody (RequestBody)
+import Affjax.RequestBody (RequestBody(..))
 import Affjax.RequestHeader (RequestHeader(..))
 import Affjax.ResponseFormat as RF
 import Affjax.ResponseHeader (ResponseHeader, name, value)
@@ -21,14 +21,17 @@ import Affjax.StatusCode (StatusCode(..))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT, runExceptT)
-import Data.Array (filter, last, head)
+import Data.Argonaut.Core (Json, stringify)
+import Data.Argonaut.Encode.Class (encodeJson)
+import Data.Argonaut.Decode.Class (decodeJson)
+import Data.Array (filter, last, head, init)
 import Data.Bifunctor (lmap)
 import Data.Boolean (otherwise)
-import Data.Either (Either(..))
+import Data.Either (Either(..), note)
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), void)
-import Data.HexString (hex, toArrayBuffer)
+import Data.HexString (HexString, toBigInt, fromBigInt, hex, toArrayBuffer)
 import Data.HeytingAlgebra ((&&))
 import Data.HTTP.Method (Method(..))
 import Data.Int (fromString)
@@ -46,6 +49,7 @@ import DataModel.AppState as AS
 import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue, toLoading)
 import DataModel.Communication.FromString (class FromString)
 import DataModel.Communication.FromString as BCFS
+import DataModel.Communication.Login (LoginStep1Response, LoginStep2Response)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Proxy (Proxy(..))
 import DataModel.SRP (hashFuncSHA256)
@@ -55,7 +59,8 @@ import Effect (Effect)
 import Effect.Class (liftEffect)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.JSState (getAppState, modifyAppState, updateAppState)
-import Functions.State (getHashFunctionFromAppState)
+import Functions.State (getSRPConf, getHashFunctionFromAppState)
+import Functions.SRP as SRP
 
 -- ----------------------------------------------------------------------------
 
@@ -168,11 +173,11 @@ doGenericRequest (OnlineProxy baseUrl) (OnlineRequestInfo { url, method, headers
     }
   )
 doGenericRequest  OfflineProxy   (OfflineRequestInfo { url, method, body, responseFormat }) =
-  case method, responseFormat of
-    GET, (RF.ArrayBuffer _) -> do
-      let pieces = split (Pattern "/") url
-      let type' = head pieces
-      let ref' = last pieces
+  let pieces = split (Pattern "/") url
+      type' = (joinWith "/") <$> (init pieces)
+      ref' = last pieces
+  in case method of
+    GET -> do
       case type', ref' of
         Nothing  , _           -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
         _        , Nothing     -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
@@ -182,8 +187,25 @@ doGenericRequest  OfflineProxy   (OfflineRequestInfo { url, method, body, respon
         Just "users", Just c   -> do
           result <- liftEffect $ BCFS.fromString $ _readUserCard unit
           pure $ Right $ { body: result, headers: [], status: StatusCode 200, statusText: "OK"}
-        _           , _        -> pure $ Left $ ResponseError 400 -- TODO
-    _, _   -> pure $ Left $ ResponseError 500 -- TODO
+        _           , _        -> pure $ Left $ ResponseError 501
+    POST -> do
+      case type', ref', body of
+        Nothing  , _       , _       -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
+        _        , Nothing , _       -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
+        Just "login/step1", Just ref, (Just (Json step)) -> do
+          res :: Either AS.AppError a <- runExceptT $ do
+            stepData :: { c :: HexString, aa :: HexString } <- except $ lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson step 
+            uc <- ExceptT $ (\v -> lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson v) <$> (liftEffect $ BCFS.fromString $ _readUserCard unit)
+            stepResult <- offlineLoginStep1 uc stepData
+            let jsonString = stringify $ encodeJson stepResult
+            ExceptT $ Right <$> (liftEffect $ BCFS.fromString jsonString)
+          case res of
+            Left err -> pure $ Left $ ResponseError 400 -- TODO
+            Right res -> pure $ Right $ { body: res, headers: [], status: StatusCode 200, statusText: "OK" }
+        Just "login/step2", Just ref, (Just (Json step)) -> do
+          pure $ Left $ ResponseError 501 -- TODO
+        _, _, _ -> pure $ Left $ ResponseError 501
+    _   -> pure $ Left $ ResponseError 501
 doGenericRequest (OnlineProxy _) (OfflineRequestInfo _) = pure $ Left $ IllegalRequest "Cannot do an offline request with an online proxy"
 doGenericRequest  OfflineProxy   (OnlineRequestInfo  _) = pure $ Left $ IllegalRequest "Cannot do an online request with an offline proxy"
 
@@ -201,3 +223,11 @@ data RequestInfo a = OnlineRequestInfo  { url :: Url
 
 isStatusCodeOk :: StatusCode -> Boolean
 isStatusCodeOk code = (code >= (StatusCode 200)) && (code <= (StatusCode 299))
+
+
+offlineLoginStep1 :: UserCard -> { c :: HexString, aa :: HexString } -> ExceptT AS.AppError Aff LoginStep1Response
+offlineLoginStep1 uc@(UserCard r) { c, aa } = do
+  srpConf <- ExceptT $ liftEffect getSRPConf
+  v <- except $ note (AS.ProtocolError $ SRPError "Cannot covert v from HexString to BigInt") (toBigInt r.v)
+  (Tuple b bb) <- ExceptT $ (lmap (\e -> AS.ProtocolError $ SRPError $ show e)) <$> (SRP.prepareB srpConf v)
+  except $ Right $ { s: r.s, bb: fromBigInt bb }
