@@ -23,7 +23,7 @@ userAreaWidget index =
   div [Props._id "userSidebar"] [
     simpleButton "Close user area" false NoAction
   , Loaded <$> importWidget index
-  , NoAction <$ exportWidget
+  , NoAction <$ exportWidget index
   , setPinWidget Default
   , changePasswordWidget Default emptyChangePasswordDataForm
   , DeleteAccount <$ deleteUserWidget index Default

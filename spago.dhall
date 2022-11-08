@@ -38,6 +38,7 @@
   , "lcg"
   , "lists"
   , "maybe"
+  , "media-types"
   , "mmorph"
   , "newtype"
   , "now"
@@ -54,6 +55,9 @@
   , "transformers"
   , "tuples"
   , "unfoldable"
+  , "web-dom"
+  , "web-events"
+  , "web-file"
   , "web-html"
   , "web-storage"
   ]
