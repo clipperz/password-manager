@@ -11,6 +11,7 @@ import DataModel.Index (Index)
 import DataModel.WidgetState (WidgetState(..))
 import Views.SimpleWebComponents (simpleButton)
 import OperationalWidgets.ImportWidget (importWidget)
+import OperationalWidgets.ExportWidget (exportWidget)
 import OperationalWidgets.ChangePasswordWidget (changePasswordWidget, emptyChangePasswordDataForm)
 import OperationalWidgets.DeleteUserWidget (deleteUserWidget)
 import OperationalWidgets.PinWidget (setPinWidget)
@@ -22,6 +23,7 @@ userAreaWidget index =
   div [Props._id "userSidebar"] [
     simpleButton "Close user area" false NoAction
   , Loaded <$> importWidget index
+  , NoAction <$ exportWidget
   , setPinWidget Default
   , changePasswordWidget Default emptyChangePasswordDataForm
   , DeleteAccount <$ deleteUserWidget index Default
