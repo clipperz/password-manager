@@ -1,7 +1,7 @@
 module Functions.State where
 
 import Control.Applicative (pure)
-import Control.Bind (bind, (>>=))
+import Control.Bind (bind, (>>=), discard)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Map.Internal (empty)
@@ -14,15 +14,22 @@ import DataModel.SRP(SRPConf, KDF, HashFunction, concatKDF, hashFuncSHA1, hashFu
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
 import Functions.JSState (getAppState, modifyAppState)
-
-baseUrl :: String 
-baseUrl = "http://localhost:8090" --TODO: get from configuration file/build
+import Web.HTML (window)
+import Web.HTML.Location (origin)
+import Web.HTML.Window (location)
 
 computeInitialState :: Effect AppState
-computeInitialState = pure { proxy: (OnlineProxy baseUrl)
-                           , sessionKey: Nothing
+computeInitialState = do
+  w <- window
+  l <- (location w) >>= origin
+  onlineProxy l
+
+  where 
+    onlineProxy url = pure { proxy: (OnlineProxy url)
                            , currentChallenge: Nothing
+                           , sessionKey: Nothing
                            , toll: (Loading Nothing)
                            , username: Nothing
                            , password: Nothing
