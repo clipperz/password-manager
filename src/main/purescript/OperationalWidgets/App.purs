@@ -2,14 +2,18 @@ module OperationalWidgets.App where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (text)
+import Concur.React.DOM (text, p, div)
+import Concur.React.Props as Props
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (runExceptT)
+import Data.Eq ((==))
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor (void, (<$>))
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Semigroup ((<>))
 import Data.Unit (Unit)
+import DataModel.Proxy (Proxy(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -27,19 +31,18 @@ app = app' Nothing
     app' maybeUsername = do
       initialState' <- liftEffect $ runExceptT computeInitialState
       case initialState' of
-        Right initialState -> do
+        Right initialState@{proxy} -> do
           liftAff $ modifyAppState initialState
-          res <- do
+          res <- div [Props.className "wrapper"] $ (if proxy == OfflineProxy then [p [Props.className "notice"] [text "Offline copy"]] else []) <> [
+            do
             -- let form = fromMaybe emptyForm ((\u -> { username: u, password: "" }) <$> maybeUsername )
             -- landingPageView (LoginView Default form)
-            
             -- !!! AUTOLOGIN FOR DEVELOPING !!! --
             let form = fromMaybe {username: "joe", password: "clipperz"} ((\u -> { username: u, password: "" }) <$> maybeUsername )
             landingPageView (LoginView Loading form)
-
             -- -------------------------------- --
-
             homePageWidget
+          ]
           case res of
             Clean -> app' Nothing
             ReadyForLogin username -> app' (Just username)

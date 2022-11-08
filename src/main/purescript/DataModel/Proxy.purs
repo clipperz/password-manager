@@ -1,5 +1,6 @@
 module DataModel.Proxy where
 
+import Data.Eq (class Eq)
 import Data.Semigroup ((<>))
 import Data.Show (class Show)
 
@@ -13,6 +14,7 @@ import Data.Generic.Rep (class Generic)
 
 data Proxy = OnlineProxy String | OfflineProxy
 
+derive instance eqProxy :: Eq Proxy
 derive instance genericProxy :: Generic Proxy _
 
 instance encodeJsonProxy :: EncodeJson Proxy where

@@ -8,6 +8,23 @@ body {
 	display: flex;
 }
 
+div.wrapper {
+	height: 100%;
+	width: 100%;
+	display: block;
+}
+
+p.notice {
+	width: 100%;
+	z-index: 100;
+	position: absolute;
+	top: 0;
+	text-align: center;
+	padding: 3px;
+	background-color: $core-alternate-color;
+	color: $main-text-color;
+}
+
 #app {
 	width: 100%;
 }
