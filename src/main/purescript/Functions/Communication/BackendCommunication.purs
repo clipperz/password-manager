@@ -51,7 +51,7 @@ import DataModel.Communication.FromString (class FromString)
 import DataModel.Communication.FromString as BCFS
 import DataModel.Communication.Login (LoginStep1Response, LoginStep2Response)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.Proxy (Proxy(..))
+import DataModel.Proxy (Proxy(..), BackendSessionState(..))
 import DataModel.SRP (hashFuncSHA256)
 import DataModel.User (UserCard(..))
 import Effect.Aff (Aff, forkAff, delay)
@@ -61,6 +61,7 @@ import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.JSState (getAppState, modifyAppState, updateAppState)
 import Functions.State (getSRPConf, getHashFunctionFromAppState)
 import Functions.SRP as SRP
+import Record (merge)
 
 -- ----------------------------------------------------------------------------
 
@@ -172,7 +173,7 @@ doGenericRequest (OnlineProxy baseUrl) (OnlineRequestInfo { url, method, headers
       , responseFormat = responseFormat
     }
   )
-doGenericRequest (OfflineProxy session) (OfflineRequestInfo { url, method, body, responseFormat }) =
+doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInfo { url, method, body, responseFormat }) =
   let pieces = split (Pattern "/") url
       type' = (joinWith "/") <$> (init pieces)
       ref' = last pieces
@@ -196,8 +197,10 @@ doGenericRequest (OfflineProxy session) (OfflineRequestInfo { url, method, body,
           res :: Either AS.AppError a <- runExceptT $ do
             stepData :: { c :: HexString, aa :: HexString } <- except $ lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson step 
             uc <- ExceptT $ (\v -> lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson v) <$> (liftEffect $ BCFS.fromString $ _readUserCard unit)
-            stepResult <- offlineLoginStep1 uc stepData
-            let jsonString = stringify $ encodeJson stepResult
+            {s, bb, b} <- offlineLoginStep1 uc stepData
+            let newSession = BackendSessionState $ merge { b: Just b, aa: Just stepData.aa } session
+            ExceptT $ updateAppState { proxy: OfflineProxy newSession }
+            let jsonString = stringify $ encodeJson {s, bb}
             ExceptT $ Right <$> (liftEffect $ BCFS.fromString jsonString)
           case res of
             Left err -> pure $ Left $ ResponseError 400 -- TODO
@@ -225,9 +228,16 @@ isStatusCodeOk :: StatusCode -> Boolean
 isStatusCodeOk code = (code >= (StatusCode 200)) && (code <= (StatusCode 299))
 
 
-offlineLoginStep1 :: UserCard -> { c :: HexString, aa :: HexString } -> ExceptT AS.AppError Aff LoginStep1Response
+offlineLoginStep1 :: UserCard -> { c :: HexString, aa :: HexString } -> ExceptT AS.AppError Aff { s :: HexString, bb :: HexString, b :: HexString }
 offlineLoginStep1 uc@(UserCard r) { c, aa } = do
   srpConf <- ExceptT $ liftEffect getSRPConf
   v <- except $ note (AS.ProtocolError $ SRPError "Cannot covert v from HexString to BigInt") (toBigInt r.v)
   (Tuple b bb) <- ExceptT $ (lmap (\e -> AS.ProtocolError $ SRPError $ show e)) <$> (SRP.prepareB srpConf v)
-  except $ Right $ { s: r.s, bb: fromBigInt bb }
+  except $ Right $ { s: r.s, bb: fromBigInt bb, b: fromBigInt b }
+
+offlineLoginStep2 :: UserCard -> { c :: HexString, aa :: HexString } -> ExceptT AS.AppError Aff { s :: HexString, bb :: HexString, b :: HexString }
+offlineLoginStep2 uc@(UserCard r) { c, aa } = do
+  srpConf <- ExceptT $ liftEffect getSRPConf
+  v <- except $ note (AS.ProtocolError $ SRPError "Cannot covert v from HexString to BigInt") (toBigInt r.v)
+  (Tuple b bb) <- ExceptT $ (lmap (\e -> AS.ProtocolError $ SRPError $ show e)) <$> (SRP.prepareB srpConf v)
+  except $ Right $ { s: r.s, bb: fromBigInt bb, b: fromBigInt b }
