@@ -34,7 +34,7 @@ import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index(..), CardEntry(..), CardReference(..))
-import DataModel.User (IndexReference(..))
+import DataModel.User (IndexReference(..), UserCard(..))
 import Effect (Effect)
 import Effect.Aff (Aff, makeAff)
 import Effect.Aff.Class (liftAff)
@@ -50,7 +50,7 @@ import Functions.JSState (getAppState)
 import Functions.State (offlineDataId)
 import Web.DOM.Document (Document, documentElement, toNode, createElement)
 import Web.DOM.Element as EL
-import Web.DOM.Node (childNodes, nodeName, lastChild, appendChild, setTextContent)
+import Web.DOM.Node (childNodes, nodeName, lastChild, firstChild, insertBefore, setTextContent)
 import Web.DOM.NodeList (toArray)
 import Web.File.Blob (fromString, Blob)
 import Web.Event.EventTarget (eventListener, addEventListener)
@@ -73,8 +73,9 @@ downloadOfflineCopy :: Index -> Widget HTML Unit
 downloadOfflineCopy index = do
   url <- liftAff $ runExceptT $ do
     blobList <- mapExceptT (\m -> (lmap show) <$> m) $ prepareBlobList index
+    userCard <- mapExceptT (\m -> (lmap show) <$> m) $ getUserCard
     doc <- mapExceptT (\m -> (lmap show) <$> m) getBasicHTML
-    preparedDoc <- appendCardsDataInPlace doc blobList
+    preparedDoc <- appendCardsDataInPlace doc blobList userCard
     blob <- ExceptT $ Right <$> (liftEffect $ prepareHTMLBlob preparedDoc)
     s :: String <- ExceptT $ Right <$> readFile blob
     ExceptT $ Right <$> (liftEffect $ createObjectURL blob)
@@ -89,19 +90,30 @@ getBasicHTML = do
   if isStatusCodeOk res.status then except $ Right res.body
   else except $ Left $ ProtocolError $ ResponseError $ unwrap res.status 
 
-appendCardsDataInPlace :: Document -> List (Tuple HexString HexString) -> ExceptT String Aff Document
-appendCardsDataInPlace doc blobList = do
-  let nodeContent = "const blobs = { " <> (fold $ (\(Tuple k v) -> "\"" <> show k <> "\": \"" <> show v <> "\", " ) <$> blobList) <> "}"
+appendCardsDataInPlace :: Document -> List (Tuple HexString HexString) -> UserCard -> ExceptT String Aff Document
+appendCardsDataInPlace doc blobList uc@(UserCard r) = do
+  let blobsContent = "const blobs = { " <> (fold $ (\(Tuple k v) -> "\"" <> show k <> "\": \"" <> show v <> "\", " ) <$> blobList) <> "}"
+  let userCardContent = "const userCard = { " 
+                          <> "\"c\": \"" <> (show r.c) <> "\""
+                          <> ", \"v\": \"" <> (show r.v) <> "\""
+                          <> ", \"s\": \"" <> (show r.s) <> "\""
+                          <> ", \"srpVersion\": " <> (show r.srpVersion)
+                          <> ", \"masterKeyEncodingVersion\": " <> (show r.masterKeyEncodingVersion)
+                          <> ", \"masterKeyContent\": \"" <> (show r.masterKeyContent) <> "\""
+                          <> "}"
+  let prepareContent = "window.blobs = blobs; window.userCard = userCard;"
+  let nodeContent = userCardContent <> ";\n" <> blobsContent <> ";\n" <> prepareContent
 
   let asNode = toNode doc
   html <- ExceptT $ (note "") <$> (liftEffect $ lastChild asNode)
   body <- ExceptT $ (note "") <$> (liftEffect $ lastChild html)
+  fst <- ExceptT $ (note "") <$> (liftEffect $ firstChild body)
 
   scriptElement <- ExceptT $ Right <$> (liftEffect $ createElement "script" doc)
   ExceptT $ Right <$> (liftEffect $ EL.setId offlineDataId scriptElement)
   let newNode = EL.toNode scriptElement
   ExceptT $ Right <$> (liftEffect $ setTextContent nodeContent newNode)
-  ExceptT $ Right <$> (liftEffect $ appendChild newNode body)
+  ExceptT $ Right <$> (liftEffect $ insertBefore newNode fst body)
 
   except $ Right doc
 
