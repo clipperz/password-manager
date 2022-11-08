@@ -16,7 +16,7 @@ import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
 import DataModel.AppState (AppState, AppError(..), baseSRPInfo, HashState(..), KDFState(..))
 import DataModel.AsyncValue (AsyncValue(..))
-import DataModel.Proxy (Proxy(..))
+import DataModel.Proxy (Proxy(..), BackendSessionState(..))
 import DataModel.SRP(SRPConf, KDF, HashFunction, concatKDF, hashFuncSHA1, hashFuncSHA256)
 import Effect (Effect)
 import Effect.Aff (Aff)
@@ -51,7 +51,7 @@ computeInitialState = do
   where 
     mapIds e = (Tuple e) <$> (id e)
 
-    withOfflineProxy = merge { proxy: OfflineProxy } baseState
+    withOfflineProxy = merge { proxy: OfflineProxy (BackendSessionState { b: Nothing, aa: Nothing }) } baseState
     withOnlineProxy url = merge { proxy: (OnlineProxy url) } baseState
     baseState = { currentChallenge: Nothing
                 , sessionKey: Nothing

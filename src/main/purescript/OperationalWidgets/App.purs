@@ -33,7 +33,10 @@ app = app' Nothing
       case initialState' of
         Right initialState@{proxy} -> do
           liftAff $ modifyAppState initialState
-          res <- div [Props.className "wrapper"] $ (if proxy == OfflineProxy then [p [Props.className "notice"] [text "Offline copy"]] else []) <> [
+          let offlineCopyBanner = case proxy of
+                                    OfflineProxy _ -> [p [Props.className "notice"] [text "Offline copy"]]
+                                    _ -> []
+          res <- div [Props.className "wrapper"] $ offlineCopyBanner <> [
             do
             -- let form = fromMaybe emptyForm ((\u -> { username: u, password: "" }) <$> maybeUsername )
             -- landingPageView (LoginView Default form)

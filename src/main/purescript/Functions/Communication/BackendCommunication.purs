@@ -110,13 +110,13 @@ manageGenericRequest url method body responseFormat = do
         doRequest :: AS.AppState -> ExceptT AS.AppError Aff (AXW.Response a)
         doRequest currentState@{ proxy } = do
           let requestInfo = case proxy of
-                              OnlineProxy _ -> OnlineRequestInfo  { url 
+                              OnlineProxy _  -> OnlineRequestInfo  { url 
                                                                   , method
                                                                   , headers: createHeaders currentState
                                                                   , body
                                                                   , responseFormat
                                                                   }
-                              OfflineProxy  -> OfflineRequestInfo { url, method, body, responseFormat }
+                              OfflineProxy _ -> OfflineRequestInfo { url, method, body, responseFormat }
           response <- withExceptT (\e -> AS.ProtocolError e) (ExceptT $ doGenericRequest proxy requestInfo)
           manageResponse response.status response
 
@@ -172,7 +172,7 @@ doGenericRequest (OnlineProxy baseUrl) (OnlineRequestInfo { url, method, headers
       , responseFormat = responseFormat
     }
   )
-doGenericRequest  OfflineProxy   (OfflineRequestInfo { url, method, body, responseFormat }) =
+doGenericRequest (OfflineProxy session) (OfflineRequestInfo { url, method, body, responseFormat }) =
   let pieces = split (Pattern "/") url
       type' = (joinWith "/") <$> (init pieces)
       ref' = last pieces
@@ -206,8 +206,8 @@ doGenericRequest  OfflineProxy   (OfflineRequestInfo { url, method, body, respon
           pure $ Left $ ResponseError 501 -- TODO
         _, _, _ -> pure $ Left $ ResponseError 501
     _   -> pure $ Left $ ResponseError 501
-doGenericRequest (OnlineProxy _) (OfflineRequestInfo _) = pure $ Left $ IllegalRequest "Cannot do an offline request with an online proxy"
-doGenericRequest  OfflineProxy   (OnlineRequestInfo  _) = pure $ Left $ IllegalRequest "Cannot do an online request with an offline proxy"
+doGenericRequest (OnlineProxy  _) (OfflineRequestInfo _) = pure $ Left $ IllegalRequest "Cannot do an offline request with an online proxy"
+doGenericRequest (OfflineProxy _) (OnlineRequestInfo  _) = pure $ Left $ IllegalRequest "Cannot do an online request with an offline proxy"
 
 data RequestInfo a = OnlineRequestInfo  { url :: Url 
                                         , method :: Method
