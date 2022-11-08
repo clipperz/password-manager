@@ -1,4 +1,7 @@
-module OperationalWidgets.ExportWidget where
+module OperationalWidgets.ExportWidget
+  ( exportWidget
+  )
+  where
 
 import Affjax.ResponseFormat as RF
 import Concur.Core (Widget)
@@ -41,6 +44,7 @@ import Effect.Exception (error)
 import Foreign (readString)
 import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
 import Functions.Communication.Blobs (getBlob)
+import Functions.Communication.Users (getUserCard)
 import Functions.Events (renderElement)
 import Functions.JSState (getAppState)
 import Functions.State (offlineDataId)
@@ -106,25 +110,16 @@ prepareBlobList index@(Index list) = do
   { indexReference } <- ExceptT $ liftEffect $ getAppState
   (IndexReference { reference: indexRef } ) <- except $ note (InvalidStateError $ MissingValue $ "indexReference is Nothing") indexReference
   let allRefs = indexRef : (extractRefFromEntry <$> list)
-  prepareTuples allRefs
-  -- sequence $ prepareTuple <$> allRefs
+  sequence $ prepareTuple <$> allRefs
 
   where 
     extractRefFromEntry (CardEntry r) = 
       case r.cardReference of
         (CardReference { reference }) -> reference
-
-    prepareTuples :: List HexString -> ExceptT AppError Aff (List (Tuple HexString HexString))
-    prepareTuples Nil = except $ Right Nil
-    prepareTuples (Cons r l) = do
-      blobAb <- getBlob r
-      let blob = ((Tuple r) <<< fromArrayBuffer) blobAb
-      otherBlobs <- prepareTuples l
-      except $ Right $ blob : otherBlobs
     
-    -- prepareTuple :: HexString -> ExceptT AppError Aff (Tuple HexString HexString)
-    -- prepareTuple ref = do
-    --   ((Tuple ref) <<< fromArrayBuffer) <$> getBlob ref
+    prepareTuple :: HexString -> ExceptT AppError Aff (Tuple HexString HexString)
+    prepareTuple ref = do
+      ((Tuple ref) <<< fromArrayBuffer) <$> getBlob ref
 
 prepareHTMLBlob :: Document -> Effect Blob
 prepareHTMLBlob doc = do
