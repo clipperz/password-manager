@@ -1,4 +1,16 @@
-module Functions.Communication.BackendCommunication where
+module Functions.Communication.BackendCommunication
+  ( RequestInfo(..)
+  , Url
+  , createHeaders
+  , doGenericRequest
+  , isStatusCodeOk
+  , manageGenericRequest
+  , sessionKeyHeaderName
+  , tollCostHeaderName
+  , tollHeaderName
+  , tollReceiptHeaderName
+  )
+  where
 
 import Affjax.Web as AXW
 import Affjax.RequestBody (RequestBody)
@@ -9,32 +21,36 @@ import Affjax.StatusCode (StatusCode(..))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT, runExceptT)
-import Data.Array (filter)
+import Data.Array (filter, last)
 import Data.Bifunctor (lmap)
 import Data.Boolean (otherwise)
 import Data.Either (Either(..))
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), void)
-import Data.HexString (hex)
+import Data.HexString (hex, toArrayBuffer)
 import Data.HeytingAlgebra ((&&))
-import Data.HTTP.Method (Method)
+import Data.HTTP.Method (Method(..))
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..))
 import Data.Ord((<=), (>=))
 import Data.Semigroup ((<>))
 import Data.Show (show)
-import Data.String.Common (joinWith)
+import Data.String.Common (joinWith, split)
+import Data.String.Pattern (Pattern(..))
 import Data.Time.Duration (Milliseconds(..))
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
-import Data.Unit (unit)
+import Data.Unit (unit, Unit)
 import DataModel.AppState as AS
 import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue, toLoading)
+import DataModel.Communication.FromString (class FromString)
+import DataModel.Communication.FromString as BCFS
 import DataModel.Proxy (Proxy(..))
 import DataModel.SRP (hashFuncSHA256)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff, forkAff, delay)
+import Effect (Effect)
 import Effect.Class (liftEffect)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.JSState (getAppState, modifyAppState, updateAppState)
@@ -69,7 +85,9 @@ createHeaders { toll, sessionKey, currentChallenge } =
 
 -- ----------------------------------------------------------------------------
 
-manageGenericRequest :: forall a. Url -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AS.AppError Aff (AXW.Response a)
+foreign import _readBlob :: String -> String
+
+manageGenericRequest :: forall a. FromString a => Url -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AS.AppError Aff (AXW.Response a)
 manageGenericRequest url method body responseFormat = do
   currentState@{ toll } <- ExceptT $ liftEffect $ getAppState
   case toll of
@@ -135,7 +153,7 @@ manageGenericRequest url method body responseFormat = do
               [tollHeader], [costHeader] -> (\cost -> { toll: hex $ value tollHeader, cost }) <$> fromString (value costHeader)
               _, _                               -> Nothing
 
-doGenericRequest :: forall a. Proxy -> RequestInfo a -> Aff (Either ProtocolError (AXW.Response a))
+doGenericRequest :: forall a. FromString a => Proxy -> RequestInfo a -> Aff (Either ProtocolError (AXW.Response a))
 doGenericRequest (OnlineProxy baseUrl) (OnlineRequestInfo { url, method, headers, body, responseFormat }) =
   lmap (\e -> RequestError e) <$> AXW.request (
     AXW.defaultRequest {
@@ -146,8 +164,16 @@ doGenericRequest (OnlineProxy baseUrl) (OnlineRequestInfo { url, method, headers
       , responseFormat = responseFormat
     }
   )
-doGenericRequest  OfflineProxy   (OfflineRequestInfo { url: _, method: _, body: _, responseFormat: _ }) =
-  pure $ Left $ ResponseError 500 -- TODO
+doGenericRequest  OfflineProxy   (OfflineRequestInfo { url, method, body, responseFormat }) =
+  case method, responseFormat of
+    GET, (RF.ArrayBuffer _) -> do
+      let pieces = last $ split (Pattern "/") url
+      case pieces of
+        Nothing -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
+        Just ref -> do
+          result <- liftEffect $ BCFS.fromString $ _readBlob ref
+          pure $ Right $ { body: result, headers: [], status: StatusCode 200, statusText: "OK" }
+    _, _   -> pure $ Left $ ResponseError 500 -- TODO
 doGenericRequest (OnlineProxy _) (OfflineRequestInfo _) = pure $ Left $ IllegalRequest "Cannot do an offline request with an online proxy"
 doGenericRequest  OfflineProxy   (OnlineRequestInfo  _) = pure $ Left $ IllegalRequest "Cannot do an online request with an offline proxy"
 
