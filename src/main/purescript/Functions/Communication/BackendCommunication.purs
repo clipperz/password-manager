@@ -21,7 +21,7 @@ import Affjax.StatusCode (StatusCode(..))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT, runExceptT)
-import Data.Array (filter, last)
+import Data.Array (filter, last, head)
 import Data.Bifunctor (lmap)
 import Data.Boolean (otherwise)
 import Data.Either (Either(..))
@@ -46,9 +46,10 @@ import DataModel.AppState as AS
 import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue, toLoading)
 import DataModel.Communication.FromString (class FromString)
 import DataModel.Communication.FromString as BCFS
+import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Proxy (Proxy(..))
 import DataModel.SRP (hashFuncSHA256)
-import DataModel.Communication.ProtocolError (ProtocolError(..))
+import DataModel.User (UserCard(..))
 import Effect.Aff (Aff, forkAff, delay)
 import Effect (Effect)
 import Effect.Class (liftEffect)
@@ -86,6 +87,8 @@ createHeaders { toll, sessionKey, currentChallenge } =
 -- ----------------------------------------------------------------------------
 
 foreign import _readBlob :: String -> String
+
+foreign import _readUserCard :: Unit -> String
 
 manageGenericRequest :: forall a. FromString a => Url -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AS.AppError Aff (AXW.Response a)
 manageGenericRequest url method body responseFormat = do
@@ -167,12 +170,19 @@ doGenericRequest (OnlineProxy baseUrl) (OnlineRequestInfo { url, method, headers
 doGenericRequest  OfflineProxy   (OfflineRequestInfo { url, method, body, responseFormat }) =
   case method, responseFormat of
     GET, (RF.ArrayBuffer _) -> do
-      let pieces = last $ split (Pattern "/") url
-      case pieces of
-        Nothing -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
-        Just ref -> do
+      let pieces = split (Pattern "/") url
+      let type' = head pieces
+      let ref' = last pieces
+      case type', ref' of
+        Nothing  , _           -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
+        _        , Nothing     -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
+        Just "blobs", Just ref -> do
           result <- liftEffect $ BCFS.fromString $ _readBlob ref
           pure $ Right $ { body: result, headers: [], status: StatusCode 200, statusText: "OK" }
+        Just "users", Just c   -> do
+          result <- liftEffect $ BCFS.fromString $ _readUserCard unit
+          pure $ Right $ { body: result, headers: [], status: StatusCode 200, statusText: "OK"}
+        _           , _        -> pure $ Left $ ResponseError 400 -- TODO
     _, _   -> pure $ Left $ ResponseError 500 -- TODO
 doGenericRequest (OnlineProxy _) (OfflineRequestInfo _) = pure $ Left $ IllegalRequest "Cannot do an offline request with an online proxy"
 doGenericRequest  OfflineProxy   (OnlineRequestInfo  _) = pure $ Left $ IllegalRequest "Cannot do an online request with an offline proxy"
