@@ -219,6 +219,14 @@ doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInf
             Left err -> pure $ Left $ ResponseError 400 -- TODO:
             Right Nothing -> pure $ Left $ ResponseError 400 
             Right (Just a) -> pure $ Right $ { body: a, headers: [], status: StatusCode 200, statusText: "OK" }
+        Just "logout", _, _ -> do
+          res <- runExceptT $ do
+            let newSession = BackendSessionState { b: Nothing, bb: Nothing, aa: Nothing }
+            ExceptT $ updateAppState { proxy: OfflineProxy newSession }
+            ExceptT $ Right <$> (liftEffect $ BCFS.fromString "")
+          case res of 
+            Left err -> pure $ Left $ ResponseError 500
+            Right a -> pure $ Right $ { body: a, headers: [], status: StatusCode 200, statusText: "OK" }
         _, _, _ -> pure $ Left $ ResponseError 501
     _   -> pure $ Left $ ResponseError 501
 doGenericRequest (OnlineProxy  _) (OfflineRequestInfo _) = pure $ Left $ IllegalRequest "Cannot do an offline request with an online proxy"
