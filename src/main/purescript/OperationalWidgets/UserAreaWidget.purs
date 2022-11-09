@@ -18,15 +18,23 @@ import OperationalWidgets.PinWidget (setPinWidget)
 
 data UserAreaAction = Loaded (Either AppError Index) | Lock | Logout | DeleteAccount | NoAction
 
-userAreaWidget :: Index -> Widget HTML UserAreaAction
-userAreaWidget index = 
-  div [Props._id "userSidebar"] [
-    simpleButton "Close user area" false NoAction
-  , Loaded <$> importWidget index
-  , NoAction <$ exportWidget index
-  , setPinWidget Default
-  , changePasswordWidget Default emptyChangePasswordDataForm
-  , DeleteAccount <$ deleteUserWidget index Default
-  , simpleButton "Lock" false Lock
-  , simpleButton "Logout" false Logout
-  ]
+userAreaWidget :: Index -> Boolean -> Widget HTML UserAreaAction
+userAreaWidget index isOffline =
+  if isOffline then div [Props._id "userSidebar"] [
+      simpleButton "Close user area" false NoAction
+    , NoAction <$ exportWidget index
+    , setPinWidget Default
+    , simpleButton "Lock" false Lock
+    , simpleButton "Logout" false Logout
+    ]
+
+  else div [Props._id "userSidebar"] [
+      simpleButton "Close user area" false NoAction
+    , Loaded <$> importWidget index
+    , NoAction <$ exportWidget index
+    , setPinWidget Default
+    , changePasswordWidget Default emptyChangePasswordDataForm
+    , DeleteAccount <$ deleteUserWidget index Default
+    , simpleButton "Lock" false Lock
+    , simpleButton "Logout" false Logout
+    ]

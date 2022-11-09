@@ -56,7 +56,7 @@ homePageWidget = do
                   cardsManagerWidget isOffline index { cardView: cardView, cardViewState: Default }
                 , do
                     simpleButton "Open user area" false unit
-                    UserAreaAction <$> userAreaWidget index
+                    UserAreaAction <$> userAreaWidget index isOffline
                 ]
       interpretHomePageActions isOffline (Just index) (Just cardView) result
 
