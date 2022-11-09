@@ -16,11 +16,14 @@ import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$), void)
 import Data.Semigroup ((<>))
+import Data.Show (show)
 import Data.Unit (Unit, unit)
 import DataModel.Index (Index(..))
 import Effect.Aff.Class (liftAff)
+import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Export (prepareOfflineCopy)
+import Functions.Time (getCurrentDateTime, formatDateTime)
 
 exportWidget :: Index -> Widget HTML Unit
 exportWidget index = div [] [
@@ -37,5 +40,8 @@ downloadOfflineCopy :: Index -> Widget HTML Unit -> Widget HTML Unit
 downloadOfflineCopy index placeholder = do
   url <- (Left "" <$ placeholder) <|> (liftAff $ prepareOfflineCopy index)
   case url of
-    Right url -> a [Props.download "offline_copy", Props.href url, void Props.onClick] [button [Props.disabled false] [text "Download"]] -- TODO: add date
+    Right url -> do
+      dt <- liftEffect $ formatDateTime <$> getCurrentDateTime
+      log $ show dt
+      a [Props.download (dt <> "_Clipperz_Offline"), Props.href url, void Props.onClick] [button [Props.disabled false] [text "Download"]] -- TODO: add date
     Left err -> text $ "Could not prepare offline copy: " <> err

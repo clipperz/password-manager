@@ -38,11 +38,11 @@ app = app' Nothing
                                     _ -> []
           res <- div [Props.className "wrapper"] $ offlineCopyBanner <> [
             do
-            let form = fromMaybe emptyForm ((\u -> { username: u, password: "" }) <$> maybeUsername )
-            landingPageView (LoginView Default form)
+            -- let form = fromMaybe emptyForm ((\u -> { username: u, password: "" }) <$> maybeUsername )
+            -- landingPageView (LoginView Default form)
             -- !!! AUTOLOGIN FOR DEVELOPING !!! --
-            -- let form = fromMaybe {username: "joe", password: "clipperz"} ((\u -> { username: u, password: "" }) <$> maybeUsername )
-            -- landingPageView (LoginView Loading form)
+            let form = fromMaybe {username: "joe", password: "clipperz"} ((\u -> { username: u, password: "" }) <$> maybeUsername )
+            landingPageView (LoginView Loading form)
             -- -------------------------------- --
             homePageWidget
           ]
