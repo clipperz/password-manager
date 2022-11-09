@@ -9,6 +9,7 @@ import Control.Alternative ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (runExceptT)
+import Data.Array (toUnfoldable, fromFoldable)
 import Data.Either (Either(..))
 import Data.Eq (class Eq)
 import Data.Foldable (elem)
@@ -16,6 +17,7 @@ import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.List (List(..))
 import Data.Semigroup ((<>))
+import Data.Tuple (Tuple(..))
 import Data.Unit (unit, Unit)
 import DataModel.AppState (AppError)
 import DataModel.Index (Index(..))
@@ -23,7 +25,7 @@ import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Logout (doLogout)
 import Functions.Communication.Users (getIndex)
-import Views.SimpleWebComponents (simpleButton, submenu)
+import Views.SimpleWebComponents (simpleButton, submenu, complexMenu, SubmenuVoice)
 import OperationalWidgets.ImportWidget (importWidget)
 import OperationalWidgets.ExportWidget (exportWidget)
 import OperationalWidgets.ChangePasswordWidget (changePasswordWidget, emptyChangePasswordDataForm)
@@ -36,14 +38,30 @@ data UserAreaListVoice = Close | Export | Import | Pin | Delete | ChangePassword
 
 derive instance eqUserAreaListVoice :: Eq UserAreaListVoice
 
-data UserAreaInternalAction = MenuAction UserAreaListVoice | UserAction UserAreaAction
+data UserAreaInternalAction = MenuAction (Tuple (Array Boolean) UserAreaListVoice) | UserAction UserAreaAction
+
+defaultMenu = \isOffline -> [
+  Tuple true (\b -> submenu b (text "") [simpleButton "Close user area" false Close])
+, Tuple false (\b -> submenu b (simpleButton "Account" false unit) [
+    simpleButton "Passphrase" isOffline ChangePassword
+  , simpleButton "Device PIN" false Pin
+  , simpleButton "Delete account" isOffline Delete
+  ])
+, Tuple false (\b -> submenu b (simpleButton "Data" false unit) [
+    simpleButton "Export" false Export
+  , simpleButton "Import" isOffline Import
+  ])
+, Tuple true (\b -> submenu b (text "") [simpleButton "About" false About])
+, Tuple true (\b -> submenu b (text "") [simpleButton "Lock" false VLock])
+, Tuple true (\b -> submenu b (text "") [simpleButton "Logout" false VLogout])
+]
 
 userAreaWidget :: Boolean -> Widget HTML UserAreaAction
 userAreaWidget isOffline = do
-  newIndex <- ((Right (Index Nil)) <$ userAreaView Close (Index Nil) (div [NoAction (Index Nil) <$ Props.onClick] [])) <|> (liftAff $ runExceptT $ getIndex)
+  newIndex <- ((Right (Index Nil)) <$ userAreaView (defaultMenu isOffline) (Index Nil) (div [NoAction (Index Nil) <$ Props.onClick] [])) <|> (liftAff $ runExceptT $ getIndex)
   case newIndex of
     Right index -> do
-      res <- userAreaView Close index (div [NoAction index <$ Props.onClick] [])
+      res <- userAreaView (defaultMenu isOffline) index (div [NoAction index <$ Props.onClick] [])
       case res of
         Lock -> do
           (div [Lock <$ Props.onClick] []) <|> (Lock <$ (liftAff $ doLogout true))
@@ -59,25 +77,25 @@ userAreaWidget isOffline = do
     isDataRelated :: UserAreaListVoice -> Boolean
     isDataRelated v = elem v [Export, Import]
 
-    userAreaList lastVoice = div [Props._id "userSidebar"] [
-      simpleButton "Close user area" false Close
-    , do
-        submenu (isAccountRelated lastVoice) (simpleButton "Account" false unit) [
-            simpleButton "Passphrase" isOffline ChangePassword
-          , simpleButton "Device PIN" false Pin
-          , simpleButton "Delete account" isOffline Delete
-          ]
-    , do
-        submenu (isDataRelated lastVoice) (simpleButton "Data" false unit) [
-          simpleButton "Export" false Export
-        , simpleButton "Import" isOffline Import
-        ]
-    , simpleButton "About" false About
-    , simpleButton "Lock" false VLock
-    , simpleButton "Logout" false VLogout
-    ]
+    -- userAreaList lastVoice = div [Props._id "userSidebar"] [
+    --   submenu true (text "") [simpleButton "Close user area" false Close]
+    -- , submenu (isAccountRelated lastVoice) (simpleButton "Account" false unit) [
+    --     simpleButton "Passphrase" isOffline ChangePassword
+    --   , simpleButton "Device PIN" false Pin
+    --   , simpleButton "Delete account" isOffline Delete
+    --   ]
+    -- , submenu (isDataRelated lastVoice) (simpleButton "Data" false unit) [
+    --     simpleButton "Export" false Export
+    --   , simpleButton "Import" isOffline Import
+    --   ]
+    -- , simpleButton "About" false About
+    -- , simpleButton "Lock" false VLock
+    -- , simpleButton "Logout" false VLogout
+    -- ]
 
-    userAreaView' :: Widget HTML UserAreaListVoice -> Widget HTML UserAreaAction -> Widget HTML UserAreaInternalAction
+    userAreaList arr = div [Props._id "userSidebar"] (complexMenu arr )
+
+    userAreaView' :: Widget HTML (Tuple (Array Boolean) UserAreaListVoice) -> Widget HTML UserAreaAction -> Widget HTML UserAreaInternalAction
     userAreaView' menu area = div [Props.className "userSidebarOverlay"] [ 
       UserAction <$> area
     , MenuAction <$> menu
@@ -96,9 +114,19 @@ userAreaWidget isOffline = do
         VLogout -> pure Logout
         About -> div [Props.className "forUser"] [text "This is Clipperz"]
 
-    userAreaView :: UserAreaListVoice -> Index -> Widget HTML UserAreaAction -> Widget HTML UserAreaAction
-    userAreaView lastVoice ix area = do
-      res <- userAreaView' (userAreaList lastVoice) area
+    userAreaView :: Array (SubmenuVoice UserAreaListVoice) -> Index -> Widget HTML UserAreaAction -> Widget HTML UserAreaAction
+    userAreaView arr ix area = do
+      res <- userAreaView' (userAreaList arr) area
       case res of
         UserAction ac -> pure $ ac
-        MenuAction ac -> userAreaView ac ix (userAreaInternalView ix ac)
+        MenuAction (Tuple bools ac) -> 
+          let newArr = updateMenu arr bools
+          in userAreaView newArr ix (userAreaInternalView ix ac)
+
+    updateMenu :: Array (SubmenuVoice UserAreaListVoice) -> Array Boolean -> Array (SubmenuVoice UserAreaListVoice)
+    updateMenu a a' = fromFoldable $ updateMenu' (toUnfoldable a) (toUnfoldable a')
+      where
+        updateMenu' Nil _   = Nil
+        updateMenu' _   Nil = Nil
+        updateMenu' (Cons (Tuple b f) l) (Cons b' l') = Cons (Tuple b' f) (updateMenu' l l')
+

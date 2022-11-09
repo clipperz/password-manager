@@ -8,6 +8,7 @@ import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (=<<))
 import Control.Semigroupoid ((<<<))
+import Data.Array (length, zipWith, range, updateAt)
 import Data.Either (Either(..))
 import Data.Eq ((==))
 import Data.Function (($))
@@ -15,10 +16,11 @@ import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not)
 import Data.Map (Map, lookup)
 import Data.Maybe (fromMaybe)
+import Data.Ring ((-))
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Traversable (sequence)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), fst)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Events (readFile)
@@ -211,3 +213,13 @@ submenu true b1 bs = do
     OpenSubMenu -> submenu true b1 bs
     CloseSubMenu -> submenu false b1 bs
     ClickOnVoice a -> pure a
+
+type SubmenuVoice a = Tuple Boolean (Boolean -> Widget HTML a)
+
+complexMenu :: forall a. Array (SubmenuVoice a) -> Array (Widget HTML (Tuple (Array Boolean) a))
+complexMenu arr = 
+  let indexes = range 0 ((length arr) - 1)
+      newArr = zipWith (\i -> \t -> { index: i, tuple: t}) indexes arr
+      booleans = fst <$> arr
+      mapFunc = \{index, tuple: (Tuple open f)} -> (\v -> Tuple (fromMaybe booleans (updateAt index true booleans)) v) <$> f open
+  in mapFunc <$> newArr
