@@ -73,11 +73,8 @@ homePageWidget = do
           go (Error (prettyShow err)) isOffline
         UserAreaAction Lock -> do
           maybeUser <- liftEffect $ getUsername
-          _ <- liftAff $ runExceptT $ resetState
           pure $ maybe Clean ReadyForLogin maybeUser
-        UserAreaAction Logout -> do
-          _ <- liftAff $ runExceptT $ resetState
-          pure $ Clean
+        UserAreaAction Logout -> pure $ Clean
         UserAreaAction DeleteAccount -> do
           _ <- liftAff $ runExceptT $ resetState
           pure $ Clean
