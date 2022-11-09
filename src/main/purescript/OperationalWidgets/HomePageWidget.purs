@@ -32,7 +32,7 @@ import Views.SimpleWebComponents (simpleButton, loadingDiv)
 import OperationalWidgets.CardsManagerWidget (cardsManagerWidget)
 import OperationalWidgets.UserAreaWidget (userAreaWidget, UserAreaAction(..))
 
-data HomePageAction = NewIndex (Either AppError Index) | UserAreaAction (Tuple (Either AppError Index) UserAreaAction) | LogoutAction
+data HomePageAction = UserAreaAction UserAreaAction | LogoutAction
 
 data HomePageExitStatus = Clean | ReadyForLogin String
 
@@ -48,7 +48,7 @@ homePageWidget = do
     go widgetState isOffline = do
       res <- case widgetState of
         Default -> div [] []
-        Loading -> loadingDiv <|> (NewIndex <$> (liftAff $ runExceptT $ getIndex))
+        Loading -> loadingDiv <|> ((UserAreaAction <<< Loaded) <$> (liftAff $ runExceptT $ getIndex))
         Error err -> div [] [text err, simpleButton "Go back to login" false LogoutAction]
       interpretHomePageActions isOffline Nothing res 
     
@@ -58,30 +58,26 @@ homePageWidget = do
                   cardsManagerWidget isOffline index { cardView: cardView, cardViewState: Default }
                 , do
                     simpleButton "Open user area" false unit
-                    res <- userAreaWidget index isOffline
-                    newIndex <- ((Left $ InvalidStateError $ CorruptedState "not expected action") <$ (userAreaWidget index isOffline)) <|> (liftAff $ runExceptT $ getIndex)
-                    pure $ UserAreaAction $ Tuple newIndex res
+                    UserAreaAction <$> (userAreaWidget isOffline)
                 ]
       interpretHomePageActions isOffline (Just cardView) result
 
     interpretHomePageActions :: Boolean -> Maybe CardView -> HomePageAction -> Widget HTML HomePageExitStatus
     interpretHomePageActions isOffline cv result =
       case result of
-        NewIndex (Right index) -> homePage isOffline index (fromMaybe NoCard cv)
-        NewIndex (Left  _    ) -> go Loading isOffline
-        UserAreaAction (Tuple _ (Loaded (Right index))) -> homePage isOffline index NoCard         
-        UserAreaAction (Tuple (Right ix) NoAction) -> 
-          homePage isOffline ix (fromMaybe NoCard cv)
-        UserAreaAction (Tuple (Left err) NoAction) -> 
+        UserAreaAction (Loaded (Right index)) -> homePage isOffline index NoCard         
+        UserAreaAction (NoAction index) -> 
+          homePage isOffline index (fromMaybe NoCard cv)
+        UserAreaAction (GetIndexError err) -> 
           go (Error (show err)) isOffline
-        UserAreaAction (Tuple _ (Loaded (Left err))) -> do
+        UserAreaAction (Loaded (Left err)) -> do
           _ <- liftEffect $ log $ show err
           go (Error (prettyShow err)) isOffline
-        UserAreaAction (Tuple _ Lock) -> do
+        UserAreaAction Lock -> do
           maybeUser <- liftEffect $ getUsername
           pure $ maybe Clean ReadyForLogin maybeUser
-        UserAreaAction (Tuple _ Logout) -> pure $ Clean
-        UserAreaAction (Tuple _ DeleteAccount) -> do
+        UserAreaAction Logout -> pure $ Clean
+        UserAreaAction DeleteAccount -> do
           _ <- liftAff $ runExceptT $ resetState
           pure $ Clean
         LogoutAction -> do
