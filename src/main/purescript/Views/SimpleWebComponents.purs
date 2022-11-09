@@ -195,3 +195,19 @@ confirmationWidget message = div [(Props.className "disableOverlay")] [
 , simpleButton "Yes" false true
 , simpleButton "No" false false
 ]
+
+data SubMenuAction a = OpenSubMenu | CloseSubMenu | ClickOnVoice a
+
+submenu :: forall a b. Boolean -> Widget HTML b -> Array (Widget HTML a) -> Widget HTML a
+submenu false b1 bs = do
+  res <- OpenSubMenu <$ div [] [b1]
+  case res of
+    OpenSubMenu -> submenu true b1 bs
+    CloseSubMenu -> submenu false b1 bs
+    ClickOnVoice a -> pure a
+submenu true b1 bs = do
+  res <- div [] $ [CloseSubMenu <$ b1] <> (((<$>) ClickOnVoice) <$> bs)
+  case res of
+    OpenSubMenu -> submenu true b1 bs
+    CloseSubMenu -> submenu false b1 bs
+    ClickOnVoice a -> pure a
