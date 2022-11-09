@@ -64,6 +64,7 @@ import Functions.State (getSRPConf, getHashFunctionFromAppState)
 import Functions.SRP as SRP
 import Record (merge)
 
+
 -- ----------------------------------------------------------------------------
 
 type Url = String
@@ -150,7 +151,9 @@ manageGenericRequest url method body responseFormat = do
                       ExceptT $ updateAppState { toll: Done receipt, currentChallenge: Just challenge }
                   )
                   pure response
-                Nothing -> pure response
+                Nothing -> do
+                  ExceptT $ updateAppState { toll: Loading Nothing, currentChallenge: Nothing }
+                  pure response
           | otherwise           = \_ -> do
               ExceptT $ updateAppState { toll: Loading Nothing }
               except $ Left $ AS.ProtocolError $ ResponseError n
