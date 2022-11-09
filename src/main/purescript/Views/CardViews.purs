@@ -26,10 +26,10 @@ instance showCardAction :: Show CardAction where
 
 -- -----------------------------------
 
-cardView :: Card -> Widget HTML CardAction
-cardView c@(Card r) = do
+cardView :: Card -> Boolean -> Widget HTML CardAction
+cardView c@(Card r) isOffline = do
   res <- div [Props._id "card"] [
-      cardActions c false
+      cardActions c isOffline
     , cardContent r.content
   ]
   case res of
@@ -39,7 +39,7 @@ cardView c@(Card r) = do
       , cardContent r.content
       , confirmationWidget "Are you sure you want to delete this card?"
       ]
-      if confirmation then pure res else cardView c
+      if confirmation then pure res else cardView c isOffline
     _ -> pure res
 
 cardActions :: Card -> Boolean -> Widget HTML CardAction

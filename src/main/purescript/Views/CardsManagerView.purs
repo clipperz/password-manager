@@ -52,8 +52,8 @@ instance showCardView :: Show CardView where
 
 data InternalAction = CardViewAction CardViewAction | ChangeFilter ComplexIndexFilter
 
-cardsManagerView :: Index -> ComplexIndexFilter -> CardViewState -> Maybe AppError -> Widget HTML (Tuple ComplexIndexFilter CardViewAction)
-cardsManagerView i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: _, cardViewState } error = do 
+cardsManagerView :: Boolean -> Index -> ComplexIndexFilter -> CardViewState -> Maybe AppError -> Widget HTML (Tuple ComplexIndexFilter CardViewAction)
+cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: _, cardViewState } error = do 
   res <- div [Props._id "cardsManager"] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
     ChangeFilter <$> div [Props._id "filterView"] [
       prepareFilter <$> ol [][
@@ -79,16 +79,16 @@ cardsManagerView i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: _
         { cardView: CardForm card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ createCardView card allSortedTags cardViewState
         { cardView: CardForm card,         cardViewState: _       } -> (CardViewAction  <<< UpdateIndex) <$> createCardWidget card allSortedTags cardViewState
         { cardView: CardFromReference ref, cardViewState: _       } -> (CardViewAction  <<< UpdateIndex) <$> cardWidget ref allSortedTags cardViewState
-        { cardView: JustCard card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ (div [] [loadingDiv, cardView card])
-        { cardView: JustCard card,         cardViewState: _       } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ cardView card
+        { cardView: JustCard card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ (div [] [loadingDiv, cardView card isOffline])
+        { cardView: JustCard card,         cardViewState: _       } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ cardView card isOffline
         { cardView: NoCard       ,         cardViewState: _       } -> div [Props._id "card"] []
       ]
     ]
   ]
   case res of
-    CardViewAction (ShowCard ref) -> cardsManagerView i (removeLastCardFilter cif (Just ref)) { cardView: CardFromReference ref, cardViewState } Nothing -- TODO: discuss
+    CardViewAction (ShowCard ref) -> cardsManagerView isOffline i (removeLastCardFilter cif (Just ref)) { cardView: CardFromReference ref, cardViewState } Nothing -- TODO: discuss
     CardViewAction action -> pure $ Tuple (removeLastCardFilter cif Nothing) action
-    ChangeFilter newFilter -> cardsManagerView i newFilter cvs Nothing
+    ChangeFilter newFilter -> cardsManagerView isOffline i newFilter cvs Nothing
 
   where
     removeLastCardFilter cf@{ archived: archived', indexFilter: indexFilter' } mRef =

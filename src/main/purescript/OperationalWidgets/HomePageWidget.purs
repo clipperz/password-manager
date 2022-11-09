@@ -24,7 +24,7 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Users (getIndex)
 import Functions.JSState (getAppState)
-import Functions.State (resetState)
+import Functions.State (resetState, isOfflineCopy)
 import Views.CardsManagerView (CardView(..))
 import Views.SimpleWebComponents (simpleButton, loadingDiv)
 import OperationalWidgets.CardsManagerWidget (cardsManagerWidget)
@@ -35,36 +35,42 @@ data HomePageAction = UserAreaAction UserAreaAction | LogoutAction
 data HomePageExitStatus = Clean | ReadyForLogin String
 
 homePageWidget :: Widget HTML HomePageExitStatus
-homePageWidget = go Loading
+homePageWidget = do
+  eitherState <- liftEffect $ getAppState
+  case eitherState of
+    Left err -> go (Error (show err)) true
+    Right st -> go Loading (isOfflineCopy st)
+
   where 
-    go widgetState = do
+    go :: WidgetState -> Boolean -> Widget HTML HomePageExitStatus
+    go widgetState isOffline = do
       res <- case widgetState of
         Default -> div [] []
         Loading -> loadingDiv <|> ((UserAreaAction <<< Loaded) <$> (liftAff $ runExceptT $ getIndex))
         Error err -> div [] [text err, simpleButton "Go back to login" false LogoutAction]
-      interpretHomePageActions Nothing Nothing res
+      interpretHomePageActions isOffline Nothing Nothing res 
     
-    homePage :: Index -> CardView -> Widget HTML HomePageExitStatus
-    homePage index cardView = do
+    homePage :: Boolean -> Index -> CardView -> Widget HTML HomePageExitStatus
+    homePage isOffline index cardView = do
       result <- div [Props._id "homePage"] [
-                  cardsManagerWidget index { cardView: cardView, cardViewState: Default }
+                  cardsManagerWidget isOffline index { cardView: cardView, cardViewState: Default }
                 , do
                     simpleButton "Open user area" false unit
                     UserAreaAction <$> userAreaWidget index
                 ]
-      interpretHomePageActions (Just index) (Just cardView) result
+      interpretHomePageActions isOffline (Just index) (Just cardView) result
 
-    interpretHomePageActions :: Maybe Index -> Maybe CardView -> HomePageAction -> Widget HTML HomePageExitStatus
-    interpretHomePageActions ix cv result =
+    interpretHomePageActions :: Boolean -> Maybe Index -> Maybe CardView -> HomePageAction -> Widget HTML HomePageExitStatus
+    interpretHomePageActions isOffline ix cv result =
       case result of
-        UserAreaAction (Loaded (Right index)) -> homePage index NoCard         
+        UserAreaAction (Loaded (Right index)) -> homePage isOffline index NoCard         
         UserAreaAction NoAction -> 
           case ix, cv of
-            (Just ix), (Just cv) -> homePage ix cv
-            _, _ -> go (Error "Inconsistent state")
+            (Just ix), (Just cv) -> homePage isOffline ix cv
+            _, _ -> go (Error "Inconsistent state") isOffline
         UserAreaAction (Loaded (Left err)) -> do
           _ <- liftEffect $ log $ show err
-          go (Error (prettyShow err))
+          go (Error (prettyShow err)) isOffline
         UserAreaAction Lock -> do
           maybeUser <- liftEffect $ getUsername
           _ <- liftAff $ runExceptT $ resetState

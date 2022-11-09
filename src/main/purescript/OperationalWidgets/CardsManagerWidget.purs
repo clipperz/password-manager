@@ -29,8 +29,8 @@ import Views.IndexView (IndexFilter(..), ComplexIndexFilter)
 
 data CardsViewResult = CardsViewResult (Tuple ComplexIndexFilter CardViewAction) | OpResult Index CardViewState (Maybe AppError) ComplexIndexFilter
 
-cardsManagerWidget :: forall a. Index -> CardViewState -> Widget HTML a
-cardsManagerWidget ind cardViewState = go ind { archived: false, indexFilter: NoFilter } (\f -> cardsManagerView ind f cardViewState) Nothing Nothing
+cardsManagerWidget :: forall a. Boolean -> Index -> CardViewState -> Widget HTML a
+cardsManagerWidget isOffline ind cardViewState = go ind { archived: false, indexFilter: NoFilter } (\f -> cardsManagerView isOffline ind f cardViewState) Nothing Nothing
 
   where
     go :: Index -> ComplexIndexFilter -> (ComplexIndexFilter -> Maybe AppError -> Widget HTML (Tuple ComplexIndexFilter CardViewAction)) -> Maybe AppError -> Maybe (Aff CardsViewResult) -> Widget HTML a
@@ -42,10 +42,10 @@ cardsManagerWidget ind cardViewState = go ind { archived: false, indexFilter: No
         CardsViewResult (Tuple f cva) -> case cva of 
           UpdateIndex updateData -> do
             _ <- log $ show updateData
-            go index f (\ff -> getUpdateIndexView index ff updateData) Nothing (Just (getUpdateIndexOp index f updateData))
-          ShowAddCard -> go index f (\ff -> cardsManagerView index ff {cardView: (CardForm emptyCard), cardViewState: Default}) Nothing Nothing
-          ShowCard ref -> go index f (\ff -> cardsManagerView index ff {cardView: (CardFromReference ref), cardViewState: Default}) Nothing Nothing
-        OpResult i cv e f -> go i f (\ff -> cardsManagerView i ff cv) e Nothing
+            go index f (\ff -> getUpdateIndexView isOffline index ff updateData) Nothing (Just (getUpdateIndexOp index f updateData))
+          ShowAddCard -> go index f (\ff -> cardsManagerView isOffline index ff {cardView: (CardForm emptyCard), cardViewState: Default}) Nothing Nothing
+          ShowCard ref -> go index f (\ff -> cardsManagerView isOffline index ff {cardView: (CardFromReference ref), cardViewState: Default}) Nothing Nothing
+        OpResult i cv e f -> go i f (\ff -> cardsManagerView isOffline i ff cv) e Nothing
 
 getUpdateIndexOp :: Index -> ComplexIndexFilter -> IndexUpdateData -> Aff CardsViewResult
 getUpdateIndexOp index@(Index list) indexFilter (IndexUpdateData action _) =
@@ -94,12 +94,12 @@ getUpdateIndexOp index@(Index list) indexFilter (IndexUpdateData action _) =
             ProtocolError     (IllegalResponse          _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- The server did something wrong, but the operation should have worked
             ImportError        _                           -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
 
-getUpdateIndexView :: Index -> ComplexIndexFilter -> IndexUpdateData -> (Maybe AppError -> Widget HTML (Tuple ComplexIndexFilter CardViewAction))
-getUpdateIndexView index indexFilter (IndexUpdateData action card) = 
+getUpdateIndexView :: Boolean -> Index -> ComplexIndexFilter -> IndexUpdateData -> (Maybe AppError -> Widget HTML (Tuple ComplexIndexFilter CardViewAction))
+getUpdateIndexView isOffline index indexFilter (IndexUpdateData action card) = 
   case action of 
-    AddReference                 _ -> cardsManagerView index { archived: false, indexFilter: NoFilter } { cardView: (CardForm card), cardViewState: Loading } 
-    CloneReference               _ -> cardsManagerView index indexFilter  { cardView: (JustCard card), cardViewState: Loading }
-    DeleteReference              _ -> cardsManagerView index indexFilter  { cardView: (JustCard card), cardViewState: Loading }
-    ChangeReferenceWithEdit    _ _ -> cardsManagerView index indexFilter  { cardView: (CardForm card), cardViewState: Loading } 
-    ChangeReferenceWithoutEdit _ _ -> cardsManagerView index indexFilter  { cardView: (JustCard card), cardViewState: Loading } 
-    _                              -> cardsManagerView index indexFilter  { cardView:  NoCard,         cardViewState: Default }
+    AddReference                 _ -> cardsManagerView isOffline index { archived: false, indexFilter: NoFilter } { cardView: (CardForm card), cardViewState: Loading } 
+    CloneReference               _ -> cardsManagerView isOffline index indexFilter  { cardView: (JustCard card), cardViewState: Loading }
+    DeleteReference              _ -> cardsManagerView isOffline index indexFilter  { cardView: (JustCard card), cardViewState: Loading }
+    ChangeReferenceWithEdit    _ _ -> cardsManagerView isOffline index indexFilter  { cardView: (CardForm card), cardViewState: Loading } 
+    ChangeReferenceWithoutEdit _ _ -> cardsManagerView isOffline index indexFilter  { cardView: (JustCard card), cardViewState: Loading } 
+    _                              -> cardsManagerView isOffline index indexFilter  { cardView:  NoCard,         cardViewState: Default }

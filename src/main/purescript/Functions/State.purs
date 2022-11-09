@@ -94,3 +94,9 @@ getSRPConf = do
 
 getSRPConfFromState :: AppState -> SRPConf
 getSRPConfFromState state = { group: state.srpInfo.group, k: state.srpInfo.k, hash: getHashFromState state.hash, kdf: getKDFFromState state.srpInfo.kdf }
+
+isOfflineCopy :: AppState -> Boolean
+isOfflineCopy state@{ proxy } =
+  case proxy of
+    OfflineProxy _ -> true
+    _ -> false
