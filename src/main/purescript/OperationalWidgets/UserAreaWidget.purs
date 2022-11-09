@@ -3,13 +3,15 @@ module OperationalWidgets.UserAreaWidget where
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, hold, dyn)
 import Concur.React (HTML)
-import Concur.React.DOM (div)
+import Concur.React.DOM (div, text)
 import Concur.React.Props as Props
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (Either(..))
+import Data.Eq (class Eq)
+import Data.Foldable (elem)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.List (List(..))
@@ -30,16 +32,18 @@ import OperationalWidgets.PinWidget (setPinWidget)
 
 data UserAreaAction = Loaded (Either AppError Index) | Lock | Logout | DeleteAccount | NoAction Index | GetIndexError AppError
 
-data UserAreaListVoice = Close | Export | Import | Pin | Delete | ChangePassword | VLock | VLogout
+data UserAreaListVoice = Close | Export | Import | Pin | Delete | ChangePassword | VLock | VLogout | About
+
+derive instance eqUserAreaListVoice :: Eq UserAreaListVoice
 
 data UserAreaInternalAction = MenuAction UserAreaListVoice | UserAction UserAreaAction
 
 userAreaWidget :: Boolean -> Widget HTML UserAreaAction
 userAreaWidget isOffline = do
-  newIndex <- ((Right (Index Nil)) <$ userAreaView (Index Nil) (div [NoAction (Index Nil) <$ Props.onClick] [])) <|> (liftAff $ runExceptT $ getIndex)
+  newIndex <- ((Right (Index Nil)) <$ userAreaView Close (Index Nil) (div [NoAction (Index Nil) <$ Props.onClick] [])) <|> (liftAff $ runExceptT $ getIndex)
   case newIndex of
     Right index -> do
-      res <- userAreaView index (div [NoAction index <$ Props.onClick] [])
+      res <- userAreaView Close index (div [NoAction index <$ Props.onClick] [])
       case res of
         Lock -> do
           (div [Lock <$ Props.onClick] []) <|> (Lock <$ (liftAff $ doLogout true))
@@ -49,19 +53,26 @@ userAreaWidget isOffline = do
     Left err -> pure $ GetIndexError err
 
   where 
-    userAreaList = div [Props._id "userSidebar"] [
+    isAccountRelated :: UserAreaListVoice -> Boolean
+    isAccountRelated v = elem v [Pin, Delete, ChangePassword]
+
+    isDataRelated :: UserAreaListVoice -> Boolean
+    isDataRelated v = elem v [Export, Import]
+
+    userAreaList lastVoice = div [Props._id "userSidebar"] [
       simpleButton "Close user area" false Close
     , do
-        submenu false (simpleButton "Account" false unit) [
+        submenu (isAccountRelated lastVoice) (simpleButton "Account" false unit) [
             simpleButton "Passphrase" isOffline ChangePassword
           , simpleButton "Device PIN" false Pin
           , simpleButton "Delete account" isOffline Delete
           ]
     , do
-        submenu false (simpleButton "Data" false unit) [
+        submenu (isDataRelated lastVoice) (simpleButton "Data" false unit) [
           simpleButton "Export" false Export
         , simpleButton "Import" isOffline Import
         ]
+    , simpleButton "About" false About
     , simpleButton "Lock" false VLock
     , simpleButton "Logout" false VLogout
     ]
@@ -83,10 +94,11 @@ userAreaWidget isOffline = do
         ChangePassword -> div [Props.className "forUser"] [changePasswordWidget Default emptyChangePasswordDataForm]
         VLock -> pure Lock
         VLogout -> pure Logout
+        About -> div [Props.className "forUser"] [text "This is Clipperz"]
 
-    userAreaView :: Index -> Widget HTML UserAreaAction -> Widget HTML UserAreaAction
-    userAreaView ix area = do
-      res <- userAreaView' userAreaList area
+    userAreaView :: UserAreaListVoice -> Index -> Widget HTML UserAreaAction -> Widget HTML UserAreaAction
+    userAreaView lastVoice ix area = do
+      res <- userAreaView' (userAreaList lastVoice) area
       case res of
         UserAction ac -> pure $ ac
-        MenuAction ac -> userAreaView ix (userAreaInternalView ix ac)
+        MenuAction ac -> userAreaView ac ix (userAreaInternalView ix ac)
