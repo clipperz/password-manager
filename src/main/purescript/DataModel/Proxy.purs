@@ -13,11 +13,12 @@ import Data.Argonaut.Encode.Generic (genericEncodeJson)
 import Data.Generic.Rep (class Generic)
 
 -- import Data.Map (Map)
-
-data BackendSessionState = BackendSessionState {
+type BackendSessionRecord = {
   b :: Maybe HexString
 , aa :: Maybe HexString
+, bb :: Maybe HexString
 }
+data BackendSessionState = BackendSessionState BackendSessionRecord
 
 derive instance eqBackendSessionState :: Eq BackendSessionState
 derive instance genericBackendSessionState :: Generic BackendSessionState _

@@ -51,7 +51,7 @@ computeInitialState = do
   where 
     mapIds e = (Tuple e) <$> (id e)
 
-    withOfflineProxy = merge { proxy: OfflineProxy (BackendSessionState { b: Nothing, aa: Nothing }) } baseState
+    withOfflineProxy = merge { proxy: OfflineProxy (BackendSessionState { b: Nothing, aa: Nothing, bb: Nothing }) } baseState
     withOnlineProxy url = merge { proxy: (OnlineProxy url) } baseState
     baseState = { currentChallenge: Nothing
                 , sessionKey: Nothing

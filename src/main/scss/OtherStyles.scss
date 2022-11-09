@@ -17,7 +17,8 @@ div.wrapper {
 p.notice {
 	width: 100%;
 	z-index: 100;
-	position: absolute;
+	position: relative;
+	display: block;
 	top: 0;
 	text-align: center;
 	padding: 3px;
