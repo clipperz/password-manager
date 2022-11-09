@@ -69,14 +69,22 @@ p.notice {
 	height: 100%;
 	display: flex;
 	justify-content: right;
+	
+	& > div.forUser {
+		background-color: $core-alternate-color;
+		color: $main-text-color;
+		z-index: 11;
+	}
+
+	& > div:first-child:not(.forUser) {
+		background-color: rgba(128, 128, 128, 0.658);
+	}
 
 	& > div:first-child {
 		position: fixed;
 		width: 100%;
 		height: 100%;
 		top: 0;
-		z-index: 10;
-		background-color: rgba(128, 128, 128, 0.658);
 	}
 	
 }

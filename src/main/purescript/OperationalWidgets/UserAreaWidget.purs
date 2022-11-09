@@ -32,60 +32,61 @@ data UserAreaAction = Loaded (Either AppError Index) | Lock | Logout | DeleteAcc
 
 data UserAreaListVoice = Close | Export | Import | Pin | Delete | ChangePassword | VLock | VLogout
 
+data UserAreaInternalAction = MenuAction UserAreaListVoice | UserAction UserAreaAction
+
 userAreaWidget :: Boolean -> Widget HTML UserAreaAction
 userAreaWidget isOffline = do
-  newIndex <- ((Right (Index Nil)) <$ userAreaView (Index Nil)) <|> (liftAff $ runExceptT $ getIndex)
+  newIndex <- ((Right (Index Nil)) <$ userAreaView (Index Nil) (div [NoAction (Index Nil) <$ Props.onClick] [])) <|> (liftAff $ runExceptT $ getIndex)
   case newIndex of
     Right index -> do
-      res <- userAreaView index
+      res <- userAreaView index (div [NoAction index <$ Props.onClick] [])
       case res of
         Lock -> do
-          (simpleButton "Lock" true Lock) <|> (Lock <$ (liftAff $ doLogout true))
+          (div [Lock <$ Props.onClick] []) <|> (Lock <$ (liftAff $ doLogout true))
         Logout -> do
-          (simpleButton "Logout" true Logout) <|> (Logout <$ (liftAff $ doLogout false))
+          (div [Logout <$ Props.onClick] []) <|> (Logout <$ (liftAff $ doLogout false))
         _ -> pure res
     Left err -> pure $ GetIndexError err
 
   where 
-    userAreaList = div [Props.className "userSidebarOverlay"] [ 
-        Close <$ div [Props.onClick] []
-      , div [Props._id "userSidebar"] [
-          simpleButton "Close user area" false Close
-        , do
-            submenu false (simpleButton "Account" false unit) [
-                simpleButton "Passphrase" isOffline ChangePassword
-              , simpleButton "Device PIN" false Pin
-              , simpleButton "Delete account" isOffline Delete
-              ]
-        , do
-            submenu false (simpleButton "Data" false unit) [
-              simpleButton "Export" false Export
-            , simpleButton "Import" isOffline Import
-            ]
-        , simpleButton "Lock" false VLock
-        , simpleButton "Logout" false VLogout
+    userAreaList = div [Props._id "userSidebar"] [
+      simpleButton "Close user area" false Close
+    , do
+        submenu false (simpleButton "Account" false unit) [
+            simpleButton "Passphrase" isOffline ChangePassword
+          , simpleButton "Device PIN" false Pin
+          , simpleButton "Delete account" isOffline Delete
+          ]
+    , do
+        submenu false (simpleButton "Data" false unit) [
+          simpleButton "Export" false Export
+        , simpleButton "Import" isOffline Import
         ]
+    , simpleButton "Lock" false VLock
+    , simpleButton "Logout" false VLogout
     ]
 
-    userAreaView ix = NoAction ix <$ userAreaList
+    userAreaView' :: Widget HTML UserAreaListVoice -> Widget HTML UserAreaAction -> Widget HTML UserAreaInternalAction
+    userAreaView' menu area = div [Props.className "userSidebarOverlay"] [ 
+      UserAction <$> area
+    , MenuAction <$> menu
+    ]  
     
-    --   div [Props.className "userSidebarOverlay"] [ 
-    --     NoAction ix <$ div [Props.onClick] []
-    --   , if isOffline then div [Props._id "userSidebar"] [
-    --         simpleButton "Close user area" false (NoAction ix)
-    --       , (NoAction ix) <$ exportWidget ix
-    --       , setPinWidget Default
-    --       , simpleButton "Lock" false Lock
-    --       , simpleButton "Logout" false Logout
-    --       ]
-    --     else div [Props._id "userSidebar"] [
-    --         simpleButton "Close user area" false (NoAction ix)
-    --       , Loaded <$> importWidget ix
-    --       , (NoAction ix) <$ exportWidget ix
-    --       , setPinWidget Default
-    --       , changePasswordWidget Default emptyChangePasswordDataForm
-    --       , DeleteAccount <$ deleteUserWidget ix Default
-    --       , simpleButton "Lock" false Lock
-    --       , simpleButton "Logout" false Logout
-    --       ]
-    -- ]
+    userAreaInternalView :: Index -> UserAreaListVoice -> Widget HTML UserAreaAction
+    userAreaInternalView ix choice = 
+      case choice of
+        Close -> pure $ NoAction ix
+        Export -> div [Props.className "forUser"] [(NoAction ix) <$ exportWidget ix]
+        Import -> div [Props.className "forUser"] [Loaded <$> importWidget ix]
+        Pin -> div [Props.className "forUser"] [setPinWidget Default]
+        Delete -> div [Props.className "forUser"] [DeleteAccount <$ deleteUserWidget ix Default]
+        ChangePassword -> div [Props.className "forUser"] [changePasswordWidget Default emptyChangePasswordDataForm]
+        VLock -> pure Lock
+        VLogout -> pure Logout
+
+    userAreaView :: Index -> Widget HTML UserAreaAction -> Widget HTML UserAreaAction
+    userAreaView ix area = do
+      res <- userAreaView' userAreaList area
+      case res of
+        UserAction ac -> pure $ ac
+        MenuAction ac -> userAreaView ix (userAreaInternalView ix ac)
