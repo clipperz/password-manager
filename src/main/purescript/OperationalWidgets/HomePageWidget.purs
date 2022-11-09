@@ -48,7 +48,7 @@ homePageWidget = do
         Default -> div [] []
         Loading -> loadingDiv <|> ((UserAreaAction <<< Loaded) <$> (liftAff $ runExceptT $ getIndex))
         Error err -> div [] [text err, simpleButton "Go back to login" false LogoutAction]
-      interpretHomePageActions isOffline Nothing Nothing res 
+      interpretHomePageActions isOffline Nothing res 
     
     homePage :: Boolean -> Index -> CardView -> Widget HTML HomePageExitStatus
     homePage isOffline index cardView = do
@@ -58,16 +58,20 @@ homePageWidget = do
                     simpleButton "Open user area" false unit
                     UserAreaAction <$> userAreaWidget index isOffline
                 ]
-      interpretHomePageActions isOffline (Just index) (Just cardView) result
+      interpretHomePageActions isOffline (Just cardView) result
 
-    interpretHomePageActions :: Boolean -> Maybe Index -> Maybe CardView -> HomePageAction -> Widget HTML HomePageExitStatus
-    interpretHomePageActions isOffline ix cv result =
+    interpretHomePageActions :: Boolean -> Maybe CardView -> HomePageAction -> Widget HTML HomePageExitStatus
+    interpretHomePageActions isOffline cv result =
       case result of
         UserAreaAction (Loaded (Right index)) -> homePage isOffline index NoCard         
         UserAreaAction NoAction -> 
-          case ix, cv of
-            (Just ix), (Just cv) -> homePage isOffline ix cv
-            _, _ -> go (Error "Inconsistent state") isOffline
+          case cv of
+            (Just cv) -> do
+              newIndex <- liftAff $ runExceptT $ getIndex
+              case newIndex of
+                Left err -> go (Error (prettyShow err)) isOffline
+                Right ix -> homePage isOffline ix cv
+            Nothing -> go (Error "Inconsistent state") isOffline
         UserAreaAction (Loaded (Left err)) -> do
           _ <- liftEffect $ log $ show err
           go (Error (prettyShow err)) isOffline
