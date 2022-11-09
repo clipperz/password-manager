@@ -46,6 +46,7 @@ import Functions.Communication.Users (getUserCard)
 import Functions.Events (renderElement)
 import Functions.JSState (getAppState)
 import Functions.State (offlineDataId)
+import Functions.Time (getCurrentDateTime, formatDateTimeToDate, formatDateTimeToTime)
 import Web.DOM.Document (Document, documentElement, toNode, createElement)
 import Web.DOM.Element as EL
 import Web.DOM.Node (childNodes, nodeName, lastChild, firstChild, insertBefore, setTextContent)
@@ -61,6 +62,8 @@ import Web.HTML.HTMLHtmlElement (toHTMLElement)
 import Web.HTML.HTMLElement (toElement)
 import Web.HTML.Window (document)
 
+unencryptedExportStyle = "body {font-family: 'DejaVu Sans Mono', monospace;margin: 0px;}header {padding: 10px;border-bottom: 2px solid black;}header p span {font-weight: bold;}h1 {margin: 0px;}h2 {margin: 0px;padding-top: 10px;}h3 {margin: 0px;}h5 {margin: 0px;color: gray;}ul {margin: 0px;padding: 0px;}div > ul > li {border-bottom: 1px solid black;padding: 10px;}div > ul > li.archived {background-color: #ddd;}ul > li > ul > li {font-size: 9pt;display: inline-block;}ul > li > ul > li:after {content: \",\";padding-right: 5px;}ul > li > ul > li:last-child:after {content: \"\";padding-right: 0px;}dl {}dt {color: gray;font-size: 9pt;}dd {margin: 0px;margin-bottom: 5px;padding-left: 10px;font-size: 13pt;}div > div {background-color: black;color: white;padding: 10px;}li p, dd.hidden {white-space: pre-wrap;word-wrap: break-word;font-family: monospace;}textarea {display: none}a {color: white;}@media print {div > div, header > div {display: none !important;}div > ul > li.archived {color: #ddd;}ul > li {page-break-inside: avoid;} }"
+
 prepareOfflineCopy :: Index -> Aff (Either String String)
 prepareOfflineCopy index = runExceptT $ do
   blobList <- mapExceptT (\m -> (lmap show) <$> m) $ prepareBlobList index
@@ -73,12 +76,15 @@ prepareOfflineCopy index = runExceptT $ do
 
 prepareUnencryptedCopy :: Index -> Aff (Either String String)
 prepareUnencryptedCopy index = runExceptT $ do
+  dt <- ExceptT $ Right <$> (liftEffect $ getCurrentDateTime)
+  let date = formatDateTimeToDate dt
+  let time = formatDateTimeToTime dt
   cardList <- mapExceptT (\m -> (lmap show) <$> m) $ prepareCardList index
-  let htmlDocString1 = "<div><header>This data is unencrypted</header>"
+  let styleString = "<style type=\"text/css\">" <> unencryptedExportStyle <> "</style>"
+  let htmlDocString1 = "<div><header><h1>Your data on Clipperz</h1><h5>Export generated on " <> date <> " at " <> time <> "</h5></header>"
   let htmlDocString2 = "</div>" -- "<footer></footer></div>"
   let htmlDocContent = prepareUnencryptedContent cardList
-  let htmlDocString = htmlDocString1 <> htmlDocContent <> htmlDocString2
-  ExceptT $ Right <$> (liftEffect $ log htmlDocString)
+  let htmlDocString = styleString <> htmlDocString1 <> htmlDocContent <> htmlDocString2
   doc :: Document <- ExceptT $ Right <$> (liftEffect $ FS.fromString htmlDocString)
   blob <- ExceptT $ Right <$> (liftEffect $ prepareHTMLBlob doc)
   s :: String <- ExceptT $ Right <$> readFile blob
@@ -101,9 +107,9 @@ prepareUnencryptedContent l =
   where
     cardToLi (Card {content: (CardValues {title, tags, fields, notes}), archived, timestamp}) =
       let archivedTxt = if archived then "archived" else ""
-          tagsLis = fold $ (\t -> "<li>" <> (formatText t) <> ":" <> ":after </li>") <$> tags
+          tagsLis = fold $ (\t -> "<li>" <> (formatText t) <> "</li>") <$> tags
           fieldsDts = fold $  (\(CardField {name, value, locked}) -> "<dt>" <> (formatText name) <> "</dt><dd class=\"" <> (if locked then "hidden" else "") <> "\">" <> (formatText value) <> "</dd>") <$> fields
-          liContent = "::marker <h2>" <> (formatText title) <> "</h2><ul> " <> tagsLis <> "</ul><div><dl>" <> fieldsDts <> "</dl></div><p>" <> (formatText notes) <> "</p>"
+          liContent = "<h2>" <> (formatText title) <> "</h2><ul> " <> tagsLis <> "</ul><div><dl>" <> fieldsDts <> "</dl></div><p>" <> (formatText notes) <> "</p>"
       in "<li class=\"" <> archivedTxt <> "\">" <> liContent <> "</li>"
 
 getBasicHTML :: ExceptT AppError Aff Document

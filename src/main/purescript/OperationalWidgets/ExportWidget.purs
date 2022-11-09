@@ -26,7 +26,7 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Export (prepareOfflineCopy, prepareUnencryptedCopy)
 import Functions.JSState (getAppState)
-import Functions.Time (getCurrentDateTime, formatDateTime)
+import Functions.Time (getCurrentDateTime, formatDateTimeToDate)
 
 exportWidget :: Index -> Widget HTML Unit
 exportWidget index = div [] [
@@ -45,7 +45,7 @@ downloadOfflineCopy index placeholder = do
   url <- (Left "" <$ placeholder) <|> (liftAff $ prepareOfflineCopy index)
   case url of
     Right url -> do
-      dt <- liftEffect $ formatDateTime <$> getCurrentDateTime
+      dt <- liftEffect $ formatDateTimeToDate <$> getCurrentDateTime
       a [Props.download (dt <> "_Clipperz_Offline"), Props.href url, void Props.onClick] [button [Props.disabled false] [text "Download"]] -- TODO: add date
     Left err -> text $ "Could not prepare offline copy: " <> err
 
@@ -54,7 +54,7 @@ downloadUnencryptedCopy index placeholder = do
   url <- (Left "" <$ placeholder) <|> (liftAff $ prepareUnencryptedCopy index)
   case url of
     Right url -> do
-      dt <- liftEffect $ formatDateTime <$> getCurrentDateTime
+      dt <- liftEffect $ formatDateTimeToDate <$> getCurrentDateTime
       username <- liftEffect $ ((fromMaybe "") <<< (fromRight Nothing) <<< ((<$>) (\as -> as.username))) <$> getAppState
       a [Props.download (dt <> "_Clipperz_Export_" <> username), Props.href url, void Props.onClick] [button [Props.disabled false] [text "Download"]] -- TODO: add date
     Left err -> text $ "Could not prepare offline copy: " <> err
