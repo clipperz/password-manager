@@ -42,13 +42,15 @@ userAreaWidget isOffline = do
     Left err -> pure $ GetIndexError err
 
   where 
-    userAreaView ix = if isOffline then div [Props._id "userSidebar"] [
-          simpleButton "Close user area" false (NoAction ix)
-        , (NoAction ix) <$ exportWidget ix
-        , setPinWidget Default
-        , simpleButton "Lock" false Lock
-        , simpleButton "Logout" false Logout
-        ]
+    userAreaView ix = div [Props.className "userSidebarOverlay"] [ 
+        NoAction ix <$ div [Props.onClick] []
+      , if isOffline then div [Props._id "userSidebar"] [
+            simpleButton "Close user area" false (NoAction ix)
+          , (NoAction ix) <$ exportWidget ix
+          , setPinWidget Default
+          , simpleButton "Lock" false Lock
+          , simpleButton "Logout" false Logout
+          ]
         else div [Props._id "userSidebar"] [
             simpleButton "Close user area" false (NoAction ix)
           , Loaded <$> importWidget ix
@@ -59,3 +61,4 @@ userAreaWidget isOffline = do
           , simpleButton "Lock" false Lock
           , simpleButton "Logout" false Logout
           ]
+    ]
