@@ -7,6 +7,7 @@ import Control.Monad.Except (runExcept)
 import Control.Monad.Except.Trans (runExceptT, ExceptT(..), mapExceptT, except)
 import Control.Semigroupoid ((<<<))
 import Data.Argonaut.Core as AC
+import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Bifunctor (lmap)
 import Data.Either (hush, either, Either(..), note)
 import Data.Foldable (fold)
@@ -14,27 +15,33 @@ import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.HexString (HexString, fromArrayBuffer)
 import Data.HTTP.Method (Method(..))
-import Data.List (List(..), (:), toUnfoldable)
+import Data.List (List(..), (:), toUnfoldable, sort)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType (MediaType(..))
 import Data.Monoid (mempty)
 import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
 import Data.Show (show)
+import Data.String.Common (replaceAll)
+import Data.String.Pattern (Pattern(..), Replacement(..))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..), InvalidStateError(..))
+import DataModel.Communication.FromString as FS
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index(..), CardEntry(..), CardReference(..))
+import DataModel.Card (Card(..), CardValues(..), CardField(..))
 import DataModel.User (IndexReference(..), UserCard(..))
 import Effect (Effect)
 import Effect.Aff (Aff, makeAff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
 import Effect.Exception (error)
 import Foreign (readString)
 import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
 import Functions.Communication.Blobs (getBlob)
+import Functions.Communication.Cards (getCard)
 import Functions.Communication.Users (getUserCard)
 import Functions.Events (renderElement)
 import Functions.JSState (getAppState)
@@ -56,13 +63,48 @@ import Web.HTML.Window (document)
 
 prepareOfflineCopy :: Index -> Aff (Either String String)
 prepareOfflineCopy index = runExceptT $ do
-    blobList <- mapExceptT (\m -> (lmap show) <$> m) $ prepareBlobList index
-    userCard <- mapExceptT (\m -> (lmap show) <$> m) $ getUserCard
-    doc <- mapExceptT (\m -> (lmap show) <$> m) getBasicHTML
-    preparedDoc <- appendCardsDataInPlace doc blobList userCard
-    blob <- ExceptT $ Right <$> (liftEffect $ prepareHTMLBlob preparedDoc)
-    s :: String <- ExceptT $ Right <$> readFile blob
-    ExceptT $ Right <$> (liftEffect $ createObjectURL blob)
+  blobList <- mapExceptT (\m -> (lmap show) <$> m) $ prepareBlobList index
+  userCard <- mapExceptT (\m -> (lmap show) <$> m) $ getUserCard
+  doc <- mapExceptT (\m -> (lmap show) <$> m) getBasicHTML
+  preparedDoc <- appendCardsDataInPlace doc blobList userCard
+  blob <- ExceptT $ Right <$> (liftEffect $ prepareHTMLBlob preparedDoc)
+  s :: String <- ExceptT $ Right <$> readFile blob
+  ExceptT $ Right <$> (liftEffect $ createObjectURL blob)
+
+prepareUnencryptedCopy :: Index -> Aff (Either String String)
+prepareUnencryptedCopy index = runExceptT $ do
+  cardList <- mapExceptT (\m -> (lmap show) <$> m) $ prepareCardList index
+  let htmlDocString1 = "<div><header>This data is unencrypted</header>"
+  let htmlDocString2 = "</div>" -- "<footer></footer></div>"
+  let htmlDocContent = prepareUnencryptedContent cardList
+  let htmlDocString = htmlDocString1 <> htmlDocContent <> htmlDocString2
+  ExceptT $ Right <$> (liftEffect $ log htmlDocString)
+  doc :: Document <- ExceptT $ Right <$> (liftEffect $ FS.fromString htmlDocString)
+  blob <- ExceptT $ Right <$> (liftEffect $ prepareHTMLBlob doc)
+  s :: String <- ExceptT $ Right <$> readFile blob
+  ExceptT $ Right <$> (liftEffect $ createObjectURL blob)
+
+formatText :: String -> String
+formatText = (replaceAll (Pattern "<") (Replacement "&lt;")) <<< (replaceAll (Pattern "&") (Replacement "&amp;"))
+
+prepareCardList :: Index -> ExceptT AppError Aff (List Card)
+prepareCardList index@(Index l) = do
+  let refs = (\(CardEntry cr) -> cr.cardReference) <$> (sort l)
+  sequence $ getCard <$> refs
+
+prepareUnencryptedContent :: List Card -> String
+prepareUnencryptedContent l = 
+  let list = fold $ cardToLi <$> l
+      textareaContent = formatText $ AC.stringify $ encodeJson l
+  in "<ul>" <> list <> "</ul><div><textarea>" <> textareaContent <> "</textarea></div>"
+
+  where
+    cardToLi (Card {content: (CardValues {title, tags, fields, notes}), archived, timestamp}) =
+      let archivedTxt = if archived then "archived" else ""
+          tagsLis = fold $ (\t -> "<li>" <> (formatText t) <> ":" <> ":after </li>") <$> tags
+          fieldsDts = fold $  (\(CardField {name, value, locked}) -> "<dt>" <> (formatText name) <> "</dt><dd class=\"" <> (if locked then "hidden" else "") <> "\">" <> (formatText value) <> "</dd>") <$> fields
+          liContent = "::marker <h2>" <> (formatText title) <> "</h2><ul> " <> tagsLis <> "</ul><div><dl>" <> fieldsDts <> "</dl></div><p>" <> (formatText notes) <> "</p>"
+      in "<li class=\"" <> archivedTxt <> "\">" <> liContent <> "</li>"
 
 getBasicHTML :: ExceptT AppError Aff Document
 getBasicHTML = do
