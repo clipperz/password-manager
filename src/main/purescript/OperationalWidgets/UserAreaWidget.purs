@@ -16,6 +16,7 @@ import Data.Foldable (elem)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.List (List(..))
+import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Tuple (Tuple(..))
 import Data.Unit (unit, Unit)
@@ -38,7 +39,7 @@ data UserAreaListVoice = Close | Export | Import | Pin | Delete | ChangePassword
 
 derive instance eqUserAreaListVoice :: Eq UserAreaListVoice
 
-data UserAreaInternalAction = MenuAction (Tuple (Array Boolean) UserAreaListVoice) | UserAction UserAreaAction
+data UserAreaInternalAction = MenuAction (Tuple (Array (SubmenuVoice UserAreaListVoice)) UserAreaListVoice) | UserAction UserAreaAction
 
 defaultMenu = \isOffline -> [
   Tuple true (\b -> submenu b (text "") [simpleButton "Close user area" false Close])
@@ -93,9 +94,9 @@ userAreaWidget isOffline = do
     -- , simpleButton "Logout" false VLogout
     -- ]
 
-    userAreaList arr = div [Props._id "userSidebar"] (complexMenu arr )
+    userAreaList arr = complexMenu (Just "userSidebar") Nothing arr
 
-    userAreaView' :: Widget HTML (Tuple (Array Boolean) UserAreaListVoice) -> Widget HTML UserAreaAction -> Widget HTML UserAreaInternalAction
+    userAreaView' :: Widget HTML (Tuple (Array (SubmenuVoice UserAreaListVoice)) UserAreaListVoice) -> Widget HTML UserAreaAction -> Widget HTML UserAreaInternalAction
     userAreaView' menu area = div [Props.className "userSidebarOverlay"] [ 
       UserAction <$> area
     , MenuAction <$> menu
@@ -119,9 +120,7 @@ userAreaWidget isOffline = do
       res <- userAreaView' (userAreaList arr) area
       case res of
         UserAction ac -> pure $ ac
-        MenuAction (Tuple bools ac) -> 
-          let newArr = updateMenu arr bools
-          in userAreaView newArr ix (userAreaInternalView ix ac)
+        MenuAction (Tuple newMenus ac) -> userAreaView newMenus ix (userAreaInternalView ix ac)
 
     updateMenu :: Array (SubmenuVoice UserAreaListVoice) -> Array Boolean -> Array (SubmenuVoice UserAreaListVoice)
     updateMenu a a' = fromFoldable $ updateMenu' (toUnfoldable a) (toUnfoldable a')

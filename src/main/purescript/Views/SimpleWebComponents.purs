@@ -1,4 +1,34 @@
-module Views.SimpleWebComponents where
+module Views.SimpleWebComponents
+  ( PasswordForm
+  , SubMenuAction(..)
+  , SubmenuVoice
+  , checkboxesSignal
+  , clickableListItemWidget
+  , complexMenu
+  , complexMenu'
+  , confirmationWidget
+  , disableOverlay
+  , disabledSimpleTextInputWidget
+  , loadingDiv
+  , passwordStrengthShow
+  , simpleButton
+  , simpleCheckboxSignal
+  , simpleCheckboxWidget
+  , simpleFileInputWidget
+  , simpleInputWidget
+  , simpleNumberInputWidget
+  , simplePasswordInputWidget
+  , simplePasswordSignal
+  , simpleTextAreaSignal
+  , simpleTextAreaWidget
+  , simpleTextInputWidget
+  , simpleTextInputWidgetWithFocus
+  , simpleUserSignal
+  , simpleVerifiedPasswordSignal
+  , submenu
+  , submenu'
+  )
+  where
 
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopW, loopS, display)
@@ -15,7 +45,7 @@ import Data.Function (($))
 import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not)
 import Data.Map (Map, lookup)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, Maybe)
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
 import Data.Show (show)
@@ -26,6 +56,7 @@ import Effect.Class (liftEffect)
 import Functions.Events (readFile)
 import Functions.Password (PasswordStrengthFunction, PasswordStrength)
 import React.SyntheticEvent (currentTarget, SyntheticEvent_, NativeEventTarget)
+
 
 simpleTextAreaWidget :: String -> Widget HTML String -> String -> String -> Widget HTML String
 simpleTextAreaWidget id lbl placeholder content = do
@@ -198,28 +229,68 @@ confirmationWidget message = div [(Props.className "disableOverlay")] [
 , simpleButton "No" false false
 ]
 
-data SubMenuAction a = OpenSubMenu | CloseSubMenu | ClickOnVoice a
+data SubMenuAction' a = OpenSubMenu' | CloseSubMenu' | ClickOnVoice' a
 
-submenu :: forall a b. Boolean -> Widget HTML b -> Array (Widget HTML a) -> Widget HTML a
-submenu false b1 bs = do
-  res <- OpenSubMenu <$ div [] [b1]
+submenu' :: forall a b. Boolean -> Widget HTML b -> Array (Widget HTML a) -> Widget HTML a
+submenu' false b1 bs = do
+  res <- OpenSubMenu' <$ div [] [b1]
   case res of
-    OpenSubMenu -> submenu true b1 bs
-    CloseSubMenu -> submenu false b1 bs
-    ClickOnVoice a -> pure a
-submenu true b1 bs = do
-  res <- div [] $ [CloseSubMenu <$ b1] <> (((<$>) ClickOnVoice) <$> bs)
+    OpenSubMenu' -> submenu' true b1 bs
+    CloseSubMenu' -> submenu' false b1 bs
+    ClickOnVoice' a -> pure a
+submenu' true b1 bs = do
+  res <- div [] $ [CloseSubMenu' <$ b1] <> (((<$>) ClickOnVoice') <$> bs)
   case res of
-    OpenSubMenu -> submenu true b1 bs
-    CloseSubMenu -> submenu false b1 bs
-    ClickOnVoice a -> pure a
+    OpenSubMenu' -> submenu' true b1 bs
+    CloseSubMenu' -> submenu' false b1 bs
+    ClickOnVoice' a -> pure a
 
-type SubmenuVoice a = Tuple Boolean (Boolean -> Widget HTML a)
+type SubmenuVoice' a = Tuple Boolean (Boolean -> Widget HTML a)
 
-complexMenu :: forall a. Array (SubmenuVoice a) -> Array (Widget HTML (Tuple (Array Boolean) a))
-complexMenu arr = 
+complexMenu' :: forall a. Array (SubmenuVoice' a) -> Array (Widget HTML (Tuple (Array Boolean) a))
+complexMenu' arr = 
   let indexes = range 0 ((length arr) - 1)
       newArr = zipWith (\i -> \t -> { index: i, tuple: t}) indexes arr
       booleans = fst <$> arr
       mapFunc = \{index, tuple: (Tuple open f)} -> (\v -> Tuple (fromMaybe booleans (updateAt index true booleans)) v) <$> f open
   in mapFunc <$> newArr
+
+data SubMenuAction a = OpenCloseMenu | ClickOnVoice a
+
+submenu :: forall a b. Boolean -> Widget HTML b -> Array (Widget HTML a) -> Widget HTML (Either Boolean a)
+submenu showing b1 bs = do
+  res <- div [] $ [OpenCloseMenu <$ b1] <> (if showing then (((<$>) ClickOnVoice) <$> bs) else [])
+  case res of
+    OpenCloseMenu -> pure $ Left (not showing)
+    ClickOnVoice a -> pure $ Right a
+
+type SubmenuVoice a = Tuple Boolean (Boolean -> Widget HTML (Either Boolean a))
+
+type IntermediateWidget a = Widget HTML (Either (Array Boolean) a)
+
+complexMenu :: forall a. Maybe String -> Maybe String -> Array (SubmenuVoice a) -> Widget HTML (Tuple (Array (SubmenuVoice a)) a)
+complexMenu mId mClass arr = do
+  let pid = fromMaybe [] ((\id -> [Props._id id]) <$> mId)
+  let pclass = fromMaybe [] ((\c -> [Props.className c]) <$> mClass) 
+  inter <- div (pid <> pclass) (fromVoiceToWidget <$> newArr)
+  case inter of
+    Right a -> pure $ Tuple arr a
+    Left bs -> complexMenu mId mClass $ redraw bs
+
+  where
+    indexes = range 0 ((length arr) - 1)
+    newArr = zipWith (\i -> \t -> { index: i, tuple: t}) indexes arr
+    booleans = fst <$> arr
+    
+    redraw :: Array Boolean -> Array (SubmenuVoice a)
+    redraw newBoolean = zipWith (\b -> \(Tuple b' f) -> Tuple b f) newBoolean arr
+
+    fromVoiceToWidget { index, tuple: (Tuple b f) } = do
+      res <- f b
+      case res of 
+        Left bool -> pure $ Left $ fromMaybe booleans (updateAt index bool booleans)
+        Right a -> pure $ Right a
+    
+
+
+
