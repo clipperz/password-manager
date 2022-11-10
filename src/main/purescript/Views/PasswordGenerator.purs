@@ -40,10 +40,8 @@ extractValue v =
 
 ---------------------------
 
-passwordGenerator :: Widget HTML String
-passwordGenerator = do
-  let initialSettings = standardPasswordGeneratorSettings
-  composedWidget initialSettings (Loading Nothing)
+passwordGenerator :: PasswordGeneratorSettings -> Widget HTML String
+passwordGenerator initialSettings = composedWidget initialSettings (Loading Nothing)
 
 data ComposedWidgetAction = ModifiedSettingsAction PasswordGeneratorSettings 
                           | RequestedNewSuggestion

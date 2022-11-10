@@ -8,30 +8,36 @@ import Concur.React.Props as Props
 import Control.Alt((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, (=<<), discard)
+import Control.Semigroupoid ((<<<))
 import Data.Array (snoc, filter, singleton, sort)
+import Data.Either (fromRight)
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
-import Data.Maybe (Maybe(..), isJust, maybe)
+import Data.Maybe (Maybe(..), isJust, maybe, fromMaybe)
 import Data.Show (show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
 import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
+import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
+import Functions.JSState (getAppState)
 import Functions.Time (getCurrentTimestamp)
 import Views.PasswordGenerator (passwordGenerator)
 import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleTextInputWidget, simpleCheckboxSignal, disableOverlay, simpleTextAreaSignal)
 
 createCardView :: Card -> Array String -> WidgetState -> Widget HTML (Maybe Card)
 createCardView card allTags state = do
+  let fromAppStateToPasswordSettings = \as -> fromMaybe standardPasswordGeneratorSettings $ (\up -> up.passwordGeneratorSettings) <$> as.userPreferences
+  passwordGeneratorSettings <- ((fromRight standardPasswordGeneratorSettings) <<< ((<$>) fromAppStateToPasswordSettings)) <$> (liftEffect getAppState)
   mCard <- div [Props._id "cardForm"] do
     case state of
-      Default   -> [disableOverlay, div [Props.className "cardForm"] [demand formSignal]]
-      Loading   -> [disableOverlay, loadingDiv, div [Props.className "cardForm"] [demand formSignal]] -- TODO: deactivate form
-      Error err -> [disableOverlay, text err, div [Props.className "cardForm"] [demand formSignal]]
+      Default   -> [disableOverlay, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
+      Loading   -> [disableOverlay, loadingDiv, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
+      Error err -> [disableOverlay, text err, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
   case mCard of
     Just (Card { content, timestamp: _ }) -> do
       liftEffect $ log $ show content
@@ -40,8 +46,8 @@ createCardView card allTags state = do
     Nothing -> pure Nothing
 
   where 
-    cardFieldSignal :: CardField -> Signal HTML (Maybe CardField)
-    cardFieldSignal field = div_ [Props.className "cardField"] do
+    cardFieldSignal :: PasswordGeneratorSettings -> CardField -> Signal HTML (Maybe CardField)
+    cardFieldSignal settings field = div_ [Props.className "cardField"] do
       removeField <- fireOnce $ simpleButton "x" false unit
       field' <- loopS field $ \(CardField { name, value, locked }) -> do
         { name', value' } <- div_ [Props.className "inputs"] do
@@ -55,7 +61,7 @@ createCardView card allTags state = do
               simpleButton "Gen Pass" false unit
               div [Props.className "passwordGeneratorOverlay"] [
                 div [value <$ Props.onClick] []
-              , passwordGenerator
+              , passwordGenerator settings
               ]
           locked' :: Boolean <- simpleCheckboxSignal "locked" (text "Locked") false locked
           pure { generatePassword, locked' }
@@ -66,9 +72,9 @@ createCardView card allTags state = do
         Nothing -> pure $ Just field'
         Just _  -> pure $ Nothing
 
-    fieldsSignal :: Array CardField -> Signal HTML (Array CardField)
-    fieldsSignal fields = do
-      fields' :: Array CardField <- (\fs -> (maybe [] singleton) =<< filter isJust fs) <$> (sequence $ cardFieldSignal <$> fields)
+    fieldsSignal :: PasswordGeneratorSettings -> Array CardField -> Signal HTML (Array CardField)
+    fieldsSignal settings fields = do
+      fields' :: Array CardField <- (\fs -> (maybe [] singleton) =<< filter isJust fs) <$> (sequence $ (cardFieldSignal settings) <$> fields)
       addField <- fireOnce $ simpleButton "Add field" false unit
       case addField of
         Nothing -> pure fields'
@@ -105,13 +111,13 @@ createCardView card allTags state = do
         Nothing -> pure $ Tuple newTag' tags'
         Just _  -> pure $ Tuple "" $ snoc tags' newTag
 
-    formSignal :: Signal HTML (Maybe (Maybe Card))
-    formSignal = do
+    formSignal :: PasswordGeneratorSettings -> Signal HTML (Maybe (Maybe Card))
+    formSignal settings = do
       Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card {content: (CardValues {title, tags, fields, notes}), timestamp})) ->
         div_ [Props.className "cardFormFields"] do
           title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title") "Card title")
           Tuple newTag' tags' <- tagsSignal newTag tags
-          fields' <- fieldsSignal fields
+          fields' <- fieldsSignal settings fields
           notes' :: String <- simpleTextAreaSignal "notes" (text "Notes") "notes" notes
           pure $ Tuple newTag' $ Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
                                       , archived: false
