@@ -55,6 +55,7 @@ getUpdateIndexOp index@(Index list) indexFilter (IndexUpdateData action _) =
     ChangeReferenceWithEdit    oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) indexFilter
     ChangeReferenceWithoutEdit oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) indexFilter
     DeleteReference            oldEntry       -> flap (removeReferenceFromIndex oldEntry) indexFilter
+    NoUpdateNecessary          oldEntry       -> pure $ OpResult index { cardView: CardFromReference oldEntry, cardViewState: Default } Nothing indexFilter
     _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing indexFilter
 
   where

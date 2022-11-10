@@ -5,11 +5,12 @@ import Concur.React (HTML)
 import Concur.React.DOM (div, text)
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, (>>=))
+import Control.Bind (bind, (>>=), discard)
 import Control.Monad.Except.Trans (runExceptT, ExceptT)
 import Control.Semigroupoid ((<<<))
 import Data.DateTime.Instant (unInstant)
 import Data.Either (Either(..))
+import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Int (ceil)
@@ -64,8 +65,10 @@ cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ })
             _ -> cardWidget entry tags Default
         Used cc -> do
           timestamp' <- liftEffect $ getCurrentTimestamp
-          let newEntry = CardEntry $ r { lastUsed = timestamp' }
-          pure $ IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) cc
+          if r.lastUsed == timestamp' then do
+            pure $ IndexUpdateData (NoUpdateNecessary entry) cc
+          else do
+            pure $ IndexUpdateData (ChangeReferenceWithoutEdit entry (CardEntry $ r { lastUsed = timestamp' })) cc
         Clone cc -> do
           clonedCard <- liftAff $ cloneCardNow cc
           doOp isOffline cc cc false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) cc)
