@@ -38,4 +38,4 @@ modifyAppState = encodeJson >>> stringify >>> updateJsonState >>> liftEffect
 
 updateAppState partialState = runExceptT $ do
   stateToUpdate <- ExceptT $ liftEffect $ getAppState
-  ExceptT $ Right <$> (void $ modifyAppState (merge partialState stateToUpdate))
+  ExceptT $ Right <$> (modifyAppState (merge partialState stateToUpdate))
