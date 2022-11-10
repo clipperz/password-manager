@@ -6,8 +6,8 @@ import Concur.React.DOM (div, text)
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Data.Unit (Unit, unit)
+import DataModel.Password (PasswordGeneratorSettings)
 import DataModel.WidgetState (WidgetState(..))
-import Views.PasswordGenerator (Settings)
 
 userPreferencesWidget :: WidgetState -> Widget HTML Unit
 userPreferencesWidget state = do
