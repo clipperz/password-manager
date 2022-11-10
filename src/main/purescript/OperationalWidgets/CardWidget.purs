@@ -109,5 +109,5 @@ cloneCardNow :: Card -> Aff Card
 cloneCardNow (Card { timestamp: _, content, archived}) =
   case content of
     CardValues values -> do
-      timestamp <- liftEffect $ (ceil <<< unwrap <<< unInstant) <$> now
+      timestamp <- liftEffect $ getCurrentTimestamp
       pure $ Card { timestamp, archived, content: (CardValues (values { title = (values.title <> " - CLONE")}))}

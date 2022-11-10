@@ -59,7 +59,7 @@ newtype Card =
   Card 
     { content :: CardValues
     , archived :: Boolean
-    , timestamp :: Int
+    , timestamp :: Number
     }
 
 instance eqCard :: Eq Card where
@@ -80,7 +80,7 @@ emptyCardField :: CardField
 emptyCardField = CardField { name: "", value: "", locked: false }
 
 emptyCard :: Card
-emptyCard = Card { timestamp: 0
+emptyCard = Card { timestamp: 0.0
                     , archived: false
                     , content: CardValues { title: ""
                                               , tags: []
@@ -110,5 +110,5 @@ card1 = CardValues { title: "Bank account (SAMPLE)"
                       , notes: ""}
 
 defaultCards :: List Card
-defaultCards = Card { content: card0, timestamp: 1661377622, archived: false} :
-               Card { content: card1, timestamp: 166137865 , archived: false} : Nil
+defaultCards = Card { content: card0, timestamp: 1661377622.0, archived: false} :
+               Card { content: card1, timestamp: 166137865.0 , archived: false} : Nil

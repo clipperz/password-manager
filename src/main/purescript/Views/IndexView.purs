@@ -6,12 +6,12 @@ import Concur.React.DOM (ol, text)
 import Control.Semigroupoid ((<<<))
 import Data.Array (fromFoldable, elem, null, (:))
 import Data.Array.NonEmpty (NonEmptyArray)
-import Data.Eq ((==), class Eq)
+import Data.Eq ((==), (/=), class Eq)
 import Data.Foldable (any, fold, foldr)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HeytingAlgebra ((&&), (||), not)
-import Data.List (sort, filter, List(..), takeEnd, last)
+import Data.List (sort, nub, filter, List(..), takeEnd, head)
 import Data.Maybe (fromMaybe)
 import Data.Ord ((>=))
 import Data.Show (class Show, show)
@@ -37,7 +37,7 @@ derive instance eqIndexFilter :: Eq IndexFilter
 
 type ComplexIndexFilter = { archived :: Boolean, indexFilter :: IndexFilter }
 
-type ContextualFilterInfo = { allLastUses :: List Int }
+type ContextualFilterInfo = { allLastUses :: List Number }
 
 indexView :: Index -> ComplexIndexFilter -> Widget HTML CardEntry
 indexView (Index cards) complexIndexFilter = do
@@ -61,5 +61,5 @@ toFilterFunc info  RecentFilter            = \(CardEntry r) -> r.lastUsed >= (co
 toFilterFunc _    (UntaggedFilter)         = \(CardEntry r) -> null r.tags
 toFilterFunc _     NoFilter                = \_ -> true
 
-computeTimestampOfLastNUses :: Int -> List Int -> Int
-computeTimestampOfLastNUses n ts = fromMaybe 0 $ last $ takeEnd n $ sort ts
+computeTimestampOfLastNUses :: Int -> List Number -> Number
+computeTimestampOfLastNUses n ts = fromMaybe 0.0 $ head $ takeEnd n $ sort $ nub $ filter ((/=) 0.0) ts

@@ -61,7 +61,7 @@ decodeImport s = do
       Left err -> Left $ ImportError err
       Right json -> caseJsonArray (Left $ ImportError "Cannot convert json to json array") (\a -> sequence $ (decodeCard currentTime) <$> a) json
 
-decodeCard :: Int -> Json -> Either AppError Card
+decodeCard :: Number -> Json -> Either AppError Card
 decodeCard timestamp json = 
   let epsilonTryResult = decodeJson json -- assumes version currently in use
   in case epsilonTryResult of
@@ -72,7 +72,7 @@ decodeCard timestamp json =
         Right c -> deltaTryResult
         Left err -> Left $ ImportError "Import file is formatted neither by delta nor by epsilon version"
 
-decodeDeltaCardObject :: Int -> Object Json -> Either AppError Card
+decodeDeltaCardObject :: Number -> Object Json -> Either AppError Card
 decodeDeltaCardObject timestamp obj = runExcept $ do
   titleAndTags :: Array String <- split (Pattern " ") <$> (except $ note (ImportError "Cannot find card label") $ (toString =<< lookup "label" obj))
   let title    = fromMaybe "" $ head titleAndTags

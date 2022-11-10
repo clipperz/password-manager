@@ -12,7 +12,7 @@ type CardEntry_V1 =
   , cardReference :: CardReference_V1
   , archived :: Boolean
   , tags :: Array String
-  , lastUsed :: Int
+  , lastUsed :: Number
   }
 
 type CardReference_V1 =

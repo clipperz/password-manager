@@ -6,7 +6,7 @@ import DataModel.Card (Card(..), CardValues(..), CardField(..))
 type Card_V1 = 
   { content :: CardValues_V1
   , archived :: Boolean
-  , timestamp :: Int
+  , timestamp :: Number
   }
 
 type CardValues_V1 = 
