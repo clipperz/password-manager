@@ -30,12 +30,13 @@ import Views.SimpleWebComponents (simpleButton, submenu, complexMenu, SubmenuVoi
 import OperationalWidgets.ImportWidget (importWidget)
 import OperationalWidgets.ExportWidget (exportWidget)
 import OperationalWidgets.ChangePasswordWidget (changePasswordWidget, emptyChangePasswordDataForm)
+import OperationalWidgets.UserPreferencesWidget (userPreferencesWidget)
 import OperationalWidgets.DeleteUserWidget (deleteUserWidget)
 import OperationalWidgets.PinWidget (setPinWidget)
 
 data UserAreaAction = Loaded (Either AppError Index) | Lock | Logout | DeleteAccount | NoAction Index | GetIndexError AppError
 
-data UserAreaListVoice = Close | Export | Import | Pin | Delete | ChangePassword | VLock | VLogout | About
+data UserAreaListVoice = Close | Export | Import | Pin | Delete | Preferences | ChangePassword | VLock | VLogout | About
 
 derive instance eqUserAreaListVoice :: Eq UserAreaListVoice
 
@@ -44,7 +45,8 @@ data UserAreaInternalAction = MenuAction (Tuple (Array (SubmenuVoice UserAreaLis
 defaultMenu = \isOffline -> [
   Tuple true (\b -> submenu b (text "") [simpleButton "Close user area" false Close])
 , Tuple false (\b -> submenu b (simpleButton "Account" false unit) [
-    simpleButton "Passphrase" isOffline ChangePassword
+    simpleButton "Preferences" isOffline Preferences
+  , simpleButton "Passphrase" isOffline ChangePassword
   , simpleButton "Device PIN" false Pin
   , simpleButton "Delete account" isOffline Delete
   ])
@@ -72,28 +74,6 @@ userAreaWidget isOffline = do
     Left err -> pure $ GetIndexError err
 
   where 
-    isAccountRelated :: UserAreaListVoice -> Boolean
-    isAccountRelated v = elem v [Pin, Delete, ChangePassword]
-
-    isDataRelated :: UserAreaListVoice -> Boolean
-    isDataRelated v = elem v [Export, Import]
-
-    -- userAreaList lastVoice = div [Props._id "userSidebar"] [
-    --   submenu true (text "") [simpleButton "Close user area" false Close]
-    -- , submenu (isAccountRelated lastVoice) (simpleButton "Account" false unit) [
-    --     simpleButton "Passphrase" isOffline ChangePassword
-    --   , simpleButton "Device PIN" false Pin
-    --   , simpleButton "Delete account" isOffline Delete
-    --   ]
-    -- , submenu (isDataRelated lastVoice) (simpleButton "Data" false unit) [
-    --     simpleButton "Export" false Export
-    --   , simpleButton "Import" isOffline Import
-    --   ]
-    -- , simpleButton "About" false About
-    -- , simpleButton "Lock" false VLock
-    -- , simpleButton "Logout" false VLogout
-    -- ]
-
     userAreaList arr = complexMenu (Just "userSidebar") Nothing arr
 
     userAreaView' :: Widget HTML (Tuple (Array (SubmenuVoice UserAreaListVoice)) UserAreaListVoice) -> Widget HTML UserAreaAction -> Widget HTML UserAreaInternalAction
@@ -110,6 +90,7 @@ userAreaWidget isOffline = do
         Import -> div [Props.className "forUser"] [Loaded <$> importWidget ix]
         Pin -> div [Props.className "forUser"] [setPinWidget Default]
         Delete -> div [Props.className "forUser"] [DeleteAccount <$ deleteUserWidget ix Default]
+        Preferences -> div [Props.className "forUser"] [(NoAction ix) <$ userPreferencesWidget Default]
         ChangePassword -> div [Props.className "forUser"] [changePasswordWidget Default emptyChangePasswordDataForm]
         VLock -> pure Lock
         VLogout -> pure Logout
