@@ -49,7 +49,7 @@ p.notice {
 		margin: 0.5%;
 	}
 
-	& > div {
+	& > div, & > div > div {
 		width: 99%;
 		display: flex;
 		flex-direction: column;
@@ -60,6 +60,10 @@ p.notice {
 			display: block;
 		}
 	}
+}
+
+div.hidden {
+	@include hide-element;
 }
 
 .userSidebarOverlay {

@@ -259,7 +259,9 @@ data SubMenuAction a = OpenCloseMenu | ClickOnVoice a
 
 submenu :: forall a b. Boolean -> Widget HTML b -> Array (Widget HTML a) -> Widget HTML (Either Boolean a)
 submenu showing b1 bs = do
-  res <- div [] $ [OpenCloseMenu <$ b1] <> (if showing then (((<$>) ClickOnVoice) <$> bs) else [])
+  -- res <- div [] $ [OpenCloseMenu <$ b1] <> (if showing then (((<$>) ClickOnVoice) <$> bs) else [])
+  let showingProp = if showing then [] else [Props.className "hidden"]
+  res <- div [] $ [OpenCloseMenu <$ b1] <> [(div showingProp (((<$>) ClickOnVoice) <$> bs))]
   case res of
     OpenCloseMenu -> pure $ Left (not showing)
     ClickOnVoice a -> pure $ Right a
