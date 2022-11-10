@@ -64,6 +64,7 @@ computeInitialState = do
                 , hash: SHA256
                 , cardsCache: empty
                 , indexReference: Nothing 
+                , userPreferences: Nothing
                 }
 
 resetState :: ExceptT AppError Aff Unit

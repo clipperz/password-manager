@@ -19,6 +19,7 @@ import DataModel.Proxy (Proxy)
 import DataModel.User (IndexReference)
 import DataModel.Communication.ProtocolError (ProtocolError)
 import DataModel.SRP(SRPGroup, group1024, k)
+import DataModel.User (UserPreferences)
 import Functions.HashCash (TollChallenge)
 
 type AppState =
@@ -34,6 +35,7 @@ type AppState =
   , hash :: HashState
   , cardsCache :: Map HexString Card
   , indexReference :: Maybe IndexReference
+  , userPreferences :: Maybe UserPreferences
   }
 
 type SRPInfo = { group :: SRPGroup, k :: BigInt, kdf :: KDFState }
