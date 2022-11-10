@@ -65,12 +65,12 @@ decodeCard :: Number -> Json -> Either AppError Card
 decodeCard timestamp json = 
   let epsilonTryResult = decodeJson json -- assumes version currently in use
   in case epsilonTryResult of
-    Right c -> lmap (\_ -> ImportError "Cannot convert json to array of card") epsilonTryResult
-    Left err -> 
+    Right _ -> lmap (\_ -> ImportError "Cannot convert json to array of card") epsilonTryResult
+    Left _ -> 
       let deltaTryResult = caseJsonObject (Left $ ImportError "Cannot conver json to json object") (decodeDeltaCardObject timestamp) json
       in case deltaTryResult of
-        Right c -> deltaTryResult
-        Left err -> Left $ ImportError "Import file is formatted neither by delta nor by epsilon version"
+        Right _ -> deltaTryResult
+        Left _ -> Left $ ImportError "Import file is formatted neither by delta nor by epsilon version"
 
 decodeDeltaCardObject :: Number -> Object Json -> Either AppError Card
 decodeDeltaCardObject timestamp obj = runExcept $ do

@@ -16,10 +16,9 @@ import Data.Show (class Show, show)
 import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
 import DataModel.Proxy (Proxy)
-import DataModel.User (IndexReference)
 import DataModel.Communication.ProtocolError (ProtocolError)
 import DataModel.SRP(SRPGroup, group1024, k)
-import DataModel.User (UserPreferences)
+import DataModel.User (IndexReference, UserPreferences)
 import Functions.HashCash (TollChallenge)
 
 type AppState =
@@ -84,6 +83,6 @@ instance prettyShowAppError :: PrettyShow AppError where
   prettyShow (InvalidStateError err) = prettyShow err
   prettyShow (ProtocolError err)     = prettyShow err
   prettyShow (ImportError err)       = "Your imported values are not in the right format! (" <> err <> ")" 
-  prettyShow (CannotInitState err)   = "Cannot init state, please try to reload"
+  prettyShow (CannotInitState _)   = "Cannot init state, please try to reload"
 
 derive instance eqAppError :: Eq AppError

@@ -22,10 +22,10 @@ import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT, runExceptT)
 import Control.Semigroupoid ((<<<))
-import Data.Argonaut.Core (Json, stringify)
+import Data.Argonaut.Core (stringify)
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Argonaut.Decode.Class (decodeJson)
-import Data.Array (filter, last, head, init)
+import Data.Array (filter, last, init)
 import Data.Bifunctor (lmap)
 import Data.Boolean (otherwise)
 import Data.Either (Either(..), note)
@@ -50,13 +50,11 @@ import DataModel.AppState as AS
 import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue, toLoading)
 import DataModel.Communication.FromString (class FromString)
 import DataModel.Communication.FromString as BCFS
-import DataModel.Communication.Login (LoginStep1Response, LoginStep2Response)
+import DataModel.Communication.Login (LoginStep2Response)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Proxy (Proxy(..), BackendSessionState(..), BackendSessionRecord)
-import DataModel.SRP (hashFuncSHA256)
 import DataModel.User (UserCard(..))
 import Effect.Aff (Aff, forkAff, delay)
-import Effect (Effect)
 import Effect.Class (liftEffect)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.JSState (getAppState, modifyAppState, updateAppState)
@@ -177,7 +175,7 @@ doGenericRequest (OnlineProxy baseUrl) (OnlineRequestInfo { url, method, headers
       , responseFormat = responseFormat
     }
   )
-doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInfo { url, method, body, responseFormat }) =
+doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInfo { url, method, body, responseFormat: _ }) =
   let pieces = split (Pattern "/") url
       type' = (joinWith "/") <$> (init pieces)
       ref' = last pieces
@@ -189,7 +187,7 @@ doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInf
         Just "blobs", Just ref -> do
           result <- liftEffect $ BCFS.fromString $ _readBlob ref
           pure $ Right $ { body: result, headers: [], status: StatusCode 200, statusText: "OK" }
-        Just "users", Just c   -> do
+        Just "users", Just _   -> do
           result <- liftEffect $ BCFS.fromString $ _readUserCard unit
           pure $ Right $ { body: result, headers: [], status: StatusCode 200, statusText: "OK"}
         _           , _        -> pure $ Left $ ResponseError 501
@@ -197,19 +195,19 @@ doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInf
       case type', ref', body of
         Nothing  , _       , _       -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
         _        , Nothing , _       -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
-        Just "login/step1", Just ref, (Just (Json step)) -> do
+        Just "login/step1", Just _, (Just (Json step)) -> do
           res :: Either AS.AppError a <- runExceptT $ do
             stepData :: { c :: HexString, aa :: HexString } <- except $ lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson step 
             uc <- ExceptT $ (\v -> lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson v) <$> (liftEffect $ BCFS.fromString $ _readUserCard unit)
-            {s, bb, b} <- offlineLoginStep1 uc stepData
+            {s, bb, b} <- offlineLoginStep1 uc
             let newSession = BackendSessionState $ merge { b: Just b, aa: Just stepData.aa , bb: Just bb} session
             ExceptT $ updateAppState { proxy: OfflineProxy newSession }
             let jsonString = stringify $ encodeJson {s, bb}
             ExceptT $ Right <$> (liftEffect $ BCFS.fromString jsonString)
           case res of
-            Left err -> pure $ Left $ ResponseError 400 -- TODO
+            Left _ -> pure $ Left $ ResponseError 400 -- TODO
             Right a -> pure $ Right $ { body: a, headers: [], status: StatusCode 200, statusText: "OK" }
-        Just "login/step2", Just ref, (Just (Json step)) -> do
+        Just "login/step2", Just _, (Just (Json step)) -> do
           res :: Either AS.AppError (Maybe a) <- runExceptT $ do
             stepData :: { m1 :: HexString } <- except $ lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson step
             uc <- ExceptT $ (\v -> lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson v) <$> (liftEffect $ BCFS.fromString $ _readUserCard unit)
@@ -219,7 +217,7 @@ doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInf
               Nothing -> except $ Right Nothing
               Just jsonString -> ExceptT $ (Right <<< Just) <$> (liftEffect $ BCFS.fromString jsonString)
           case res of
-            Left err -> pure $ Left $ ResponseError 400 -- TODO:
+            Left _ -> pure $ Left $ ResponseError 400 -- TODO:
             Right Nothing -> pure $ Left $ ResponseError 400 
             Right (Just a) -> pure $ Right $ { body: a, headers: [], status: StatusCode 200, statusText: "OK" }
         Just "logout", _, _ -> do
@@ -228,7 +226,7 @@ doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInf
             ExceptT $ updateAppState { proxy: OfflineProxy newSession }
             ExceptT $ Right <$> (liftEffect $ BCFS.fromString "")
           case res of 
-            Left err -> pure $ Left $ ResponseError 500
+            Left _ -> pure $ Left $ ResponseError 500
             Right a -> pure $ Right $ { body: a, headers: [], status: StatusCode 200, statusText: "OK" }
         _, _, _ -> pure $ Left $ ResponseError 501
     _   -> pure $ Left $ ResponseError 501
@@ -251,15 +249,15 @@ isStatusCodeOk :: StatusCode -> Boolean
 isStatusCodeOk code = (code >= (StatusCode 200)) && (code <= (StatusCode 299))
 
 
-offlineLoginStep1 :: UserCard -> { c :: HexString, aa :: HexString } -> ExceptT AS.AppError Aff { s :: HexString, bb :: HexString, b :: HexString }
-offlineLoginStep1 uc@(UserCard r) { c, aa } = do
+offlineLoginStep1 :: UserCard -> ExceptT AS.AppError Aff { s :: HexString, bb :: HexString, b :: HexString }
+offlineLoginStep1 (UserCard r) = do
   srpConf <- ExceptT $ liftEffect getSRPConf
   v <- except $ note (AS.ProtocolError $ SRPError "Cannot covert v from HexString to BigInt") (toBigInt r.v)
   (Tuple b bb) <- ExceptT $ (lmap (\e -> AS.ProtocolError $ SRPError $ show e)) <$> (SRP.prepareB srpConf v)
   except $ Right $ { s: r.s, bb: fromBigInt bb, b: fromBigInt b }
 
 offlineLoginStep2 :: UserCard -> HexString -> BackendSessionRecord -> ExceptT AS.AppError Aff (Maybe LoginStep2Response)
-offlineLoginStep2 uc@(UserCard r) m1' { b: mb, bb: mbb, aa: maa } = do
+offlineLoginStep2 (UserCard r) m1' { b: mb, bb: mbb, aa: maa } = do
   let m1 = toArrayBuffer m1'
   srpConf <- ExceptT $ liftEffect getSRPConf
   v <- except $ note (AS.ProtocolError $ SRPError "Cannot covert v from HexString to BigInt") (toBigInt r.v)

@@ -6,10 +6,9 @@ import Concur.React.DOM (text, p, div)
 import Concur.React.Props as Props
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (runExceptT)
-import Data.Eq ((==))
 import Data.Either (Either(..))
 import Data.Function (($))
-import Data.Functor (void, (<$>))
+import Data.Functor ((<$>))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Semigroup ((<>))
 import Data.Unit (Unit)
@@ -20,7 +19,6 @@ import Effect.Class (liftEffect)
 import Functions.State (computeInitialState)
 import Functions.JSState (modifyAppState)
 import OperationalWidgets.HomePageWidget (HomePageExitStatus(..), homePageWidget)
-import Views.LoginFormView (emptyForm)
 import Views.LandingPageView (landingPageView, LandingPageView(..))
 
 app :: Widget HTML Unit
@@ -50,4 +48,4 @@ app = app' Nothing
             Clean -> app' Nothing
             ReadyForLogin username -> app' (Just username)
 
-        Left err -> text "Could not initialize app"
+        Left _ -> text "Could not initialize app"

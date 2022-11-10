@@ -1,7 +1,5 @@
 module Functions.Time where
 
-import Control.Applicative (pure)
-import Control.Bind (bind, discard)
 import Control.Semigroupoid ((<<<))
 import Data.DateTime (DateTime, date, year, month, day, time)
 import Data.DateTime.Instant (unInstant, toDateTime)
@@ -9,14 +7,12 @@ import Data.Time (hour, minute)
 import Data.Enum (fromEnum)
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.Int (ceil)
 import Data.Newtype (unwrap)
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String (drop, length)
 import Effect (Effect)
-import Effect.Class.Console (log)
 import Effect.Now (now)
 
 getCurrentTimestamp :: Effect Number

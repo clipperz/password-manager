@@ -1,29 +1,16 @@
 module Functions.Communication.Logout where
 
-
-import Affjax.RequestBody (RequestBody, json)
--- import Affjax.RequestHeader as RE
 import Affjax.ResponseFormat as RF
-import Control.Bind (bind, discard)
-import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
-import Control.Semigroupoid ((>>>))
-import Data.ArrayBuffer.Types (ArrayBuffer)
-import Data.BigInt (BigInt, fromInt)
-import Data.Bifunctor (lmap)
-import Data.Either (Either(..), note)
-import Data.Eq ((==))
+import Control.Bind (bind)
+import Control.Monad.Except.Trans (runExceptT)
+import Data.Either (Either)
 import Data.Function (($))
-import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
 import Data.Maybe (Maybe(..))
 import Data.Unit (Unit)
-import DataModel.AppState (AppError(..), InvalidStateError(..))
-import DataModel.Communication.Login (LoginStep1Response, LoginStep2Response)
-import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.User (IndexReference)
+import DataModel.AppState (AppError)
 import Effect.Aff (Aff)
-import Effect.Class (liftEffect)
-import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
+import Functions.Communication.BackendCommunication (manageGenericRequest)
 import Functions.State (resetState)
 
 doLogout :: Boolean -> Aff (Either AppError Unit)

@@ -6,16 +6,13 @@ import Concur.React.DOM (div, text, ol, p')
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Semigroupoid ((<<<))
-import Control.Bind (bind, discard)
-import Data.Array (nub, sort, null)
-import Data.Array.NonEmpty as NE
-import Data.Array.NonEmpty (toArray, singleton, fromArray, (:))
-import Data.Eq ((==), (/=))
-import Data.Foldable (any)
+import Control.Bind (bind)
+import Data.Array (nub, sort)
+import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.HeytingAlgebra ((||), not)
-import Data.List (fold, filter, length, toUnfoldable, List(..))
+import Data.List (fold, filter, length)
 import Data.Maybe (Maybe(..))
 import Data.PrettyShow (prettyShow)
 import Data.Semigroup ((<>))
@@ -27,7 +24,6 @@ import DataModel.Card (Card)
 import DataModel.Index (Index(..), CardEntry(..))
 import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
-import Effect.Class.Console (log)
 import Views.CardViews (cardView)
 import Views.CreateCardView (createCardView)
 import Views.IndexView (indexView, ComplexIndexFilter, IndexFilter(..), toFilterFunc, complexToFilterFunc)
@@ -139,11 +135,11 @@ cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ c
         ComposedAndFilter f' f'' -> p' [getFilterHeader f', text " and ", getFilterHeader f'']
         ComposedOrFilter f' f''  -> p' [getFilterHeader f', text " or ", getFilterHeader f'']
         GeneralFilter title      -> text title
-        SpecificCardFilter ce  -> text "last created card"
-        TagFilter tag          -> text tag
-        RecentFilter           -> text "recent"
-        UntaggedFilter         -> text "untagged"
-        NoFilter               -> text "clipperz logo"
+        SpecificCardFilter _     -> text "last created card"
+        TagFilter tag            -> text tag
+        RecentFilter             -> text "recent"
+        UntaggedFilter           -> text "untagged"
+        NoFilter                 -> text "clipperz logo"
 
     lastUses = { allLastUses: (\(CardEntry r) -> r.lastUsed) <$> entries }
 

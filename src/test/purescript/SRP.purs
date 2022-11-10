@@ -7,25 +7,23 @@ import Data.BigInt (BigInt, toString, fromInt)
 import Data.Either (Either(..), note)
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.HexString (HexString, hex, toBigInt, fromArrayBuffer, fromBigInt, toArrayBuffer)
+import Data.HexString (HexString, hex, toBigInt, fromArrayBuffer)
 import Data.Identity (Identity)
 import Data.Maybe (fromMaybe)
-import Data.Newtype (unwrap, class Newtype)
+import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
 import DataModel.SRP(group1024, SRPConf, bigInt0, hashFuncSHA256, hashFuncSHA1, concatKDF, SRPError(..))
-import Debug (traceM)
 import Functions.SRP as SRP
 import Effect.Aff (Aff)
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
 import Test.QuickCheck (Result(..), (===))
-import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (Gen)
 import TestClasses (AsciiString)
-import TestUtilities (makeTestableOnBrowser, failOnBrowser, quickCheckAffInBrowser)
+import TestUtilities (makeTestableOnBrowser, quickCheckAffInBrowser)
 
 srpSpec :: SpecT Aff Unit Identity Unit
 srpSpec =
@@ -103,6 +101,7 @@ type TestVector = { c :: String -- I
                   , secret :: BigInt
                   }
 
+rfcTestVector :: TestVector
 rfcTestVector = { c: "alice"
                 , p: "password123"
                 , s: fromMaybe bigInt0 $ toBigInt $ hex $ "BEB25379 D1A8581E B5A72767 3A2441EE"

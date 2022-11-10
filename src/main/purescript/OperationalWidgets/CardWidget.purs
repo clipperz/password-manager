@@ -5,16 +5,11 @@ import Concur.React (HTML)
 import Concur.React.DOM (div, text)
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, (>>=), discard)
+import Control.Bind (bind, (>>=))
 import Control.Monad.Except.Trans (runExceptT, ExceptT)
-import Control.Semigroupoid ((<<<))
-import Data.DateTime.Instant (unInstant)
 import Data.Either (Either(..))
 import Data.Eq ((==))
 import Data.Function (($))
-import Data.Functor ((<$>))
-import Data.Int (ceil)
-import Data.Newtype (unwrap)
 import Data.PrettyShow (prettyShow)
 import Data.Semigroup ((<>))
 import Data.Show (show)
@@ -27,7 +22,6 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
-import Effect.Now (now)
 import Functions.Communication.Cards (getCard, postCard, deleteCard)
 import Functions.JSState (getAppState)
 import Functions.State (isOfflineCopy)
@@ -72,13 +66,13 @@ cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ })
         Clone cc -> do
           clonedCard <- liftAff $ cloneCardNow cc
           doOp isOffline cc cc false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) cc)
-        Archive oldCard@(Card r) -> do
+        Archive oldCard@(Card rc) -> do
           timestamp' <- liftEffect $ getCurrentTimestamp
-          let newCard = Card $ r { timestamp = timestamp', archived = true }
+          let newCard = Card $ rc { timestamp = timestamp', archived = true }
           doOp isOffline oldCard newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) newCard)
-        Restore oldCard@(Card r) -> do
+        Restore oldCard@(Card rc) -> do
           timestamp' <- liftEffect $ getCurrentTimestamp
-          let newCard = Card $ r { timestamp = timestamp', archived = false }
+          let newCard = Card $ rc { timestamp = timestamp', archived = false }
           doOp isOffline oldCard newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) newCard)
         Delete cc -> doOp isOffline cc cc false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) cc)
 

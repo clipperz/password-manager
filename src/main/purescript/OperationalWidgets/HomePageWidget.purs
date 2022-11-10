@@ -6,18 +6,16 @@ import Concur.React.DOM (div, text)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind, discard, (>>=))
 import Control.Monad.Except.Trans (runExceptT)
 import Control.Semigroupoid ((<<<))
-import Data.Either (Either(..))
+import Data.Either (Either(..), hush)
 import Data.Function (($))
-import Data.Functor ((<$>), (<$))
+import Data.Functor ((<$>))
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.PrettyShow (prettyShow)
 import Data.Show (show)
-import Data.Tuple (Tuple(..))
-import Data.Unit (Unit, unit)
-import DataModel.AppState (AppError(..), InvalidStateError(..))
+import Data.Unit (unit)
 import DataModel.Index (Index)
 import DataModel.WidgetState (WidgetState(..))
 import Effect (Effect)
@@ -85,8 +83,4 @@ homePageWidget = do
           pure $ Clean
 
     getUsername :: Effect (Maybe String)
-    getUsername = do
-      state <- liftEffect $ getAppState
-      case state of
-        Left err -> pure $ Nothing
-        Right r@{username} -> pure $ username      
+    getUsername = (\as -> as >>= (\a -> a.username)) <$> (hush <$> getAppState)    

@@ -2,20 +2,20 @@ module Functions.Export where
 
 import Affjax.ResponseFormat as RF
 import Control.Applicative (pure)
-import Control.Bind (bind, discard, (>>=))
+import Control.Bind (bind, discard)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Except.Trans (runExceptT, ExceptT(..), mapExceptT, except)
 import Control.Semigroupoid ((<<<))
 import Data.Argonaut.Core as AC
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Bifunctor (lmap)
-import Data.Either (hush, either, Either(..), note)
+import Data.Either (either, Either(..), note)
 import Data.Foldable (fold)
 import Data.Function (($))
-import Data.Functor ((<$>), (<$))
+import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
 import Data.HTTP.Method (Method(..))
-import Data.List (List(..), (:), toUnfoldable, sort)
+import Data.List (List, (:), sort)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType (MediaType(..))
 import Data.Monoid (mempty)
@@ -34,9 +34,7 @@ import DataModel.Card (Card(..), CardValues(..), CardField(..))
 import DataModel.User (IndexReference(..), UserCard(..))
 import Effect (Effect)
 import Effect.Aff (Aff, makeAff)
-import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Effect.Exception (error)
 import Foreign (readString)
 import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
@@ -49,19 +47,14 @@ import Functions.State (offlineDataId)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate, formatDateTimeToTime)
 import Web.DOM.Document (Document, documentElement, toNode, createElement)
 import Web.DOM.Element as EL
-import Web.DOM.Node (childNodes, nodeName, lastChild, firstChild, insertBefore, setTextContent)
-import Web.DOM.NodeList (toArray)
+import Web.DOM.Node (lastChild, firstChild, insertBefore, setTextContent)
 import Web.File.Blob (fromString, Blob)
 import Web.Event.EventTarget (eventListener, addEventListener)
-import Web.File.File (File, name)
 import Web.File.FileReader (fileReader, readAsText, toEventTarget, result)
-import Web.File.Url (createObjectURL, revokeObjectURL)
-import Web.HTML (window)
+import Web.File.Url (createObjectURL)
 import Web.HTML.Event.EventTypes as EventTypes
-import Web.HTML.HTMLHtmlElement (toHTMLElement)
-import Web.HTML.HTMLElement (toElement)
-import Web.HTML.Window (document)
 
+unencryptedExportStyle :: String
 unencryptedExportStyle = "body {font-family: 'DejaVu Sans Mono', monospace;margin: 0px;}header {padding: 10px;border-bottom: 2px solid black;}header p span {font-weight: bold;}h1 {margin: 0px;}h2 {margin: 0px;padding-top: 10px;}h3 {margin: 0px;}h5 {margin: 0px;color: gray;}ul {margin: 0px;padding: 0px;}div > ul > li {border-bottom: 1px solid black;padding: 10px;}div > ul > li.archived {background-color: #ddd;}ul > li > ul > li {font-size: 9pt;display: inline-block;}ul > li > ul > li:after {content: \",\";padding-right: 5px;}ul > li > ul > li:last-child:after {content: \"\";padding-right: 0px;}dl {}dt {color: gray;font-size: 9pt;}dd {margin: 0px;margin-bottom: 5px;padding-left: 10px;font-size: 13pt;}div > div {background-color: black;color: white;padding: 10px;}li p, dd.hidden {white-space: pre-wrap;word-wrap: break-word;font-family: monospace;}textarea {display: none}a {color: white;}@media print {div > div, header > div {display: none !important;}div > ul > li.archived {color: #ddd;}ul > li {page-break-inside: avoid;} }"
 
 prepareOfflineCopy :: Index -> Aff (Either String String)
@@ -71,7 +64,7 @@ prepareOfflineCopy index = runExceptT $ do
   doc <- mapExceptT (\m -> (lmap show) <$> m) getBasicHTML
   preparedDoc <- appendCardsDataInPlace doc blobList userCard
   blob <- ExceptT $ Right <$> (liftEffect $ prepareHTMLBlob preparedDoc)
-  s :: String <- ExceptT $ Right <$> readFile blob
+  _ <- ExceptT $ Right <$> readFile blob
   ExceptT $ Right <$> (liftEffect $ createObjectURL blob)
 
 prepareUnencryptedCopy :: Index -> Aff (Either String String)
@@ -87,14 +80,14 @@ prepareUnencryptedCopy index = runExceptT $ do
   let htmlDocString = styleString <> htmlDocString1 <> htmlDocContent <> htmlDocString2
   doc :: Document <- ExceptT $ Right <$> (liftEffect $ FS.fromString htmlDocString)
   blob <- ExceptT $ Right <$> (liftEffect $ prepareHTMLBlob doc)
-  s :: String <- ExceptT $ Right <$> readFile blob
+  _ <- ExceptT $ Right <$> readFile blob
   ExceptT $ Right <$> (liftEffect $ createObjectURL blob)
 
 formatText :: String -> String
 formatText = (replaceAll (Pattern "<") (Replacement "&lt;")) <<< (replaceAll (Pattern "&") (Replacement "&amp;"))
 
 prepareCardList :: Index -> ExceptT AppError Aff (List Card)
-prepareCardList index@(Index l) = do
+prepareCardList (Index l) = do
   let refs = (\(CardEntry cr) -> cr.cardReference) <$> (sort l)
   sequence $ getCard <$> refs
 
@@ -105,7 +98,7 @@ prepareUnencryptedContent l =
   in "<ul>" <> list <> "</ul><div><textarea>" <> textareaContent <> "</textarea></div>"
 
   where
-    cardToLi (Card {content: (CardValues {title, tags, fields, notes}), archived, timestamp}) =
+    cardToLi (Card {content: (CardValues {title, tags, fields, notes}), archived, timestamp: _}) =
       let archivedTxt = if archived then "archived" else ""
           tagsLis = fold $ (\t -> "<li>" <> (formatText t) <> "</li>") <$> tags
           fieldsDts = fold $  (\(CardField {name, value, locked}) -> "<dt>" <> (formatText name) <> "</dt><dd class=\"" <> (if locked then "hidden" else "") <> "\">" <> (formatText value) <> "</dd>") <$> fields
@@ -120,7 +113,7 @@ getBasicHTML = do
   else except $ Left $ ProtocolError $ ResponseError $ unwrap res.status 
 
 appendCardsDataInPlace :: Document -> List (Tuple HexString HexString) -> UserCard -> ExceptT String Aff Document
-appendCardsDataInPlace doc blobList uc@(UserCard r) = do
+appendCardsDataInPlace doc blobList (UserCard r) = do
   let blobsContent = "const blobs = { " <> (fold $ (\(Tuple k v) -> "\"" <> show k <> "\": \"" <> show v <> "\", " ) <$> blobList) <> "}"
   let userCardContent = "const userCard = { " 
                           <> "\"c\": \"" <> (show r.c) <> "\""
@@ -147,7 +140,7 @@ appendCardsDataInPlace doc blobList uc@(UserCard r) = do
   except $ Right doc
 
 prepareBlobList :: Index -> ExceptT AppError Aff (List (Tuple HexString HexString))
-prepareBlobList index@(Index list) = do
+prepareBlobList (Index list) = do
   { indexReference } <- ExceptT $ liftEffect $ getAppState
   (IndexReference { reference: indexRef } ) <- except $ note (InvalidStateError $ MissingValue $ "indexReference is Nothing") indexReference
   let allRefs = indexRef : (extractRefFromEntry <$> list)

@@ -1,7 +1,7 @@
 module Functions.Pin where
 
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind)
 import Control.Monad.Except.Trans (ExceptT(..), withExceptT)
 import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Key.Import as KI
@@ -11,7 +11,7 @@ import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (hex, toArrayBuffer, toString, Base(..))
-import Data.HeytingAlgebra ((&&), not)
+import Data.HeytingAlgebra ((&&))
 import Data.List (List(..), (:))
 import Data.Ord ((>), (<))
 import Data.Ring ((-))
@@ -44,7 +44,7 @@ generateKeyFromPin hashf pin = do
 
 decryptPassphrase :: Int -> String -> String -> ExceptT AppError Aff Credentials
 decryptPassphrase pin user encryptedPassphrase = do
-  state@{ username, password } <- ExceptT $ liftEffect getAppState
+  state <- ExceptT $ liftEffect getAppState
   let hashf = getHashFunctionFromAppState state
   key <- ExceptT $ Right <$> (liftAff $ generateKeyFromPin hashf pin)
   let ab = toArrayBuffer $ hex $ encryptedPassphrase

@@ -1,7 +1,7 @@
 module DataModel.WidgetState where
 
 import Data.Semigroup ((<>))
-import Data.Show (class Show, show)
+import Data.Show (class Show)
 
 data WidgetState = Default | Loading | Error String
 

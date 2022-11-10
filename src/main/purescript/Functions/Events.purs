@@ -1,6 +1,5 @@
 module Functions.Events where
 
-import Effect (Effect)
 import Effect.Aff (Aff)
 import React.SyntheticEvent (NativeEventTarget)
 import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)

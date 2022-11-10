@@ -17,7 +17,7 @@ module Data.HexString
 import Control.Semigroupoid ((>>>))
 import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
-import Data.Array.NonEmpty (fromArray, toArray, singleton)
+import Data.Array.NonEmpty (fromArray, toArray, singleton, NonEmptyArray)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Bifunctor (rmap)
 import Data.BigInt (BigInt, fromBase, toBase)
@@ -36,7 +36,7 @@ import Data.String.Common (replaceAll)
 import Data.String.Pattern (Pattern(..), Replacement(..))
 import Data.String.Regex (regex, Regex, test)
 import Data.String.Regex.Flags (noFlags)
-import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
+import Test.QuickCheck.Arbitrary (class Arbitrary)
 import Test.QuickCheck.Gen (arrayOf1, elements)
 
 foreign import hexEncode :: String -> String
@@ -65,6 +65,7 @@ instance showHexString :: Show HexString where
 instance arbitraryHexString :: Arbitrary HexString where
   arbitrary = (toArray >>> fromCharArray >>> hex) <$> (arrayOf1 (elements hexChars))
 
+hexChars :: NonEmptyArray Char
 hexChars = fromMaybe (singleton '0') $ fromArray ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'a', 'b', 'c', 'd', 'e', 'f']
 -- ----------------------------------------------------------------
 

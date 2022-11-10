@@ -13,6 +13,7 @@ import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor (void, (<$>))
 import Data.Maybe (Maybe(..))
+import Data.PrettyShow (prettyShow)
 import Data.Show (show)
 import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError)
@@ -31,9 +32,9 @@ userPreferencesWidget :: WidgetState -> Widget HTML Unit
 userPreferencesWidget wstate = do
   eitherUP <- liftEffect $ getAppState
   case eitherUP of
-    Left err -> void $ div [] [text "Could not load current user preferences"] 
-    Right state@{ userPreferences: Nothing } -> void $ div [] [text "Could not load user preferences at login"] 
-    Right state@{ userPreferences: Just up } -> do
+    Left err -> void $ div [] [text (prettyShow err)] 
+    Right { userPreferences: Nothing } -> void $ div [] [text "Could not load user preferences at login"] 
+    Right { userPreferences: Just up } -> do
       go wstate up
       pure unit
 

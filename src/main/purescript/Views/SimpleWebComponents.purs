@@ -285,7 +285,7 @@ complexMenu mId mClass arr = do
     booleans = fst <$> arr
     
     redraw :: Array Boolean -> Array (SubmenuVoice a)
-    redraw newBoolean = zipWith (\b -> \(Tuple b' f) -> Tuple b f) newBoolean arr
+    redraw newBoolean = zipWith (\b -> \(Tuple _ f) -> Tuple b f) newBoolean arr
 
     fromVoiceToWidget { index, tuple: (Tuple b f) } = do
       res <- f b

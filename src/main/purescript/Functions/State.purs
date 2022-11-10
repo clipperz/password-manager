@@ -1,9 +1,8 @@
 module Functions.State where
 
 import Control.Applicative (pure)
-import Control.Bind (bind, (>>=), discard)
+import Control.Bind (bind, (>>=))
 import Control.Monad.Except.Trans (ExceptT(..), mapExceptT, except)
-import Control.Semigroupoid ((<<<))
 import Data.Array (filter, catMaybes, head)
 import Data.Either (Either(..), note)
 import Data.Eq ((==))
@@ -21,7 +20,6 @@ import DataModel.SRP(SRPConf, KDF, HashFunction, concatKDF, hashFuncSHA1, hashFu
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Functions.JSState (getAppState, modifyAppState)
 import Record (merge)
 import Web.DOM.Element (fromNode, id)
@@ -33,6 +31,7 @@ import Web.HTML.HTMLElement (toNode)
 import Web.HTML.Location (origin)
 import Web.HTML.Window (location, document)
 
+offlineDataId :: String
 offlineDataId = "offlineData"
 
 computeInitialState :: ExceptT AppError Effect AppState
@@ -43,7 +42,7 @@ computeInitialState = do
   elementsWithId <- ExceptT $ Right <$> (sequence $ mapIds <$> (catMaybes $ fromNode <$> childs))
   let script = head ((\(Tuple e _) -> e) <$> (filter (\(Tuple _ i) -> i == offlineDataId) elementsWithId))
   case script of
-    Just elem -> except $ Right $ withOfflineProxy
+    Just _ -> except $ Right $ withOfflineProxy
     Nothing -> do
       l <- ExceptT $ Right <$> ((location w) >>= origin)
       except $ Right $ withOnlineProxy l
@@ -97,7 +96,7 @@ getSRPConfFromState :: AppState -> SRPConf
 getSRPConfFromState state = { group: state.srpInfo.group, k: state.srpInfo.k, hash: getHashFromState state.hash, kdf: getKDFFromState state.srpInfo.kdf }
 
 isOfflineCopy :: AppState -> Boolean
-isOfflineCopy state@{ proxy } =
+isOfflineCopy { proxy } =
   case proxy of
     OfflineProxy _ -> true
     _ -> false

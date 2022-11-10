@@ -6,38 +6,28 @@ import Control.Semigroupoid ((<<<))
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, loopW, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', text, label, input, a, fieldset)
+import Concur.React.DOM (div, div', text, label, input, a)
 import Concur.React.Props as Props
-import Control.Monad.Except.Trans (ExceptT(..), runExceptT, except, withExceptT)
+import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (Either(..))
 import Data.Eq ((/=))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
-import Data.HexString (hex, toArrayBuffer, toString, Base(..))
 import Data.HeytingAlgebra ((&&), not)
 import Data.Int (fromString)
-import Data.Maybe (maybe, Maybe(..), fromMaybe)
-import Data.PrettyShow (prettyShow)
-import Data.Semigroup ((<>))
-import Data.Semiring ((*), (+))
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Semiring ((+))
 import Data.Show (show)
-import Data.Tuple (Tuple(..))
-import DataModel.AppState (AppError(..), InvalidStateError(..))
+import DataModel.AppState (AppError)
 import DataModel.Credentials (Credentials)
 import DataModel.WidgetState (WidgetState(..))
-import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
-import Effect.Exception as EX
-import Functions.EncodeDecode (decryptJson)
-import Functions.JSState (getAppState)
-import Functions.Pin (generateKeyFromPin, decryptPassphrase, makeKey, isPinValid)
-import Functions.State (getHashFunctionFromAppState)
+import Functions.Pin (decryptPassphrase, makeKey, isPinValid)
 import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleNumberInputWidget)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
-import Web.Storage.Storage (getItem, setItem, removeItem, Storage)
+import Web.Storage.Storage (getItem, setItem, Storage)
 
 data PinViewResult = Pin Int | NormalLogin
 
@@ -65,17 +55,17 @@ loginFormView state loginFormData = do
   
   where
     formNoPassphrase :: WidgetState -> LoginForm -> Widget HTML Credentials
-    formNoPassphrase state formData = 
-      case state of
+    formNoPassphrase st formData = 
+      case st of
         Default   -> div [] [              form formData]
         Loading   -> div [] [loadingDiv,   form formData]
         Error err -> div [] [errorDiv err, form formData]
 
     formPin :: String -> String -> WidgetState -> Storage -> Widget HTML Credentials
-    formPin user encryptedPassphrase state storage = do
-      maybePin <- case state of
-        Default -> div [] [pinView]
-        Loading -> div [] [pinView]
+    formPin user encryptedPassphrase st storage = do
+      maybePin <- case st of
+        Default   -> div [] [pinView]
+        Loading   -> div [] [pinView]
         Error err -> div [] [errorDiv err, pinView]
       case maybePin of
         NormalLogin -> formNoPassphrase state (emptyForm { username = user })
@@ -85,7 +75,7 @@ loginFormView state loginFormData = do
             Right f -> do
               liftEffect $ setItem (makeKey "failures") (show 0) storage
               pure f
-            Left err -> do
+            Left _ -> do
               failures <- liftEffect $ getItem (makeKey "failures") storage
               let count = (((fromMaybe 0) <<< fromString <<< (fromMaybe "")) failures) + 1
               liftEffect $ setItem (makeKey "failures") (show count) storage

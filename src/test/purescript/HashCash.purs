@@ -12,14 +12,11 @@ import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Unit (Unit)
 import DataModel.SRP (hashFuncSHA256)
-import Debug (traceM)
 import Effect.Aff (Aff, invincible)
-import Effect.Class.Console (log)
 import Functions.HashCash (verifyReceipt, computeReceipt)
 import Test.Spec (describe, it, SpecT)
-import Test.Spec.Assertions (shouldEqual)
-import Test.QuickCheck ((===), Result(..), (<?>))
-import TestUtilities (makeTestableOnBrowser, quickCheckAffInBrowser)
+import Test.QuickCheck (Result, (<?>))
+import TestUtilities (quickCheckAffInBrowser)
 
 hashCashSpec :: SpecT Aff Unit Identity Unit
 hashCashSpec =
@@ -52,6 +49,5 @@ testReceiptFalseProp :: HexString -> Aff Result
 testReceiptFalseProp hexString = do
   challenge    <- fromArrayBuffer <$> (hashFuncSHA256 $ (toArrayBuffer hexString) : Nil)
   let falseReceipt = (hex $ (show hexString) <> "1")
-  receiptHash    <- fromArrayBuffer <$> (hashFuncSHA256 $ (toArrayBuffer falseReceipt) : Nil)
   verification <- verifyReceipt hashFuncSHA256 { toll: challenge, cost: 10 } falseReceipt
   pure $ (not verification) <?> "Hash of " <> (show hexString) <> " challenge (" <> (show challenge) <> ") is solved by " <> (show falseReceipt)

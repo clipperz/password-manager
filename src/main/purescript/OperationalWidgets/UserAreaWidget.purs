@@ -1,25 +1,21 @@
 module OperationalWidgets.UserAreaWidget where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, hold, dyn)
 import Concur.React (HTML)
 import Concur.React.DOM (div, text)
 import Concur.React.Props as Props
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind)
 import Control.Monad.Except.Trans (runExceptT)
-import Data.Array (toUnfoldable, fromFoldable)
 import Data.Either (Either(..))
 import Data.Eq (class Eq)
-import Data.Foldable (elem)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.List (List(..))
 import Data.Maybe (Maybe(..))
-import Data.Semigroup ((<>))
 import Data.Tuple (Tuple(..))
-import Data.Unit (unit, Unit)
+import Data.Unit (unit)
 import DataModel.AppState (AppError)
 import DataModel.Index (Index(..))
 import DataModel.WidgetState (WidgetState(..))
@@ -42,6 +38,7 @@ derive instance eqUserAreaListVoice :: Eq UserAreaListVoice
 
 data UserAreaInternalAction = MenuAction (Tuple (Array (SubmenuVoice UserAreaListVoice)) UserAreaListVoice) | UserAction UserAreaAction
 
+defaultMenu :: Boolean -> Array (SubmenuVoice UserAreaListVoice)
 defaultMenu = \isOffline -> [
   Tuple true (\b -> submenu b (text "") [simpleButton "Close user area" false Close])
 , Tuple false (\b -> submenu b (simpleButton "Account" false unit) [
@@ -102,11 +99,3 @@ userAreaWidget isOffline = do
       case res of
         UserAction ac -> pure $ ac
         MenuAction (Tuple newMenus ac) -> userAreaView newMenus ix (userAreaInternalView ix ac)
-
-    updateMenu :: Array (SubmenuVoice UserAreaListVoice) -> Array Boolean -> Array (SubmenuVoice UserAreaListVoice)
-    updateMenu a a' = fromFoldable $ updateMenu' (toUnfoldable a) (toUnfoldable a')
-      where
-        updateMenu' Nil _   = Nil
-        updateMenu' _   Nil = Nil
-        updateMenu' (Cons (Tuple b f) l) (Cons b' l') = Cons (Tuple b' f) (updateMenu' l l')
-

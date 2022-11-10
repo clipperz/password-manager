@@ -34,7 +34,7 @@ instance stringFromString :: FromString String where
 instance jsonFromString :: FromString DAC.Json where
   fromString s = 
     pure $ case DAP.jsonParser s of
-      Left err -> DAC.fromString s
+      Left _ -> DAC.fromString s
       Right json -> json
 
 instance unitFromString :: FromString Unit where
