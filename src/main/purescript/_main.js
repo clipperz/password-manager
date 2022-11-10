@@ -16,6 +16,13 @@ function main () {
         However, you will need to change the type to accept variables, by default it is an Effect.
         You will probably want to make it a function from String -> Effect ()
     */
+    window.document.onkeydown = ev => {
+        console.log(ev.key)
+        if (ev.key === "/") {
+            document.getElementById("generalFilter").focus()
+            ev.preventDefault()
+        }
+    }
 
     Main.main();
 }
