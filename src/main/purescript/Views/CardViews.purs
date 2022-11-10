@@ -16,9 +16,10 @@ import Views.SimpleWebComponents (simpleButton, confirmationWidget)
 
 -- -----------------------------------
 
-data CardAction = Edit Card | Clone Card | Archive Card | Restore Card | Delete Card
+data CardAction = Edit Card | Clone Card | Archive Card | Restore Card | Delete Card | Used Card
 instance showCardAction :: Show CardAction where
   show (Edit _)    = "Edit"
+  show (Used _)      = "Used"
   show (Clone _)   = "Clone"
   show (Archive _) = "Archive"
   show (Restore _) = "Restore"
@@ -30,7 +31,7 @@ cardView :: Card -> Boolean -> Widget HTML CardAction
 cardView c@(Card r) isOffline = do
   res <- div [Props._id "card"] [
       cardActions c isOffline
-    , cardContent r.content
+    , (Used c) <$ cardContent r.content
   ]
   case res of
     Delete _ -> do

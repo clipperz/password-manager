@@ -37,7 +37,7 @@ import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (loadingDiv)
 
 cardWidget :: CardEntry -> Array String -> WidgetState -> Widget HTML IndexUpdateData
-cardWidget entry@(CardEntry { title: _, cardReference, archived: _, tags: _ }) tags state = do
+cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ }) tags state = do
   eitherState <- liftEffect $ getAppState
   case eitherState of
     Left err -> cardWidget entry tags (Error (prettyShow err))
@@ -62,6 +62,10 @@ cardWidget entry@(CardEntry { title: _, cardReference, archived: _, tags: _ }) t
           case indexUpdateAction of
             AddReference newEntry -> pure $ IndexUpdateData (ChangeReferenceWithEdit entry newEntry) newCard
             _ -> cardWidget entry tags Default
+        Used cc -> do
+          timestamp' <- liftEffect $ getCurrentTimestamp
+          let newEntry = CardEntry $ r { lastUsed = timestamp' }
+          pure $ IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) cc
         Clone cc -> do
           clonedCard <- liftAff $ cloneCardNow cc
           doOp isOffline cc cc false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) cc)

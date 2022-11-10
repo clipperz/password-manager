@@ -56,6 +56,7 @@ newtype CardEntry =
     , cardReference :: CardReference
     , archived :: Boolean
     , tags :: Array String
+    , lastUsed :: Int
     -- , attachment :: Boolean
     }
 
@@ -101,5 +102,6 @@ createCardEntry card@(Card { content: (CardValues content), archived, timestamp:
                                , cardReference: CardReference { reference: fromArrayBuffer hash, key: exportedKey, cardVersion: currentCardVersion }
                                , archived: archived
                                , tags: content.tags
+                               , lastUsed: 0
                                }
   pure $ Tuple encryptedCard cardEntry
