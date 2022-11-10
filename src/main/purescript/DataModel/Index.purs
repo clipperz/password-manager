@@ -66,6 +66,7 @@ instance showCardEntry :: Show CardEntry where
         , cardReference: _
         , archived: _
         , tags: _
+        , lastUsed: _
         }) = "Entry for " <> title
 
 instance ordCardEntry :: Ord CardEntry where

@@ -73,7 +73,6 @@ setPinWidget ws = do
   eitherRes <- case pinAction of
     Reset -> runExceptT (deleteCredentials storage)
     SetPin pin -> runExceptT (saveCredentials pin storage) 
-  log $ show eitherRes
   case eitherRes of
     Left err -> setPinWidget (Error (show err))
     _        -> setPinWidget Default
@@ -113,7 +112,6 @@ setPinWidget ws = do
       encryptedCredentials <- ExceptT $ Right <$> (liftAff $ encryptJson key obj)
       liftEffect $ setItem (makeKey "user") u storage -- save username  
       liftEffect $ setItem (makeKey "passphrase") (show $ fromArrayBuffer encryptedCredentials) storage -- save password
-      log "Done"
 
     deleteCredentials :: Storage -> ExceptT AppError (Widget HTML) Unit
     deleteCredentials storage = liftEffect $ do
