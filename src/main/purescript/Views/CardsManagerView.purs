@@ -30,7 +30,7 @@ import DataModel.WidgetState (WidgetState(..))
 import Effect.Class.Console (log)
 import Views.CardViews (cardView)
 import Views.CreateCardView (createCardView)
-import Views.IndexView (indexView, ComplexIndexFilter, IndexFilter(..), toFilterFunc)
+import Views.IndexView (indexView, ComplexIndexFilter, IndexFilter(..), toFilterFunc, complexToFilterFunc)
 import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleCheckboxWidget, simpleTextInputWidgetWithFocus, clickableListItemWidget)
 import OperationalWidgets.CardWidget (cardWidget)
 import OperationalWidgets.CreateCardWidget (createCardWidget)
@@ -91,7 +91,14 @@ cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ c
   case res of
     CardViewAction (ShowCard ref) -> cardsManagerView isOffline i (removeLastCardFilter cif (Just ref)) { cardView: CardFromReference ref, cardViewState } Nothing -- TODO: discuss
     CardViewAction action -> pure $ Tuple (removeLastCardFilter cif Nothing) action
-    ChangeFilter newFilter -> cardsManagerView isOffline i newFilter cvs Nothing
+    ChangeFilter newFilter -> do
+      let f = complexToFilterFunc lastUses newFilter
+      case cv of
+        CardFromReference ref -> if f ref then 
+            cardsManagerView isOffline i newFilter cvs Nothing
+          else 
+            cardsManagerView isOffline i newFilter { cardView: NoCard, cardViewState } Nothing
+        _ -> cardsManagerView isOffline i newFilter cvs Nothing
 
   where
     removeLastCardFilter cf@{ archived: archived', indexFilter: indexFilter' } mRef =
