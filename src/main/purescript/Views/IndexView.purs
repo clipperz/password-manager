@@ -11,7 +11,9 @@ import Data.Foldable (any, fold, foldr)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HeytingAlgebra ((&&), (||), not)
-import Data.List (sort, filter, List(..))
+import Data.List (sort, filter, List(..), takeEnd, last)
+import Data.Maybe (fromMaybe)
+import Data.Ord ((>=))
 import Data.Show (class Show, show)
 import Data.Semigroup ((<>))
 import Data.String (contains)
@@ -35,23 +37,29 @@ derive instance eqIndexFilter :: Eq IndexFilter
 
 type ComplexIndexFilter = { archived :: Boolean, indexFilter :: IndexFilter }
 
+type ContextualFilterInfo = { allLastUses :: List Int }
+
 indexView :: Index -> ComplexIndexFilter -> Widget HTML CardEntry
 indexView (Index cards) complexIndexFilter = do
-  let sortedCards = fromFoldable $ filter (complexToFilterFunc complexIndexFilter) $ sort cards :: Array CardEntry
+  let info = { allLastUses: (\(CardEntry r) -> r.lastUsed) <$> cards } 
+  let sortedCards = fromFoldable $ filter (complexToFilterFunc info complexIndexFilter) $ sort cards :: Array CardEntry
   ol []
     ((\entry@(CardEntry { title, archived }) -> 
       clickableListItemWidget false (text title) (if archived then ["archived"] else []) entry
      ) <$> sortedCards)
 
-complexToFilterFunc :: ComplexIndexFilter -> (CardEntry -> Boolean)
-complexToFilterFunc { archived, indexFilter } = \ce@(CardEntry r) -> ((archived) || (not archived && r.archived == false)) && (toFilterFunc indexFilter) ce
+complexToFilterFunc :: ContextualFilterInfo -> ComplexIndexFilter -> (CardEntry -> Boolean)
+complexToFilterFunc info { archived, indexFilter } = \ce@(CardEntry r) -> ((archived) || (not archived && r.archived == false)) && (toFilterFunc info indexFilter) ce
 
-toFilterFunc :: IndexFilter -> (CardEntry -> Boolean)
-toFilterFunc (ComposedOrFilter f f')  = \a -> (toFilterFunc f) a || (toFilterFunc f') a
-toFilterFunc (ComposedAndFilter f f') = \a -> (toFilterFunc f) a && (toFilterFunc f') a
-toFilterFunc (GeneralFilter query)   = \(CardEntry r) -> if query == "" then true else any (contains (Pattern (toLower query))) (toLower <$> (r.title : r.tags))
-toFilterFunc (SpecificCardFilter ce) = \ce' -> ce == ce'
-toFilterFunc (TagFilter tag)       = \(CardEntry r) -> elem tag r.tags
-toFilterFunc (RecentFilter)        = \(CardEntry _) -> true --TODO
-toFilterFunc (UntaggedFilter)      = \(CardEntry r) -> null r.tags
-toFilterFunc  NoFilter             = \_ -> true
+toFilterFunc :: ContextualFilterInfo -> IndexFilter -> (CardEntry -> Boolean)
+toFilterFunc info (ComposedOrFilter f f')  = \a -> (toFilterFunc info f) a || (toFilterFunc info f') a
+toFilterFunc info (ComposedAndFilter f f') = \a -> (toFilterFunc info f) a && (toFilterFunc info f') a
+toFilterFunc _    (GeneralFilter query)    = \(CardEntry r) -> if query == "" then true else any (contains (Pattern (toLower query))) (toLower <$> (r.title : r.tags))
+toFilterFunc _    (SpecificCardFilter ce)  = \ce' -> ce == ce'
+toFilterFunc _    (TagFilter tag)          = \(CardEntry r) -> elem tag r.tags
+toFilterFunc info  RecentFilter            = \(CardEntry r) -> r.lastUsed >= (computeTimestampOfLastNUses 10 info.allLastUses)
+toFilterFunc _    (UntaggedFilter)         = \(CardEntry r) -> null r.tags
+toFilterFunc _     NoFilter                = \_ -> true
+
+computeTimestampOfLastNUses :: Int -> List Int -> Int
+computeTimestampOfLastNUses n ts = fromMaybe 0 $ last $ takeEnd n $ sort ts

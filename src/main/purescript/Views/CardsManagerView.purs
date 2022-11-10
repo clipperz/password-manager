@@ -135,8 +135,11 @@ cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ c
         UntaggedFilter         -> text "untagged"
         NoFilter               -> text "clipperz logo"
 
+    lastUses = { allLastUses: (\(CardEntry r) -> r.lastUsed) <$> entries }
+
     countShownCards :: IndexFilter -> Int
-    countShownCards indexFilt = length $ filter (toFilterFunc indexFilt) shownEntries
+    countShownCards RecentFilter = length $ filter (toFilterFunc lastUses RecentFilter) entries
+    countShownCards indexFilt = length $ filter (toFilterFunc lastUses indexFilt) shownEntries
 
     getFilterListElement :: IndexFilter -> String -> Widget HTML IndexFilter
     getFilterListElement indexFilt s = clickableListItemWidget false (div [] [ text s, div [] [text $ show $ countShownCards indexFilt]]) [] indexFilt
