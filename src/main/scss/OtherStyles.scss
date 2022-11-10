@@ -14,6 +14,13 @@ div.wrapper {
 	display: block;
 }
 
+div.field {
+	border: 1px solid lightgray; 
+	& > p {
+		margin: 3px;
+	}
+}
+
 p.notice {
 	width: 100%;
 	z-index: 100;
@@ -78,6 +85,12 @@ div.hidden {
 		background-color: $core-alternate-color;
 		color: $main-text-color;
 		z-index: 11;
+		width: 75%;
+	}
+
+	& > div.forUser > div > div.disableOverlay {
+		left: 0;
+		width: 75%;
 	}
 
 	& > div:first-child:not(.forUser) {

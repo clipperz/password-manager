@@ -2,7 +2,7 @@ module Views.CardViews where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, h3, li', p, text, ul)
+import Concur.React.DOM (div, h3, li', p, p', text, ul)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind)
@@ -60,7 +60,7 @@ cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) = div [Props
 ]
 
 cardField :: forall a. CardField -> Widget HTML a
-cardField (CardField {name, value, locked}) = div [] [
-  text name
+cardField (CardField {name, value, locked}) = div [Props.className "field"] [
+  p' [text name]
 , p ((if locked then [Props.className "PASSWORD"] else []) <> [(\_ -> copyToClipboard value) <$> Props.onClick]) [text value]
 ] --TODO add class based on content for urls and emails
