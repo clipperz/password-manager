@@ -53,7 +53,10 @@ instance showCardView :: Show CardView where
 data InternalAction = CardViewAction CardViewAction | ChangeFilter ComplexIndexFilter
 
 cardsManagerView :: Boolean -> Index -> ComplexIndexFilter -> CardViewState -> Maybe AppError -> Widget HTML (Tuple ComplexIndexFilter CardViewAction)
-cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: _, cardViewState } error = do 
+cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: cv, cardViewState } error = do 
+  let cEntry = case cv of 
+                CardFromReference ce -> Just ce
+                _ -> Nothing
   res <- div [Props._id "cardsManager"] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
     ChangeFilter <$> div [Props._id "filterView"] [
       prepareFilter <$> ol [][
@@ -72,7 +75,7 @@ cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ c
       div [Props._id "filterHeader"] [ getFilterHeader indexFilter ]
     , div [Props._id "mainView" ] [
         div [Props._id "indexView"] [
-          (CardViewAction <<< ShowCard) <$> indexView i cif
+          (CardViewAction <<< ShowCard) <$> indexView i cEntry cif -- TODO:
         , simpleButton "Add card" false (CardViewAction ShowAddCard) 
         ]
       , case cvs of

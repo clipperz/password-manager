@@ -12,7 +12,7 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HeytingAlgebra ((&&), (||), not)
 import Data.List (sort, nub, filter, List(..), takeEnd, head)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Ord ((>=))
 import Data.Show (class Show, show)
 import Data.Semigroup ((<>))
@@ -39,13 +39,16 @@ type ComplexIndexFilter = { archived :: Boolean, indexFilter :: IndexFilter }
 
 type ContextualFilterInfo = { allLastUses :: List Number }
 
-indexView :: Index -> ComplexIndexFilter -> Widget HTML CardEntry
-indexView (Index cards) complexIndexFilter = do
+indexView :: Index -> Maybe CardEntry -> ComplexIndexFilter -> Widget HTML CardEntry
+indexView (Index cards) mCe complexIndexFilter = do
   let info = { allLastUses: (\(CardEntry r) -> r.lastUsed) <$> cards } 
   let sortedCards = fromFoldable $ filter (complexToFilterFunc info complexIndexFilter) $ sort cards :: Array CardEntry
   ol []
     ((\entry@(CardEntry { title, archived }) -> 
-      clickableListItemWidget false (text title) (if archived then ["archived"] else []) entry
+      case mCe of
+        Nothing -> clickableListItemWidget false (text title) (if archived then ["archived"] else []) entry
+        Just ce -> let selectedClass = if ce == entry then ["selected"] else [] 
+                    in clickableListItemWidget false (text title) (selectedClass <> (if archived then ["archived"] else [])) entry
      ) <$> sortedCards)
 
 complexToFilterFunc :: ContextualFilterInfo -> ComplexIndexFilter -> (CardEntry -> Boolean)

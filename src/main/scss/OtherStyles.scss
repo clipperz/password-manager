@@ -73,6 +73,10 @@ div.hidden {
 	@include hide-element;
 }
 
+.selected {
+	border-left: solid 3px $accent-color;
+}
+
 .userSidebarOverlay {
 	position: absolute;
 	left: 0;
