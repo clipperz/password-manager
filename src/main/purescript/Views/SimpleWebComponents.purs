@@ -12,6 +12,7 @@ module Views.SimpleWebComponents
   , loadingDiv
   , passwordStrengthShow
   , simpleButton
+  , simpleButtonWithClass
   , simpleCheckboxSignal
   , simpleCheckboxWidget
   , simpleFileInputWidget
@@ -154,6 +155,9 @@ simpleCheckboxWidget id lbl lblOnLeft v = do
 
 simpleButton :: forall a. String -> Boolean -> a -> Widget HTML a
 simpleButton label disable value = button [value <$ Props.onClick, Props.disabled disable] [text label]
+
+simpleButtonWithClass :: forall a. String -> String -> Boolean -> a -> Widget HTML a
+simpleButtonWithClass label classes disable value = button [value <$ Props.onClick, Props.disabled disable, Props.className classes] [text label]
 
 simpleTextAreaSignal :: String -> Widget HTML String -> String -> String -> Signal HTML String
 simpleTextAreaSignal id label placeholder content = loopW content (simpleTextAreaWidget id label placeholder)

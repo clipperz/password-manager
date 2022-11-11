@@ -43,7 +43,7 @@ p.notice {
 }
 
 #userSidebar {
-	width: 25%;
+	// width: 25%;
 	display: flex;
 	flex-direction: column;
 	background-color: $core-alternate-color;
@@ -75,6 +75,16 @@ div.hidden {
 
 .selected {
 	border-left: solid 3px $accent-color;
+}
+
+#userPage {
+	position: absolute;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: right;
+	
 }
 
 .userSidebarOverlay {

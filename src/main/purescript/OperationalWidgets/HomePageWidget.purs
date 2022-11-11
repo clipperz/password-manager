@@ -54,9 +54,7 @@ homePageWidget = do
     homePage isOffline index cardView = do
       result <- div [Props._id "homePage"] [
                   cardsManagerWidget isOffline index { cardView: cardView, cardViewState: Default }
-                , do
-                    simpleButton "Open user area" false unit
-                    UserAreaAction <$> (userAreaWidget isOffline)
+                , UserAreaAction <$> (userAreaWidget true isOffline)
                 ]
       interpretHomePageActions isOffline (Just cardView) result
 

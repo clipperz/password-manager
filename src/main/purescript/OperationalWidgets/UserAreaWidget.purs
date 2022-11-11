@@ -12,8 +12,10 @@ import Data.Either (Either(..))
 import Data.Eq (class Eq)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
+import Data.HeytingAlgebra (not)
 import Data.List (List(..))
 import Data.Maybe (Maybe(..))
+import Data.Semigroup ((<>))
 import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
 import DataModel.AppState (AppError)
@@ -32,16 +34,15 @@ import OperationalWidgets.PinWidget (setPinWidget)
 
 data UserAreaAction = Loaded (Either AppError Index) | Lock | Logout | DeleteAccount | NoAction Index | GetIndexError AppError
 
-data UserAreaListVoice = Close | Export | Import | Pin | Delete | Preferences | ChangePassword | VLock | VLogout | About
+data UserAreaListVoice = Export | Import | Pin | Delete | Preferences | ChangePassword | VLock | VLogout | About
 
 derive instance eqUserAreaListVoice :: Eq UserAreaListVoice
 
-data UserAreaInternalAction = MenuAction (Tuple (Array (SubmenuVoice UserAreaListVoice)) UserAreaListVoice) | UserAction UserAreaAction
+data UserAreaInternalAction = MenuAction (Tuple (Array (SubmenuVoice UserAreaListVoice)) UserAreaListVoice) | UserAction UserAreaAction | OpenClose
 
 defaultMenu :: Boolean -> Array (SubmenuVoice UserAreaListVoice)
 defaultMenu = \isOffline -> [
-  Tuple true (\b -> submenu b (text "") [simpleButton "Close user area" false Close])
-, Tuple false (\b -> submenu b (simpleButton "Account" false unit) [
+  Tuple false (\b -> submenu b (simpleButton "Account" false unit) [
     simpleButton "Preferences" isOffline Preferences
   , simpleButton "Passphrase" isOffline ChangePassword
   , simpleButton "Device PIN" false Pin
@@ -56,12 +57,12 @@ defaultMenu = \isOffline -> [
 , Tuple true (\b -> submenu b (text "") [simpleButton "Logout" false VLogout])
 ]
 
-userAreaWidget :: Boolean -> Widget HTML UserAreaAction
-userAreaWidget isOffline = do
-  newIndex <- ((Right (Index Nil)) <$ userAreaView (defaultMenu isOffline) (Index Nil) (div [NoAction (Index Nil) <$ Props.onClick] [])) <|> (liftAff $ runExceptT $ getIndex)
+userAreaWidget :: Boolean -> Boolean -> Widget HTML UserAreaAction
+userAreaWidget hidden isOffline = do
+  newIndex <- ((Right (Index Nil)) <$ userAreaView hidden (defaultMenu isOffline) (Index Nil) (div [NoAction (Index Nil) <$ Props.onClick] [])) <|> (liftAff $ runExceptT $ getIndex)
   case newIndex of
     Right index -> do
-      res <- userAreaView (defaultMenu isOffline) index (div [NoAction index <$ Props.onClick] [])
+      res <- userAreaView hidden (defaultMenu isOffline) index (div [NoAction index <$ Props.onClick] [])
       case res of
         Lock -> do
           (div [Lock <$ Props.onClick] []) <|> (Lock <$ (liftAff $ doLogout true))
@@ -73,16 +74,17 @@ userAreaWidget isOffline = do
   where 
     userAreaList arr = complexMenu (Just "userSidebar") Nothing arr
 
-    userAreaView' :: Widget HTML (Tuple (Array (SubmenuVoice UserAreaListVoice)) UserAreaListVoice) -> Widget HTML UserAreaAction -> Widget HTML UserAreaInternalAction
-    userAreaView' menu area = div [Props.className "userSidebarOverlay"] [ 
-      UserAction <$> area
-    , MenuAction <$> menu
-    ]  
+    userAreaView' :: Boolean -> Widget HTML (Tuple (Array (SubmenuVoice UserAreaListVoice)) UserAreaListVoice) -> Widget HTML UserAreaAction -> Widget HTML UserAreaInternalAction
+    userAreaView' hidden menu area = 
+      let hiddenClass = if hidden then " hidden" else ""
+      in div [Props.className ("userSidebarOverlay" <> hiddenClass)] [ 
+        UserAction <$> area
+      , MenuAction <$> menu
+      ]  
     
     userAreaInternalView :: Index -> UserAreaListVoice -> Widget HTML UserAreaAction
     userAreaInternalView ix choice = 
       case choice of
-        Close -> pure $ NoAction ix
         Export -> div [Props.className "forUser"] [(NoAction ix) <$ exportWidget ix]
         Import -> div [Props.className "forUser"] [Loaded <$> importWidget ix]
         Pin -> div [Props.className "forUser"] [setPinWidget Default]
@@ -93,9 +95,15 @@ userAreaWidget isOffline = do
         VLogout -> pure Logout
         About -> div [Props.className "forUser"] [text "This is Clipperz"]
 
-    userAreaView :: Array (SubmenuVoice UserAreaListVoice) -> Index -> Widget HTML UserAreaAction -> Widget HTML UserAreaAction
-    userAreaView arr ix area = do
-      res <- userAreaView' (userAreaList arr) area
+    userAreaView :: Boolean -> Array (SubmenuVoice UserAreaListVoice) -> Index -> Widget HTML UserAreaAction -> Widget HTML UserAreaAction
+    userAreaView hidden arr ix area = do
+      let userPageClassName = if hidden then "closed" else "open"
+      let openCloseLabel = (if hidden then "Open" else "Close") <> " user area"
+      res <- div [Props._id "userPage", Props.className userPageClassName] [
+        simpleButton openCloseLabel false OpenClose
+      , userAreaView' hidden (userAreaList arr) area
+      ]
       case res of
+        OpenClose -> userAreaView (not hidden) arr ix area
         UserAction ac -> pure $ ac
-        MenuAction (Tuple newMenus ac) -> userAreaView newMenus ix (userAreaInternalView ix ac)
+        MenuAction (Tuple newMenus ac) -> userAreaView false newMenus ix (userAreaInternalView ix ac)
