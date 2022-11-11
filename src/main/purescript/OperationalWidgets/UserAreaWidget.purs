@@ -100,7 +100,7 @@ userAreaWidget hidden isOffline = do
       let userPageClassName = if hidden then "closed" else "open"
       let openCloseLabel = (if hidden then "Open" else "Close") <> " user area"
       res <- div [Props._id "userPage", Props.className userPageClassName] [
-        simpleButton openCloseLabel false OpenClose
+        div [Props.className "userSidebarTop"] [simpleButton openCloseLabel false OpenClose]
       , userAreaView' hidden (userAreaList arr) area
       ]
       case res of

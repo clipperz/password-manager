@@ -43,7 +43,7 @@ p.notice {
 }
 
 #userSidebar {
-	// width: 25%;
+	width: 25%;
 	display: flex;
 	flex-direction: column;
 	background-color: $core-alternate-color;
@@ -77,21 +77,39 @@ div.hidden {
 	border-left: solid 3px $accent-color;
 }
 
-#userPage {
+#userPage.open {
 	position: absolute;
 	left: 0;
 	width: 100%;
 	height: 100%;
 	display: flex;
-	justify-content: right;
-	
+	// justify-content: right;	
+
+	& > div.userSidebarTop {
+		position: absolute;
+		right: 0;
+		top: 0;
+		width: 25%;
+		height: 7%;
+		z-index: 13;
+		background-color: $core-alternate-color;
+		padding: 2px;
+		display: flex;
+		justify-content: right;
+	}
+}
+
+#userPage.close {
+	position: absolute;
+	left: 0;
 }
 
 .userSidebarOverlay {
 	position: absolute;
 	left: 0;
+	top: 7%;
 	width: 100%;
-	height: 100%;
+	height: 95%;
 	display: flex;
 	justify-content: right;
 	
@@ -100,6 +118,7 @@ div.hidden {
 		color: $main-text-color;
 		z-index: 11;
 		width: 75%;
+		left: 0;
 	}
 
 	& > div.forUser > div > div.disableOverlay {
@@ -109,13 +128,14 @@ div.hidden {
 
 	& > div:first-child:not(.forUser) {
 		background-color: rgba(128, 128, 128, 0.658);
+		width: 100%;
 	}
 
 	& > div:first-child {
 		position: fixed;
-		width: 100%;
 		height: 100%;
 		top: 0;
+		z-index: 9;
 	}
 	
 }
