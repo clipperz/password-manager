@@ -103,10 +103,10 @@ cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ c
       key <- liftEffect $ Events.key ev
       log $ "Key pressed: " <> key
       case key of
-        "l" -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
+        "l" -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing -- using a variable to factorize this behaviour breaks everything
         "ArrowLeft" -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
         "ArrowRight" -> 
-          case sortedEntries of
+          case sortedFilteredEntries of
             Nil -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
             Cons ref _ -> cardsManagerView isOffline i cif { cardView: CardFromReference ref, cardViewState: Default } Nothing
         _  -> cardsManagerView isOffline i cif cvs Nothing
@@ -138,7 +138,7 @@ cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ c
       GeneralFilter t -> t
       _ -> ""
 
-    sortedEntries = List.sort entries
+    sortedFilteredEntries = List.sort $ filter (toFilterFunc lastUses indexFilter) shownEntries
 
     allSortedTags = sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) <$> entries
 
