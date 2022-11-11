@@ -24,7 +24,7 @@ import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Logout (doLogout)
 import Functions.Communication.Users (getIndex)
-import Views.SimpleWebComponents (simpleButton, submenu, complexMenu, SubmenuVoice)
+import Views.SimpleWebComponents (simpleButton, simpleButtonWithId, submenu, complexMenu, SubmenuVoice)
 import OperationalWidgets.ImportWidget (importWidget)
 import OperationalWidgets.ExportWidget (exportWidget)
 import OperationalWidgets.ChangePasswordWidget (changePasswordWidget, emptyChangePasswordDataForm)
@@ -43,18 +43,18 @@ data UserAreaInternalAction = MenuAction (Tuple (Array (SubmenuVoice UserAreaLis
 defaultMenu :: Boolean -> Array (SubmenuVoice UserAreaListVoice)
 defaultMenu = \isOffline -> [
   Tuple false (\b -> submenu b (simpleButton "Account" false unit) [
-    simpleButton "Preferences" isOffline Preferences
-  , simpleButton "Passphrase" isOffline ChangePassword
-  , simpleButton "Device PIN" false Pin
-  , simpleButton "Delete account" isOffline Delete
+    simpleButtonWithId "preferencesButton" "Preferences" isOffline Preferences
+  , simpleButtonWithId "passphraseButton" "Passphrase" isOffline ChangePassword
+  , simpleButtonWithId "deviceButton" "Device PIN" false Pin
+  , simpleButtonWithId "deleteButton" "Delete account" isOffline Delete
   ])
 , Tuple false (\b -> submenu b (simpleButton "Data" false unit) [
-    simpleButton "Export" false Export
-  , simpleButton "Import" isOffline Import
+    simpleButtonWithId "exportButton" "Export" false Export
+  , simpleButtonWithId "importButton" "Import" isOffline Import
   ])
-, Tuple true (\b -> submenu b (text "") [simpleButton "About" false About])
-, Tuple true (\b -> submenu b (text "") [simpleButton "Lock" false VLock])
-, Tuple true (\b -> submenu b (text "") [simpleButton "Logout" false VLogout])
+, Tuple true (\b -> submenu b (text "") [simpleButtonWithId "aboutButton" "About" false About])
+, Tuple true (\b -> submenu b (text "") [simpleButtonWithId "lockButton" "Lock" false VLock])
+, Tuple true (\b -> submenu b (text "") [simpleButtonWithId "logoutButton" "Logout" false VLogout])
 ]
 
 userAreaWidget :: Boolean -> Boolean -> Widget HTML UserAreaAction

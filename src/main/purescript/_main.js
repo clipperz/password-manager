@@ -18,6 +18,7 @@ function main () {
         However, you will need to change the type to accept variables, by default it is an Effect.
         You will probably want to make it a function from String -> Effect ()
     */
+    var lastFourKeys = Array(4);
     window.document.onkeydown = ev => {
         console.log(ev)
         if (ev.target.nodeName === "BODY") {
@@ -30,6 +31,16 @@ function main () {
                 document.getElementById("generalFilter").blur()
                 ev.preventDefault()
             } else if (ev.type === "keydown") {
+                if (lastFourKeys.push(ev.key) > 4) {
+                    lastFourKeys.shift()
+                }
+                if (lastFourKeys.reduce((a, b) => a + b) === "lock") {
+                    document.getElementById("lockButton").dispatchEvent(new MouseEvent("click", {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window,
+                      }))
+                }
                 document.getElementById("cardsManager").dispatchEvent(new KeyboardEvent("keydown", ev))
             }
         }

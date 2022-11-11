@@ -19,6 +19,7 @@ import Effect.Class (liftEffect)
 import Functions.State (computeInitialState)
 import Functions.JSState (modifyAppState)
 import OperationalWidgets.HomePageWidget (HomePageExitStatus(..), homePageWidget)
+import Views.LoginFormView (emptyForm)
 import Views.LandingPageView (landingPageView, LandingPageView(..))
 
 app :: Widget HTML Unit
@@ -36,11 +37,11 @@ app = app' Nothing
                                     _ -> []
           res <- div [Props.className "wrapper"] $ offlineCopyBanner <> [
             do
-            -- let form = fromMaybe emptyForm ((\u -> { username: u, password: "" }) <$> maybeUsername )
-            -- landingPageView (LoginView Default form)
+            let form = fromMaybe emptyForm ((\u -> { username: u, password: "" }) <$> maybeUsername )
+            landingPageView (LoginView Default form)
             -- !!! AUTOLOGIN FOR DEVELOPING !!! --
-            let form = fromMaybe {username: "joe", password: "clipperz"} ((\u -> { username: u, password: "" }) <$> maybeUsername )
-            landingPageView (LoginView Loading form)
+            -- let form = fromMaybe {username: "joe", password: "clipperz"} ((\u -> { username: u, password: "" }) <$> maybeUsername )
+            -- landingPageView (LoginView Loading form)
             -- -------------------------------- --
             homePageWidget
           ]
