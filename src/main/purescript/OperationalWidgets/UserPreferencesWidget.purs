@@ -1,9 +1,9 @@
 module OperationalWidgets.UserPreferencesWidget where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (demand, fireOnce, loopW)
+import Concur.Core.FRP (demand, fireOnce, hold, loopW)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text)
+import Concur.React.DOM (div, text, h3, h1)
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
@@ -17,7 +17,7 @@ import Data.PrettyShow (prettyShow)
 import Data.Show (show)
 import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError)
-import DataModel.Password (PasswordGeneratorSettings)
+import DataModel.User (UserPreferences)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -26,7 +26,7 @@ import Functions.JSState (getAppState)
 import Views.PasswordGenerator (settingsWidget)
 import Views.SimpleWebComponents (simpleButton, loadingDiv)
 
-data PreferencesWidgetAction = NewSettings PasswordGeneratorSettings | SettingsChanged (Either AppError Unit)
+data PreferencesWidgetAction = NewSettings UserPreferences | SettingsChanged (Either AppError Unit)
 
 userPreferencesWidget :: WidgetState -> Widget HTML Unit
 userPreferencesWidget wstate = do
@@ -39,19 +39,24 @@ userPreferencesWidget wstate = do
       pure unit
 
   where
-    go state up@{ passwordGeneratorSettings: settings } = do
+    go state up = do
       res <- case state of
-        Default -> NewSettings <$> (div [] [userPreferencesView settings])
-        Loading -> (NewSettings <$> (div [] [loadingDiv, userPreferencesView settings])) <|> (SettingsChanged <$> (liftAff $ runExceptT $ updateUserPreferences up))
-        Error err -> NewSettings <$> (div [] [userPreferencesView settings, errorDiv err])
+        Default -> NewSettings <$> (div [] [userPreferencesView up])
+        Loading -> (NewSettings <$> (div [] [loadingDiv, userPreferencesView up])) <|> (SettingsChanged <$> (liftAff $ runExceptT $ updateUserPreferences up))
+        Error err -> NewSettings <$> (div [] [userPreferencesView up, errorDiv err])
       case res of
-        NewSettings s -> go Loading (up { passwordGeneratorSettings = s })
+        NewSettings up' -> go Loading up'
         SettingsChanged (Right _) -> userPreferencesWidget Default
         SettingsChanged (Left err) -> go (Error (show err)) up
 
     errorDiv err = div [] [text err]
 
-    userPreferencesView :: PasswordGeneratorSettings -> Widget HTML PasswordGeneratorSettings
-    userPreferencesView up = demand $ do
-      values <- loopW up settingsWidget
-      fireOnce (simpleButton "Change preferences" (values == up) values)
+    userPreferencesView :: UserPreferences -> Widget HTML UserPreferences
+    userPreferencesView up@{ passwordGeneratorSettings } = div [] [
+      demand $ do
+        _ <- hold unit $ void $ h1 [] [text "Preferences"]
+        _ <- hold unit $ void $ h3 [] [text "Password generator"]
+        pswdSettings <- loopW passwordGeneratorSettings settingsWidget
+        let newUP = { passwordGeneratorSettings: pswdSettings }
+        fireOnce (simpleButton "Change preferences" (pswdSettings == passwordGeneratorSettings) newUP)
+    ]
