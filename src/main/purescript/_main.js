@@ -1,3 +1,5 @@
+const { Even } = require("../../../target/output.purescript/Data.Int")
+const { delay } = require("../../../target/output.purescript/Effect.Aff")
 const Main = require ("../../../target/output.purescript/Main")
 
 function main () {
@@ -17,10 +19,17 @@ function main () {
         You will probably want to make it a function from String -> Effect ()
     */
     window.document.onkeydown = ev => {
-        console.log(ev.key)
-        if (ev.key === "/") {
-            document.getElementById("generalFilter").focus()
-            ev.preventDefault()
+        console.log(ev)
+        if (ev.target.nodeName === "BODY") {
+            if (ev.key === "/") {
+                document.getElementById("generalFilter").focus()
+                ev.preventDefault()
+            } else if (ev.key === "*") {
+                document.getElementById("generalFilter").value = ""
+                document.getElementById("generalFilter").focus()
+                document.getElementById("generalFilter").blur()
+                ev.preventDefault()
+            }
         }
     }
 
