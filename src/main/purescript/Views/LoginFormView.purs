@@ -1,5 +1,6 @@
 module Views.LoginFormView where
 
+import Control.Alternative ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, (>>=), discard)
 import Control.Semigroupoid ((<<<))
@@ -12,17 +13,18 @@ import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (Either(..))
 import Data.Eq ((/=))
 import Data.Function (($))
-import Data.Functor ((<$>), (<$))
+import Data.Functor ((<$>), (<$), void)
 import Data.HeytingAlgebra ((&&), not)
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Semiring ((+))
 import Data.Show (show)
-import DataModel.AppState (AppError)
+import DataModel.AppState (AppError(..))
 import DataModel.Credentials (Credentials)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
 import Functions.Pin (decryptPassphrase, makeKey, isPinValid)
 import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleNumberInputWidget)
 import Web.HTML (window)
@@ -64,18 +66,19 @@ loginFormView state loginFormData = do
     formPin :: String -> String -> WidgetState -> Storage -> Widget HTML Credentials
     formPin user encryptedPassphrase st storage = do
       maybePin <- case st of
-        Default   -> div [] [pinView]
-        Loading   -> div [] [pinView]
-        Error err -> div [] [errorDiv err, pinView]
+        Default   -> div [] [pinView true ""]
+        Loading   -> div [] [pinView false ""]
+        Error err -> div [] [errorDiv err, pinView true ""]
       case maybePin of
         NormalLogin -> formNoPassphrase state (emptyForm { username = user })
         Pin pin -> do
-          ei :: Either AppError Credentials <- liftAff $ runExceptT $ decryptPassphrase pin user encryptedPassphrase
+          ei :: Either AppError Credentials <- (Left (CannotInitState "ciao") <$ div [] [pinView false (show pin)]) <|> (liftAff $ runExceptT $ decryptPassphrase pin user encryptedPassphrase)
           case ei of
             Right f -> do
-              liftEffect $ setItem (makeKey "failures") (show 0) storage
+              (void $ div [] [pinView false (show pin)]) <|> (liftEffect $ setItem (makeKey "failures") (show 0) storage)
               pure f
-            Left _ -> do
+            Left e -> do
+              log $ show e
               failures <- liftEffect $ getItem (makeKey "failures") storage
               let count = (((fromMaybe 0) <<< fromString <<< (fromMaybe "")) failures) + 1
               liftEffect $ setItem (makeKey "failures") (show count) storage
@@ -119,12 +122,23 @@ loginFormView state loginFormData = do
         pure signalResult
     ]
 
-    pinView :: Widget HTML PinViewResult
-    pinView = div [Props.className "form"] [
+    pinView :: Boolean -> String -> Widget HTML PinViewResult
+    pinView active pl = div [Props.className "form"] [
         Pin <$> do
           signalResult <- demand $ do
-            pin <- loopW "" (simpleNumberInputWidget "pinField" (text "Login") "PIN")
-            pure $ (fromString pin) >>= (\p -> if isPinValid p then Just p else Nothing) 
+            pin <- loopW (if active then pl else "00000") (\v -> div [] [ -- TODO: don't really understand why changing the placeholder here works
+              label [Props.htmlFor "pinField"] [text "Login"]
+            , (Props.unsafeTargetValue) <$> input [
+                Props._type "password"
+              , Props._id "pinField"
+              , Props.placeholder "PIN"
+              , Props.value v
+              , Props.disabled false
+              , Props.onChange
+              , Props.pattern "[0-9]{5}"
+              ]
+            ])
+            pure $ (fromString pin) >>= (\p -> if (isPinValid p) && active then Just p else Nothing) 
           pure signalResult
       , NormalLogin <$ a [Props.onClick] [text "Use credentials to login"]
       ] 
