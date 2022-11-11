@@ -33,6 +33,25 @@ p.notice {
 	color: $main-text-color;
 }
 
+#importPage {
+	height: 100%;
+}
+
+div.scrollable {
+	overflow-y: auto;
+	height: 100%;
+}
+
+div.fixedFoot {
+	background-color: $core-alternate-color;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	height: 10%;
+	position: absolute;
+	bottom: 0;
+}
+
 #app {
 	width: 100%;
 }
