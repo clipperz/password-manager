@@ -33,6 +33,10 @@ p.notice {
 	color: $main-text-color;
 }
 
+p.important {
+	font-weight: bold;
+}
+
 #importPage {
 	height: 100%;
 }
