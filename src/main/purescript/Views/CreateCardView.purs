@@ -9,12 +9,14 @@ import Control.Alt((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, (=<<), discard)
 import Control.Semigroupoid ((<<<))
-import Data.Array (snoc, filter, singleton, sort)
+import Data.Array (snoc, filter, singleton, sort, length, range, zipWith)
 import Data.Either (fromRight)
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.Maybe (Maybe(..), isJust, maybe, fromMaybe)
+import Data.Ring ((-))
+import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
@@ -46,13 +48,14 @@ createCardView card allTags state = do
     Nothing -> pure Nothing
 
   where 
-    cardFieldSignal :: PasswordGeneratorSettings -> CardField -> Signal HTML (Maybe CardField)
-    cardFieldSignal settings field = div_ [Props.className "cardField"] do
+    cardFieldSignal :: PasswordGeneratorSettings -> {index :: Int, field :: CardField} -> Signal HTML (Maybe CardField)
+    cardFieldSignal settings {index, field} = div_ [Props.className "cardField"] do
+      let strIndex = show index
       removeField <- fireOnce $ simpleButton "x" false unit
       field' <- loopS field $ \(CardField { name, value, locked }) -> do
         { name', value' } <- div_ [Props.className "inputs"] do
-          name' :: String <- loopW name (simpleTextInputWidget "name" (text "Name") "Field name")
-          value' :: String <- loopW value (simpleTextInputWidget "value" (text "Value") "Field value")
+          name' :: String <- loopW name (simpleTextInputWidget ("name" <> strIndex) (text "Name") "Field name")
+          value' :: String <- loopW value (simpleTextInputWidget ("value" <> strIndex) (text "Value") "Field value")
           pure { name', value' }
         { generatePassword, locked' } <- div_ [] do
           generatePassword <- case locked of
@@ -74,7 +77,8 @@ createCardView card allTags state = do
 
     fieldsSignal :: PasswordGeneratorSettings -> Array CardField -> Signal HTML (Array CardField)
     fieldsSignal settings fields = do
-      fields' :: Array CardField <- (\fs -> (maybe [] singleton) =<< filter isJust fs) <$> (sequence $ (cardFieldSignal settings) <$> fields)
+      let indexedFields = zipWith (\i -> \f -> { index: i, field: f}) (range 0 ((length fields - 1))) fields
+      fields' :: Array CardField <- (\fs -> (maybe [] singleton) =<< filter isJust fs) <$> (sequence $ (cardFieldSignal settings) <$> indexedFields)
       addField <- fireOnce $ simpleButton "Add field" false unit
       case addField of
         Nothing -> pure fields'
