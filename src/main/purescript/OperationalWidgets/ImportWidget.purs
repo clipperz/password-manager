@@ -11,7 +11,7 @@ import Control.Bind (bind, discard, (>>=))
 import Control.Monad.Except.Trans (runExceptT, ExceptT(..), except)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (filter, length)
-import Data.Either (Either(..), isRight)
+import Data.Either (Either(..), isLeft)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HeytingAlgebra (not)
@@ -52,12 +52,12 @@ importWidget index@(Index entries) = div [Props._id "importPage"] [h1 [] [text "
     importPage error (UploadContent pl) = (ChooseCards <$> (div [] [
       text (fromMaybe "" error)
     , p [] [text "Import data from another Clipperz account using a JSON/HTML export file created by Clipperz."]
-    , form [] [
+    , div [] [
         simpleFileInputWidget "import" (text "Import")
       , p [] [text "Alternatively you may type or paste any properly formatted JSON data."]
       , demand $ do
                   textContent <- simpleTextAreaSignal "importText" (text "Import") "Type or copy your data here" pl
-                  fireOnce (simpleButton "Import" (isRight (jsonParser textContent)) textContent)
+                  fireOnce (simpleButton "Import" (isLeft (jsonParser textContent)) textContent)
       ]
     ])) >>= (importPage Nothing)
     importPage _ (ChooseCards content) = do
