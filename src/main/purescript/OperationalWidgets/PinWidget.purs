@@ -31,11 +31,10 @@ import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Effect.Fortuna (randomBytes)
 import Functions.ArrayBuffer (concatArrayBuffers)
 import Functions.EncodeDecode (encryptJson)
 import Functions.JSState (getAppState)
-import Functions.Pin (generateKeyFromPin, makeKey, isPinValid)
+import Functions.Pin (deleteCredentials, saveCredentials, generateKeyFromPin, makeKey, isPinValid)
 import Functions.State (getHashFunctionFromAppState)
 import Views.SimpleWebComponents (simpleButton, simpleInputWidget)
 import Web.HTML (window)
@@ -54,8 +53,8 @@ setPinWidget ws = do
     Loading -> pinPage Nothing  pinForm
     Error e -> pinPage (Just e) pinForm
   eitherRes <- case pinAction of
-    Reset -> (Right <$> (void $ pinPage Nothing (form true))) <|> (runExceptT (deleteCredentials storage))
-    SetPin pin -> (Right <$> (void $ pinPage Nothing (form true))) <|> (runExceptT (saveCredentials pin storage)) 
+    Reset -> (Right <$> (void $ pinPage Nothing (form true))) <|> (liftEffect $ runExceptT (deleteCredentials storage))
+    SetPin pin -> (Right <$> (void $ pinPage Nothing (form true))) <|> (liftAff $ runExceptT (saveCredentials pin storage)) 
   case eitherRes of
     Left err -> setPinWidget (Error (show err))
     _        -> setPinWidget Default
@@ -78,30 +77,6 @@ setPinWidget ws = do
       else case fromString pin of
         Just p -> simpleButton "Save" (not (isPinValid p)) (SetPin p)
         Nothing -> simpleButton "Save" true (SetPin 0)
-
-    saveCredentials :: Int -> Storage -> ExceptT AppError (Widget HTML) Unit
-    saveCredentials pin storage = do
-      state@{ username, password } <- ExceptT $ liftEffect getAppState
-      u <- except $ note (InvalidStateError (MissingValue "Missing username from state")) username
-      p <- except $ note (InvalidStateError (MissingValue "Missing password from state")) password
-      let hashf = getHashFunctionFromAppState state
-      key <- ExceptT $ Right <$> (liftAff $ generateKeyFromPin hashf pin)
-
-      -- 256 bits
-      let paddingBytesLength = (256 - 16 * length (show (hex p))) / 8
-      paddingBytes <- ExceptT $ (Right <<< asArrayBuffer) <$> (liftAff $ randomBytes paddingBytesLength)
-      paddedPassphrase <- ExceptT $ (Right <<< fromArrayBuffer) <$> (liftEffect $ concatArrayBuffers ((toArrayBuffer $ hex p) : paddingBytes : Nil))
-      let obj = { padding: paddingBytesLength, passphrase: paddedPassphrase }
-
-      encryptedCredentials <- ExceptT $ Right <$> (liftAff $ encryptJson key obj)
-      liftEffect $ setItem (makeKey "user") u storage -- save username  
-      liftEffect $ setItem (makeKey "passphrase") (show $ fromArrayBuffer encryptedCredentials) storage -- save password
-
-    deleteCredentials :: Storage -> ExceptT AppError (Widget HTML) Unit
-    deleteCredentials storage = liftEffect $ do
-      removeItem (makeKey "user") storage
-      removeItem (makeKey "passphrase") storage
-      removeItem (makeKey "failures") storage
 
 pinPage :: forall a. Maybe String -> Widget HTML a -> Widget HTML a
 pinPage error internalForm = div [Props._id "pinPage"] [

@@ -6,8 +6,9 @@ import Concur.React (HTML)
 import Concur.React.DOM (text, div, h1, div')
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
-import Control.Monad.Except.Trans (runExceptT, except, ExceptT(..))
+import Control.Bind (bind, discard, (>>=))
+import Control.Monad.Except.Trans (runExceptT, except, mapExceptT, ExceptT(..))
+import Control.Semigroupoid ((<<<))
 import Data.Either (either, Either(..))
 import Data.Eq ((==))
 import Data.Function (($))
@@ -24,10 +25,13 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.JSState (getAppState)
+import Functions.Pin (deleteCredentials)
 import Functions.User (deleteUser)
 import Record (merge)
 import Views.LoginFormView (emptyForm)
 import Views.SimpleWebComponents (loadingDiv, simpleButton, confirmationWidget, simpleUserSignal, simpleCheckboxSignal, simplePasswordInputWidget)
+import Web.HTML (window)
+import Web.HTML.Window (localStorage)
 
 data DeleteUserWidgetAction = PleaseDelete | DoNothing | FailedDelete AppError | Done
 
@@ -36,7 +40,10 @@ deleteUserWidget index state = do
   res <- case state of
     Default -> deleteForm emptyForm
     Loading -> do
-      let deleteUserOp = liftAff $ (either FailedDelete (\_ -> Done) <$> (runExceptT $ deleteUser index))
+      let deleteUserAndPin = do
+                              deleteUser index
+                              (ExceptT $ Right <$> (liftEffect (window >>= localStorage))) >>= (\v -> mapExceptT liftEffect (deleteCredentials v)) 
+      let deleteUserOp = liftAff $ (either FailedDelete (\_ -> Done) <$> (runExceptT $ deleteUserAndPin))
       div' [loadingDiv, simpleButton "Delete account" true DoNothing] <|> deleteUserOp
     Error err -> div' [text err, simpleButton "Delete account" false PleaseDelete]
   case res of
