@@ -3,7 +3,7 @@ module OperationalWidgets.ChangePasswordWidget where
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, fireOnce, loopS, loopW)
 import Concur.React (HTML)
-import Concur.React.DOM (text, div, div', fieldset)
+import Concur.React.DOM (text, div, div', h1, fieldset)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
@@ -67,7 +67,8 @@ changePasswordWidget state changeForm = go state changeForm
 
     form :: Boolean -> Widget HTML ChangePasswordDataForm
     form disabled = fieldset [(Props.disabled disabled)] [
-      do
+      h1 [] [text "Change passphrase"]
+    , do
         signalResult <- demand $ do
           formValues :: ChangePasswordDataForm <- loopS changeForm $ \{username, oldPassword, password, verifyPassword, notRecoverable} -> do
             username' :: String <- simpleUserSignal username
