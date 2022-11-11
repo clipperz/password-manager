@@ -105,7 +105,16 @@ cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ c
       case key of
         "l" -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing -- using a variable to factorize this behaviour breaks everything
         "ArrowLeft" -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
+        "Escape" -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
+        "h" -> 
+          case sortedFilteredEntries of
+            Nil -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
+            Cons ref _ -> cardsManagerView isOffline i cif { cardView: CardFromReference ref, cardViewState: Default } Nothing
         "ArrowRight" -> 
+          case sortedFilteredEntries of
+            Nil -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
+            Cons ref _ -> cardsManagerView isOffline i cif { cardView: CardFromReference ref, cardViewState: Default } Nothing
+        "Enter" -> 
           case sortedFilteredEntries of
             Nil -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
             Cons ref _ -> cardsManagerView isOffline i cif { cardView: CardFromReference ref, cardViewState: Default } Nothing
