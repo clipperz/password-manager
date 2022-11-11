@@ -6,7 +6,7 @@ import Concur.React.DOM (div, text, ol, p')
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Semigroupoid ((<<<))
-import Control.Bind (bind)
+import Control.Bind (bind, discard)
 import Data.Array (nub, sort)
 import Data.Eq ((==))
 import Data.Function (($))
@@ -24,6 +24,9 @@ import DataModel.Card (Card)
 import DataModel.Index (Index(..), CardEntry(..))
 import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
+import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
+import React.SyntheticEvent as Events
 import Views.CardViews (cardView)
 import Views.CreateCardView (createCardView)
 import Views.IndexView (indexView, ComplexIndexFilter, IndexFilter(..), toFilterFunc, complexToFilterFunc)
@@ -46,14 +49,14 @@ instance showCardView :: Show CardView where
   show (JustCard c) = "JustCard " <> show c
   show (CardForm c) = "CardForm " <> show c
 
-data InternalAction = CardViewAction CardViewAction | ChangeFilter ComplexIndexFilter
+data InternalAction = CardViewAction CardViewAction | ChangeFilter ComplexIndexFilter | KeyBoardAction Events.SyntheticKeyboardEvent 
 
 cardsManagerView :: Boolean -> Index -> ComplexIndexFilter -> CardViewState -> Maybe AppError -> Widget HTML (Tuple ComplexIndexFilter CardViewAction)
 cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: cv, cardViewState } error = do 
   let cEntry = case cv of 
                 CardFromReference ce -> Just ce
                 _ -> Nothing
-  res <- div [Props._id "cardsManager"] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
+  res <- div [Props._id "cardsManager", KeyBoardAction <$> Props.onKeyDown] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
     ChangeFilter <$> div [Props._id "filterView"] [
       prepareFilter <$> ol [][
         getFilterListElement NoFilter "All"
@@ -95,6 +98,12 @@ cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ c
           else 
             cardsManagerView isOffline i newFilter { cardView: NoCard, cardViewState } Nothing
         _ -> cardsManagerView isOffline i newFilter cvs Nothing
+    KeyBoardAction ev -> do
+      key <- liftEffect $ Events.key ev
+      log $ "Key pressed: " <> key
+      case key of
+        "l" -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
+        _  -> cardsManagerView isOffline i cif cvs Nothing
 
   where
     removeLastCardFilter cf@{ archived: archived', indexFilter: indexFilter' } mRef =

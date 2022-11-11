@@ -29,6 +29,8 @@ function main () {
                 document.getElementById("generalFilter").focus()
                 document.getElementById("generalFilter").blur()
                 ev.preventDefault()
+            } else if (ev.type === "keydown") {
+                document.getElementById("cardsManager").dispatchEvent(new KeyboardEvent("keydown", ev))
             }
         }
     }
