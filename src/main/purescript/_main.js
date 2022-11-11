@@ -18,9 +18,8 @@ function main () {
         However, you will need to change the type to accept variables, by default it is an Effect.
         You will probably want to make it a function from String -> Effect ()
     */
-    var lastFourKeys = Array(4);
+    const lastFourKeys = Array(4);
     window.document.onkeydown = ev => {
-        console.log(ev)
         if (ev.target.nodeName === "BODY") {
             if (ev.key === "/") {
                 document.getElementById("generalFilter").focus()

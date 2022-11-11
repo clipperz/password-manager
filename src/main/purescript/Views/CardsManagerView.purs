@@ -101,7 +101,7 @@ cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ c
         _ -> cardsManagerView isOffline i newFilter cvs Nothing
     KeyBoardAction ev -> do
       key <- liftEffect $ Events.key ev
-      log $ "Key pressed: " <> key
+      -- log $ "Key pressed: " <> key
       case key of
         "l" -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing -- using a variable to factorize this behaviour breaks everything
         "ArrowLeft" -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
