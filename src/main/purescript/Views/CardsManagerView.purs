@@ -12,7 +12,8 @@ import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.HeytingAlgebra ((||), not)
-import Data.List (fold, filter, length)
+import Data.List as List
+import Data.List (fold, filter, length, List(..))
 import Data.Maybe (Maybe(..))
 import Data.PrettyShow (prettyShow)
 import Data.Semigroup ((<>))
@@ -103,6 +104,11 @@ cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ c
       log $ "Key pressed: " <> key
       case key of
         "l" -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
+        "ArrowLeft" -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
+        "ArrowRight" -> 
+          case sortedEntries of
+            Nil -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
+            Cons ref _ -> cardsManagerView isOffline i cif { cardView: CardFromReference ref, cardViewState: Default } Nothing
         _  -> cardsManagerView isOffline i cif cvs Nothing
 
   where
@@ -131,6 +137,8 @@ cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ c
     currentGeneralFilter = case indexFilter of
       GeneralFilter t -> t
       _ -> ""
+
+    sortedEntries = List.sort entries
 
     allSortedTags = sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) <$> entries
 
