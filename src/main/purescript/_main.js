@@ -45,8 +45,19 @@ function main () {
         }
     }
 
-    Main.main();
+    let hash = window.location.hash;
+
+    if (hash === "#registration") {
+        console.log("registration");
+        Main.registration();
+    } else if (hash === "#share…") {
+        console.log("share");
+        Main.share("11111111111111");
+    } else {
+        console.log("main");
+        Main.main();
+    }
 }
 
-console.log('Starting app');
+console.log('Starting app - ' + window.location.hash);
 main();

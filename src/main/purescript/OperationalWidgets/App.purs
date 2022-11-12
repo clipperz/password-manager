@@ -47,8 +47,8 @@ app = do
 commitHash :: String
 commitHash = "epsilon"
 
-app :: forall a. Widget HTML a
-app = app' Loading
+app :: forall a. Page -> Widget HTML a
+app nextPage = app' (Loading (Just nextPage))
 
 -- ==================================================
 
@@ -57,24 +57,34 @@ type PageStatus =
   , login   :: LoginDataForm
   , signin  :: SignupDataForm
   }
-data Page = Loading | Login | Signup | Main
+data Page = Loading (Maybe Page) | Login | Signup | Share String | Main
 
 app' :: forall a. Page -> Widget HTML a
 app' page = do
   newPage:: Page <- exitBooting page <|>
     div [Props.className "mainDiv"] [
-      headerPage page Loading [],
-      headerPage page Login   [
-        text "login", Signup <$ button [Props.onClick] [text "=> signup"]
+      headerPage page (Loading Nothing) [],
+      headerPage page Login       [
+        text "login",
+        -- ??? -> Credentials
+        Signup <$ button [Props.onClick] [text "=> signup"]
       ],
-      headerPage page Signup  [
-        text "signup", Login <$ button [Props.onClick] [text "<= login"]
+      headerPage page Signup      [
+        text "signup",
+        Login <$ button [Props.onClick] [text "<= login"]
+      ],
+      div [Props.classList (Just <$> ["page", "main", location Share page])] [
+        div [Props.className "content"] [ text "share" ]
       ],
       div [Props.classList (Just <$> ["page", "main", location Main page])] [
         div [Props.className "content"] [ text "main" ]
       ]
     ]
     <|>
+    do
+      _ <- overlay { status: Hidden, message: "loading" }
+      loginState <- doLogin
+      _ <- overlay { status: Failed, message: "loading" }
     overlay { status: Hidden, message: "loading" }
   log $ "changing page " <> pageClassName newPage
   app' newPage
@@ -88,14 +98,15 @@ instance showPagePosition :: Show PagePosition where
   show Right  = "right"
 
 pageClassName :: Page -> String
-pageClassName Loading = "loading"
-pageClassName Login   = "login"
-pageClassName Signup  = "signup"
-pageClassName Main    = "main"
+pageClassName (Loading _) = "loading"
+pageClassName Login       = "login"
+pageClassName Signup      = "signup"
+pageClassName (Share _)   = "share"
+pageClassName Main        = "main"
 
 exitBooting :: Page -> Widget HTML Page
-exitBooting Loading = liftAff $ Login   <$ delay (Milliseconds 1.0)
-exitBooting _       = liftAff $ Loading <$ never
+exitBooting (Loading (Just nextPage)) = liftAff $ nextPage         <$ delay (Milliseconds 1.0)
+exitBooting  _                        = liftAff $ Loading Nothing  <$ never
 
 headerPage :: forall a. Page -> Page -> Array (Widget HTML a) -> Widget HTML a
 headerPage currentPage page innerContent =
@@ -165,15 +176,16 @@ overlay info =
 
 location :: Page -> Page -> String
 location referencePage currentPage = show $ case currentPage, referencePage of
-  Loading,  Loading -> Center
-  Login,    Login   -> Center
-  Signup,   Signup  -> Center
-  Main,     Main    -> Center
+  Loading _,  Loading _ -> Center
+  Login,      Login     -> Center
+  Signup,     Signup    -> Center
+  Share _,    Share _   -> Center
+  Main,       Main      -> Center
 
-  Loading,  _       -> Left
-  Login,    Signup  -> Left
-  _,        Main    -> Left
-  _,        _       -> Right
+  Loading _,  _         -> Left
+  Login,      Signup    -> Left
+  _,          Main      -> Left
+  _,          _         -> Right
 
 {-
 

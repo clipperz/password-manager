@@ -4,8 +4,15 @@ import Prelude
 
 import Concur.React.Run (runWidgetInDom)
 import Effect (Effect)
-import OperationalWidgets.App (app)
+import OperationalWidgets.App (app, app', Page(..))
 
 main :: Effect Unit
-main = do
-  runWidgetInDom "app" app
+main = runWidgetInDom "app" (app Login)
+
+registration :: Effect Unit
+registration = runWidgetInDom "app" (app Signup)
+
+share :: String -> Effect Unit
+share token = runWidgetInDom "app" (app (Share token))
+
+
