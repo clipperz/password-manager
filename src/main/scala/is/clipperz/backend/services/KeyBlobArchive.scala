@@ -87,8 +87,11 @@ object KeyBlobArchive:
       optionalPath
 
   object FileSystemKeyBlobArchive:
-    def apply(basePath: Path, levels: Int, requireExistingPath: Boolean = true): FileSystemKeyBlobArchive =
-      if ((Files.exists(basePath) && Files.isDirectory(basePath)) || !requireExistingPath) then
+    def apply(
+        basePath: Path,
+        levels: Int,
+        requireExistingPath: Boolean = true,
+      ): FileSystemKeyBlobArchive =
+      if (Files.exists(basePath) && Files.isDirectory(basePath)) || !requireExistingPath then
         new FileSystemKeyBlobArchive(basePath, levels)
-      else
-        throw new IllegalArgumentException("Base path does not exist")
+      else throw new IllegalArgumentException("Base path does not exist")

@@ -20,11 +20,34 @@ case class UserCard(
     srpVersion: String,
     masterKeyEncodingVersion: String,
     masterKeyContent: HexString,
+    preferences: UserPreferences,
   )
 
 object UserCard:
   implicit val decoder: JsonDecoder[UserCard] = DeriveJsonDecoder.gen[UserCard]
   implicit val encoder: JsonEncoder[UserCard] = DeriveJsonEncoder.gen[UserCard]
+
+case class UserPreferences(passwordGeneratorSettings: PasswordGeneratorSettings)
+
+object UserPreferences:
+  implicit val decoder: JsonDecoder[UserPreferences] = DeriveJsonDecoder.gen[UserPreferences]
+  implicit val encoder: JsonEncoder[UserPreferences] = DeriveJsonEncoder.gen[UserPreferences]
+
+case class PasswordGeneratorSettings(
+    length: Int,
+    characterSets: List[(String, Boolean)],
+    characters: String,
+  )
+// override def equals(x: Any): Boolean =
+//   if x.isInstanceOf[PasswordGeneratorSettings] then
+//     val that = x.asInstanceOf[PasswordGeneratorSettings]
+//     that.length == this.length && that.characters == this.characters &&
+//   else
+//     false
+
+object PasswordGeneratorSettings:
+  implicit val decoder: JsonDecoder[PasswordGeneratorSettings] = DeriveJsonDecoder.gen[PasswordGeneratorSettings]
+  implicit val encoder: JsonEncoder[PasswordGeneratorSettings] = DeriveJsonEncoder.gen[PasswordGeneratorSettings]
 
 case class ModifyUserCard(
     c: HexString,
@@ -80,6 +103,10 @@ object UserArchive:
           else ZIO.fail(new ResourceNotFoundException("User does not exist"))
         )
 
-  def fs(basePath: Path, levels: Int, requireExistingPath: Boolean = true): ZLayer[Any, Throwable, UserArchive] =
+  def fs(
+      basePath: Path,
+      levels: Int,
+      requireExistingPath: Boolean = true,
+    ): ZLayer[Any, Throwable, UserArchive] =
     val keyBlobArchive = KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels, requireExistingPath);
     ZLayer.succeed[UserArchive](new FileSystemUserArchive(keyBlobArchive))

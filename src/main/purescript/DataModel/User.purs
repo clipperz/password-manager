@@ -1,9 +1,14 @@
 module DataModel.User where
 
-import Data.HexString (HexString)
 import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
 import Data.Bifunctor (rmap)
+import Data.HexString (HexString)
+import DataModel.Password (PasswordGeneratorSettings)
+
+type UserPreferences = {
+  passwordGeneratorSettings :: PasswordGeneratorSettings
+}
 
 newtype UserCard =
   UserCard
@@ -13,6 +18,7 @@ newtype UserCard =
     , srpVersion :: String
     , masterKeyEncodingVersion :: String
     , masterKeyContent :: HexString
+    , preferences :: UserPreferences
     }
 
 instance encodeJsonUserCard :: EncodeJson UserCard where

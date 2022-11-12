@@ -41,6 +41,7 @@ object UserArchiveSpec extends ZIOSpecDefault:
     "srpVersion_test",
     "masterKeyEncodingVersion_test",
     HexString("masterKeyContent_test"),
+    UserPreferences(PasswordGeneratorSettings(24, List(("abc", true)), "abcdefghilmnopqrstuvz"))
   )
   val testUser2 = UserCard(
     c,
@@ -49,6 +50,7 @@ object UserArchiveSpec extends ZIOSpecDefault:
     "srpVersion_test",
     "masterKeyEncodingVersion_test",
     HexString("masterKeyContent_test"),
+    UserPreferences(PasswordGeneratorSettings(24, List(("abc", true)), "abcdefghilmnopqrstuvz"))
   )
 
   def spec = suite("UserArchive")(

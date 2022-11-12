@@ -1,4 +1,36 @@
-module Views.SimpleWebComponents where
+module Views.SimpleWebComponents
+  ( PasswordForm
+  , SubMenuAction(..)
+  , SubmenuVoice
+  , checkboxesSignal
+  , clickableListItemWidget
+  , complexMenu
+  , complexMenu'
+  , confirmationWidget
+  , disableOverlay
+  , disabledSimpleTextInputWidget
+  , loadingDiv
+  , passwordStrengthShow
+  , simpleButton
+  , simpleButtonWithClass
+  , simpleButtonWithId
+  , simpleCheckboxSignal
+  , simpleCheckboxWidget
+  , simpleFileInputWidget
+  , simpleInputWidget
+  , simpleNumberInputWidget
+  , simplePasswordInputWidget
+  , simplePasswordSignal
+  , simpleTextAreaSignal
+  , simpleTextAreaWidget
+  , simpleTextInputWidget
+  , simpleTextInputWidgetWithFocus
+  , simpleUserSignal
+  , simpleVerifiedPasswordSignal
+  , submenu
+  , submenu'
+  )
+  where
 
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopW, loopS, display)
@@ -8,22 +40,25 @@ import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (=<<))
 import Control.Semigroupoid ((<<<))
+import Data.Array (length, zipWith, range, updateAt)
 import Data.Either (Either(..))
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not)
 import Data.Map (Map, lookup)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, Maybe)
+import Data.Ring ((-))
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Traversable (sequence)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), fst)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Events (readFile)
 import Functions.Password (PasswordStrengthFunction, PasswordStrength)
 import React.SyntheticEvent (currentTarget, SyntheticEvent_, NativeEventTarget)
+
 
 simpleTextAreaWidget :: String -> Widget HTML String -> String -> String -> Widget HTML String
 simpleTextAreaWidget id lbl placeholder content = do
@@ -96,9 +131,19 @@ simplePasswordInputWidget id lbl s = simpleInputWidget id lbl false "password" s
 simpleNumberInputWidget :: String -> Widget HTML String -> String -> String -> Widget HTML String
 simpleNumberInputWidget id lbl placeholder s = simpleInputWidget id lbl false placeholder s "number"
 
-simpleCheckboxWidget :: String -> Widget HTML Boolean -> Boolean -> Widget HTML Boolean 
-simpleCheckboxWidget id lbl v = do
-  res <- div' [
+simpleCheckboxWidget :: String -> Widget HTML Boolean -> Boolean -> Boolean -> Widget HTML Boolean 
+simpleCheckboxWidget id lbl lblOnLeft v = do
+  res <- if lblOnLeft then div' [
+    (not v) <$ input [
+        Props._type "checkbox"
+      , Props._id id 
+      , Props.checked v
+      , Props.onChange
+      ]
+    , label [Props.htmlFor id] [lbl]
+  ]
+  
+  else div' [
       label [Props.htmlFor id] [lbl]
     , (not v) <$ input [
         Props._type "checkbox"
@@ -112,6 +157,12 @@ simpleCheckboxWidget id lbl v = do
 simpleButton :: forall a. String -> Boolean -> a -> Widget HTML a
 simpleButton label disable value = button [value <$ Props.onClick, Props.disabled disable] [text label]
 
+simpleButtonWithId :: forall a. String -> String -> Boolean -> a -> Widget HTML a
+simpleButtonWithId id label disable value = button [Props._id id, value <$ Props.onClick, Props.disabled disable] [text label]
+
+simpleButtonWithClass :: forall a. String -> String -> Boolean -> a -> Widget HTML a
+simpleButtonWithClass label classes disable value = button [value <$ Props.onClick, Props.disabled disable, Props.className classes] [text label]
+
 simpleTextAreaSignal :: String -> Widget HTML String -> String -> String -> Signal HTML String
 simpleTextAreaSignal id label placeholder content = loopW content (simpleTextAreaWidget id label placeholder)
 
@@ -121,8 +172,8 @@ simpleUserSignal u = loopW u (simpleTextInputWidget "username" (text "Username")
 simplePasswordSignal :: String -> Signal HTML String
 simplePasswordSignal p = loopW p (simplePasswordInputWidget "password" (text "Password"))
 
-simpleCheckboxSignal :: String -> Widget HTML Boolean -> Boolean -> Signal HTML Boolean
-simpleCheckboxSignal id lbl v = loopW v (simpleCheckboxWidget id lbl)
+simpleCheckboxSignal :: String -> Widget HTML Boolean -> Boolean -> Boolean -> Signal HTML Boolean
+simpleCheckboxSignal id lbl lblOnLeft v = loopW v (simpleCheckboxWidget id lbl lblOnLeft)
 
 type PasswordForm = { password       :: String
                     , verifyPassword :: String
@@ -144,7 +195,7 @@ simpleVerifiedPasswordSignal psf f = loopS f $ \ef ->
 
 checkboxesSignal :: Array (Tuple String Boolean) ->  Map String (Widget HTML Boolean) -> Signal HTML (Array (Tuple String Boolean))
 checkboxesSignal ts lablesMap = loopS ts \m -> do
-  let checkboxes = ((\(Tuple id value) -> Tuple id (simpleCheckboxSignal id (fromMaybe (text "Label not found") (lookup id lablesMap)) value)) <$> m) :: Array (Tuple String (Signal HTML Boolean))
+  let checkboxes = ((\(Tuple id value) -> Tuple id (simpleCheckboxSignal id (fromMaybe (text "Label not found") (lookup id lablesMap)) false value)) <$> m) :: Array (Tuple String (Signal HTML Boolean))
   let checkboxes2 = ((\(Tuple id s) -> do
                             res <- s
                             pure $ Tuple id res) <$> checkboxes) :: Array (Signal HTML (Tuple String Boolean))
@@ -185,3 +236,71 @@ confirmationWidget message = div [(Props.className "disableOverlay")] [
 , simpleButton "Yes" false true
 , simpleButton "No" false false
 ]
+
+data SubMenuAction' a = OpenSubMenu' | CloseSubMenu' | ClickOnVoice' a
+
+submenu' :: forall a b. Boolean -> Widget HTML b -> Array (Widget HTML a) -> Widget HTML a
+submenu' false b1 bs = do
+  res <- OpenSubMenu' <$ div [] [b1]
+  case res of
+    OpenSubMenu' -> submenu' true b1 bs
+    CloseSubMenu' -> submenu' false b1 bs
+    ClickOnVoice' a -> pure a
+submenu' true b1 bs = do
+  res <- div [] $ [CloseSubMenu' <$ b1] <> (((<$>) ClickOnVoice') <$> bs)
+  case res of
+    OpenSubMenu' -> submenu' true b1 bs
+    CloseSubMenu' -> submenu' false b1 bs
+    ClickOnVoice' a -> pure a
+
+type SubmenuVoice' a = Tuple Boolean (Boolean -> Widget HTML a)
+
+complexMenu' :: forall a. Array (SubmenuVoice' a) -> Array (Widget HTML (Tuple (Array Boolean) a))
+complexMenu' arr = 
+  let indexes = range 0 ((length arr) - 1)
+      newArr = zipWith (\i -> \t -> { index: i, tuple: t}) indexes arr
+      booleans = fst <$> arr
+      mapFunc = \{index, tuple: (Tuple open f)} -> (\v -> Tuple (fromMaybe booleans (updateAt index true booleans)) v) <$> f open
+  in mapFunc <$> newArr
+
+data SubMenuAction a = OpenCloseMenu | ClickOnVoice a
+
+submenu :: forall a b. Boolean -> Widget HTML b -> Array (Widget HTML a) -> Widget HTML (Either Boolean a)
+submenu showing b1 bs = do
+  -- res <- div [] $ [OpenCloseMenu <$ b1] <> (if showing then (((<$>) ClickOnVoice) <$> bs) else [])
+  let showingProp = if showing then [] else [Props.className "hidden"]
+  res <- div [] $ [OpenCloseMenu <$ b1] <> [(div showingProp (((<$>) ClickOnVoice) <$> bs))]
+  case res of
+    OpenCloseMenu -> pure $ Left (not showing)
+    ClickOnVoice a -> pure $ Right a
+
+type SubmenuVoice a = Tuple Boolean (Boolean -> Widget HTML (Either Boolean a))
+
+type IntermediateWidget a = Widget HTML (Either (Array Boolean) a)
+
+complexMenu :: forall a. Maybe String -> Maybe String -> Array (SubmenuVoice a) -> Widget HTML (Tuple (Array (SubmenuVoice a)) a)
+complexMenu mId mClass arr = do
+  let pid = fromMaybe [] ((\id -> [Props._id id]) <$> mId)
+  let pclass = fromMaybe [] ((\c -> [Props.className c]) <$> mClass) 
+  inter <- div (pid <> pclass) (fromVoiceToWidget <$> newArr)
+  case inter of
+    Right a -> pure $ Tuple arr a
+    Left bs -> complexMenu mId mClass $ redraw bs
+
+  where
+    indexes = range 0 ((length arr) - 1)
+    newArr = zipWith (\i -> \t -> { index: i, tuple: t}) indexes arr
+    booleans = fst <$> arr
+    
+    redraw :: Array Boolean -> Array (SubmenuVoice a)
+    redraw newBoolean = zipWith (\b -> \(Tuple _ f) -> Tuple b f) newBoolean arr
+
+    fromVoiceToWidget { index, tuple: (Tuple b f) } = do
+      res <- f b
+      case res of 
+        Left bool -> pure $ Left $ fromMaybe booleans (updateAt index bool booleans)
+        Right a -> pure $ Right a
+    
+
+
+

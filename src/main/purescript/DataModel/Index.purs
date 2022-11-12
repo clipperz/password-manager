@@ -56,6 +56,7 @@ newtype CardEntry =
     , cardReference :: CardReference
     , archived :: Boolean
     , tags :: Array String
+    , lastUsed :: Number
     -- , attachment :: Boolean
     }
 
@@ -65,6 +66,7 @@ instance showCardEntry :: Show CardEntry where
         , cardReference: _
         , archived: _
         , tags: _
+        , lastUsed: _
         }) = "Entry for " <> title
 
 instance ordCardEntry :: Ord CardEntry where
@@ -101,5 +103,6 @@ createCardEntry card@(Card { content: (CardValues content), archived, timestamp:
                                , cardReference: CardReference { reference: fromArrayBuffer hash, key: exportedKey, cardVersion: currentCardVersion }
                                , archived: archived
                                , tags: content.tags
+                               , lastUsed: 0.0
                                }
   pure $ Tuple encryptedCard cardEntry

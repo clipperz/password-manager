@@ -8,6 +8,54 @@ body {
 	display: flex;
 }
 
+div.wrapper {
+	height: 100%;
+	width: 100%;
+	display: block;
+}
+
+div.field {
+	border: 1px solid lightgray; 
+	& > p {
+		margin: 3px;
+	}
+}
+
+p.notice {
+	width: 100%;
+	z-index: 100;
+	position: relative;
+	display: block;
+	top: 0;
+	text-align: center;
+	padding: 3px;
+	background-color: $core-alternate-color;
+	color: $main-text-color;
+}
+
+p.important {
+	font-weight: bold;
+}
+
+#importPage {
+	height: 100%;
+}
+
+div.scrollable {
+	overflow-y: auto;
+	height: 100%;
+}
+
+div.fixedFoot {
+	background-color: $core-alternate-color;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	height: 10%;
+	position: absolute;
+	bottom: 0;
+}
+
 #app {
 	width: 100%;
 }
@@ -18,11 +66,108 @@ body {
 }
 
 #userSidebar {
-	width: 30%;
+	width: 25%;
 	display: flex;
 	flex-direction: column;
 	background-color: $core-alternate-color;
 	color: $core-alternate-text-color;
+	position: relative;
+	z-index: 11;
+	padding: 2px;
+
+	& > button {
+		margin: 0.5%;
+	}
+
+	& > div, & > div > div {
+		width: 99%;
+		display: flex;
+		flex-direction: column;
+		margin: 0.5%;
+
+		& > button {
+			width: 100%;
+			display: block;
+		}
+	}
+}
+
+div.hidden {
+	@include hide-element;
+}
+
+.selected {
+	border-left: solid 3px $accent-color;
+}
+
+#userPage.open {
+	position: absolute;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	// justify-content: right;	
+
+	& > div.userSidebarTop {
+		position: absolute;
+		right: 0;
+		top: 0;
+		width: 25%;
+		height: 7%;
+		z-index: 13;
+		background-color: $core-alternate-color;
+		padding: 2px;
+		display: flex;
+		justify-content: right;
+	}
+}
+
+#userPage.close {
+	position: absolute;
+	left: 0;
+}
+
+.userSidebarOverlay {
+	position: absolute;
+	left: 0;
+	top: 7%;
+	width: 100%;
+	height: 95%;
+	display: flex;
+	justify-content: right;
+	
+	& > div.forUser {
+		background-color: $core-alternate-color;
+		color: $main-text-color;
+		z-index: 11;
+		width: 75%;
+		left: 0;
+	}
+
+	& > div.forUser > div > div.disableOverlay {
+		left: 0;
+		width: 75%;
+	}
+
+	& > div:first-child:not(.forUser) {
+		background-color: rgba(128, 128, 128, 0.658);
+		width: 100%;
+	}
+
+	& > div:first-child {
+		position: fixed;
+		height: 100%;
+		top: 0;
+		z-index: 9;
+	}
+	
+}
+
+.form > a {
+	&:hover {
+		font-weight: bold;
+	}
+	color: $alternate-text-color;
 }
 
 #cardsManager {
@@ -33,10 +178,6 @@ body {
 	#filterView {
 		background-color: $core-alternate-color;
 		color: $main-text-color;
-
-		label {
-			@include hide-element
-		}
 
 		li {
 			& > div {
@@ -57,7 +198,36 @@ body {
 				font-weight: bold;
 			}
 		}
+
+		#archivedFilterArea > div {
+			position: absolute;
+			bottom: 0;
+			display: flex;
+			& > label {
+				font-size: 70%;
+				& > div {
+					display: flex;
+					justify-content: space-between;
+					padding-right: 5px;
+
+					& > div {
+						display: block;
+						color: $alternate-text-color;
+						background-color: $alternate-color;
+						border-radius: 5px;
+						padding: 3px 5px;
+					}
+				}
+				
+				&:hover {
+					font-weight: bold;
+				}
+			}
+		}
 		
+		#generalFilterArea > div > label {
+			@include hide-element
+		}
 
 		#tagFilter {
 			padding-left: 10px;
@@ -246,4 +416,8 @@ li.archived {
 	justify-content: center;
 	font-weight: bolder;
 	z-index: 10;
+}
+
+input[type=number] {
+	-moz-appearance: textfield;
 }

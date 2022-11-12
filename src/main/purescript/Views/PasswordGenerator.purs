@@ -7,28 +7,26 @@ import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Semigroupoid ((<<<))
-import Data.Array (fold, filter, mapMaybe, concat)
+import Data.Array (concat)
 import Data.Either (Either(..), either)
-import Data.Eq((/=))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.HeytingAlgebra (not)
 import Data.Int (fromString)
-import Data.Map (update, fromFoldable, toUnfoldable, keys, lookup)
+import Data.Map (update, fromFoldable, toUnfoldable, lookup)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Monoid (class Monoid, mempty)
 import Data.Semigroup ((<>))
-import Data.Set as Set
 import Data.Show (show)
 import Data.String (contains)
 import Data.String.Pattern (Pattern(..))
-import Data.Tuple(Tuple(..), fst)
+import Data.Tuple(Tuple(..))
 import DataModel.AsyncValue (AsyncValue(..))
+import DataModel.Password (PasswordGeneratorSettings, CharacterSet(..), characterSets, charactersFromSets)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
-
-import Functions.Password (randomPassword, characterSets, CharacterSet(..))
+import Functions.Password (randomPassword)
 import Views.SimpleWebComponents (simpleButton, simpleNumberInputWidget, disabledSimpleTextInputWidget, simpleTextInputWidget, simpleCheckboxWidget)
 
 extractValue :: forall a. Monoid a => AsyncValue a -> a
@@ -38,39 +36,16 @@ extractValue v =
     Loading (Just a) -> a
     Loading (Nothing) -> mempty
 
-type Settings = {
-    length              :: Int,
-    characterSets       :: Array (Tuple String Boolean),
-    characters          :: String
-}
-
-defaultCharacterSets :: Array (Tuple String Boolean)
-defaultCharacterSets = (\k -> Tuple k (k /= "space")) <$> (Set.toUnfoldable (keys characterSets))
-
-charactersFromSets :: Array (Tuple String Boolean) -> CharacterSet
-charactersFromSets ar =
-  let chosenKeys = (fst <$> (filter (\(Tuple _ checked) -> checked) ar)) :: Array String
-      cSets = (mapMaybe (\a -> a) $ (\k -> lookup k characterSets) <$> chosenKeys) :: Array CharacterSet
-  in fold cSets
-
-defaultCharacters :: String
-defaultCharacters = 
-  let (CharacterSet chars) = charactersFromSets defaultCharacterSets
-  in chars
-
-initialSettings :: Settings
-initialSettings = { length: 16, characterSets: defaultCharacterSets, characters: defaultCharacters}
-
 ---------------------------
 
-passwordGenerator :: Widget HTML String
-passwordGenerator = composedWidget initialSettings (Loading Nothing)
+passwordGenerator :: PasswordGeneratorSettings -> Widget HTML String
+passwordGenerator initialSettings = composedWidget initialSettings (Loading Nothing)
 
-data ComposedWidgetAction = ModifiedSettingsAction Settings 
+data ComposedWidgetAction = ModifiedSettingsAction PasswordGeneratorSettings 
                           | RequestedNewSuggestion
                           | ApprovedSuggestion String
                           | ObtainedNewSuggestion String
-composedWidget :: Settings -> AsyncValue String -> Widget HTML String
+composedWidget :: PasswordGeneratorSettings -> AsyncValue String -> Widget HTML String
 composedWidget settings av = do
   res <- case av of
     -- Just: just show the widget and wait for the user to do something
@@ -83,10 +58,10 @@ composedWidget settings av = do
     ObtainedNewSuggestion  pswd -> composedWidget settings (Done pswd)
     ApprovedSuggestion     pwsd -> pure pwsd
   where 
-    computePassword :: Settings -> Widget HTML String
+    computePassword :: PasswordGeneratorSettings -> Widget HTML String
     computePassword s' = liftAff $ randomPassword s'.length s'.characters
 
-    widget :: Settings -> AsyncValue String -> Widget HTML ComposedWidgetAction
+    widget :: PasswordGeneratorSettings -> AsyncValue String -> Widget HTML ComposedWidgetAction
     widget s v = div' [
       ModifiedSettingsAction <$> settingsWidget s
     , simpleButton "Regenerate" false RequestedNewSuggestion
@@ -111,7 +86,7 @@ suggestionWidget av =
         InsertPassword newPswd -> pure $ Right newPswd 
 
 data PasswordWidgetAction = PasswordChange String | UpdatePassword | InsertPassword String
-passwordWidget :: Settings -> Maybe String -> Widget HTML String
+passwordWidget :: PasswordGeneratorSettings -> Maybe String -> Widget HTML String
 passwordWidget settings str =
   case str of  
     Just p  -> go p
@@ -135,11 +110,11 @@ passwordWidget settings str =
         InsertPassword newPswd -> pure newPswd 
 
 data SettingsWidgetAction = LengthChange Int | CharSetToggle String | Chars String
-settingsWidget :: Settings -> Widget HTML Settings
+settingsWidget :: PasswordGeneratorSettings -> Widget HTML PasswordGeneratorSettings
 settingsWidget s = do
   let lengthWidget = (LengthChange <<< (fromMaybe s.length) <<< fromString) <$> simpleNumberInputWidget "password_length" (text "Password Length") "" (show s.length)
   let charsWidget = Chars <$> simpleTextInputWidget "password_characters" (text "Possible characters") "" s.characters
-  let setsWidgets = (\(Tuple id v) -> (CharSetToggle id) <$ simpleCheckboxWidget ("char_set_" <> id) (text id) v) <$> s.characterSets
+  let setsWidgets = (\(Tuple id v) -> (CharSetToggle id) <$ simpleCheckboxWidget ("char_set_" <> id) (text id) false v) <$> s.characterSets
   res <- div' $ concat [[lengthWidget], setsWidgets, [charsWidget]]
   case res of
     LengthChange n -> pure $ s { length = n }

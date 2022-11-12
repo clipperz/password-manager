@@ -1,10 +1,7 @@
 module Test.Utilities where
 
-import Control.Applicative (pure)
 import Control.Bind (bind, discard)
-import Data.Argonaut.Core as A
-import Data.BigInt (fromInt, toString, fromString)
-import Data.Eq ((==))
+import Data.BigInt (fromInt, toString)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (hex, toArrayBuffer, fromArrayBuffer, toBigInt, fromBigInt, Base(..))
@@ -14,16 +11,14 @@ import Data.List (List(..), (:))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
-import Data.Show (show)
 import Data.Unit (Unit)
 import DataModel.SRP (hashFuncSHA256)
 import Effect.Aff (Aff)
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
-import Test.QuickCheck ((===), Result(..))
-import Test.QuickCheck.Gen (Gen)
-import TestClasses (AsciiString, PositiveInt, UnicodeString)
-import TestUtilities (makeTestableOnBrowser, failOnBrowser, makeQuickCheckOnBrowser, quickCheckAffInBrowser)
+import Test.QuickCheck ((===), Result)
+import TestClasses (PositiveInt, UnicodeString)
+import TestUtilities (makeTestableOnBrowser, makeQuickCheckOnBrowser)
 import Functions.ArrayBuffer (emptyByteArrayBuffer, xor, arrayBufferToBigInt, bigIntToArrayBuffer)
 
 utilitiesSpec :: SpecT Aff Unit Identity Unit

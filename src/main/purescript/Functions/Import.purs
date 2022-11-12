@@ -5,6 +5,7 @@ import Control.Bind (bind, (=<<), (>>=))
 import Control.Monad.Except (except, runExcept)
 import Control.Semigroupoid ((<<<))
 import Data.Argonaut.Core (Json, caseJsonArray, caseJsonObject, toBoolean, toObject, toString)
+import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (head, tail, elem, filter)
 import Data.Array.NonEmpty as ANE
@@ -60,33 +61,40 @@ decodeImport s = do
       Left err -> Left $ ImportError err
       Right json -> caseJsonArray (Left $ ImportError "Cannot convert json to json array") (\a -> sequence $ (decodeCard currentTime) <$> a) json
 
-decodeCard :: Int -> Json -> Either AppError Card
-decodeCard timestamp = caseJsonObject (Left $ ImportError "Cannot conver json to json object") decodeCardObject
+decodeCard :: Number -> Json -> Either AppError Card
+decodeCard timestamp json = 
+  let epsilonTryResult = decodeJson json -- assumes version currently in use
+  in case epsilonTryResult of
+    Right _ -> lmap (\_ -> ImportError "Cannot convert json to array of card") epsilonTryResult
+    Left _ -> 
+      let deltaTryResult = caseJsonObject (Left $ ImportError "Cannot conver json to json object") (decodeDeltaCardObject timestamp) json
+      in case deltaTryResult of
+        Right _ -> deltaTryResult
+        Left _ -> Left $ ImportError "Import file is formatted neither by delta nor by epsilon version"
 
-  where
-    decodeCardObject :: Object Json -> Either AppError Card
-    decodeCardObject obj = runExcept $ do
-      titleAndTags :: Array String <- split (Pattern " ") <$> (except $ note (ImportError "Cannot find card label") $ (toString =<< lookup "label" obj))
-      let title    = fromMaybe "" $ head titleAndTags
-      let tags     = filter (\s -> not $ eq "ARCH" s) $ fromMaybe [] $ tail titleAndTags
-      let archived = elem "ARCH" titleAndTags
-      fields :: Array CardField <- do
-        a <- except $ note (ImportError "Cannot find card fields") $ (values <$> (toObject =<< (lookup "fields") =<< toObject =<< lookup "currentVersion" obj))
-        except $ sequence (decodeCardField <$> a)
-      notes  <- except $ note (ImportError "Cannot find card notes") $ (toString =<< (lookup "notes") =<< toObject =<< lookup "data" obj)
-      pure $ Card { timestamp: timestamp
-                     , archived: archived
-                     , content: CardValues { title: title
-                                              , tags: tags
-                                              , fields: fields
-                                              , notes: notes
-                                              }
-                     }
+decodeDeltaCardObject :: Number -> Object Json -> Either AppError Card
+decodeDeltaCardObject timestamp obj = runExcept $ do
+  titleAndTags :: Array String <- split (Pattern " ") <$> (except $ note (ImportError "Cannot find card label") $ (toString =<< lookup "label" obj))
+  let title    = fromMaybe "" $ head titleAndTags
+  let tags     = filter (\s -> not $ eq "ARCH" s) $ fromMaybe [] $ tail titleAndTags
+  let archived = elem "ARCH" titleAndTags
+  fields :: Array CardField <- do
+    a <- except $ note (ImportError "Cannot find card fields") $ (values <$> (toObject =<< (lookup "fields") =<< toObject =<< lookup "currentVersion" obj))
+    except $ sequence (decodeCardField <$> a)
+  notes  <- except $ note (ImportError "Cannot find card notes") $ (toString =<< (lookup "notes") =<< toObject =<< lookup "data" obj)
+  pure $ Card { timestamp: timestamp
+                  , archived: archived
+                  , content: CardValues { title: title
+                                          , tags: tags
+                                          , fields: fields
+                                          , notes: notes
+                                          }
+                  }
 
-    decodeCardField :: Json -> Either AppError CardField
-    decodeCardField json = runExcept $ do
-      obj    <- except $ note (ImportError "Cannot convert json to json object") $ (toObject json)
-      label  <- except $ note (ImportError "Cannot find field label")  $ (toString  =<< lookup "label"  obj)
-      value  <- except $ note (ImportError "Cannot find field value")  $ (toString  =<< lookup "value"  obj)
-      let hidden = fromMaybe false $ (toBoolean =<< lookup "hidden" obj)
-      pure $ CardField {name: label, value: value, locked: hidden}
+decodeCardField :: Json -> Either AppError CardField
+decodeCardField json = runExcept $ do
+  obj    <- except $ note (ImportError "Cannot convert json to json object") $ (toObject json)
+  label  <- except $ note (ImportError "Cannot find field label")  $ (toString  =<< lookup "label"  obj)
+  value  <- except $ note (ImportError "Cannot find field value")  $ (toString  =<< lookup "value"  obj)
+  let hidden = fromMaybe false $ (toBoolean =<< lookup "hidden" obj)
+  pure $ CardField {name: label, value: value, locked: hidden}

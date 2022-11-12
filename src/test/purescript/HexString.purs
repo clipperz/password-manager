@@ -1,6 +1,5 @@
 module Test.HexString where
 
-import Control.Applicative (pure)
 import Control.Bind (discard)
 import Data.Either (hush)
 import Data.EuclideanRing (mod)
@@ -14,16 +13,13 @@ import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.CodeUnits (length)
 import Data.String.Common (toLower)
-import Data.String.Regex (regex)
-import Data.String.Regex.Flags (noFlags)
 import Data.Unit (Unit)
 import Effect.Aff (Aff)
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
 import Test.QuickCheck ((<?>), (===), Result)
-import Test.QuickCheck.Gen (Gen)
 import TestClasses (HexCharsString, UnicodeString)
-import TestUtilities (makeTestableOnBrowser, makeQuickCheckOnBrowser, quickCheckAffInBrowser)
+import TestUtilities (makeTestableOnBrowser, makeQuickCheckOnBrowser)
 
 hexSpec :: SpecT Aff Unit Identity Unit
 hexSpec =
@@ -53,9 +49,7 @@ hexSpec =
       makeQuickCheckOnBrowser constructAfterShow samples prop
     let compareHexStrings = "Compares HexStrings up to leading zeros"
     it compareHexStrings do
-      let prop = (\h -> 
-                  \h' ->
-                    h === (hex ("0" <> show h))) :: HexString -> HexString -> Result
+      let prop = (\h -> h === (hex ("0" <> show h))) :: HexString -> Result
       makeQuickCheckOnBrowser compareHexStrings samples prop
     let hexEncode = "Check correctness of creation from non hex string"
     it hexEncode do

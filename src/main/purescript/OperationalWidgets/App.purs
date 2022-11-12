@@ -174,3 +174,37 @@ location referencePage currentPage = show $ case currentPage, referencePage of
   Login,    Signup  -> Left
   _,        Main    -> Left
   _,        _       -> Right
+
+{-
+
+app :: Widget HTML Unit
+app = app' Nothing
+
+where
+app' :: Maybe String -> Widget HTML Unit
+app' maybeUsername = do
+initialState' <- liftEffect $ runExceptT computeInitialState
+case initialState' of
+Right initialState@{proxy} -> do
+liftAff $ modifyAppState initialState
+let offlineCopyBanner = case proxy of
+OfflineProxy _ -> [p [Props.className "notice"] [text "Offline copy"]]
+_ -> []
+res <- div [Props.className "wrapper"] $ offlineCopyBanner <> [
+do
+-- let form = fromMaybe emptyForm ((\u -> { username: u, password: "" }) <$> maybeUsername )
+-- landingPageView (LoginView Default form)
+-- !!! AUTOLOGIN FOR DEVELOPING !!! --
+let form = fromMaybe {username: "joe", password: "clipperz"} ((\u -> { username: u, password: "" }) <$> maybeUsername )
+landingPageView (LoginView Loading form)
+-- -------------------------------- --
+homePageWidget
+]
+case res of
+Clean -> app' Nothing
+ReadyForLogin username -> app' (Just username)
+
+Left _ -> text "Could not initialize app"
+
+
+-}

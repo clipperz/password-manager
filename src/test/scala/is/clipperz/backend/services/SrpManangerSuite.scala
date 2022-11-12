@@ -22,6 +22,8 @@ import is.clipperz.backend.services.SRPStep2Data
 import is.clipperz.backend.TestUtilities
 import zio.test.TestAspect
 import is.clipperz.backend.exceptions.ResourceNotFoundException
+import is.clipperz.backend.services.UserPreferences
+import is.clipperz.backend.services.PasswordGeneratorSettings
 
 object SrpManangerSpec extends ZIOSpecDefault:
   val samples = 10
@@ -63,6 +65,7 @@ object SrpManangerSpec extends ZIOSpecDefault:
                 srpVersion = "srpVersion_testFullTrip",
                 masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
                 masterKeyContent = HexString("masterKeyContent_testFullTrip"),
+                UserPreferences(PasswordGeneratorSettings(24, List(("abc", true)), "abcdefghilmnopqrstuvz"))
               )
             )
 
@@ -141,6 +144,7 @@ object SrpManangerSpec extends ZIOSpecDefault:
                 srpVersion = "srpVersion_testFullTrip",
                 masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
                 masterKeyContent = HexString("masterKeyContent_testFullTrip"),
+                UserPreferences(PasswordGeneratorSettings(24, List(("abc", true)), "abcdefghilmnopqrstuvz"))
               )
             )
 

@@ -20,6 +20,7 @@ import Data.PrettyShow (prettyShow)
 import DataModel.Card (Card, defaultCards)
 import DataModel.Credentials (Credentials)
 import DataModel.Index (Index(..), CardEntry(..), CardReference(..), createCardEntry, currentIndexVersion)
+import DataModel.Password (standardPasswordGeneratorSettings)
 import DataModel.SRP (SRPConf, SRPError(..))
 import DataModel.User (UserCard(..), IndexReference(..))
 import Effect.Aff (Aff)
@@ -76,6 +77,7 @@ prepareSignupParameters form = runExceptT $ do
               , srpVersion : "6a"
               , masterKeyEncodingVersion : "1.0"
               , masterKeyContent : masterKeyContent
+              , preferences: { passwordGeneratorSettings: standardPasswordGeneratorSettings }
               }
         , indexCardReference : indexCardContentHash
         , indexCardContent   : fromArrayBuffer indexCardContent

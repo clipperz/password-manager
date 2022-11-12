@@ -13,36 +13,19 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Int (toNumber)
 import Data.List (filter, List)
-import Data.Map (Map, values, fromFoldable)
-import Data.Monoid (class Monoid)
-import Data.Newtype (unwrap, wrap, class Newtype)
+import Data.Map (values)
+import Data.Newtype (unwrap, wrap)
 import Data.Number (log, isNaN)
 import Data.Ord ((<=), (<))
 import Data.Ring ((-))
-import Data.Semigroup (class Semigroup, (<>))
+import Data.Semigroup ((<>))
 import Data.Semiring ((+), (*))
 import Data.Show (class Show)
 import Data.String.CodePoints (length, take, drop)
 import Data.String.CodeUnits (fromCharArray, toCharArray)
-import Data.Tuple (Tuple(..))
+import DataModel.Password (CharacterSet(..), characterSets)
 import Effect.Aff (Aff)
 import Effect.Fortuna (randomBytes)
-
-newtype CharacterSet = CharacterSet String
-instance characterSetShow :: Show CharacterSet where
-  show (CharacterSet s) = s
-derive newtype instance characterSetSemigroup :: Semigroup CharacterSet
-derive newtype instance characterSetMonoid :: Monoid CharacterSet
-derive instance newtypeCharacterSet :: Newtype CharacterSet _
-
-characterSets :: Map String CharacterSet
-characterSets = fromFoldable [
-    Tuple "A-Z" (CharacterSet "ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
-    Tuple "a-z" (CharacterSet "abcdefghijklmnopqrstuvwxyz"),
-    Tuple "0-9" (CharacterSet "0123456789"),
-    Tuple "space" (CharacterSet " "),
-    Tuple "!#?" (CharacterSet """~`!@#$%^&*()-_=+,.<>/?[]{}\|";':""")
-]
 
 getSets :: Char -> List CharacterSet
 getSets c = 

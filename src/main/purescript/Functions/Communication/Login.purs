@@ -25,6 +25,7 @@ import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
+import DataModel.Communication.Login (LoginStep1Response, LoginStep2Response)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.User (IndexReference)
 import Effect.Aff (Aff)
@@ -60,10 +61,6 @@ login = do
 
 -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-type LoginStep1Response = { s  :: HexString
-                          , bb :: HexString
-                          }
-
 type LoginStep1Result = { aa :: BigInt
                         , a  :: BigInt
                         , s  :: HexString
@@ -94,10 +91,6 @@ type LogintStep2Data = { aa :: BigInt
                        , a  :: BigInt
                        , s  :: HexString
                        }
-
-type LoginStep2Response = { m2 :: HexString
-                          , encIndexReference :: HexString
-                          }
 
 type LoginStep2Result = { m1 :: ArrayBuffer
                         , kk :: ArrayBuffer

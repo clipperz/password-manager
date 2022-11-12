@@ -152,13 +152,13 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
           .flatMap(_ =>
             fromStream[UserCard](content)
               .flatMap(userCard => userArchive.deleteUser(userCard))
-              .flatMap(b => if b then 
+              .flatMap(b =>
+                if b then
                   request
                     .headerValue(SessionManager.sessionKeyHeaderName)
                     .map(sessionKey => sessionManager.deleteSession(sessionKey).map(_ => Response.text(c)))
                     .getOrElse(ZIO.fail(new BadRequestException("No session header found")))
-                else 
-                  ZIO.succeed(Response(status = Status.NotFound))
+                else ZIO.succeed(Response(status = Status.NotFound))
               )
           )
       )

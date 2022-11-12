@@ -36,7 +36,7 @@ import zio.LogSpan
 import zhttp.http.HttpError.Custom
 
 object Main extends zio.ZIOAppDefault:
-  override val bootstrap = 
+  override val bootstrap =
     val logFormat = LogFormat.colored |-| LogFormat.spans
     Runtime.removeDefaultLoggers ++ Runtime.addLogger(CustomLogger.coloredLogger(LogLevel.Info)) // >>> SLF4J.slf4j(logFormat)
 
@@ -52,7 +52,7 @@ object Main extends zio.ZIOAppDefault:
   val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (sessionChecks ++ hashcash)
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
-    if (args.length == 3) then
+    if args.length == 3 then
       val blobsArchivePath = args(0).split("/").nn
       val usersArchivePath = args(1).split("/").nn
       val port = args(2).toInt
@@ -85,6 +85,5 @@ object Main extends zio.ZIOAppDefault:
           EventLoopGroup.auto(nThreads),
           Scope.default,
         )
-    else
-      ZIO.logFatal("Not enough arguments")
+    else ZIO.logFatal("Not enough arguments")
   }

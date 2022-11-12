@@ -21,8 +21,13 @@ const _readFile = function (target) {
     }; 
 };
 
+const renderElement = function(element) {
+    return element.innerHTML;
+}
+
 export {
     _readFile
+    , renderElement
 }
 
 // function _randomBytes(n) { return (onError, onSuccess) => {

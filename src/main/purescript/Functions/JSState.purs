@@ -10,7 +10,7 @@ import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Either (Either(..))
 import Data.Function (($))
-import Data.Functor ((<$>), void)
+import Data.Functor ((<$>))
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Unit (Unit, unit)
@@ -38,4 +38,4 @@ modifyAppState = encodeJson >>> stringify >>> updateJsonState >>> liftEffect
 
 updateAppState partialState = runExceptT $ do
   stateToUpdate <- ExceptT $ liftEffect $ getAppState
-  ExceptT $ Right <$> (void $ modifyAppState (merge partialState stateToUpdate))
+  ExceptT $ Right <$> (modifyAppState (merge partialState stateToUpdate))

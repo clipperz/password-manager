@@ -20,9 +20,9 @@ main :: Effect Unit
 main = launchAff_ $ do
   _ <- runSpec [consoleReporter] do
     utilitiesSpec
-    -- srpSpec
+    srpSpec
     encodeDecodeSpec
     hexSpec
-    -- hashCashSpec
-    -- importSpec
+    hashCashSpec
+    importSpec
   liftEffect $ log "END TESTS"

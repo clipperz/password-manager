@@ -29,6 +29,10 @@ import Effect.Exception as EX
 import Functions.EncodeDecode (decryptJson, decryptWithAesCTR)
 import Functions.JSState (getAppState)
 
+-- fromCardToCardEntry :: Index -> Card -> Aff CardEntry
+-- fromCardToCardEntry (Index entries) card = do
+  
+
 decryptIndexReference :: HexString -> ExceptT AppError Aff IndexReference
 decryptIndexReference encryptedRef = do
   currentState <- ExceptT $ liftEffect getAppState

@@ -14,6 +14,7 @@ data IndexUpdateAction = AddReference CardEntry
                        | DeleteReference CardEntry
                        | ChangeReferenceWithEdit CardEntry CardEntry
                        | ChangeReferenceWithoutEdit CardEntry CardEntry
+                       | NoUpdateNecessary CardEntry
                        | NoUpdate
 
 instance showIndexUpdateAction :: Show IndexUpdateAction where
@@ -23,4 +24,5 @@ instance showIndexUpdateAction :: Show IndexUpdateAction where
   show (ChangeReferenceWithEdit c c') = "Change reference with edit of " <> show c <> " to " <> show c'
   show (ChangeReferenceWithoutEdit c c') = "Change reference without edit of " <> show c <> " to " <> show c'
   -- show (ChangeToReference c ) = "Change reference of " <> show c 
-  show NoUpdate = "No update"
+  show (NoUpdateNecessary c) = "No update from act on " <> show c
+  show (NoUpdate) = "No update"

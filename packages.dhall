@@ -1,5 +1,6 @@
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.15.2-20220630/packages.dhall sha256:691aff166010760f18ab1f4842ba6184f43747756e00579a050a2a46fa22d014
+      https://github.com/purescript/package-sets/releases/download/psc-0.15.4-20221107/packages.dhall
+        sha256:cd0c29e8a69cf70b714ce3ee91c57c02b3d20a1118e35dd8405f33aa80177849
 
 in  upstream
   with bigints =
@@ -110,7 +111,6 @@ in  upstream
     , repo = "https://github.com/clipperz/purescript-formless-independent"
     , version = "clipperz"
     }
-  -- with fortuna = /Users/fabio/Documents/Workspace/Clipperz/dependencies/purescript-fortuna/spago.dhall as Location
   with fortuna =
     { dependencies =
       [ "arraybuffer-types"
@@ -126,29 +126,37 @@ in  upstream
     }
   with float32 =
     { dependencies =
-      [ "console", "effect", "prelude", "psci-support", "quickcheck-laws", "gen", "maybe", "quickcheck" ]
+      [ "console"
+      , "effect"
+      , "prelude"
+      , "psci-support"
+      , "quickcheck-laws"
+      , "gen"
+      , "maybe"
+      , "quickcheck"
+      ]
     , repo = "https://github.com/clipperz/purescript-float32"
     , version = "clipperz"
     }
-  with promises = {
-    dependencies = [
-      "console"
-    , "datetime"
-    , "effect"
-    , "exceptions"
-    , "functions"
-    , "prelude"
-    , "psci-support"
-    , "transformers"
-    , "arrays"
-    , "either"
-    , "foldable-traversable"
-    , "unfoldable"
-    , "maybe"
-    ]
+  with promises =
+    { dependencies =
+      [ "console"
+      , "datetime"
+      , "effect"
+      , "exceptions"
+      , "functions"
+      , "prelude"
+      , "psci-support"
+      , "transformers"
+      , "arrays"
+      , "either"
+      , "foldable-traversable"
+      , "unfoldable"
+      , "maybe"
+      ]
     , repo = "https://github.com/clipperz/purescript-promises"
     , version = "clipperz"
-  }
+    }
   with subtlecrypto =
     { dependencies =
       [ "aff"
@@ -170,13 +178,7 @@ in  upstream
     , version = "clipperz"
     }
   with uint =
-    { dependencies =
-      [ "prelude"
-      , "maybe"
-      , "numbers"
-      , "enums"
-      , "gen"
-      ]
+    { dependencies = [ "prelude", "maybe", "numbers", "enums", "gen" ]
     , repo = "https://github.com/clipperz/purescript-uint"
     , version = "clipperz"
     }

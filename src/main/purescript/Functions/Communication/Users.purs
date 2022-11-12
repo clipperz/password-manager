@@ -26,14 +26,14 @@ import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index)
-import DataModel.User (UserCard(..), IndexReference(..))
+import DataModel.User (UserCard(..), IndexReference(..), UserPreferences)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
 import Functions.Communication.Blobs (postBlob, getBlob, deleteBlob)
 import Functions.EncodeDecode (encryptJson)
 import Functions.Index (getIndexContent)
-import Functions.JSState (getAppState, modifyAppState)
+import Functions.JSState (getAppState, modifyAppState, updateAppState)
 import Functions.State (getHashFromState)
 
 getUserCard :: ExceptT AppError Aff UserCard
@@ -86,3 +86,12 @@ updateIndex newIndex = do
       ExceptT $ Right <$> (modifyAppState $ currentState { indexReference = Just newIndexReference})
     _ -> except $ Left $ InvalidStateError $ MissingValue "Missing p, c or indexReference"
 
+
+updateUserPreferences :: UserPreferences -> ExceptT AppError Aff Unit
+updateUserPreferences newUP = do
+  (UserCard userCard) <- getUserCard
+  let newUserCard = UserCard $ userCard { preferences = newUP }
+  let url = joinWith "/" ["users", show userCard.c]
+  let body = (json $ encodeJson {c: userCard.c, oldUserCard: userCard, newUserCard: newUserCard}) :: RequestBody
+  _ <- manageGenericRequest url PUT (Just body) RF.string
+  ExceptT $ updateAppState { userPreferences: Just newUP }
