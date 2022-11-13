@@ -1,4 +1,7 @@
-module OperationalWidgets.CreateCardWidget where
+module OperationalWidgets.CreateCardWidget
+  ( createCardWidget
+  )
+  where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)

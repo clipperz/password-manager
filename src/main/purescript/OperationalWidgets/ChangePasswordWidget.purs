@@ -1,4 +1,8 @@
-module OperationalWidgets.ChangePasswordWidget where
+module OperationalWidgets.ChangePasswordWidget
+  ( changePasswordWidget
+  , emptyChangePasswordDataForm
+  )
+  where
 
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, fireOnce, loopS, loopW)

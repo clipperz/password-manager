@@ -1,4 +1,7 @@
-module OperationalWidgets.HomePageWidget where
+module OperationalWidgets.HomePageWidget
+  ( HomePageAction
+  )
+  where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)

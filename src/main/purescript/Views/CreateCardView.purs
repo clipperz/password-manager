@@ -54,7 +54,7 @@ createCardView card allTags state = do
       removeField <- fireOnce $ simpleButton "x" false unit
       field' <- loopS field $ \(CardField { name, value, locked }) -> do
         { name', value' } <- div_ [Props.className "inputs"] do
-          name' :: String <- loopW name (simpleTextInputWidget ("name" <> strIndex) (text "Name") "Field name")
+          name'  :: String <- loopW name  (simpleTextInputWidget ("name" <> strIndex)  (text "Name")  "Field name")
           value' :: String <- loopW value (simpleTextInputWidget ("value" <> strIndex) (text "Value") "Field value")
           pure { name', value' }
         { generatePassword, locked' } <- div_ [] do
