@@ -19,6 +19,7 @@
   , "console"
   , "control"
   , "datetime"
+  , "debug"
   , "decimals"
   , "effect"
   , "either"
