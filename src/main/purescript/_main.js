@@ -1,5 +1,5 @@
-const { Even } = require("../../../target/output.purescript/Data.Int")
-const { delay } = require("../../../target/output.purescript/Effect.Aff")
+// const { Even } = require("../../../target/output.purescript/Data.Int")
+// const { delay } = require("../../../target/output.purescript/Effect.Aff")
 const Main = require ("../../../target/output.purescript/Main")
 
 function main () {
@@ -47,7 +47,9 @@ function main () {
 
     let hash = window.location.hash;
 
-    if (hash === "#registration") {
+    if (hash === "#test") {
+        Main.test();
+    } else if (hash === "#registration") {
         console.log("registration");
         Main.registration();
     } else if (hash === "#share…") {
@@ -55,7 +57,8 @@ function main () {
         Main.share("11111111111111");
     } else {
         console.log("main");
-        Main.main();
+        // Main.main();
+        Main.test();
     }
 }
 
