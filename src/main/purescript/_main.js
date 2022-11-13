@@ -57,8 +57,7 @@ function main () {
         Main.share("11111111111111");
     } else {
         console.log("main");
-        // Main.main();
-        Main.test();
+        Main.main();
     }
 }
 
