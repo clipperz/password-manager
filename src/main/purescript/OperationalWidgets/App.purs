@@ -68,7 +68,6 @@ data Action = DoLogout | ShowPage Page | DoLogin Credentials | DoSignup Credenti
 
 app' :: forall a. Action -> Widget HTML a
 app' action = do
-  traceM $ "Doing " <> show action
   nextAction:: Action <- exitBooting action <|>
     div [Props.className "mainDiv"] [
       headerPage (actionPage action) (Loading Nothing) []
@@ -89,7 +88,7 @@ app' action = do
     overlayFromAction action
     <|> 
     (liftAff $ doOp action)
-  log $ "page action " <> show nextAction
+  -- log $ "page action " <> show nextAction
   app' nextAction
 
 

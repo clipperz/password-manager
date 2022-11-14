@@ -7,6 +7,9 @@ function addKeyDownEventBubblingBlocker() {
         mutations.forEach(function(mutation) {
             for(var i = 0; i < mutation.addedNodes.length; i++)
                 mutation.addedNodes.forEach(node => {
+                    for (let item of document.forms) {
+                        item.addEventListener("submit", ev => { console.log(ev); ev.preventDefault() })
+                    }
                     try {
                         if (node.classList.contains("cardForm")) {
                             node.addEventListener("keydown", ev => {
