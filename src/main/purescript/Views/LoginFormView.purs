@@ -7,7 +7,7 @@ import Control.Semigroupoid ((<<<))
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, loopW, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', text, label, input, a)
+import Concur.React.DOM (div, div', form, text, label, input, a)
 import Concur.React.Props as Props
 import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (Either(..))
@@ -59,9 +59,9 @@ loginFormView state loginFormData = do
     formNoPassphrase :: WidgetState -> LoginDataForm -> Widget HTML Credentials
     formNoPassphrase st formData = 
       case st of
-        Default   -> div [] [              form formData]
-        Loading   -> div [] [loadingDiv,   form formData]
-        Error err -> div [] [errorDiv err, form formData]
+        Default   -> div [] [              formWidget formData]
+        Loading   -> div [] [loadingDiv,   formWidget formData]
+        Error err -> div [] [errorDiv err, formWidget formData]
 
     formPin :: String -> String -> WidgetState -> Storage -> Widget HTML Credentials
     formPin user encryptedPassphrase st storage = do
@@ -87,8 +87,8 @@ loginFormView state loginFormData = do
     errorDiv :: forall a. String -> Widget HTML a
     errorDiv err = div' [text err]
 
-    form :: LoginDataForm -> Widget HTML Credentials
-    form formData = div [Props.className "form"] [ do
+    formWidget :: LoginDataForm -> Widget HTML Credentials
+    formWidget formData = form [Props.className "form"] [ do
         signalResult <- demand $ do
           formValues <- loopS formData $ \{username: username, password: password} -> do
             -- username' <- simpleUserSignal username
@@ -123,7 +123,7 @@ loginFormView state loginFormData = do
     ]
 
     pinView :: Boolean -> String -> Widget HTML PinViewResult
-    pinView active pl = div [Props.className "form"] [
+    pinView active pl = form [Props.className "form"] [
         Pin <$> do
           signalResult <- demand $ do
             pin <- loopW (if active then pl else "00000") (\v -> div [] [ -- TODO: don't really understand why changing the placeholder here works

@@ -8,7 +8,7 @@ module OperationalWidgets.App
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, demand, loopS, loopW, always, fireOnce, hold, dyn)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text, ul, li, h1, h3, footer, header, span, a, button, div_, footer_, p_, ul_, li_, a_, h1_, h3_, header_, span_)
+import Concur.React.DOM (div, text, ul, li, p, h1, h3, footer, header, span, a, button, div_, footer_, p_, ul_, li_, a_, h1_, h3_, header_, span_)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
@@ -33,6 +33,7 @@ import Effect.Aff (delay, never, Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
+import Functions.Communication.Signup (signupUser)
 import Functions.Login (doLogin)
 import Functions.State (computeInitialState)
 import Functions.JSState (modifyAppState)
@@ -94,6 +95,7 @@ app' action = do
 
 overlayFromAction :: forall a. Action -> Widget HTML a
 overlayFromAction (DoLogin _) = overlay { status: Spinner, message: "loading" }
+overlayFromAction (DoSignup _) = overlay { status: Spinner, message: "loading" }
 overlayFromAction _ = overlay { status: Hidden, message: "loading" }
 -- ==================================================
 
@@ -145,6 +147,7 @@ headerPage currentPage page innerContent =
     , div [Props.className "content"] innerContent
     , otherComponent
     , footerComponent commitHash
+    , shortcutsDiv
     ]
   ]
 
@@ -179,6 +182,15 @@ footerComponent commit =
     ]
   ]
 
+shortcutsDiv = div [Props._id "shortcutsHelp", Props.className "hidden"] [
+  p [] [span [] [text "/"]], p [] [text "search"]
+, p [] [span [] [text "*"]], p [] [text "reset search"]
+, p [] [span [] [text "Enter, d, RightArrow"]], p [] [text "open card"]
+, p [] [span [] [text "Escape, a, LeftArrow"]], p [] [text "close card"]
+, p [] [span [] [text "w, UpArrow, s, DownArrow"]], p [] [text "Navigate between cards"]
+, p [] [span [] [text "lock"]], p [] [text "Lock"]
+]
+
 data OverlayStatus = Hidden | Spinner | Done | Failed -- | ProgressBar | Custom
 type OverlayInfo = { status :: OverlayStatus, message :: String }
 
@@ -208,8 +220,16 @@ doOp (DoLogin cred) = do
   case res of
     E.Right _ -> pure $ ShowMain
     E.Left err -> do
-      log $ show err
+      log $ "Login error: " <> (show err)
       pure $ ShowPage Login
+doOp (DoSignup cred) = do
+  log "hi"
+  res <- liftAff $ runExceptT $ signupUser cred
+  case res of
+    E.Right _ -> pure $ DoLogin cred
+    E.Left err -> do
+      log $ "Signup error: " <> (show err)
+      pure $ ShowPage Signup
 doOp (ShowPage (Loading (Just Login))) = do
   initialState <- liftEffect $ runExceptT $ computeInitialState
   case initialState of
@@ -257,33 +277,32 @@ app = do
 {-
 
 app :: Widget HTML Unit
-app = app' Nothing
+app = shortcutsDiv <|> (app' Nothing)
 
-where
-app' :: Maybe String -> Widget HTML Unit
-app' maybeUsername = do
-initialState' <- liftEffect $ runExceptT computeInitialState
-case initialState' of
-Right initialState@{proxy} -> do
-liftAff $ modifyAppState initialState
-let offlineCopyBanner = case proxy of
-OfflineProxy _ -> [p [Props.className "notice"] [text "Offline copy"]]
-_ -> []
-res <- div [Props.className "wrapper"] $ offlineCopyBanner <> [
-do
--- let form = fromMaybe emptyForm ((\u -> { username: u, password: "" }) <$> maybeUsername )
--- landingPageView (LoginView Default form)
--- !!! AUTOLOGIN FOR DEVELOPING !!! --
-let form = fromMaybe {username: "joe", password: "clipperz"} ((\u -> { username: u, password: "" }) <$> maybeUsername )
-landingPageView (LoginView Loading form)
--- -------------------------------- --
-homePageWidget
-]
-case res of
-Clean -> app' Nothing
-ReadyForLogin username -> app' (Just username)
+  where 
+    app' :: Maybe String -> Widget HTML Unit
+    app' maybeUsername = do
+      initialState' <- liftEffect $ runExceptT computeInitialState
+      case initialState' of
+        Right initialState@{proxy} -> do
+          liftAff $ modifyAppState initialState
+          let offlineCopyBanner = case proxy of
+                                    OfflineProxy _ -> [p [Props.className "notice"] [text "Offline copy"]]
+                                    _ -> []
+          res <- div [Props.className "wrapper"] $ offlineCopyBanner <> [
+            do
+            let form = fromMaybe emptyForm ((\u -> { username: u, password: "" }) <$> maybeUsername )
+            landingPageView (LoginView Default form)
+            -- !!! AUTOLOGIN FOR DEVELOPING !!! --
+            -- let form = fromMaybe {username: "joe", password: "clipperz"} ((\u -> { username: u, password: "" }) <$> maybeUsername )
+            -- landingPageView (LoginView Loading form)
+            -- -------------------------------- --
+            homePageWidget
+          ]
+          case res of
+            Clean -> app' Nothing
+            ReadyForLogin username -> app' (Just username)
 
 Left _ -> text "Could not initialize app"
-
-
 -}
+

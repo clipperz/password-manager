@@ -41,6 +41,34 @@ p.important {
 	height: 100%;
 }
 
+div.hidden {
+	@include hide-element
+}
+
+#shortcutsHelp:not(.hidden) {
+	width: 70%;
+	background-color: black;
+	color: white;
+	height: 40%;
+	position: absolute;
+	left: 25%;
+	top: 10%;
+	z-index: 15;
+	padding: 5px;
+	border-radius: 5px;
+	
+	display: flex;
+	flex-wrap: wrap;
+
+	& > p {
+		flex: 50%;
+		& > span {
+			color: yellow;
+			padding-right: 2em;
+		}
+	}
+}
+
 div.scrollable {
 	overflow-y: auto;
 	height: 100%;
