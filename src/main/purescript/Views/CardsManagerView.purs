@@ -52,8 +52,24 @@ instance showCardView :: Show CardView where
 
 data InternalAction = CardViewAction CardViewAction | ChangeFilter ComplexIndexFilter | KeyBoardAction Events.SyntheticKeyboardEvent 
 
-cardsManagerView :: Boolean -> Index -> ComplexIndexFilter -> CardViewState -> Maybe AppError -> Widget HTML (Tuple ComplexIndexFilter CardViewAction)
-cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ cardView: cv, cardViewState } error = do 
+type CardsViewInfo = {
+  index :: Index
+, indexFilter :: ComplexIndexFilter
+, selectedIndexPosition :: Maybe Int
+, cardViewState :: CardViewState
+, error :: Maybe AppError
+}
+
+mkCardsViewInfo :: Index -> ComplexIndexFilter -> Maybe Int -> CardViewState -> Maybe AppError -> CardsViewInfo
+mkCardsViewInfo index indexFilter selectedIndexPosition cardViewState error = { index, indexFilter, selectedIndexPosition, cardViewState, error }
+
+-- cardsManagerView :: Boolean -> Index -> ComplexIndexFilter -> CardViewState -> Maybe AppError -> Widget HTML (Tuple ComplexIndexFilter CardViewAction)
+cardsManagerView :: Boolean -> CardsViewInfo -> Widget HTML (Tuple CardsViewInfo CardViewAction)
+cardsManagerView isOffline currentInfo@{ index: i@(Index entries)
+                                       , indexFilter: cif@{archived, indexFilter}
+                                       , selectedIndexPosition
+                                       , cardViewState: cvs@{ cardView: cv, cardViewState } 
+                                       , error} = do 
   let cEntry = case cv of 
                 CardFromReference ce -> Just ce
                 _ -> Nothing
@@ -89,38 +105,58 @@ cardsManagerView isOffline i@(Index entries) cif@{archived, indexFilter} cvs@{ c
     ]
   ]
   case res of
-    CardViewAction (ShowCard ref) -> cardsManagerView isOffline i (removeLastCardFilter cif (Just ref)) { cardView: CardFromReference ref, cardViewState } Nothing -- TODO: discuss
-    CardViewAction action -> pure $ Tuple (removeLastCardFilter cif Nothing) action
+    CardViewAction (ShowCard ref) -> cardsManagerView isOffline { index: i
+                                                                , indexFilter: (removeLastCardFilter cif (Just ref))
+                                                                , selectedIndexPosition
+                                                                , cardViewState: { cardView: CardFromReference ref, cardViewState }
+                                                                , error: Nothing }
+    CardViewAction action -> pure $ Tuple (currentInfo { indexFilter = (removeLastCardFilter cif Nothing) }) action
     ChangeFilter newFilter -> do
       let f = complexToFilterFunc lastUses newFilter
       case cv of
-        CardFromReference ref -> if f ref then 
-            cardsManagerView isOffline i newFilter cvs Nothing
-          else 
-            cardsManagerView isOffline i newFilter { cardView: NoCard, cardViewState } Nothing
-        _ -> cardsManagerView isOffline i newFilter cvs Nothing
+        CardFromReference ref -> 
+            cardsManagerView isOffline { index: i
+                                       , indexFilter: newFilter
+                                       , selectedIndexPosition
+                                       , cardViewState: if f ref then cvs else { cardView: NoCard, cardViewState }
+                                       , error: Nothing }
+        _ -> cardsManagerView isOffline { index: i
+                                        , indexFilter: newFilter
+                                        , selectedIndexPosition
+                                        , cardViewState: cvs
+                                        , error: Nothing }
     KeyBoardAction ev -> do
       key <- liftEffect $ Events.key ev
       -- log $ "Key pressed: " <> key
       case key of
-        "l" -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing -- using a variable to factorize this behaviour breaks everything
-        "ArrowLeft" -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
-        "Escape" -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
+        "l" -> cardsManagerView isOffline closeCardInfo
+        "ArrowLeft" -> cardsManagerView isOffline closeCardInfo
+        "Escape" -> cardsManagerView isOffline closeCardInfo
         "h" -> 
           case sortedFilteredEntries of
-            Nil -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
-            Cons ref _ -> cardsManagerView isOffline i cif { cardView: CardFromReference ref, cardViewState: Default } Nothing
+            Nil -> cardsManagerView isOffline closeCardInfo
+            Cons ref _ -> cardsManagerView isOffline (openCardInfo ref)
         "ArrowRight" -> 
           case sortedFilteredEntries of
-            Nil -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
-            Cons ref _ -> cardsManagerView isOffline i cif { cardView: CardFromReference ref, cardViewState: Default } Nothing
+            Nil -> cardsManagerView isOffline closeCardInfo
+            Cons ref _ -> cardsManagerView isOffline (openCardInfo ref)
         "Enter" -> 
           case sortedFilteredEntries of
-            Nil -> cardsManagerView isOffline i cif { cardView: NoCard, cardViewState: Default } Nothing
-            Cons ref _ -> cardsManagerView isOffline i cif { cardView: CardFromReference ref, cardViewState: Default } Nothing
-        _  -> cardsManagerView isOffline i cif cvs Nothing
+            Nil -> cardsManagerView isOffline closeCardInfo
+            Cons ref _ -> cardsManagerView isOffline (openCardInfo ref)
+        _  -> cardsManagerView isOffline currentInfo
 
   where
+    closeCardInfo = { index: i
+                    , indexFilter: cif
+                    , selectedIndexPosition
+                    , cardViewState: { cardView: NoCard, cardViewState: Default }
+                    , error: Nothing }
+    openCardInfo ref = { index: i
+                       , indexFilter: cif
+                       , selectedIndexPosition
+                       , cardViewState: { cardView: CardFromReference ref, cardViewState: Default }
+                       , error: Nothing }
     removeLastCardFilter cf@{ archived: archived', indexFilter: indexFilter' } mRef =
       case indexFilter' of
         ComposedAndFilter (SpecificCardFilter ce) filter -> if (Just ce) == mRef then cf else{ archived: archived', indexFilter: filter }
