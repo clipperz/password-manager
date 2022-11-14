@@ -8,15 +8,18 @@ import Control.Applicative (pure)
 import Control.Semigroupoid ((<<<))
 import Control.Bind (bind, discard)
 import Data.Array (nub, sort)
+import Data.EuclideanRing (mod)
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.HeytingAlgebra ((||), not)
 import Data.List as List
-import Data.List (fold, filter, length, List(..))
+import Data.List (fold, filter, length, List(..), (!!), elemIndex)
 import Data.Maybe (Maybe(..))
 import Data.PrettyShow (prettyShow)
+import Data.Ring ((-))
 import Data.Semigroup ((<>))
+import Data.Semiring ((+))
 import Data.Show (class Show, show)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
@@ -104,10 +107,11 @@ cardsManagerView isOffline currentInfo@{ index: i@(Index entries)
       ]
     ]
   ]
+  log $ show selectedIndexPosition
   case res of
     CardViewAction (ShowCard ref) -> cardsManagerView isOffline { index: i
                                                                 , indexFilter: (removeLastCardFilter cif (Just ref))
-                                                                , selectedIndexPosition
+                                                                , selectedIndexPosition: elemIndex ref sortedFilteredEntries
                                                                 , cardViewState: { cardView: CardFromReference ref, cardViewState }
                                                                 , error: Nothing }
     CardViewAction action -> pure $ Tuple (currentInfo { indexFilter = (removeLastCardFilter cif Nothing) }) action
@@ -132,31 +136,56 @@ cardsManagerView isOffline currentInfo@{ index: i@(Index entries)
         "l" -> cardsManagerView isOffline closeCardInfo
         "ArrowLeft" -> cardsManagerView isOffline closeCardInfo
         "Escape" -> cardsManagerView isOffline closeCardInfo
-        "h" -> 
-          case sortedFilteredEntries of
-            Nil -> cardsManagerView isOffline closeCardInfo
-            Cons ref _ -> cardsManagerView isOffline (openCardInfo ref)
-        "ArrowRight" -> 
-          case sortedFilteredEntries of
-            Nil -> cardsManagerView isOffline closeCardInfo
-            Cons ref _ -> cardsManagerView isOffline (openCardInfo ref)
-        "Enter" -> 
-          case sortedFilteredEntries of
-            Nil -> cardsManagerView isOffline closeCardInfo
-            Cons ref _ -> cardsManagerView isOffline (openCardInfo ref)
+        "h" -> cardsManagerView isOffline openCardInfo
+        "ArrowRight" -> cardsManagerView isOffline openCardInfo
+        "Enter" -> cardsManagerView isOffline openCardInfo
+        "k" -> cardsManagerView isOffline moveUpInfo
+        "ArrowUp" -> cardsManagerView isOffline moveUpInfo
+        "j" -> cardsManagerView isOffline moveDownInfo
+        "ArrowDown" -> cardsManagerView isOffline moveDownInfo
         _  -> cardsManagerView isOffline currentInfo
 
   where
-    closeCardInfo = { index: i
-                    , indexFilter: cif
-                    , selectedIndexPosition
-                    , cardViewState: { cardView: NoCard, cardViewState: Default }
-                    , error: Nothing }
-    openCardInfo ref = { index: i
-                       , indexFilter: cif
-                       , selectedIndexPosition
-                       , cardViewState: { cardView: CardFromReference ref, cardViewState: Default }
-                       , error: Nothing }
+    closeCardInfo = 
+      case cv of
+        CardForm _ -> currentInfo
+        _ -> { index: i
+             , indexFilter: cif
+             , selectedIndexPosition
+             , cardViewState: { cardView: NoCard, cardViewState: Default }
+             , error: Nothing }
+    openCardInfo = 
+      case cv of
+        CardForm _ -> currentInfo
+        _ -> case selectedIndexPosition of
+          Nothing -> case sortedFilteredEntries of
+              Nil -> currentInfo
+              Cons ref _ -> currentInfo { selectedIndexPosition = Just 0, cardViewState = { cardView: CardFromReference ref, cardViewState: Default } }
+          Just n -> case sortedFilteredEntries !! n of
+            Nothing -> currentInfo
+            Just ref -> currentInfo { cardViewState = { cardView: CardFromReference ref, cardViewState: Default } }
+    moveUpInfo =
+      case cv of
+        NoCard -> currentInfo --{ selectedIndexPosition = ((\n -> (n - 1) `mod` (length shownEntries)) <$> selectedIndexPosition) }
+        CardForm _ -> currentInfo
+        _ -> case selectedIndexPosition of
+          Nothing -> currentInfo { selectedIndexPosition = Just 0 }
+          Just n -> let newN = (n - 1) `mod` (length shownEntries)
+                    in case sortedFilteredEntries !! newN of
+                      Nothing -> currentInfo
+                      Just ref -> currentInfo { selectedIndexPosition = Just newN, cardViewState = {cardView: CardFromReference ref, cardViewState: Default}}          
+    moveDownInfo =
+      case cv of
+        NoCard -> currentInfo --{ selectedIndexPosition = ((\n -> (n + 1) `mod` (length shownEntries)) <$> selectedIndexPosition) }
+        CardForm _ -> currentInfo
+        _ -> case selectedIndexPosition of
+          Nothing -> currentInfo { selectedIndexPosition = Just 0 }
+          Just n -> let newN = (n + 1) `mod` (length shownEntries)
+                    in case sortedFilteredEntries !! newN of
+                      Nothing -> currentInfo
+                      Just ref -> currentInfo { selectedIndexPosition = Just newN, cardViewState = {cardView: CardFromReference ref, cardViewState: Default}}
+                        
+
     removeLastCardFilter cf@{ archived: archived', indexFilter: indexFilter' } mRef =
       case indexFilter' of
         ComposedAndFilter (SpecificCardFilter ce) filter -> if (Just ce) == mRef then cf else{ archived: archived', indexFilter: filter }

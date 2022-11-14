@@ -45,9 +45,15 @@ function addShortcutsManagement() {
             view: window,
         }))
     })
+    // Mousetrap.bind(["l", "k", "j", "h", "left", "up", "right", "down", "esc", "enter"], function(ev) {
+        // console.log(document.getElementById("cardForm"))
+        // if (document.getElementById("cardForm") != null) {
+        // }
+    // })
     window.document.onkeydown = ev => {
+        // console.log(document.getElementById("cardForm"))
         if (ev.target.nodeName === "BODY") {
-            if (ev.type === "keydown") {
+            if (ev.type === "keydown" && document.getElementById("cardForm") == null) {
                 document.getElementById("cardsManager").dispatchEvent(new KeyboardEvent("keydown", ev))
             }
         }
