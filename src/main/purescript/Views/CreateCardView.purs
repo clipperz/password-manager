@@ -1,7 +1,7 @@
 module Views.CreateCardView where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, loopS, loopW, demand, fireOnce)
+import Concur.Core.FRP (Signal, loopS, loopW, demand, hold, fireOnce)
 import Concur.React (HTML)
 import Concur.React.DOM (div, div', text, div_, label, input, datalist, option)
 import Concur.React.Props as Props
@@ -29,7 +29,7 @@ import Effect.Class.Console (log)
 import Functions.JSState (getAppState)
 import Functions.Time (getCurrentTimestamp)
 import Views.PasswordGenerator (passwordGenerator)
-import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleTextInputWidget, simpleCheckboxSignal, disableOverlay, simpleTextAreaSignal)
+import Views.SimpleWebComponents (loadingDiv, simpleButton, confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, disableOverlay, simpleTextAreaSignal)
 
 createCardView :: Card -> Array String -> WidgetState -> Widget HTML (Maybe Card)
 createCardView card allTags state = do
@@ -127,6 +127,11 @@ createCardView card allTags state = do
                                       , archived: false
                                       , timestamp
                                       }
-      res <- fireOnce (div [Props.className "submitButtons"] [simpleButton "Cancel" false Nothing <|> simpleButton "Save" false (Just formValues)])
+      res <- fireOnce $ div [Props.className "submitButtons"] [cancelButton <|> simpleButton "Save" false (Just formValues)]
       -- TODO: add check for form validity
       pure res
+
+    cancelButton = do
+      _ <- simpleButton "Cancel" false Nothing 
+      confirmation <- confirmationWidget "Are you sure you want to exit without saving?"
+      if confirmation then pure Nothing else cancelButton
