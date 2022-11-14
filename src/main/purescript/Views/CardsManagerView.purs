@@ -107,7 +107,6 @@ cardsManagerView isOffline currentInfo@{ index: i@(Index entries)
       ]
     ]
   ]
-  log $ show selectedIndexPosition
   case res of
     CardViewAction (ShowCard ref) -> cardsManagerView isOffline { index: i
                                                                 , indexFilter: (removeLastCardFilter cif (Just ref))

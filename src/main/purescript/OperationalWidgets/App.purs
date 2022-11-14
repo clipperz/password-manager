@@ -2,8 +2,9 @@ module OperationalWidgets.App where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (text, p, div)
+import Concur.React.DOM (text, p, div, span)
 import Concur.React.Props as Props
+import Control.Alternative ((<|>))
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (Either(..))
@@ -23,7 +24,7 @@ import Views.LoginFormView (emptyForm)
 import Views.LandingPageView (landingPageView, LandingPageView(..))
 
 app :: Widget HTML Unit
-app = app' Nothing
+app = shortcutsDiv <|> (app' Nothing)
 
   where 
     app' :: Maybe String -> Widget HTML Unit
@@ -50,3 +51,12 @@ app = app' Nothing
             ReadyForLogin username -> app' (Just username)
 
         Left _ -> text "Could not initialize app"
+
+    shortcutsDiv = div [Props._id "shortcutsHelp", Props.className "hidden"] [
+      p [] [span [] [text "/"]], p [] [text "search"]
+    , p [] [span [] [text "*"]], p [] [text "reset search"]
+    , p [] [span [] [text "Enter, l, RightArrow"]], p [] [text "open card"]
+    , p [] [span [] [text "Escape, h, LeftArrow"]], p [] [text "close card"]
+    , p [] [span [] [text "k, UpArrow, j, DownArrow"]], p [] [text "Navigate between cards"]
+    , p [] [span [] [text "lock"]], p [] [text "Lock"]
+    ]
