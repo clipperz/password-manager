@@ -38,8 +38,8 @@ function addShortcutsManagement() {
         document.getElementById("generalFilter").focus();
         document.getElementById("generalFilter").blur();
     })
-    Mousetrap.bind(["l", "k", "j", "h", "left", "up", "right", "down", "esc", "enter"], function(ev) {
-        console.log(document.getElementById("cardForm"))
+    Mousetrap.bind(["a", "s", "d", "w", "left", "up", "right", "down", "esc", "enter"], function(ev) {
+        console.log(ev.key)
         if (ev.key === "Escape" && !document.getElementById("shortcutsHelp").classList.contains("hidden")) {
             try {
                 document.getElementById("shortcutsHelp").classList.add("hidden")

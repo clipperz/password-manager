@@ -55,8 +55,8 @@ app = shortcutsDiv <|> (app' Nothing)
     shortcutsDiv = div [Props._id "shortcutsHelp", Props.className "hidden"] [
       p [] [span [] [text "/"]], p [] [text "search"]
     , p [] [span [] [text "*"]], p [] [text "reset search"]
-    , p [] [span [] [text "Enter, l, RightArrow"]], p [] [text "open card"]
-    , p [] [span [] [text "Escape, h, LeftArrow"]], p [] [text "close card"]
-    , p [] [span [] [text "k, UpArrow, j, DownArrow"]], p [] [text "Navigate between cards"]
+    , p [] [span [] [text "Enter, d, RightArrow"]], p [] [text "open card"]
+    , p [] [span [] [text "Escape, a, LeftArrow"]], p [] [text "close card"]
+    , p [] [span [] [text "w, UpArrow, s, DownArrow"]], p [] [text "Navigate between cards"]
     , p [] [span [] [text "lock"]], p [] [text "Lock"]
     ]

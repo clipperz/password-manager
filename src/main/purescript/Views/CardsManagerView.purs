@@ -132,15 +132,15 @@ cardsManagerView isOffline currentInfo@{ index: i@(Index entries)
       key <- liftEffect $ Events.key ev
       -- log $ "Key pressed: " <> key
       case key of
-        "l" -> cardsManagerView isOffline closeCardInfo
+        "a" -> cardsManagerView isOffline closeCardInfo
         "ArrowLeft" -> cardsManagerView isOffline closeCardInfo
         "Escape" -> cardsManagerView isOffline closeCardInfo
-        "h" -> cardsManagerView isOffline openCardInfo
+        "d" -> cardsManagerView isOffline openCardInfo
         "ArrowRight" -> cardsManagerView isOffline openCardInfo
         "Enter" -> cardsManagerView isOffline openCardInfo
-        "k" -> cardsManagerView isOffline moveUpInfo
+        "w" -> cardsManagerView isOffline moveUpInfo
         "ArrowUp" -> cardsManagerView isOffline moveUpInfo
-        "j" -> cardsManagerView isOffline moveDownInfo
+        "s" -> cardsManagerView isOffline moveDownInfo
         "ArrowDown" -> cardsManagerView isOffline moveDownInfo
         _  -> cardsManagerView isOffline currentInfo
 
