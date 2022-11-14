@@ -38,26 +38,30 @@ function addShortcutsManagement() {
         document.getElementById("generalFilter").focus();
         document.getElementById("generalFilter").blur();
     })
-    Mousetrap.bind("l o c  k", function(ev) {
+    Mousetrap.bind(["l", "k", "j", "h", "left", "up", "right", "down", "esc", "enter"], function(ev) {
+        console.log(document.getElementById("cardForm"))
+        if (ev.key === "Escape" && !document.getElementById("shortcutsHelp").classList.contains("hidden")) {
+            try {
+                document.getElementById("shortcutsHelp").classList.add("hidden")
+            } catch (error) {}
+        } else {
+            if (document.getElementById("cardForm") == null && ev.target.nodeName === "BODY") {
+                document.getElementById("cardsManager").dispatchEvent(new KeyboardEvent("keydown", ev))
+            }
+        }
+    })
+    Mousetrap.bind("?", function(ev) {
+        console.log(document.getElementById("shortcutsHelp").classList)
+        document.getElementById("shortcutsHelp").classList.remove("hidden")
+        console.log(document.getElementById("shortcutsHelp").classList)
+    })
+    Mousetrap.bind("l o c k", function(ev) { // order is important
         document.getElementById("lockButton").dispatchEvent(new MouseEvent("click", {
             bubbles: true,
             cancelable: true,
             view: window,
         }))
     })
-    // Mousetrap.bind(["l", "k", "j", "h", "left", "up", "right", "down", "esc", "enter"], function(ev) {
-        // console.log(document.getElementById("cardForm"))
-        // if (document.getElementById("cardForm") != null) {
-        // }
-    // })
-    window.document.onkeydown = ev => {
-        // console.log(document.getElementById("cardForm"))
-        if (ev.target.nodeName === "BODY") {
-            if (ev.type === "keydown" && document.getElementById("cardForm") == null) {
-                document.getElementById("cardsManager").dispatchEvent(new KeyboardEvent("keydown", ev))
-            }
-        }
-    }
 }
 
 function main () {
