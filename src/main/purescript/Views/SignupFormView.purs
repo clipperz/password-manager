@@ -60,7 +60,7 @@ signupFormView state formData =
 
   where
     errorDiv err = div' [text err]
-    formWidget disabled = div [(Props.disabled disabled)] [
+    formWidget disabled = form [(Props.disabled disabled)] [
       do
         signalResult <- demand $ do
           formValues :: SignupDataForm <- loopS formData $ \{username: username, password: password, verifyPassword: verifyPassword, checkboxes: checkboxMap} -> do
