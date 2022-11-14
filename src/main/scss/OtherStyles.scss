@@ -291,6 +291,7 @@ div.hidden {
 #cardContent {
 	height: 100%;
 	overflow-y: auto;
+	color: $alternate-text-color;
 }
 
 .cardForm {
@@ -375,6 +376,7 @@ div.hidden {
 #indexView > ol > li {
 	min-height: 20px;
 	border-bottom: 0.5px solid rgba(128, 128, 128, 0.658);
+	color: $alternate-text-color;
 }
 
 #changePasswordArea {

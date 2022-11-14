@@ -1,5 +1,7 @@
 module OperationalWidgets.HomePageWidget
   ( HomePageAction
+  , HomePageExitStatus(..)
+  , homePageWidget
   )
   where
 
