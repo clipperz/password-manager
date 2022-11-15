@@ -2,7 +2,7 @@ const { Even } = require("../../../target/output.purescript/Data.Int")
 const { delay } = require("../../../target/output.purescript/Effect.Aff")
 const Main = require ("../../../target/output.purescript/Main")
 
-function addKeyDownEventBubblingBlocker() {
+function addEventBubblingBlockers() {
     const observer = new MutationObserver(mutations => {
         mutations.forEach(function(mutation) {
             for(var i = 0; i < mutation.addedNodes.length; i++)
@@ -16,6 +16,9 @@ function addKeyDownEventBubblingBlocker() {
                                 ev.stopImmediatePropagation();
                             })
                         } else {
+                            for (let item of document.getElementsByClassName("dropFile")) {
+                                ["drop", "dragover"].forEach(eventName => item.addEventListener(eventName, ev => { ev.stopPropagation(); ev.preventDefault();} ))
+                            }
                             document.getElementById("card").addEventListener("keydown", ev => {
                                 ev.stopImmediatePropagation();
                             })
@@ -83,8 +86,10 @@ function main () {
         However, you will need to change the type to accept variables, by default it is an Effect.
         You will probably want to make it a function from String -> Effect ()
     */
-    addKeyDownEventBubblingBlocker();
+    addEventBubblingBlockers();
     addShortcutsManagement();
+
+    window.addEventListener("drop", ev => console.log(ev))
 
     let hash = window.location.hash;
 

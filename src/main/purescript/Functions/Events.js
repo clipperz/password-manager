@@ -21,13 +21,35 @@ const _readFile = function (target) {
     }; 
 };
 
+const _readFileFromDrop = function (event) { 
+    return (onError, onSuccess) => {
+        let result = new Promise((resolve, reject) => {
+            var file = event.dataTransfer.files[0];
+            if (!file) {
+                reject("File not readable");
+            }
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                resolve(e.target.result);
+            };
+            reader.readAsText(file);
+        });
+
+        result.then(onSuccess).catch(onError);
+        return (cancelError, cancelerError, cancelerSuccess) => {
+        // Handle however you'd cancel the `o` (if the API supports it)
+        }
+    }; 
+};
+
 const renderElement = function(element) {
     return element.innerHTML;
 }
 
 export {
-    _readFile
-    , renderElement
+    _readFile,
+    _readFileFromDrop,
+    renderElement
 }
 
 // function _randomBytes(n) { return (onError, onSuccess) => {

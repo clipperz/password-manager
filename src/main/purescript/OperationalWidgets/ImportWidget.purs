@@ -39,7 +39,7 @@ import Functions.Communication.Users (updateIndex)
 import Functions.Import (decodeImport, parseHTMLImport, decodeHTML)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate)
 import Views.CardViews (cardField)
-import Views.SimpleWebComponents (loadingDiv, simpleFileInputWidget, simpleTextInputWidget, simpleTextAreaSignal, simpleCheckboxSignal, simpleButton)
+import Views.SimpleWebComponents (loadingDiv, simpleFileInputWidget, dragAndDropFileInputWidget, simpleTextInputWidget, simpleTextAreaSignal, simpleCheckboxSignal, simpleButton)
 
 data QuickSelection = All | None | Archived | NonArchived
 
@@ -60,11 +60,12 @@ importWidget index@(Index entries) = div [Props._id "importPage"] [h1 [] [text "
 
     importPage :: Maybe String -> ImportStep -> Widget HTML (Either AppError Index)
     importPage error (UploadContent pl) = do
-      res <- div [] [
+      res <- div [Props.className "importPage"] [
           text (fromMaybe "" error)
         , p [] [text "Import data from another Clipperz account using a JSON/HTML export file created by Clipperz."]
-        , div [] [
-            Left <$> (simpleFileInputWidget "import" (text "Import"))
+        , div [Props.className "importInput"] [
+            Left <$> ({- simpleFileInputWidget -} dragAndDropFileInputWidget "import" "Import")
+            -- Left <$> (simpleFileInputWidget "import" (text "Import"))
           , p [] [text "Alternatively you may type or paste any properly formatted JSON data."]
           , Right <$> (demand $ do
                                 textContent <- simpleTextAreaSignal "importText" (text "Import") "Type or copy your data here" pl
@@ -96,7 +97,7 @@ importWidget index@(Index entries) = div [Props._id "importPage"] [h1 [] [text "
           toImportCards = snd <$> (filter (\(Tuple b _) -> b) cards)
           toImport = length toImportCards
       in do
-          res <- div [] [
+          res <- div [Props.className "importPage"] [
             text $ "Import " <> (show toImport) <> " cards (of " <> (show total) <> ")?"
           , ((simpleButton "<<" false false) <|> (simpleButton "Import" false true))
           ]
@@ -106,7 +107,7 @@ importWidget index@(Index entries) = div [Props._id "importPage"] [h1 [] [text "
     cardSelectionWidget :: ImportStep -> Array (Tuple Boolean Card) -> Widget HTML ImportStep --(Array (Tuple Boolean Card))
     cardSelectionWidget goBackValue cards = do
       newTagWithDate <- (((<>) "Import_") <<< formatDateTimeToDate) <$> (liftEffect getCurrentDateTime)
-      res <- div [Props.className "scrollable"] [ 
+      res <- div [Props.classList (Just <$> ["importPage", "scrollable"])] [ 
           Left <$> selectWidget 
         , Right <$> (demand $ do
             newTag <- loopS { tag: newTagWithDate, cb: true } $ \v -> do

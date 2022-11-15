@@ -9,6 +9,7 @@ module Views.SimpleWebComponents
   , confirmationWidget
   , disableOverlay
   , disabledSimpleTextInputWidget
+  , dragAndDropFileInputWidget
   , loadingDiv
   , passwordStrengthShow
   , simpleButton
@@ -47,7 +48,7 @@ import Data.Function (($))
 import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not)
 import Data.Map (Map, lookup)
-import Data.Maybe (fromMaybe, Maybe)
+import Data.Maybe (fromMaybe, Maybe(..))
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
 import Data.Show (show)
@@ -55,7 +56,8 @@ import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Functions.Events (readFile)
+import Effect.Class.Console (log)
+import Functions.Events (readFile, readFileFromDrop)
 import Functions.Password (PasswordStrengthFunction, PasswordStrength)
 import React.SyntheticEvent (currentTarget, SyntheticEvent_, NativeEventTarget)
 
@@ -102,6 +104,24 @@ simpleFileInputWidget id lbl = do
     fromSyntheticEvent se = do
       nve <- liftEffect $ currentTarget se
       liftAff $ readFile nve
+
+data DragEvents a = DragEnter a | DragLeave a | Drop a
+
+dragAndDropFileInputWidget :: String -> String -> Widget HTML String
+dragAndDropFileInputWidget id lbl = do
+  (liftAff <<< readFileFromDrop) =<< (dropDiv false)
+
+  where 
+    dropDiv highlight = do
+      res <- div [ Props.classList (Just <$> (["dropFile"] <> if highlight then ["highlight"] else []))
+                 , Props._id id
+                 , DragEnter <$> Props.onDragEnter
+                 , DragLeave <$> Props.onDragLeave
+                 , Drop <$> Props.onDropCapture] [ text lbl ]
+      case res of
+        DragEnter _ -> dropDiv true
+        DragLeave _ -> dropDiv false
+        Drop a -> pure a
 
 simpleTextInputWidgetWithFocus :: String -> Widget HTML String -> String -> String -> Widget HTML String
 simpleTextInputWidgetWithFocus id lbl placeholder s = do

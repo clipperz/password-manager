@@ -283,6 +283,25 @@ div.hidden {
 	}
 }
 
+#importPage {
+	height: 100%;
+}
+
+div.importInput, div.importPage {
+	height: 100%;
+}
+
+div.dropFile.highlight {
+	border: 1px solid green;
+}
+
+div.dropFile {
+	position: relative;
+	width: 80%;
+	height: 30%;
+	border: 1px solid $alternate-color;
+}
+
 #indexView {
 	height: 100%;
 	width: 30%;
