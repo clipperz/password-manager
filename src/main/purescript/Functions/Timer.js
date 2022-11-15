@@ -1,16 +1,17 @@
 "use strict";
 
 var handle = null;
+var timeoutTime = 0;
+const resetEvents = ["click", "keydown"]
+const listener = _ => resetTimer(timeoutTime)
 
 function resetTimer(time) { clearTimeout(handle); handle = setTimer(time)}
 
-function setTimer(time, listeners) {
+function setTimer(time) {
     return setTimeout(ev => {
-        for (const key in listeners) {
-            if (Object.hasOwnProperty.call(listeners, key)) {
-                document.removeEventListener(key, listeners[key])
-            }
-        }
+        resetEvents.forEach(element => {
+            document.removeEventListener(element, listener)
+        });
         document.getElementById("lockButton").dispatchEvent(new MouseEvent("click", {
             bubbles: true,
             cancelable: true,
@@ -22,15 +23,19 @@ function setTimer(time, listeners) {
 const activateTimer = function(time) {
     return function() {
         // console.log("activate timer of " + time + " minutes")
-        const listener = _ => resetTimer(time)
-        document.addEventListener("click", listener)
-        document.addEventListener("keydown", listener)
-        handle = setTimer(time, {"click": listener, "keydown": listener})
+        timeoutTime = time
+        resetEvents.forEach(element => {
+            document.addEventListener(element, listener)
+        });
+        handle = setTimer(time)
         return;
     }
 }
 
 const stopTimer = function() {
+    resetEvents.forEach(element => {
+        document.removeEventListener(element, listener)
+    });
     clearTimeout(handle);
     return;
 }
