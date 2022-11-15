@@ -29,9 +29,9 @@ type LoginDataForm =  { username :: String
 emptyForm :: LoginDataForm
 emptyForm = { username: "", password: "" }
 
-loginView :: Widget HTML Credentials
-loginView = do
-  formWidget emptyForm
+loginView :: Credentials -> Widget HTML Credentials
+loginView credentials = do
+  formWidget credentials
 
   where 
     formWidget :: LoginDataForm -> Widget HTML Credentials

@@ -14,15 +14,17 @@ import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, (>>=), discard)
 import Control.Monad.Except.Trans (runExceptT)
+import Control.Semigroupoid ((<<<))
 import Data.Array (range)
 import Data.Either as E
 import Data.Eq ((==), class Eq)
 import Data.Formatter.Number (Formatter(..), format)
 import Data.Function (($))
 import Data.Functor (map, (<$), void, (<$>))
-import Data.Maybe (Maybe(..))
-import Data.Int (toNumber)
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Int (toNumber, fromString)
 import Data.Semigroup ((<>))
+import Data.Semiring ((+))
 import Data.Show(class Show, show)
 import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (sequence)
@@ -38,19 +40,28 @@ import Functions.Communication.Signup (signupUser)
 import Functions.Login (doLogin)
 import Functions.State (computeInitialState)
 import Functions.JSState (modifyAppState)
+import Effect.Class.Console (log)
+import Functions.Pin (decryptPassphrase, makeKey)
 import OperationalWidgets.HomePageWidget (homePageWidget)
--- import Views.LoginFormView (LoginDataForm, emptyForm)
+import Record (merge)
+import Views.LoginFormView (loginFormView', PinCredentials)
 import Views.SignupFormView (SignupDataForm, emptyDataForm, signupFormView)
 -- import Views.LandingPageView (landingPageView, LandingPageView(..))
 import Views.LoginView ( loginView )
+import Web.HTML (window)
+import Web.HTML.Window (localStorage)
+import Web.Storage.Storage (getItem, setItem, Storage)
 
 import Debug (traceM)
 
 commitHash :: String
 commitHash = "epsilon"
 
+emptyCredentials :: Credentials
+emptyCredentials = { username: "", password: "" }
+
 app :: forall a. Page -> Widget HTML a
-app nextPage = app' (ShowPage (Loading (Just nextPage)))
+app nextPage = app' (ShowPage (Loading (Just nextPage))) { credentials: emptyCredentials }
 
 -- ==================================================
 {-
@@ -65,27 +76,35 @@ type SharedCardReference = String
 type SharedCardPassword  = String
 
 data Page = Loading (Maybe Page) | Login | Signup | Share (Maybe SharedCardReference) | Main
-data Action = DoLogout | ShowPage Page | DoLogin Credentials | DoSignup Credentials | ShowSharedCard SharedCardReference SharedCardPassword | ShowMain
+data Action = DoLogout 
+            | ShowPage Page 
+            | DoLogin Credentials 
+            | DoLoginWithPin PinCredentials 
+            | DoSignup Credentials 
+            | ShowSharedCard SharedCardReference SharedCardPassword 
+            | ShowError Page 
+            | ShowSuccess Page 
+            -- | ShowMain
 
-app' :: forall a. Action -> Widget HTML a
-app' action = do
+app' :: forall a. Action -> { credentials :: Credentials } -> Widget HTML a
+app' action st@{ credentials } = do
   nextAction:: Action <- exitBooting action <|>
     div [Props.className "mainDiv"] [
       headerPage (actionPage action) (Loading Nothing) []
       , headerPage (actionPage action) Login [
-          (DoLogin <$> loginView) <|> ((ShowPage Signup) <$ button [Props.onClick] [text "=> signup"]) -- TODO: if login fails this is reset
+          (getLoginActionType <$> (loginFormView' credentials)) <|> ((ShowPage Signup) <$ button [Props.onClick] [text "=> signup"]) -- TODO: if login fails this is reset
           {-
             Even when using Signals, the moment the signal terminates because the user clicks "login" its value is lost, because the signal will be drawn anew
           -}
         ]
       , headerPage (actionPage action) Signup [
-          (DoSignup <$> (signupFormView WS.Default emptyDataForm)) <|> ((ShowPage Login) <$ button [Props.onClick] [text "<= login"])
+          (DoSignup <$> (signupFormView WS.Default $ merge credentials emptyDataForm)) <|> ((ShowPage Login) <$ button [Props.onClick] [text "<= login"])
         ]
       , div [Props.classList (Just <$> ["page", "main", show $ location (Share Nothing) (actionPage action)])] [
           div [Props.className "content"] [text "share"]
         ]
       , div [Props.classList (Just <$> ["page", "main", show $ location Main (actionPage action)])] [
-        DoLogout <$ (homePageWidget $ action == ShowMain)
+        DoLogout <$ (homePageWidget $ action == (ShowPage Main))
       ]
     ]
     <|>
@@ -93,12 +112,22 @@ app' action = do
     <|> 
     (liftAff $ doOp action)
   -- log $ "page action " <> show nextAction
-  app' nextAction
+  case nextAction of
+    DoLogin cred -> app' nextAction $ st { credentials = cred }
+    ShowPage Main -> app' nextAction $ st { credentials = emptyCredentials }
+    _ -> app' nextAction st
 
+  where 
+    getLoginActionType :: E.Either PinCredentials Credentials -> Action
+    getLoginActionType (E.Left pinCredentials) = DoLoginWithPin pinCredentials
+    getLoginActionType (E.Right credentials) = DoLogin credentials
 
 overlayFromAction :: forall a. Action -> Widget HTML a
-overlayFromAction (DoLogin _) = overlay { status: Spinner, message: "loading" }
-overlayFromAction (DoSignup _) = overlay { status: Spinner, message: "loading" }
+overlayFromAction (DoLogin _)        = overlay { status: Spinner, message: "loading" }
+overlayFromAction (DoLoginWithPin _) = overlay { status: Spinner, message: "loading" }
+overlayFromAction (DoSignup _)       = overlay { status: Spinner, message: "loading" }
+overlayFromAction (ShowError _)      = overlay { status: Failed, message: "error" }
+overlayFromAction (ShowSuccess _)    = overlay { status: Done, message: "" }
 overlayFromAction _ = overlay { status: Hidden, message: "loading" }
 -- ==================================================
 
@@ -137,10 +166,13 @@ exitBooting action                                = liftAff $ action            
 actionPage :: Action -> Page
 actionPage (ShowPage page)      = page
 actionPage (DoLogin _)          = Login
+actionPage (DoLoginWithPin _)   = Login
 actionPage (DoSignup _)         = Signup
 actionPage (ShowSharedCard r _) = Share (Just r)
-actionPage (ShowMain)           = Main
-actionPage (DoLogout)             = Login
+-- actionPage (ShowMain)           = Main
+actionPage (DoLogout)           = Login
+actionPage (ShowError page)     = page
+actionPage (ShowSuccess page)   = page
 
 headerPage :: forall a. Page -> Page -> Array (Widget HTML a) -> Widget HTML a
 headerPage currentPage page innerContent = 
@@ -221,10 +253,33 @@ doOp :: Action -> Aff Action
 doOp (DoLogin cred) = do
   res <- runExceptT $ doLogin cred
   case res of
-    E.Right _ -> pure $ ShowMain
+    E.Right _ -> pure $ ShowSuccess Main
     E.Left err -> do
       log $ "Login error: " <> (show err)
-      pure $ ShowPage Login
+      pure $ ShowError Login
+doOp (DoLoginWithPin {pin, user, passphrase}) = do
+  storage <- liftEffect $ window >>= localStorage
+  ei <- runExceptT $ decryptPassphrase pin user passphrase
+  case ei of
+    E.Right cred -> do
+      liftEffect $ setItem (makeKey "failures") (show 0) storage
+      pure (DoLogin cred)
+    E.Left e -> do
+      log $ show e
+      failures <- liftEffect $ getItem (makeKey "failures") storage
+      let count = (((fromMaybe 0) <<< fromString <<< (fromMaybe "")) failures) + 1
+      liftEffect $ setItem (makeKey "failures") (show count) storage
+      pure $ ShowError  Login
+
+  -- res <- runExceptT $ doLogin cred
+  -- case res of
+  --   E.Right _ -> pure $ ShowSuccess Main
+  --   E.Left err -> do
+  --     log $ "Login error: " <> (show err)
+  --     pure $ ShowError (Login)
+
+doOp (ShowSuccess nextPage) = (ShowPage nextPage) <$ delay (Milliseconds 500.0)
+doOp (ShowError nextPage)   = (ShowPage nextPage) <$ delay (Milliseconds 500.0)
 doOp (DoSignup cred) = do
   log "hi"
   res <- liftAff $ runExceptT $ signupUser cred
@@ -256,9 +311,12 @@ derive instance eqPage :: Eq Page
 instance showAction :: Show Action where
   show (ShowPage page)      = "Show Page " <> show page
   show (DoLogin _)          = "Do Login"
+  show (DoLoginWithPin _)   = "Do LoginWithPint"
   show (DoSignup _)         = "Do Signup"
   show (ShowSharedCard _ _) = "Show Shared Card"
-  show (ShowMain)           = "Show Main"
+  -- show (ShowMain)           = "Show Main"
+  show (ShowError page)     = "Show Error " <> show page 
+  show (ShowSuccess page)   = "Show Success " <> show page 
   show DoLogout = "DoLogout"
 
 derive instance eqAction :: Eq Action

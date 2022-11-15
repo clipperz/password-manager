@@ -12,7 +12,7 @@ import Effect (Effect)
 import OperationalWidgets.App (app, Page(..), SharedCardReference)
 
 main :: Effect Unit
-main = runWidgetInDom "app" (app Login)
+main = runWidgetInDom "app" (app (Loading (Just Login)))
 
 -- registration :: Effect Unit
 -- registration = runWidgetInDom "app" (app Signup)
