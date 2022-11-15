@@ -28,6 +28,7 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Users (updateUserPreferences)
 import Functions.JSState (getAppState)
+import Functions.Timer (activateTimer, stopTimer)
 import Views.PasswordGenerator (settingsWidget)
 import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleCheckboxWidget, simpleInputWidget)
 
@@ -47,7 +48,14 @@ userPreferencesWidget wstate = do
     go state up = do
       res <- case state of
         Default -> NewSettings <$> (div [] [userPreferencesView up])
-        Loading -> (NewSettings <$> (div [] [loadingDiv, userPreferencesView up])) <|> (SettingsChanged <$> (liftAff $ runExceptT $ updateUserPreferences up))
+        Loading -> do
+          let updateOp = do
+                          liftEffect $ stopTimer
+                          case up.automaticLock of
+                            Nothing -> pure unit
+                            Just n -> liftEffect $ activateTimer n
+                          liftAff $ runExceptT $ updateUserPreferences up
+          (NewSettings <$> (div [] [loadingDiv, userPreferencesView up])) <|> (SettingsChanged <$> updateOp)
         Error err -> NewSettings <$> (div [] [userPreferencesView up, errorDiv err])
       case res of
         NewSettings up' -> go Loading up'
@@ -70,13 +78,10 @@ userPreferencesWidget wstate = do
 
     automaticLockWidget :: Maybe Int -> Widget HTML (Maybe Int)
     automaticLockWidget lockTime = do
-      log $ show (fromMaybe 0 lockTime)
-      log "----"
       res <- div [] [
         ChangeEnable <$> simpleCheckboxWidget "lockEnabled" (text "Enable auto-lock") false (isJust lockTime)
       , ChangeValue <$> simpleInputWidget "lockTime" (text "Lock timeout:") (isNothing lockTime) "Lock time" (show (fromMaybe 0 lockTime)) "number"
       ]
-      log $ show lockTime
       case res of
         ChangeEnable false -> pure Nothing
         ChangeEnable true -> pure (Just 10)

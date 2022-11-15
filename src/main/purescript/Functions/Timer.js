@@ -33,6 +33,7 @@ const activateTimer = function(time) {
 }
 
 const stopTimer = function() {
+    // console.log("stop lock timer")
     resetEvents.forEach(element => {
         document.removeEventListener(element, listener)
     });
