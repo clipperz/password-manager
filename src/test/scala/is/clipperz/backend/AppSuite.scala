@@ -109,7 +109,7 @@ object AppSpec extends ZIOSpecDefault:
     srpVersion = "6a",
     masterKeyEncodingVersion = "1.0",
     masterKeyContent = HexString("f20d14d5152ea0659cbd2b7dedd3d284987391be7b2143e19b2281b50d9c0966b533f11a66ecf658bcc3706ec2136213d38eb0dc4e5020a1d0e30d9b8c901600"),
-    UserPreferences(PasswordGeneratorSettings(24, List(("abc", true)), "abcdefghilmnopqrstuvz"))
+    UserPreferences(PasswordGeneratorSettings(24, List(("abc", true)), "abcdefghilmnopqrstuvz"), None)
   )
 
   val signupData = SignupData(

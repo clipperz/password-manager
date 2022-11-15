@@ -20,14 +20,14 @@ case class UserCard(
     srpVersion: String,
     masterKeyEncodingVersion: String,
     masterKeyContent: HexString,
-    preferences: UserPreferences,
+    preferences: UserPreferences
   )
 
 object UserCard:
   implicit val decoder: JsonDecoder[UserCard] = DeriveJsonDecoder.gen[UserCard]
   implicit val encoder: JsonEncoder[UserCard] = DeriveJsonEncoder.gen[UserCard]
 
-case class UserPreferences(passwordGeneratorSettings: PasswordGeneratorSettings)
+case class UserPreferences(passwordGeneratorSettings: PasswordGeneratorSettings, automaticLock: Option[Int])
 
 object UserPreferences:
   implicit val decoder: JsonDecoder[UserPreferences] = DeriveJsonDecoder.gen[UserPreferences]

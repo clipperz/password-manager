@@ -57,6 +57,6 @@ userPreferencesWidget wstate = do
         _ <- hold unit $ void $ h1 [] [text "Preferences"]
         _ <- hold unit $ void $ h3 [] [text "Password generator"]
         pswdSettings <- loopW passwordGeneratorSettings settingsWidget
-        let newUP = { passwordGeneratorSettings: pswdSettings }
+        let newUP = up { passwordGeneratorSettings = pswdSettings }
         fireOnce (simpleButton "Change preferences" (pswdSettings == passwordGeneratorSettings) newUP)
     ]

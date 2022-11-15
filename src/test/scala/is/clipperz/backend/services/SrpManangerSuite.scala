@@ -65,7 +65,7 @@ object SrpManangerSpec extends ZIOSpecDefault:
                 srpVersion = "srpVersion_testFullTrip",
                 masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
                 masterKeyContent = HexString("masterKeyContent_testFullTrip"),
-                UserPreferences(PasswordGeneratorSettings(24, List(("abc", true)), "abcdefghilmnopqrstuvz"))
+                UserPreferences(PasswordGeneratorSettings(24, List(("abc", true)), "abcdefghilmnopqrstuvz"), Some(10))
               )
             )
 
@@ -144,7 +144,7 @@ object SrpManangerSpec extends ZIOSpecDefault:
                 srpVersion = "srpVersion_testFullTrip",
                 masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
                 masterKeyContent = HexString("masterKeyContent_testFullTrip"),
-                UserPreferences(PasswordGeneratorSettings(24, List(("abc", true)), "abcdefghilmnopqrstuvz"))
+                UserPreferences(PasswordGeneratorSettings(24, List(("abc", true)), "abcdefghilmnopqrstuvz"), Some(10))
               )
             )
 
