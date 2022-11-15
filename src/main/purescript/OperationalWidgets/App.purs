@@ -41,7 +41,7 @@ import Functions.Login (doLogin)
 import Functions.State (computeInitialState)
 import Functions.JSState (modifyAppState)
 import Effect.Class.Console (log)
-import Functions.Pin (decryptPassphrase, makeKey)
+import Functions.Pin (decryptPassphraseWithRemoval, makeKey)
 import OperationalWidgets.HomePageWidget (homePageWidget)
 import Record (merge)
 import Views.LoginFormView (loginFormView', PinCredentials)
@@ -259,25 +259,12 @@ doOp (DoLogin cred) = do
       pure $ ShowError Login
 doOp (DoLoginWithPin {pin, user, passphrase}) = do
   storage <- liftEffect $ window >>= localStorage
-  ei <- runExceptT $ decryptPassphrase pin user passphrase
+  ei <- runExceptT $ decryptPassphraseWithRemoval pin user passphrase
   case ei of
-    E.Right cred -> do
-      liftEffect $ setItem (makeKey "failures") (show 0) storage
-      pure (DoLogin cred)
+    E.Right cred -> pure (DoLogin cred)
     E.Left e -> do
       log $ show e
-      failures <- liftEffect $ getItem (makeKey "failures") storage
-      let count = (((fromMaybe 0) <<< fromString <<< (fromMaybe "")) failures) + 1
-      liftEffect $ setItem (makeKey "failures") (show count) storage
-      pure $ ShowError  Login
-
-  -- res <- runExceptT $ doLogin cred
-  -- case res of
-  --   E.Right _ -> pure $ ShowSuccess Main
-  --   E.Left err -> do
-  --     log $ "Login error: " <> (show err)
-  --     pure $ ShowError (Login)
-
+      pure $ ShowError Login
 doOp (ShowSuccess nextPage) = (ShowPage nextPage) <$ delay (Milliseconds 500.0)
 doOp (ShowError nextPage)   = (ShowPage nextPage) <$ delay (Milliseconds 500.0)
 doOp (DoSignup cred) = do
