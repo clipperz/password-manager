@@ -35,6 +35,7 @@ import DataModel.User (IndexReference(..), UserCard(..))
 import Effect (Effect)
 import Effect.Aff (Aff, makeAff)
 import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
 import Effect.Exception (error)
 import Foreign (readString)
 import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
@@ -115,14 +116,7 @@ getBasicHTML = do
 appendCardsDataInPlace :: Document -> List (Tuple HexString HexString) -> UserCard -> ExceptT String Aff Document
 appendCardsDataInPlace doc blobList (UserCard r) = do
   let blobsContent = "const blobs = { " <> (fold $ (\(Tuple k v) -> "\"" <> show k <> "\": \"" <> show v <> "\", " ) <$> blobList) <> "}"
-  let userCardContent = "const userCard = { " 
-                          <> "\"c\": \"" <> (show r.c) <> "\""
-                          <> ", \"v\": \"" <> (show r.v) <> "\""
-                          <> ", \"s\": \"" <> (show r.s) <> "\""
-                          <> ", \"srpVersion\": " <> (show r.srpVersion)
-                          <> ", \"masterKeyEncodingVersion\": " <> (show r.masterKeyEncodingVersion)
-                          <> ", \"masterKeyContent\": \"" <> (show r.masterKeyContent) <> "\""
-                          <> "}"
+  let userCardContent = "const userCard = " <> (AC.stringify $ encodeJson r)
   let prepareContent = "window.blobs = blobs; window.userCard = userCard;"
   let nodeContent = userCardContent <> ";\n" <> blobsContent <> ";\n" <> prepareContent
 

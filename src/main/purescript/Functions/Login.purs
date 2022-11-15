@@ -30,7 +30,7 @@ doLogin { username, password } = do
 
   withExceptT (prettyShow) (ExceptT $ updateAppState { username: Just username, password: Just password, c: Just c, p: Just p })
 
-  indexReference <- withExceptT (\_ -> "Login failed") login
+  indexReference <- withExceptT (\e -> show e{- "Login failed" -}) login
   (UserCard userCard) <- mapExceptT (\r -> (lmap show) <$> r) getUserCard
   withExceptT (prettyShow) (ExceptT $ updateAppState { userPreferences: Just userCard.preferences })
   pure $ indexReference

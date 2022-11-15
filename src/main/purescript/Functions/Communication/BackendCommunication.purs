@@ -56,6 +56,7 @@ import DataModel.Proxy (Proxy(..), BackendSessionState(..), BackendSessionRecord
 import DataModel.User (UserCard(..))
 import Effect.Aff (Aff, forkAff, delay)
 import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.JSState (getAppState, modifyAppState, updateAppState)
 import Functions.State (getSRPConf, getHashFunctionFromAppState)
@@ -205,7 +206,9 @@ doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInf
             let jsonString = stringify $ encodeJson {s, bb}
             ExceptT $ Right <$> (liftEffect $ BCFS.fromString jsonString)
           case res of
-            Left _ -> pure $ Left $ ResponseError 400 -- TODO
+            Left err -> do
+              log $ "login/step1" <> (show err)
+              pure $ Left $ ResponseError 400 -- TODO
             Right a -> pure $ Right $ { body: a, headers: [], status: StatusCode 200, statusText: "OK" }
         Just "login/step2", Just _, (Just (Json step)) -> do
           res :: Either AS.AppError (Maybe a) <- runExceptT $ do
@@ -217,8 +220,12 @@ doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInf
               Nothing -> except $ Right Nothing
               Just jsonString -> ExceptT $ (Right <<< Just) <$> (liftEffect $ BCFS.fromString jsonString)
           case res of
-            Left _ -> pure $ Left $ ResponseError 400 -- TODO:
-            Right Nothing -> pure $ Left $ ResponseError 400 
+            Left err -> do
+              log $ "login/step2" <> (show err)
+              pure $ Left $ ResponseError 400 -- TODO
+            Right Nothing -> do
+              log $ "login/step2 error in mJsonString"
+              pure $ Left $ ResponseError 400 -- TODO
             Right (Just a) -> pure $ Right $ { body: a, headers: [], status: StatusCode 200, statusText: "OK" }
         Just "logout", _, _ -> do
           res <- runExceptT $ do
