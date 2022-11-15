@@ -47,6 +47,12 @@ commitHash = "epsilon"
 app :: forall a. Page -> Widget HTML a
 app nextPage = app' (ShowPage (Loading (Just nextPage)))
 
+-- --------------------------------------------------
+
+-- app'' :: Page -> Signal HTML a
+-- app'' page = do
+  
+
 -- ==================================================
 {-
 type PageStatus =
@@ -67,25 +73,28 @@ app' action = do
   traceM $ "Doing " <> show action
   nextAction:: Action <- exitBooting action <|>
     (demand $ div_ [Props.className "mainDiv"] do
-      _ <- headerPage (actionPage action) (Loading Nothing) $ always unit
-      loginPageRes <- headerPage (actionPage action) Login $ do
-          loginRes <- ((<$>) DoLogin) <$> loginViewSignal
-          changeViewRes <- fireOnce $ (ShowPage Signup) <$ button [Props.onClick] [text "=> signup"]
-          traceM $ "loginRes " <> show loginRes
-          pure $ loginRes <|> changeViewRes
+      _             <- headerPage (actionPage action) (Loading Nothing) $ always unit
+      loginPageRes  <- headerPage (actionPage action) Login $ do
+          loginFormResult <- ((<$>) DoLogin) <$> loginViewSignal
+          loginChangeViewRes <- fireOnce $ (ShowPage Signup) <$ button [Props.onClick] [text "=> signup"]
+          traceM $ "login result: " <> show (loginFormResult <|> loginChangeViewRes)
+          pure $ loginFormResult <|> loginChangeViewRes
       signupPageRes <- headerPage (actionPage action) Signup $ do
         -- DoSignup <$> signupView,
-          fireOnce $ (ShowPage Login) <$ button [Props.onClick] [text "<= login"]
-      sharePageRes <- div_ [Props.classList (Just <$> ["page", "main", show $ location (Share Nothing) (actionPage action)])] $ do
+          signupFormResult <- ((<$>) DoSignup) <$> loginViewSignal
+          signupChangeViewRes <- fireOnce $ (ShowPage Login) <$ button [Props.onClick] [text "<= login"]
+          traceM $ "signup result: " <> show (signupFormResult <|> signupChangeViewRes)
+          pure $ signupFormResult <|> signupChangeViewRes
+      sharePageRes  <- div_ [Props.classList (Just <$> ["page", "main", show $ location (Share Nothing) (actionPage action)])] $ do
         _ <- div_ [Props.className "content"] (hold unit $ text "share")
         pure Nothing
-      mainPageRes <- div_ [Props.classList (Just <$> ["page", "main", show $ location Main (actionPage action)])] $ do
+      mainPageRes   <- div_ [Props.classList (Just <$> ["page", "main", show $ location Main (actionPage action)])] $ do
         _ <- div_ [Props.className "content"] (hold unit $ text "main")
         pure Nothing
       pure $ loginPageRes <|> signupPageRes <|> sharePageRes <|> mainPageRes)
     <|>
     overlay { status: Hidden, message: "loading" }
-  log $ "page action " <> show nextAction
+  log $ "--------------------\npage action " <> show nextAction <> "\n======================"
   app' nextAction
 
 -- ==================================================
@@ -131,9 +140,9 @@ actionPage (ShowMain)           = Main
 
 headerPage :: forall a. Page -> Page -> Signal HTML a -> Signal HTML a
 headerPage currentPage page innerContent = do
-  traceM $ "drawing headerPage"
+  traceM $ "drawing headerPage " <> show page
   div_ [Props.classList (Just <$> ["page", pageClassName page, show $ location currentPage page])] do
-    traceM "drawing content headerPage"
+    traceM $ "drawing content headerPage " <> show currentPage <> " [" <> show page <> "]"
     div_ [Props.className "content"] do
       headerComponent
       res <- div_ [Props.className "content"] innerContent
