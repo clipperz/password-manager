@@ -64,8 +64,7 @@ importWidget index@(Index entries) = div [Props._id "importPage"] [h1 [] [text "
           text (fromMaybe "" error)
         , p [] [text "Import data from another Clipperz account using a JSON/HTML export file created by Clipperz."]
         , div [Props.className "importInput"] [
-            Left <$> ({- simpleFileInputWidget -} dragAndDropFileInputWidget "import" "Import")
-            -- Left <$> (simpleFileInputWidget "import" (text "Import"))
+            Left <$> (dragAndDropFileInputWidget "import" "Import")
           , p [] [text "Alternatively you may type or paste any properly formatted JSON data."]
           , Right <$> (demand $ do
                                 textContent <- simpleTextAreaSignal "importText" (text "Import") "Type or copy your data here" pl

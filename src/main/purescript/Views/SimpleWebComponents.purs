@@ -105,11 +105,11 @@ simpleFileInputWidget id lbl = do
       nve <- liftEffect $ currentTarget se
       liftAff $ readFile nve
 
-data DragEvents a = DragEnter a | DragLeave a | Drop a
+data DragEvents a = DragEnter a | DragLeave a | Drop a | FileContent String
 
 dragAndDropFileInputWidget :: String -> String -> Widget HTML String
 dragAndDropFileInputWidget id lbl = do
-  (liftAff <<< readFileFromDrop) =<< (dropDiv false)
+  dropDiv false
 
   where 
     dropDiv highlight = do
@@ -117,11 +117,12 @@ dragAndDropFileInputWidget id lbl = do
                  , Props._id id
                  , DragEnter <$> Props.onDragEnter
                  , DragLeave <$> Props.onDragLeave
-                 , Drop <$> Props.onDropCapture] [ text lbl ]
+                 , Drop <$> Props.onDropCapture] [ FileContent <$> (simpleFileInputWidget "importButton" (text lbl)) ]
       case res of
         DragEnter _ -> dropDiv true
         DragLeave _ -> dropDiv false
-        Drop a -> pure a
+        Drop a -> liftAff $ readFileFromDrop a
+        FileContent s -> pure s
 
 simpleTextInputWidgetWithFocus :: String -> Widget HTML String -> String -> String -> Widget HTML String
 simpleTextInputWidgetWithFocus id lbl placeholder s = do
