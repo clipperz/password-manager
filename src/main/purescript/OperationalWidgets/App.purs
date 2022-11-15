@@ -72,7 +72,10 @@ app' action = do
     div [Props.className "mainDiv"] [
       headerPage (actionPage action) (Loading Nothing) []
       , headerPage (actionPage action) Login [
-          (DoLogin <$> loginView) <|> ((ShowPage Signup) <$ button [Props.onClick] [text "=> signup"])
+          (DoLogin <$> loginView) <|> ((ShowPage Signup) <$ button [Props.onClick] [text "=> signup"]) -- TODO: if login fails this is reset
+          {-
+            Even when using Signals, the moment the signal terminates because the user clicks "login" its value is lost, because the signal will be drawn anew
+          -}
         ]
       , headerPage (actionPage action) Signup [
           (DoSignup <$> (signupFormView WS.Default emptyDataForm)) <|> ((ShowPage Login) <$ button [Props.onClick] [text "<= login"])
