@@ -16,6 +16,7 @@ import Control.Bind (bind, (>>=), discard)
 import Control.Monad.Except.Trans (runExceptT)
 import Data.Array (range)
 import Data.Either as E
+import Data.Eq ((==), class Eq)
 import Data.Formatter.Number (Formatter(..), format)
 import Data.Function (($))
 import Data.Functor (map, (<$), void, (<$>))
@@ -84,7 +85,7 @@ app' action = do
           div [Props.className "content"] [text "share"]
         ]
       , div [Props.classList (Just <$> ["page", "main", show $ location Main (actionPage action)])] [
-        DoLogout <$ homePageWidget
+        DoLogout <$ (homePageWidget $ action == ShowMain)
       ]
     ]
     <|>
@@ -250,6 +251,8 @@ instance showPage :: Show Page where
   show (Share _)    = "Share"
   show (Main)       = "Main"
 
+derive instance eqPage :: Eq Page
+
 instance showAction :: Show Action where
   show (ShowPage page)      = "Show Page " <> show page
   show (DoLogin _)          = "Do Login"
@@ -258,6 +261,7 @@ instance showAction :: Show Action where
   show (ShowMain)           = "Show Main"
   show DoLogout = "DoLogout"
 
+derive instance eqAction :: Eq Action
 
 {-
 app :: Widget HTML Unit
