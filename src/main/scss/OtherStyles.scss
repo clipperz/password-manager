@@ -329,11 +329,61 @@ div.dropFile {
 		}
 	}
 }
+.test {
+	height: 100%;
+	width: 100%;
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+}
+
+.draggingElem {
+	opacity: 0.5;
+	// position: absolute;
+	border: 1px solid red;
+}
+
+.dropzone {
+	width: 50%;
+	background-color: blue;
+	height: 2px;
+}
+
+.dragHandle {
+	background-color: gray;
+	display: block;
+}
+
+.dropzone.selected {
+	background-color: green;
+	height: 10px;
+}
+
+.draggableElem {
+	padding: 5px
+}
+
+.selectedDropElement {
+	// padding: 10px;
+}
+
+.dragAndDropElem {
+	width: 100%;
+	border: 1px solid black;
+	background-color: white;
+	display: inline-flex;
+	flex-direction: column;
+}
+
+.dragAndDropElem.selected {
+	background-color: gray;
+}
 
 #cardForm {
 	height: 100%;
 	width: 70%;
 	border: 1px solid gray;
+	color: $alternate-text-color;
 }
 
 #cardContent {

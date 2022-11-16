@@ -1,5 +1,3 @@
-const { Even } = require("../../../target/output.purescript/Data.Int")
-const { delay } = require("../../../target/output.purescript/Effect.Aff")
 const Main = require ("../../../target/output.purescript/Main")
 
 function addEventBubblingBlockers() {
@@ -45,7 +43,7 @@ function addShortcutsManagement() {
         document.getElementById("generalFilter").blur();
     })
     Mousetrap.bind(["a", "s", "d", "w", "left", "up", "right", "down", "esc", "enter"], function(ev) {
-        console.log(ev.key)
+        // console.log(ev.key)
         if (ev.key === "Escape" && !document.getElementById("shortcutsHelp").classList.contains("hidden")) {
             try {
                 document.getElementById("shortcutsHelp").classList.add("hidden")
@@ -57,9 +55,9 @@ function addShortcutsManagement() {
         }
     })
     Mousetrap.bind("?", function(ev) {
-        console.log(document.getElementById("shortcutsHelp").classList)
+        // console.log(document.getElementById("shortcutsHelp").classList)
         document.getElementById("shortcutsHelp").classList.remove("hidden")
-        console.log(document.getElementById("shortcutsHelp").classList)
+        // console.log(document.getElementById("shortcutsHelp").classList)
     })
     Mousetrap.bind("l o c k", function(ev) { // order is important
         document.getElementById("lockButton").dispatchEvent(new MouseEvent("click", {
@@ -88,8 +86,6 @@ function main () {
     */
     addEventBubblingBlockers();
     addShortcutsManagement();
-
-    window.addEventListener("drop", ev => console.log(ev))
 
     let hash = window.location.hash;
 

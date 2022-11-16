@@ -10,6 +10,7 @@ module Views.SimpleWebComponents
   , disableOverlay
   , disabledSimpleTextInputWidget
   , dragAndDropFileInputWidget
+  , dragAndDropList
   , loadingDiv
   , passwordStrengthShow
   , simpleButton
@@ -38,29 +39,34 @@ import Concur.Core.FRP (Signal, loopW, loopS, display)
 import Concur.React (HTML)
 import Concur.React.DOM (text, textarea, input, label, div', div, button, li)
 import Concur.React.Props as Props
+import Control.Alt (class Alt, (<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (=<<))
 import Control.Semigroupoid ((<<<))
-import Data.Array (length, zipWith, range, updateAt)
+import Data.Array (length, zipWith, range, updateAt, intersperse, drop, take, dropEnd, takeEnd, (!!))
+import Data.Boolean (otherwise)
 import Data.Either (Either(..))
 import Data.Eq ((==))
 import Data.Function (($))
-import Data.Functor ((<$), (<$>))
+import Data.Functor ((<$), (<$>), class Functor)
 import Data.HeytingAlgebra (not)
 import Data.Map (Map, lookup)
 import Data.Maybe (fromMaybe, Maybe(..))
+import Data.Ord ((>))
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
-import Data.Show (show)
+import Data.Semiring ((+))
+import Data.Show (show, class Show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
-import Functions.Events (readFile, readFileFromDrop)
+import Functions.Events (readFile, readFileFromDrop, getClickCoordinates, printEvent)
 import Functions.Password (PasswordStrengthFunction, PasswordStrength)
-import React.SyntheticEvent (currentTarget, SyntheticEvent_, NativeEventTarget)
+import React.SyntheticEvent (currentTarget, preventDefault, SyntheticEvent_, NativeEventTarget, SyntheticMouseEvent)
 
+import Debug (traceM)
 
 simpleTextAreaWidget :: String -> Widget HTML String -> String -> String -> Widget HTML String
 simpleTextAreaWidget id lbl placeholder content = do
@@ -105,7 +111,7 @@ simpleFileInputWidget id lbl = do
       nve <- liftEffect $ currentTarget se
       liftAff $ readFile nve
 
-data DragEvents a = DragEnter a | DragLeave a | Drop a | FileContent String
+data DragFileEvents a = DragEnter a | DragLeave a | Drop a | FileContent String
 
 dragAndDropFileInputWidget :: String -> String -> Widget HTML String
 dragAndDropFileInputWidget id lbl = do
@@ -321,7 +327,139 @@ complexMenu mId mClass arr = do
       case res of 
         Left bool -> pure $ Left $ fromMaybe booleans (updateAt index bool booleans)
         Right a -> pure $ Right a
+
+data OnDraggableEvents a b = StartDrag a | StopDrag a | Dragging a | Value b
+instance showOnDraggableEvents :: Show (OnDraggableEvents a b) where
+  show (StartDrag a) = "StartDrag"
+  show (StopDrag a) = "StopDrag"
+  show (Dragging a) = "Dragging"
+  show (Value b) = "Value"
+
+data OnDropAreaEvents a = EvDrop a | EvDragEnter a | EvDragLeave a | EvDragOver a
+instance showOnDropAreaEvents :: Show (OnDropAreaEvents a) where
+  show (EvDrop a) = "EvDrop"
+  show (EvDragEnter a) = "EvDragEnter"
+  show (EvDragLeave a) = "EvDragLeave"
+  show (EvDragOver a) = "EvDragOver"
+
+type DraggableWidgetResult a = { isDragging :: Boolean, widget :: Widget HTML a }
+
+draggableWidget :: forall a. Boolean -> Widget HTML a -> Widget HTML (DraggableWidgetResult a)
+draggableWidget isDragging widget = do
+  res <- div ([ Props.draggable true
+              , Props.classList [Just "draggableElem", (if isDragging then Just "draggingElem" else Nothing)]]
+              <> if isDragging then [StopDrag <$> Props.onDragEnd] else [StartDrag <$> Props.onDragStart]
+              ) 
+            [Value <$> widget, text (show isDragging)]
+  case res of
+    StartDrag ev -> pure { isDragging: true, widget}
+    StopDrag ev -> pure { isDragging: false, widget}
+    Dragging ev -> pure { isDragging: true, widget}
+    Value a -> pure { isDragging, widget: pure a }
+
+type DroppableAreaResult = { isSelected :: Boolean, result :: (OnDropAreaEvents SyntheticMouseEvent) }
+
+droppableArea :: Boolean -> Widget HTML DroppableAreaResult
+droppableArea isSelected = do
+  result <- div [ Props.classList [Just "dropzone", (if isSelected then Just "selected" else Nothing)]
+                , EvDrop <$> Props.onDrop
+                , EvDragLeave <$> Props.onDragLeave
+                , EvDragEnter <$> Props.onDragEnter
+                , EvDragOver <$> Props.onDragOver
+                ] []
+  case result of
+    EvDragOver ev -> do
+      liftEffect $ preventDefault ev
+      pure { isSelected: true, result }
+    EvDragEnter ev -> do
+      -- liftEffect $ preventDefault ev
+      pure { isSelected: true, result }
+    EvDragLeave ev -> do
+      -- liftEffect $ preventDefault ev
+      pure { isSelected: false, result }
+    EvDrop ev -> do
+      pure { isSelected, result }
+
+dragAndDropList :: forall a. Array (Widget HTML a) -> Widget HTML a
+dragAndDropList widgets = do
+  let draggableWidgets = (draggableWidget false) <$> widgets
+  let unselectedDroppableArea = droppableArea false
+  let listElems = [Right <$> unselectedDroppableArea] 
+               <> (intersperse (Right <$> unselectedDroppableArea) (((<$>) Left) <$> draggableWidgets)) 
+               <> [Right <$> unselectedDroppableArea]
+  let indexes = range 0 ((length listElems) - 1)
+  let indexedList = zipWith zipFunc indexes listElems
+  go indexedList Nothing
+
+  where
+    go elements draggedElemIndex = do
+      res@{ index, result } <- div [Props.className "test"] elements
+      case result of
+        Left { isDragging, widget } -> do
+          let newElem = zipFunc index (Left <$> (draggableWidget isDragging widget))
+          let newElements = updateAt index newElem elements
+          case newElements of
+            Nothing -> do
+              log "error"
+              go elements draggedElemIndex
+            Just elements' -> go elements' (if isDragging then (Just index) else Nothing)
+        Right { isSelected, result: result' } -> do
+          case result' of
+            EvDrop a -> 
+              case draggedElemIndex of
+                Nothing -> do
+                  log "error 2"
+                  go elements draggedElemIndex
+                Just ix -> 
+                  let newElements = prepareNewElements ix index elements
+                  in do
+                    log "dragged, dropped, redrawn"
+                    go newElements Nothing
+            _ -> do
+              let newElem = zipFunc index (Right <$> (droppableArea isSelected))
+              let newElements = updateAt index newElem elements
+              case newElements of
+                Nothing -> do
+                  log "error 3"
+                  go elements draggedElemIndex
+                Just elements' -> go elements' draggedElemIndex          
     
+    zipFunc :: Int 
+            -> Widget HTML (Either (DraggableWidgetResult a) DroppableAreaResult) 
+            -> Widget HTML { index :: Int, result :: (Either (DraggableWidgetResult a) DroppableAreaResult) }
+    zipFunc index w = (\result -> {index, result}) <$> w
 
+    deselect :: { index :: Int, result :: (Either (DraggableWidgetResult a) DroppableAreaResult) } 
+                              -> { index :: Int, result :: (Either (DraggableWidgetResult a) DroppableAreaResult) }
+    deselect { index, result: (Right r)} = { index, result: Right (r { isSelected = false })}
+    deselect { index, result: (Left r)} = { index, result: Left (r { isDragging = false })}
 
-
+    prepareNewElements :: Int 
+                       -> Int 
+                       -> Array (Widget HTML { index :: Int, result :: (Either (DraggableWidgetResult a) DroppableAreaResult) })
+                       -> Array (Widget HTML { index :: Int, result :: (Either (DraggableWidgetResult a) DroppableAreaResult) })
+    prepareNewElements elemIndex areaIndex elements 
+      | elemIndex > areaIndex =
+          let untouchedFirstElems = take (areaIndex + 1) elements
+              untouchedLastElems = drop (elemIndex + 1) elements
+              elemsToBeShifted = takeEnd (elemIndex - areaIndex - 1) $ take (elemIndex - 1) elements
+              shiftedElems = ((<$>) (\{index, result} -> { index: index + 2, result})) <$> elemsToBeShifted
+          in ((<$>) deselect) <$> case elements !! elemIndex of
+              Nothing -> elements
+              Just elem -> untouchedFirstElems
+                          <> [(\{index, result} -> { index: areaIndex + 1, result}) <$> (deselect <$> elem)]
+                          -- <> [(\dar -> {index: areaIndex + 2, result: Right dar}) <$> (droppableArea false)]
+                          <> shiftedElems
+                          <> untouchedLastElems
+      | otherwise = 
+          let untouchedFirstElems = take elemIndex elements
+              untouchedLastElems = drop areaIndex elements
+              elemsToBeShifted = takeEnd (areaIndex - elemIndex - 2) $ take areaIndex elements
+              shiftedElems = ((<$>) (\{index, result} -> { index: index - 2, result})) <$> elemsToBeShifted
+          in ((<$>) deselect) <$> case elements !! elemIndex of
+              Nothing -> elements
+              Just elem -> untouchedFirstElems
+                          <> shiftedElems
+                          <> [(\dar -> {index: areaIndex + 2, result: Right dar}) <$> (droppableArea false)]
+                          <> [(\{index, result} -> { index: areaIndex + 1, result}) <$> (deselect <$> elem)]
+                          <> untouchedLastElems

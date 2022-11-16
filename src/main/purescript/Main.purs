@@ -11,8 +11,22 @@ import Concur.React.Run (runWidgetInDom)
 import Effect (Effect)
 import OperationalWidgets.App (app, Page(..), SharedCardReference)
 
+import Concur.React.DOM (div, text)
+import Views.SimpleWebComponents (dragAndDropList)
+import Concur.React.Props as Props
+
 main :: Effect Unit
-main = runWidgetInDom "app" (app (Loading (Just Login)))
+main = runWidgetInDom "app" (div [Props.className "test"] [
+  dragAndDropList [ (text "ciao1")
+                  , (text "ciao2")
+                  , (text "ciao3")
+                  , (text "ciao4")
+                  , (text "ciao5")
+  ]
+])
+
+-- main :: Effect Unit
+-- main = runWidgetInDom "app" (app (Loading (Just Login)))
 
 -- registration :: Effect Unit
 -- registration = runWidgetInDom "app" (app Signup)

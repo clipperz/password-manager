@@ -46,10 +46,27 @@ const renderElement = function(element) {
     return element.innerHTML;
 }
 
+const _getXClickCoordinates = function(ev) {
+    return ev.clientX;
+}
+
+const _getYClickCoordinates = function(ev) {
+    return ev.clientY;
+}
+
+const printEvent = function(ev) {
+    return function() {
+        console.log(ev)
+    }
+}
+
 export {
     _readFile,
     _readFileFromDrop,
-    renderElement
+    renderElement,
+    _getXClickCoordinates,
+    _getYClickCoordinates,
+    printEvent
 }
 
 // function _randomBytes(n) { return (onError, onSuccess) => {
