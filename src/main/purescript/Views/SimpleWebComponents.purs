@@ -396,7 +396,7 @@ droppableArea isSelected = do
       pure { isSelected: false, result }
     EvDrop ev -> do
       liftEffect $ preventDefault ev
-      pure { isSelected, result }
+      pure { isSelected: false, result }
 
 type DraggableWidget a = Widget HTML (DraggableWidgetResult a)
 type DraggableWidgetType a = { widgetFunc :: a -> Widget HTML a, widget :: DraggableWidget a } 
@@ -489,9 +489,15 @@ dragAndDropList widgets = do
             EvDrop a -> do
               case selectedIndex of
                 Just ix -> do
-                  -- traceM $ (show index) <> " " <> (show ix)
-                  let newElements = prepareNewElements widgets ix index
-                  go newElements Nothing
+                  let newElem = includeEither $ Left $ droppableArea false
+                  let newElements = updateAt index newElem widgets
+                  case newElements of
+                    Nothing -> do
+                      log "error 0.5"
+                      go widgets selectedIndex
+                    Just elements -> do
+                      let newElements' = prepareNewElements elements ix index
+                      go newElements' Nothing
                 Nothing -> do
                   log "error1"
                   go widgets selectedIndex
