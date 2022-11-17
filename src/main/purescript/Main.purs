@@ -1,7 +1,7 @@
 module Main
   ( main
-  -- , registration
-  -- , share
+  , registration
+  , share
   )
   where
 
@@ -11,31 +11,14 @@ import Concur.React.Run (runWidgetInDom)
 import Effect (Effect)
 import OperationalWidgets.App (app, Page(..), SharedCardReference)
 
-import Concur.React.DOM (div, text)
-import Views.SimpleWebComponents (dragAndDropList)
-import Concur.React.Props as Props
-import Data.Tuple (Tuple(..))
-import Data.Unit (unit)
-import Data.Functor (void)
-
 main :: Effect Unit
-main = runWidgetInDom "app" (div [Props.className "test"] [
-  dragAndDropList [ Tuple unit (\_ -> void (text "-1-"))
-                  , Tuple unit (\_ -> void (text "-2-"))
-                  , Tuple unit (\_ -> void (text "-3-"))
-                  , Tuple unit (\_ -> void (text "-4-"))
-                  , Tuple unit (\_ -> void (text "-5-"))
-  ]
-])
+main = runWidgetInDom "app" (app (Loading (Just Login)))
 
--- main :: Effect Unit
--- main = runWidgetInDom "app" (app (Loading (Just Login)))
+registration :: Effect Unit
+registration = runWidgetInDom "app" (app Signup)
 
--- registration :: Effect Unit
--- registration = runWidgetInDom "app" (app Signup)
-
--- share :: String -> Effect Unit
--- share token = runWidgetInDom "app" (app (Share (Just token)))
+share :: String -> Effect Unit
+share token = runWidgetInDom "app" (app (Share (Just token)))
 
 -- import Data.Function (($))
 -- import Concur.Core.FRP (demand, hold, loopS, dyn)
