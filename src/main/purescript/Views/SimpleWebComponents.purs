@@ -70,8 +70,6 @@ import Functions.Events (readFile, readFileFromDrop, getClickCoordinates, printE
 import Functions.Password (PasswordStrengthFunction, PasswordStrength)
 import React.SyntheticEvent (currentTarget, preventDefault, SyntheticEvent_, NativeEventTarget, SyntheticMouseEvent)
 
-import Debug (traceM)
-
 simpleTextAreaWidget :: String -> Widget HTML String -> String -> String -> Widget HTML String
 simpleTextAreaWidget id lbl placeholder content = do
   div [Props.className "textarea"] [
@@ -361,15 +359,9 @@ draggableWidget isDragging initialState widgetFunc = do
             [Value <$> (widgetFunc initialState), text (show isDragging)]
   case res of
     -- do not prevent defaults, otherwise strange behaviours occur
-    StartDrag ev -> do
-      traceM $ show res
-      pure $ DraggableWidgetResult { isDragging: true, exitState: initialState }
-    EndDrag ev -> do
-      traceM $ show res
-      pure $ DraggableWidgetResult { isDragging: false, exitState: initialState }
-    Dragging ev -> do
-      traceM $ show res
-      pure $ DraggableWidgetResult { isDragging: true, exitState: initialState }
+    StartDrag ev -> pure $ DraggableWidgetResult { isDragging: true, exitState: initialState }
+    EndDrag ev -> pure $ DraggableWidgetResult { isDragging: false, exitState: initialState }
+    Dragging ev -> pure $ DraggableWidgetResult { isDragging: true, exitState: initialState }
     Value a -> pure $ DraggableWidgetResult { isDragging, exitState: a }
 
 type DroppableAreaResult = { isSelected :: Boolean, result :: (OnDropAreaEvents SyntheticMouseEvent) }
@@ -484,10 +476,8 @@ dragAndDropList widgets = do
       let zipped = zipWith (\i -> \w -> { index: i, wi: w}) (range 0 (length widgets)) widgets
       let newWidgets = (\{index, wi} -> (\r -> {index, res: r}) <$> wi) <$> zipped
       {index, res} <- div [Props.className "dragAndDropList"] newWidgets
-      traceM $ "Result from " <> (show index)
       case res of 
         Left { isSelected, result } -> do
-          traceM $ "Left " <> (show index) <> " " <> (show result)
           case result of
             EvDrop a -> do
               case selectedIndex of
@@ -529,7 +519,6 @@ dragAndDropList widgets = do
                   go widgets selectedIndex
                 Just elements' -> go elements' selectedIndex  
         Right { widgetFunc, result: DraggableWidgetResult { isDragging, exitState } } -> do
-          traceM $ "Right " <> (show index)
           let newElem = (mapDraggableWidget (mapWidget isDragging (Tuple exitState widgetFunc))) :: Widget HTML (DraggableSupportType a)
           let newElem' = includeEither $ Right newElem
           let newElements = updateAt index newElem' widgets
