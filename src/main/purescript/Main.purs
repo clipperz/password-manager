@@ -14,14 +14,17 @@ import OperationalWidgets.App (app, Page(..), SharedCardReference)
 import Concur.React.DOM (div, text)
 import Views.SimpleWebComponents (dragAndDropList)
 import Concur.React.Props as Props
+import Data.Tuple (Tuple(..))
+import Data.Unit (unit)
+import Data.Functor (void)
 
 main :: Effect Unit
 main = runWidgetInDom "app" (div [Props.className "test"] [
-  dragAndDropList [ (text "ciao1")
-                  , (text "ciao2")
-                  , (text "ciao3")
-                  , (text "ciao4")
-                  , (text "ciao5")
+  dragAndDropList [ Tuple unit (\_ -> void (text "-1-"))
+                  , Tuple unit (\_ -> void (text "-2-"))
+                  , Tuple unit (\_ -> void (text "-3-"))
+                  , Tuple unit (\_ -> void (text "-4-"))
+                  , Tuple unit (\_ -> void (text "-5-"))
   ]
 ])
 

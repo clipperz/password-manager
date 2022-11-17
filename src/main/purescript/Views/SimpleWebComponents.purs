@@ -41,24 +41,28 @@ import Concur.React.DOM (text, textarea, input, label, div', div, button, li)
 import Concur.React.Props as Props
 import Control.Alt (class Alt, (<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard, (=<<))
+import Control.Bind (bind, discard, (=<<), (>>=))
 import Control.Semigroupoid ((<<<))
-import Data.Array (length, zipWith, range, updateAt, intersperse, drop, take, dropEnd, takeEnd, (!!))
+import Data.Array (length, zipWith, range, updateAt, filter, intersperse, drop, take, sortWith, union, dropEnd, takeEnd, (!!))
+import Data.Bifunctor (lmap, rmap)
 import Data.Boolean (otherwise)
 import Data.Either (Either(..))
+import Data.Enum (enumFromThenTo)
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>), class Functor)
 import Data.HeytingAlgebra (not)
+import Data.Int (even, odd)
 import Data.Map (Map, lookup)
 import Data.Maybe (fromMaybe, Maybe(..))
 import Data.Ord ((>))
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
-import Data.Semiring ((+))
+import Data.Semiring ((+), (*))
 import Data.Show (show, class Show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
+import Data.Unit (unit)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
@@ -328,10 +332,12 @@ complexMenu mId mClass arr = do
         Left bool -> pure $ Left $ fromMaybe booleans (updateAt index bool booleans)
         Right a -> pure $ Right a
 
-data OnDraggableEvents a b = StartDrag a | StopDrag a | Dragging a | Value b
+------------------------------------
+
+data OnDraggableEvents a b = StartDrag a | EndDrag a | Dragging a | Value b
 instance showOnDraggableEvents :: Show (OnDraggableEvents a b) where
   show (StartDrag a) = "StartDrag"
-  show (StopDrag a) = "StopDrag"
+  show (EndDrag a) = "EndDrag"
   show (Dragging a) = "Dragging"
   show (Value b) = "Value"
 
@@ -342,28 +348,33 @@ instance showOnDropAreaEvents :: Show (OnDropAreaEvents a) where
   show (EvDragLeave a) = "EvDragLeave"
   show (EvDragOver a) = "EvDragOver"
 
-newtype DraggableWidgetResult a = DraggableWidgetResult { isDragging :: Boolean, widget :: Widget HTML a }
+newtype DraggableWidgetResult a = DraggableWidgetResult { isDragging :: Boolean, exitState :: a }
 instance showDraggableWidgetResult :: Show (DraggableWidgetResult a) where
   show (DraggableWidgetResult {isDragging}) = "DWR " <> (show isDragging)
 
-newtype DragAndDropHelpType a = DragAndDropHelpType { index :: Int, result :: (Either (DraggableWidgetResult a) DroppableAreaResult) }
-instance showDragAndDropHelpType :: Show (DragAndDropHelpType a) where
-  show (DragAndDropHelpType { index, result }) = "Index: " <> (show index) <> "; " <> show result
-
-draggableWidget :: forall a. Boolean -> Widget HTML a -> Widget HTML (DraggableWidgetResult a)
-draggableWidget isDragging widget = do
+draggableWidget :: forall a. Boolean -> a -> (a -> Widget HTML a) -> Widget HTML (DraggableWidgetResult a)
+draggableWidget isDragging initialState widgetFunc = do
   res <- div ([ Props.draggable true
               , Props.classList [Just "draggableElem", (if isDragging then Just "draggingElem" else Nothing)]]
-              <> if isDragging then [StopDrag <$> Props.onDragEnd] else [StartDrag <$> Props.onDragStart]
+              <> if isDragging then [EndDrag <$> Props.onDragEnd] else [StartDrag <$> Props.onDragStart]
               ) 
-            [Value <$> widget, text (show isDragging)]
+            [Value <$> (widgetFunc initialState), text (show isDragging)]
   case res of
-    StartDrag ev -> pure $ DraggableWidgetResult { isDragging: true, widget}
-    StopDrag ev -> pure $ DraggableWidgetResult { isDragging: false, widget}
-    Dragging ev -> pure $ DraggableWidgetResult { isDragging: true, widget}
-    Value a -> pure $ DraggableWidgetResult { isDragging, widget: pure a }
+    -- do not prevent defaults, otherwise strange behaviours occur
+    StartDrag ev -> do
+      traceM $ show res
+      pure $ DraggableWidgetResult { isDragging: true, exitState: initialState }
+    EndDrag ev -> do
+      traceM $ show res
+      pure $ DraggableWidgetResult { isDragging: false, exitState: initialState }
+    Dragging ev -> do
+      traceM $ show res
+      pure $ DraggableWidgetResult { isDragging: true, exitState: initialState }
+    Value a -> pure $ DraggableWidgetResult { isDragging, exitState: a }
 
 type DroppableAreaResult = { isSelected :: Boolean, result :: (OnDropAreaEvents SyntheticMouseEvent) }
+
+type IndexedResult a = {index :: Int, result :: a}
 
 droppableArea :: Boolean -> Widget HTML DroppableAreaResult
 droppableArea isSelected = do
@@ -376,7 +387,7 @@ droppableArea isSelected = do
   case result of
     EvDragOver ev -> do
       liftEffect $ preventDefault ev
-      pure { isSelected: true, result }
+      pure { isSelected, result }
     EvDragEnter ev -> do
       -- liftEffect $ preventDefault ev
       pure { isSelected: true, result }
@@ -384,88 +395,214 @@ droppableArea isSelected = do
       -- liftEffect $ preventDefault ev
       pure { isSelected: false, result }
     EvDrop ev -> do
+      liftEffect $ preventDefault ev
       pure { isSelected, result }
 
-dragAndDropList :: forall a. Array (Widget HTML a) -> Widget HTML a
+type DraggableWidget a = Widget HTML { index :: Int, state :: DraggableWidgetResult a }
+type DraggableWidgetType a = { index :: Int, widgetFunc :: a -> Widget HTML a, widget :: DraggableWidget a } 
+type DroppableWidgetResult = { index :: Int, state :: DroppableAreaResult }
+type DroppableWidget = Widget HTML DroppableWidgetResult
+type DroppableWidgetType = { index :: Int, widget :: DroppableWidget }
+type DraggableSupportType a = { info :: { index :: Int, widgetFunc :: a -> Widget HTML a}, result :: DraggableWidgetResult a }
+
+-- | TODO: THIS IS BROKEN
+dragAndDropList :: forall a. Array (Tuple a (a -> Widget HTML a)) -> Widget HTML a
 dragAndDropList widgets = do
-  let draggableWidgets = (draggableWidget false) <$> widgets
-  let unselectedDroppableArea = droppableArea false
-  let listElems = [Right <$> unselectedDroppableArea] 
-               <> (intersperse (Right <$> unselectedDroppableArea) (((<$>) Left) <$> draggableWidgets)) 
-               <> [Right <$> unselectedDroppableArea]
-  let indexes = range 0 ((length listElems) - 1)
-  let indexedList = zipWith zipFunc indexes listElems
-  go indexedList Nothing
+  let widgetRange = filter odd $ range 1 ((length widgets) * 2)
+  let draggableWidgets = (Right <$> (zipWith (mapWidget false) widgetRange widgets)) :: Array (Either DroppableWidgetType (DraggableWidgetType a))
+  let dropAreaRange = filter even $ range 0 ((length widgets) * 2)
+  let droppableAreas = (Left <$> ((mapDropArea false) <$> dropAreaRange)) :: Array (Either DroppableWidgetType (DraggableWidgetType a))
+  let widgetList = sortWith extractIndex $ (draggableWidgets <> droppableAreas)
+  let elements' = ((rmap mapDraggableWidget) <$> widgetList) :: Array (Either DroppableWidgetType (Widget HTML (DraggableSupportType a)))
+  let elements'' = ((lmap mapDroppableWidget) <$> elements') :: Array (Either (Widget HTML DroppableWidgetResult) (Widget HTML (DraggableSupportType a)))
+  let widgets = (includeEither <$> elements'') :: Array (Widget HTML (Either DroppableWidgetResult (DraggableSupportType a)))
+  go widgets Nothing
 
   where
-    go :: Array (Widget HTML (DragAndDropHelpType a)) -> Maybe Int -> Widget HTML a
-    go elements draggedElemIndex = do
-      res@(DragAndDropHelpType { index, result }) <- div [Props.className "test"] elements
-      case result of
-        Left (DraggableWidgetResult { isDragging, widget }) -> do
-          let newElem = zipFunc index (Left <$> (draggableWidget isDragging widget))
-          let newElements = updateAt index newElem elements
-          case newElements of
-            Nothing -> do
-              log "error"
-              go elements draggedElemIndex
-            Just elements' -> go elements' (if isDragging then (Just index) else Nothing)
-        Right { isSelected, result: result' } -> do
-          case result' of
-            EvDrop a -> 
-              case draggedElemIndex of
+    mapWidget :: Boolean -> Int -> Tuple a (a -> Widget HTML a) -> (DraggableWidgetType a)
+    mapWidget isDragging index (Tuple is widgetFunc) = 
+      let w = draggableWidget isDragging is widgetFunc
+          widget = (\state -> { index, state }) <$> w
+      in { index, widgetFunc, widget }
+
+    mapDropArea :: Boolean -> Int -> DroppableWidgetType
+    mapDropArea isSelected index =
+      let w = droppableArea isSelected
+          widget = (\state -> { index, state }) <$> w
+      in { index, widget }
+
+    extractIndex :: Either DroppableWidgetType (DraggableWidgetType a) -> Int
+    extractIndex (Right { index, widgetFunc, widget }) = index
+    extractIndex (Left { index, widget }) = index
+
+    manageDroppableWidgetResult :: { index :: Int, state :: DroppableAreaResult } -> Tuple (OnDropAreaEvents SyntheticMouseEvent) DroppableWidgetType
+    manageDroppableWidgetResult { index, state: { isSelected, result }} = 
+      let droppableWidget = mapDropArea isSelected index
+      in Tuple result droppableWidget
+
+    manageDraggableWidgetResult :: { index :: Int, state :: DraggableWidgetResult a } -> DraggableWidgetType a -> Tuple a (DraggableWidgetType a)
+    manageDraggableWidgetResult { index, state: (DraggableWidgetResult { isDragging, exitState }) } { index: index', widgetFunc, widget } =
+      let newWidget = mapWidget isDragging index (Tuple exitState widgetFunc)
+      in Tuple exitState newWidget
+
+    includeEither :: forall m b c. Functor m => Either (m b) (m c) -> m (Either b c)
+    includeEither (Left w) = Left <$> w
+    includeEither (Right w) = Right <$> w
+
+-- newtype DraggableWidgetResult a = DraggableWidgetResult { isDragging :: Boolean, exitState :: a }
+-- type DraggableWidget a = Widget HTML { index :: Int, state :: DraggableWidgetResult a }
+-- type DraggableWidgetType a = { index :: Int, widgetFunc :: a -> Widget HTML a, widget :: DraggableWidget a } 
+-- type DroppableAreaResult = { isSelected :: Boolean, result :: (OnDropAreaEvents SyntheticMouseEvent) }
+-- type DroppableWidgetResult = { index :: Int, state :: DroppableAreaResult }
+-- type DroppableWidget = Widget HTML { index :: Int, state :: DroppableAreaResult }
+-- type DroppableWidgetType = { index :: Int, widget :: DroppableWidget }
+-- type DraggableSupportType a = { info :: { index :: Int, widgetFunc :: a -> Widget HTML a}, result :: DraggableWidgetResult a }
+
+    mapDraggableWidget :: DraggableWidgetType a -> Widget HTML (DraggableSupportType a)
+    mapDraggableWidget { index, widgetFunc, widget } = (\{index: index', state} -> {info: { index, widgetFunc}, result: state }) <$> widget
+
+    mapDroppableWidget :: DroppableWidgetType -> Widget HTML DroppableWidgetResult
+    mapDroppableWidget { index, widget } = widget
+
+    unselectWidget :: Widget HTML (Either DroppableWidgetResult (DraggableSupportType a)) -> Widget HTML (Either DroppableWidgetResult (DraggableSupportType a))
+    unselectWidget widget = 
+      let extractFunc :: Either DroppableWidgetResult (DraggableSupportType a) -> Widget HTML (Either DroppableWidgetResult (DraggableSupportType a))
+          extractFunc (Right { info: {index, widgetFunc}, result: DraggableWidgetResult { isDragging, exitState }}) = 
+                          includeEither $ Right $ mapDraggableWidget $ mapWidget isDragging index (Tuple exitState widgetFunc) 
+          extractFunc (Left { index, state: {isSelected, result}}) = includeEither $ Left $ mapDroppableWidget $ mapDropArea isSelected index
+      in widget >>= extractFunc
+    
+    shiftElement :: Int -> (Widget HTML (Either DroppableWidgetResult (DraggableSupportType a))) -> (Widget HTML (Either DroppableWidgetResult (DraggableSupportType a)))
+    shiftElement shift widget = 
+      let mapFunc :: Either DroppableWidgetResult (DraggableSupportType a) -> Widget HTML (Either DroppableWidgetResult (DraggableSupportType a))
+          mapFunc (Left { index, state}) = pure $ Left { index: index + shift, state }
+          mapFunc (Right { info: {index, widgetFunc}, result}) = pure $ Right { info: {index: index + shift, widgetFunc}, result}
+      in widget >>= mapFunc
+
+    prepareNewElements :: Array (Widget HTML (Either DroppableWidgetResult (DraggableSupportType a))) 
+                       -> Int
+                       -> Int
+                       -> Array (Widget HTML (Either DroppableWidgetResult (DraggableSupportType a)))
+    prepareNewElements elements dragIndex dropIndex 
+      | dragIndex > dropIndex =
+          let untouchedFirstElems = take (dropIndex + 1) elements
+              untouchedLastElems = drop (dragIndex + 1) elements
+              elemsToBeShifted = takeEnd (dragIndex - dropIndex - 1) $ take (dragIndex - 1) elements
+              shiftedElems = (shiftElement 2) <$> elemsToBeShifted
+          in case elements !! dragIndex of
+              Nothing -> elements
+              Just elem -> 
+                let newElem = elem
+                in untouchedFirstElems
+                  <> [shiftElement 1 newElem]
+                  <> shiftedElems
+                  <> untouchedLastElems
+      | otherwise = 
+          let untouchedFirstElems = take dragIndex elements
+              untouchedLastElems = drop dropIndex elements
+              elemsToBeShifted = takeEnd (dropIndex - dragIndex - 1) $ take dropIndex elements
+              shiftedElems = (shiftElement 1) <$> elemsToBeShifted
+          in case elements !! dragIndex of
+              Nothing -> elements
+              Just elem -> untouchedFirstElems
+                          <> shiftedElems
+                          <> [includeEither $ Left $ mapDroppableWidget $ mapDropArea false (dropIndex + 2)]
+                          <> [shiftElement 1 elem]
+                          <> untouchedLastElems
+
+    go :: Array (Widget HTML (Either DroppableWidgetResult (DraggableSupportType a))) -> Maybe Int -> Widget HTML a
+    go widgets selectedIndex = do
+      let zipped = zipWith (\i -> \w -> { ind: i, wi: w}) (range 0 (length widgets)) widgets
+      let newWidgets = (\{ind, wi} -> (\r -> {ind, res: r}) <$> wi) <$> zipped
+      {ind, res} <- div [Props.className "dragAndDropList"] newWidgets
+      traceM $ "Result from " <> (show ind)
+      case res of 
+        Left { index, state: { isSelected, result } } -> do
+          traceM $ "Left " <> (show index) <> " " <> (show result)
+          case result of
+            EvDrop a -> do
+              case selectedIndex of
+                Just ix -> do
+                  -- traceM $ (show index) <> " " <> (show ix)
+                  let newElements = prepareNewElements widgets ix ind
+                  go newElements Nothing
                 Nothing -> do
-                  log "error 2"
-                  go elements draggedElemIndex
-                Just ix -> 
-                  let newElements = ((<$>) deselect) <$> (prepareNewElements ix index elements)
-                  in do
-                    log "dragged, dropped, redrawn"
-                    go newElements Nothing
-            _ -> do
-              let newElem = zipFunc index (Right <$> (droppableArea isSelected))
-              let newElements = updateAt index newElem elements
+                  log "error1"
+                  go widgets selectedIndex
+            EvDragEnter a -> do
+              let newElem = includeEither $ Left $ mapDroppableWidget $ mapDropArea true ind
+              let newElements = updateAt ind newElem widgets
               case newElements of
                 Nothing -> do
-                  log "error 3"
-                  go elements draggedElemIndex
-                Just elements' -> go elements' draggedElemIndex          
-    
-    zipFunc :: Int 
-            -> Widget HTML (Either (DraggableWidgetResult a) DroppableAreaResult) 
-            -> Widget HTML (DragAndDropHelpType a)
-    zipFunc index w = (\result -> DragAndDropHelpType {index, result}) <$> w
+                  log "error2"
+                  go widgets selectedIndex
+                Just elements' -> go elements' selectedIndex
+            EvDragLeave a -> do
+              let newElem = includeEither $ Left $ mapDroppableWidget $ mapDropArea false ind
+              let newElements = updateAt ind newElem widgets
+              case newElements of
+                Nothing -> do
+                  log "error3"
+                  go widgets selectedIndex
+                Just elements' -> go elements' selectedIndex
+            EvDragOver a -> do
+              let newElem = includeEither $ Left $ mapDroppableWidget $ mapDropArea true ind
+              let newElements = updateAt ind newElem widgets
+              case newElements of
+                Nothing -> do
+                  log "error4"
+                  go widgets selectedIndex
+                Just elements' -> go elements' selectedIndex  
+        Right { info: { index, widgetFunc}, result: DraggableWidgetResult { isDragging, exitState } } -> do
+          traceM $ "Right " <> (show index)
+          let newElem = (mapDraggableWidget (mapWidget isDragging ind (Tuple exitState widgetFunc))) :: Widget HTML (DraggableSupportType a)
+          let newElem' = includeEither $ Right newElem
+          let newElements = updateAt ind newElem' widgets
+          case newElements of
+            Nothing -> do
+              log "error5"
+              go widgets selectedIndex
+            Just elements' -> go elements' (if isDragging then (Just ind) else selectedIndex)
 
-    deselect :: (DragAndDropHelpType a)
-             -> (DragAndDropHelpType a)
-    deselect (DragAndDropHelpType { index, result: (Right r)}) = DragAndDropHelpType { index, result: Right (r { isSelected = false })}
-    deselect (DragAndDropHelpType { index, result: (Left (DraggableWidgetResult r))}) = DragAndDropHelpType { index, result: Left (DraggableWidgetResult $ r { isDragging = false })}
+  --   zipFunc :: Int 
+  --           -> Either (Widget HTML (DraggableWidgetResult a)) (Widget HTML DroppableAreaResult) 
+  --           -> Either (Widget HTML (IndexedResult (DraggableWidgetResult a))) (Widget HTML (IndexedResult DroppableAreaResult)) 
+  --   zipFunc index (Right w) = Right $ (\result -> {index, result}) <$> w
+  --   zipFunc index (Left w) = Left $ (\result -> {index, result}) <$> w
 
-    prepareNewElements :: Int 
-                       -> Int 
-                       -> Array (Widget HTML (DragAndDropHelpType a))
-                       -> Array (Widget HTML (DragAndDropHelpType a))
-    prepareNewElements elemIndex areaIndex elements 
-      | elemIndex > areaIndex =
-          let untouchedFirstElems = take (areaIndex + 1) elements
-              untouchedLastElems = drop (elemIndex + 1) elements
-              elemsToBeShifted = takeEnd (elemIndex - areaIndex - 1) $ take (elemIndex - 1) elements
-              shiftedElems = ((<$>) (\(DragAndDropHelpType {index, result}) -> DragAndDropHelpType { index: index + 2, result})) <$> elemsToBeShifted
-          in ((<$>) deselect) <$> case elements !! elemIndex of
-              Nothing -> elements
-              Just elem -> untouchedFirstElems
-                          <> [(\(DragAndDropHelpType {index, result}) -> DragAndDropHelpType { index: areaIndex + 1, result}) <$> (deselect <$> elem)]
-                          <> shiftedElems
-                          <> untouchedLastElems
-      | otherwise = 
-          let untouchedFirstElems = take elemIndex elements
-              untouchedLastElems = drop areaIndex elements
-              elemsToBeShifted = takeEnd (areaIndex - elemIndex - 2) $ take areaIndex elements
-              shiftedElems = ((<$>) (\(DragAndDropHelpType {index, result}) -> DragAndDropHelpType { index: index - 2, result})) <$> elemsToBeShifted
-          in ((<$>) deselect) <$> case elements !! elemIndex of
-              Nothing -> elements
-              Just elem -> untouchedFirstElems
-                          <> shiftedElems
-                          <> [(\dar -> DragAndDropHelpType {index: areaIndex + 2, result: Right dar}) <$> (droppableArea false)]
-                          <> [(\(DragAndDropHelpType {index, result}) -> DragAndDropHelpType { index: areaIndex + 1, result}) <$> (deselect <$> elem)]
-                          <> untouchedLastElems
+  --   deselect :: (DragAndDropHelpType a)
+  --            -> (DragAndDropHelpType a)
+  --   deselect (DragAndDropHelpType { index, result: (Right r)}) = DragAndDropHelpType { index, result: Right (r { isSelected = false })}
+  --   deselect (DragAndDropHelpType { index, result: (Left (DraggableWidgetResult r))}) = DragAndDropHelpType { index, result: Left (DraggableWidgetResult $ r { isDragging = false })}
+
+  --   shiftElement :: forall b. Int -> IndexedResult b -> IndexedResult b
+  --   shiftElement shift { index, result } = { index: index + shift, result }
+
+  --   prepareNewElements :: Int 
+  --                      -> Int 
+  --                      -> Array (Either (Widget HTML (IndexedResult (DraggableWidgetResult a))) (Widget HTML (IndexedResult DroppableAreaResult)))
+  --                      -> Array (Either (Widget HTML (IndexedResult (DraggableWidgetResult a))) (Widget HTML (IndexedResult DroppableAreaResult)) )
+  --   prepareNewElements elemIndex areaIndex elements 
+  --     | elemIndex > areaIndex =
+  --         let untouchedFirstElems = take (areaIndex + 1) elements
+  --             untouchedLastElems = drop (elemIndex + 1) elements
+  --             elemsToBeShifted = takeEnd (elemIndex - areaIndex - 1) $ take (elemIndex - 1) elements
+  --             shiftedElems = ((<$>) ((<$>) (shiftElement 2))) <$> elemsToBeShifted
+  --         in case elements !! elemIndex of
+  --             Nothing -> elements
+  --             Just elem -> untouchedFirstElems
+  --                         <> [((<$>) (shiftElement 1)) <$> elem]
+  --                         <> shiftedElems
+  --                         <> untouchedLastElems
+  --     | otherwise = 
+  --         let untouchedFirstElems = take elemIndex elements
+  --             untouchedLastElems = drop areaIndex elements
+  --             elemsToBeShifted = takeEnd (areaIndex - elemIndex - 2) $ take areaIndex elements
+  --             shiftedElems = ((<$>) ((<$>) (shiftElement (0 - 2)))) <$> elemsToBeShifted
+  --         in case elements !! elemIndex of
+  --             Nothing -> elements
+  --             Just elem -> untouchedFirstElems
+  --                         <> shiftedElems
+  --                         <> [zipFunc (areaIndex + 2) (Right $ droppableArea false)]
+  --                         <> [((<$>) (shiftElement 1)) <$> elem]
+  --                         <> untouchedLastElems
