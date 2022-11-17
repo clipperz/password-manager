@@ -402,6 +402,7 @@ type DraggableWidget a = Widget HTML (DraggableWidgetResult a)
 type DraggableWidgetType a = { widgetFunc :: a -> Widget HTML a, widget :: DraggableWidget a } 
 type DroppableWidget = Widget HTML DroppableAreaResult
 type DraggableSupportType a = { widgetFunc :: a -> Widget HTML a, result :: DraggableWidgetResult a }
+type SelectedDraggableInfo a = { index :: Int, state :: a, widgetFunc :: (a -> Widget HTML a) }
 
 -- | TODO: THIS IS BROKEN
 dragAndDropList :: forall a. Array (Tuple a (a -> Widget HTML a)) -> Widget HTML a
@@ -448,10 +449,10 @@ dragAndDropList widgets = do
     --   in widget >>= extractFunc
 
     prepareNewElements :: Array (Widget HTML (Either DroppableAreaResult (DraggableSupportType a))) 
-                       -> Int
+                       -> SelectedDraggableInfo a
                        -> Int
                        -> Array (Widget HTML (Either DroppableAreaResult (DraggableSupportType a)))
-    prepareNewElements elements dragIndex dropIndex 
+    prepareNewElements elements { index: dragIndex, state, widgetFunc } dropIndex 
       | dragIndex > dropIndex =
           let untouchedFirstElems = take (dropIndex + 1) elements
               untouchedLastElems = drop (dragIndex + 1) elements
@@ -459,7 +460,7 @@ dragAndDropList widgets = do
           in case elements !! dragIndex of
               Nothing -> elements
               Just elem -> 
-                let newElem = elem
+                let newElem = Right <$> (mapDraggableWidget $ mapWidget false (Tuple state widgetFunc))
                 in untouchedFirstElems
                   <> [newElem]
                   <> elemsToBeShifted
@@ -470,13 +471,15 @@ dragAndDropList widgets = do
               elemsToBeShifted = takeEnd (dropIndex - dragIndex - 1) $ take dropIndex elements
           in case elements !! dragIndex of
               Nothing -> elements
-              Just elem -> untouchedFirstElems
-                          <> elemsToBeShifted
-                          <> [includeEither $ Left $ droppableArea false]
-                          <> [elem]
-                          <> untouchedLastElems
+              Just elem -> 
+                let newElem = Right <$> (mapDraggableWidget $ mapWidget false (Tuple state widgetFunc))
+                in untouchedFirstElems
+                  <> elemsToBeShifted
+                  <> [includeEither $ Left $ droppableArea false]
+                  <> [newElem]
+                  <> untouchedLastElems
 
-    go :: Array (Widget HTML (Either DroppableAreaResult (DraggableSupportType a))) -> Maybe Int -> Widget HTML a
+    go :: Array (Widget HTML (Either DroppableAreaResult (DraggableSupportType a))) -> Maybe (SelectedDraggableInfo a) -> Widget HTML a
     go widgets selectedIndex = do
       let zipped = zipWith (\i -> \w -> { index: i, wi: w}) (range 0 (length widgets)) widgets
       let newWidgets = (\{index, wi} -> (\r -> {index, res: r}) <$> wi) <$> zipped
@@ -488,7 +491,7 @@ dragAndDropList widgets = do
           case result of
             EvDrop a -> do
               case selectedIndex of
-                Just ix -> do
+                Just selectedInfo -> do
                   let newElem = includeEither $ Left $ droppableArea false
                   let newElements = updateAt index newElem widgets
                   case newElements of
@@ -496,7 +499,7 @@ dragAndDropList widgets = do
                       log "error 0.5"
                       go widgets selectedIndex
                     Just elements -> do
-                      let newElements' = prepareNewElements elements ix index
+                      let newElements' = prepareNewElements elements selectedInfo index -- TODO
                       go newElements' Nothing
                 Nothing -> do
                   log "error1"
@@ -534,4 +537,4 @@ dragAndDropList widgets = do
             Nothing -> do
               log "error5"
               go widgets selectedIndex
-            Just elements' -> go elements' (if isDragging then (Just index) else selectedIndex)
+            Just elements' -> go elements' (if isDragging then (Just {index, state: exitState, widgetFunc}) else selectedIndex)
