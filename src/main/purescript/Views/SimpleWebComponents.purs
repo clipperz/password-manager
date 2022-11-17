@@ -466,7 +466,7 @@ dragAndDropList widgets = do
                   <> elemsToBeShifted
                   <> untouchedLastElems
       | otherwise = 
-          let untouchedFirstElems = take dragIndex elements
+          let untouchedFirstElems = take (dragIndex - 1) elements
               untouchedLastElems = drop dropIndex elements
               elemsToBeShifted = takeEnd (dropIndex - dragIndex - 1) $ take dropIndex elements
           in case elements !! dragIndex of
