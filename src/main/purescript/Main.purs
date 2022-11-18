@@ -1,7 +1,7 @@
 module Main
   ( main
-  , registration
-  , share
+  -- , registration
+  -- , share
   )
   where
 
@@ -11,14 +11,36 @@ import Concur.React.Run (runWidgetInDom)
 import Effect (Effect)
 import OperationalWidgets.App (app, Page(..), SharedCardReference)
 
+-- main :: Effect Unit
+-- main = runWidgetInDom "app" (app (Loading (Just Login)))
+
+-- registration :: Effect Unit
+-- registration = runWidgetInDom "app" (app Signup)
+
+-- share :: String -> Effect Unit
+-- share token = runWidgetInDom "app" (app (Share (Just token)))
+
+import Concur.Core.FRP (loopS, demand, fireOnce, dyn)
+import Concur.React.DOM (text)
+import Views.SimpleWebComponents (simpleButton, simpleTextInputWidget, dragAndDropListSignal)
+import Data.Tuple (Tuple(..))
+import Data.Function (($))
+import Control.Bind (bind, discard)
+
+import Debug (traceM)
+
 main :: Effect Unit
-main = runWidgetInDom "app" (app (Loading (Just Login)))
-
-registration :: Effect Unit
-registration = runWidgetInDom "app" (app Signup)
-
-share :: String -> Effect Unit
-share token = runWidgetInDom "app" (app (Share (Just token)))
+main = runWidgetInDom "app" $ do
+  let initialValues = [
+    Tuple "" (simpleTextInputWidget "input1" (text "Input 1") "")
+  , Tuple "" (simpleTextInputWidget "input2" (text "Input 2") "")
+  , Tuple "" (simpleTextInputWidget "input3" (text "Input 3") "")
+  , Tuple "" (simpleTextInputWidget "input4" (text "Input 4") "")  
+  , Tuple "" (simpleTextInputWidget "input5" (text "Input 5") "")
+  ]
+  demand $ do
+    results <- dragAndDropListSignal initialValues
+    fireOnce $ simpleButton "Exit" false results
 
 -- import Data.Function (($))
 -- import Concur.Core.FRP (demand, hold, loopS, dyn)
