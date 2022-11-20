@@ -26,6 +26,10 @@ import Views.SimpleWebComponents (simpleButton, simpleTextInputWidget, dragAndDr
 import Data.Tuple (Tuple(..))
 import Data.Function (($))
 import Control.Bind (bind, discard)
+import Effect.Class.Console (log)
+import Data.Show (show)
+import Data.Functor ((<$>))
+import Data.Tuple (fst)
 
 import Debug (traceM)
 
@@ -38,9 +42,10 @@ main = runWidgetInDom "app" $ do
   , Tuple "" (simpleTextInputWidget "input4" (text "Input 4") "")  
   , Tuple "" (simpleTextInputWidget "input5" (text "Input 5") "")
   ]
-  demand $ do
+  res <- demand $ do
     results <- dragAndDropListSignal initialValues
     fireOnce $ simpleButton "Exit" false results
+  log $ show $ fst <$> res
 
 -- import Data.Function (($))
 -- import Concur.Core.FRP (demand, hold, loopS, dyn)

@@ -45,7 +45,7 @@ import Control.Alt (class Alt, (<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (=<<), (>>=))
 import Control.Semigroupoid ((<<<))
-import Data.Array (length, zipWith, range, catMaybes, updateAt, filter, intersperse, drop, take, sortWith, union, dropEnd, takeEnd, (!!))
+import Data.Array (length, zipWith, range, catMaybes, updateAt, deleteAt, insertAt, filter, intersperse, drop, take, sortWith, union, dropEnd, takeEnd, (!!))
 import Data.Bifunctor (lmap, rmap)
 import Data.Boolean (otherwise)
 import Data.Either (Either(..), hush)
@@ -529,14 +529,6 @@ dragAndDropListSignal widgets = loopW widgets dragAndDropList'
 
 dragAndDropList' :: forall a. Show a => Array (LoopableWidget a) -> Widget HTML (Array (LoopableWidget a))
 dragAndDropList' widgets = do
-  -- let widgetRange = filter odd $ range 1 ((length widgets) * 2)
-  -- let draggableWidgets = zipWith (\index -> \widget -> {index, widget}) widgetRange ((Right <<< (mapWidget false)) <$> widgets) :: Array { index :: Int, widget :: Either DroppableWidget (DraggableWidgetType a) }
-  -- let dropAreaRange = filter even $ range 0 ((length widgets) * 2)
-  -- let droppableAreas = zipWith (\index -> \widget -> {index, widget}) dropAreaRange ((Left <<< (\_ -> droppableArea false)) <$> dropAreaRange) :: Array { index :: Int, widget :: Either DroppableWidget (DraggableWidgetType a) }
-  -- let sortedWidgets = sortWith (_.index) $ (draggableWidgets <> droppableAreas)
-  -- let widgetList = (_.widget) <$> sortedWidgets
-  -- let elements' = ((rmap mapDraggableWidget) <$> widgetList) :: Array (Either DroppableWidget (Widget HTML (DraggableSupportType a)))
-  -- let widgets = (includeEither <$> elements') :: Array (Widget HTML (Either DroppableAreaResult (DraggableSupportType a)))
   let widgetsInfo = [Left false] <> (intersperse (Left false) $ Right <$> widgets) <> [Left false]
   go widgetsInfo Nothing
 
@@ -605,7 +597,6 @@ dragAndDropList' widgets = do
 
     go :: Array (Either Boolean (LoopableWidget a)) -> Maybe (SelectedDraggableInfo a) -> Widget HTML (Array (LoopableWidget a))
     go widgetsInfo selectedIndex = do
-      log $ show $ (rmap fst) <$> widgetsInfo
       let widgetsInfo' = ((lmap droppableArea) <$> widgetsInfo) :: Array (Either DroppableWidget (LoopableWidget a))
       let widgetsInfo'' = ((rmap (mapWidget false)) <$> widgetsInfo') :: Array (Either DroppableWidget (DraggableWidgetType a))
       let widgets' = ((rmap mapDraggableWidget) <$> widgetsInfo'') :: Array (Either DroppableWidget (Widget HTML (DraggableSupportType a)))
@@ -617,22 +608,19 @@ dragAndDropList' widgets = do
       case res of 
         Left { isSelected, result } -> do
           case result of
-          --   EvDrop a -> do
-          --     case selectedIndex of
-          --       Just selectedInfo -> do
-          --         let newElem = includeEither $ Left $ droppableArea false
-          --         let newElements = updateAt index newElem widgets
-          --         case newElements of
-          --           Nothing -> do
-          --             log "error 0.5"
-          --             go widgets selectedIndex
-          --           Just elements -> do
-          --             log "exit order"
-          --             let newElements' = prepareNewElements elements selectedInfo index 
-          --             convertToResult newElements'
-          --       Nothing -> do
-          --         log "error1"
-          --         go widgets selectedIndex
+            EvDrop a -> do
+              case selectedIndex of
+                Just { state, index: ix, widgetFunc } -> do
+                  let withoutElem = (deleteAt ix widgetsInfo)
+                  let withElem    = (withoutElem >>= (insertAt index (Right (Tuple state widgetFunc))))
+                  case withElem of
+                    Nothing -> do
+                      log "error 0.5"
+                      go widgetsInfo selectedIndex
+                    Just elements -> pure $ catMaybes $ hush <$> elements
+                Nothing -> do
+                  log "error1"
+                  go widgetsInfo selectedIndex
             EvDragEnter a -> do
               let newElements = updateAt index (Left true) widgetsInfo
               case newElements of
@@ -654,7 +642,6 @@ dragAndDropList' widgets = do
                   log "error2"
                   go widgetsInfo selectedIndex
                 Just elements' -> go elements' selectedIndex
-            _ -> pure $ catMaybes $ hush <$> widgetsInfo
         Right { widgetFunc, result: DraggableWidgetResult { isDragging, exitState } } -> do
           if isDragging then
             -- dragging
