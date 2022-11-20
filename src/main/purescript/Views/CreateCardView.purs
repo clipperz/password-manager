@@ -1,35 +1,38 @@
 module Views.CreateCardView where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, loopS, loopW, demand, fireOnce)
+import Concur.Core.FRP (Signal, loopS, loopW, demand, display, justWait, hold, fireOnce)
 import Concur.React (HTML)
 import Concur.React.DOM (div, div', text, div_, label, input, datalist, option)
 import Concur.React.Props as Props
-import Control.Alt((<|>))
+import Control.Alt((<|>), class Alt)
 import Control.Applicative (pure)
-import Control.Bind (bind, (=<<), discard)
+import Control.Bind (bind, (=<<), (>>=), discard)
 import Control.Semigroupoid ((<<<))
 import Data.Array (snoc, filter, singleton, sort, length, range, zipWith)
-import Data.Either (fromRight)
+import Data.Either (Either(..), fromRight)
 import Data.Eq ((==))
 import Data.Function (($))
-import Data.Functor ((<$>), (<$))
+import Data.Functor ((<$>), (<$), class Functor)
 import Data.Maybe (Maybe(..), isJust, maybe, fromMaybe)
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
-import Data.Show (show)
+import Data.Show (show, class Show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
 import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
 import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
 import DataModel.WidgetState (WidgetState(..))
+import Effect.Aff (never)
+import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.JSState (getAppState)
 import Functions.Time (getCurrentTimestamp)
+import React.SyntheticEvent (SyntheticMouseEvent)
 import Views.PasswordGenerator (passwordGenerator)
-import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleTextInputWidget, simpleCheckboxSignal, disableOverlay, simpleTextAreaSignal)
+import Views.SimpleWebComponents (loadingDiv, simpleButton, confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, disableOverlay, simpleTextAreaSignal)
 
 createCardView :: Card -> Array String -> WidgetState -> Widget HTML (Maybe Card)
 createCardView card allTags state = do
@@ -78,7 +81,8 @@ createCardView card allTags state = do
     fieldsSignal :: PasswordGeneratorSettings -> Array CardField -> Signal HTML (Array CardField)
     fieldsSignal settings fields = do
       let indexedFields = zipWith (\i -> \f -> { index: i, field: f}) (range 0 ((length fields - 1))) fields
-      fields' :: Array CardField <- (\fs -> (maybe [] singleton) =<< filter isJust fs) <$> (sequence $ (cardFieldSignal settings) <$> indexedFields)
+      let signals = (cardFieldSignal settings) <$> indexedFields
+      fields' :: Array CardField <- (\fs -> (maybe [] singleton) =<< filter isJust fs) <$> (sequence $ signals)
       addField <- fireOnce $ simpleButton "Add field" false unit
       case addField of
         Nothing -> pure fields'
@@ -127,6 +131,11 @@ createCardView card allTags state = do
                                       , archived: false
                                       , timestamp
                                       }
-      res <- fireOnce (div [Props.className "submitButtons"] [simpleButton "Cancel" false Nothing <|> simpleButton "Save" false (Just formValues)])
+      res <- fireOnce $ div [Props.className "submitButtons"] [cancelButton <|> simpleButton "Save" false (Just formValues)]
       -- TODO: add check for form validity
       pure res
+
+    cancelButton = do
+      _ <- simpleButton "Cancel" false Nothing 
+      confirmation <- confirmationWidget "Are you sure you want to exit without saving?"
+      if confirmation then pure Nothing else cancelButton

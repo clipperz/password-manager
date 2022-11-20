@@ -1,5 +1,7 @@
 module OperationalWidgets.HomePageWidget
   ( HomePageAction
+  , HomePageExitStatus(..)
+  , homePageWidget
   )
   where
 
@@ -37,12 +39,14 @@ data HomePageAction = UserAreaAction UserAreaAction | LogoutAction
 
 data HomePageExitStatus = Clean | ReadyForLogin String
 
-homePageWidget :: Widget HTML HomePageExitStatus
-homePageWidget = do
-  eitherState <- liftEffect $ getAppState
-  case eitherState of
-    Left err -> go (Error (show err)) true
-    Right st -> go Loading (isOfflineCopy st)
+homePageWidget :: Boolean -> Widget HTML HomePageExitStatus
+homePageWidget isLogged = 
+  if isLogged then do
+    eitherState <- liftEffect $ getAppState
+    case eitherState of
+      Left err -> go (Error (show err)) true
+      Right st -> go Loading (isOfflineCopy st)
+  else go Default true
 
   where 
     go :: WidgetState -> Boolean -> Widget HTML HomePageExitStatus

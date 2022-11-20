@@ -6,46 +6,62 @@ module OperationalWidgets.App
   where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, demand, loopW, always, fireOnce, hold, dyn)
+import Concur.Core.FRP (Signal, demand, loopS, loopW, always, fireOnce, hold, dyn)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text, ul, li, h1, h3, footer, header, span, a, button, div_, footer_, p_, ul_, li_, a_, h1_, h3_, header_, span_)
+import Concur.React.DOM (div, text, ul, li, p, h1, h3, footer, header, span, a, button, div_, footer_, p_, ul_, li_, a_, h1_, h3_, header_, span_)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, (>>=), discard)
+import Control.Monad.Except.Trans (runExceptT)
+import Control.Semigroupoid ((<<<))
 import Data.Array (range)
+import Data.Either as E
+import Data.Eq ((==), class Eq)
 import Data.Formatter.Number (Formatter(..), format)
 import Data.Function (($))
 import Data.Functor (map, (<$), void, (<$>))
-import Data.Maybe (Maybe(..))
-import Data.Int (toNumber)
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Int (toNumber, fromString)
 import Data.Semigroup ((<>))
+import Data.Semiring ((+))
 import Data.Show(class Show, show)
 import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (sequence)
 import Data.Unit (unit, Unit)
 -- import Data.Unit (unit)
--- import DataModel.WidgetState (WidgetState(..))
+import DataModel.WidgetState as WS
 import DataModel.Credentials (Credentials)
-import Effect.Aff (delay, never)
+import Effect.Aff (delay, never, Aff)
 import Effect.Aff.Class (liftAff)
--- import Effect.Class (liftEffect)
+import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
--- import Functions.State (computeInitialState)
--- import Functions.JSState (modifyAppState)
--- import OperationalWidgets.HomePageWidget as HomePageWidget
--- import Views.LoginFormView (LoginDataForm, emptyForm)
--- import Views.SignupFormView (SignupDataForm, emptyDataForm)
+import Functions.Communication.Signup (signupUser)
+import Functions.Login (doLogin)
+import Functions.State (computeInitialState)
+import Functions.JSState (modifyAppState)
+import Effect.Class.Console (log)
+import Functions.Pin (decryptPassphraseWithRemoval, makeKey)
+import OperationalWidgets.HomePageWidget (homePageWidget)
+import Record (merge)
+import Views.LoginFormView (loginFormView', PinCredentials)
+import Views.SignupFormView (SignupDataForm, emptyDataForm, signupFormView)
 -- import Views.LandingPageView (landingPageView, LandingPageView(..))
-import Views.LoginView ( loginViewSignal )
+import Views.LoginView ( loginView )
+import Web.HTML (window)
+import Web.HTML.Window (localStorage)
+import Web.Storage.Storage (getItem, setItem, Storage)
 
 import Debug (traceM)
 
 commitHash :: String
 commitHash = "epsilon"
 
+emptyCredentials :: Credentials
+emptyCredentials = { username: "", password: "" }
+
 app :: forall a. Page -> Widget HTML a
-app nextPage = app' (ShowPage (Loading (Just nextPage)))
+app nextPage = app' (ShowPage (Loading (Just nextPage))) { credentials: emptyCredentials }
 
 -- --------------------------------------------------
 
@@ -66,12 +82,20 @@ type SharedCardReference = String
 type SharedCardPassword  = String
 
 data Page = Loading (Maybe Page) | Login | Signup | Share (Maybe SharedCardReference) | Main
-data Action = ShowPage Page | DoLogin Credentials | DoSignup Credentials | ShowSharedCard SharedCardReference SharedCardPassword | ShowMain
+data Action = DoLogout 
+            | ShowPage Page 
+            | DoLogin Credentials 
+            | DoLoginWithPin PinCredentials 
+            | DoSignup Credentials 
+            | ShowSharedCard SharedCardReference SharedCardPassword 
+            | ShowError Page 
+            | ShowSuccess Page 
+            -- | ShowMain
 
-app' :: forall a. Action -> Widget HTML a
-app' action = do
-  traceM $ "Doing " <> show action
+app' :: forall a. Action -> { credentials :: Credentials } -> Widget HTML a
+app' action st@{ credentials } = do
   nextAction:: Action <- exitBooting action <|>
+<<<<<<< HEAD
     (demand $ div_ [Props.className "mainDiv"] do
       _             <- headerPage (actionPage action) (Loading Nothing) $ always unit
       loginPageRes  <- headerPage (actionPage action) Login $ do
@@ -96,7 +120,48 @@ app' action = do
     overlay { status: Hidden, message: "loading" }
   log $ "--------------------\npage action " <> show nextAction <> "\n======================"
   app' nextAction
+=======
+    div [Props.className "mainDiv"] [
+      headerPage (actionPage action) (Loading Nothing) []
+      , headerPage (actionPage action) Login [
+          (getLoginActionType <$> (loginFormView' credentials)) <|> ((ShowPage Signup) <$ button [Props.onClick] [text "=> signup"]) -- TODO: if login fails this is reset
+          {-
+            Even when using Signals, the moment the signal terminates because the user clicks "login" its value is lost, because the signal will be drawn anew
+          -}
+        ]
+      , headerPage (actionPage action) Signup [
+          (DoSignup <$> (signupFormView WS.Default $ merge credentials emptyDataForm)) <|> ((ShowPage Login) <$ button [Props.onClick] [text "<= login"])
+        ]
+      , div [Props.classList (Just <$> ["page", "main", show $ location (Share Nothing) (actionPage action)])] [
+          div [Props.className "content"] [text "share"]
+        ]
+      , div [Props.classList (Just <$> ["page", "main", show $ location Main (actionPage action)])] [
+        DoLogout <$ (homePageWidget $ action == (ShowPage Main))
+      ]
+    ]
+    <|>
+    overlayFromAction action
+    <|> 
+    (liftAff $ doOp action)
+  -- log $ "page action " <> show nextAction
+  case nextAction of
+    DoLogin cred -> app' nextAction $ st { credentials = cred }
+    ShowPage Main -> app' nextAction $ st { credentials = emptyCredentials }
+    _ -> app' nextAction st
+>>>>>>> giorgia.rondinini/develop
 
+  where 
+    getLoginActionType :: E.Either PinCredentials Credentials -> Action
+    getLoginActionType (E.Left pinCredentials) = DoLoginWithPin pinCredentials
+    getLoginActionType (E.Right credentials) = DoLogin credentials
+
+overlayFromAction :: forall a. Action -> Widget HTML a
+overlayFromAction (DoLogin _)        = overlay { status: Spinner, message: "loading" }
+overlayFromAction (DoLoginWithPin _) = overlay { status: Spinner, message: "loading" }
+overlayFromAction (DoSignup _)       = overlay { status: Spinner, message: "loading" }
+overlayFromAction (ShowError _)      = overlay { status: Failed, message: "error" }
+overlayFromAction (ShowSuccess _)    = overlay { status: Done, message: "" }
+overlayFromAction _ = overlay { status: Hidden, message: "loading" }
 -- ==================================================
 
 data PagePosition = Left | Center | Right
@@ -134,46 +199,72 @@ exitBooting action                                = liftAff $ action            
 actionPage :: Action -> Page
 actionPage (ShowPage page)      = page
 actionPage (DoLogin _)          = Login
+actionPage (DoLoginWithPin _)   = Login
 actionPage (DoSignup _)         = Signup
 actionPage (ShowSharedCard r _) = Share (Just r)
-actionPage (ShowMain)           = Main
+-- actionPage (ShowMain)           = Main
+actionPage (DoLogout)           = Login
+actionPage (ShowError page)     = page
+actionPage (ShowSuccess page)   = page
 
-headerPage :: forall a. Page -> Page -> Signal HTML a -> Signal HTML a
-headerPage currentPage page innerContent = do
-  traceM $ "drawing headerPage " <> show page
-  div_ [Props.classList (Just <$> ["page", pageClassName page, show $ location currentPage page])] do
-    traceM $ "drawing content headerPage " <> show currentPage <> " [" <> show page <> "]"
-    div_ [Props.className "content"] do
+-- headerPage :: forall a. Page -> Page -> Signal HTML a -> Signal HTML a
+-- headerPage currentPage page innerContent = do
+--   traceM $ "drawing headerPage " <> show page
+--   div_ [Props.classList (Just <$> ["page", pageClassName page, show $ location currentPage page])] do
+--     traceM $ "drawing content headerPage " <> show currentPage <> " [" <> show page <> "]"
+--     div_ [Props.className "content"] do
+
+headerPage :: forall a. Page -> Page -> Array (Widget HTML a) -> Widget HTML a
+headerPage currentPage page innerContent = 
+  div [Props.classList (Just <$> ["page", pageClassName page, show $ location currentPage page])] [
+    div [Props.className "content"] [
       headerComponent
-      res <- div_ [Props.className "content"] innerContent
-      otherComponent
-      footerComponent commitHash
-      pure res
+    , div [Props.className "content"] innerContent
+    , otherComponent
+    , footerComponent commitHash
+    , shortcutsDiv
+    ]
+  ]
 
-headerComponent :: Signal HTML Unit
+
+headerComponent :: forall a. Widget HTML a
 headerComponent =
-  header_ [] do
-    h1_ [] (hold unit $ text "clipperz")
-    h3_ [] (hold unit $ text "keep it to yourself")
+  header [] [
+    h1 [] [text "clipperz"]
+  , h3 [] [text "keep it to yourself"]
+  ]
 
-otherComponent :: Signal HTML Unit
+otherComponent :: forall a. Widget HTML a
 otherComponent =
-  div_ [(Props.className "other")] do
-    div_ [(Props.className "links")] do
-      ul_ [] do
-        _ <- li_ [] $ a_ [Props.href "https://clipperz.is/about/",          Props.target "_blank"] (hold unit $ text "About")
-        _ <- li_ [] $ a_ [Props.href "https://clipperz.is/terms_service/",  Props.target "_blank"] (hold unit $ text "Terms of service")
-        _ <- li_ [] $ a_ [Props.href "https://clipperz.is/privacy_policy/", Props.target "_blank"] (hold unit $ text "Privacy")
-        pure unit
+  div [(Props.className "other")] [
+    div [(Props.className "links")] [
+      ul [] [
+        li [] [a [Props.href "https://clipperz.is/about/",          Props.target "_blank"] [text "About"]]
+      , li [] [a [Props.href "https://clipperz.is/terms_service/",  Props.target "_blank"] [text "Terms of service"]]
+      , li [] [a [Props.href "https://clipperz.is/privacy_policy/", Props.target "_blank"] [text "Privacy"]]
+      ]
+    ]
+  ]
 
-footerComponent :: String -> Signal HTML Unit
+footerComponent :: forall a. String -> Widget HTML a
 footerComponent commit =
-  footer_ [] do
-    div_ [Props.className "footerContent"] do
-      div_ [Props.className "applicationVersion"] do
-        span_ [] (hold unit $ text "application version")
-        a_ [Props.href ("https://github.com/clipperz/password-manager/commit/" <> commit), Props.target "_black"] (hold unit $ text commit)
-        pure unit
+  footer [] [
+    div [Props.className "footerContent"] [
+      div [Props.className "applicationVersion"] [
+        span [] [text "application version"]
+      , a [Props.href ("https://github.com/clipperz/password-manager/commit/" <> commit), Props.target "_black"] [text commit]
+      ]
+    ]
+  ]
+
+shortcutsDiv = div [Props._id "shortcutsHelp", Props.className "hidden"] [
+  p [] [span [] [text "/"]], p [] [text "search"]
+, p [] [span [] [text "*"]], p [] [text "reset search"]
+, p [] [span [] [text "Enter, d, RightArrow"]], p [] [text "open card"]
+, p [] [span [] [text "Escape, a, LeftArrow"]], p [] [text "close card"]
+, p [] [span [] [text "w, UpArrow, s, DownArrow"]], p [] [text "Navigate between cards"]
+, p [] [span [] [text "lock"]], p [] [text "Lock"]
+]
 
 data OverlayStatus = Hidden | Spinner | Done | Failed -- | ProgressBar | Custom
 type OverlayInfo = { status :: OverlayStatus, message :: String }
@@ -198,6 +289,42 @@ overlay info =
       Hidden  -> "hidden"
       _       -> "visible"
 
+doOp :: Action -> Aff Action
+doOp (DoLogin cred) = do
+  res <- runExceptT $ doLogin cred
+  case res of
+    E.Right _ -> pure $ ShowSuccess Main
+    E.Left err -> do
+      log $ "Login error: " <> (show err)
+      pure $ ShowError Login
+doOp (DoLoginWithPin {pin, user, passphrase}) = do
+  storage <- liftEffect $ window >>= localStorage
+  ei <- runExceptT $ decryptPassphraseWithRemoval pin user passphrase
+  case ei of
+    E.Right cred -> pure (DoLogin cred)
+    E.Left e -> do
+      log $ show e
+      pure $ ShowError Login
+doOp (ShowSuccess nextPage) = (ShowPage nextPage) <$ delay (Milliseconds 500.0)
+doOp (ShowError nextPage)   = (ShowPage nextPage) <$ delay (Milliseconds 500.0)
+doOp (DoSignup cred) = do
+  log "hi"
+  res <- liftAff $ runExceptT $ signupUser cred
+  case res of
+    E.Right _ -> pure $ DoLogin cred
+    E.Left err -> do
+      log $ "Signup error: " <> (show err)
+      pure $ ShowPage Signup
+doOp (ShowPage (Loading (Just Login))) = do
+  initialState <- liftEffect $ runExceptT $ computeInitialState
+  case initialState of
+    E.Right st -> do
+      modifyAppState st
+      pure $ ShowPage Login
+    E.Left err -> do
+      log $ show err
+      pure $ ShowPage (Loading (Just Login))
+doOp a = a <$ never
 
 instance showPage :: Show Page where
   show (Loading _)  = "Loading"
@@ -206,13 +333,20 @@ instance showPage :: Show Page where
   show (Share _)    = "Share"
   show (Main)       = "Main"
 
+derive instance eqPage :: Eq Page
+
 instance showAction :: Show Action where
   show (ShowPage page)      = "Show Page " <> show page
   show (DoLogin _)          = "Do Login"
+  show (DoLoginWithPin _)   = "Do LoginWithPint"
   show (DoSignup _)         = "Do Signup"
   show (ShowSharedCard _ _) = "Show Shared Card"
-  show (ShowMain)           = "Show Main"
+  -- show (ShowMain)           = "Show Main"
+  show (ShowError page)     = "Show Error " <> show page 
+  show (ShowSuccess page)   = "Show Success " <> show page 
+  show DoLogout = "DoLogout"
 
+derive instance eqAction :: Eq Action
 
 {-
 app :: Widget HTML Unit
@@ -234,33 +368,32 @@ app = do
 {-
 
 app :: Widget HTML Unit
-app = app' Nothing
+app = shortcutsDiv <|> (app' Nothing)
 
-where
-app' :: Maybe String -> Widget HTML Unit
-app' maybeUsername = do
-initialState' <- liftEffect $ runExceptT computeInitialState
-case initialState' of
-Right initialState@{proxy} -> do
-liftAff $ modifyAppState initialState
-let offlineCopyBanner = case proxy of
-OfflineProxy _ -> [p [Props.className "notice"] [text "Offline copy"]]
-_ -> []
-res <- div [Props.className "wrapper"] $ offlineCopyBanner <> [
-do
--- let form = fromMaybe emptyForm ((\u -> { username: u, password: "" }) <$> maybeUsername )
--- landingPageView (LoginView Default form)
--- !!! AUTOLOGIN FOR DEVELOPING !!! --
-let form = fromMaybe {username: "joe", password: "clipperz"} ((\u -> { username: u, password: "" }) <$> maybeUsername )
-landingPageView (LoginView Loading form)
--- -------------------------------- --
-homePageWidget
-]
-case res of
-Clean -> app' Nothing
-ReadyForLogin username -> app' (Just username)
+  where 
+    app' :: Maybe String -> Widget HTML Unit
+    app' maybeUsername = do
+      initialState' <- liftEffect $ runExceptT computeInitialState
+      case initialState' of
+        Right initialState@{proxy} -> do
+          liftAff $ modifyAppState initialState
+          let offlineCopyBanner = case proxy of
+                                    OfflineProxy _ -> [p [Props.className "notice"] [text "Offline copy"]]
+                                    _ -> []
+          res <- div [Props.className "wrapper"] $ offlineCopyBanner <> [
+            do
+            let form = fromMaybe emptyForm ((\u -> { username: u, password: "" }) <$> maybeUsername )
+            landingPageView (LoginView Default form)
+            -- !!! AUTOLOGIN FOR DEVELOPING !!! --
+            -- let form = fromMaybe {username: "joe", password: "clipperz"} ((\u -> { username: u, password: "" }) <$> maybeUsername )
+            -- landingPageView (LoginView Loading form)
+            -- -------------------------------- --
+            homePageWidget
+          ]
+          case res of
+            Clean -> app' Nothing
+            ReadyForLogin username -> app' (Just username)
 
 Left _ -> text "Could not initialize app"
-
-
 -}
+

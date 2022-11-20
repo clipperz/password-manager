@@ -1,8 +1,13 @@
 module Main
   ( main
+<<<<<<< HEAD
   , registration
   , share
   , test
+=======
+  -- , registration
+  -- , share
+>>>>>>> giorgia.rondinini/develop
   )
   where
 
@@ -12,6 +17,7 @@ import Concur.React.Run (runWidgetInDom)
 import Effect (Effect)
 import OperationalWidgets.App (app, Page(..), SharedCardReference)
 
+<<<<<<< HEAD
 
 import Data.Function (($))
 import Concur.Core.FRP (Signal, demand, loopW, always, fireOnce, hold, dyn, loopS, step)
@@ -24,15 +30,77 @@ import Control.Monad.Rec.Class (forever)
 import Data.Functor (map, (<$), void, (<$>))
 import Control.Applicative (pure)
 import Data.Unit (unit, Unit)
+=======
+-- main :: Effect Unit
+-- main = runWidgetInDom "app" (app (Loading (Just Login)))
+
+-- registration :: Effect Unit
+-- registration = runWidgetInDom "app" (app Signup)
+
+-- share :: String -> Effect Unit
+-- share token = runWidgetInDom "app" (app (Share (Just token)))
+
+import Concur.Core.FRP (loopS, demand, fireOnce, dyn)
+import Concur.React.DOM (text)
+import Views.SimpleWebComponents (simpleButton, simpleTextInputWidget, dragAndDropListSignal)
+import Data.Tuple (Tuple(..))
+import Data.Function (($))
+import Control.Bind (bind, discard)
+import Effect.Class.Console (log)
+import Data.Show (show)
+import Data.Functor ((<$>))
+import Data.Tuple (fst)
+
+import Debug (traceM)
+>>>>>>> giorgia.rondinini/develop
 
 main :: Effect Unit
-main = runWidgetInDom "app" (app Login)
+main = runWidgetInDom "app" $ do
+  let initialValues = [
+    Tuple "" (simpleTextInputWidget "input1" (text "Input 1") "")
+  , Tuple "" (simpleTextInputWidget "input2" (text "Input 2") "")
+  , Tuple "" (simpleTextInputWidget "input3" (text "Input 3") "")
+  , Tuple "" (simpleTextInputWidget "input4" (text "Input 4") "")  
+  , Tuple "" (simpleTextInputWidget "input5" (text "Input 5") "")
+  ]
+  res <- demand $ do
+    results <- dragAndDropListSignal initialValues
+    fireOnce $ simpleButton "Exit" false results
+  log $ show $ fst <$> res
 
-registration :: Effect Unit
-registration = runWidgetInDom "app" (app Signup)
+-- import Data.Function (($))
+-- import Concur.Core.FRP (demand, hold, loopS, dyn)
+-- import Concur.React.DOM (div_, text, div)
+-- import Views.LoginView ( loginViewSignal )
+-- import Views.SimpleWebComponents (simplePasswordSignal, simplePasswordInputWidget)
+-- import React.DOM as D
+-- import Concur.Core (mkLeafWidget, mkNodeWidget)
+-- import Concur.Core.Props (Props, mkProp)
+-- import Control.ShiftMap (class ShiftMap, shiftMap)
+-- import Data.Functor (map)
+-- import Control.Semigroupoid ((<<<))
+-- import Control.Bind (bind, discard)
+-- import Concur.React.Props as Props
+-- import Control.Applicative (pure)
+-- import Debug (traceM)
 
-share :: String -> Effect Unit
-share token = runWidgetInDom "app" (app (Share (Just token)))
+-- main :: Effect Unit
+-- main = runWidgetInDom "app" $ div [] [dyn $ do
+--   traceM "01"
+--   r <- loopS "initial" $ \i -> div_ [Props.className "general"] $ div_ [Props.className "ciao"] do
+--     traceM "1"
+--     _ <- div_ [Props.className "pwd0"] $ simplePasswordSignal ""
+--     traceM "1.5"
+--     _ <- div_ [Props.className "pwd1"] $ simplePasswordSignal ""
+--     res <- div_ [Props.className "pwd2"] $ simplePasswordSignal ""
+--     traceM "2"
+--     pure res
+--   traceM "02"
+--   pure r
+-- ]
+-- -- main = runWidgetInDom "app" $ div [] [div_ [Props.className "ciao"] (do
+-- --   _ <- simplePasswordInputWidget "password" (text "password") ""
+-- --   text "ok")]
 
 -- loopW      :: forall   a m. Monad m =>                                     a -> (a -> m a        )                         -> SignalT m a            -- Create a signal which repeatedly invokes a widget function for values, looping in the prev value.
 -- loopS      :: forall   a m. Monad m =>                                     a -> (a -> SignalT m a)                         -> SignalT m a            -- Loop a signal so that the return value is passed to the beginning again.
@@ -98,3 +166,39 @@ test' = do
       ]
     ]
   ]
+
+-- -- viewAdapter
+--   -- :: forall ps vs res
+--   -- .  (ps -> vs -> res)
+--   -- -> (ps -> vs -> Array res)
+-- viewAdapter f = \ps vs -> [f ps vs]
+
+-- -- el
+--   -- :: forall m a p v
+--   -- .  ShiftMap (Widget (Array v)) m
+--   -- => (Array p -> Array v -> v)
+--   -- -> Array (Props p a)
+--   -- -> m a
+--   -- -> m a
+-- -- el f props = cdel (viewAdapter f) props
+-- el f' props = shiftMap (\f w -> mkNodeWidget (\h v -> ((viewAdapter f') (map (mkProp h <<< map f) props) v)) w)
+
+-- -- mkNodeWidget :: forall v a. ((a -> Effect Unit) -> v -> v) -> Widget v a -> Widget v a
+-- -- mkProp :: forall a p. (a -> Effect Unit) -> Props p a -> p
+
+-- -- cdel
+-- --   :: forall f p v m a
+-- --   .  ShiftMap (Widget v) m
+-- --   => Functor f
+-- --   => (f p -> v -> v)
+-- --   -> f (Props p a)
+-- --   -> m a
+-- --   -> m a
+-- cdel e props = shiftMap (\f w -> mkNodeWidget (\h v -> (e (map (mkProp h <<< map f) props) v)) w)
+
+-- --     shiftMap :: forall a. (forall b. (a -> b) -> s b -> s b) -> t a -> t a
+-- --     shiftMap :: forall a. (forall b. (a -> b) -> Widget HTML b -> Widget HTML b) -> Widget HTML a -> Widget HTML a
+-- -- instance widgetShiftMap :: ShiftMap (Widget v) (Widget v) where
+--   -- shiftMap f = f identity
+
+--   -- identity :: a -> Identity a

@@ -15,6 +15,7 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
 import Data.List.Types (List(..), (:))
+import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..), snd)
 import Data.PrettyShow (prettyShow)
 import DataModel.Card (Card, defaultCards)
@@ -77,7 +78,9 @@ prepareSignupParameters form = runExceptT $ do
               , srpVersion : "6a"
               , masterKeyEncodingVersion : "1.0"
               , masterKeyContent : masterKeyContent
-              , preferences: { passwordGeneratorSettings: standardPasswordGeneratorSettings }
+              , preferences: { passwordGeneratorSettings: standardPasswordGeneratorSettings
+                             , automaticLock: Just 10
+                             }
               }
         , indexCardReference : indexCardContentHash
         , indexCardContent   : fromArrayBuffer indexCardContent

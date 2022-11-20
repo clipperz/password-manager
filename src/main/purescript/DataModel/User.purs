@@ -4,10 +4,12 @@ import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
 import Data.Bifunctor (rmap)
 import Data.HexString (HexString)
+import Data.Maybe (Maybe)
 import DataModel.Password (PasswordGeneratorSettings)
 
 type UserPreferences = {
   passwordGeneratorSettings :: PasswordGeneratorSettings
+, automaticLock :: Maybe Int
 }
 
 newtype UserCard =

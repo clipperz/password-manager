@@ -41,6 +41,34 @@ p.important {
 	height: 100%;
 }
 
+div.hidden {
+	@include hide-element
+}
+
+#shortcutsHelp:not(.hidden) {
+	width: 70%;
+	background-color: black;
+	color: white;
+	height: 40%;
+	position: absolute;
+	left: 25%;
+	top: 10%;
+	z-index: 15;
+	padding: 5px;
+	border-radius: 5px;
+	
+	display: flex;
+	flex-wrap: wrap;
+
+	& > p {
+		flex: 50%;
+		& > span {
+			color: yellow;
+			padding-right: 2em;
+		}
+	}
+}
+
 div.scrollable {
 	overflow-y: auto;
 	height: 100%;
@@ -255,6 +283,26 @@ div.hidden {
 	}
 }
 
+#importPage {
+	height: 100%;
+}
+
+div.importInput, div.importPage {
+	height: 100%;
+}
+
+div.dropFile.highlight {
+	border: 1px solid green;
+}
+
+div.dropFile {
+	position: relative;
+	width: 80%;
+	height: 30%;
+	border: 1px solid $alternate-color;
+	text-align: center;
+}
+
 #indexView {
 	height: 100%;
 	width: 30%;
@@ -281,16 +329,67 @@ div.hidden {
 		}
 	}
 }
+.test {
+	height: 100%;
+	width: 100%;
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+}
+
+.draggingElem {
+	opacity: 0.5;
+	// position: absolute;
+	border: 1px solid red;
+}
+
+.dropzone {
+	width: 50%;
+	background-color: blue;
+	height: 2px;
+}
+
+.dragHandle {
+	background-color: gray;
+	display: block;
+}
+
+.dropzone.selected {
+	background-color: green;
+	height: 15px;
+}
+
+.draggableElem {
+	padding: 5px
+}
+
+.selectedDropElement {
+	// padding: 10px;
+}
+
+.dragAndDropElem {
+	width: 100%;
+	border: 1px solid black;
+	background-color: white;
+	display: inline-flex;
+	flex-direction: column;
+}
+
+.dragAndDropElem.selected {
+	background-color: gray;
+}
 
 #cardForm {
 	height: 100%;
 	width: 70%;
 	border: 1px solid gray;
+	color: $alternate-text-color;
 }
 
 #cardContent {
 	height: 100%;
 	overflow-y: auto;
+	color: $alternate-text-color;
 }
 
 .cardForm {
@@ -375,6 +474,7 @@ div.hidden {
 #indexView > ol > li {
 	min-height: 20px;
 	border-bottom: 0.5px solid rgba(128, 128, 128, 0.658);
+	color: $alternate-text-color;
 }
 
 #changePasswordArea {

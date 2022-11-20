@@ -10,11 +10,15 @@ import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))
 import Control.Monad.Except.Trans (runExceptT, ExceptT(..), except)
 import Control.Semigroupoid ((<<<))
+import Data.Argonaut.Core (stringify)
+import Data.Argonaut.Decode.Class (decodeJson)
+import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (filter, length, cons)
+import Data.Bifunctor (lmap)
 import Data.Either (Either(..), isLeft)
 import Data.Function (($))
-import Data.Functor ((<$>))
+import Data.Functor ((<$>), (<$))
 import Data.HeytingAlgebra (not)
 import Data.List (List(..), (:), concat, fromFoldable)
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
@@ -35,13 +39,13 @@ import Functions.Communication.Users (updateIndex)
 import Functions.Import (decodeImport, parseHTMLImport, decodeHTML)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate)
 import Views.CardViews (cardField)
-import Views.SimpleWebComponents (loadingDiv, simpleFileInputWidget, simpleTextInputWidget, simpleTextAreaSignal, simpleCheckboxSignal, simpleButton)
+import Views.SimpleWebComponents (loadingDiv, simpleFileInputWidget, dragAndDropFileInputWidget, simpleTextInputWidget, simpleTextAreaSignal, simpleCheckboxSignal, simpleButton)
 
 data QuickSelection = All | None | Archived | NonArchived
 
 data SelectionAction = Cards (Array (Tuple Boolean Card)) | NewQuickSelection QuickSelection
 
-data ImportStep = UploadContent String | ChooseCards String | Confirm (Array (Tuple Boolean Card))
+data ImportStep = UploadContent String | ChooseCards (Array (Tuple Boolean Card)) | Confirm (Array (Tuple Boolean Card))
 
 importWidget :: Index -> Widget HTML (Either AppError Index)
 importWidget index@(Index entries) = div [Props._id "importPage"] [h1 [] [text "Import"], importPage Nothing (UploadContent "")]
@@ -55,54 +59,67 @@ importWidget index@(Index entries) = div [Props._id "importPage"] [h1 [] [text "
       ExceptT $ pure $ Right newIndex
 
     importPage :: Maybe String -> ImportStep -> Widget HTML (Either AppError Index)
-    importPage error (UploadContent pl) = (ChooseCards <$> (div [] [
-      text (fromMaybe "" error)
-    , p [] [text "Import data from another Clipperz account using a JSON/HTML export file created by Clipperz."]
-    , div [] [
-        simpleFileInputWidget "import" (text "Import")
-      , p [] [text "Alternatively you may type or paste any properly formatted JSON data."]
-      , demand $ do
-                  textContent <- simpleTextAreaSignal "importText" (text "Import") "Type or copy your data here" pl
-                  fireOnce (simpleButton "Import" (isLeft (jsonParser textContent)) textContent)
-      ]
-    ])) >>= (importPage Nothing)
-    importPage _ (ChooseCards content) = do
-      eitherCards <- runExceptT $ do
-        codedCardData <- except $ parseHTMLImport content
-        decodedCardData <- except $ Right $ decodeHTML codedCardData
-        ExceptT $ liftEffect $ decodeImport decodedCardData
-      case eitherCards of 
-        Left err -> importPage (Just $ show err) (UploadContent content)
-        Right cards -> (Confirm <$> (cardSelectionWidget ((\c@(Card r) -> Tuple (not r.archived) c) <$> cards))) >>= (importPage Nothing)
+    importPage error (UploadContent pl) = do
+      res <- div [Props.className "importPage"] [
+          text (fromMaybe "" error)
+        , p [] [text "Import data from another Clipperz account using a JSON/HTML export file created by Clipperz."]
+        , div [Props.className "importInput"] [
+            Left <$> (dragAndDropFileInputWidget "import" "Import")
+          , p [] [text "Alternatively you may type or paste any properly formatted JSON data."]
+          , Right <$> (demand $ do
+                                textContent <- simpleTextAreaSignal "importText" (text "Import") "Type or copy your data here" pl
+                                fireOnce (simpleButton "Import" (isLeft (jsonParser textContent)) textContent))
+          ]
+        ]
+      case res of
+        Left html -> do
+          eitherCards <- runExceptT $ do
+            codedCardData <- except $ parseHTMLImport html
+            decodedCardData <- except $ Right $ decodeHTML codedCardData
+            ExceptT $ liftEffect $ decodeImport decodedCardData
+          case eitherCards of
+            Left err -> importPage (Just $ show err) (UploadContent "")
+            Right cards -> importPage Nothing $ ChooseCards $ (\c@(Card r) -> Tuple (not r.archived) c) <$> cards
+        Right jsonText ->
+          let eitherJson = jsonParser jsonText
+          in case eitherJson of
+              Left err -> importPage (Just $ show err) (UploadContent jsonText)
+              Right json ->
+                let eitherCards = decodeJson json
+                in case eitherCards of
+                    Left err -> importPage (Just $ show err) (UploadContent (stringify json))
+                    Right cards -> importPage Nothing $ ChooseCards $ (\c@(Card r) -> Tuple (not r.archived) c) <$> cards
+    importPage _ (ChooseCards cards) = do
+      (cardSelectionWidget (UploadContent (stringify $ encodeJson (snd <$> cards))) cards) >>= (importPage Nothing)
     importPage _ (Confirm cards) = 
       let total = length cards
           toImportCards = snd <$> (filter (\(Tuple b _) -> b) cards)
           toImport = length toImportCards
       in do
-          div [] [
+          res <- div [Props.className "importPage"] [
             text $ "Import " <> (show toImport) <> " cards (of " <> (show total) <> ")?"
-          , simpleButton "Import" false unit
+          , ((simpleButton "<<" false false) <|> (simpleButton "Import" false true))
           ]
-          loadingDiv <|> (liftAff $ saveImport toImportCards)
+          if res then loadingDiv <|> (liftAff $ saveImport toImportCards)
+          else importPage Nothing (ChooseCards cards) 
 
-    cardSelectionWidget :: Array (Tuple Boolean Card) -> Widget HTML (Array (Tuple Boolean Card))
-    cardSelectionWidget cards = do
+    cardSelectionWidget :: ImportStep -> Array (Tuple Boolean Card) -> Widget HTML ImportStep --(Array (Tuple Boolean Card))
+    cardSelectionWidget goBackValue cards = do
       newTagWithDate <- (((<>) "Import_") <<< formatDateTimeToDate) <$> (liftEffect getCurrentDateTime)
-      res <- div [Props.className "scrollable"] [ 
-          NewQuickSelection <$> selectWidget 
-        , Cards <$> (demand $ do
+      res <- div [Props.classList (Just <$> ["importPage", "scrollable"])] [ 
+          Left <$> selectWidget 
+        , Right <$> (demand $ do
             newTag <- loopS { tag: newTagWithDate, cb: true } $ \v -> do
                                                             newTagCB <- simpleCheckboxSignal "addTag" (text "Apply the following tag to imported cards:") true v.cb
                                                             newTag <- loopW v.tag (simpleTextInputWidget "newTag" (text "Tag") "Tag")
                                                             pure $ { tag: newTag, cb: newTagCB }
             selectedCards <- sequence $ importCardProposalWidget <$> cards
             let preparedCards = if newTag.cb then prepareSelectedCards newTag.tag selectedCards else selectedCards
-            fireOnce (div [Props.className "fixedFoot"] [simpleButton "Import" false preparedCards]))
+            fireOnce (div [Props.className "fixedFoot"] [(simpleButton "<<" false goBackValue) <|> (simpleButton "Import" false (Confirm preparedCards))]))
         ]
-      log "exited from signals"
       case res of
-        NewQuickSelection sel -> cardSelectionWidget $ filterCards sel cards
-        Cards arr -> pure arr
+        Left sel -> cardSelectionWidget goBackValue $ filterCards sel cards
+        Right value -> pure value
 
     filterCards :: QuickSelection -> Array (Tuple Boolean Card) -> Array (Tuple Boolean Card)
     filterCards All arr = (\(Tuple _ c) -> Tuple true c) <$> arr

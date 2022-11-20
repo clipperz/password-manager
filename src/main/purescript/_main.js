@@ -1,6 +1,72 @@
-// const { Even } = require("../../../target/output.purescript/Data.Int")
-// const { delay } = require("../../../target/output.purescript/Effect.Aff")
 const Main = require ("../../../target/output.purescript/Main")
+
+function addEventBubblingBlockers() {
+    const observer = new MutationObserver(mutations => {
+        mutations.forEach(function(mutation) {
+            for(var i = 0; i < mutation.addedNodes.length; i++)
+                mutation.addedNodes.forEach(node => {
+                    for (let item of document.forms) {
+                        item.addEventListener("submit", ev => ev.preventDefault())
+                    }
+                    try {
+                        if (node.classList.contains("cardForm")) {
+                            node.addEventListener("keydown", ev => {
+                                ev.stopImmediatePropagation();
+                            })
+                        } else {
+                            for (let item of document.getElementsByClassName("dropFile")) {
+                                ["drop", "dragover"].forEach(eventName => item.addEventListener(eventName, ev => { ev.stopPropagation(); ev.preventDefault();} ))
+                            }
+                            document.getElementById("card").addEventListener("keydown", ev => {
+                                ev.stopImmediatePropagation();
+                            })
+                        }
+                    } catch (err) {
+                    }
+                })
+        })
+    });
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+    });
+}
+
+function addShortcutsManagement() {
+    Mousetrap.bind("/", function(ev) {
+        document.getElementById("generalFilter").focus();
+        ev.preventDefault();
+    })
+    Mousetrap.bind("*", function(ev) {
+        document.getElementById("generalFilter").value = "";
+        document.getElementById("generalFilter").focus();
+        document.getElementById("generalFilter").blur();
+    })
+    Mousetrap.bind(["a", "s", "d", "w", "left", "up", "right", "down", "esc", "enter"], function(ev) {
+        // console.log(ev.key)
+        if (ev.key === "Escape" && !document.getElementById("shortcutsHelp").classList.contains("hidden")) {
+            try {
+                document.getElementById("shortcutsHelp").classList.add("hidden")
+            } catch (error) {}
+        } else {
+            if (document.getElementById("cardForm") == null && ev.target.nodeName === "BODY") {
+                document.getElementById("cardsManager").dispatchEvent(new KeyboardEvent("keydown", ev))
+            }
+        }
+    })
+    Mousetrap.bind("?", function(ev) {
+        // console.log(document.getElementById("shortcutsHelp").classList)
+        document.getElementById("shortcutsHelp").classList.remove("hidden")
+        // console.log(document.getElementById("shortcutsHelp").classList)
+    })
+    Mousetrap.bind("l o c k", function(ev) { // order is important
+        document.getElementById("lockButton").dispatchEvent(new MouseEvent("click", {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+        }))
+    })
+}
 
 function main () {
     /*
@@ -18,32 +84,8 @@ function main () {
         However, you will need to change the type to accept variables, by default it is an Effect.
         You will probably want to make it a function from String -> Effect ()
     */
-    const lastFourKeys = Array(4);
-    window.document.onkeydown = ev => {
-        if (ev.target.nodeName === "BODY") {
-            if (ev.key === "/") {
-                document.getElementById("generalFilter").focus()
-                ev.preventDefault()
-            } else if (ev.key === "*") {
-                document.getElementById("generalFilter").value = ""
-                document.getElementById("generalFilter").focus()
-                document.getElementById("generalFilter").blur()
-                ev.preventDefault()
-            } else if (ev.type === "keydown") {
-                if (lastFourKeys.push(ev.key) > 4) {
-                    lastFourKeys.shift()
-                }
-                if (lastFourKeys.reduce((a, b) => a + b) === "lock") {
-                    document.getElementById("lockButton").dispatchEvent(new MouseEvent("click", {
-                        bubbles: true,
-                        cancelable: true,
-                        view: window,
-                      }))
-                }
-                document.getElementById("cardsManager").dispatchEvent(new KeyboardEvent("keydown", ev))
-            }
-        }
-    }
+    addEventBubblingBlockers();
+    addShortcutsManagement();
 
     let hash = window.location.hash;
 

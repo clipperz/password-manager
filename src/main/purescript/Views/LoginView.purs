@@ -10,7 +10,7 @@ import Control.Bind (bind, (>>=), discard)
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopS, loopW, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', text, label, input, a)
+import Concur.React.DOM (div, div', text, form, label, input, a)
 import Concur.React.Props as Props
 
 import Data.Eq ((/=))
@@ -29,13 +29,13 @@ type LoginDataForm =  { username :: String
 emptyForm :: LoginDataForm
 emptyForm = { username: "", password: "" }
 
-loginView :: Widget HTML Credentials
-loginView = do
-  form emptyForm
+loginView :: Credentials -> Widget HTML Credentials
+loginView credentials = do
+  formWidget credentials
 
   where 
-    form :: LoginDataForm -> Widget HTML Credentials
-    form formData = div [Props.className "form"] [ do
+    formWidget :: LoginDataForm -> Widget HTML Credentials
+    formWidget formData = form [Props.className "form"] [ do
       demand $ formSignal formData
     ]
 
