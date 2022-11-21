@@ -34,6 +34,8 @@ import React.SyntheticEvent (SyntheticMouseEvent)
 import Views.PasswordGenerator (passwordGenerator)
 import Views.SimpleWebComponents (loadingDiv, simpleButton, dragAndDropList', confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, simpleCheckboxWidget, disableOverlay, simpleTextAreaSignal)
 
+import Debug (traceM)
+
 data CardFieldWidgetAction = Remove | Update CardField
 
 createCardView :: Card -> Array String -> WidgetState -> Widget HTML (Maybe Card)
@@ -47,39 +49,12 @@ createCardView card allTags state = do
       Error err -> [disableOverlay, text err, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
   case mCard of
     Just (Card { content, timestamp: _ }) -> do
-      liftEffect $ log $ show content
+      -- liftEffect $ log $ show content
       timestamp' <- liftEffect $ getCurrentTimestamp
       pure $ Just $ Card { content: content, archived: false, timestamp: timestamp' }
     Nothing -> pure Nothing
 
   where 
-    cardFieldSignal :: PasswordGeneratorSettings -> {index :: Int, field :: CardField} -> Signal HTML (Maybe CardField)
-    cardFieldSignal settings {index, field} = div_ [Props.className "cardField"] do
-      let strIndex = show index
-      removeField <- fireOnce $ simpleButton "x" false unit
-      field' <- loopS field $ \(CardField { name, value, locked }) -> do
-        { name', value' } <- div_ [Props.className "inputs"] do
-          name'  :: String <- loopW name  (simpleTextInputWidget ("name" <> strIndex)  (text "Name")  "Field name")
-          value' :: String <- loopW value (simpleTextInputWidget ("value" <> strIndex) (text "Value") "Field value")
-          pure { name', value' }
-        { generatePassword, locked' } <- div_ [] do
-          generatePassword <- case locked of
-            false -> pure $ Nothing 
-            true ->  fireOnce $ do
-              simpleButton "Gen Pass" false unit
-              div [Props.className "passwordGeneratorOverlay"] [
-                div [value <$ Props.onClick] []
-              , passwordGenerator settings
-              ]
-          locked' :: Boolean <- simpleCheckboxSignal "locked" (text "Locked") false locked
-          pure { generatePassword, locked' }
-        pure $ case generatePassword of
-          Nothing -> CardField {name: name', value: value', locked: locked'}
-          Just generatedValue -> CardField {name: name', value: generatedValue, locked: locked'}
-      case removeField of
-        Nothing -> pure $ Just field'
-        Just _  -> pure $ Nothing
-    
     cardFieldWidget :: PasswordGeneratorSettings -> Maybe CardField -> Widget HTML (Maybe CardField)
     cardFieldWidget _ Nothing = pure Nothing
     cardFieldWidget settings (Just (CardField r@{ name, value, locked })) = do
@@ -107,20 +82,11 @@ createCardView card allTags state = do
 
     fieldsSignal :: PasswordGeneratorSettings -> Array CardField -> Signal HTML (Array CardField)
     fieldsSignal settings fields = do
-      -- let indexedFields = zipWith (\i -> \f -> { index: i, field: f}) (range 0 ((length fields - 1))) fields
-      -- let signals = (cardFieldSignal settings) <$> indexedFields
-      -- fields' :: Array CardField <- (\fs -> (maybe [] singleton) =<< filter isJust fs) <$> (sequence $ signals)
-      -- addField <- fireOnce $ simpleButton "Add field" false unit
-      -- case addField of
-      --   Nothing -> pure fields'
-      --   Just _  -> pure $ snoc fields' emptyCardField
       let loopables = (\f -> Tuple (Just f) (cardFieldWidget settings)) <$> fields 
-      fields' <- loopW loopables (\ls -> do
-                                    let newLoopables = filter (\(Tuple v _) -> isJust v) ls
-                                    dragAndDropList' ls
-                                  )
+      fields' <- loopW loopables dragAndDropList'
       addField <- fireOnce $ simpleButton "Add field" false unit
       let newFields = catMaybes $ fst <$> fields'
+      traceM "updateSignal"
       case addField of
         Nothing -> pure newFields 
         Just _  -> pure $ snoc newFields emptyCardField
