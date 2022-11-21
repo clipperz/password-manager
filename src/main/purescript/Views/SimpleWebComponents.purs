@@ -524,10 +524,10 @@ dragAndDropList widgets = do
 
 type LoopableWidget a = Tuple a (a -> Widget HTML a)
 
-dragAndDropListSignal :: forall a. Show a => Array (LoopableWidget a) -> Signal HTML (Array (LoopableWidget a))
+dragAndDropListSignal :: forall a. Array (LoopableWidget a) -> Signal HTML (Array (LoopableWidget a))
 dragAndDropListSignal widgets = loopW widgets dragAndDropList'
 
-dragAndDropList' :: forall a. Show a => Array (LoopableWidget a) -> Widget HTML (Array (LoopableWidget a))
+dragAndDropList' :: forall a. Array (LoopableWidget a) -> Widget HTML (Array (LoopableWidget a))
 dragAndDropList' widgets = do
   let widgetsInfo = [Left false] <> (intersperse (Left false) $ Right <$> widgets) <> [Left false]
   go widgetsInfo Nothing
