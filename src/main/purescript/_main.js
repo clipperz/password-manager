@@ -89,9 +89,7 @@ function main () {
 
     let hash = window.location.hash;
 
-    if (hash === "#test") {
-        Main.test();
-    } else if (hash === "#registration") {
+    if (hash === "#registration") {
         console.log("registration");
         Main.registration();
     } else if (hash === "#share…") {
@@ -99,8 +97,7 @@ function main () {
         Main.share("11111111111111");
     } else {
         console.log("main");
-        // Main.main();
-        Main.test();
+        Main.main();
     }
 }
 

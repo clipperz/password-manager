@@ -12,6 +12,7 @@ module Views.SimpleWebComponents
   , disabledSimpleTextInputWidget
   , dragAndDropFileInputWidget
   , dragAndDropList
+  , dragAndDropList'
   , dragAndDropListSignal
   , loadingDiv
   , passwordStrengthShow

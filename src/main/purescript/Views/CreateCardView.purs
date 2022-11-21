@@ -9,7 +9,7 @@ import Control.Alt((<|>), class Alt)
 import Control.Applicative (pure)
 import Control.Bind (bind, (=<<), (>>=), discard)
 import Control.Semigroupoid ((<<<))
-import Data.Array (snoc, filter, singleton, sort, length, range, zipWith)
+import Data.Array (snoc, filter, catMaybes, singleton, sort, length, range, zipWith)
 import Data.Either (Either(..), fromRight)
 import Data.Eq ((==))
 import Data.Function (($))
@@ -19,7 +19,7 @@ import Data.Ring ((-))
 import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
 import Data.Traversable (sequence)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), fst)
 import Data.Unit (unit)
 import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
 import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
@@ -32,7 +32,9 @@ import Functions.JSState (getAppState)
 import Functions.Time (getCurrentTimestamp)
 import React.SyntheticEvent (SyntheticMouseEvent)
 import Views.PasswordGenerator (passwordGenerator)
-import Views.SimpleWebComponents (loadingDiv, simpleButton, confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, disableOverlay, simpleTextAreaSignal)
+import Views.SimpleWebComponents (loadingDiv, simpleButton, dragAndDropList', confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, simpleCheckboxWidget, disableOverlay, simpleTextAreaSignal)
+
+data CardFieldWidgetAction = Remove | Update CardField
 
 createCardView :: Card -> Array String -> WidgetState -> Widget HTML (Maybe Card)
 createCardView card allTags state = do
@@ -77,16 +79,51 @@ createCardView card allTags state = do
       case removeField of
         Nothing -> pure $ Just field'
         Just _  -> pure $ Nothing
+    
+    cardFieldWidget :: PasswordGeneratorSettings -> Maybe CardField -> Widget HTML (Maybe CardField)
+    cardFieldWidget _ Nothing = pure Nothing
+    cardFieldWidget settings (Just (CardField r@{ name, value, locked })) = do
+      let generatePasswordWidgets = case locked of
+                                      false -> []
+                                      true -> [
+                                        (\v -> Update (CardField $ r { value = v })) <$> do
+                                                                                          simpleButton "Gen Pass" false unit
+                                                                                          div [Props.className "passwordGeneratorOverlay"] [
+                                                                                            div [value <$ Props.onClick] []
+                                                                                          , passwordGenerator settings
+                                                                                          ]
+                                      ]
+      res <- div [Props.className "fieldForm"] [
+        simpleButton "x" false Remove
+      , div [Props.className "inputs"] [
+          (\v -> Update (CardField $ r { name  = v })) <$> simpleTextInputWidget ("name")  (text "Name")  "Field name"  name
+        , (\v -> Update (CardField $ r { value = v })) <$> simpleTextInputWidget ("value") (text "Value") "Field value" value
+        ]
+      , div [] $ generatePasswordWidgets <> [(\v -> Update (CardField $ r { locked = v })) <$> (simpleCheckboxWidget "locked" (text "Loacked") false locked)]
+      ]
+      case res of
+        Remove -> pure Nothing
+        Update f -> pure $ Just f
 
     fieldsSignal :: PasswordGeneratorSettings -> Array CardField -> Signal HTML (Array CardField)
     fieldsSignal settings fields = do
-      let indexedFields = zipWith (\i -> \f -> { index: i, field: f}) (range 0 ((length fields - 1))) fields
-      let signals = (cardFieldSignal settings) <$> indexedFields
-      fields' :: Array CardField <- (\fs -> (maybe [] singleton) =<< filter isJust fs) <$> (sequence $ signals)
+      -- let indexedFields = zipWith (\i -> \f -> { index: i, field: f}) (range 0 ((length fields - 1))) fields
+      -- let signals = (cardFieldSignal settings) <$> indexedFields
+      -- fields' :: Array CardField <- (\fs -> (maybe [] singleton) =<< filter isJust fs) <$> (sequence $ signals)
+      -- addField <- fireOnce $ simpleButton "Add field" false unit
+      -- case addField of
+      --   Nothing -> pure fields'
+      --   Just _  -> pure $ snoc fields' emptyCardField
+      let loopables = (\f -> Tuple (Just f) (cardFieldWidget settings)) <$> fields 
+      fields' <- loopW loopables (\ls -> do
+                                    let newLoopables = filter (\(Tuple v _) -> isJust v) ls
+                                    dragAndDropList' ls
+                                  )
       addField <- fireOnce $ simpleButton "Add field" false unit
+      let newFields = catMaybes $ fst <$> fields'
       case addField of
-        Nothing -> pure fields'
-        Just _  -> pure $ snoc fields' emptyCardField
+        Nothing -> pure newFields 
+        Just _  -> pure $ snoc newFields emptyCardField
 
     tagSignal :: String -> Signal HTML (Maybe String)
     tagSignal tag = do
