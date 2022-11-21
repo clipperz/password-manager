@@ -57,8 +57,11 @@ object Main extends zio.ZIOAppDefault:
       val usersArchivePath = args(1).split("/").nn
       val port = args(2).toInt
 
+      val MB = 1024 * 1024
+
       val server =
         Server.port(port) ++
+          Server.enableObjectAggregator(5*MB) ++
           Server.paranoidLeakDetection ++
           Server.app(completeClipperzBackend)
 

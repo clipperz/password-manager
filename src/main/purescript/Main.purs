@@ -1,13 +1,8 @@
 module Main
   ( main
-<<<<<<< HEAD
   , registration
   , share
-  , test
-=======
-  -- , registration
-  -- , share
->>>>>>> giorgia.rondinini/develop
+  -- , test
   )
   where
 
@@ -16,8 +11,18 @@ import Data.Unit (Unit)
 import Concur.React.Run (runWidgetInDom)
 import Effect (Effect)
 import OperationalWidgets.App (app, Page(..), SharedCardReference)
+import Concur.Core.FRP (loopS, demand, fireOnce, dyn)
+-- import Concur.React.DOM (text)
+import Views.SimpleWebComponents (simpleButton, simpleTextInputWidget, dragAndDropListSignal)
+import Data.Tuple (Tuple(..))
+import Data.Function (($))
+-- import Control.Bind (bind, discard)
+import Effect.Class.Console (log)
+import Data.Show (show)
+import Data.Functor ((<$>))
+import Data.Tuple (fst)
 
-<<<<<<< HEAD
+import Debug (traceM)
 
 import Data.Function (($))
 import Concur.Core.FRP (Signal, demand, loopW, always, fireOnce, hold, dyn, loopS, step)
@@ -30,43 +35,29 @@ import Control.Monad.Rec.Class (forever)
 import Data.Functor (map, (<$), void, (<$>))
 import Control.Applicative (pure)
 import Data.Unit (unit, Unit)
-=======
--- main :: Effect Unit
--- main = runWidgetInDom "app" (app (Loading (Just Login)))
-
--- registration :: Effect Unit
--- registration = runWidgetInDom "app" (app Signup)
-
--- share :: String -> Effect Unit
--- share token = runWidgetInDom "app" (app (Share (Just token)))
-
-import Concur.Core.FRP (loopS, demand, fireOnce, dyn)
-import Concur.React.DOM (text)
-import Views.SimpleWebComponents (simpleButton, simpleTextInputWidget, dragAndDropListSignal)
-import Data.Tuple (Tuple(..))
-import Data.Function (($))
-import Control.Bind (bind, discard)
-import Effect.Class.Console (log)
-import Data.Show (show)
-import Data.Functor ((<$>))
-import Data.Tuple (fst)
-
-import Debug (traceM)
->>>>>>> giorgia.rondinini/develop
 
 main :: Effect Unit
-main = runWidgetInDom "app" $ do
-  let initialValues = [
-    Tuple "" (simpleTextInputWidget "input1" (text "Input 1") "")
-  , Tuple "" (simpleTextInputWidget "input2" (text "Input 2") "")
-  , Tuple "" (simpleTextInputWidget "input3" (text "Input 3") "")
-  , Tuple "" (simpleTextInputWidget "input4" (text "Input 4") "")  
-  , Tuple "" (simpleTextInputWidget "input5" (text "Input 5") "")
-  ]
-  res <- demand $ do
-    results <- dragAndDropListSignal initialValues
-    fireOnce $ simpleButton "Exit" false results
-  log $ show $ fst <$> res
+main = runWidgetInDom "app" (app (Loading (Just Login)))
+
+registration :: Effect Unit
+registration = runWidgetInDom "app" (app Signup)
+
+share :: String -> Effect Unit
+share token = runWidgetInDom "app" (app (Share (Just token)))
+
+-- main :: Effect Unit
+-- main = runWidgetInDom "app" $ do
+--   let initialValues = [
+--     Tuple "" (simpleTextInputWidget "input1" (text "Input 1") "")
+--   , Tuple "" (simpleTextInputWidget "input2" (text "Input 2") "")
+--   , Tuple "" (simpleTextInputWidget "input3" (text "Input 3") "")
+--   , Tuple "" (simpleTextInputWidget "input4" (text "Input 4") "")  
+--   , Tuple "" (simpleTextInputWidget "input5" (text "Input 5") "")
+--   ]
+--   res <- demand $ do
+--     results <- dragAndDropListSignal initialValues
+--     fireOnce $ simpleButton "Exit" false results
+--   log $ show $ fst <$> res
 
 -- import Data.Function (($))
 -- import Concur.Core.FRP (demand, hold, loopS, dyn)
@@ -124,8 +115,8 @@ main = runWidgetInDom "app" $ do
 -- map      :: forall f a b.   Functor f     =>                  (a ->   b) -> f a ->    f b
 -- traverse :: forall t a b m. Traversable t => Applicative m => (a -> m b) -> t a -> m (t b)
 
-test :: Effect Unit
-test = runWidgetInDom "app" test'
+-- test :: Effect Unit
+-- test = runWidgetInDom "app" test'
 {-
 test = runWidgetInDom "app" (dyn $ { - loopS "" (\v -> - }
   div_ [Props.className "container"] do
@@ -141,31 +132,31 @@ test = runWidgetInDom "app" (dyn $ { - loopS "" (\v -> - }
 )
 -}
 
-test' :: forall a. Widget HTML a
-test' = do
-  -- dyn $ do
-  --   div_ [Props.className "container"] do
-  --     div_ [Props.className "container_1", Props.style {backgroundColor: "green" }] do
-  --       -- loopW :: forall a m. Monad m => a -> (a -> m a) -> SignalT m a
-  --       -- Create a signal which repeatedly invokes a widget function for values, looping in the prev value.
-  --       _ <- loopW "" (\v' ->  div [Props.className "field"] [
-  --       -- _ <- hold $ div [Props.className "field"] [
-  --             label [Props.htmlFor "username"] [text "Username"],
-  --             (Props.unsafeTargetValue) <$> input [Props._type "text", Props._id "username", Props.placeholder "username", Props.value v', Props.disabled false, Props.onChange]
-  --       ])
-  --       pure unit
+-- test' :: forall a. Widget HTML a
+-- test' = do
+--   -- dyn $ do
+--   --   div_ [Props.className "container"] do
+--   --     div_ [Props.className "container_1", Props.style {backgroundColor: "green" }] do
+--   --       -- loopW :: forall a m. Monad m => a -> (a -> m a) -> SignalT m a
+--   --       -- Create a signal which repeatedly invokes a widget function for values, looping in the prev value.
+--   --       _ <- loopW "" (\v' ->  div [Props.className "field"] [
+--   --       -- _ <- hold $ div [Props.className "field"] [
+--   --             label [Props.htmlFor "username"] [text "Username"],
+--   --             (Props.unsafeTargetValue) <$> input [Props._type "text", Props._id "username", Props.placeholder "username", Props.value v', Props.disabled false, Props.onChange]
+--   --       ])
+--   --       pure unit
 
-  div [Props.className "container"] [
-    div [Props.className "container_1", Props.style {backgroundColor: "green" }] [
-      -- loopW :: forall a m. Monad m => a -> (a -> m a) -> SignalT m a
-      -- Create a signal which repeatedly invokes a widget function for values, looping in the prev value.
-      step "" $ div [Props.className "field"] [
-      -- _ <- hold $ div [Props.className "field"] [
-            label [Props.htmlFor "username"] [text "Username"],
-            (Props.unsafeTargetValue) <$> input [Props._type "text", Props._id "username", Props.placeholder "username", Props.value v', Props.disabled false, Props.onChange]
-      ]
-    ]
-  ]
+--   div [Props.className "container"] [
+--     div [Props.className "container_1", Props.style {backgroundColor: "green" }] [
+--       -- loopW :: forall a m. Monad m => a -> (a -> m a) -> SignalT m a
+--       -- Create a signal which repeatedly invokes a widget function for values, looping in the prev value.
+--       step "" $ div [Props.className "field"] [
+--       -- _ <- hold $ div [Props.className "field"] [
+--             label [Props.htmlFor "username"] [text "Username"],
+--             (Props.unsafeTargetValue) <$> input [Props._type "text", Props._id "username", Props.placeholder "username", Props.value v', Props.disabled false, Props.onChange]
+--       ]
+--     ]
+--   ]
 
 -- -- viewAdapter
 --   -- :: forall ps vs res

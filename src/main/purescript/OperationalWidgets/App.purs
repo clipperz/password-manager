@@ -95,32 +95,32 @@ data Action = DoLogout
 app' :: forall a. Action -> { credentials :: Credentials } -> Widget HTML a
 app' action st@{ credentials } = do
   nextAction:: Action <- exitBooting action <|>
-<<<<<<< HEAD
-    (demand $ div_ [Props.className "mainDiv"] do
-      _             <- headerPage (actionPage action) (Loading Nothing) $ always unit
-      loginPageRes  <- headerPage (actionPage action) Login $ do
-          loginFormResult <- ((<$>) DoLogin) <$> loginViewSignal
-          loginChangeViewRes <- fireOnce $ (ShowPage Signup) <$ button [Props.onClick] [text "=> signup"]
-          traceM $ "login result: " <> show (loginFormResult <|> loginChangeViewRes)
-          pure $ loginFormResult <|> loginChangeViewRes
-      signupPageRes <- headerPage (actionPage action) Signup $ do
-        -- DoSignup <$> signupView,
-          signupFormResult <- ((<$>) DoSignup) <$> loginViewSignal
-          signupChangeViewRes <- fireOnce $ (ShowPage Login) <$ button [Props.onClick] [text "<= login"]
-          traceM $ "signup result: " <> show (signupFormResult <|> signupChangeViewRes)
-          pure $ signupFormResult <|> signupChangeViewRes
-      sharePageRes  <- div_ [Props.classList (Just <$> ["page", "main", show $ location (Share Nothing) (actionPage action)])] $ do
-        _ <- div_ [Props.className "content"] (hold unit $ text "share")
-        pure Nothing
-      mainPageRes   <- div_ [Props.classList (Just <$> ["page", "main", show $ location Main (actionPage action)])] $ do
-        _ <- div_ [Props.className "content"] (hold unit $ text "main")
-        pure Nothing
-      pure $ loginPageRes <|> signupPageRes <|> sharePageRes <|> mainPageRes)
-    <|>
-    overlay { status: Hidden, message: "loading" }
-  log $ "--------------------\npage action " <> show nextAction <> "\n======================"
-  app' nextAction
-=======
+
+--     (demand $ div_ [Props.className "mainDiv"] do
+--       _             <- headerPage (actionPage action) (Loading Nothing) $ always unit
+--       loginPageRes  <- headerPage (actionPage action) Login $ do
+--           loginFormResult <- ((<$>) DoLogin) <$> loginViewSignal
+--           loginChangeViewRes <- fireOnce $ (ShowPage Signup) <$ button [Props.onClick] [text "=> signup"]
+--           traceM $ "login result: " <> show (loginFormResult <|> loginChangeViewRes)
+--           pure $ loginFormResult <|> loginChangeViewRes
+--       signupPageRes <- headerPage (actionPage action) Signup $ do
+--         -- DoSignup <$> signupView,
+--           signupFormResult <- ((<$>) DoSignup) <$> loginViewSignal
+--           signupChangeViewRes <- fireOnce $ (ShowPage Login) <$ button [Props.onClick] [text "<= login"]
+--           traceM $ "signup result: " <> show (signupFormResult <|> signupChangeViewRes)
+--           pure $ signupFormResult <|> signupChangeViewRes
+--       sharePageRes  <- div_ [Props.classList (Just <$> ["page", "main", show $ location (Share Nothing) (actionPage action)])] $ do
+--         _ <- div_ [Props.className "content"] (hold unit $ text "share")
+--         pure Nothing
+--       mainPageRes   <- div_ [Props.classList (Just <$> ["page", "main", show $ location Main (actionPage action)])] $ do
+--         _ <- div_ [Props.className "content"] (hold unit $ text "main")
+--         pure Nothing
+--       pure $ loginPageRes <|> signupPageRes <|> sharePageRes <|> mainPageRes)
+--     <|>
+--     overlay { status: Hidden, message: "loading" }
+--   log $ "--------------------\npage action " <> show nextAction <> "\n======================"
+--   app' nextAction
+
     div [Props.className "mainDiv"] [
       headerPage (actionPage action) (Loading Nothing) []
       , headerPage (actionPage action) Login [
@@ -148,7 +148,6 @@ app' action st@{ credentials } = do
     DoLogin cred -> app' nextAction $ st { credentials = cred }
     ShowPage Main -> app' nextAction $ st { credentials = emptyCredentials }
     _ -> app' nextAction st
->>>>>>> giorgia.rondinini/develop
 
   where 
     getLoginActionType :: E.Either PinCredentials Credentials -> Action
