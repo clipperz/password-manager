@@ -66,18 +66,20 @@ prepareSignupParameters form = runExceptT $ do
   cards                  :: List (Tuple ArrayBuffer CardEntry) <- ExceptT $ Right <$> prepareCards conf defaultCards 
   v                      :: HexString   <- ExceptT $ SRP.prepareV conf sAb pAb
   masterKey              :: CryptoKey   <- ExceptT $ Right <$> KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
+  masterKey2              :: CryptoKey   <- ExceptT $ Right <$> KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
   indexCardContent       :: ArrayBuffer <- ExceptT $ Right <$> encryptJson masterKey (Index (snd <$> cards))
   masterPassword         :: CryptoKey   <- ExceptT $ Right <$> KI.importKey raw pAb (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   indexCardContentHash   :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> conf.hash (indexCardContent : Nil)
   masterKeyHex           :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> exportKey raw masterKey
+  masterKeyHex2           :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> exportKey raw masterKey2
   let indexReference     = IndexReference { reference: indexCardContentHash, masterKey: masterKeyHex, indexVersion: currentIndexVersion }
 
   let userPreferences = UserPreferences { passwordGeneratorSettings: standardPasswordGeneratorSettings
                                         , automaticLock: Just 10
                                         }
-  preferencesContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson masterKey userPreferences
+  preferencesContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson masterKey2 userPreferences
   preferencesContentHash :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> conf.hash (preferencesContent : Nil)
-  let preferencesReference = UserPreferencesReference { reference: preferencesContentHash, key: masterKeyHex }
+  let preferencesReference = UserPreferencesReference { reference: preferencesContentHash, key: masterKeyHex2 }
 
   let userInfoReference = UserInfoReferences { preferencesReference, indexReference }
 
