@@ -30,6 +30,7 @@ import DataModel.Index (Index)
 import DataModel.User (UserCard(..), IndexReference(..), UserPreferences, UserInfoReferences(..), UserPreferencesReference(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
+import Effect.Class.Console (log)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
 import Functions.Communication.Blobs (postBlob, getBlob, deleteBlob, getDecryptedBlob)
 import Functions.EncodeDecode (encryptJson)
@@ -52,6 +53,18 @@ getUserCard = do
           except $ Right uc
         else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
     Just uc -> except $ Right uc
+
+updateUserCard :: UserCard -> ExceptT AppError Aff Unit
+updateUserCard newUserCard = do
+  oldUserCard@(UserCard uc) <- getUserCard
+  let url = joinWith "/" ["users", show uc.c]
+  let body = (json $ encodeJson { c: uc.c, oldUserCard, newUserCard }) :: RequestBody
+  response <- manageGenericRequest url PUT (Just body) RF.string
+  if isStatusCodeOk response.status
+    then do
+      ExceptT $ updateAppState { userCard: Just newUserCard }
+      pure unit
+    else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
 
 deleteUserCard :: ExceptT AppError Aff Unit
 deleteUserCard = do
@@ -96,9 +109,7 @@ updateIndex newIndex = do
       masterKeyContent <- ExceptT $ (fromArrayBuffer >>> Right) <$> encryptJson masterPassword newInfoReference
       let newUserCard = UserCard $ userCard { masterKeyContent = masterKeyContent }
       _ <- postBlob indexCardContent indexCardContentHash
-      let url = joinWith "/" ["users", show c]
-      let body = (json $ encodeJson {c: c, oldUserCard: userCard, newUserCard: newUserCard}) :: RequestBody
-      _ <- manageGenericRequest url PUT (Just body) RF.string
+      _ <- updateUserCard newUserCard
       _ <- deleteBlob oldReference.reference -- TODO: manage errors
       ExceptT $ updateAppState { userInfoReferences: Just newInfoReference}
     _ -> except $ Left $ InvalidStateError $ MissingValue "Missing p, c or indexReference"
@@ -122,9 +133,7 @@ updateUserPreferences newUP = do
       -- save new preferences
       _ <- postBlob preferencesContent preferencesContentHash
       -- save new user card
-      let url = joinWith "/" ["users", show userCard.c]
-      let body = (json $ encodeJson {c: userCard.c, oldUserCard: userCard, newUserCard: newUserCard}) :: RequestBody
-      _ <- manageGenericRequest url PUT (Just body) RF.string
+      _ <- updateUserCard newUserCard
       -- delete olf preferences
       _ <- deleteBlob reference
       -- update state      
