@@ -76,15 +76,12 @@ createCardView card allTags state = do
     fieldsSignal :: PasswordGeneratorSettings -> Array CardField -> Signal HTML (Array CardField)
     fieldsSignal settings fields = do
       let loopables = (\f -> Tuple f (cardFieldWidget settings)) <$> fields 
-      traceM "start signal"
       fields' <- loopS loopables $ \ls -> do
                                            es <- loopW ls dragAndDropAndRemoveList
                                            addField <- fireOnce $ simpleButton "Add field" false unit
-                                           traceM "either es or add"
                                            case addField of
                                              Nothing -> pure es
                                              Just _ -> pure $ snoc es (Tuple emptyCardField (cardFieldWidget settings))
-      traceM "return signal"
       pure $ fst <$> fields'
 
     tagSignal :: String -> Signal HTML (Maybe String)

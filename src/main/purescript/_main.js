@@ -68,6 +68,13 @@ function addShortcutsManagement() {
     })
 }
 
+function addPreventDefaults() {
+    /*
+        Dragover events default behaviour must be prevented, but doing so in Purescript causes perfomance problems.
+    */
+    document.addEventListener("dragover", ev => ev.preventDefault())
+}
+
 function main () {
     /*
         Here we could add variables such as
@@ -86,6 +93,7 @@ function main () {
     */
     addEventBubblingBlockers();
     addShortcutsManagement();
+    addPreventDefaults();
 
     let hash = window.location.hash;
 

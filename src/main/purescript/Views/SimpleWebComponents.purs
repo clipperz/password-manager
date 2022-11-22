@@ -39,7 +39,7 @@ module Views.SimpleWebComponents
   where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, loopW, loopS, display)
+import Concur.Core.FRP (Signal, loopW, demand, debounce, loopS, display, step)
 import Concur.React (HTML)
 import Concur.React.DOM (text, textarea, input, label, div', div, button, li)
 import Concur.React.Props as Props
@@ -64,9 +64,11 @@ import Data.Ring ((-))
 import Data.Semigroup ((<>))
 import Data.Semiring ((+), (*))
 import Data.Show (show, class Show)
+import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
 import Data.Unit (unit)
+import Effect.Aff (delay)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
@@ -396,21 +398,17 @@ droppableArea isSelected = do
                 , EvDrop <$> Props.onDrop
                 , EvDragLeave <$> Props.onDragLeave
                 , EvDragEnter <$> Props.onDragEnter
-                , EvDragOver <$> Props.onDragOver
+                -- , EvDragOver <$> Props.onDragOver -- managed by js for performance
                 ] []
   case result of
     EvDragOver ev -> do
-      traceM "drag over event"
       liftEffect $ preventDefault ev
       droppableArea isSelected
     EvDragEnter ev -> do
-      -- liftEffect $ preventDefault ev
       pure { isSelected: true, result }
     EvDragLeave ev -> do
-      -- liftEffect $ preventDefault ev
       pure { isSelected: false, result }
     EvDrop ev -> do
-      traceM "drop event"
       liftEffect $ preventDefault ev
       pure { isSelected: false, result }
 
@@ -763,7 +761,6 @@ dragAndDropAndRemoveList widgets = do
         Left { isSelected, result } -> do
           case result of
             EvDrop a -> do
-              traceM "drop"
               case selectedIndex of
                 Just { state, index: ix, widgetFunc } -> do
                   let withoutElem = (deleteAt ix widgetsInfo)
@@ -773,9 +770,7 @@ dragAndDropAndRemoveList widgets = do
                       log "error 0.5"
                       go widgetsInfo selectedIndex
                     Just elements -> do
-                      traceM "compute new info"
                       let info = catMaybes $ hush <$> elements
-                      traceM "computed new info"
                       pure info
                 Nothing -> do
                   log "error1"
@@ -804,7 +799,6 @@ dragAndDropAndRemoveList widgets = do
         Right { widgetFunc, result: Result (DraggableWidgetResult { isDragging, exitState }) } -> do
           if isDragging then do
             -- dragging
-            traceM "start dragging"
             go widgetsInfo $ Just { index, widgetFunc, state: exitState }
           else do
             -- change of value
