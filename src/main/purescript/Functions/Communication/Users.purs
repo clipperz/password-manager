@@ -3,7 +3,7 @@ module Functions.Communication.Users where
 import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
 import Control.Applicative (pure)
-import Control.Bind (bind)
+import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (ExceptT(..), withExceptT, except)
 import Control.Semigroupoid ((>>>))
 import Crypto.Subtle.Constants.AES (aesCTR)
@@ -20,6 +20,7 @@ import Data.HTTP.Method (Method(..))
 import Data.List (List(..), (:))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
+import Data.PrettyShow (prettyShow)
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Unit (Unit, unit)
@@ -38,13 +39,19 @@ import Functions.State (getHashFromState)
 
 getUserCard :: ExceptT AppError Aff UserCard
 getUserCard = do
-  { proxy: _, c: mc, p: _, sessionKey: _, toll: _ } <- ExceptT $ liftEffect $ getAppState
-  c <- except $ note (InvalidStateError (MissingValue "c is Nothing")) mc
-  let url = joinWith "/" ["users", show c]
-  response <- manageGenericRequest url GET Nothing RF.json
-  if isStatusCodeOk response.status
-    then withExceptT (\e -> ProtocolError (DecodeError (show e))) (except $ decodeJson response.body)
-    else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
+  { c: mc, userCard: muc } <- ExceptT $ liftEffect $ getAppState
+  case muc of
+    Nothing -> do
+      c <- except $ note (InvalidStateError (MissingValue "c is Nothing")) mc
+      let url = joinWith "/" ["users", show c]
+      response <- manageGenericRequest url GET Nothing RF.json
+      if isStatusCodeOk response.status
+        then do
+          uc <- withExceptT (\e -> ProtocolError (DecodeError (show e))) (except $ decodeJson response.body)
+          ExceptT $ updateAppState { userCard: Just uc }
+          except $ Right uc
+        else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
+    Just uc -> except $ Right uc
 
 deleteUserCard :: ExceptT AppError Aff Unit
 deleteUserCard = do

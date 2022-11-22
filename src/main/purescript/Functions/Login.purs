@@ -35,9 +35,10 @@ doLogin { username, password } =
     withExceptT (prettyShow) (ExceptT $ updateAppState { username: Just username, password: Just password, c: Just c, p: Just p })
 
     _ <- withExceptT (\e -> show e{- "Login failed" -}) login
+    uc <- withExceptT (prettyShow)  getUserCard
     up@(UserPreferences userPreferences) <- withExceptT (prettyShow) getUserPreferences
-    -- (UserCard userCard) <- mapExceptT (\r -> (lmap show) <$> r) getUserCard
-    withExceptT (prettyShow) (ExceptT $ updateAppState { userPreferences: Just up })
+
+    withExceptT (prettyShow) (ExceptT $ updateAppState { userPreferences: Just up, userCard: Just uc })
     
     case userPreferences.automaticLock of
       Nothing -> except $ Right unit
