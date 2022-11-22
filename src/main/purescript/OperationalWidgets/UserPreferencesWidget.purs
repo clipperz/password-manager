@@ -4,7 +4,7 @@ module OperationalWidgets.UserPreferencesWidget
   where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (demand, fireOnce, hold, loopW)
+import Concur.Core.FRP (demand, fireOnce, hold, loopW, loopS)
 import Concur.React (HTML)
 import Concur.React.DOM (div, text, h3, h1)
 import Control.Alternative ((<|>))
@@ -64,14 +64,16 @@ userPreferencesWidget wstate = do
     errorDiv err = div [] [text err]
 
     userPreferencesView :: UserPreferences -> Widget HTML UserPreferences
-    userPreferencesView up@(UserPreferences r@{ passwordGeneratorSettings, automaticLock }) = div [] [
+    userPreferencesView up = div [] [
       demand $ do
-        _ <- hold unit $ void $ h1 [] [text "Preferences"]
-        _ <- hold unit $ void $ h3 [] [text "Lock"]
-        lockSettings <- loopW automaticLock automaticLockWidget
-        _ <- hold unit $ void $ h3 [] [text "Password generator"]
-        pswdSettings <- loopW passwordGeneratorSettings settingsWidget
-        let newUP = UserPreferences $ r { passwordGeneratorSettings = pswdSettings, automaticLock = lockSettings }
+        newUP <- loopS up (\(UserPreferences r@{ passwordGeneratorSettings, automaticLock }) -> do
+          _ <- hold unit $ void $ h1 [] [text "Preferences"]
+          _ <- hold unit $ void $ h3 [] [text "Lock"]
+          lockSettings <- loopW automaticLock automaticLockWidget
+          _ <- hold unit $ void $ h3 [] [text "Password generator"]
+          pswdSettings <- loopW passwordGeneratorSettings settingsWidget
+          pure $ UserPreferences $ r { passwordGeneratorSettings = pswdSettings, automaticLock = lockSettings }
+        )
         fireOnce (simpleButton "Change preferences" (up == newUP) newUP)
     ]
 
