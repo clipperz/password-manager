@@ -9,6 +9,7 @@ import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (runExceptT)
+import Control.Semigroupoid ((<<<))
 import Data.Either (Either(..))
 import Data.Eq ((/=))
 import Data.Function (($))
@@ -26,7 +27,7 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Users (updateIndex)
 import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState, CardsViewInfo, mkCardsViewInfo)
-import Views.IndexView (IndexFilter(..), ComplexIndexFilter)
+import Views.IndexView (IndexFilter(..), ComplexIndexFilter, addLastCardFilterInOr, removeAllLastCardFilter)
 
 data CardsViewResult = CardsViewResult (Tuple CardsViewInfo CardViewAction) | OpResult Index CardViewState (Maybe AppError) ComplexIndexFilter
 
@@ -58,9 +59,9 @@ getUpdateIndexOp :: CardsViewInfo -> IndexUpdateData -> Aff CardsViewResult
 getUpdateIndexOp { index: index@(Index list), indexFilter } (IndexUpdateData action _) =
   case action of 
     AddReference                        entry -> flap (addEntryToIndex entry) { archived: false, indexFilter: ComposedOrFilter (SpecificCardFilter entry) indexFilter.indexFilter } 
-    CloneReference                      entry -> flap (addEntryToIndex entry) indexFilter
-    ChangeReferenceWithEdit    oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) indexFilter
-    ChangeReferenceWithoutEdit oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) indexFilter
+    CloneReference                      entry -> flap (addEntryToIndex entry) (((addLastCardFilterInOr entry) <<< removeAllLastCardFilter) indexFilter)
+    ChangeReferenceWithEdit    oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) (((addLastCardFilterInOr entry) <<< removeAllLastCardFilter) indexFilter)
+    ChangeReferenceWithoutEdit oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) (((addLastCardFilterInOr entry) <<< removeAllLastCardFilter) indexFilter)
     DeleteReference            oldEntry       -> flap (removeReferenceFromIndex oldEntry) indexFilter
     NoUpdateNecessary          oldEntry       -> pure $ OpResult index { cardView: CardFromReference oldEntry, cardViewState: Default } Nothing indexFilter
     _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing indexFilter
