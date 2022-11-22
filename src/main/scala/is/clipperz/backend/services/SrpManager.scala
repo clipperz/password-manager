@@ -14,6 +14,8 @@ import is.clipperz.backend.exceptions.BadRequestException
 
 case class SignupData(
     user: UserCard,
+    preferencesReference: HexString,
+    preferencesContent: HexString,
     indexCardReference: HexString,
     indexCardContent: HexString,
     cards: Array[(HexString, HexString)],

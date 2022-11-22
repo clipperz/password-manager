@@ -45,6 +45,12 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
                     <&> // Returns an effect that executes both this effect and the specified effect, in parallel, combining their results into a tuple. If either side fails, then the other side will be interrupted.
                       blobArchive
                         .saveBlob(signupData.indexCardReference, ZStream.fromIterable(signupData.indexCardContent.toByteArray))
+                      <&> // Returns an effect that executes both this effect and the specified effect, in parallel, combining their results into a tuple. If either side fails, then the other side will be interrupted.
+                      blobArchive
+                        .saveBlob(
+                          signupData.preferencesReference,
+                          ZStream.fromIterable(signupData.preferencesContent.toByteArray),
+                        )
                       <&>
                       ZIO.foreach(signupData.cards) { (reference, content) =>
                         blobArchive.saveBlob(reference, ZStream.fromIterable(content.toByteArray))

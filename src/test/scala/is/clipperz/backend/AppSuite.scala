@@ -44,8 +44,6 @@ import is.clipperz.backend.services.SRPStep1Data
 import is.clipperz.backend.services.SRPStep1Response.apply
 import is.clipperz.backend.services.SRPStep1Response
 import is.clipperz.backend.services.SRPStep2Data
-import is.clipperz.backend.services.PasswordGeneratorSettings
-import is.clipperz.backend.services.UserPreferences
 
 object AppSpec extends ZIOSpecDefault:
   val app = Main.completeClipperzBackend
@@ -108,12 +106,13 @@ object AppSpec extends ZIOSpecDefault:
     v = HexString("b4deef40924f1d6083ff7c2e763d54e60623c6fed66738070c14ca092c43945579ea68e6dd5c364c5082c04c6fac83783aeec17b07471f26fb23c360fd8e7892467eb463da0c725863052389aba7bd21956efc47d127b45942cbd97f835a368cfc72b5ce0d817f0cad52d6cbf01f169b8d700532ebd00b3319f140b73c187754"),
     srpVersion = "6a",
     masterKeyEncodingVersion = "1.0",
-    masterKeyContent = HexString("f20d14d5152ea0659cbd2b7dedd3d284987391be7b2143e19b2281b50d9c0966b533f11a66ecf658bcc3706ec2136213d38eb0dc4e5020a1d0e30d9b8c901600"),
-    UserPreferences(PasswordGeneratorSettings(24, List(("abc", true)), "abcdefghilmnopqrstuvz"), None)
+    masterKeyContent = HexString("f20d14d5152ea0659cbd2b7dedd3d284987391be7b2143e19b2281b50d9c0966b533f11a66ecf658bcc3706ec2136213d38eb0dc4e5020a1d0e30d9b8c901600")
   )
 
   val signupData = SignupData(
     user = userCard,
+    preferencesReference = HexString("726f1d8bc207725f2225623f300b9e78d20685406c4096f97ac8a2c864bd52b4"), 
+    preferencesContent = HexString("89d6"), 
     indexCardReference = HexString("726f1d8bc207725f2225623f300b9e78d20685406c4096f97ac8a2c864bd52b4"),
     indexCardContent = HexString("89d6"),
     cards = Array[(HexString, HexString)]()
