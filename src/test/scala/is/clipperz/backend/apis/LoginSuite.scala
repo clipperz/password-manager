@@ -220,7 +220,7 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
         )
         response2 <- app(loginRequestStep2(c.toString(), SRPStep2Data(HexString.bytesToHex(m1)).toJson, true))
         stepResponse <- fromStream[SRPStep2Response](response2.body.asStream)
-      } yield assertTrue(response2.status.code == 200, stepResponse.encIndexReference == testUser.masterKeyContent)
+      } yield assertTrue(response2.status.code == 200, stepResponse.encUserInfoReferences == testUser.masterKeyContent)
     },
   ).provideLayerShared(environment) @@
     TestAspect.sequential @@

@@ -62,7 +62,7 @@ computeInitialState = do
                 , srpInfo: baseSRPInfo
                 , hash: SHA256
                 , cardsCache: empty
-                , indexReference: Nothing 
+                , userInfoReferences: Nothing 
                 , userPreferences: Nothing
                 }
 

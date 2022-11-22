@@ -15,11 +15,11 @@ import Data.PrettyShow (prettyShow)
 import Data.Show (show)
 import Data.Unit (Unit, unit)
 import DataModel.Credentials (Credentials)
-import DataModel.User (UserCard(..))
+import DataModel.User (UserCard(..), UserInfoReferences(..), UserPreferences(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Login (login)
-import Functions.Communication.Users (getUserCard)
+import Functions.Communication.Users (getUserCard, getUserPreferences)
 import Functions.JSState (updateAppState)
 import Functions.State (getSRPConf)
 import Functions.SRP as SRP
@@ -34,13 +34,14 @@ doLogin { username, password } =
 
     withExceptT (prettyShow) (ExceptT $ updateAppState { username: Just username, password: Just password, c: Just c, p: Just p })
 
-    indexReference <- withExceptT (\e -> show e{- "Login failed" -}) login
-    (UserCard userCard) <- mapExceptT (\r -> (lmap show) <$> r) getUserCard
-    withExceptT (prettyShow) (ExceptT $ updateAppState { userPreferences: Just userCard.preferences })
+    _ <- withExceptT (\e -> show e{- "Login failed" -}) login
+    up@(UserPreferences userPreferences) <- withExceptT (prettyShow) getUserPreferences
+    -- (UserCard userCard) <- mapExceptT (\r -> (lmap show) <$> r) getUserCard
+    withExceptT (prettyShow) (ExceptT $ updateAppState { userPreferences: Just up })
     
-    case userCard.preferences.automaticLock of
+    case userPreferences.automaticLock of
       Nothing -> except $ Right unit
       Just n -> ExceptT $ Right <$> (liftEffect $ activateTimer n)
     
-    pure $ indexReference
+    pure unit
   else except $ Left $ "Empty credentials"

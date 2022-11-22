@@ -5,9 +5,9 @@ import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
 import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Key.Import as KI
-import Crypto.Subtle.Key.Types (decrypt, encrypt, raw, unwrapKey)
+import Crypto.Subtle.Key.Types (decrypt, encrypt, raw, unwrapKey, CryptoKey)
 import Control.Bind (bind)
-import Control.Monad.Except.Trans (ExceptT(..), except)
+import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT)
 import Control.Semigroupoid ((<<<))
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Bifunctor (lmap, bimap)
@@ -18,6 +18,7 @@ import Data.HexString (HexString, fromArrayBuffer, toArrayBuffer)
 import Data.HTTP.Method (Method(..))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
+import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Traversable (sequence)
@@ -25,9 +26,10 @@ import Data.Unit (Unit, unit)
 import DataModel.AppState (AppState, AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index(..), CardEntry(..))
-import DataModel.User (UserCard(..), IndexReference(..))
+import DataModel.User (UserCard(..), IndexReference(..), UserInfoReferences(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
+import Effect.Exception as EX
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
 import Functions.Communication.Blobs (deleteBlob)
 import Functions.Communication.Cards (deleteCard)
@@ -77,4 +79,17 @@ deleteUser (Index entries) = do
 
     extractIndexReference :: Either AppError AppState -> Either AppError IndexReference
     extractIndexReference (Left err) = Left err
-    extractIndexReference (Right state) = note (InvalidStateError $ MissingValue $ "indexReference not present") state.indexReference
+    extractIndexReference (Right state) = (\(UserInfoReferences { indexReference }) -> indexReference) <$> (note (InvalidStateError $ MissingValue $ "indexReference not present") state.userInfoReferences)
+
+decryptUserInfoReferences :: HexString -> ExceptT AppError Aff UserInfoReferences
+decryptUserInfoReferences encryptedRef = do
+  currentState <- ExceptT $ liftEffect getAppState
+  case currentState of
+    { c: _, p: Just p, proxy: _, sessionKey: _, toll: _ } -> do
+      masterPassword :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+      mapCryptoError $ ExceptT $ decryptJson masterPassword (toArrayBuffer encryptedRef)
+    _ -> except $ Left $ InvalidStateError $ MissingValue "Missing p"
+
+  where 
+    mapCryptoError :: forall a. ExceptT EX.Error Aff a -> ExceptT AppError Aff a
+    mapCryptoError = withExceptT (\e -> ProtocolError $ CryptoError $ "Decrypt UserInfoReferences: " <> EX.message e)

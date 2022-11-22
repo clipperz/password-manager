@@ -280,6 +280,6 @@ offlineLoginStep2 (UserCard r) m1' { b: mb, bb: mbb, aa: maa } = do
   check <- ExceptT $ Right <$> (SRP.checkM1 srpConf r.c r.s aa bb kk m1)
   if check then do
     m2 <- ExceptT $ (Right <<< fromArrayBuffer) <$> (SRP.prepareM2 srpConf aa m1 kk)
-    pure $ Just { m2, encIndexReference: r.masterKeyContent }
+    pure $ Just { m2, encUserInfoReferences: r.masterKeyContent }
   else pure Nothing
   

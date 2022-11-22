@@ -18,7 +18,7 @@ import DataModel.Card (Card)
 import DataModel.Proxy (Proxy)
 import DataModel.Communication.ProtocolError (ProtocolError)
 import DataModel.SRP(SRPGroup, group1024, k)
-import DataModel.User (IndexReference, UserPreferences)
+import DataModel.User (IndexReference, UserPreferences, UserInfoReferences)
 import Functions.HashCash (TollChallenge)
 
 type AppState =
@@ -33,7 +33,7 @@ type AppState =
   , srpInfo :: SRPInfo
   , hash :: HashState
   , cardsCache :: Map HexString Card
-  , indexReference :: Maybe IndexReference
+  , userInfoReferences :: Maybe UserInfoReferences
   , userPreferences :: Maybe UserPreferences
   }
 

@@ -41,7 +41,7 @@ object SRPStep2Data:
   implicit val decoder: JsonDecoder[SRPStep2Data] = DeriveJsonDecoder.gen[SRPStep2Data]
   implicit val encoder: JsonEncoder[SRPStep2Data] = DeriveJsonEncoder.gen[SRPStep2Data]
 
-case class SRPStep2Response(m2: HexString, encIndexReference: HexString)
+case class SRPStep2Response(m2: HexString, encUserInfoReferences: HexString)
 object SRPStep2Response:
   implicit val decoder: JsonDecoder[SRPStep2Response] = DeriveJsonDecoder.gen[SRPStep2Response]
   implicit val encoder: JsonEncoder[SRPStep2Response] = DeriveJsonEncoder.gen[SRPStep2Response]

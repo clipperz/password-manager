@@ -27,15 +27,15 @@ import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.Login (LoginStep1Response, LoginStep2Response)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.User (IndexReference)
+import DataModel.User (IndexReference, UserInfoReferences)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
-import Functions.Index (decryptIndexReference)
 import Functions.JSState (modifyAppState, getAppState, updateAppState)
 import Functions.State (getSRPConf, getSRPConfFromState)
 import Functions.SRP as SRP
+import Functions.User (decryptUserInfoReferences)
     
 -- ----------------------------------------------------------------------------
 
@@ -52,8 +52,8 @@ login = do
       sessionKey :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32
       ExceptT $ Right <$> modifyAppState (currentState { sessionKey = Just sessionKey })
   loginStep1Result <- loginStep1
-  { m1, kk, m2, indexReference } <- loginStep2 loginStep1Result
-  ExceptT $ updateAppState { indexReference: Just indexReference }
+  { m1, kk, m2, userInfoReferences } <- loginStep2 loginStep1Result
+  ExceptT $ updateAppState { userInfoReferences: Just userInfoReferences }
   check :: Boolean <- ExceptT $ Right <$> SRP.checkM2 srpConf loginStep1Result.aa m1 kk (toArrayBuffer m2)
   case check of
     true  -> except $ Right unit
@@ -95,7 +95,7 @@ type LogintStep2Data = { aa :: BigInt
 type LoginStep2Result = { m1 :: ArrayBuffer
                         , kk :: ArrayBuffer
                         , m2 :: HexString
-                        , indexReference :: IndexReference
+                        , userInfoReferences :: UserInfoReferences
                         }
 
 loginStep2 :: LogintStep2Data -> ExceptT AppError Aff LoginStep2Result
@@ -114,5 +114,5 @@ loginStep2 { aa, bb, a, s } = do
   responseBody :: LoginStep2Response <- except $ if isStatusCodeOk step2Response.status
                                                  then lmap (\err -> ProtocolError $ DecodeError $ show err) (decodeJson step2Response.body)
                                                  else Left (ProtocolError $ ResponseError (unwrap step2Response.status))
-  indexReference <- decryptIndexReference responseBody.encIndexReference
-  except $ Right { m1, kk, m2: responseBody.m2, indexReference: indexReference }
+  userInfoReferences <- decryptUserInfoReferences responseBody.encUserInfoReferences
+  except $ Right { m1, kk, m2: responseBody.m2, userInfoReferences }

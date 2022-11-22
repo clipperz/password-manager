@@ -31,7 +31,7 @@ import DataModel.Communication.FromString as FS
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index(..), CardEntry(..), CardReference(..))
 import DataModel.Card (Card(..), CardValues(..), CardField(..))
-import DataModel.User (IndexReference(..), UserCard(..))
+import DataModel.User (IndexReference(..), UserCard(..), UserInfoReferences(..), UserPreferencesReference(..))
 import Effect (Effect)
 import Effect.Aff (Aff, makeAff)
 import Effect.Class (liftEffect)
@@ -135,9 +135,11 @@ appendCardsDataInPlace doc blobList (UserCard r) = do
 
 prepareBlobList :: Index -> ExceptT AppError Aff (List (Tuple HexString HexString))
 prepareBlobList (Index list) = do
-  { indexReference } <- ExceptT $ liftEffect $ getAppState
-  (IndexReference { reference: indexRef } ) <- except $ note (InvalidStateError $ MissingValue $ "indexReference is Nothing") indexReference
-  let allRefs = indexRef : (extractRefFromEntry <$> list)
+  { userInfoReferences } <- ExceptT $ liftEffect $ getAppState
+  (UserInfoReferences { indexReference: IndexReference { reference: indexRef }
+                      , preferencesReference: UserPreferencesReference { reference: prefRef}
+                      }) <- except $ note (InvalidStateError $ MissingValue $ "userInfoReferences is Nothing") userInfoReferences
+  let allRefs = prefRef : indexRef : (extractRefFromEntry <$> list)
   sequence $ prepareTuple <$> allRefs
 
   where 

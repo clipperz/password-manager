@@ -8,9 +8,10 @@ import Concur.React.Props as Props
 import Control.Alt((<|>), class Alt)
 import Control.Applicative (pure)
 import Control.Bind (bind, (=<<), (>>=), discard)
+import Control.Monad.Except.Trans (runExceptT)
 import Control.Semigroupoid ((<<<))
 import Data.Array (snoc, filter, catMaybes, singleton, sort, length, range, zipWith)
-import Data.Either (Either(..), fromRight)
+import Data.Either (Either(..), fromRight, hush)
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$), class Functor)
@@ -23,6 +24,7 @@ import Data.Tuple (Tuple(..), fst)
 import Data.Unit (unit)
 import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
 import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
+import DataModel.User (UserPreferences(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (never)
 import Effect.Aff.Class (liftAff)
@@ -30,6 +32,7 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.JSState (getAppState)
 import Functions.Time (getCurrentTimestamp)
+import Functions.Communication.Users (getUserPreferences)
 import React.SyntheticEvent (SyntheticMouseEvent)
 import Views.PasswordGenerator (passwordGenerator)
 import Views.SimpleWebComponents (loadingDiv, simpleButton, dragAndDropAndRemoveList, confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, simpleCheckboxWidget, disableOverlay, simpleTextAreaSignal)
@@ -38,7 +41,8 @@ import Debug (traceM)
 
 createCardView :: Card -> Array String -> WidgetState -> Widget HTML (Maybe Card)
 createCardView card allTags state = do
-  let fromAppStateToPasswordSettings = \as -> fromMaybe standardPasswordGeneratorSettings $ (\up -> up.passwordGeneratorSettings) <$> as.userPreferences
+  maybeUp <- hush <$> (liftAff $ runExceptT getUserPreferences)
+  let fromAppStateToPasswordSettings = \as -> fromMaybe standardPasswordGeneratorSettings $ (\(UserPreferences up) -> up.passwordGeneratorSettings) <$> maybeUp
   passwordGeneratorSettings <- ((fromRight standardPasswordGeneratorSettings) <<< ((<$>) fromAppStateToPasswordSettings)) <$> (liftEffect getAppState)
   mCard <- div [Props._id "cardForm"] do
     case state of

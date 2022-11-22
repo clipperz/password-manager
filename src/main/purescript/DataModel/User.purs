@@ -3,6 +3,7 @@ module DataModel.User where
 import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
 import Data.Bifunctor (rmap)
+import Data.Eq (class Eq)
 import Data.HexString (HexString)
 import Data.Maybe (Maybe)
 import DataModel.Password (PasswordGeneratorSettings)
@@ -47,6 +48,8 @@ instance encodeJsonUserPreferences :: EncodeJson UserPreferences where
 
 instance decodeJsonUserPreferences :: DecodeJson UserPreferences where
   decodeJson json = rmap (\record -> UserPreferences record) (decodeJson json)
+
+derive instance eqUserPreferences :: Eq UserPreferences
 
 newtype UserPreferencesReference =
   UserPreferencesReference

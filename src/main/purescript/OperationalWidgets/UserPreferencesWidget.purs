@@ -10,8 +10,8 @@ import Concur.React.DOM (div, text, h3, h1)
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
-import Control.Monad.Except.Trans (runExceptT)
-import Data.Either (Either(..))
+import Control.Monad.Except.Trans (runExceptT, except, ExceptT)
+import Data.Either (Either(..), note)
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor (void, (<$>))
@@ -20,13 +20,13 @@ import Data.Maybe (Maybe(..), isJust, isNothing, fromMaybe)
 import Data.PrettyShow (prettyShow)
 import Data.Show (show)
 import Data.Unit (Unit, unit)
-import DataModel.AppState (AppError)
-import DataModel.User (UserPreferences)
+import DataModel.AppState (AppError(..), InvalidStateError(..))
+import DataModel.User (UserPreferences(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
-import Functions.Communication.Users (updateUserPreferences)
+import Functions.Communication.Users (updateUserPreferences, getUserPreferences)
 import Functions.JSState (getAppState)
 import Functions.Timer (activateTimer, stopTimer)
 import Views.PasswordGenerator (settingsWidget)
@@ -36,22 +36,21 @@ data PreferencesWidgetAction = NewSettings UserPreferences | SettingsChanged (Ei
 
 userPreferencesWidget :: WidgetState -> Widget HTML Unit
 userPreferencesWidget wstate = do
-  eitherUP <- liftEffect $ getAppState
+  eitherUP <- liftAff $ runExceptT getUserPreferences           
   case eitherUP of
     Left err -> void $ div [] [text (prettyShow err)] 
-    Right { userPreferences: Nothing } -> void $ div [] [text "Could not load user preferences at login"] 
-    Right { userPreferences: Just up } -> do
+    Right up -> do
       go wstate up
       pure unit
 
   where
-    go state up = do
+    go state up@(UserPreferences r) = do
       res <- case state of
         Default -> NewSettings <$> (div [] [userPreferencesView up])
         Loading -> do
           let updateOp = do
                           liftEffect $ stopTimer
-                          case up.automaticLock of
+                          case r.automaticLock of
                             Nothing -> pure unit
                             Just n -> liftEffect $ activateTimer n
                           liftAff $ runExceptT $ updateUserPreferences up
@@ -65,14 +64,14 @@ userPreferencesWidget wstate = do
     errorDiv err = div [] [text err]
 
     userPreferencesView :: UserPreferences -> Widget HTML UserPreferences
-    userPreferencesView up@{ passwordGeneratorSettings, automaticLock } = div [] [
+    userPreferencesView up@(UserPreferences r@{ passwordGeneratorSettings, automaticLock }) = div [] [
       demand $ do
         _ <- hold unit $ void $ h1 [] [text "Preferences"]
         _ <- hold unit $ void $ h3 [] [text "Lock"]
         lockSettings <- loopW automaticLock automaticLockWidget
         _ <- hold unit $ void $ h3 [] [text "Password generator"]
         pswdSettings <- loopW passwordGeneratorSettings settingsWidget
-        let newUP = up { passwordGeneratorSettings = pswdSettings, automaticLock = lockSettings }
+        let newUP = UserPreferences $ r { passwordGeneratorSettings = pswdSettings, automaticLock = lockSettings }
         fireOnce (simpleButton "Change preferences" (up == newUP) newUP)
     ]
 
