@@ -50,7 +50,7 @@ cardsManagerWidget isOffline ind cardViewState =
       case res of
         CardsViewResult (Tuple f cva) -> case cva of 
           UpdateIndex updateData -> do
-            go (getUpdateIndexInfo isOffline info updateData Nothing) view (Just (getUpdateIndexOp info updateData))
+            go (getUpdateIndexInfo isOffline f updateData Nothing) view (Just (getUpdateIndexOp f updateData))
           ShowAddCard -> go (info { cardViewState = {cardView: (CardForm emptyCard), cardViewState: Default} }) view Nothing
           ShowCard ref -> go (info { cardViewState = {cardView: (CardFromReference ref), cardViewState: Default} }) view Nothing
         OpResult i cv e f -> go (info { index = i, indexFilter = f, error = e, cardViewState = cv }) view Nothing
