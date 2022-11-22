@@ -130,7 +130,7 @@ cardsManagerView isOffline currentInfo@{ index: i@(Index entries)
                                         , error: Nothing }
     KeyBoardAction ev -> do
       key <- liftEffect $ Events.key ev
-      -- log $ "Key pressed: " <> key
+      log $ "Key pressed: " <> key
       case key of
         "a" -> cardsManagerView isOffline closeCardInfo
         "ArrowLeft" -> cardsManagerView isOffline closeCardInfo
