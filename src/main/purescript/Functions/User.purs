@@ -56,7 +56,7 @@ changeUserPassword username password = do
   newV <- ExceptT $ (lmap (ProtocolError <<< SRPError <<< show)) <$> (SRP.prepareV conf (toArrayBuffer oldRecord.s) newP)
   oldMasterPassword <- ExceptT $ Right <$> KI.importKey raw oldP (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   newMasterPassword <- ExceptT $ Right <$> KI.importKey raw newP (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-  masterKeyDecryptedContent <- ExceptT $ (bimap (ProtocolError <<< CryptoError <<< show) IndexReference) <$> decryptJson oldMasterPassword (toArrayBuffer oldRecord.masterKeyContent)
+  masterKeyDecryptedContent <- ExceptT $ (bimap (ProtocolError <<< CryptoError <<< show) UserInfoReferences) <$> decryptJson oldMasterPassword (toArrayBuffer oldRecord.masterKeyContent)
   masterKeyEncryptedContent <- ExceptT $ (Right <<< fromArrayBuffer) <$> encryptJson newMasterPassword masterKeyDecryptedContent
   let newUserCard = UserCard $ oldRecord { c = fromArrayBuffer newC, v = newV, masterKeyContent = masterKeyEncryptedContent }
   let modifyData = { c: oldRecord.c, oldUserCard, newUserCard }
