@@ -35,7 +35,7 @@ import Functions.Time (getCurrentTimestamp)
 import Functions.Communication.Users (getUserPreferences)
 import React.SyntheticEvent (SyntheticMouseEvent)
 import Views.PasswordGenerator (passwordGenerator)
-import Views.SimpleWebComponents (loadingDiv, simpleButton, dragAndDropAndRemoveList, confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, simpleCheckboxWidget, disableOverlay, simpleTextAreaSignal)
+import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleButtonWithClass, dragAndDropAndRemoveList, confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, simpleCheckboxWidget, disableOverlay, simpleTextAreaSignal)
 
 import Debug (traceM)
 
@@ -131,11 +131,17 @@ createCardView card allTags state = do
                                       , archived: false
                                       , timestamp
                                       }
-      res <- fireOnce $ div [Props.className "submitButtons"] [cancelButton <|> simpleButton "Save" false (Just formValues)]
+      res <- fireOnce $ div [Props.className "submitButtons"] [(cancelButton formValues) <|> (saveButton formValues)]
       -- TODO: add check for form validity
       pure res
 
-    cancelButton = do
-      _ <- simpleButton "Cancel" false Nothing 
-      confirmation <- confirmationWidget "Are you sure you want to exit without saving?"
-      if confirmation then pure Nothing else cancelButton
+    cancelButton v = 
+      if card == v then 
+        simpleButtonWithClass "Cancel" "inactive" false Nothing 
+      else do
+        _ <- simpleButtonWithClass "Cancel" "active" false Nothing 
+        confirmation <- (false <$ simpleButtonWithClass "Cancel" "active" false Nothing) <|> (confirmationWidget "Are you sure you want to exit without saving?")
+        if confirmation then pure Nothing else (cancelButton v)
+
+    saveButton v = 
+      simpleButton "Save" (card == v) (Just v)
