@@ -143,7 +143,8 @@ val tollPresentMiddleware: Request => TollMiddleware = req =>
         correctReceiptMiddleware, // keep the request going and add headers with the new toll to the response
         wrongTollMiddleware(Status.PaymentRequired), //
       ),
-    wrongTollMiddleware(Status.BadRequest),
+    wrongTollMiddleware(Status.PaymentRequired),
+    // wrongTollMiddleware(Status.BadRequest),
   )
 
 val hashcash: TollMiddleware = Middleware

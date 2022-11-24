@@ -126,7 +126,7 @@ manageGenericRequest url method body responseFormat = do
 
         manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AS.AppError Aff (AXW.Response a))
         manageResponse code@(StatusCode n)
-          | n == 402 || n == 400          = \response -> do -- TODO: improve
+          | n == 402          = \response -> do -- TODO: improve
               case (extractChallenge response.headers) of
                 Just challenge -> do
                   hashFunc <- ExceptT $ liftEffect $ ((<$>) getHashFunctionFromAppState) <$> getAppState
