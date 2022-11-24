@@ -1,11 +1,12 @@
 module DataModel.WidgetOperations where
 
+import Data.Maybe (Maybe)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import DataModel.Card (Card)
 import DataModel.Index (CardEntry)
 
-data IndexUpdateData = IndexUpdateData IndexUpdateAction Card
+data IndexUpdateData = IndexUpdateData IndexUpdateAction (Maybe Card)
 instance showIndexUpdateData :: Show IndexUpdateData where
   show (IndexUpdateData action card) = "Do " <> show action <> " while showing " <> show card
 

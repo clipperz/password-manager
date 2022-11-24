@@ -15,7 +15,7 @@ import Data.Eq ((/=))
 import Data.Function (($))
 import Data.Functor ((<$>), flap)
 import Data.List ((:), filter)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
 import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Card (emptyCard)
@@ -106,9 +106,9 @@ getUpdateIndexOp { index: index@(Index list), indexFilter } (IndexUpdateData act
 getUpdateIndexInfo :: Boolean -> CardsViewInfo -> IndexUpdateData -> Maybe AppError -> CardsViewInfo
 getUpdateIndexInfo isOffline info (IndexUpdateData action card) err = 
   case action of 
-    AddReference                 _ -> info { error = err, indexFilter = { archived: false, indexFilter: NoFilter }, cardViewState = { cardView: (CardForm card), cardViewState: Loading } }
-    CloneReference               _ -> info { error = err, cardViewState = { cardView: (JustCard card), cardViewState: Loading } }
-    DeleteReference              _ -> info { error = err, cardViewState = { cardView: (JustCard card), cardViewState: Loading } }
-    ChangeReferenceWithEdit    _ _ -> info { error = err, cardViewState = { cardView: (CardForm card), cardViewState: Loading } }
-    ChangeReferenceWithoutEdit _ _ -> info { error = err, cardViewState = { cardView: (JustCard card), cardViewState: Loading } }
+    AddReference                 _ -> info { error = err, indexFilter = { archived: false, indexFilter: NoFilter }, cardViewState = { cardView: (maybe NoCard CardForm card), cardViewState: Loading } }
+    CloneReference               _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }
+    DeleteReference              _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }
+    ChangeReferenceWithEdit    _ _ -> info { error = err, cardViewState = { cardView: (maybe NoCard CardForm card), cardViewState: Loading } }
+    ChangeReferenceWithoutEdit _ _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }
     _                              -> info { error = err, cardViewState = { cardView: NoCard         , cardViewState: Default } }
