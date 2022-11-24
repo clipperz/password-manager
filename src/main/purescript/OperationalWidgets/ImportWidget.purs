@@ -60,7 +60,7 @@ importWidget index@(Index entries) = div [Props._id "importPage"] [h1 [] [text "
 
     importPage :: Maybe String -> ImportStep -> Widget HTML (Either AppError Index)
     importPage error (UploadContent pl) = do
-      res <- div [Props.className "importPage"] [
+      res <- form [Props.className "importPage"] [
           text (fromMaybe "" error)
         , p [] [text "Import data from another Clipperz account using a JSON/HTML export file created by Clipperz."]
         , div [Props.className "importInput"] [
@@ -96,7 +96,7 @@ importWidget index@(Index entries) = div [Props._id "importPage"] [h1 [] [text "
           toImportCards = snd <$> (filter (\(Tuple b _) -> b) cards)
           toImport = length toImportCards
       in do
-          res <- div [Props.className "importPage"] [
+          res <- form [Props.className "importPage"] [
             text $ "Import " <> (show toImport) <> " cards (of " <> (show total) <> ")?"
           , ((simpleButton "<<" false false) <|> (simpleButton "Import" false true))
           ]
@@ -106,7 +106,7 @@ importWidget index@(Index entries) = div [Props._id "importPage"] [h1 [] [text "
     cardSelectionWidget :: ImportStep -> Array (Tuple Boolean Card) -> Widget HTML ImportStep --(Array (Tuple Boolean Card))
     cardSelectionWidget goBackValue cards = do
       newTagWithDate <- (((<>) "Import_") <<< formatDateTimeToDate) <$> (liftEffect getCurrentDateTime)
-      res <- div [Props.classList (Just <$> ["importPage", "scrollable"])] [ 
+      res <- form [Props.classList (Just <$> ["importPage", "scrollable"])] [ 
           Left <$> selectWidget 
         , Right <$> (demand $ do
             newTag <- loopS { tag: newTagWithDate, cb: true } $ \v -> do
