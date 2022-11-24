@@ -59,6 +59,7 @@ object Main extends zio.ZIOAppDefault:
 
       val server =
         Server.port(port) ++
+          Server.enableObjectAggregator() ++
           Server.paranoidLeakDetection ++
           Server.app(completeClipperzBackend)
 

@@ -58,6 +58,22 @@ importWidget index@(Index entries) = div [Props._id "importPage"] [h1 [] [text "
       _ <- updateIndex newIndex
       ExceptT $ pure $ Right newIndex
 
+    saveImport' :: List Card -> Widget HTML (Either AppError Index)
+    saveImport' cards = goSaveImport' cards index
+
+    goSaveImport' :: List Card -> Index -> Widget HTML (Either AppError Index)
+    goSaveImport' Nil ix = pure $ Right ix
+    goSaveImport' (Cons c@(Card {content: (CardValues r)}) cs) ix@(Index es) = (do
+        nix <- liftAff $ runExceptT $ do
+          newEntry <- postCard c
+          let newIndex = Index (Cons newEntry es)
+          _ <- updateIndex newIndex
+          pure newIndex
+        case nix of
+          Right ix' -> goSaveImport' cs ix'
+          Left err -> pure nix
+      ) <|> p [] [text ("Saving " <> r.title)]
+
     importPage :: Maybe String -> ImportStep -> Widget HTML (Either AppError Index)
     importPage error (UploadContent pl) = do
       res <- form [Props.className "importPage"] [
@@ -100,7 +116,7 @@ importWidget index@(Index entries) = div [Props._id "importPage"] [h1 [] [text "
             text $ "Import " <> (show toImport) <> " cards (of " <> (show total) <> ")?"
           , ((simpleButton "<<" false false) <|> (simpleButton "Import" false true))
           ]
-          if res then loadingDiv <|> (liftAff $ saveImport toImportCards)
+          if res then loadingDiv <|> (div [Props.className "importList"] [div [] [saveImport' (fromFoldable toImportCards)]])
           else importPage Nothing (ChooseCards cards) 
 
     cardSelectionWidget :: ImportStep -> Array (Tuple Boolean Card) -> Widget HTML ImportStep --(Array (Tuple Boolean Card))

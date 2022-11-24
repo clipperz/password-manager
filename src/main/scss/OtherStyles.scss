@@ -69,6 +69,12 @@ div.hidden {
 	}
 }
 
+div.importList {
+	overflow: auto;
+	display: flex;
+	flex-direction: column-reverse;
+}
+
 form.scrollable {
 	overflow-y: auto;
 	height: 100%;
