@@ -3,7 +3,7 @@ module Views.CreateCardView where
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopS, loopW, demand, display, justWait, hold, fireOnce)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', text, div_, form_, label, input, datalist, option)
+import Concur.React.DOM (div, div', text, div_, form, label, input, datalist, option)
 import Concur.React.Props as Props
 import Control.Alt((<|>), class Alt)
 import Control.Applicative (pure)
@@ -46,9 +46,9 @@ createCardView card allTags state = do
   passwordGeneratorSettings <- ((fromRight standardPasswordGeneratorSettings) <<< ((<$>) fromAppStateToPasswordSettings)) <$> (liftEffect getAppState)
   mCard <- div [Props._id "cardForm"] do
     case state of
-      Default   -> [disableOverlay, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
-      Loading   -> [disableOverlay, loadingDiv, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
-      Error err -> [disableOverlay, text err, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
+      Default   -> [disableOverlay, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
+      Loading   -> [disableOverlay, loadingDiv, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
+      Error err -> [disableOverlay, text err, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
   case mCard of
     Just (Card { content, timestamp: _ }) -> do
       -- liftEffect $ log $ show content
@@ -120,7 +120,7 @@ createCardView card allTags state = do
         Just _  -> pure $ Tuple "" $ snoc tags' newTag
 
     formSignal :: PasswordGeneratorSettings -> Signal HTML (Maybe (Maybe Card))
-    formSignal settings = form_ [] do
+    formSignal settings = do
       Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card {content: (CardValues {title, tags, fields, notes}), timestamp})) ->
         div_ [Props.className "cardFormFields"] do
           title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title") "Card title")

@@ -3,7 +3,7 @@ module OperationalWidgets.DeleteUserWidget where
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, loopS, loopW, fireOnce)
 import Concur.React (HTML)
-import Concur.React.DOM (text, div, h1, div')
+import Concur.React.DOM (text, div, h1, div', form)
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))
@@ -55,7 +55,7 @@ deleteUserWidget index state = do
     Done -> pure unit
 
   where
-    deleteForm creds@{ username, password } = div [] [
+    deleteForm creds@{ username, password } = form [] [
       h1 [] [text "Delete account"]
     , demand $ do
         formValues <- loopS (merge creds {notRecoverable: false}) $ \{username, password, notRecoverable} -> do

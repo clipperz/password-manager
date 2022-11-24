@@ -6,7 +6,7 @@ module OperationalWidgets.UserPreferencesWidget
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, fireOnce, hold, loopW, loopS)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text, form_, h3, h1)
+import Concur.React.DOM (div, text, form, h3, h1)
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
@@ -64,8 +64,8 @@ userPreferencesWidget wstate = do
     errorDiv err = div [] [text err]
 
     userPreferencesView :: UserPreferences -> Widget HTML UserPreferences
-    userPreferencesView up = div [] [
-      demand $ form_ [] do
+    userPreferencesView up = form [] [
+      demand $ do
         newUP <- loopS up (\(UserPreferences r@{ passwordGeneratorSettings, automaticLock }) -> do
           _ <- hold unit $ void $ h1 [] [text "Preferences"]
           _ <- hold unit $ void $ h3 [] [text "Lock"]
