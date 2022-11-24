@@ -3,7 +3,7 @@ module Views.CreateCardView where
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopS, loopW, demand, display, justWait, hold, fireOnce)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', text, div_, label, input, datalist, option)
+import Concur.React.DOM (div, div', text, div_, form_, label, input, datalist, option)
 import Concur.React.Props as Props
 import Control.Alt((<|>), class Alt)
 import Control.Applicative (pure)
@@ -120,7 +120,7 @@ createCardView card allTags state = do
         Just _  -> pure $ Tuple "" $ snoc tags' newTag
 
     formSignal :: PasswordGeneratorSettings -> Signal HTML (Maybe (Maybe Card))
-    formSignal settings = do
+    formSignal settings = form_ [] do
       Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card {content: (CardValues {title, tags, fields, notes}), timestamp})) ->
         div_ [Props.className "cardFormFields"] do
           title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title") "Card title")

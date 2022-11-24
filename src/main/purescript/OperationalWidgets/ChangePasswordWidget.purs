@@ -7,7 +7,7 @@ module OperationalWidgets.ChangePasswordWidget
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, fireOnce, loopS, loopW)
 import Concur.React (HTML)
-import Concur.React.DOM (text, div, div', h1, fieldset)
+import Concur.React.DOM (text, div, div', h1, form)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
@@ -56,11 +56,11 @@ changePasswordWidget state changeForm = go state changeForm
     go :: WidgetState -> ChangePasswordDataForm -> forall a. Widget HTML a
     go s cf@{ username, password } = do
       res <- case s of
-        Default   -> div [Props._id "changePasswordArea"] [Change <$> form false]
+        Default   -> div [Props._id "changePasswordArea"] [Change <$> formWidget false]
         Loading   -> do
           let changePasswordOp = liftAff $ (either ChangeFailed (\_ -> Done) <$> (runExceptT $ changeUserPassword username password))
-          div [Props._id "changePasswordArea"] [loadingDiv, DoNothing <$ form true] <|> changePasswordOp
-        Error err -> div [Props._id "changePasswordArea"] [errorDiv err, Change <$> form false]
+          div [Props._id "changePasswordArea"] [loadingDiv, DoNothing <$ formWidget true] <|> changePasswordOp
+        Error err -> div [Props._id "changePasswordArea"] [errorDiv err, Change <$> formWidget false]
       case res of
         DoNothing -> go s cf
         Change formData -> go Loading formData
@@ -69,8 +69,8 @@ changePasswordWidget state changeForm = go state changeForm
 
     errorDiv err = div' [text err ]
 
-    form :: Boolean -> Widget HTML ChangePasswordDataForm
-    form disabled = fieldset [(Props.disabled disabled)] [
+    formWidget :: Boolean -> Widget HTML ChangePasswordDataForm
+    formWidget disabled = form [(Props.disabled disabled)] [
       h1 [] [text "Change passphrase"]
     , do
         signalResult <- demand $ do
