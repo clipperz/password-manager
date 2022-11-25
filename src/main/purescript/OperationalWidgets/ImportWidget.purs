@@ -33,7 +33,6 @@ import DataModel.Index (Index(..), CardEntry)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Functions.Communication.Cards (postCard)
 import Functions.Communication.Users (updateIndex, getIndex)
 import Functions.Import (decodeImport, parseHTMLImport, decodeHTML)
@@ -51,16 +50,13 @@ importWidget :: Widget HTML (Either AppError Index)
 importWidget = do
   newIndex <- ((Right (Index Nil)) <$ (importView "" Nothing)) <|> (liftAff $ runExceptT $ getIndex)
   case newIndex of
-    Right index@(Index es) -> do
-      log $ show es
-      div [Props._id "importPage"] [h1 [] [text "Import"], importPage index Nothing (UploadContent "")]
+    Right index@(Index es) -> div [Props._id "importPage"] [h1 [] [text "Import"], importPage index Nothing (UploadContent "")]
     Left err -> pure $ Left err
 
   where 
     saveImport :: List Card -> Index -> Widget HTML (Either AppError Index)
     saveImport Nil ix = pure $ Right ix
     saveImport (Cons c@(Card {content: (CardValues r)}) cs) ix@(Index es) = (do
-        log $ show es
         nix <- liftAff $ runExceptT $ do
           newEntry <- postCard c
           let newIndex = Index (Cons newEntry es)
