@@ -16,12 +16,14 @@ import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (filter, length, cons)
 import Data.Bifunctor (lmap)
+import Data.Bitraversable (bisequence)
 import Data.Either (Either(..), isLeft)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.HeytingAlgebra (not)
-import Data.List (List(..), (:), concat, fromFoldable)
+import Data.List (List(..), (:), concat, fromFoldable, snoc)
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
+import Data.Operation (OperationStep(..), extractResult, runOperation)
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Traversable (sequence)
@@ -54,9 +56,9 @@ importWidget = do
     Left err -> pure $ Left err
 
   where 
-    saveImport :: List Card -> Index -> Widget HTML (Either AppError Index)
-    saveImport Nil ix = pure $ Right ix
-    saveImport (Cons c@(Card {content: (CardValues r)}) cs) ix@(Index es) = (do
+    saveImport' :: List Card -> Index -> Widget HTML (Either AppError Index)
+    saveImport' Nil ix = pure $ Right ix
+    saveImport' (Cons c@(Card {content: (CardValues r)}) cs) ix@(Index es) = (do
         nix <- liftAff $ runExceptT $ do
           newEntry <- postCard c
           let newIndex = Index (Cons newEntry es)
@@ -66,6 +68,25 @@ importWidget = do
           Right ix' -> saveImport cs ix'
           Left err -> pure nix
       ) <|> p [] [text ("Saving " <> r.title)]
+
+    saveImport :: List Card -> Index -> Widget HTML (Either AppError Index)
+    saveImport cards index = do
+      let saveCardFunc = \c@(Card {content: (CardValues r)}) -> 
+                         \prevRes -> do
+                            case prevRes of
+                              Left err -> pure prevRes
+                              Right ix@(Index es) -> (liftAff $ runExceptT $ do
+                                newEntry <- postCard c
+                                let newIndex = Index (Cons newEntry es)
+                                _ <- updateIndex newIndex
+                                pure newIndex) <|> p [] [text ("Saving " <> r.title)]
+      let funcs = saveCardFunc <$> cards
+      let steps = snoc (IntermediateStep <$> funcs) (LastStep pure)
+      extractEithers $ runOperation (Right index) steps
+
+    extractEithers :: Either (Widget HTML (Either AppError Index)) (Widget HTML (Either AppError Index)) -> Widget HTML (Either AppError Index)
+    extractEithers (Left m) = m
+    extractEithers (Right m) = m
 
     importPage :: Index -> Maybe String -> ImportStep -> Widget HTML (Either AppError Index)
     importPage index error (UploadContent pl) = do
