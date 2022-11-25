@@ -32,7 +32,7 @@ import OperationalWidgets.UserPreferencesWidget (userPreferencesWidget)
 import OperationalWidgets.DeleteUserWidget (deleteUserWidget)
 import OperationalWidgets.PinWidget (setPinWidget)
 
-data UserAreaAction = Loaded (Either AppError Index) | Lock | Logout | DeleteAccount | NoAction Index | GetIndexError AppError
+data UserAreaAction = Loaded (Either AppError Index) | Lock | Logout | DeleteAccount | NoAction | GetIndexError AppError
 
 data UserAreaListVoice = Export | Import | Pin | Delete | Preferences | ChangePassword | VLock | VLogout | About
 
@@ -58,18 +58,7 @@ defaultMenu = \isOffline -> [
 ]
 
 userAreaWidget :: Boolean -> Boolean -> Widget HTML UserAreaAction
-userAreaWidget hidden isOffline = do
-  newIndex <- ((Right (Index Nil)) <$ userAreaView hidden (defaultMenu isOffline) (Index Nil) (div [NoAction (Index Nil) <$ Props.onClick] [])) <|> (liftAff $ runExceptT $ getIndex)
-  case newIndex of
-    Right index -> do
-      res <- userAreaView hidden (defaultMenu isOffline) index (div [NoAction index <$ Props.onClick] [])
-      case res of
-        Lock -> do
-          (div [Lock <$ Props.onClick] []) <|> (Lock <$ (liftAff $ doLogout true))
-        Logout -> do
-          (div [Logout <$ Props.onClick] []) <|> (Logout <$ (liftAff $ doLogout false))
-        _ -> pure res
-    Left err -> pure $ GetIndexError err
+userAreaWidget hidden isOffline = userAreaView hidden (defaultMenu isOffline) (div [NoAction <$ Props.onClick] [])
 
   where 
     userAreaList arr = complexMenu (Just "userSidebar") Nothing arr
@@ -82,21 +71,21 @@ userAreaWidget hidden isOffline = do
       , MenuAction <$> menu
       ]  
     
-    userAreaInternalView :: Index -> UserAreaListVoice -> Widget HTML UserAreaAction
-    userAreaInternalView ix choice = 
+    userAreaInternalView :: UserAreaListVoice -> Widget HTML UserAreaAction
+    userAreaInternalView choice = 
       case choice of
-        Export -> div [Props.className "forUser"] [(NoAction ix) <$ exportWidget]
+        Export -> div [Props.className "forUser"] [(NoAction) <$ exportWidget]
         Import -> div [Props.className "forUser"] [Loaded <$> importWidget]
         Pin -> div [Props.className "forUser"] [setPinWidget Default]
         Delete -> div [Props.className "forUser"] [DeleteAccount <$ deleteUserWidget]
-        Preferences -> div [Props.className "forUser"] [(NoAction ix) <$ userPreferencesWidget Default]
+        Preferences -> div [Props.className "forUser"] [(NoAction) <$ userPreferencesWidget Default]
         ChangePassword -> div [Props.className "forUser"] [changePasswordWidget Default emptyChangePasswordDataForm]
         VLock -> pure Lock
         VLogout -> pure Logout
         About -> div [Props.className "forUser"] [text "This is Clipperz"]
 
-    userAreaView :: Boolean -> Array (SubmenuVoice UserAreaListVoice) -> Index -> Widget HTML UserAreaAction -> Widget HTML UserAreaAction
-    userAreaView hidden arr ix area = do
+    userAreaView :: Boolean -> Array (SubmenuVoice UserAreaListVoice) -> Widget HTML UserAreaAction -> Widget HTML UserAreaAction
+    userAreaView hidden arr area = do
       let userPageClassName = if hidden then "closed" else "open"
       let openCloseLabel = (if hidden then "Open" else "Close") <> " user area"
       res <- div [Props._id "userPage", Props.className userPageClassName] [
@@ -104,6 +93,6 @@ userAreaWidget hidden isOffline = do
       , userAreaView' hidden (userAreaList arr) area
       ]
       case res of
-        OpenClose -> userAreaView (not hidden) arr ix area
+        OpenClose -> userAreaView (not hidden) arr area
         UserAction ac -> pure $ ac
-        MenuAction (Tuple newMenus ac) -> userAreaView false newMenus ix (userAreaInternalView ix ac)
+        MenuAction (Tuple newMenus ac) -> userAreaView false newMenus (userAreaInternalView ac)

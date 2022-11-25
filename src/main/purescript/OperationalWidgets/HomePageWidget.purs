@@ -55,7 +55,7 @@ homePageWidget isLogged =
         Default -> div [] []
         Loading -> loadingDiv <|> ((UserAreaAction <<< Loaded) <$> (liftAff $ runExceptT $ getIndex))
         Error err -> div [] [text err, simpleButton "Go back to login" false LogoutAction]
-      interpretHomePageActions isOffline Nothing res 
+      interpretHomePageActions isOffline Nothing Nothing res 
     
     homePage :: Boolean -> Index -> CardView -> Widget HTML HomePageExitStatus
     homePage isOffline index cardView = do
@@ -63,14 +63,16 @@ homePageWidget isLogged =
                   cardsManagerWidget isOffline index { cardView: cardView, cardViewState: Default }
                 , UserAreaAction <$> (userAreaWidget true isOffline)
                 ]
-      interpretHomePageActions isOffline (Just cardView) result
+      interpretHomePageActions isOffline (Just index) (Just cardView) result
 
-    interpretHomePageActions :: Boolean -> Maybe CardView -> HomePageAction -> Widget HTML HomePageExitStatus
-    interpretHomePageActions isOffline cv result =
+    interpretHomePageActions :: Boolean -> Maybe Index -> Maybe CardView -> HomePageAction -> Widget HTML HomePageExitStatus
+    interpretHomePageActions isOffline ix cv result =
       case result of
         UserAreaAction (Loaded (Right index)) -> homePage isOffline index NoCard         
-        UserAreaAction (NoAction index) -> 
-          homePage isOffline index (fromMaybe NoCard cv)
+        UserAreaAction NoAction -> 
+          case ix of
+            Just ix' -> homePage isOffline ix' (fromMaybe NoCard cv)
+            Nothing -> go (Error "No index found") isOffline
         UserAreaAction (GetIndexError err) -> 
           go (Error (show err)) isOffline
         UserAreaAction (Loaded (Left err)) -> do
