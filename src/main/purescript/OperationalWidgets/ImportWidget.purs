@@ -122,20 +122,19 @@ importWidget = do
     cardSelectionWidget :: ImportStep -> Array (Tuple Boolean Card) -> Widget HTML ImportStep --(Array (Tuple Boolean Card))
     cardSelectionWidget goBackValue cards = do
       newTagWithDate <- (((<>) "Import_") <<< formatDateTimeToDate) <$> (liftEffect getCurrentDateTime)
-      res <- form [Props.classList (Just <$> ["importPage", "scrollable"])] [ 
-          Left <$> selectWidget 
-        , Right <$> (demand $ do
-            newTag <- loopS { tag: newTagWithDate, cb: true } $ \v -> do
+      form [Props.classList (Just <$> ["importPage", "scrollable"])] [ 
+          (demand $ do
+            newTag <- loopS { sel: Nothing, tag: newTagWithDate, cb: true } $ \v -> do
+                                                            newSel <- loopW v.sel (\_ -> Just <$> selectWidget)
                                                             newTagCB <- simpleCheckboxSignal "addTag" (text "Apply the following tag to imported cards:") true v.cb
                                                             newTag <- loopW v.tag (simpleTextInputWidget "newTag" (text "Tag") "Tag")
-                                                            pure $ { tag: newTag, cb: newTagCB }
-            selectedCards <- sequence $ importCardProposalWidget <$> cards
+                                                            pure $ { sel: newSel, tag: newTag, cb: newTagCB }
+            selectedCards <- case newTag.sel of
+              Nothing -> sequence $ importCardProposalWidget <$> cards
+              Just f -> sequence $ importCardProposalWidget <$> (filterCards f cards)
             let preparedCards = if newTag.cb then prepareSelectedCards newTag.tag selectedCards else selectedCards
             fireOnce (div [Props.className "fixedFoot"] [(simpleButton "<<" false goBackValue) <|> (simpleButton "Import" false (Confirm preparedCards))]))
         ]
-      case res of
-        Left sel -> cardSelectionWidget goBackValue $ filterCards sel cards
-        Right value -> pure value
 
     filterCards :: QuickSelection -> Array (Tuple Boolean Card) -> Array (Tuple Boolean Card)
     filterCards All arr = (\(Tuple _ c) -> Tuple true c) <$> arr
