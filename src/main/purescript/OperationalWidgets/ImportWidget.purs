@@ -21,7 +21,8 @@ import Data.Either (Either(..), isLeft)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.HeytingAlgebra (not)
-import Data.List (List(..), (:), concat, fromFoldable, snoc)
+import Data.List as List
+import Data.List (List(..), (:), concat, fromFoldable, snoc, zipWith, (..))
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Operation (OperationStep(..), extractResult, runOperation)
 import Data.Semigroup ((<>))
@@ -79,14 +80,21 @@ importWidget = do
                                 newEntry <- postCard c
                                 let newIndex = Index (Cons newEntry es)
                                 _ <- updateIndex newIndex
-                                pure newIndex) <|> p [] [text ("Saving " <> r.title)]
+                                pure newIndex)
       let funcs = saveCardFunc <$> cards
-      let steps = snoc (IntermediateStep <$> funcs) (LastStep pure)
+      let total = List.length cards
+      let mkPlaceholder = \{index, card: (Card {content: (CardValues r)})} -> p [] [text ("Saving " <> r.title <> ", card " <> (show index) <> " of " <> (show total) )]
+      let pls = mkPlaceholder <$> (zipWith (\i -> \c -> {index: i, card: c}) (0 .. total) cards)
+      let zipped = zipWith (\func -> \pl -> {func, pl}) funcs pls
+      let steps = snoc ((\{func, pl} -> IntermediateStep func pl) <$> zipped) (LastStep pure (text "Done"))
       extractEithers $ runOperation (Right index) steps
 
-    extractEithers :: Either (Widget HTML (Either AppError Index)) (Widget HTML (Either AppError Index)) -> Widget HTML (Either AppError Index)
-    extractEithers (Left m) = m
-    extractEithers (Right m) = m
+    extractEithers :: Widget HTML (Either (Either AppError Index) (Either AppError Index)) -> Widget HTML (Either AppError Index)
+    extractEithers m = do
+      res <- m
+      case res of
+        Right i -> pure i
+        Left i -> pure i
 
     importPage :: Index -> Maybe String -> ImportStep -> Widget HTML (Either AppError Index)
     importPage index error (UploadContent pl) = do

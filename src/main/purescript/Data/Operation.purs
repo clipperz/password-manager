@@ -7,20 +7,23 @@ import Data.Either (Either(..))
 import Data.Functor (class Functor, (<$>))
 import Data.List (List(..))
 
-data OperationStep a b m = IntermediateStep (a -> m a) | LastStep (a -> m b)
+data OperationStep a b m = IntermediateStep (a -> m a) (m a) | LastStep (a -> m b) (m b)
 
 extractResult :: forall a b m. Functor m => a -> OperationStep a b m -> Either (m b) (m a)
-extractResult a (IntermediateStep f) = Right (f a)
-extractResult a (LastStep f) = Left (f a)
+extractResult a (IntermediateStep f _) = Right (f a)
+extractResult a (LastStep f _) = Left (f a)
 
-runOperation :: forall a b m. Bind m => Applicative m => a -> List (OperationStep a b m) -> Either (m b) (m a)
-runOperation iv list = go (Right (pure iv)) list
+runOperation :: forall a b m. Bind m => Applicative m => Alt m => a -> List (OperationStep a b m) -> m (Either b a)
+runOperation iv list = go (pure (Right iv)) list
   where
-    go :: Either (m b) (m a) -> List (OperationStep a b m) -> Either (m b) (m a)
-    go result    Nil               = result
-    go (Left b)  _                 = Left b
-    go (Right a) (Cons step steps) = 
-      let res = case step of
-                  IntermediateStep f -> Right (bind a f)
-                  LastStep f -> Left (bind a f)
-      in go res steps 
+    go :: m (Either b a) -> List (OperationStep a b m) -> m (Either b a)
+    go result Nil               = result
+    go result (Cons step steps) = do
+      res <- result
+      case res of
+        Left b -> pure res
+        Right a -> do
+          res' <- case step of
+                    IntermediateStep f pl -> Right <$> ((f a) <|> pl)
+                    LastStep f pl -> Left <$> ((f a) <|> pl)
+          go (pure res') steps 
