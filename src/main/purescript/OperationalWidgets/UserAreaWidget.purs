@@ -85,10 +85,10 @@ userAreaWidget hidden isOffline = do
     userAreaInternalView :: Index -> UserAreaListVoice -> Widget HTML UserAreaAction
     userAreaInternalView ix choice = 
       case choice of
-        Export -> div [Props.className "forUser"] [(NoAction ix) <$ exportWidget ix]
-        Import -> div [Props.className "forUser"] [Loaded <$> importWidget ix]
+        Export -> div [Props.className "forUser"] [(NoAction ix) <$ exportWidget]
+        Import -> div [Props.className "forUser"] [Loaded <$> importWidget]
         Pin -> div [Props.className "forUser"] [setPinWidget Default]
-        Delete -> div [Props.className "forUser"] [DeleteAccount <$ deleteUserWidget ix Default]
+        Delete -> div [Props.className "forUser"] [DeleteAccount <$ deleteUserWidget]
         Preferences -> div [Props.className "forUser"] [(NoAction ix) <$ userPreferencesWidget Default]
         ChangePassword -> div [Props.className "forUser"] [changePasswordWidget Default emptyChangePasswordDataForm]
         VLock -> pure Lock

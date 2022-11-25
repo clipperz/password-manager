@@ -10,30 +10,38 @@ import Concur.React.Props as Props
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
+import Control.Monad.Except.Trans (runExceptT)
 import Control.Semigroupoid ((<<<))
 import Data.Either (Either(..), fromRight)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$), void)
+import Data.List (List(..))
 import Data.Maybe (fromMaybe, Maybe(..))
 import Data.Semigroup ((<>))
+import Data.Show (show)
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
-import DataModel.Index (Index)
+import DataModel.Index (Index(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
+import Functions.Communication.Users (getIndex)
 import Functions.Export (prepareOfflineCopy, prepareUnencryptedCopy)
 import Functions.JSState (getAppState)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate)
 
-exportWidget :: Index -> Widget HTML Unit
-exportWidget index = go (Tuple (Right Nothing) (Right Nothing))
+exportWidget :: Widget HTML Unit
+exportWidget = do
+  newIndex <- ((Right (Index Nil)) <$ exportView (Tuple (Right Nothing) (Right Nothing))) <|> (liftAff $ runExceptT $ getIndex)
+  case newIndex of
+    Right index -> go index (Tuple (Right Nothing) (Right Nothing))
+    Left err -> exportView  (Tuple (Left (show err)) (Left (show err)))
 
   where
-    go tuple@(Tuple (Right (Just _)) (Right (Just _))) = exportView tuple
-    go tuple = do
-      res <- (Nothing <$ exportView tuple) <|> (Just <$> liftAff prepareDownloads)
-      go $ fromMaybe tuple res
+    go _ tuple@(Tuple (Right (Just _)) (Right (Just _))) = exportView tuple
+    go index tuple = do
+      res <- (Nothing <$ exportView tuple) <|> (Just <$> liftAff (prepareDownloads index))
+      go index $ fromMaybe tuple res
 
     exportView :: Tuple (Either String (Maybe String)) (Either String (Maybe String)) -> Widget HTML Unit
     exportView (Tuple offline unencrypted) = div [Props._id "exportPage"] [
@@ -65,8 +73,8 @@ exportWidget index = go (Tuple (Right Nothing) (Right Nothing))
       ]
     ]
 
-    prepareDownloads :: Aff (Tuple (Either String (Maybe String)) (Either String (Maybe String)))
-    prepareDownloads = do
+    prepareDownloads :: Index -> Aff (Tuple (Either String (Maybe String)) (Either String (Maybe String)))
+    prepareDownloads index = do
       eitherOffline <- ((<$>) Just) <$> prepareOfflineCopy index
       eitherUc <- ((<$>) Just) <$> prepareUnencryptedCopy index
       pure $ Tuple eitherOffline eitherUc
