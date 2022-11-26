@@ -69,7 +69,13 @@ div.hidden {
 	}
 }
 
-div.scrollable {
+div.importList {
+	overflow: auto;
+	display: flex;
+	flex-direction: column-reverse;
+}
+
+form.scrollable {
 	overflow-y: auto;
 	height: 100%;
 }
@@ -365,6 +371,10 @@ div.dropFile {
 
 .selectedDropElement {
 	// padding: 10px;
+}
+
+button.active {
+	color: red;
 }
 
 .dragAndDropElem {

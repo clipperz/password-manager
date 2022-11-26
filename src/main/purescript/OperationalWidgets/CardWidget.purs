@@ -13,11 +13,13 @@ import Control.Monad.Except.Trans (runExceptT, ExceptT)
 import Data.Either (Either(..))
 import Data.Eq ((==))
 import Data.Function (($))
+import Data.Maybe (Maybe(..))
 import Data.PrettyShow (prettyShow)
 import Data.Semigroup ((<>))
 import Data.Show (show)
-import DataModel.AppState (AppError)
+import DataModel.AppState (AppError(..))
 import DataModel.Card (Card(..), CardValues(..))
+import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardEntry(..))
 import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
@@ -32,7 +34,7 @@ import Functions.Time (getCurrentTimestamp)
 import OperationalWidgets.CreateCardWidget (createCardWidget)
 import Views.CardViews (cardView, CardAction(..))
 import Views.CreateCardView (createCardView)
-import Views.SimpleWebComponents (loadingDiv)
+import Views.SimpleWebComponents (loadingDiv, confirmationWidget)
 
 cardWidget :: CardEntry -> Array String -> WidgetState -> Widget HTML IndexUpdateData
 cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ }) tags state = do
@@ -49,7 +51,11 @@ cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ })
           manageCardAction res (isOfflineCopy st)
         Left err -> do
           _ <- liftEffect $ log $ show err
-          cardWidget entry tags (Error (prettyShow err))
+          case err of
+            ProtocolError (ResponseError 404) -> do
+              conf <- div [] [confirmationWidget "This card was not found, do you want to remove this card from index?"]
+              pure $ if conf then IndexUpdateData (DeleteReference entry) Nothing else IndexUpdateData NoUpdate Nothing
+            _ -> cardWidget entry tags (Error (prettyShow err))
 
   where
     manageCardAction :: CardAction -> Boolean -> Widget HTML IndexUpdateData
@@ -63,21 +69,21 @@ cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ })
         Used cc -> do
           timestamp' <- liftEffect $ getCurrentTimestamp
           if r.lastUsed == timestamp' then do
-            pure $ IndexUpdateData (NoUpdateNecessary entry) cc
+            pure $ IndexUpdateData (NoUpdateNecessary entry) (Just cc)
           else do
-            pure $ IndexUpdateData (ChangeReferenceWithoutEdit entry (CardEntry $ r { lastUsed = timestamp' })) cc
+            pure $ IndexUpdateData (ChangeReferenceWithoutEdit entry (CardEntry $ r { lastUsed = timestamp' })) (Just cc)
         Clone cc -> do
           clonedCard <- liftAff $ cloneCardNow cc
-          doOp isOffline cc cc false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) cc)
+          doOp isOffline cc cc false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) (Just cc))
         Archive oldCard@(Card rc) -> do
           timestamp' <- liftEffect $ getCurrentTimestamp
           let newCard = Card $ rc { timestamp = timestamp', archived = true }
-          doOp isOffline oldCard newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) newCard)
+          doOp isOffline oldCard newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) (Just newCard))
         Restore oldCard@(Card rc) -> do
           timestamp' <- liftEffect $ getCurrentTimestamp
           let newCard = Card $ rc { timestamp = timestamp', archived = false }
-          doOp isOffline oldCard newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) newCard)
-        Delete cc -> doOp isOffline cc cc false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) cc)
+          doOp isOffline oldCard newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) (Just newCard))
+        Delete cc -> doOp isOffline cc cc false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) (Just cc))
 
     doOp :: forall a. Boolean -> Card -> Card -> Boolean -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData
     doOp isOffline oldCard currentCard showForm op mapResult = do

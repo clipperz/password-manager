@@ -3,7 +3,8 @@ module OperationalWidgets.DeleteUserWidget where
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, loopS, loopW, fireOnce)
 import Concur.React (HTML)
-import Concur.React.DOM (text, div, h1, div')
+import Concur.React.DOM (text, div, h1, div', form)
+import Concur.React.Props as Props
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))
@@ -12,18 +13,20 @@ import Control.Semigroupoid ((<<<))
 import Data.Either (either, Either(..))
 import Data.Eq ((==))
 import Data.Function (($))
-import Data.Functor ((<$>), (<$))
+import Data.Functor ((<$>), (<$), void)
 import Data.HeytingAlgebra ((||), (&&), not)
+import Data.List (List(..))
 import Data.Maybe (Maybe(..))
 import Data.Show (show)
 import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError)
-import DataModel.Index (Index)
+import DataModel.Index (Index(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect (Effect)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
+import Functions.Communication.Users (getIndex)
 import Functions.JSState (getAppState)
 import Functions.Pin (deleteCredentials)
 import Functions.User (deleteUser)
@@ -35,27 +38,34 @@ import Web.HTML.Window (localStorage)
 
 data DeleteUserWidgetAction = PleaseDelete | DoNothing | FailedDelete AppError | Done
 
-deleteUserWidget :: Index -> WidgetState -> Widget HTML Unit
-deleteUserWidget index state = do
-  res <- case state of
-    Default -> deleteForm emptyForm
-    Loading -> do
-      let deleteUserAndPin = do
-                              deleteUser index
-                              (ExceptT $ Right <$> (liftEffect (window >>= localStorage))) >>= (\v -> mapExceptT liftEffect (deleteCredentials v)) 
-      let deleteUserOp = liftAff $ (either FailedDelete (\_ -> Done) <$> (runExceptT $ deleteUserAndPin))
-      div' [loadingDiv, simpleButton "Delete account" true DoNothing] <|> deleteUserOp
-    Error err -> div' [text err, simpleButton "Delete account" false PleaseDelete]
-  case res of
-    PleaseDelete -> do
-      confirmation <- div [] [confirmationWidget "Are you sure you want to delete your account? You won't be able to recover it."]
-      if confirmation then deleteUserWidget index Loading else deleteUserWidget index Default
-    DoNothing -> deleteUserWidget index Default
-    FailedDelete err -> deleteUserWidget index (Error (show err))
-    Done -> pure unit
+deleteUserWidget :: Widget HTML Unit
+deleteUserWidget = do
+  newIndex <- ((Right (Index Nil)) <$ (deleteForm true emptyForm)) <|> (liftAff $ runExceptT $ getIndex)
+  case newIndex of
+    Right index -> go index Default
+    Left err -> div' [text (show err), void (deleteForm true emptyForm)] 
 
   where
-    deleteForm creds@{ username, password } = div [] [
+    go :: Index -> WidgetState -> Widget HTML Unit
+    go index state = do
+      res <- case state of
+        Default -> deleteForm false emptyForm
+        Loading -> do
+          let deleteUserAndPin = do
+                                  deleteUser index
+                                  (ExceptT $ Right <$> (liftEffect (window >>= localStorage))) >>= (\v -> mapExceptT liftEffect (deleteCredentials v)) 
+          let deleteUserOp = liftAff $ (either FailedDelete (\_ -> Done) <$> (runExceptT $ deleteUserAndPin))
+          div' [loadingDiv, simpleButton "Delete account" true DoNothing] <|> deleteUserOp
+        Error err -> div' [text err, deleteForm true emptyForm] 
+      case res of
+        PleaseDelete -> do
+          confirmation <- div [] [confirmationWidget "Are you sure you want to delete your account? You won't be able to recover it."]
+          if confirmation then go index Loading else go index Default
+        DoNothing -> go index Default
+        FailedDelete err -> go index (Error (show err))
+        Done -> pure unit
+
+    deleteForm disabled creds@{ username, password } = form [Props.disabled disabled] [
       h1 [] [text "Delete account"]
     , demand $ do
         formValues <- loopS (merge creds {notRecoverable: false}) $ \{username, password, notRecoverable} -> do

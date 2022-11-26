@@ -23,7 +23,7 @@ import DataModel.Credentials (Credentials)
 import DataModel.Index (Index(..), CardEntry(..), CardReference(..), createCardEntry, currentIndexVersion)
 import DataModel.Password (standardPasswordGeneratorSettings)
 import DataModel.SRP (SRPConf, SRPError(..))
-import DataModel.User (UserCard(..), IndexReference(..))
+import DataModel.User (UserCard(..), IndexReference(..), UserPreferencesReference(..), UserPreferences(..), UserInfoReferences(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -34,6 +34,8 @@ import Functions.SRP as SRP
 
 type RegisterUserRequest = {
     user :: UserCard
+  , preferencesReference :: HexString
+  , preferencesContent :: HexString
   , indexCardReference :: HexString
   , indexCardContent   :: HexString
   , cards :: Array (Tuple HexString HexString)
@@ -61,15 +63,27 @@ prepareSignupParameters form = runExceptT $ do
   pAb <- liftAff $ SRP.prepareP conf form.username form.password
   sAb <- liftAff $ SRP.randomArrayBuffer 32
   let salt = fromArrayBuffer sAb
-  cards                :: List (Tuple ArrayBuffer CardEntry) <- ExceptT $ Right <$> prepareCards conf defaultCards 
-  v                    :: HexString   <- ExceptT $ SRP.prepareV conf sAb pAb
-  masterKey            :: CryptoKey   <- ExceptT $ Right <$> KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
-  indexCardContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson masterKey (Index (snd <$> cards))
-  masterPassword       :: CryptoKey   <- ExceptT $ Right <$> KI.importKey raw pAb (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-  indexCardContentHash :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> conf.hash (indexCardContent : Nil)
-  masterKeyHex         :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> exportKey raw masterKey
-  let indexReference   = IndexReference { reference: indexCardContentHash, masterKey: masterKeyHex, indexVersion: currentIndexVersion }
-  masterKeyContent     :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> encryptJson masterPassword indexReference
+  cards                  :: List (Tuple ArrayBuffer CardEntry) <- ExceptT $ Right <$> prepareCards conf defaultCards 
+  v                      :: HexString   <- ExceptT $ SRP.prepareV conf sAb pAb
+  masterKey              :: CryptoKey   <- ExceptT $ Right <$> KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
+  masterKey2              :: CryptoKey   <- ExceptT $ Right <$> KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
+  indexCardContent       :: ArrayBuffer <- ExceptT $ Right <$> encryptJson masterKey (Index (snd <$> cards))
+  masterPassword         :: CryptoKey   <- ExceptT $ Right <$> KI.importKey raw pAb (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+  indexCardContentHash   :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> conf.hash (indexCardContent : Nil)
+  masterKeyHex           :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> exportKey raw masterKey
+  masterKeyHex2           :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> exportKey raw masterKey2
+  let indexReference     = IndexReference { reference: indexCardContentHash, masterKey: masterKeyHex, indexVersion: currentIndexVersion }
+
+  let userPreferences = UserPreferences { passwordGeneratorSettings: standardPasswordGeneratorSettings
+                                        , automaticLock: Just 10
+                                        }
+  preferencesContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson masterKey2 userPreferences
+  preferencesContentHash :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> conf.hash (preferencesContent : Nil)
+  let preferencesReference = UserPreferencesReference { reference: preferencesContentHash, key: masterKeyHex2 }
+
+  let userInfoReference = UserInfoReferences { preferencesReference, indexReference }
+
+  masterKeyContent       :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> encryptJson masterPassword userInfoReference
   pure  { user:
             UserCard
               { c: c
@@ -78,10 +92,9 @@ prepareSignupParameters form = runExceptT $ do
               , srpVersion : "6a"
               , masterKeyEncodingVersion : "1.0"
               , masterKeyContent : masterKeyContent
-              , preferences: { passwordGeneratorSettings: standardPasswordGeneratorSettings
-                             , automaticLock: Just 10
-                             }
               }
+        , preferencesReference : preferencesContentHash
+        , preferencesContent : fromArrayBuffer preferencesContent
         , indexCardReference : indexCardContentHash
         , indexCardContent   : fromArrayBuffer indexCardContent
         , cards : fromFoldable ((\(Tuple encryptedCard (CardEntry { cardReference: (CardReference { reference }) })) -> (Tuple reference (fromArrayBuffer encryptedCard))) <$> cards)

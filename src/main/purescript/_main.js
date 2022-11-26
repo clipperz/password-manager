@@ -3,23 +3,16 @@ const Main = require ("../../../target/output.purescript/Main")
 function addEventBubblingBlockers() {
     const observer = new MutationObserver(mutations => {
         mutations.forEach(function(mutation) {
+            for (let item of document.forms) {
+                item.addEventListener("submit", ev => ev.preventDefault())
+            }
             for(var i = 0; i < mutation.addedNodes.length; i++)
                 mutation.addedNodes.forEach(node => {
-                    for (let item of document.forms) {
-                        item.addEventListener("submit", ev => ev.preventDefault())
-                    }
                     try {
-                        if (node.classList.contains("cardForm")) {
-                            node.addEventListener("keydown", ev => {
-                                ev.stopImmediatePropagation();
-                            })
-                        } else {
-                            for (let item of document.getElementsByClassName("dropFile")) {
-                                ["drop", "dragover"].forEach(eventName => item.addEventListener(eventName, ev => { ev.stopPropagation(); ev.preventDefault();} ))
-                            }
-                            document.getElementById("card").addEventListener("keydown", ev => {
-                                ev.stopImmediatePropagation();
-                            })
+                        document.getElementById("cardForm").addEventListener("keydown", ev => ev.stopImmediatePropagation())
+                        document.getElementById("card").addEventListener("keydown", ev => ev.stopImmediatePropagation())
+                        for (let item of document.getElementsByClassName("dropFile")) {
+                            ["drop", "dragover"].forEach(eventName => item.addEventListener(eventName, ev => { ev.stopPropagation(); ev.preventDefault();} ))
                         }
                     } catch (err) {
                     }
@@ -68,6 +61,13 @@ function addShortcutsManagement() {
     })
 }
 
+function addPreventDefaults() {
+    /*
+        Dragover events default behaviour must be prevented, but doing so in Purescript causes perfomance problems.
+    */
+    document.addEventListener("dragover", ev => ev.preventDefault())
+}
+
 function main () {
     /*
         Here we could add variables such as
@@ -86,12 +86,12 @@ function main () {
     */
     addEventBubblingBlockers();
     addShortcutsManagement();
+    addPreventDefaults();
+
+    // document.addEventListener("keydown", ev => console.log(ev))
 
     let hash = window.location.hash;
 
-    // if (hash === "#test") {
-        // Main.test();
-    // } else if (hash === "#registration") {
     if (hash === "#registration") {
         console.log("registration");
         Main.registration();
@@ -101,7 +101,6 @@ function main () {
     } else {
         console.log("main");
         Main.main();
-        // Main.test();
     }
 }
 

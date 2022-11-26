@@ -13,7 +13,7 @@ import Data.Either (either)
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.Maybe (maybe)
+import Data.Maybe (maybe, Maybe(..))
 import Data.PrettyShow (prettyShow)
 import Data.Semigroup ((<>))
 import Data.Show (show)
@@ -38,11 +38,11 @@ createCardWidget startingCard tags state = do
                 <|> ((either (\err -> FailedCreation err startingCard) NewEntry) <$> (liftAff $ runExceptT $ postCard startingCard)) -- TODO: draw loadingDiv over form
     Error err -> (maybe NoAction JustCard) <$> (createCardView startingCard tags (Error ("Card could't be saved: " <> err)))
   case res of
-    NoAction -> pure $ IndexUpdateData NoUpdate startingCard
+    NoAction -> pure $ IndexUpdateData NoUpdate (Just startingCard)
     JustCard card -> do
-      if card == startingCard then pure $ IndexUpdateData NoUpdate startingCard 
+      if card == startingCard then pure $ IndexUpdateData NoUpdate (Just startingCard) 
       else createCardWidget card tags Loading
-    NewEntry e -> pure $ IndexUpdateData (AddReference e) startingCard
+    NewEntry e -> pure $ IndexUpdateData (AddReference e) (Just startingCard)
     FailedCreation err card -> do
       _ <- liftEffect $ log $ show err
       createCardWidget card tags (Error (prettyShow err))

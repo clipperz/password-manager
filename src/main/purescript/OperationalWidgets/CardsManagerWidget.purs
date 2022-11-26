@@ -9,12 +9,13 @@ import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (runExceptT)
+import Control.Semigroupoid ((<<<))
 import Data.Either (Either(..))
 import Data.Eq ((/=))
 import Data.Function (($))
 import Data.Functor ((<$>), flap)
 import Data.List ((:), filter)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
 import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Card (emptyCard)
@@ -26,7 +27,7 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Users (updateIndex)
 import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState, CardsViewInfo, mkCardsViewInfo)
-import Views.IndexView (IndexFilter(..), ComplexIndexFilter)
+import Views.IndexView (IndexFilter(..), ComplexIndexFilter, addLastCardFilterInOr, removeAllLastCardFilter)
 
 data CardsViewResult = CardsViewResult (Tuple CardsViewInfo CardViewAction) | OpResult Index CardViewState (Maybe AppError) ComplexIndexFilter
 
@@ -49,7 +50,7 @@ cardsManagerWidget isOffline ind cardViewState =
       case res of
         CardsViewResult (Tuple f cva) -> case cva of 
           UpdateIndex updateData -> do
-            go (getUpdateIndexInfo isOffline info updateData Nothing) view (Just (getUpdateIndexOp info updateData))
+            go (getUpdateIndexInfo isOffline f updateData Nothing) view (Just (getUpdateIndexOp f updateData))
           ShowAddCard -> go (info { cardViewState = {cardView: (CardForm emptyCard), cardViewState: Default} }) view Nothing
           ShowCard ref -> go (info { cardViewState = {cardView: (CardFromReference ref), cardViewState: Default} }) view Nothing
         OpResult i cv e f -> go (info { index = i, indexFilter = f, error = e, cardViewState = cv }) view Nothing
@@ -58,9 +59,9 @@ getUpdateIndexOp :: CardsViewInfo -> IndexUpdateData -> Aff CardsViewResult
 getUpdateIndexOp { index: index@(Index list), indexFilter } (IndexUpdateData action _) =
   case action of 
     AddReference                        entry -> flap (addEntryToIndex entry) { archived: false, indexFilter: ComposedOrFilter (SpecificCardFilter entry) indexFilter.indexFilter } 
-    CloneReference                      entry -> flap (addEntryToIndex entry) indexFilter
-    ChangeReferenceWithEdit    oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) indexFilter
-    ChangeReferenceWithoutEdit oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) indexFilter
+    CloneReference                      entry -> flap (addEntryToIndex entry) (((addLastCardFilterInOr entry) <<< removeAllLastCardFilter) indexFilter)
+    ChangeReferenceWithEdit    oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) (((addLastCardFilterInOr entry) <<< removeAllLastCardFilter) indexFilter)
+    ChangeReferenceWithoutEdit oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) (((addLastCardFilterInOr entry) <<< removeAllLastCardFilter) indexFilter)
     DeleteReference            oldEntry       -> flap (removeReferenceFromIndex oldEntry) indexFilter
     NoUpdateNecessary          oldEntry       -> pure $ OpResult index { cardView: CardFromReference oldEntry, cardViewState: Default } Nothing indexFilter
     _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing indexFilter
@@ -105,9 +106,9 @@ getUpdateIndexOp { index: index@(Index list), indexFilter } (IndexUpdateData act
 getUpdateIndexInfo :: Boolean -> CardsViewInfo -> IndexUpdateData -> Maybe AppError -> CardsViewInfo
 getUpdateIndexInfo isOffline info (IndexUpdateData action card) err = 
   case action of 
-    AddReference                 _ -> info { error = err, indexFilter = { archived: false, indexFilter: NoFilter }, cardViewState = { cardView: (CardForm card), cardViewState: Loading } }
-    CloneReference               _ -> info { error = err, cardViewState = { cardView: (JustCard card), cardViewState: Loading } }
-    DeleteReference              _ -> info { error = err, cardViewState = { cardView: (JustCard card), cardViewState: Loading } }
-    ChangeReferenceWithEdit    _ _ -> info { error = err, cardViewState = { cardView: (CardForm card), cardViewState: Loading } }
-    ChangeReferenceWithoutEdit _ _ -> info { error = err, cardViewState = { cardView: (JustCard card), cardViewState: Loading } }
+    AddReference                 _ -> info { error = err, indexFilter = { archived: false, indexFilter: NoFilter }, cardViewState = { cardView: (maybe NoCard CardForm card), cardViewState: Loading } }
+    CloneReference               _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }
+    DeleteReference              _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }
+    ChangeReferenceWithEdit    _ _ -> info { error = err, cardViewState = { cardView: (maybe NoCard CardForm card), cardViewState: Loading } }
+    ChangeReferenceWithoutEdit _ _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }
     _                              -> info { error = err, cardViewState = { cardView: NoCard         , cardViewState: Default } }

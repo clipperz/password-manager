@@ -33,7 +33,7 @@ import Effect.Class.Console (log)
 import React.SyntheticEvent as Events
 import Views.CardViews (cardView)
 import Views.CreateCardView (createCardView)
-import Views.IndexView (indexView, ComplexIndexFilter, IndexFilter(..), toFilterFunc, complexToFilterFunc)
+import Views.IndexView (indexView, ComplexIndexFilter, IndexFilter(..), removeLastCardFilter, toFilterFunc, complexToFilterFunc)
 import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleCheckboxWidget, simpleTextInputWidgetWithFocus, clickableListItemWidget)
 import OperationalWidgets.CardWidget (cardWidget)
 import OperationalWidgets.CreateCardWidget (createCardWidget)
@@ -98,11 +98,11 @@ cardsManagerView isOffline currentInfo@{ index: i@(Index entries)
         , simpleButton "Add card" false (CardViewAction ShowAddCard) 
         ]
       , case cvs of
-        { cardView: CardForm card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ createCardView card allSortedTags cardViewState
+        { cardView: CardForm card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ createCardView card allSortedTags cardViewState
         { cardView: CardForm card,         cardViewState: _       } -> (CardViewAction  <<< UpdateIndex) <$> createCardWidget card allSortedTags cardViewState
         { cardView: CardFromReference ref, cardViewState: _       } -> (CardViewAction  <<< UpdateIndex) <$> cardWidget ref allSortedTags cardViewState
-        { cardView: JustCard card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ (div [] [loadingDiv, cardView card isOffline])
-        { cardView: JustCard card,         cardViewState: _       } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate card) <$ cardView card isOffline
+        { cardView: JustCard card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ (div [] [loadingDiv, cardView card isOffline])
+        { cardView: JustCard card,         cardViewState: _       } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ cardView card isOffline
         { cardView: NoCard       ,         cardViewState: _       } -> div [Props._id "card"] []
       ]
     ]
@@ -183,16 +183,6 @@ cardsManagerView isOffline currentInfo@{ index: i@(Index entries)
                     in case sortedFilteredEntries !! newN of
                       Nothing -> currentInfo
                       Just ref -> currentInfo { selectedIndexPosition = Just newN, cardViewState = {cardView: CardFromReference ref, cardViewState: Default}}
-                        
-
-    removeLastCardFilter cf@{ archived: archived', indexFilter: indexFilter' } mRef =
-      case indexFilter' of
-        ComposedAndFilter (SpecificCardFilter ce) filter -> if (Just ce) == mRef then cf else{ archived: archived', indexFilter: filter }
-        ComposedAndFilter filter (SpecificCardFilter ce) -> if (Just ce) == mRef then cf else{ archived: archived', indexFilter: filter }
-        ComposedOrFilter (SpecificCardFilter ce) filter -> if (Just ce) == mRef then cf else{ archived: archived', indexFilter: filter }
-        ComposedOrFilter filter (SpecificCardFilter ce) -> if (Just ce) == mRef then cf else{ archived: archived', indexFilter: filter }
-        SpecificCardFilter ce -> if (Just ce) == mRef then cf else { archived: archived', indexFilter: NoFilter }
-        _ -> cf
 
     toggleArchivedButton = 
       (\b -> { archived: b, indexFilter }) <$> div [Props._id "archivedFilterArea"] [ simpleCheckboxWidget 

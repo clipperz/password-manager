@@ -7,5 +7,5 @@ type LoginStep1Response = { s  :: HexString
                           }
 
 type LoginStep2Response = { m2 :: HexString
-                          , encIndexReference :: HexString
+                          , encUserInfoReferences :: HexString
                           }

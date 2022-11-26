@@ -25,26 +25,11 @@ import DataModel.User (IndexReference(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Effect.Exception as EX
 import Functions.EncodeDecode (decryptJson, decryptWithAesCTR)
 import Functions.JSState (getAppState)
 
 -- fromCardToCardEntry :: Index -> Card -> Aff CardEntry
 -- fromCardToCardEntry (Index entries) card = do
-  
-
-decryptIndexReference :: HexString -> ExceptT AppError Aff IndexReference
-decryptIndexReference encryptedRef = do
-  currentState <- ExceptT $ liftEffect getAppState
-  case currentState of
-    { c: _, p: Just p, proxy: _, sessionKey: _, toll: _ } -> do
-      masterPassword :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      mapCryptoError $ ExceptT $ decryptJson masterPassword (toArrayBuffer encryptedRef)
-    _ -> except $ Left $ InvalidStateError $ MissingValue "Missing p"
-
-  where 
-    mapCryptoError :: forall a. ExceptT EX.Error Aff a -> ExceptT AppError Aff a
-    mapCryptoError = withExceptT (\e -> ProtocolError $ CryptoError $ "Decrypt indexReference: " <> EX.message e)
 
 getIndexContent :: ArrayBuffer -> IndexReference -> ExceptT AppError Aff Index
 getIndexContent bytes (IndexReference ref) =

@@ -50,7 +50,11 @@ indexView (Index cards) mCe complexIndexFilter = do
      ) <$> sortedCards)
 
 complexToFilterFunc :: ContextualFilterInfo -> ComplexIndexFilter -> (CardEntry -> Boolean)
-complexToFilterFunc info { archived, indexFilter } = \ce@(CardEntry r) -> ((archived) || (not archived && r.archived == false)) && (toFilterFunc info indexFilter) ce
+complexToFilterFunc info { archived, indexFilter } = 
+  case indexFilter of
+    SpecificCardFilter ce -> \ce' -> ce == ce'
+    ComposedOrFilter (SpecificCardFilter ce) f -> \ce' -> (ce == ce') || ((complexToFilterFunc info {archived, indexFilter: f}) ce')
+    _ -> \ce@(CardEntry r) -> ((archived) || (not archived && r.archived == false)) && (toFilterFunc info indexFilter) ce
 
 toFilterFunc :: ContextualFilterInfo -> IndexFilter -> (CardEntry -> Boolean)
 toFilterFunc info (ComposedOrFilter f f')  = \a -> (toFilterFunc info f) a || (toFilterFunc info f') a
@@ -64,3 +68,26 @@ toFilterFunc _     NoFilter                = \_ -> true
 
 computeTimestampOfLastNUses :: Int -> List Number -> Number
 computeTimestampOfLastNUses n ts = fromMaybe 0.0 $ head $ takeEnd n $ sort $ nub $ filter ((/=) 0.0) ts
+
+removeLastCardFilter :: ComplexIndexFilter -> Maybe CardEntry -> ComplexIndexFilter
+removeLastCardFilter cf@{ archived, indexFilter } mRef =
+  case indexFilter of
+    ComposedAndFilter (SpecificCardFilter ce) filter -> if (Just ce) == mRef then cf else{ archived, indexFilter: filter }
+    ComposedAndFilter filter (SpecificCardFilter ce) -> if (Just ce) == mRef then cf else{ archived, indexFilter: filter }
+    ComposedOrFilter (SpecificCardFilter ce) filter -> if (Just ce) == mRef then cf else{ archived, indexFilter: filter }
+    ComposedOrFilter filter (SpecificCardFilter ce) -> if (Just ce) == mRef then cf else{ archived, indexFilter: filter }
+    SpecificCardFilter ce -> if (Just ce) == mRef then cf else { archived, indexFilter: NoFilter }
+    _ -> cf
+
+removeAllLastCardFilter :: ComplexIndexFilter -> ComplexIndexFilter
+removeAllLastCardFilter cf@{ archived, indexFilter } =
+  case indexFilter of
+    ComposedAndFilter (SpecificCardFilter _) filter -> { archived, indexFilter: filter }
+    ComposedAndFilter filter (SpecificCardFilter _) -> { archived, indexFilter: filter }
+    ComposedOrFilter (SpecificCardFilter _) filter -> { archived, indexFilter: filter }
+    ComposedOrFilter filter (SpecificCardFilter _) -> { archived, indexFilter: filter }
+    SpecificCardFilter ce -> { archived, indexFilter: NoFilter }
+    _ -> cf
+
+addLastCardFilterInOr :: CardEntry -> ComplexIndexFilter -> ComplexIndexFilter
+addLastCardFilterInOr entry { archived, indexFilter } = { archived, indexFilter: ComposedOrFilter (SpecificCardFilter entry) indexFilter }

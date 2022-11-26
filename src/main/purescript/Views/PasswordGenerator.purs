@@ -112,7 +112,7 @@ passwordWidget settings str =
 data SettingsWidgetAction = LengthChange Int | CharSetToggle String | Chars String
 settingsWidget :: PasswordGeneratorSettings -> Widget HTML PasswordGeneratorSettings
 settingsWidget s = do
-  let lengthWidget = (LengthChange <<< (fromMaybe s.length) <<< fromString) <$> simpleNumberInputWidget "password_length" (text "Password Length") "" (show s.length)
+  let lengthWidget = (LengthChange <<< (fromMaybe 0) <<< fromString) <$> simpleNumberInputWidget "password_length" (text "Password Length") "" (show s.length)
   let charsWidget = Chars <$> simpleTextInputWidget "password_characters" (text "Possible characters") "" s.characters
   let setsWidgets = (\(Tuple id v) -> (CharSetToggle id) <$ simpleCheckboxWidget ("char_set_" <> id) (text id) false v) <$> s.characterSets
   res <- div' $ concat [[lengthWidget], setsWidgets, [charsWidget]]

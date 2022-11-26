@@ -4,7 +4,7 @@ import Bytes (asArrayBuffer)
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.Core.FRP (demand, fireOnce, loopW)
-import Concur.React.DOM (h1, p, div, fieldset, text)
+import Concur.React.DOM (h1, p, div, form, text)
 import Concur.React.Props as Props
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
@@ -47,21 +47,21 @@ setPinWidget :: forall a. WidgetState -> Widget HTML a
 setPinWidget ws = do
   storage <- liftEffect $ window >>= localStorage
   maybeSavedUser <- liftEffect $ getItem (makeKey "user") storage
-  let pinForm = form (isJust maybeSavedUser)
+  let pinForm = formWidget (isJust maybeSavedUser)
   pinAction <- case ws of
     Default -> pinPage Nothing  pinForm
     Loading -> pinPage Nothing  pinForm
     Error e -> pinPage (Just e) pinForm
   eitherRes <- case pinAction of
-    Reset -> (Right <$> (void $ pinPage Nothing (form true))) <|> (liftEffect $ runExceptT (deleteCredentials storage))
-    SetPin pin -> (Right <$> (void $ pinPage Nothing (form true))) <|> (liftAff $ runExceptT (saveCredentials pin storage)) 
+    Reset -> (Right <$> (void $ pinPage Nothing (formWidget true))) <|> (liftEffect $ runExceptT (deleteCredentials storage))
+    SetPin pin -> (Right <$> (void $ pinPage Nothing (formWidget true))) <|> (liftAff $ runExceptT (saveCredentials pin storage)) 
   case eitherRes of
     Left err -> setPinWidget (Error (show err))
     _        -> setPinWidget Default
 
   where 
-    form :: Boolean -> Widget HTML PinWidgetAction
-    form pinExists = fieldset [] [
+    formWidget :: Boolean -> Widget HTML PinWidgetAction
+    formWidget pinExists = form [] [
       text $ "PIN is " <> (if pinExists then "" else "not ") <> "set on this device"
     , do
         signalResult <- demand $ do
