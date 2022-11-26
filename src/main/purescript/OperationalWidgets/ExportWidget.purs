@@ -17,7 +17,9 @@ import Data.Either (Either(..), fromRight)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$), void)
 import Data.List (List(..))
+import Data.Map (fromFoldable)
 import Data.Maybe (fromMaybe, Maybe(..))
+import Data.Operation (runOperation)
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Tuple (Tuple(..))
@@ -28,7 +30,7 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Users (getIndex)
-import Functions.Export (prepareOfflineCopy, prepareUnencryptedCopy)
+import Functions.Export (prepareOfflineCopy, prepareUnencryptedCopy, prepareOfflineCopySteps, OfflineCopyStep(..), OfflineCopyStepResult(..))
 import Functions.JSState (getAppState)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate)
 
@@ -68,12 +70,21 @@ exportWidget = do
 
     offlineCopyWidget :: Index -> Widget HTML Unit
     offlineCopyWidget index = do
-      res <- (p [] [text "Preparing download"]) <|> (liftAff $ prepareOfflineCopy index)
+      -- res <- (p [] [text "Preparing download"]) <|> (liftAff $ prepareOfflineCopy index)
+      let placeholders = fromFoldable [ (Tuple PrepareBlobList (text "Preparing blobs...")) 
+                                        , (Tuple GetUserCard (text "Getting card list...")) 
+                                        , (Tuple GetFileStructure (text "Preparing document template...")) 
+                                        , (Tuple PrepareDocument (text "Preparing document...")) 
+                                        , (Tuple PrepareDowload (text "Preparing file to download..."))
+                                        ]
+      let steps = prepareOfflineCopySteps placeholders index
+      res <- runOperation (Right Start) steps
       case res of
-        Left err -> (text $ "Could not prepare offline copy: " <> err) <|> (a [] [button [Props.disabled true] [text "Download"]]) 
-        Right url -> do
+        Left (Right url) -> do
           dt <- liftEffect $ formatDateTimeToDate <$> getCurrentDateTime
           a [Props.download (dt <> "_Clipperz_Offline"), Props.href url, void Props.onClick] [button [Props.disabled false] [text "Download"]] 
+        Left (Left err) -> (text $ "Could not prepare offline copy: " <> err) <|> (a [] [button [Props.disabled true] [text "Download"]]) 
+        Right url -> (text "Preparation not completed, reload the application") <|> (a [] [button [Props.disabled true] [text "Download"]]) 
 
     unencryptedCopyWidget :: Index -> Widget HTML Unit
     unencryptedCopyWidget index = do
