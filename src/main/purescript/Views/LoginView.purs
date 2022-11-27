@@ -47,7 +47,7 @@ formSignal formData = do
   formValues <- loopS formData $ \{username: username, password: password} -> do
     -- username' <- simpleUserSignal username
     username' <- loopW username (\v -> div [] [
-        label [Props.htmlFor "username"] [text "Username"]
+        label [Props.htmlFor "username"] [text "User[1]name"]
       , (Props.unsafeTargetValue) <$> input [
           Props._type "text"
         , Props._id "username"

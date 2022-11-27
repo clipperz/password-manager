@@ -95,7 +95,7 @@ loginFormView state loginFormData = do
           formValues <- loopS formData $ \{username: username, password: password} -> do
             -- username' <- simpleUserSignal username
             username' <- loopW username (\v -> div [] [
-              label [Props.htmlFor "username"] [text "Username"],
+              label [Props.htmlFor "username"] [text "User[3]name"],
               (Props.unsafeTargetValue) <$> input [
                 Props._type "text"
               , Props._id "username"
@@ -188,6 +188,7 @@ loginFormView' loginFormData = do
                 Props._type "text"
               , Props._id "username"
               , Props.placeholder "username"
+              , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
               , Props.value v
               , Props.disabled false
               , Props.onChange
@@ -201,6 +202,7 @@ loginFormView' loginFormData = do
               , Props._id "passphrase"
               , Props.placeholder "passphrase"
               , Props.value v
+              , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
               , Props.disabled false
               , Props.onChange
               ]

@@ -122,15 +122,15 @@ app' action st@{ credentials } = do
 --   app' nextAction
 
     div [Props.className "mainDiv"] [
-      headerPage (actionPage action) (Loading Nothing) []
+        headerPage (actionPage action) (Loading Nothing) []
       , headerPage (actionPage action) Login [
-          (getLoginActionType <$> (loginFormView' credentials)) <|> ((ShowPage Signup) <$ button [Props.onClick] [text "=> signup"]) -- TODO: if login fails this is reset
+          (getLoginActionType <$> (loginFormView' credentials)) <|> ((ShowPage Signup) <$ button [Props.onClick] [text "sign up"]) -- TODO: if login fails this is reset
           {-
             Even when using Signals, the moment the signal terminates because the user clicks "login" its value is lost, because the signal will be drawn anew
           -}
         ]
       , headerPage (actionPage action) Signup [
-          (DoSignup <$> (signupFormView WS.Default $ merge credentials emptyDataForm)) <|> ((ShowPage Login) <$ button [Props.onClick] [text "<= login"])
+          (DoSignup <$> (signupFormView WS.Default $ merge credentials emptyDataForm)) <|> ((ShowPage Login) <$ button [Props.onClick] [text "login"])
         ]
       , div [Props.classList (Just <$> ["page", "main", show $ location (Share Nothing) (actionPage action)])] [
           div [Props.className "content"] [text "share"]
@@ -218,7 +218,7 @@ headerPage currentPage page innerContent =
   div [Props.classList (Just <$> ["page", pageClassName page, show $ location currentPage page])] [
     div [Props.className "content"] [
       headerComponent
-    , div [Props.className "content"] innerContent
+    , div [Props.className "body"] innerContent
     , otherComponent
     , footerComponent commitHash
     , shortcutsDiv

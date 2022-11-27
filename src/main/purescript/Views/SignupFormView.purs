@@ -3,7 +3,7 @@ module Views.SignupFormView where
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (text, a, p, div, form, div', fieldset)
+import Concur.React.DOM (text, a, p, div, form, div', div_, fieldset)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind)
@@ -66,7 +66,7 @@ signupFormView state formData =
           formValues :: SignupDataForm <- loopS formData $ \{username: username, password: password, verifyPassword: verifyPassword, checkboxes: checkboxMap} -> do
             username' :: String <- simpleUserSignal username
             eitherPassword :: Either PasswordForm String <- simpleVerifiedPasswordSignal standardPasswordStrengthFunction $ Left {password: password, verifyPassword: verifyPassword}
-            checkboxMap' :: Array (Tuple String Boolean) <- checkboxesSignal checkboxMap checkboxesLabels   
+            checkboxMap' :: Array (Tuple String Boolean) <- div_ [Props.className "checkboxes"] $ checkboxesSignal checkboxMap checkboxesLabels   
             case eitherPassword of
               Left  passwords -> pure $ merge passwords { username: username', checkboxes: checkboxMap'}
               Right s         -> pure { username: username', password: s, verifyPassword: s, checkboxes: checkboxMap' }
