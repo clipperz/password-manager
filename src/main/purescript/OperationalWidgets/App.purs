@@ -1,7 +1,8 @@
 module OperationalWidgets.App
-  ( app
-  , Page(..)
+  ( Page(..)
   , SharedCardReference
+  , app
+  , doTestLogin
   )
   where
 
@@ -23,6 +24,7 @@ import Data.Function (($))
 import Data.Functor (map, (<$), void, (<$>))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Int (toNumber, fromString)
+import Data.List (List(..), (:))
 import Data.Semigroup ((<>))
 import Data.Semiring ((+))
 import Data.Show(class Show, show)
@@ -63,20 +65,10 @@ emptyCredentials = { username: "", password: "" }
 app :: forall a. Page -> Widget HTML a
 app nextPage = app' (ShowPage (Loading (Just nextPage))) { credentials: emptyCredentials }
 
--- --------------------------------------------------
-
--- app'' :: Page -> Signal HTML a
--- app'' page = do
-  
-
--- ==================================================
-{-
-type PageStatus =
-  { page    :: Page
-  , login   :: LoginDataForm
-  , signin  :: SignupDataForm
-  }
--}
+doTestLogin :: forall a. String -> String -> Widget HTML a
+doTestLogin username password = app' (DoLogin testCredentials) { credentials: testCredentials }
+  where
+    testCredentials = { username: username, password: password}
 
 type SharedCardReference = String
 type SharedCardPassword  = String
@@ -132,7 +124,7 @@ app' action st@{ credentials } = do
       , headerPage (actionPage action) Signup [
           (DoSignup <$> (signupFormView WS.Default $ merge credentials emptyDataForm)) <|> ((ShowPage Login) <$ button [Props.onClick] [text "login"])
         ]
-      , div [Props.classList (Just <$> ["page", "main", show $ location (Share Nothing) (actionPage action)])] [
+      , div [Props.classList (Just <$> ["page", "share", show $ location (Share Nothing) (actionPage action)])] [
           div [Props.className "content"] [text "share"]
         ]
       , div [Props.classList (Just <$> ["page", "main", show $ location Main (actionPage action)])] [
@@ -169,8 +161,11 @@ instance showPagePosition :: Show PagePosition where
   show Center = "center"
   show Right  = "right"
 
+-- pageOrder :: List Page
+-- pageOrder = (Loading Nothing) : Login : Signup : (Share Nothing) : Main : Nil
+
 location :: Page -> Page -> PagePosition
-location referencePage currentPage = case currentPage, referencePage of
+location referencePage currentPage = case referencePage, currentPage of
   Loading _,  Loading _ -> Center
   Login,      Login     -> Center
   Signup,     Signup    -> Center
@@ -179,6 +174,8 @@ location referencePage currentPage = case currentPage, referencePage of
 
   Loading _,  _         -> Left
   Login,      Signup    -> Left
+  Login,      Share _   -> Left
+  Signup,     Share _   -> Left
   _,          Main      -> Left
   _,          _         -> Right
 
@@ -215,7 +212,7 @@ actionPage (ShowSuccess page)   = page
 
 headerPage :: forall a. Page -> Page -> Array (Widget HTML a) -> Widget HTML a
 headerPage currentPage page innerContent = 
-  div [Props.classList (Just <$> ["page", pageClassName page, show $ location currentPage page])] [
+  div [Props.classList (Just <$> ["page", pageClassName page, show $ location page currentPage])] [
     div [Props.className "content"] [
       headerComponent
     , div [Props.className "body"] innerContent
