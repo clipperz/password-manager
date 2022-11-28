@@ -1,8 +1,5 @@
 module Main
   ( main
-  , registration
-  , share
-  , testLogin
   )
   where
 
@@ -11,19 +8,24 @@ import Data.Unit (Unit)
 import Concur.React.Run (runWidgetInDom)
 import Effect (Effect)
 import OperationalWidgets.App (app, Page(..), SharedCardReference, doTestLogin)
+import Web.HTML (window)
+import Web.HTML.Location (hash)
+import Web.HTML.Window (location)
 
 import Control.Bind (bind, discard)
 import Effect.Class.Console (log)
 
 main :: Effect Unit
-main = runWidgetInDom "app" (app (Loading (Just Login)))
-
-registration :: Effect Unit
-registration = runWidgetInDom "app" (app Signup)
-
-share :: String -> Effect Unit
-share token = runWidgetInDom "app" (app (Share (Just token)))
-
--- testLogin :: String -> String -> Effect Unit
-testLogin = do
-  runWidgetInDom "app" (doTestLogin "joe" "clipperz")
+main = do
+  w <- window
+  l <- location w
+  h <- hash l
+  log h
+  case h of
+    -- "#share" -> do
+      -- token <-
+      -- runWidgetInDom "app" (app (Share (Just token)))
+    "#registration" -> runWidgetInDom "app" (app Signup)
+    "#login" -> do
+      runWidgetInDom "app" (doTestLogin "joe" "clipperz")
+    _ -> runWidgetInDom "app" (app (Loading (Just Login)))
