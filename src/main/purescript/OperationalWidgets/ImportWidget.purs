@@ -48,7 +48,9 @@ data QuickSelection = All | None | Archived | NonArchived
 
 data SelectionAction = Cards (Array (Tuple Boolean Card)) | NewQuickSelection QuickSelection
 
-data ImportStep = UploadContent String | ChooseCards (Array (Tuple Boolean Card)) | Confirm (Array (Tuple Boolean Card))
+type CardSelectionInfo = { tag :: Maybe String, selectedCards :: (Array (Tuple Boolean Card)) }
+
+data ImportStep = UploadContent String | ChooseCards (Array (Tuple Boolean Card)) | Confirm CardSelectionInfo
 
 importWidget :: Widget HTML (Either AppError Index)
 importWidget = do
@@ -120,8 +122,11 @@ importWidget = do
                     Right cards -> importPage index Nothing $ ChooseCards $ (\c@(Card r) -> Tuple (not r.archived) c) <$> cards
     importPage index _ (ChooseCards cards) = do
       (cardSelectionWidget (UploadContent (stringify $ encodeJson (snd <$> cards))) cards) >>= (importPage index Nothing)
-    importPage index _ (Confirm cards) = 
-      let total = length cards
+    importPage index _ (Confirm { tag, selectedCards }) = 
+      let cards = case tag of
+                    Just t -> prepareSelectedCards t selectedCards 
+                    Nothing -> selectedCards
+          total = length cards
           toImportCards = snd <$> (filter (\(Tuple b _) -> b) cards)
           toImport = length toImportCards
       in do
@@ -158,8 +163,8 @@ importWidget = do
             selectedCards <- case newTag.sel of
               Nothing -> sequence $ importCardProposalWidget <$> cards
               Just f -> sequence $ importCardProposalWidget <$> (filterCards f cards)
-            let preparedCards = if newTag.cb then prepareSelectedCards newTag.tag selectedCards else selectedCards
-            fireOnce (div [Props.className "fixedFoot"] [(simpleButton "<<" false goBackValue) <|> (simpleButton "Import" false (Confirm preparedCards))]))
+            let importInfo = { tag: (if newTag.cb then Just newTag.tag else Nothing), selectedCards }
+            fireOnce (div [Props.className "fixedFoot"] [(simpleButton "<<" false goBackValue) <|> (simpleButton "Import" false (Confirm importInfo))]))
         ]
 
     filterCards :: QuickSelection -> Array (Tuple Boolean Card) -> Array (Tuple Boolean Card)
