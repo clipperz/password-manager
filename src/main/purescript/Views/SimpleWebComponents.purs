@@ -15,6 +15,7 @@ module Views.SimpleWebComponents
   , dragAndDropList
   , dragAndDropList'
   , dragAndDropListSignal
+  , loadingBar
   , loadingDiv
   , passwordStrengthShow
   , simpleButton
@@ -52,6 +53,7 @@ import Data.Bifunctor (lmap, rmap)
 import Data.Boolean (otherwise)
 import Data.Either (Either(..), hush)
 import Data.Enum (enumFromThenTo)
+import Data.EuclideanRing ((/))
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>), class Functor)
@@ -59,6 +61,7 @@ import Data.HeytingAlgebra (not)
 import Data.Int (even, odd)
 import Data.Map (Map, lookup)
 import Data.Maybe (fromMaybe, Maybe(..))
+import Data.Monoid (power)
 import Data.Ord ((>))
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
@@ -78,6 +81,13 @@ import Functions.Time (getCurrentTimestamp)
 import React.SyntheticEvent (currentTarget, preventDefault, SyntheticEvent_, NativeEventTarget, SyntheticMouseEvent)
 
 import Debug (traceM)
+
+loadingBar :: Int -> Int -> Int -> String
+loadingBar current total width = 
+  let fullCh = (width * current) / total
+      full = power "█" fullCh
+      empty = power "_" (width - fullCh)
+  in full <> empty <> "% (" <> (show current) <> " of " <> (show total) <> ")"
 
 simpleTextAreaWidget :: String -> Widget HTML String -> String -> String -> Widget HTML String
 simpleTextAreaWidget id lbl placeholder content = do

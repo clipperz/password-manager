@@ -42,7 +42,7 @@ import Functions.Communication.Users (updateIndex, getIndex)
 import Functions.Import (decodeImport, parseHTMLImport, decodeHTML)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate)
 import Views.CardViews (cardField)
-import Views.SimpleWebComponents (loadingDiv, simpleFileInputWidget, dragAndDropFileInputWidget, simpleTextInputWidget, simpleTextAreaSignal, simpleCheckboxSignal, simpleButton)
+import Views.SimpleWebComponents (loadingDiv, loadingBar, simpleFileInputWidget, dragAndDropFileInputWidget, simpleTextInputWidget, simpleTextAreaSignal, simpleCheckboxSignal, simpleButton)
 
 data QuickSelection = All | None | Archived | NonArchived
 
@@ -98,7 +98,7 @@ importWidget = do
                               ) (text "Saving index")
       let funcs = saveCardFunc <$> cards
       let total = List.length cards
-      let mkPlaceholder = \{index, card: (Card {content: (CardValues r)})} -> p [] [text ("Saving " <> r.title <> ", card " <> (show (index + 1)) <> " of " <> (show total) )]
+      let mkPlaceholder = \{index, card: (Card {content: (CardValues r)})} -> div [] [p [] [text (loadingBar (index + 1) total 80)], p [] [text ("Saving " <> r.title)]]
       let pls = mkPlaceholder <$> (zipWith (\i -> \c -> {index: i, card: c}) (0 .. total) cards)
       let zipped = zipWith (\func -> \pl -> {func, pl}) funcs pls
       let steps = (snoc ((\{func, pl} -> IntermediateStep func pl) <$> zipped) lastStep) :: List (OperationStep (Either (Tuple AppError (List CardEntry)) (List CardEntry)) (Either AppError Index) (Widget HTML))

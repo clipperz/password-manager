@@ -104,42 +104,41 @@ instance showOfflineCopyStepResult :: Show OfflineCopyStepResult where
   show (PreparedDoc _) = "Prepare offline copy"
   show (DownloadUrl _) = "Download url ready"
 
-prepareOfflineCopySteps :: forall m. MonadAff m => MonadEffect m => Map OfflineCopyStep (m (Either String OfflineCopyStepResult)) -> Index -> List (OperationStep (Either String OfflineCopyStepResult) (Either String String) m)
-prepareOfflineCopySteps placeholders index = toUnfoldable
-  [ IntermediateStep (\ocsr -> 
-                        case ocsr of
-                          Right _ -> ((<$>) BlobList) <$> (liftAff $ runExceptT $ mapExceptT (\m -> (lmap show) <$> m) $ prepareBlobList index)
-                          Left err -> pure $ Left err
-                     ) (fromMaybe (pure (Left "Please wait...")) (lookup PrepareBlobList placeholders))
-  , IntermediateStep (\ocsr -> 
-                        case ocsr of
-                          Left err -> pure $ Left err
-                          Right (BlobList blobList) -> ((<$>) (\userCard -> UCard {userCard, blobList})) <$> (liftAff $ runExceptT $ mapExceptT (\m -> (lmap show) <$> m) $ getUserCard)
-                          Right s -> pure $ Left "Wrong step before getting user card"
-                     ) (fromMaybe (pure (Left "Please wait...")) (lookup GetUserCard placeholders))
-  , IntermediateStep (\ocsr -> 
-                        case ocsr of
-                          Left err -> pure $ Left err
-                          Right (UCard {userCard, blobList}) -> ((<$>) (\doc -> BasicDoc {userCard, doc, blobList})) <$> (liftAff $ runExceptT $ mapExceptT (\m -> (lmap show) <$> m) getBasicHTML)
-                          Right s -> pure $ Left "Wrong step before getting file template"
-                     ) (fromMaybe (pure (Left "Please wait...")) (lookup GetFileStructure placeholders))
-  , IntermediateStep (\ocsr -> 
-                        case ocsr of
-                          Left err -> pure $ Left err
-                          Right (BasicDoc {userCard, doc, blobList}) -> ((<$>) PreparedDoc) <$> (liftAff $ runExceptT $ appendCardsDataInPlace doc blobList userCard)
-                          Right s -> pure $ Left "Wrong step before preparing offline copy"
-                     ) (fromMaybe (pure (Left "Please wait...")) (lookup PrepareDocument placeholders))
-  , LastStep (\ocsr -> 
-                case ocsr of
-                  Left err -> pure $ Left err
-                  Right (PreparedDoc doc) -> do
-                    blob <- liftEffect $ prepareHTMLBlob doc
-                    _ <- liftAff $ readFile blob
-                    url <- liftEffect $ createObjectURL blob
-                    pure $ Right $ url
-                  Right s -> pure $ Left "Wrong step before preparing download url"
-             ) (((<$>) show) <$> (fromMaybe (pure (Left "Please wait...")) (lookup PrepareDowload placeholders)))
-  ]
+prepareOfflineCopySteps :: forall m. MonadAff m => MonadEffect m => Alt m => Map OfflineCopyStep (m (Either String OfflineCopyStepResult)) -> (Int -> m (Either String OfflineCopyStepResult)) -> Index -> Aff (List (OperationStep (Either String OfflineCopyStepResult) (Either String String) m))
+prepareOfflineCopySteps placeholders mkPlaceholderGetBlob index = do
+  steps <- runExceptT $ prepareBlobListSteps mkPlaceholderGetBlob index
+  case steps of
+    Left err -> pure Nil
+    Right s -> pure $ s <> (toUnfoldable  
+      [ IntermediateStep (\ocsr -> 
+                            case ocsr of
+                              Left err -> pure $ Left err
+                              Right (BlobList blobList) -> ((<$>) (\userCard -> UCard {userCard, blobList})) <$> (liftAff $ runExceptT $ mapExceptT (\m -> (lmap show) <$> m) $ getUserCard)
+                              Right s -> pure $ Left "Wrong step before getting user card"
+                        ) (fromMaybe (pure (Left "Please wait...")) (lookup GetUserCard placeholders))
+      , IntermediateStep (\ocsr -> 
+                            case ocsr of
+                              Left err -> pure $ Left err
+                              Right (UCard {userCard, blobList}) -> ((<$>) (\doc -> BasicDoc {userCard, doc, blobList})) <$> (liftAff $ runExceptT $ mapExceptT (\m -> (lmap show) <$> m) getBasicHTML)
+                              Right s -> pure $ Left "Wrong step before getting file template"
+                        ) (fromMaybe (pure (Left "Please wait...")) (lookup GetFileStructure placeholders))
+      , IntermediateStep (\ocsr -> 
+                            case ocsr of
+                              Left err -> pure $ Left err
+                              Right (BasicDoc {userCard, doc, blobList}) -> ((<$>) PreparedDoc) <$> (liftAff $ runExceptT $ appendCardsDataInPlace doc blobList userCard)
+                              Right s -> pure $ Left "Wrong step before preparing offline copy"
+                        ) (fromMaybe (pure (Left "Please wait...")) (lookup PrepareDocument placeholders))
+      , LastStep (\ocsr -> 
+                    case ocsr of
+                      Left err -> pure $ Left err
+                      Right (PreparedDoc doc) -> do
+                        blob <- liftEffect $ prepareHTMLBlob doc
+                        _ <- liftAff $ readFile blob
+                        url <- liftEffect $ createObjectURL blob
+                        pure $ Right $ url
+                      Right s -> pure $ Left "Wrong step before preparing download url"
+                ) (((<$>) show) <$> (fromMaybe (pure (Left "Please wait...")) (lookup PrepareDowload placeholders)))
+      ])
 
 --------------------------------------------------
 
@@ -221,6 +220,45 @@ prepareUnencryptedCopySteps placeholders mkPlaceholderGetCard index = toUnfoldab
               ) (((<$>) show) <$> (fromMaybe (pure (Left "Please wait...")) (lookup PrepareDowloadUrl placeholders)))
     ]
   )
+
+------------------------------------------------
+
+prepareBlobListSteps :: forall m. MonadAff m => MonadEffect m => (Int -> m (Either String OfflineCopyStepResult)) -> Index -> ExceptT AppError Aff (List (OperationStep (Either String OfflineCopyStepResult) (Either String String) m))
+prepareBlobListSteps placeholderFunc index@(Index entries) = do
+  { userInfoReferences } <- ExceptT $ liftEffect $ getAppState
+  (UserInfoReferences { indexReference: IndexReference { reference: indexRef }
+                      , preferencesReference: UserPreferencesReference { reference: prefRef}
+                      }) <- except $ note (InvalidStateError $ MissingValue $ "userInfoReferences is Nothing") userInfoReferences
+  let references = prefRef : indexRef : (extractRefFromEntry <$> entries)
+  let getBlobFunc = \hexref ->
+                    \prevRes -> case prevRes of
+                      Left err -> pure $ Left err
+                      Right (BlobList blobs) -> do
+                        newBlob <- liftAff $ runExceptT $ getBlob hexref
+                        case newBlob of
+                          Left err -> pure $ Left $ show err
+                          Right b -> pure $ Right $ BlobList $ snoc blobs (Tuple hexref (fromArrayBuffer b))
+                      Right Start -> do
+                        newBlob <- liftAff $ runExceptT $ getBlob hexref
+                        case newBlob of
+                          Left err -> pure $ Left $ show err
+                          Right b -> pure $ Right $ BlobList $ Cons (Tuple hexref (fromArrayBuffer b)) Nil
+                      Right _ -> pure $ Left "illegal result of previous step"
+  let funcs = getBlobFunc <$> references
+  let total = length references
+  let pls = placeholderFunc <$> (0 .. total) 
+  let zipped = zipWith (\func -> \pl -> {func, pl}) funcs pls
+  except $ Right ((\{func, pl} -> IntermediateStep func pl) <$> zipped)
+
+  where 
+    extractRefFromEntry (CardEntry r) = 
+      case r.cardReference of
+        (CardReference { reference }) -> reference
+    
+    prepareTuple :: HexString -> ExceptT AppError Aff (Tuple HexString HexString)
+    prepareTuple ref = do
+      ((Tuple ref) <<< fromArrayBuffer) <$> getBlob ref
+
 ------------------------------------------------
 
 prepareCardListSteps :: forall m. MonadAff m => MonadEffect m => ({index :: Int, card :: CardEntry} -> m (Either String UnencryptedCopyStepResult)) -> Index -> List (OperationStep (Either String UnencryptedCopyStepResult) (Either String String) m)

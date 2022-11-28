@@ -14,14 +14,18 @@ import Control.Monad.Except.Trans (runExceptT)
 import Control.Semigroupoid ((<<<))
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), fromRight)
+import Data.EuclideanRing ((/))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$), void)
+import Data.Int (floor)
 import Data.List (List(..), length)
 import Data.Map (fromFoldable)
 import Data.Maybe (fromMaybe, Maybe(..))
+import Data.Monoid (power)
 import Data.Operation (runOperation)
+import Data.Ring ((-))
 import Data.Semigroup ((<>))
-import Data.Semiring ((+))
+import Data.Semiring ((+), (*))
 import Data.Show (show)
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
@@ -34,6 +38,7 @@ import Functions.Communication.Users (getIndex)
 import Functions.Export (prepareOfflineCopy, prepareUnencryptedCopy, prepareUnencryptedCopySteps, prepareOfflineCopySteps, OfflineCopyStep(..), OfflineCopyStepResult(..), UnencryptedCopyStep(..), UnencryptedCopyStepResult(..))
 import Functions.JSState (getAppState)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate)
+import Views.SimpleWebComponents (loadingBar)
 
 exportWidget :: Widget HTML Unit
 exportWidget = do
@@ -78,7 +83,10 @@ exportWidget = do
                                       , (Tuple PrepareDocument (text "Preparing document...")) 
                                       , (Tuple PrepareDowload (text "Preparing file to download..."))
                                       ]
-      let steps = prepareOfflineCopySteps placeholders index
+      let total = (length entries) + 2
+      let plFunc = \i -> p [] [text $ "Getting blobs: " <> (loadingBar (i + 1) total 30)]
+      -- let plFunc = \i -> text ("Getting blob " <> (show i) <> " of " <> (show total))
+      steps <- liftAff $ prepareOfflineCopySteps placeholders plFunc index
       res <- runOperation (Right Start) steps
       case res of
         Left (Right url) -> do
@@ -96,7 +104,8 @@ exportWidget = do
                                       , (Tuple PrepareDowloadUrl (text "Preparing file to download..."))
                                       ]
       let total = length entries
-      let steps = prepareUnencryptedCopySteps placeholders (\{index, card: (CardEntry { title })} -> p [] [text ("Getting all cards - getting " <> title <> ", card " <> (show (index + 1)) <> " of " <> (show total) )]) index
+      let plFunc = \{index, card: (CardEntry { title })} -> p [] [text $ "Getting cards: " <> (loadingBar (index + 1) total 30)]
+      let steps = prepareUnencryptedCopySteps placeholders plFunc index
       res <- runOperation (Right StartStep) steps
       case res of
         Left (Right url) -> do
