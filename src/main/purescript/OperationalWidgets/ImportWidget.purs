@@ -26,6 +26,7 @@ import Data.List (List(..), (:), concat, fromFoldable, snoc, zipWith, (..))
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Operation (OperationStep(..), extractResult, runOperation)
 import Data.Semigroup ((<>))
+import Data.Semiring ((+))
 import Data.Show (show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), snd)
@@ -83,7 +84,7 @@ importWidget = do
                                 pure newIndex)
       let funcs = saveCardFunc <$> cards
       let total = List.length cards
-      let mkPlaceholder = \{index, card: (Card {content: (CardValues r)})} -> p [] [text ("Saving " <> r.title <> ", card " <> (show index) <> " of " <> (show total) )]
+      let mkPlaceholder = \{index, card: (Card {content: (CardValues r)})} -> p [] [text ("Saving " <> r.title <> ", card " <> (show (index + 1)) <> " of " <> (show total) )]
       let pls = mkPlaceholder <$> (zipWith (\i -> \c -> {index: i, card: c}) (0 .. total) cards)
       let zipped = zipWith (\func -> \pl -> {func, pl}) funcs pls
       let steps = snoc ((\{func, pl} -> IntermediateStep func pl) <$> zipped) (LastStep pure (text "Done"))
