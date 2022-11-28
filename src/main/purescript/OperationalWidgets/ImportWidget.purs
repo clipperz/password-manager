@@ -31,13 +31,13 @@ import Data.Show (show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), snd)
 import Data.Unit (unit)
-import DataModel.AppState (AppError)
+import DataModel.AppState (AppError(..))
 import DataModel.Card (Card(..), CardValues(..))
-import DataModel.Index (Index(..), CardEntry)
+import DataModel.Index (Index(..), CardEntry(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Functions.Communication.Cards (postCard)
+import Functions.Communication.Cards (postCard, deleteCard)
 import Functions.Communication.Users (updateIndex, getIndex)
 import Functions.Import (decodeImport, parseHTMLImport, decodeHTML)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate)
@@ -74,30 +74,43 @@ importWidget = do
       ) <|> p [] [text ("Saving " <> r.title)]
 
     saveImport :: List Card -> Index -> Widget HTML (Either AppError Index)
-    saveImport cards index = do
+    saveImport cards index@(Index entries) = do
       let saveCardFunc = \c@(Card {content: (CardValues r)}) -> 
-                         \prevRes -> do
+                         \(prevRes :: (Either (Tuple AppError (List CardEntry)) (List CardEntry))) -> do
                             case prevRes of
                               Left err -> pure prevRes
-                              Right ix@(Index es) -> (liftAff $ runExceptT $ do
-                                newEntry <- postCard c
-                                let newIndex = Index (Cons newEntry es)
-                                _ <- updateIndex newIndex
-                                pure newIndex)
+                              Right es -> do
+                                res :: Either AppError (List CardEntry) <- liftAff $ runExceptT $ do
+                                  newEntry <- postCard c
+                                  pure $ Cons newEntry es
+                                case res of
+                                  Right newEs -> pure $ Right newEs
+                                  Left err -> pure $ Left (Tuple err es)
+      let lastStep = LastStep (\prevRes -> do
+                                            case prevRes of
+                                              Left (Tuple err es) -> do
+                                                _ <- liftAff $ runExceptT $ sequence $ (\(CardEntry r) -> deleteCard r.cardReference) <$> es
+                                                pure $ Left err
+                                              Right es -> liftAff $ runExceptT $ do
+                                                let newIndex = Index (entries <> es)
+                                                _ <- updateIndex newIndex
+                                                pure newIndex
+                              ) (text "Saving index")
       let funcs = saveCardFunc <$> cards
       let total = List.length cards
       let mkPlaceholder = \{index, card: (Card {content: (CardValues r)})} -> p [] [text ("Saving " <> r.title <> ", card " <> (show (index + 1)) <> " of " <> (show total) )]
       let pls = mkPlaceholder <$> (zipWith (\i -> \c -> {index: i, card: c}) (0 .. total) cards)
       let zipped = zipWith (\func -> \pl -> {func, pl}) funcs pls
-      let steps = snoc ((\{func, pl} -> IntermediateStep func pl) <$> zipped) (LastStep pure (text "Done"))
-      extractEithers $ runOperation (Right index) steps
+      let steps = (snoc ((\{func, pl} -> IntermediateStep func pl) <$> zipped) lastStep) :: List (OperationStep (Either (Tuple AppError (List CardEntry)) (List CardEntry)) (Either AppError Index) (Widget HTML))
+      extractEithers $ runOperation (Right Nil) steps
 
-    extractEithers :: Widget HTML (Either (Either AppError Index) (Either AppError Index)) -> Widget HTML (Either AppError Index)
+    extractEithers :: Widget HTML (Either (Either AppError Index) (Either (Tuple AppError (List CardEntry)) (List CardEntry))) -> Widget HTML (Either AppError Index)
     extractEithers m = do
       res <- m
       case res of
-        Right i -> pure i
         Left i -> pure i
+        Right (Right _) -> pure $ Left $ ImportError "Didn't save all cards"
+        Right (Left (Tuple i _)) -> pure $ Left i
 
     importPage :: Index -> Maybe String -> ImportStep -> Widget HTML (Either AppError Index)
     importPage index error (UploadContent pl) = do
