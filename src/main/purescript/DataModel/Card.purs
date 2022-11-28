@@ -110,5 +110,6 @@ card1 = CardValues { title: "Bank account (SAMPLE)"
                       , notes: ""}
 
 defaultCards :: List Card
-defaultCards = Card { content: card0, timestamp: 1661377622.0, archived: false} :
-               Card { content: card1, timestamp: 166137865.0 , archived: false} : Nil
+defaultCards = Nil
+-- defaultCards = Card { content: card0, timestamp: 1661377622.0, archived: false} :
+--                Card { content: card1, timestamp: 166137865.0 , archived: false} : Nil

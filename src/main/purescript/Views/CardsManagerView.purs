@@ -91,7 +91,11 @@ cardsManagerView isOffline currentInfo@{ index: i@(Index entries)
     , toggleArchivedButton
     ]
   , div [] [
-      div [Props._id "filterHeader"] [ getFilterHeader indexFilter ]
+      div [Props._id "filterHeader"] [
+        text "tags",
+        getFilterHeader indexFilter,
+        text "menu"
+      ]
     , div [Props._id "mainView" ] [
         div [Props._id "indexView"] [
           (CardViewAction <<< ShowCard) <$> indexView i cEntry cif -- TODO:
