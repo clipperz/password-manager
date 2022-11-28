@@ -1,6 +1,8 @@
 module Functions.Export where
 
 import Affjax.ResponseFormat as RF
+import Concur.React.DOM (p, text)
+import Control.Alt (class Alt)
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except (runExcept)
@@ -17,7 +19,7 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
 import Data.HTTP.Method (Method(..))
-import Data.List (List, (:), sort)
+import Data.List (List(..), (:), sort, snoc, length, zipWith, (..))
 import Data.Map (Map, lookup)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType (MediaType(..))
@@ -26,6 +28,7 @@ import Data.Newtype (unwrap)
 import Data.Operation (OperationStep(..), extractResult, runOperation)
 import Data.Ord (class Ord)
 import Data.Semigroup ((<>))
+import Data.Semiring ((+))
 import Data.Show (show, class Show)
 import Data.String.Common (replaceAll)
 import Data.String.Pattern (Pattern(..), Replacement(..))
@@ -177,11 +180,24 @@ instance showUnencryptedCopyStepResult :: Show UnencryptedCopyStepResult where
   show (PreparedUnencryptedDoc _) = "Prepare offline copy"
   show (Url _) = "Download url ready"
 
-prepareUnencryptedCopySteps :: forall m. MonadAff m => MonadEffect m => Map UnencryptedCopyStep (m (Either String UnencryptedCopyStepResult)) -> Index -> List (OperationStep (Either String UnencryptedCopyStepResult) (Either String String) m)
-prepareUnencryptedCopySteps placeholders index = toUnfoldable
+prepareUnencryptedCopySteps :: forall m. MonadAff m 
+                            => MonadEffect m 
+                            => Alt m 
+                            => Map UnencryptedCopyStep (m (Either String UnencryptedCopyStepResult)) 
+                            -> ({index :: Int, card :: CardEntry} -> m (Either String (List Card)))
+                            -> m (Either String (List Card))
+                            -> Index 
+                            -> List (OperationStep (Either String UnencryptedCopyStepResult) (Either String String) m)
+prepareUnencryptedCopySteps placeholders mkPlaceholderGetCard doneGetCardsPlaceholder index = toUnfoldable
   [ IntermediateStep (\ocsr -> 
                         case ocsr of
-                          Right _ -> ((<$>) CardList) <$> (liftAff $ runExceptT $ mapExceptT (\m -> (lmap show) <$> m) $ prepareCardList index)
+                          Right _ -> do
+                            cardListRes <- runOperation (Right Nil) $ prepareCardListSteps mkPlaceholderGetCard doneGetCardsPlaceholder index
+                            case cardListRes of
+                              Left (Right cs) -> pure $ Right $ CardList cs
+                              Left (Left err) -> pure $ Left err
+                              Right (Right cs) -> pure $ Left $ "Didn't get all cards"
+                              Right (Left err) -> pure $ Left err 
                           Left err -> pure $ Left err
                      ) (fromMaybe (pure (Left "Please wait...")) (lookup PrepareCardList placeholders))
   , IntermediateStep (\ocsr -> 
@@ -215,6 +231,24 @@ prepareUnencryptedCopySteps placeholders index = toUnfoldable
                  Right s -> pure $ Left "Wrong step before preparing download url"
              ) (((<$>) show) <$> (fromMaybe (pure (Left "Please wait...")) (lookup PrepareDowloadUrl placeholders)))
   ]
+
+------------------------------------------------
+
+prepareCardListSteps :: forall m. MonadAff m => MonadEffect m => ({index :: Int, card :: CardEntry} -> m (Either String (List Card))) -> m (Either String (List Card)) -> Index -> List (OperationStep (Either String (List Card)) (Either String (List Card)) m)
+prepareCardListSteps placeholderFunc donePlaceholder index@(Index entries) =
+  let getCardFunc = \(CardEntry { cardReference }) ->
+                    \prevRes -> case prevRes of
+                      Left err -> pure $ Left err
+                      Right cards -> do
+                        newCard <- liftAff $ runExceptT $ getCard cardReference
+                        case newCard of
+                          Left err -> pure $ Left $ show err
+                          Right c -> pure $ Right $ snoc cards c
+      funcs = getCardFunc <$> entries
+      total = length entries
+      pls = placeholderFunc <$> (zipWith (\i -> \c -> {index: i, card: c}) (0 .. total) entries)
+      zipped = zipWith (\func -> \pl -> {func, pl}) funcs pls
+  in snoc ((\{func, pl} -> IntermediateStep func pl) <$> zipped) (LastStep pure donePlaceholder)
 
 ------------------------------------------------
 

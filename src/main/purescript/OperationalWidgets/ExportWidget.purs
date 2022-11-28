@@ -16,16 +16,17 @@ import Data.Bifunctor (lmap)
 import Data.Either (Either(..), fromRight)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$), void)
-import Data.List (List(..))
+import Data.List (List(..), length)
 import Data.Map (fromFoldable)
 import Data.Maybe (fromMaybe, Maybe(..))
 import Data.Operation (runOperation)
 import Data.Semigroup ((<>))
+import Data.Semiring ((+))
 import Data.Show (show)
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
 import DataModel.AppState (AppError)
-import DataModel.Index (Index(..))
+import DataModel.Index (Index(..), CardEntry(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -69,7 +70,7 @@ exportWidget = do
     ]
 
     offlineCopyWidget :: Index -> Widget HTML Unit
-    offlineCopyWidget index = do
+    offlineCopyWidget index@(Index entries) = do
       -- res <- (p [] [text "Preparing download"]) <|> (liftAff $ prepareOfflineCopy index)
       let placeholders = fromFoldable [ (Tuple PrepareBlobList (text "Preparing blobs...")) 
                                       , (Tuple GetUserCard (text "Getting card list...")) 
@@ -87,14 +88,15 @@ exportWidget = do
         Right url -> (text "Preparation not completed, reload the application") <|> (a [] [button [Props.disabled true] [text "Download"]]) 
 
     unencryptedCopyWidget :: Index -> Widget HTML Unit
-    unencryptedCopyWidget index = do
+    unencryptedCopyWidget index@(Index entries) = do
       -- res <- (p [] [text "Preparing download"]) <|> (liftAff $ prepareUnencryptedCopy index)
       let placeholders = fromFoldable [ (Tuple PrepareCardList (text "Preparing cards...")) 
                                       , (Tuple PrepareContent (text "Preparing document content...")) 
                                       , (Tuple PrepareDoc (text "Preparing document...")) 
                                       , (Tuple PrepareDowloadUrl (text "Preparing file to download..."))
                                       ]
-      let steps = prepareUnencryptedCopySteps placeholders index
+      let total = length entries
+      let steps = prepareUnencryptedCopySteps placeholders (\{index, card: (CardEntry { title })} -> p [] [text ("Getting " <> title <> ", card " <> (show (index + 1)) <> " of " <> (show total) )]) (text "Done") index
       res <- runOperation (Right StartStep) steps
       case res of
         Left (Right url) -> do
