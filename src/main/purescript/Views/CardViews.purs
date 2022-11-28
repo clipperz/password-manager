@@ -2,7 +2,7 @@ module Views.CardViews where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, h3, li', p, p', text, ul)
+import Concur.React.DOM (div, h3, li', p, p', text, ul, textarea)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind)
@@ -18,12 +18,12 @@ import Views.SimpleWebComponents (simpleButton, confirmationWidget)
 
 data CardAction = Edit Card | Clone Card | Archive Card | Restore Card | Delete Card | Used Card
 instance showCardAction :: Show CardAction where
-  show (Edit _)    = "Edit"
-  show (Used _)      = "Used"
-  show (Clone _)   = "Clone"
-  show (Archive _) = "Archive"
-  show (Restore _) = "Restore"
-  show (Delete _)  = "Delete"
+  show (Edit _)    = "edit"
+  show (Used _)      = "used"
+  show (Clone _)   = "clone"
+  show (Archive _) = "archive"
+  show (Restore _) = "restore"
+  show (Delete _)  = "delete"
 
 -- -----------------------------------
 
@@ -54,16 +54,16 @@ cardActions c@(Card r) disabled = div [Props.className "cardActions"] [
 cardContent :: forall a. CardValues -> Widget HTML a
 cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) = div [Props._id "cardContent"] [
   h3  [Props.className "card_title"]  [text t]
-, ul  [Props.className "card_tags"]   $ (\s -> li' [text s]) <$> ts
+, div [Props.className "card_tags"]   [ul  []   $ (\s -> li' [text s]) <$> ts]
 , div [Props.className "card_fields"] $ cardField <$> fs
 , div [Props.className "card_notes"]  [text n]
 ]
 
 cardField :: forall a. CardField -> Widget HTML a
 cardField f@(CardField {name, value, locked}) = do
-  res <- div [Props.className "field"] [
-    p' [text name]
-  , p ((if locked then [Props.className "PASSWORD"] else []) <> [Props.onClick]) [text value]
+  res <- div [Props.className "fieldValue"] [
+    div [Props.className "fieldLabel"] [text name]
+  , textarea ((if locked then [Props.className "PASSWORD"] else []) <> [Props.onClick]) [text value]
   ] --TODO add class based on content for urls and emails
   _ <- pure $ copyToClipboard value
   cardField f

@@ -1,0 +1,11 @@
+div.page.main {
+    div#homePage {
+        display: flex;
+        flex-direction: row;
+
+        div#cardsManager {
+            display: flex;
+            flex-direction: row;
+        }
+    }
+}

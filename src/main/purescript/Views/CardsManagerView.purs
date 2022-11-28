@@ -2,7 +2,7 @@ module Views.CardsManagerView where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text, ol, p')
+import Concur.React.DOM (div, text, ol, p', button, header)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Semigroupoid ((<<<))
@@ -90,16 +90,17 @@ cardsManagerView isOffline currentInfo@{ index: i@(Index entries)
       ]
     , toggleArchivedButton
     ]
-  , div [] [
-      div [Props._id "filterHeader"] [
-        text "tags",
-        getFilterHeader indexFilter,
-        text "menu"
+  , div [Props.className "cardToolbarFrame"] [
+    --   div [Props._id "filterHeader"] [
+      header [] [
+        div [Props.className "tags"] [button [] [text "tags"]],
+        div [Props.className "selection"] [button [] [getFilterHeader indexFilter]],
+        div [Props.className "menu"] [button [] [text "menu"]]
       ]
     , div [Props._id "mainView" ] [
         div [Props._id "indexView"] [
-          (CardViewAction <<< ShowCard) <$> indexView i cEntry cif -- TODO:
-        , simpleButton "Add card" false (CardViewAction ShowAddCard) 
+          simpleButton "add card" false (CardViewAction ShowAddCard) 
+        , (CardViewAction <<< ShowCard) <$> indexView i cEntry cif -- TODO:
         ]
       , case cvs of
         { cardView: CardForm card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ createCardView card allSortedTags cardViewState
@@ -223,7 +224,7 @@ cardsManagerView isOffline currentInfo@{ index: i@(Index entries)
         TagFilter tag            -> text tag
         RecentFilter             -> text "recent"
         UntaggedFilter           -> text "untagged"
-        NoFilter                 -> text "clipperz logo"
+        NoFilter                 -> text "clipperz"
 
     lastUses = { allLastUses: (\(CardEntry r) -> r.lastUsed) <$> entries }
 

@@ -19,3 +19,83 @@ html {
 }
 
 
+@media only screen and (min-width: 100px) {
+	// html {
+	// 	font-family: "narrow";
+	// }
+	// body:after {
+	// 	content: "narrow";
+	// }
+    div.page.main {
+        div#homePage {
+            div#cardsManager {
+                div#filterView {
+                    display: none;
+                    visibility: hidden;
+                }
+                div.cardToolbarFrame {
+                    header {
+                        div.tags {
+                            display: block;
+                            visibility: visible;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media only screen and (min-width: 700px) {
+	// html {
+	// 	font-family: "wide";
+	// }
+	// body:after {
+	// 	content: "wide";
+	// }
+    div.page.main {
+        div#homePage {
+            div#cardsManager {
+                div#filterView {
+                    display: none;
+                    visibility: hidden;
+                }
+                div.cardToolbarFrame {
+                    header {
+                        div.tags {
+                            display: block;
+                            visibility: visible;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media only screen and (min-width: 1100px) {
+	// html {
+	// 	font-family: "extra-wide";
+	// }
+	// body:after {
+	// 	content: "extra-wide";
+	// }
+    div.page.main {
+        div#homePage {
+            div#cardsManager {
+                div#filterView {
+                    display: block;
+                    visibility: visible;
+                }
+                div.cardToolbarFrame {
+                    header {
+                        div.tags {
+                            // display: none;
+                            visibility: hidden;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
