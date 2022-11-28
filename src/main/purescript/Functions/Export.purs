@@ -138,6 +138,8 @@ prepareOfflineCopySteps placeholders index = toUnfoldable
              ) (((<$>) show) <$> (fromMaybe (pure (Left "Please wait...")) (lookup PrepareDowload placeholders)))
   ]
 
+--------------------------------------------------
+
 prepareUnencryptedCopy :: Index -> Aff (Either String String)
 prepareUnencryptedCopy index = runExceptT $ do
   dt <- ExceptT $ Right <$> (liftEffect $ getCurrentDateTime)
@@ -153,6 +155,68 @@ prepareUnencryptedCopy index = runExceptT $ do
   blob <- ExceptT $ Right <$> (liftEffect $ prepareHTMLBlob doc)
   _ <- ExceptT $ Right <$> readFile blob
   ExceptT $ Right <$> (liftEffect $ createObjectURL blob)
+
+data UnencryptedCopyStep = PrepareCardList | PrepareContent | PrepareDoc | PrepareDowloadUrl
+derive instance ordUnencryptedCopyStep :: Ord UnencryptedCopyStep
+derive instance eqUnencryptedCopyStep :: Eq UnencryptedCopyStep
+instance showUnencryptedCopyStep :: Show UnencryptedCopyStep where
+  show PrepareCardList = "PrepareCardList" 
+  show PrepareContent = "PrepareContent" 
+  show PrepareDoc = "PrepareDocument" 
+  show PrepareDowloadUrl = "Preparing download url..."
+
+data UnencryptedCopyStepResult = StartStep
+                               | CardList (List Card)
+                               | DocumentContent String 
+                               | PreparedUnencryptedDoc Document
+                               | Url String
+instance showUnencryptedCopyStepResult :: Show UnencryptedCopyStepResult where
+  show StartStep = "Start"
+  show (CardList _) = "Prepare list of cards"
+  show (DocumentContent _) = "Prepare content of document"
+  show (PreparedUnencryptedDoc _) = "Prepare offline copy"
+  show (Url _) = "Download url ready"
+
+prepareUnencryptedCopySteps :: forall m. MonadAff m => MonadEffect m => Map UnencryptedCopyStep (m (Either String UnencryptedCopyStepResult)) -> Index -> List (OperationStep (Either String UnencryptedCopyStepResult) (Either String String) m)
+prepareUnencryptedCopySteps placeholders index = toUnfoldable
+  [ IntermediateStep (\ocsr -> 
+                        case ocsr of
+                          Right _ -> ((<$>) CardList) <$> (liftAff $ runExceptT $ mapExceptT (\m -> (lmap show) <$> m) $ prepareCardList index)
+                          Left err -> pure $ Left err
+                     ) (fromMaybe (pure (Left "Please wait...")) (lookup PrepareCardList placeholders))
+  , IntermediateStep (\ocsr -> 
+                        case ocsr of
+                          Left err -> pure $ Left err
+                          Right (CardList cardList) -> (Right <<< DocumentContent) <$> do
+                                                        dt <- liftEffect $ getCurrentDateTime
+                                                        let date = formatDateTimeToDate dt
+                                                        let time = formatDateTimeToTime dt
+                                                        let styleString = "<style type=\"text/css\">" <> unencryptedExportStyle <> "</style>"
+                                                        let htmlDocString1 = "<div><header><h1>Your data on Clipperz</h1><h5>Export generated on " <> date <> " at " <> time <> "</h5></header>"
+                                                        let htmlDocString2 = "</div>" -- "<footer></footer></div>"
+                                                        let htmlDocContent = prepareUnencryptedContent cardList
+                                                        pure $ styleString <> htmlDocString1 <> htmlDocContent <> htmlDocString2
+                          Right s -> pure $ Left "Wrong step before defining document content"
+                     ) (fromMaybe (pure (Left "Please wait...")) (lookup PrepareContent placeholders))
+  , IntermediateStep (\ocsr -> 
+                        case ocsr of
+                          Left err -> pure $ Left err
+                          Right (DocumentContent content) -> (Right <<< PreparedUnencryptedDoc) <$> (liftEffect $ FS.fromString content)
+                          Right s -> pure $ Left "Wrong step before preparing document"
+                     ) (fromMaybe (pure (Left "Please wait...")) (lookup PrepareDoc placeholders))
+  , LastStep (\ocsr -> 
+               case ocsr of
+                 Left err -> pure $ Left err
+                 Right (PreparedUnencryptedDoc doc) -> do
+                    blob <- liftEffect $ prepareHTMLBlob doc
+                    _ <- liftAff $ readFile blob
+                    url <- liftEffect $ createObjectURL blob
+                    pure $ Right $ url
+                 Right s -> pure $ Left "Wrong step before preparing download url"
+             ) (((<$>) show) <$> (fromMaybe (pure (Left "Please wait...")) (lookup PrepareDowloadUrl placeholders)))
+  ]
+
+------------------------------------------------
 
 formatText :: String -> String
 formatText = (replaceAll (Pattern "<") (Replacement "&lt;")) <<< (replaceAll (Pattern "&") (Replacement "&amp;"))

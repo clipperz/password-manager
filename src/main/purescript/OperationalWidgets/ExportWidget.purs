@@ -30,7 +30,7 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Users (getIndex)
-import Functions.Export (prepareOfflineCopy, prepareUnencryptedCopy, prepareOfflineCopySteps, OfflineCopyStep(..), OfflineCopyStepResult(..))
+import Functions.Export (prepareOfflineCopy, prepareUnencryptedCopy, prepareUnencryptedCopySteps, prepareOfflineCopySteps, OfflineCopyStep(..), OfflineCopyStepResult(..), UnencryptedCopyStep(..), UnencryptedCopyStepResult(..))
 import Functions.JSState (getAppState)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate)
 
@@ -72,11 +72,11 @@ exportWidget = do
     offlineCopyWidget index = do
       -- res <- (p [] [text "Preparing download"]) <|> (liftAff $ prepareOfflineCopy index)
       let placeholders = fromFoldable [ (Tuple PrepareBlobList (text "Preparing blobs...")) 
-                                        , (Tuple GetUserCard (text "Getting card list...")) 
-                                        , (Tuple GetFileStructure (text "Preparing document template...")) 
-                                        , (Tuple PrepareDocument (text "Preparing document...")) 
-                                        , (Tuple PrepareDowload (text "Preparing file to download..."))
-                                        ]
+                                      , (Tuple GetUserCard (text "Getting card list...")) 
+                                      , (Tuple GetFileStructure (text "Preparing document template...")) 
+                                      , (Tuple PrepareDocument (text "Preparing document...")) 
+                                      , (Tuple PrepareDowload (text "Preparing file to download..."))
+                                      ]
       let steps = prepareOfflineCopySteps placeholders index
       res <- runOperation (Right Start) steps
       case res of
@@ -88,10 +88,19 @@ exportWidget = do
 
     unencryptedCopyWidget :: Index -> Widget HTML Unit
     unencryptedCopyWidget index = do
-      res <- (p [] [text "Preparing download"]) <|> (liftAff $ prepareUnencryptedCopy index)
+      -- res <- (p [] [text "Preparing download"]) <|> (liftAff $ prepareUnencryptedCopy index)
+      let placeholders = fromFoldable [ (Tuple PrepareCardList (text "Preparing cards...")) 
+                                      , (Tuple PrepareContent (text "Preparing document content...")) 
+                                      , (Tuple PrepareDoc (text "Preparing document...")) 
+                                      , (Tuple PrepareDowloadUrl (text "Preparing file to download..."))
+                                      ]
+      let steps = prepareUnencryptedCopySteps placeholders index
+      res <- runOperation (Right StartStep) steps
       case res of
-        Left err -> (text $ "Could not prepare unencrypted copy: " <> err) <|> (a [] [button [Props.disabled true] [text "Download"]]) 
-        Right url -> do
+        Left (Right url) -> do
           dt <- liftEffect $ formatDateTimeToDate <$> getCurrentDateTime
           username <- liftEffect $ ((fromMaybe "") <<< (fromRight Nothing) <<< ((<$>) (\as -> as.username))) <$> getAppState
           a [Props.download (dt <> "_Clipperz_Export_" <> username), Props.href url, void Props.onClick] [button [Props.disabled false] [text "Download"]]
+        Left (Left err) -> (text $ "Could not prepare unencrypted copy: " <> err) <|> (a [] [button [Props.disabled true] [text "Download"]]) 
+        Right url -> (text "Preparation not completed, reload the application") <|> (a [] [button [Props.disabled true] [text "Download"]]) 
+          
