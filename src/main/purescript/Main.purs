@@ -12,6 +12,9 @@ import Concur.React.Run (runWidgetInDom)
 import Effect (Effect)
 import OperationalWidgets.App (app, Page(..), SharedCardReference, doTestLogin)
 
+import Control.Bind (bind, discard)
+import Effect.Class.Console (log)
+
 main :: Effect Unit
 main = runWidgetInDom "app" (app (Loading (Just Login)))
 
@@ -21,5 +24,6 @@ registration = runWidgetInDom "app" (app Signup)
 share :: String -> Effect Unit
 share token = runWidgetInDom "app" (app (Share (Just token)))
 
-testLogin :: String -> String -> Effect Unit
-testLogin username password = runWidgetInDom "app" (doTestLogin username password)
+-- testLogin :: String -> String -> Effect Unit
+testLogin = do
+  runWidgetInDom "app" (doTestLogin "joe" "clipperz")

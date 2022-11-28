@@ -63,10 +63,12 @@ emptyCredentials :: Credentials
 emptyCredentials = { username: "", password: "" }
 
 app :: forall a. Page -> Widget HTML a
-app nextPage = app' (ShowPage (Loading (Just nextPage))) { credentials: emptyCredentials }
+app nextPage = app' (InitState (ShowPage (Loading (Just nextPage)))) { credentials: emptyCredentials }
 
 doTestLogin :: forall a. String -> String -> Widget HTML a
-doTestLogin username password = app' (DoLogin testCredentials) { credentials: testCredentials }
+doTestLogin username password = do
+  log "Do test login"
+  app' (InitState (DoLogin testCredentials)) { credentials: testCredentials }
   where
     testCredentials = { username: username, password: password}
 
@@ -82,10 +84,12 @@ data Action = DoLogout
             | ShowSharedCard SharedCardReference SharedCardPassword 
             | ShowError Page 
             | ShowSuccess Page 
+            | InitState Action
             -- | ShowMain
 
 app' :: forall a. Action -> { credentials :: Credentials } -> Widget HTML a
 app' action st@{ credentials } = do
+  log $ show action
   nextAction:: Action <- exitBooting action <|>
 
 --     (demand $ div_ [Props.className "mainDiv"] do
@@ -152,6 +156,7 @@ overlayFromAction (DoLoginWithPin _) = overlay { status: Spinner, message: "load
 overlayFromAction (DoSignup _)       = overlay { status: Spinner, message: "loading" }
 overlayFromAction (ShowError _)      = overlay { status: Failed, message: "error" }
 overlayFromAction (ShowSuccess _)    = overlay { status: Done, message: "" }
+overlayFromAction (InitState _)      = overlay { status: Spinner, message: "loading "}
 overlayFromAction _ = overlay { status: Hidden, message: "loading" }
 -- ==================================================
 
@@ -202,6 +207,7 @@ actionPage (ShowSharedCard r _) = Share (Just r)
 actionPage (DoLogout)           = Login
 actionPage (ShowError page)     = page
 actionPage (ShowSuccess page)   = page
+actionPage (InitState action)   = Loading (Just (actionPage action))
 
 -- headerPage :: forall a. Page -> Page -> Signal HTML a -> Signal HTML a
 -- headerPage currentPage page innerContent = do
@@ -304,22 +310,21 @@ doOp (DoLoginWithPin {pin, user, passphrase}) = do
 doOp (ShowSuccess nextPage) = (ShowPage nextPage) <$ delay (Milliseconds 500.0)
 doOp (ShowError nextPage)   = (ShowPage nextPage) <$ delay (Milliseconds 500.0)
 doOp (DoSignup cred) = do
-  log "hi"
   res <- liftAff $ runExceptT $ signupUser cred
   case res of
     E.Right _ -> pure $ DoLogin cred
     E.Left err -> do
       log $ "Signup error: " <> (show err)
       pure $ ShowPage Signup
-doOp (ShowPage (Loading (Just Login))) = do
+doOp (InitState action) = do
   initialState <- liftEffect $ runExceptT $ computeInitialState
   case initialState of
     E.Right st -> do
       modifyAppState st
-      pure $ ShowPage Login
+      pure action
     E.Left err -> do
       log $ show err
-      pure $ ShowPage (Loading (Just Login))
+      pure action
 doOp a = a <$ never
 
 instance showPage :: Show Page where
@@ -341,6 +346,7 @@ instance showAction :: Show Action where
   show (ShowError page)     = "Show Error " <> show page 
   show (ShowSuccess page)   = "Show Success " <> show page 
   show DoLogout = "DoLogout"
+  show (InitState action)   = "Show InitState " <> show action
 
 derive instance eqAction :: Eq Action
 

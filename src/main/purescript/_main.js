@@ -98,11 +98,11 @@ function main () {
     } else if (hash === "#share…") {
         console.log("share");
         Main.share("11111111111111");
-    } else if (hash === "#login?username=joe&password=clipperz") {
+    } else if (hash === "#login"/* ?username=joe&password=clipperz" */) {
         let username = "joe"
         let password = "clipperz"
         console.log("test login: " + username + " - " + password);
-        Main.testLogin(username, password);
+        Main.testLogin(); //(username)(password);
     } else {
         console.log("main");
         Main.main();
