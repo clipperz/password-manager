@@ -96,7 +96,7 @@ exportWidget = do
                                       , (Tuple PrepareDowloadUrl (text "Preparing file to download..."))
                                       ]
       let total = length entries
-      let steps = prepareUnencryptedCopySteps placeholders (\{index, card: (CardEntry { title })} -> p [] [text ("Getting " <> title <> ", card " <> (show (index + 1)) <> " of " <> (show total) )]) (text "Done") index
+      let steps = prepareUnencryptedCopySteps placeholders (\{index, card: (CardEntry { title })} -> p [] [text ("Getting all cards - getting " <> title <> ", card " <> (show (index + 1)) <> " of " <> (show total) )]) index
       res <- runOperation (Right StartStep) steps
       case res of
         Left (Right url) -> do

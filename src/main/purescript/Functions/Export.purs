@@ -10,7 +10,7 @@ import Control.Monad.Except.Trans (runExceptT, ExceptT(..), mapExceptT, except)
 import Control.Semigroupoid ((<<<))
 import Data.Argonaut.Core as AC
 import Data.Argonaut.Encode.Class (encodeJson)
-import Data.Array (toUnfoldable)
+import Data.Array (toUnfoldable, fromFoldable)
 import Data.Bifunctor (lmap)
 import Data.Either (either, Either(..), note)
 import Data.Eq (class Eq)
@@ -184,71 +184,66 @@ prepareUnencryptedCopySteps :: forall m. MonadAff m
                             => MonadEffect m 
                             => Alt m 
                             => Map UnencryptedCopyStep (m (Either String UnencryptedCopyStepResult)) 
-                            -> ({index :: Int, card :: CardEntry} -> m (Either String (List Card)))
-                            -> m (Either String (List Card))
+                            -> ({index :: Int, card :: CardEntry} -> m (Either String UnencryptedCopyStepResult))
                             -> Index 
                             -> List (OperationStep (Either String UnencryptedCopyStepResult) (Either String String) m)
-prepareUnencryptedCopySteps placeholders mkPlaceholderGetCard doneGetCardsPlaceholder index = toUnfoldable
-  [ IntermediateStep (\ocsr -> 
-                        case ocsr of
-                          Right _ -> do
-                            cardListRes <- runOperation (Right Nil) $ prepareCardListSteps mkPlaceholderGetCard doneGetCardsPlaceholder index
-                            case cardListRes of
-                              Left (Right cs) -> pure $ Right $ CardList cs
-                              Left (Left err) -> pure $ Left err
-                              Right (Right cs) -> pure $ Left $ "Didn't get all cards"
-                              Right (Left err) -> pure $ Left err 
-                          Left err -> pure $ Left err
-                     ) (fromMaybe (pure (Left "Please wait...")) (lookup PrepareCardList placeholders))
-  , IntermediateStep (\ocsr -> 
-                        case ocsr of
-                          Left err -> pure $ Left err
-                          Right (CardList cardList) -> (Right <<< DocumentContent) <$> do
-                                                        dt <- liftEffect $ getCurrentDateTime
-                                                        let date = formatDateTimeToDate dt
-                                                        let time = formatDateTimeToTime dt
-                                                        let styleString = "<style type=\"text/css\">" <> unencryptedExportStyle <> "</style>"
-                                                        let htmlDocString1 = "<div><header><h1>Your data on Clipperz</h1><h5>Export generated on " <> date <> " at " <> time <> "</h5></header>"
-                                                        let htmlDocString2 = "</div>" -- "<footer></footer></div>"
-                                                        let htmlDocContent = prepareUnencryptedContent cardList
-                                                        pure $ styleString <> htmlDocString1 <> htmlDocContent <> htmlDocString2
-                          Right s -> pure $ Left "Wrong step before defining document content"
-                     ) (fromMaybe (pure (Left "Please wait...")) (lookup PrepareContent placeholders))
-  , IntermediateStep (\ocsr -> 
-                        case ocsr of
-                          Left err -> pure $ Left err
-                          Right (DocumentContent content) -> (Right <<< PreparedUnencryptedDoc) <$> (liftEffect $ FS.fromString content)
-                          Right s -> pure $ Left "Wrong step before preparing document"
-                     ) (fromMaybe (pure (Left "Please wait...")) (lookup PrepareDoc placeholders))
-  , LastStep (\ocsr -> 
-               case ocsr of
-                 Left err -> pure $ Left err
-                 Right (PreparedUnencryptedDoc doc) -> do
-                    blob <- liftEffect $ prepareHTMLBlob doc
-                    _ <- liftAff $ readFile blob
-                    url <- liftEffect $ createObjectURL blob
-                    pure $ Right $ url
-                 Right s -> pure $ Left "Wrong step before preparing download url"
-             ) (((<$>) show) <$> (fromMaybe (pure (Left "Please wait...")) (lookup PrepareDowloadUrl placeholders)))
-  ]
-
+prepareUnencryptedCopySteps placeholders mkPlaceholderGetCard index = toUnfoldable
+  ( (fromFoldable $ prepareCardListSteps mkPlaceholderGetCard index) <>
+    [ IntermediateStep (\ocsr -> 
+                          case ocsr of
+                            Left err -> pure $ Left err
+                            Right (CardList cardList) -> (Right <<< DocumentContent) <$> do
+                                                          dt <- liftEffect $ getCurrentDateTime
+                                                          let date = formatDateTimeToDate dt
+                                                          let time = formatDateTimeToTime dt
+                                                          let styleString = "<style type=\"text/css\">" <> unencryptedExportStyle <> "</style>"
+                                                          let htmlDocString1 = "<div><header><h1>Your data on Clipperz</h1><h5>Export generated on " <> date <> " at " <> time <> "</h5></header>"
+                                                          let htmlDocString2 = "</div>" -- "<footer></footer></div>"
+                                                          let htmlDocContent = prepareUnencryptedContent cardList
+                                                          pure $ styleString <> htmlDocString1 <> htmlDocContent <> htmlDocString2
+                            Right s -> pure $ Left "Wrong step before defining document content"
+                      ) (fromMaybe (pure (Left "Please wait...")) (lookup PrepareContent placeholders))
+    , IntermediateStep (\ocsr -> 
+                          case ocsr of
+                            Left err -> pure $ Left err
+                            Right (DocumentContent content) -> (Right <<< PreparedUnencryptedDoc) <$> (liftEffect $ FS.fromString content)
+                            Right s -> pure $ Left "Wrong step before preparing document"
+                      ) (fromMaybe (pure (Left "Please wait...")) (lookup PrepareDoc placeholders))
+    , LastStep (\ocsr -> 
+                case ocsr of
+                  Left err -> pure $ Left err
+                  Right (PreparedUnencryptedDoc doc) -> do
+                      blob <- liftEffect $ prepareHTMLBlob doc
+                      _ <- liftAff $ readFile blob
+                      url <- liftEffect $ createObjectURL blob
+                      pure $ Right $ url
+                  Right s -> pure $ Left "Wrong step before preparing download url"
+              ) (((<$>) show) <$> (fromMaybe (pure (Left "Please wait...")) (lookup PrepareDowloadUrl placeholders)))
+    ]
+  )
 ------------------------------------------------
 
-prepareCardListSteps :: forall m. MonadAff m => MonadEffect m => ({index :: Int, card :: CardEntry} -> m (Either String (List Card))) -> m (Either String (List Card)) -> Index -> List (OperationStep (Either String (List Card)) (Either String (List Card)) m)
-prepareCardListSteps placeholderFunc donePlaceholder index@(Index entries) =
+prepareCardListSteps :: forall m. MonadAff m => MonadEffect m => ({index :: Int, card :: CardEntry} -> m (Either String UnencryptedCopyStepResult)) -> Index -> List (OperationStep (Either String UnencryptedCopyStepResult) (Either String String) m)
+prepareCardListSteps placeholderFunc index@(Index entries) =
   let getCardFunc = \(CardEntry { cardReference }) ->
                     \prevRes -> case prevRes of
                       Left err -> pure $ Left err
-                      Right cards -> do
+                      Right (CardList cards) -> do
                         newCard <- liftAff $ runExceptT $ getCard cardReference
                         case newCard of
                           Left err -> pure $ Left $ show err
-                          Right c -> pure $ Right $ snoc cards c
+                          Right c -> pure $ Right $ CardList $ snoc cards c
+                      Right StartStep -> do
+                        newCard <- liftAff $ runExceptT $ getCard cardReference
+                        case newCard of
+                          Left err -> pure $ Left $ show err
+                          Right c -> pure $ Right $ CardList $ Cons c Nil
+                      Right _ -> pure $ Left "illegal result of previous step"
       funcs = getCardFunc <$> entries
       total = length entries
       pls = placeholderFunc <$> (zipWith (\i -> \c -> {index: i, card: c}) (0 .. total) entries)
       zipped = zipWith (\func -> \pl -> {func, pl}) funcs pls
-  in snoc ((\{func, pl} -> IntermediateStep func pl) <$> zipped) (LastStep pure donePlaceholder)
+  in ((\{func, pl} -> IntermediateStep func pl) <$> zipped)
 
 ------------------------------------------------
 
