@@ -3,7 +3,7 @@ module OperationalWidgets.DeleteUserWidget where
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, loopS, loopW, fireOnce)
 import Concur.React (HTML)
-import Concur.React.DOM (text, div, h1, div', form)
+import Concur.React.DOM (text, div, h1, div', form, p)
 import Concur.React.Props as Props
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
@@ -15,11 +15,13 @@ import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$), void)
 import Data.HeytingAlgebra ((||), (&&), not)
-import Data.List (List(..))
+import Data.List (List(..), length)
 import Data.Maybe (Maybe(..))
+import Data.Operation (runOperation)
+import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Unit (Unit, unit)
-import DataModel.AppState (AppError)
+import DataModel.AppState (AppError(..))
 import DataModel.Index (Index(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect (Effect)
@@ -29,10 +31,10 @@ import Effect.Class.Console (log)
 import Functions.Communication.Users (getIndex)
 import Functions.JSState (getAppState)
 import Functions.Pin (deleteCredentials)
-import Functions.User (deleteUser)
+import Functions.User (deleteUser, deleteUserSteps)
 import Record (merge)
 import Views.LoginFormView (emptyForm)
-import Views.SimpleWebComponents (loadingDiv, simpleButton, confirmationWidget, simpleUserSignal, simpleCheckboxSignal, simplePasswordInputWidget)
+import Views.SimpleWebComponents (loadingDiv, loadingBar, simpleButton, confirmationWidget, simpleUserSignal, simpleCheckboxSignal, simplePasswordInputWidget)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
 
@@ -47,15 +49,22 @@ deleteUserWidget = do
 
   where
     go :: Index -> WidgetState -> Widget HTML Unit
-    go index state = do
+    go index@(Index entries) state = do
       res <- case state of
         Default -> deleteForm false emptyForm
         Loading -> do
-          let deleteUserAndPin = do
-                                  deleteUser index
-                                  (ExceptT $ Right <$> (liftEffect (window >>= localStorage))) >>= (\v -> mapExceptT liftEffect (deleteCredentials v)) 
-          let deleteUserOp = liftAff $ (either FailedDelete (\_ -> Done) <$> (runExceptT $ deleteUserAndPin))
-          div' [loadingDiv, simpleButton "Delete account" true DoNothing] <|> deleteUserOp
+          -- let deleteUserAndPin = do
+          --                         deleteUser index
+          --                         (ExceptT $ Right <$> (liftEffect (window >>= localStorage))) >>= (\v -> mapExceptT liftEffect (deleteCredentials v)) 
+          -- let deleteUserOp = liftAff $ (either FailedDelete (\_ -> Done) <$> (runExceptT $ deleteUserAndPin))
+          -- div' [loadingDiv, simpleButton "Delete account" true DoNothing] <|> deleteUserOp
+          let total = length entries
+          res <- runOperation (Right unit) $ deleteUserSteps index (\i -> p [] [text $ "Deleting cards: " <> (loadingBar i total 80)]) text
+          pure $ case res of
+            Right (Left err) -> FailedDelete err
+            Left (Left err) -> FailedDelete err
+            Right _ -> FailedDelete $ InvalidOperationError "Operation was not completed, but no other steps were programmed."
+            Left (Right _) -> Done
         Error err -> div' [text err, deleteForm true emptyForm] 
       case res of
         PleaseDelete -> do

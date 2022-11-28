@@ -86,22 +86,23 @@ getUpdateIndexOp { index: index@(Index list), indexFilter } (IndexUpdateData act
         Right _   -> pure $ OpResult newIndex cardViewState Nothing
         Left  err -> 
           case err of 
-            CannotInitState    _                           -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
-            InvalidStateError (CorruptedState           _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
-            InvalidStateError (MissingValue             _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
-            InvalidStateError (CorruptedSavedPassphrase _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
-            ProtocolError     (RequestError             _) -> manageUpdateIndex newIndex cardViewState -- Retry at infinitum?
-            ProtocolError     (ResponseError            i) -> -- Check values
+            CannotInitState       _                           -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
+            InvalidOperationError _                           -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a wrongly programmed operation
+            InvalidStateError    (CorruptedState           _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
+            InvalidStateError    (MissingValue             _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
+            InvalidStateError    (CorruptedSavedPassphrase _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
+            ProtocolError        (RequestError             _) -> manageUpdateIndex newIndex cardViewState -- Retry at infinitum?
+            ProtocolError        (ResponseError            i) -> -- Check values
               case i of
                 404 -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Something is really wrong with the server
                 500 -> manageUpdateIndex newIndex cardViewState -- Retry at infinitum hoping the server gets better?
                 _   -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Well...
-            ProtocolError     (SRPError                 _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Shouldn't happen, restart
-            ProtocolError     (DecodeError              _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Wrong data has been saved on the server
-            ProtocolError     (CryptoError              _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Corrupted data on server
-            ProtocolError     (IllegalRequest           _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- The app is not working well
-            ProtocolError     (IllegalResponse          _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- The server did something wrong, but the operation should have worked
-            ImportError        _                           -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
+            ProtocolError        (SRPError                 _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Shouldn't happen, restart
+            ProtocolError        (DecodeError              _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Wrong data has been saved on the server
+            ProtocolError        (CryptoError              _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Corrupted data on server
+            ProtocolError        (IllegalRequest           _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- The app is not working well
+            ProtocolError        (IllegalResponse          _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- The server did something wrong, but the operation should have worked
+            ImportError           _                           -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
 
 getUpdateIndexInfo :: Boolean -> CardsViewInfo -> IndexUpdateData -> Maybe AppError -> CardsViewInfo
 getUpdateIndexInfo isOffline info (IndexUpdateData action card) err = 
