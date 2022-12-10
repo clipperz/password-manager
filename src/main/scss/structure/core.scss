@@ -29,11 +29,15 @@ html {
     div.page.main {
         div#homePage {
             div#cardsManager {
+                width: 100%;
+
                 div#filterView {
                     display: none;
                     visibility: hidden;
                 }
                 div.cardToolbarFrame {
+                    width: 100%;
+
                     header {
                         div.tags {
                             display: block;
@@ -42,6 +46,43 @@ html {
                     }
                 }
             }
+            div#userPage {
+                display: flex;
+                $panelWidth: 300px;
+
+                div.panel {
+                    display: flex;
+                    position: fixed;
+                    z-index: 20;
+                    width: $panelWidth;
+                    height: 100%;
+                    top: 0;  
+                    transition: right 0.3s ease-in-out;
+                    right: 0px;    
+                }
+
+                div.mask {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 10;
+                    background-color: rgba(0, 0, 0, 0.5);                    
+                }
+
+                &.closed {
+                    div.panel {
+                        right: - $panelWidth;
+                    }
+
+                    div.mask {
+                        display: none;
+                        visibility: hidden;
+                    }
+                }
+
+            }            
         }
     }
 }
