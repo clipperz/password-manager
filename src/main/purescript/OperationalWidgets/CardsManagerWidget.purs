@@ -1,5 +1,6 @@
 module OperationalWidgets.CardsManagerWidget
   ( cardsManagerWidget
+  , CardsManagerAction(..)
   )
   where
 
@@ -17,7 +18,7 @@ import Data.Functor ((<$>), flap)
 import Data.List ((:), filter)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Tuple (Tuple(..))
-import DataModel.AppState (AppError(..), InvalidStateError(..))
+import DataModel.AppState (AppError(..), InvalidStateError(..), ProxyConnectionStatus(..))
 import DataModel.Card (emptyCard)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index(..), CardEntry(..))
@@ -29,20 +30,22 @@ import Functions.Communication.Users (updateIndex)
 import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState, CardsViewInfo, mkCardsViewInfo)
 import Views.IndexView (IndexFilter(..), ComplexIndexFilter, addLastCardFilterInOr, removeAllLastCardFilter)
 
+data CardsManagerAction = OpenUserArea
+
 data CardsViewResult = CardsViewResult (Tuple CardsViewInfo CardViewAction) | OpResult Index CardViewState (Maybe AppError) ComplexIndexFilter
 
-cardsManagerWidget :: forall a. Boolean -> Index -> CardViewState -> Widget HTML a
-cardsManagerWidget isOffline ind cardViewState = 
+cardsManagerWidget :: ProxyConnectionStatus -> Index -> CardViewState -> Widget HTML CardsManagerAction
+cardsManagerWidget proxyConnectionStatus ind cardViewState = 
   let info = { index: ind
              , indexFilter: { archived: false, indexFilter: NoFilter }
              , selectedIndexPosition: Nothing
              , cardViewState: { cardView: NoCard, cardViewState: Default }
              , error: Nothing
              }
-  in go info (cardsManagerView isOffline) Nothing
+  in go info (cardsManagerView proxyConnectionStatus) Nothing
 
   where
-    go :: CardsViewInfo -> (CardsViewInfo -> Widget HTML (Tuple CardsViewInfo CardViewAction)) -> Maybe (Aff CardsViewResult) -> Widget HTML a
+    go :: CardsViewInfo -> (CardsViewInfo -> Widget HTML (Tuple CardsViewInfo CardViewAction)) -> Maybe (Aff CardsViewResult) -> Widget HTML CardsManagerAction
     go info view operation = do
       res <- case operation of
         Nothing -> CardsViewResult <$> (view info)
@@ -50,9 +53,10 @@ cardsManagerWidget isOffline ind cardViewState =
       case res of
         CardsViewResult (Tuple f cva) -> case cva of 
           UpdateIndex updateData -> do
-            go (getUpdateIndexInfo isOffline f updateData Nothing) view (Just (getUpdateIndexOp f updateData))
-          ShowAddCard -> go (info { cardViewState = {cardView: (CardForm emptyCard), cardViewState: Default} }) view Nothing
-          ShowCard ref -> go (info { cardViewState = {cardView: (CardFromReference ref), cardViewState: Default} }) view Nothing
+            go (getUpdateIndexInfo proxyConnectionStatus f updateData Nothing) view (Just (getUpdateIndexOp f updateData))
+          ShowAddCard   -> go (info { cardViewState = {cardView: (CardForm emptyCard), cardViewState: Default} }) view Nothing
+          ShowUserArea  -> pure $ OpenUserArea
+          ShowCard ref  -> go (info { cardViewState = {cardView: (CardFromReference ref), cardViewState: Default} }) view Nothing
         OpResult i cv e f -> go (info { index = i, indexFilter = f, error = e, cardViewState = cv }) view Nothing
 
 getUpdateIndexOp :: CardsViewInfo -> IndexUpdateData -> Aff CardsViewResult
@@ -104,8 +108,8 @@ getUpdateIndexOp { index: index@(Index list), indexFilter } (IndexUpdateData act
             ProtocolError        (IllegalResponse          _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- The server did something wrong, but the operation should have worked
             ImportError           _                           -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
 
-getUpdateIndexInfo :: Boolean -> CardsViewInfo -> IndexUpdateData -> Maybe AppError -> CardsViewInfo
-getUpdateIndexInfo isOffline info (IndexUpdateData action card) err = 
+getUpdateIndexInfo :: ProxyConnectionStatus -> CardsViewInfo -> IndexUpdateData -> Maybe AppError -> CardsViewInfo
+getUpdateIndexInfo proxyConnectionStatus info (IndexUpdateData action card) err = 
   case action of 
     AddReference                 _ -> info { error = err, indexFilter = { archived: false, indexFilter: NoFilter }, cardViewState = { cardView: (maybe NoCard CardForm card), cardViewState: Loading } }
     CloneReference               _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }

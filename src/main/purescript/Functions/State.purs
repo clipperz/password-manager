@@ -13,7 +13,7 @@ import Data.Maybe (Maybe(..))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
-import DataModel.AppState (AppState, AppError(..), baseSRPInfo, HashState(..), KDFState(..))
+import DataModel.AppState (AppState, AppError(..), baseSRPInfo, HashState(..), KDFState(..), ProxyConnectionStatus(..))
 import DataModel.AsyncValue (AsyncValue(..))
 import DataModel.Proxy (Proxy(..), BackendSessionState(..))
 import DataModel.SRP(SRPConf, KDF, HashFunction, concatKDF, hashFuncSHA1, hashFuncSHA256)
@@ -96,8 +96,8 @@ getSRPConf = do
 getSRPConfFromState :: AppState -> SRPConf
 getSRPConfFromState state = { group: state.srpInfo.group, k: state.srpInfo.k, hash: getHashFromState state.hash, kdf: getKDFFromState state.srpInfo.kdf }
 
-isOfflineCopy :: AppState -> Boolean
+isOfflineCopy :: AppState -> ProxyConnectionStatus
 isOfflineCopy { proxy } =
   case proxy of
-    OfflineProxy _ -> true
-    _ -> false
+    OfflineProxy _  -> ProxyOffline
+    _               -> ProxyOnline

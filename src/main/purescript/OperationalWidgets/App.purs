@@ -33,6 +33,7 @@ import Data.Traversable (sequence)
 import Data.Unit (unit, Unit)
 -- import Data.Unit (unit)
 import DataModel.WidgetState as WS
+import DataModel.AppState (UserConnectionStatus(..))
 import DataModel.Credentials (Credentials)
 import Effect.Aff (delay, never, Aff)
 import Effect.Aff.Class (liftAff)
@@ -132,7 +133,7 @@ app' action st@{ credentials } = do
           div [Props.className "content"] [text "share"]
         ]
       , div [Props.classList (Just <$> ["page", "main", show $ location Main (actionPage action)])] [
-        DoLogout <$ (homePageWidget $ action == (ShowPage Main))
+        DoLogout <$ (homePageWidget $ (if (action == (ShowPage Main)) then UserLoggedIn else UserAnonymous))
       ]
     ]
     <|>

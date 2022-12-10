@@ -17,7 +17,7 @@ import Data.Maybe (Maybe(..))
 import Data.PrettyShow (prettyShow)
 import Data.Semigroup ((<>))
 import Data.Show (show)
-import DataModel.AppState (AppError(..))
+import DataModel.AppState (AppError(..), ProxyConnectionStatus(..))
 import DataModel.Card (Card(..), CardValues(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardEntry(..))
@@ -58,8 +58,8 @@ cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ })
             _ -> cardWidget entry tags (Error (prettyShow err))
 
   where
-    manageCardAction :: CardAction -> Boolean -> Widget HTML IndexUpdateData
-    manageCardAction action isOffline = 
+    manageCardAction :: CardAction -> ProxyConnectionStatus -> Widget HTML IndexUpdateData
+    manageCardAction action proxyConnectionStatus = 
       case action of
         Edit cc -> do
           IndexUpdateData indexUpdateAction newCard <- createCardWidget cc tags Default -- here the modified card has already been saved
@@ -74,32 +74,32 @@ cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ })
             pure $ IndexUpdateData (ChangeReferenceWithoutEdit entry (CardEntry $ r { lastUsed = timestamp' })) (Just cc)
         Clone cc -> do
           clonedCard <- liftAff $ cloneCardNow cc
-          doOp isOffline cc cc false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) (Just cc))
+          doOp proxyConnectionStatus cc cc false (postCard clonedCard) (\newEntry -> IndexUpdateData (CloneReference newEntry) (Just cc))
         Archive oldCard@(Card rc) -> do
           timestamp' <- liftEffect $ getCurrentTimestamp
           let newCard = Card $ rc { timestamp = timestamp', archived = true }
-          doOp isOffline oldCard newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) (Just newCard))
+          doOp proxyConnectionStatus oldCard newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) (Just newCard))
         Restore oldCard@(Card rc) -> do
           timestamp' <- liftEffect $ getCurrentTimestamp
           let newCard = Card $ rc { timestamp = timestamp', archived = false }
-          doOp isOffline oldCard newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) (Just newCard))
-        Delete cc -> doOp isOffline cc cc false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) (Just cc))
+          doOp proxyConnectionStatus oldCard newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) (Just newCard))
+        Delete cc -> doOp proxyConnectionStatus cc cc false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) (Just cc))
 
-    doOp :: forall a. Boolean -> Card -> Card -> Boolean -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData
-    doOp isOffline oldCard currentCard showForm op mapResult = do
+    doOp :: forall a. ProxyConnectionStatus -> Card -> Card -> Boolean -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData
+    doOp proxyConnectionStatus oldCard currentCard showForm op mapResult = do
       res <- (if showForm then inertCardFormView currentCard else inertCardView currentCard) <|> (liftAff $ runExceptT $ op)
       case res of
         Right a -> pure $ mapResult a
         Left err -> do
           _ <- liftEffect $ log $ show err
           div [] [ text ("Current operation could't be completed: " <> prettyShow err)
-                           , (cardView oldCard isOffline) >>= (\ca -> manageCardAction ca isOffline) ]
+                           , (cardView oldCard proxyConnectionStatus) >>= (\ca -> manageCardAction ca proxyConnectionStatus) ]
 
     inertCardView :: forall a. Card -> Widget HTML a
     inertCardView card = do
       _ <- div [] [
         loadingDiv
-      , cardView card true -- TODO: need to deactivate buttons to avoid returning some value here
+      , cardView card ProxyOnline -- TODO: need to deactivate buttons to avoid returning some value here
       ]
       loadingDiv
 

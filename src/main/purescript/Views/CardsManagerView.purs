@@ -23,7 +23,7 @@ import Data.Semiring ((+))
 import Data.Show (class Show, show)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
-import DataModel.AppState (AppError)
+import DataModel.AppState (AppError, ProxyConnectionStatus(..))
 import DataModel.Card (Card)
 import DataModel.Index (Index(..), CardEntry(..))
 import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
@@ -38,11 +38,12 @@ import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleCheckboxWidget
 import OperationalWidgets.CardWidget (cardWidget)
 import OperationalWidgets.CreateCardWidget (createCardWidget)
 
-data CardViewAction = UpdateIndex IndexUpdateData | ShowCard CardEntry | ShowAddCard
+data CardViewAction = UpdateIndex IndexUpdateData | ShowCard CardEntry | ShowAddCard | ShowUserArea
 instance showCardViewAction :: Show CardViewAction where
   show (UpdateIndex (IndexUpdateData a _)) = "UpdateIndex " <> show a
   show (ShowCard entry)  = "Show Card " <> show entry
   show  ShowAddCard    = "Show Add Card"
+  show  ShowUserArea   = "Show User Area"
 
 type CardViewState = { cardView :: CardView, cardViewState :: WidgetState }
 
@@ -67,8 +68,8 @@ mkCardsViewInfo :: Index -> ComplexIndexFilter -> Maybe Int -> CardViewState -> 
 mkCardsViewInfo index indexFilter selectedIndexPosition cardViewState error = { index, indexFilter, selectedIndexPosition, cardViewState, error }
 
 -- cardsManagerView :: Boolean -> Index -> ComplexIndexFilter -> CardViewState -> Maybe AppError -> Widget HTML (Tuple ComplexIndexFilter CardViewAction)
-cardsManagerView :: Boolean -> CardsViewInfo -> Widget HTML (Tuple CardsViewInfo CardViewAction)
-cardsManagerView isOffline currentInfo@{ index: i@(Index entries)
+cardsManagerView :: ProxyConnectionStatus -> CardsViewInfo -> Widget HTML (Tuple CardsViewInfo CardViewAction)
+cardsManagerView proxyConnectionStatus currentInfo@{ index: i@(Index entries)
                                        , indexFilter: cif@{archived, indexFilter}
                                        , selectedIndexPosition
                                        , cardViewState: cvs@{ cardView: cv, cardViewState } 
@@ -95,7 +96,7 @@ cardsManagerView isOffline currentInfo@{ index: i@(Index entries)
       header [] [
         div [Props.className "tags"] [button [] [text "tags"]],
         div [Props.className "selection"] [button [] [getFilterHeader indexFilter]],
-        div [Props.className "menu"] [button [] [text "menu"]]
+        div [Props.className "menu"] [(CardViewAction ShowUserArea) <$ button [Props.onClick] [text "menu"]]
       ]
     , div [Props._id "mainView" ] [
         div [Props._id "indexView"] [
@@ -104,50 +105,56 @@ cardsManagerView isOffline currentInfo@{ index: i@(Index entries)
         ]
       , case cvs of
         { cardView: CardForm card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ createCardView card allSortedTags cardViewState
-        { cardView: CardForm card,         cardViewState: _       } -> (CardViewAction  <<< UpdateIndex) <$> createCardWidget card allSortedTags cardViewState
-        { cardView: CardFromReference ref, cardViewState: _       } -> (CardViewAction  <<< UpdateIndex) <$> cardWidget ref allSortedTags cardViewState
-        { cardView: JustCard card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ (div [] [loadingDiv, cardView card isOffline])
-        { cardView: JustCard card,         cardViewState: _       } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ cardView card isOffline
+        { cardView: CardForm card,         cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> createCardWidget card allSortedTags cardViewState
+        { cardView: CardFromReference ref, cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> cardWidget ref allSortedTags cardViewState
+        { cardView: JustCard card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ (div [] [loadingDiv, cardView card proxyConnectionStatus])
+        { cardView: JustCard card,         cardViewState: _       } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ cardView card proxyConnectionStatus
         { cardView: NoCard       ,         cardViewState: _       } -> div [Props._id "card"] []
       ]
     ]
   ]
   case res of
-    CardViewAction (ShowCard ref) -> cardsManagerView isOffline { index: i
-                                                                , indexFilter: (removeLastCardFilter cif (Just ref))
-                                                                , selectedIndexPosition: elemIndex ref sortedFilteredEntries
-                                                                , cardViewState: { cardView: CardFromReference ref, cardViewState }
-                                                                , error: Nothing }
+    CardViewAction (ShowCard ref) -> cardsManagerView proxyConnectionStatus {
+        index: i
+      , indexFilter: (removeLastCardFilter cif (Just ref))
+      , selectedIndexPosition: elemIndex ref sortedFilteredEntries
+      , cardViewState: { cardView: CardFromReference ref, cardViewState }
+      , error: Nothing
+    }
     CardViewAction action -> pure $ Tuple (currentInfo { indexFilter = (removeLastCardFilter cif Nothing) }) action
     ChangeFilter newFilter -> do
       let f = complexToFilterFunc lastUses newFilter
       case cv of
-        CardFromReference ref -> 
-            cardsManagerView isOffline { index: i
-                                       , indexFilter: newFilter
-                                       , selectedIndexPosition
-                                       , cardViewState: if f ref then cvs else { cardView: NoCard, cardViewState }
-                                       , error: Nothing }
-        _ -> cardsManagerView isOffline { index: i
-                                        , indexFilter: newFilter
-                                        , selectedIndexPosition
-                                        , cardViewState: cvs
-                                        , error: Nothing }
+        CardFromReference ref ->  cardsManagerView proxyConnectionStatus {
+            index: i
+          , indexFilter: newFilter
+          , selectedIndexPosition
+          , cardViewState: if f ref then cvs else { cardView: NoCard, cardViewState }
+          , error: Nothing
+        }
+        _ -> cardsManagerView proxyConnectionStatus {
+            index: i
+          , indexFilter: newFilter
+          , selectedIndexPosition
+          , cardViewState: cvs
+          , error: Nothing
+        }
     KeyBoardAction ev -> do
       key <- liftEffect $ Events.key ev
       -- log $ "Key pressed: " <> key
       case key of
-        "a" -> cardsManagerView isOffline closeCardInfo
-        "ArrowLeft" -> cardsManagerView isOffline closeCardInfo
-        "Escape" -> cardsManagerView isOffline closeCardInfo
-        "d" -> cardsManagerView isOffline openCardInfo
-        "ArrowRight" -> cardsManagerView isOffline openCardInfo
-        "Enter" -> cardsManagerView isOffline openCardInfo
-        "w" -> cardsManagerView isOffline moveUpInfo
-        "ArrowUp" -> cardsManagerView isOffline moveUpInfo
-        "s" -> cardsManagerView isOffline moveDownInfo
-        "ArrowDown" -> cardsManagerView isOffline moveDownInfo
-        _  -> cardsManagerView isOffline currentInfo
+        "a" ->          keyboardAction closeCardInfo
+        "ArrowLeft" ->  keyboardAction closeCardInfo
+        "Escape" ->     keyboardAction closeCardInfo
+        "d" ->          keyboardAction openCardInfo
+        "ArrowRight" -> keyboardAction openCardInfo
+        "Enter" ->      keyboardAction openCardInfo
+        "w" ->          keyboardAction moveUpInfo
+        "ArrowUp" ->    keyboardAction moveUpInfo
+        "s" ->          keyboardAction moveDownInfo
+        "ArrowDown" ->  keyboardAction moveDownInfo
+        _  ->           keyboardAction currentInfo
+      where keyboardAction = cardsManagerView proxyConnectionStatus
 
   where
     closeCardInfo = 

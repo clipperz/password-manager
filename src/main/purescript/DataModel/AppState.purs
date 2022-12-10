@@ -1,4 +1,15 @@
-module DataModel.AppState where
+module DataModel.AppState
+  ( AppState
+  , SRPInfo
+  , KDFState(..)
+  , HashState(..)
+  , baseSRPInfo
+  , AppError(..)
+  , InvalidStateError(..)
+  , UserConnectionStatus(..)
+  , ProxyConnectionStatus(..)
+  )
+where
 
 import Data.Argonaut.Decode.Class (class DecodeJson)
 import Data.Argonaut.Decode.Generic (genericDecodeJson)
@@ -20,6 +31,10 @@ import DataModel.Communication.ProtocolError (ProtocolError)
 import DataModel.SRP(SRPGroup, group1024, k)
 import DataModel.User (IndexReference, UserPreferences, UserCard, UserInfoReferences)
 import Functions.HashCash (TollChallenge)
+
+
+data UserConnectionStatus = UserLoggedIn | UserAnonymous
+data ProxyConnectionStatus = ProxyOnline | ProxyOffline
 
 type AppState =
   { proxy :: Proxy

@@ -21,6 +21,7 @@ import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.PrettyShow (prettyShow)
 import Data.Show (show)
 import Data.Unit (unit)
+import DataModel.AppState (UserConnectionStatus(..), ProxyConnectionStatus(..))
 import DataModel.Index (Index)
 import DataModel.WidgetState (WidgetState(..))
 import Effect (Effect)
@@ -32,52 +33,53 @@ import Functions.JSState (getAppState)
 import Functions.State (resetState, isOfflineCopy)
 import Views.CardsManagerView (CardView(..))
 import Views.SimpleWebComponents (simpleButton, loadingDiv)
-import OperationalWidgets.CardsManagerWidget (cardsManagerWidget)
+import OperationalWidgets.CardsManagerWidget (cardsManagerWidget, CardsManagerAction(..))
 import OperationalWidgets.UserAreaWidget (userAreaWidget, UserAreaAction(..))
 
-data HomePageAction = UserAreaAction UserAreaAction | LogoutAction
+data HomePageAction = CardsManagerAction CardsManagerAction | UserAreaAction UserAreaAction | LogoutAction
 
 data HomePageExitStatus = Clean | ReadyForLogin String
 
-homePageWidget :: Boolean -> Widget HTML HomePageExitStatus
-homePageWidget isLogged = 
-  if isLogged then do
-    eitherState <- liftEffect $ getAppState
-    case eitherState of
-      Left err -> go (Error (show err)) true
-      Right st -> go Loading (isOfflineCopy st)
-  else go Default true
+homePageWidget :: UserConnectionStatus -> Widget HTML HomePageExitStatus
+homePageWidget status = 
+  case status of
+    UserLoggedIn -> do
+      eitherState <- liftEffect $ getAppState
+      case eitherState of
+        Left err -> go (Error (show err)) ProxyOffline        true
+        Right st -> go Loading            (isOfflineCopy st)  true
+    UserAnonymous ->
+      go Default ProxyOffline true
 
   where 
-    go :: WidgetState -> Boolean -> Widget HTML HomePageExitStatus
-    go widgetState isOffline = do
+    go :: WidgetState -> ProxyConnectionStatus -> Boolean -> Widget HTML HomePageExitStatus
+    go widgetState proxyConnectionStatus hideUserAreaWidget = do
       res <- case widgetState of
         Default -> div [] []
         Loading -> loadingDiv <|> ((UserAreaAction <<< Loaded) <$> (liftAff $ runExceptT $ getIndex))
         Error err -> div [] [text err, simpleButton "Go back to login" false LogoutAction]
-      interpretHomePageActions isOffline Nothing Nothing res 
+      interpretHomePageActions proxyConnectionStatus hideUserAreaWidget Nothing Nothing res 
     
-    homePage :: Boolean -> Index -> CardView -> Widget HTML HomePageExitStatus
-    homePage isOffline index cardView = do
-      result <- div [Props._id "homePage"] [
-                  cardsManagerWidget isOffline index { cardView: cardView, cardViewState: Default }
-                , UserAreaAction <$> (userAreaWidget true isOffline)
+    homePage :: ProxyConnectionStatus -> Boolean -> Index -> CardView -> Widget HTML HomePageExitStatus
+    homePage proxyConnectionStatus hideUserAreaWidget index cardView = do
+      result :: HomePageAction <- div [Props._id "homePage"] [
+                  CardsManagerAction <$> cardsManagerWidget proxyConnectionStatus index { cardView: cardView, cardViewState: Default }
+                , UserAreaAction <$> (userAreaWidget hideUserAreaWidget proxyConnectionStatus)
                 ]
-      interpretHomePageActions isOffline (Just index) (Just cardView) result
+      interpretHomePageActions proxyConnectionStatus hideUserAreaWidget (Just index) (Just cardView) result
 
-    interpretHomePageActions :: Boolean -> Maybe Index -> Maybe CardView -> HomePageAction -> Widget HTML HomePageExitStatus
-    interpretHomePageActions isOffline ix cv result =
+    interpretHomePageActions :: ProxyConnectionStatus -> Boolean -> Maybe Index -> Maybe CardView -> HomePageAction -> Widget HTML HomePageExitStatus
+    interpretHomePageActions proxyConnectionStatus hideUserAreaWidget ix cv result =
       case result of
-        UserAreaAction (Loaded (Right index)) -> homePage isOffline index NoCard         
-        UserAreaAction NoAction -> 
-          case ix of
-            Just ix' -> homePage isOffline ix' (fromMaybe NoCard cv)
-            Nothing -> go (Error "No index found") isOffline
+        UserAreaAction (Loaded (Right index)) -> homePage proxyConnectionStatus hideUserAreaWidget index NoCard         
+        UserAreaAction NoAction -> case ix of
+          Just ix' -> homePage proxyConnectionStatus hideUserAreaWidget ix' (fromMaybe NoCard cv)
+          Nothing -> go (Error "No index found") proxyConnectionStatus hideUserAreaWidget
         UserAreaAction (GetIndexError err) -> 
-          go (Error (show err)) isOffline
+          go (Error (show err)) proxyConnectionStatus hideUserAreaWidget
         UserAreaAction (Loaded (Left err)) -> do
           _ <- liftEffect $ log $ show err
-          go (Error (prettyShow err)) isOffline
+          go (Error (prettyShow err)) proxyConnectionStatus hideUserAreaWidget
         UserAreaAction Lock -> do
           maybeUser <- liftEffect $ getUsername
           pure $ maybe Clean ReadyForLogin maybeUser
@@ -85,6 +87,9 @@ homePageWidget isLogged =
         UserAreaAction DeleteAccount -> do
           _ <- liftAff $ runExceptT $ resetState
           pure $ Clean
+        CardsManagerAction OpenUserArea -> case ix of
+          Just ix'  -> homePage proxyConnectionStatus false ix' (fromMaybe NoCard cv)
+          Nothing   -> go (Error "No index found") proxyConnectionStatus true
         LogoutAction -> do
           _ <- liftAff $ runExceptT $ resetState
           pure $ Clean

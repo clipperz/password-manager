@@ -18,7 +18,7 @@ import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
-import DataModel.AppState (AppError)
+import DataModel.AppState (AppError, ProxyConnectionStatus(..))
 import DataModel.Index (Index(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
@@ -40,25 +40,30 @@ derive instance eqUserAreaListVoice :: Eq UserAreaListVoice
 
 data UserAreaInternalAction = MenuAction (Tuple (Array (SubmenuVoice UserAreaListVoice)) UserAreaListVoice) | UserAction UserAreaAction | OpenClose
 
-defaultMenu :: Boolean -> Array (SubmenuVoice UserAreaListVoice)
-defaultMenu = \isOffline -> [
+defaultMenu :: ProxyConnectionStatus -> Array (SubmenuVoice UserAreaListVoice)
+defaultMenu proxyConnectionStatus = [
   Tuple false (\b -> submenu b (simpleButton "Account" false unit) [
-    simpleButtonWithId "preferencesButton" "Preferences" isOffline Preferences
-  , simpleButtonWithId "passphraseButton" "Passphrase" isOffline ChangePassword
+    simpleButtonWithId "preferencesButton" "Preferences" disabled Preferences
+  , simpleButtonWithId "passphraseButton" "Passphrase" disabled ChangePassword
   , simpleButtonWithId "deviceButton" "Device PIN" false Pin
-  , simpleButtonWithId "deleteButton" "Delete account" isOffline Delete
+  , simpleButtonWithId "deleteButton" "Delete account" disabled Delete
   ])
 , Tuple false (\b -> submenu b (simpleButton "Data" false unit) [
     simpleButtonWithId "exportButton" "Export" false Export
-  , simpleButtonWithId "importButton" "Import" isOffline Import
+  , simpleButtonWithId "importButton" "Import" disabled Import
   ])
 , Tuple true (\b -> submenu b (text "") [simpleButtonWithId "aboutButton" "About" false About])
 , Tuple true (\b -> submenu b (text "") [simpleButtonWithId "lockButton" "Lock" false VLock])
 , Tuple true (\b -> submenu b (text "") [simpleButtonWithId "logoutButton" "Logout" false VLogout])
 ]
+  where
+    disabled = case proxyConnectionStatus of
+      ProxyOnline   -> false
+      ProxyOffline  -> true
 
-userAreaWidget :: Boolean -> Boolean -> Widget HTML UserAreaAction
-userAreaWidget hidden isOffline = userAreaView hidden (defaultMenu isOffline) (div [NoAction <$ Props.onClick] [])
+
+userAreaWidget :: Boolean -> ProxyConnectionStatus -> Widget HTML UserAreaAction
+userAreaWidget hidden proxyConnectionStatus = userAreaView hidden (defaultMenu proxyConnectionStatus) (div [NoAction <$ Props.onClick] [])
 
   where 
     userAreaList arr = complexMenu (Just "userSidebar") Nothing arr
