@@ -2,7 +2,7 @@ module OperationalWidgets.UserAreaWidget where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text)
+import Concur.React.DOM (div, text, header, footer, button, li)
 import Concur.React.Props as Props
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
@@ -38,23 +38,23 @@ data UserAreaListVoice = Export | Import | Pin | Delete | Preferences | ChangePa
 
 derive instance eqUserAreaListVoice :: Eq UserAreaListVoice
 
-data UserAreaInternalAction = MenuAction (Tuple (Array (SubmenuVoice UserAreaListVoice)) UserAreaListVoice) | UserAction UserAreaAction | OpenClose
+data UserAreaInternalAction = MenuAction (Tuple (Array (SubmenuVoice UserAreaListVoice)) UserAreaListVoice) | UserAction UserAreaAction | CloseUserArea
 
 defaultMenu :: ProxyConnectionStatus -> Array (SubmenuVoice UserAreaListVoice)
 defaultMenu proxyConnectionStatus = [
   Tuple false (\b -> submenu b (simpleButton "Account" false unit) [
-    simpleButtonWithId "preferencesButton" "Preferences" disabled Preferences
-  , simpleButtonWithId "passphraseButton" "Passphrase" disabled ChangePassword
-  , simpleButtonWithId "deviceButton" "Device PIN" false Pin
-  , simpleButtonWithId "deleteButton" "Delete account" disabled Delete
+    li [] [simpleButtonWithId "preferencesButton"  "Preferences"     disabled  Preferences]
+  , li [] [simpleButtonWithId "passphraseButton"   "Passphrase"      disabled  ChangePassword]
+  , li [] [simpleButtonWithId "deviceButton"       "Device PIN"      false     Pin]
+  , li [] [simpleButtonWithId "deleteButton"       "Delete account"  disabled  Delete]
   ])
 , Tuple false (\b -> submenu b (simpleButton "Data" false unit) [
-    simpleButtonWithId "exportButton" "Export" false Export
-  , simpleButtonWithId "importButton" "Import" disabled Import
+    li [] [simpleButtonWithId "importButton"       "Import"          disabled  Import]
+  , li [] [simpleButtonWithId "exportButton"       "Export"          false     Export]
   ])
-, Tuple true (\b -> submenu b (text "") [simpleButtonWithId "aboutButton" "About" false About])
-, Tuple true (\b -> submenu b (text "") [simpleButtonWithId "lockButton" "Lock" false VLock])
-, Tuple true (\b -> submenu b (text "") [simpleButtonWithId "logoutButton" "Logout" false VLogout])
+, Tuple true (\b -> submenu b (text "") [simpleButtonWithId "aboutButton"   "About"   false About])
+, Tuple true (\b -> submenu b (text "") [simpleButtonWithId "lockButton"    "Lock"    false VLock])
+, Tuple true (\b -> submenu b (text "") [simpleButtonWithId "logoutButton"  "Logout"  false VLogout])
 ]
   where
     disabled = case proxyConnectionStatus of
@@ -63,14 +63,37 @@ defaultMenu proxyConnectionStatus = [
 
 
 userAreaWidget :: Boolean -> ProxyConnectionStatus -> Widget HTML UserAreaAction
-userAreaWidget hidden proxyConnectionStatus = userAreaView hidden (defaultMenu proxyConnectionStatus) (div [NoAction <$ Props.onClick] [])
+userAreaWidget hidden proxyConnectionStatus =
+  userAreaView hidden (defaultMenu proxyConnectionStatus) (div [NoAction <$ Props.onClick, Props.className "userAreaView"] [])
 
   where 
+    userAreaList :: forall a. Array (SubmenuVoice a) -> Widget HTML (Tuple (Array (SubmenuVoice a)) a)
     userAreaList arr = complexMenu (Just "userSidebar") Nothing arr
 
+    userAreaView :: Boolean -> Array (SubmenuVoice UserAreaListVoice) -> Widget HTML UserAreaAction -> Widget HTML UserAreaAction
+    userAreaView hidden' arr area = do
+      let userPageClassName = if hidden' then "closed" else "open"
+      -- let openCloseLabel = (if hidden' then "Open" else "Close") <> " user area"
+      res <- div [Props._id "userPage", Props.className userPageClassName] [
+        CloseUserArea <$ div [Props.className "mask", Props.onClick] [],
+        div [Props.className "panel"] [
+          CloseUserArea <$ header [] [div [] [button [Props.onClick] [text "menu"]]],
+          -- div [Props.className "userSidebarTop"] [
+          --   simpleButton openCloseLabel false CloseUserArea
+          -- ],
+          userAreaView' hidden' (userAreaList arr) area,
+          footer [] [text "footer"]
+        ]
+      ]
+      case res of
+        -- CloseUserArea -> userAreaView (not hidden') arr area
+        CloseUserArea -> userAreaView true arr area
+        UserAction ac -> pure $ ac
+        MenuAction (Tuple newMenus ac) -> userAreaView false newMenus (userAreaInternalView ac)
+
     userAreaView' :: Boolean -> Widget HTML (Tuple (Array (SubmenuVoice UserAreaListVoice)) UserAreaListVoice) -> Widget HTML UserAreaAction -> Widget HTML UserAreaInternalAction
-    userAreaView' hidden menu area = 
-      let hiddenClass = if hidden then " hidden" else ""
+    userAreaView' hidden' menu area = 
+      let hiddenClass = if hidden' then " hidden" else ""
       in div [Props.className ("userSidebarOverlay" <> hiddenClass)] [ 
         UserAction <$> area
       , MenuAction <$> menu
@@ -79,30 +102,19 @@ userAreaWidget hidden proxyConnectionStatus = userAreaView hidden (defaultMenu p
     userAreaInternalView :: UserAreaListVoice -> Widget HTML UserAreaAction
     userAreaInternalView choice = 
       case choice of
-        Export -> div [Props.className "forUser"] [(NoAction) <$ exportWidget]
-        Import -> div [Props.className "forUser"] [Loaded <$> importWidget]
-        Pin -> div [Props.className "forUser"] [setPinWidget Default]
-        Delete -> div [Props.className "forUser"] [DeleteAccount <$ deleteUserWidget]
-        Preferences -> div [Props.className "forUser"] [(NoAction) <$ userPreferencesWidget Default]
-        ChangePassword -> div [Props.className "forUser"] [changePasswordWidget Default emptyChangePasswordDataForm]
-        VLock -> pure Lock
-        VLogout -> pure Logout
-        About -> div [Props.className "forUser"] [text "This is Clipperz"]
+        Export          -> frame (NoAction      <$  exportWidget)
+        Import          -> frame (Loaded        <$> importWidget)
+        Pin             -> frame (setPinWidget Default)
+        Delete          -> frame (DeleteAccount <$  deleteUserWidget)
+        Preferences     -> frame (NoAction  <$ userPreferencesWidget Default)
+        ChangePassword  -> frame (changePasswordWidget Default emptyChangePasswordDataForm)
+        VLock           -> pure Lock
+        VLogout         -> pure Logout
+        About           -> frame (text "This is Clipperz")
 
-    userAreaView :: Boolean -> Array (SubmenuVoice UserAreaListVoice) -> Widget HTML UserAreaAction -> Widget HTML UserAreaAction
-    userAreaView hidden arr area = do
-      let userPageClassName = if hidden then "closed" else "open"
-      let openCloseLabel = (if hidden then "Open" else "Close") <> " user area"
-      res <- div [Props._id "userPage", Props.className userPageClassName] [
-        OpenClose <$ div [Props.className "mask", Props.onClick] [],
-        div [Props.className "panel"] [
-          div [Props.className "userSidebarTop"] [
-            simpleButton openCloseLabel false OpenClose
-          ],
-          userAreaView' hidden (userAreaList arr) area
+      where
+        frame :: Widget HTML UserAreaAction -> Widget HTML UserAreaAction
+        frame c = div [Props.className "extraFeatureContent"] [
+          header [] [div [] [button [] [text "close"]]],
+          c
         ]
-      ]
-      case res of
-        OpenClose -> userAreaView (not hidden) arr area
-        UserAction ac -> pure $ ac
-        MenuAction (Tuple newMenus ac) -> userAreaView false newMenus (userAreaInternalView ac)

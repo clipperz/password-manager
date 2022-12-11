@@ -16,11 +16,10 @@ div#homePage {
                 display: flex;
                 flex-direction: row;
                 height: 48px;
-                padding: 6px;
-                padding-bottom: 0px;
                 justify-content: space-between;
         
                 div {
+                    padding: 4px;
                     // flex: 0;
                     button {
                         background-color: inherit;
@@ -31,7 +30,7 @@ div#homePage {
                         font-feature-settings: "liga" 1, "dlig" 1;
                         text-rendering: optimizeLegibility;
                     }
-        
+
                     &.tags {
                         button {
                             cursor: pointer;
@@ -39,7 +38,13 @@ div#homePage {
                         // flex: 1;
         
                     }
-            
+
+                    &.selection {
+                        button {
+                            font-size: 28pt;
+                        }
+                    }
+
                     &.menu {
                         button {
                             cursor: pointer;

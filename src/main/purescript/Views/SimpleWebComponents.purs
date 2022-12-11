@@ -7,6 +7,7 @@ module Views.SimpleWebComponents
   , clickableListItemWidget
   , complexMenu
   , complexMenu'
+  , MenuStatus(..)
   , confirmationWidget
   , disableOverlay
   , disabledSimpleTextInputWidget
@@ -42,7 +43,7 @@ module Views.SimpleWebComponents
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopW, demand, debounce, loopS, display, step)
 import Concur.React (HTML)
-import Concur.React.DOM (text, textarea, input, label, div', div, button, li)
+import Concur.React.DOM (text, textarea, input, label, div', div, button, ul, li)
 import Concur.React.Props as Props
 import Control.Alt (class Alt, (<|>))
 import Control.Applicative (pure)
@@ -285,85 +286,102 @@ confirmationWidget message = div [(Props.className "disableOverlay")] [
 , simpleButton "No" false false
 ]
 
-data SubMenuAction' a = OpenSubMenu' | CloseSubMenu' | ClickOnVoice' a
+data MenuStatus = MenuOpen | MenuClosed
+data SubMenuAction  a = OpenCloseMenu | ClickOnVoice a
+data SubMenuAction' a = OpenSubMenu'  | CloseSubMenu' | ClickOnVoice' a
 
-submenu' :: forall a b. Boolean -> Widget HTML b -> Array (Widget HTML a) -> Widget HTML a
-submenu' false b1 bs = do
+type SubmenuVoice' a = Tuple MenuStatus (MenuStatus -> Widget HTML a)
+
+submenu' :: forall a b. MenuStatus -> Widget HTML b -> Array (Widget HTML a) -> Widget HTML a
+submenu' MenuClosed b1 bs = do
   res <- OpenSubMenu' <$ div [] [b1]
   case res of
-    OpenSubMenu' -> submenu' true b1 bs
-    CloseSubMenu' -> submenu' false b1 bs
+    OpenSubMenu'  -> submenu' MenuOpen   b1 bs
+    CloseSubMenu' -> submenu' MenuClosed b1 bs
     ClickOnVoice' a -> pure a
-submenu' true b1 bs = do
+submenu' MenuOpen b1 bs = do
   res <- div [] $ [CloseSubMenu' <$ b1] <> (((<$>) ClickOnVoice') <$> bs)
   case res of
-    OpenSubMenu' -> submenu' true b1 bs
-    CloseSubMenu' -> submenu' false b1 bs
+    OpenSubMenu'  -> submenu' MenuOpen   b1 bs
+    CloseSubMenu' -> submenu' MenuClosed b1 bs
     ClickOnVoice' a -> pure a
 
-type SubmenuVoice' a = Tuple Boolean (Boolean -> Widget HTML a)
-
-complexMenu' :: forall a. Array (SubmenuVoice' a) -> Array (Widget HTML (Tuple (Array Boolean) a))
+complexMenu' :: forall a. Array (SubmenuVoice' a) -> Array (Widget HTML (Tuple (Array MenuStatus) a))
 complexMenu' arr = 
-  let indexes = range 0 ((length arr) - 1)
-      newArr = zipWith (\i -> \t -> { index: i, tuple: t}) indexes arr
-      booleans = fst <$> arr
-      mapFunc = \{index, tuple: (Tuple open f)} -> (\v -> Tuple (fromMaybe booleans (updateAt index true booleans)) v) <$> f open
+  let indexes   = range 0 ((length arr) - 1)                              :: Array Int
+      newArr    = zipWith (\i -> \t -> { index: i, tuple: t}) indexes arr :: Array {index::Int, tuple::SubmenuVoice' a}
+      menuStati = fst <$> arr                                             :: Array MenuStatus
+      mapFunc = \{index, tuple: (Tuple open f)} -> (\v -> Tuple (fromMaybe menuStati (updateAt index MenuOpen menuStati)) v) <$> f open
   in mapFunc <$> newArr
 
-data SubMenuAction a = OpenCloseMenu | ClickOnVoice a
 
 submenu :: forall a b. Boolean -> Widget HTML b -> Array (Widget HTML a) -> Widget HTML (Either Boolean a)
 submenu showing b1 bs = do
   -- res <- div [] $ [OpenCloseMenu <$ b1] <> (if showing then (((<$>) ClickOnVoice) <$> bs) else [])
-  let showingProp = if showing then [] else [Props.className "hidden"]
-  res <- div [] $ [OpenCloseMenu <$ b1] <> [(div showingProp (((<$>) ClickOnVoice) <$> bs))]
+  let showingProp = if showing then [Props.className "userSidebarSubitems"] else [Props.className "userSidebarSubitems hidden"]
+  res <- li [] $ [OpenCloseMenu <$ b1] <> [(ul showingProp (((<$>) ClickOnVoice) <$> bs))]
   case res of
     OpenCloseMenu -> pure $ Left (not showing)
     ClickOnVoice a -> pure $ Right a
 
+--  Each `SubmenuVoice` can be thought as a menu section, with an open/close status
 type SubmenuVoice a = Tuple Boolean (Boolean -> Widget HTML (Either Boolean a))
 
 type IntermediateWidget a = Widget HTML (Either (Array Boolean) a)
 
+--  Given a series of sections (arr :: Array (SumbenuVoice a)) they are bound to an index, so that a sorted list of sections is available (newArr)
 complexMenu :: forall a. Maybe String -> Maybe String -> Array (SubmenuVoice a) -> Widget HTML (Tuple (Array (SubmenuVoice a)) a)
 complexMenu mId mClass arr = do
-  let pid = fromMaybe [] ((\id -> [Props._id id]) <$> mId)
-  let pclass = fromMaybe [] ((\c -> [Props.className c]) <$> mClass) 
-  inter <- div (pid <> pclass) (fromVoiceToWidget <$> newArr)
+  let pid    = fromMaybe [] ((\id -> [Props._id id])      <$> mId)
+  let pclass = fromMaybe [] (( \c -> [Props.className c]) <$> mClass) 
+  inter <- ul (pid <> pclass) (fromVoiceToWidget <$> newArr)
   case inter of
-    Right a -> pure $ Tuple arr a
-    Left bs -> complexMenu mId mClass $ redraw bs
+    Right a   -> pure $ Tuple arr a   --  If a subitem is selected, it is returned with the whole status (open/close) of all other sections.
+    Left  bs  -> complexMenu mId mClass $ redraw bs
 
   where
+    indexes :: Array Int
     indexes = range 0 ((length arr) - 1)
+
+    newArr :: Array {index :: Int , tuple :: SubmenuVoice a }
     newArr = zipWith (\i -> \t -> { index: i, tuple: t}) indexes arr
+
+    booleans :: Array Boolean
     booleans = fst <$> arr
     
+    --  new stati are bound to function for drawing widgets
     redraw :: Array Boolean -> Array (SubmenuVoice a)
     redraw newBoolean = zipWith (\b -> \(Tuple _ f) -> Tuple b f) newBoolean arr
 
+    --  Ogni sezione della serie ordinata è quindi descritta da:
+    --  Each section in the sorted serires is thus defined with:
+    --  - position on the menu 
+    --  - whether it is open or close
+    --  - a function that can draw the matching widget, given its status (open/close)
+    --  The menu item widget may return either a change in status of the widget itself (open/close) or whether a subitems has been clicked.
+    fromVoiceToWidget :: { index :: Int, tuple :: SubmenuVoice a } -> Widget HTML (Either (Array Boolean) a)
     fromVoiceToWidget { index, tuple: (Tuple b f) } = do
       res <- f b
       case res of 
-        Left bool -> pure $ Left $ fromMaybe booleans (updateAt index bool booleans)
-        Right a -> pure $ Right a
+        Left bool -> pure $ Left  $ fromMaybe booleans (updateAt index bool booleans) --  If a section is opened/closed the array with all the stati of the sections,
+                                                                                      --  and the item at the matching position is updated
+        Right a   -> pure $ Right a   --  If a subitem is selected, it is returned with the whole status (open/close) of all other sections.
 
 ------------------------------------
 
 data OnDraggableEvents a b = StartDrag a | EndDrag a | Dragging a | Value b
 instance showOnDraggableEvents :: Show (OnDraggableEvents a b) where
-  show (StartDrag a) = "StartDrag"
-  show (EndDrag a) = "EndDrag"
-  show (Dragging a) = "Dragging"
-  show (Value b) = "Value"
+  show (StartDrag a)  = "StartDrag"
+  show (EndDrag   a)  = "EndDrag"
+  show (Dragging  a)  = "Dragging"
+  show (Value     b)  = "Value"
 
 data OnDropAreaEvents a = EvDrop a | EvDragEnter a | EvDragLeave a | EvDragOver a
 instance showOnDropAreaEvents :: Show (OnDropAreaEvents a) where
-  show (EvDrop a) = "EvDrop"
-  show (EvDragEnter a) = "EvDragEnter"
-  show (EvDragLeave a) = "EvDragLeave"
-  show (EvDragOver a) = "EvDragOver"
+  show (EvDrop      a)  = "EvDrop"
+  show (EvDragEnter a)  = "EvDragEnter"
+  show (EvDragLeave a)  = "EvDragLeave"
+  show (EvDragOver  a)  = "EvDragOver"    --  menu is redrawn [366?]
 
 newtype DraggableWidgetResult a = DraggableWidgetResult { isDragging :: Boolean, exitState :: a }
 instance showDraggableWidgetResult :: Show (DraggableWidgetResult a) where
@@ -372,16 +390,17 @@ instance showDraggableWidgetResult :: Show (DraggableWidgetResult a) where
 draggableWidget :: forall a. Boolean -> a -> (a -> Widget HTML a) -> Widget HTML (DraggableWidgetResult a)
 draggableWidget isDragging initialState widgetFunc = do
   res <- div ([ Props.draggable true
-              , Props.classList [Just "draggableElem", (if isDragging then Just "draggingElem" else Nothing)]]
+              , Props.classList [Just "draggableElem", (if isDragging then Just "draggingElem" else Nothing)]
+              ]
               <> if isDragging then [EndDrag <$> Props.onDragEnd] else [StartDrag <$> Props.onDragStart]
               ) 
-            [Value <$> (widgetFunc initialState), text (show isDragging)]
+              [Value <$> (widgetFunc initialState), text (show isDragging)]
   case res of
     -- do not prevent defaults, otherwise strange behaviours occur
     StartDrag ev -> pure $ DraggableWidgetResult { isDragging: true, exitState: initialState }
-    EndDrag ev -> pure $ DraggableWidgetResult { isDragging: false, exitState: initialState }
-    Dragging ev -> pure $ DraggableWidgetResult { isDragging: true, exitState: initialState }
-    Value a -> pure $ DraggableWidgetResult { isDragging, exitState: a }
+    EndDrag   ev -> pure $ DraggableWidgetResult { isDragging: false, exitState: initialState }
+    Dragging  ev -> pure $ DraggableWidgetResult { isDragging: true, exitState: initialState }
+    Value     a  -> pure $ DraggableWidgetResult { isDragging, exitState: a }
 
 data RemovableDraggableWidgetResult a = Remove | Result (DraggableWidgetResult a)
 
@@ -399,7 +418,6 @@ removableDraggableWidget isDragging initialState widgetFunc = do
       ]
 
 type DroppableAreaResult = { isSelected :: Boolean, result :: (OnDropAreaEvents SyntheticMouseEvent) }
-
 type IndexedResult a = {index :: Int, result :: a}
 
 droppableArea :: Boolean -> Widget HTML DroppableAreaResult
@@ -422,14 +440,14 @@ droppableArea isSelected = do
       liftEffect $ preventDefault ev
       pure { isSelected: false, result }
 
-type DraggableWidget a = Widget HTML (DraggableWidgetResult a)
-type DraggableWidgetType a = { widgetFunc :: a -> Widget HTML a, widget :: DraggableWidget a } 
-type RemovableDraggableWidget a = Widget HTML (RemovableDraggableWidgetResult a)
-type RemovableDraggableWidgetType a = { widgetFunc :: a -> Widget HTML a, widget :: RemovableDraggableWidget a } 
-type DroppableWidget = Widget HTML DroppableAreaResult
-type DraggableSupportType a = { widgetFunc :: a -> Widget HTML a, result :: DraggableWidgetResult a }
-type RemovableDraggableSupportType a = { widgetFunc :: a -> Widget HTML a, result :: RemovableDraggableWidgetResult a }
-type SelectedDraggableInfo a = { index :: Int, state :: a, widgetFunc :: (a -> Widget HTML a) }
+type DraggableWidget                a = Widget HTML (DraggableWidgetResult a)
+type DraggableWidgetType            a = { widgetFunc :: a -> Widget HTML a, widget :: DraggableWidget a } 
+type RemovableDraggableWidget       a = Widget HTML (RemovableDraggableWidgetResult a)
+type RemovableDraggableWidgetType   a = { widgetFunc :: a -> Widget HTML a, widget :: RemovableDraggableWidget a } 
+type DroppableWidget                  = Widget HTML DroppableAreaResult
+type DraggableSupportType           a = { widgetFunc :: a -> Widget HTML a, result :: DraggableWidgetResult a }
+type RemovableDraggableSupportType  a = { widgetFunc :: a -> Widget HTML a, result :: RemovableDraggableWidgetResult a }
+type SelectedDraggableInfo          a = { index :: Int, state :: a, widgetFunc :: (a -> Widget HTML a) }
 
 -- | TODO: THIS IS BROKEN
 dragAndDropList :: forall a. Array (Tuple a (a -> Widget HTML a)) -> Widget HTML a
