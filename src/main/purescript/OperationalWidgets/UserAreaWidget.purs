@@ -13,7 +13,7 @@ import Data.Eq (class Eq)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.HeytingAlgebra (not)
-import Data.List (List(..))
+import Data.List (List(..), (:))
 import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Tuple (Tuple(..))
@@ -38,7 +38,7 @@ data UserAreaListVoice = Export | Import | Pin | Delete | Preferences | ChangePa
 
 derive instance eqUserAreaListVoice :: Eq UserAreaListVoice
 
-data UserAreaInternalAction = MenuAction (Tuple (Array (SubmenuVoice UserAreaListVoice)) UserAreaListVoice) | UserAction UserAreaAction | CloseUserArea
+data UserAreaInternalAction = MenuAction (Tuple (Array (SubmenuVoice UserAreaListVoice)) UserAreaListVoice) | UserAction (Maybe UserAreaAction) | CloseUserArea
 
 defaultMenu :: ProxyConnectionStatus -> Array (SubmenuVoice UserAreaListVoice)
 defaultMenu proxyConnectionStatus = [
@@ -61,45 +61,35 @@ defaultMenu proxyConnectionStatus = [
       ProxyOnline   -> false
       ProxyOffline  -> true
 
-
 userAreaWidget :: Boolean -> ProxyConnectionStatus -> Widget HTML UserAreaAction
-userAreaWidget hidden proxyConnectionStatus =
-  userAreaView hidden (defaultMenu proxyConnectionStatus) (div [NoAction <$ Props.onClick, Props.className "userAreaView"] [])
-
+userAreaWidget hidden proxyConnectionStatus = userAreaView hidden (defaultMenu proxyConnectionStatus) emptyUserComponent
   where 
+    emptyUserComponent :: Widget HTML (Maybe UserAreaAction)
+    emptyUserComponent = (div [(Just NoAction) <$ Props.onClick, Props.className "extraFeatureContent"] [])
+
     userAreaList :: forall a. Array (SubmenuVoice a) -> Widget HTML (Tuple (Array (SubmenuVoice a)) a)
     userAreaList arr = complexMenu (Just "userSidebar") Nothing arr
 
-    userAreaView :: Boolean -> Array (SubmenuVoice UserAreaListVoice) -> Widget HTML UserAreaAction -> Widget HTML UserAreaAction
+    userAreaView :: Boolean -> Array (SubmenuVoice UserAreaListVoice) -> Widget HTML (Maybe UserAreaAction) -> Widget HTML UserAreaAction
     userAreaView hidden' arr area = do
       let userPageClassName = if hidden' then "closed" else "open"
-      -- let openCloseLabel = (if hidden' then "Open" else "Close") <> " user area"
       res <- div [Props._id "userPage", Props.className userPageClassName] [
         CloseUserArea <$ div [Props.className "mask", Props.onClick] [],
         div [Props.className "panel"] [
           CloseUserArea <$ header [] [div [] [button [Props.onClick] [text "menu"]]],
-          -- div [Props.className "userSidebarTop"] [
-          --   simpleButton openCloseLabel false CloseUserArea
-          -- ],
-          userAreaView' hidden' (userAreaList arr) area,
+          div [] [MenuAction <$> (userAreaList arr)],
           footer [] [text "footer"]
-        ]
+        ],
+        UserAction <$> area
       ]
       case res of
-        -- CloseUserArea -> userAreaView (not hidden') arr area
         CloseUserArea -> userAreaView true arr area
-        UserAction ac -> pure $ ac
+        UserAction maybeUserAreaAction -> case maybeUserAreaAction of
+          Just ac -> pure $ ac 
+          Nothing -> userAreaView false arr emptyUserComponent
         MenuAction (Tuple newMenus ac) -> userAreaView false newMenus (userAreaInternalView ac)
 
-    userAreaView' :: Boolean -> Widget HTML (Tuple (Array (SubmenuVoice UserAreaListVoice)) UserAreaListVoice) -> Widget HTML UserAreaAction -> Widget HTML UserAreaInternalAction
-    userAreaView' hidden' menu area = 
-      let hiddenClass = if hidden' then " hidden" else ""
-      in div [Props.className ("userSidebarOverlay" <> hiddenClass)] [ 
-        UserAction <$> area
-      , MenuAction <$> menu
-      ]  
-    
-    userAreaInternalView :: UserAreaListVoice -> Widget HTML UserAreaAction
+    userAreaInternalView :: UserAreaListVoice -> Widget HTML (Maybe UserAreaAction)
     userAreaInternalView choice = 
       case choice of
         Export          -> frame (NoAction      <$  exportWidget)
@@ -108,13 +98,13 @@ userAreaWidget hidden proxyConnectionStatus =
         Delete          -> frame (DeleteAccount <$  deleteUserWidget)
         Preferences     -> frame (NoAction  <$ userPreferencesWidget Default)
         ChangePassword  -> frame (changePasswordWidget Default emptyChangePasswordDataForm)
-        VLock           -> pure Lock
-        VLogout         -> pure Logout
+        VLock           -> pure $ Just Lock
+        VLogout         -> pure $ Just Logout
         About           -> frame (text "This is Clipperz")
 
       where
-        frame :: Widget HTML UserAreaAction -> Widget HTML UserAreaAction
-        frame c = div [Props.className "extraFeatureContent"] [
-          header [] [div [] [button [] [text "close"]]],
-          c
+        frame :: Widget HTML UserAreaAction -> Widget HTML (Maybe UserAreaAction)
+        frame c = div [Props.classList $ Just <$> ["extraFeatureContent", "open"]] [
+          Nothing <$ header [] [div [] [button [Props.onClick] [text "close"]]],
+          Just <$> c
         ]
