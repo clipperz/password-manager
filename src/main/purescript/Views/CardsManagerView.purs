@@ -54,7 +54,7 @@ instance showCardView :: Show CardView where
   show (JustCard c) = "JustCard " <> show c
   show (CardForm c) = "CardForm " <> show c
 
-data InternalAction = CardViewAction CardViewAction | ChangeFilter ComplexIndexFilter | KeyBoardAction Events.SyntheticKeyboardEvent 
+data InternalAction = CardViewAction CardViewAction | ChangeFilter ComplexIndexFilter | KeyBoardAction Events.SyntheticKeyboardEvent | ShowFilters FilterViewStatus
 
 type CardsViewInfo = {
   index :: Index
@@ -64,39 +64,49 @@ type CardsViewInfo = {
 , error :: Maybe AppError
 }
 
+data FilterViewStatus = FilterViewClosed | FilterViewOpen
+
 mkCardsViewInfo :: Index -> ComplexIndexFilter -> Maybe Int -> CardViewState -> Maybe AppError -> CardsViewInfo
 mkCardsViewInfo index indexFilter selectedIndexPosition cardViewState error = { index, indexFilter, selectedIndexPosition, cardViewState, error }
 
+getClassNameFromFilterStatus :: FilterViewStatus -> String
+getClassNameFromFilterStatus status = case status of
+  FilterViewClosed  -> ""
+  FilterViewOpen    -> "open"
+
 -- cardsManagerView :: Boolean -> Index -> ComplexIndexFilter -> CardViewState -> Maybe AppError -> Widget HTML (Tuple ComplexIndexFilter CardViewAction)
-cardsManagerView :: ProxyConnectionStatus -> CardsViewInfo -> Widget HTML (Tuple CardsViewInfo CardViewAction)
-cardsManagerView proxyConnectionStatus currentInfo@{ index: i@(Index entries)
-                                       , indexFilter: cif@{archived, indexFilter}
-                                       , selectedIndexPosition
-                                       , cardViewState: cvs@{ cardView: cv, cardViewState } 
-                                       , error} = do 
+cardsManagerView :: ProxyConnectionStatus -> FilterViewStatus -> CardsViewInfo -> Widget HTML (Tuple CardsViewInfo CardViewAction)
+cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(Index entries)
+                                                                    , indexFilter: cif@{archived, indexFilter}
+                                                                    , selectedIndexPosition
+                                                                    , cardViewState: cvs@{ cardView: cv, cardViewState } 
+                                                                    , error} = do 
   let cEntry = case cv of 
                 CardFromReference ce -> Just ce
                 _ -> Nothing
   res <- div [Props._id "cardsManager", KeyBoardAction <$> Props.onKeyDown] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
-    ChangeFilter <$> div [Props._id "filterView"] [
-      prepareFilter <$> ol [][
-        getFilterListElement NoFilter "All"
-      , getFilterListElement RecentFilter "Recent (TODO)"
-      , getFilterListElement UntaggedFilter "Untagged"
+    div [Props._id "filterView", Props.className $ getClassNameFromFilterStatus filterViewStatus] [
+      (ShowFilters FilterViewClosed) <$ div [Props.onClick, Props.className "mask"] []
+    , (ChangeFilter <<< prepareFilter) <$> div [Props.className "content"] [
+        ol [][
+          getFilterListElement NoFilter "All"
+        , getFilterListElement RecentFilter "Recent (TODO)"
+        , getFilterListElement UntaggedFilter "Untagged"
+        ]
+      , GeneralFilter <$> div [Props._id "generalFilterArea"] [simpleTextInputWidgetWithFocus "generalFilter" (text "Search") "Search" currentGeneralFilter]
+      , div [] [
+          text "Tags"
+        , ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag) <$> shownSortedTags)
+        ]
       ]
-    , (prepareFilter <<< GeneralFilter) <$> div [Props._id "generalFilterArea"] [simpleTextInputWidgetWithFocus "generalFilter" (text "Search") "Search" currentGeneralFilter]
-    , prepareFilter <$> div [] [
-      text "Tags"
-      ,  ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag) <$> shownSortedTags)
-      ]
-    , toggleArchivedButton
+    , ChangeFilter <$> toggleArchivedButton
     ]
   , div [Props.className "cardToolbarFrame"] [
     --   div [Props._id "filterHeader"] [
       header [] [
-        div [Props.className "tags"] [button [] [text "tags"]],
+        (ShowFilters FilterViewOpen) <$ div [Props.className "tags"] [button [Props.onClick] [text "tags"]],
         div [Props.className "selection"] [button [] [getFilterHeader indexFilter]],
-        div [Props.className "menu"] [(CardViewAction ShowUserArea) <$ button [Props.onClick] [text "menu"]]
+        (CardViewAction ShowUserArea) <$ div [Props.className "menu"] [button [Props.onClick] [text "menu"]]
       ]
     , div [Props._id "mainView" ] [
         div [Props._id "indexView"] [
@@ -114,7 +124,7 @@ cardsManagerView proxyConnectionStatus currentInfo@{ index: i@(Index entries)
     ]
   ]
   case res of
-    CardViewAction (ShowCard ref) -> cardsManagerView proxyConnectionStatus {
+    CardViewAction (ShowCard ref) -> cardsManagerView proxyConnectionStatus filterViewStatus {
         index: i
       , indexFilter: (removeLastCardFilter cif (Just ref))
       , selectedIndexPosition: elemIndex ref sortedFilteredEntries
@@ -122,17 +132,18 @@ cardsManagerView proxyConnectionStatus currentInfo@{ index: i@(Index entries)
       , error: Nothing
     }
     CardViewAction action -> pure $ Tuple (currentInfo { indexFilter = (removeLastCardFilter cif Nothing) }) action
+    ShowFilters status -> cardsManagerView proxyConnectionStatus status currentInfo
     ChangeFilter newFilter -> do
       let f = complexToFilterFunc lastUses newFilter
       case cv of
-        CardFromReference ref ->  cardsManagerView proxyConnectionStatus {
+        CardFromReference ref ->  cardsManagerView proxyConnectionStatus FilterViewClosed {
             index: i
           , indexFilter: newFilter
           , selectedIndexPosition
           , cardViewState: if f ref then cvs else { cardView: NoCard, cardViewState }
           , error: Nothing
         }
-        _ -> cardsManagerView proxyConnectionStatus {
+        _ -> cardsManagerView proxyConnectionStatus FilterViewClosed {
             index: i
           , indexFilter: newFilter
           , selectedIndexPosition
@@ -154,7 +165,7 @@ cardsManagerView proxyConnectionStatus currentInfo@{ index: i@(Index entries)
         "s" ->          keyboardAction moveDownInfo
         "ArrowDown" ->  keyboardAction moveDownInfo
         _  ->           keyboardAction currentInfo
-      where keyboardAction = cardsManagerView proxyConnectionStatus
+      where keyboardAction = cardsManagerView proxyConnectionStatus filterViewStatus
 
   where
     closeCardInfo = 

@@ -27,7 +27,7 @@ import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Users (updateIndex)
-import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState, CardsViewInfo, mkCardsViewInfo)
+import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState, CardsViewInfo, mkCardsViewInfo, FilterViewStatus(..))
 import Views.IndexView (IndexFilter(..), ComplexIndexFilter, addLastCardFilterInOr, removeAllLastCardFilter)
 
 data CardsManagerAction = OpenUserArea
@@ -42,7 +42,7 @@ cardsManagerWidget proxyConnectionStatus ind cardViewState =
              , cardViewState: { cardView: NoCard, cardViewState: Default }
              , error: Nothing
              }
-  in go info (cardsManagerView proxyConnectionStatus) Nothing
+  in go info (cardsManagerView proxyConnectionStatus FilterViewClosed) Nothing
 
   where
     go :: CardsViewInfo -> (CardsViewInfo -> Widget HTML (Tuple CardsViewInfo CardViewAction)) -> Maybe (Aff CardsViewResult) -> Widget HTML CardsManagerAction

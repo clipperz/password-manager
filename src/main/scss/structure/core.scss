@@ -34,6 +34,7 @@ html {
                 div#filterView {
                     display: none;
                     visibility: hidden;
+                    z-index: 20;
                 }
                 div.cardToolbarFrame {
                     width: 100%;
@@ -79,13 +80,14 @@ html {
                     }
 
                     div.mask {
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        z-index: 10;
-                        background-color: rgba(0, 0, 0, 0.5);                    
+                        @include mask();
+                        // position: absolute;
+                        // top: 0;
+                        // left: 0;
+                        // width: 100%;
+                        // height: 100%;
+                        // z-index: 10;
+                        // background-color: rgba(0, 0, 0, 0.5);                    
                     }
 
                     div.extraFeatureContent {
@@ -117,6 +119,20 @@ html {
     //  extra-small
     div.page.main {
         div#homePage {
+            div#cardsManager {
+                div#filterView {
+                    display: none;
+                    visibility: hidden;
+
+                    &.open {
+                        display: block;
+                        visibility: visible;
+
+                        @include mask();
+                    }
+                }
+            }
+
             #userPage.open {
                 .extraFeatureContent.open {
                     position: fixed;
@@ -146,6 +162,12 @@ html {
                 div#filterView {
                     display: none;
                     visibility: hidden;
+
+                    &.open {
+                        display: block;
+                        visibility: visible;
+                        @include mask();
+                    }
                 }
                 div.cardToolbarFrame {
                     header {
