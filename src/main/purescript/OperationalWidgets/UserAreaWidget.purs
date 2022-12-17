@@ -83,7 +83,7 @@ userAreaWidget hidden proxyConnectionStatus = userAreaView hidden (defaultMenu p
         UserAction <$> area
       ]
       case res of
-        CloseUserArea -> userAreaView true arr area
+        CloseUserArea -> userAreaView true arr emptyUserComponent
         UserAction maybeUserAreaAction -> case maybeUserAreaAction of
           Just ac -> pure $ ac 
           Nothing -> userAreaView false arr emptyUserComponent
