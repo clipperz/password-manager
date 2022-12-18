@@ -1,4 +1,5 @@
 @import "behavior.scss";
+@import "../style/palette.scss";
 
 html {
     position: fixed;
@@ -9,9 +10,24 @@ html {
 
         div.page {
             @include pageElement();
+			
+			div#filterView {
+				max-width: 20%;
 
+				div#archivedFilterArea {
+					position: absolute;
+					bottom: 0px;
+					z-index: 20;
+				}
+			}
+			
             div.content {
                 height: 100%;
+				z-index: 20;
+				position: relative;
+				background-color: $core-alternate-color;
+				// position: fixed;
+				// z-index: 20;
                 overflow: auto;
             }
         }
@@ -34,7 +50,6 @@ html {
                 div#filterView {
                     display: none;
                     visibility: hidden;
-                    z-index: 20;
                 }
                 div.cardToolbarFrame {
                     width: 100%;
@@ -78,9 +93,10 @@ html {
                         z-index: 20;
                         width: $panelWidth;
                     }
+					
+					@include mask();
 
                     div.mask {
-                        @include mask();
                         // position: absolute;
                         // top: 0;
                         // left: 0;
@@ -106,11 +122,11 @@ html {
                     div.mask {
                         display: none;
                         visibility: hidden;
-                        // background-color: rgba(255, 255, 255, 0.5);                    
+                        // background-color: rgba(255, 255, 255, 0.5);
                     }
                 }
 
-            }            
+            }
         }
     }
 }
@@ -203,6 +219,9 @@ html {
                 div#filterView {
                     display: block;
                     visibility: visible;
+					.mask {
+						visibility: hidden;
+					}
                 }
                 div.cardToolbarFrame {
                     header {

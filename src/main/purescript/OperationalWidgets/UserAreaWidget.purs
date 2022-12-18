@@ -74,7 +74,7 @@ userAreaWidget hidden proxyConnectionStatus = userAreaView hidden (defaultMenu p
     userAreaView hidden' arr area = do
       let userPageClassName = if hidden' then "closed" else "open"
       res <- div [Props._id "userPage", Props.className userPageClassName] [
-        CloseUserArea <$ div [Props.className "mask", Props.onClick] [],
+        CloseUserArea <$ div [Props.onClick, Props.className "mask"] [], --TODO - doesn't work
         div [Props.className "panel"] [
           CloseUserArea <$ header [] [div [] [button [Props.onClick] [text "menu"]]],
           div [] [MenuAction <$> (userAreaList arr)],

@@ -99,7 +99,7 @@ div#homePage {
         
                     ol {
                         padding-bottom: 100px;
-                        background-color: gray;
+						background-color: #1863a1;
                         li {
                             cursor: pointer;
                             border-bottom: 1px solid #eee;
@@ -118,10 +118,15 @@ div#homePage {
                             line-height: 1.2em;
 
                             &.selected {
-                                margin-left: 10px;
+                                margin-left: 40px;
                                 padding-right: 0px;
                                 box-shadow: -4px 0px 3px -1px rgba(0, 0, 0, 0.2);                                
                             }
+
+							&.archived {
+								background-color: #eeeeee;
+								color: #999;
+							}
                         }
                     }
                 }

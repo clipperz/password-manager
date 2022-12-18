@@ -136,14 +136,14 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
     ChangeFilter newFilter -> do
       let f = complexToFilterFunc lastUses newFilter
       case cv of
-        CardFromReference ref ->  cardsManagerView proxyConnectionStatus FilterViewClosed {
+        CardFromReference ref ->  cardsManagerView proxyConnectionStatus (setFilterViewStatus indexFilter) {
             index: i
           , indexFilter: newFilter
           , selectedIndexPosition
           , cardViewState: if f ref then cvs else { cardView: NoCard, cardViewState }
           , error: Nothing
         }
-        _ -> cardsManagerView proxyConnectionStatus FilterViewClosed {
+        _ -> cardsManagerView proxyConnectionStatus (setFilterViewStatus indexFilter) {
             index: i
           , indexFilter: newFilter
           , selectedIndexPosition
@@ -168,6 +168,10 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
       where keyboardAction = cardsManagerView proxyConnectionStatus filterViewStatus
 
   where
+    setFilterViewStatus filter = case filter of
+      GeneralFilter _ -> FilterViewOpen
+      _ -> FilterViewClosed
+
     closeCardInfo = 
       case cv of
         CardForm _ -> currentInfo
