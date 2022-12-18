@@ -71,7 +71,7 @@ mkCardsViewInfo index indexFilter selectedIndexPosition cardViewState error = { 
 
 getClassNameFromFilterStatus :: FilterViewStatus -> String
 getClassNameFromFilterStatus status = case status of
-  FilterViewClosed  -> ""
+  FilterViewClosed  -> "closed"
   FilterViewOpen    -> "open"
 
 -- cardsManagerView :: Boolean -> Index -> ComplexIndexFilter -> CardViewState -> Maybe AppError -> Widget HTML (Tuple ComplexIndexFilter CardViewAction)
@@ -84,22 +84,24 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
   let cEntry = case cv of 
                 CardFromReference ce -> Just ce
                 _ -> Nothing
-  res <- div [Props._id "cardsManager", KeyBoardAction <$> Props.onKeyDown] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
-    div [Props._id "filterView", Props.className $ getClassNameFromFilterStatus filterViewStatus] [
+  res <- div [Props._id "cardsManager", KeyBoardAction <$> Props.onKeyDown, Props.className $ "filterView_" <> getClassNameFromFilterStatus filterViewStatus] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
+    div [Props._id "filterView"] [
       (ShowFilters FilterViewClosed) <$ div [Props.onClick, Props.className "mask"] []
-    , (ChangeFilter <<< prepareFilter) <$> div [Props.className "content"] [
-        ol [][
-          getFilterListElement NoFilter "All"
-        , getFilterListElement RecentFilter "Recent (TODO)"
-        , getFilterListElement UntaggedFilter "Untagged"
+    , ChangeFilter <$> div [Props.className "content"] [
+        prepareFilter <$> div [Props.className "filter"] [
+          ol [][
+            getFilterListElement NoFilter "All"
+          , getFilterListElement RecentFilter "Recent (TODO)"
+          , getFilterListElement UntaggedFilter "Untagged"
+          ]
+        , GeneralFilter <$> div [Props._id "generalFilterArea"] [simpleTextInputWidgetWithFocus "generalFilter" (text "Search") "Search" currentGeneralFilter]
+        , div [] [
+            text "Tags"
+          , ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag) <$> shownSortedTags)
+          ]
         ]
-      , GeneralFilter <$> div [Props._id "generalFilterArea"] [simpleTextInputWidgetWithFocus "generalFilter" (text "Search") "Search" currentGeneralFilter]
-      , div [] [
-          text "Tags"
-        , ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag) <$> shownSortedTags)
-        ]
+      , toggleArchivedButton
       ]
-    , ChangeFilter <$> toggleArchivedButton
     ]
   , div [Props.className "cardToolbarFrame"] [
     --   div [Props._id "filterHeader"] [

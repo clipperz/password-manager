@@ -1,9 +1,10 @@
 div#homePage {
-    overflow: hidden;
-    height: 100%;
+    // overflow: hidden;
+    // height: 100%;
 
     div#cardsManager {
-        overflow: hidden;
+        // overflow-x: hidden;
+        // overflow-y: hidden;
         height: 100%;
 
         div.cardToolbarFrame {
