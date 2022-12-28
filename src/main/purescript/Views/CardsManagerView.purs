@@ -105,23 +105,22 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
     ]
   , div [Props.className "cardToolbarFrame"] [
     --   div [Props._id "filterHeader"] [
-      header [] [
-        (ShowFilters FilterViewOpen) <$ div [Props.className "tags"] [button [Props.onClick] [text "tags"]],
-        div [Props.className "selection"] [button [] [getFilterHeader indexFilter]],
-        (CardViewAction ShowUserArea) <$ div [Props.className "menu"] [button [Props.onClick] [text "menu"]]
-      ]
-    , div [Props._id "mainView" ] [
+      toolbarHeader "frame"
+    , div [Props._id "mainView", Props.className $ getMainViewClassFromCardState cvs] [
         div [Props._id "indexView"] [
-          simpleButton "add card" false (CardViewAction ShowAddCard) 
+          toolbarHeader "cardList"
+        , simpleButton "add card" false (CardViewAction ShowAddCard) 
         , (CardViewAction <<< ShowCard) <$> indexView i cEntry cif -- TODO:
         ]
-      , case cvs of
-        { cardView: CardForm card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ createCardView card allSortedTags cardViewState
-        { cardView: CardForm card,         cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> createCardWidget card allSortedTags cardViewState
-        { cardView: CardFromReference ref, cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> cardWidget ref allSortedTags cardViewState
-        { cardView: JustCard card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ (div [] [loadingDiv, cardView card proxyConnectionStatus])
-        { cardView: JustCard card,         cardViewState: _       } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ cardView card proxyConnectionStatus
-        { cardView: NoCard       ,         cardViewState: _       } -> div [Props._id "card"] []
+      , div [Props._id "card"] [
+          case cvs of
+          { cardView: CardForm card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ createCardView card allSortedTags cardViewState
+          { cardView: CardForm card,         cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> createCardWidget card allSortedTags cardViewState
+          { cardView: CardFromReference ref, cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> cardWidget ref allSortedTags cardViewState
+          { cardView: JustCard card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ (div [] [loadingDiv, cardView card proxyConnectionStatus])
+          { cardView: JustCard card,         cardViewState: _       } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ cardView card proxyConnectionStatus
+          { cardView: NoCard       ,         cardViewState: _       } -> div [] []
+        ]
       ]
     ]
   ]
@@ -170,6 +169,21 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
       where keyboardAction = cardsManagerView proxyConnectionStatus filterViewStatus
 
   where
+    getMainViewClassFromCardState cvs =
+      case cvs of
+        { cardView: NoCard,               cardViewState: _ }        -> "NoCard"
+        { cardView: _,                    cardViewState: Loading }  -> "Loading"
+        { cardView: CardForm _,           cardViewState: _       }  -> "CardForm"
+        { cardView: CardFromReference _,  cardViewState: _ }        -> "CardFromReference"
+        { cardView: JustCard _,           cardViewState: _ }        -> "JustCard"
+
+    toolbarHeader className = 
+      header [Props.className className] [
+        (ShowFilters FilterViewOpen) <$ div [Props.className "tags"] [button [Props.onClick] [text "tags"]],
+        div [Props.className "selection"] [button [] [getFilterHeader indexFilter]],
+        (CardViewAction ShowUserArea) <$ div [Props.className "menu"] [button [Props.onClick] [text "menu"]]
+      ]
+
     setFilterViewStatus filter = case filter of
       GeneralFilter _ -> FilterViewOpen
       _ -> FilterViewClosed

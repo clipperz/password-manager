@@ -1,3 +1,5 @@
+@import "palette.scss";
+
 div#homePage {
     // overflow: hidden;
     // height: 100%;
@@ -18,7 +20,8 @@ div#homePage {
                 flex-direction: row;
                 height: 48px;
                 justify-content: space-between;
-        
+                background-color: $main-color;
+
                 div {
                     padding: 4px;
                     // flex: 0;

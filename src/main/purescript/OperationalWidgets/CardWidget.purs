@@ -61,6 +61,7 @@ cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ })
     manageCardAction :: CardAction -> ProxyConnectionStatus -> Widget HTML IndexUpdateData
     manageCardAction action proxyConnectionStatus = 
       case action of
+        Exit cc -> pure $ IndexUpdateData NoUpdate (Just cc)
         Edit cc -> do
           IndexUpdateData indexUpdateAction newCard <- createCardWidget cc tags Default -- here the modified card has already been saved
           case indexUpdateAction of

@@ -44,51 +44,41 @@ html {
                     div.cardToolbarFrame {
                         flex: 1;
                         width: 100vw;
-                    }
-
-                    // div#filterView {
-                    //     $panelWidth: 250px;
-                    //     background-color: pink;
-                    //     left: - $panelWidth;
-                    //     transition: left 1s ease-in-out;
-
-                    //     // display: none;
-                    //     // visibility: hidden;
-
-                    //     &.open {
-                    //         // display: block;
-                    //         // visibility: visible;
-                    //         position: relative;
-                    //         left: 0px;
-                    //         @include mask();
-
-                    //         .content {
-                    //             // transition: right 0.3s ease-in-out;
-                    //             // right: $panelWidth;
-                    //             background-color: greenyellow;
-                    //             position: relative;
-                    //             left: 0px;
-                    //         }
-                    //     }
-
-                    //     .content {
-                    //         width: $panelWidth;
-
-                    //         position: absolute;
-                    //         z-index: 20;
-                    //         transition: left 1s ease-in-out;
-                    //         left: - $panelWidth;
-                    //     }
-                    // }
-
-                    div.cardToolbarFrame {
-                        // width: 100%;
 
                         header {
                             div.tags {
                                 display: block;
                                 visibility: visible;
                             }
+
+                            &.frame {
+                                display: none;
+                                visibility: hidden;
+                            }
+                        }
+                        
+                        #mainView {
+                            display: flex;
+                            flex-direction: row;
+                            position: relative;
+                            width: 200vw;
+                            transition: left 0.3s ease-in-out;
+                            left: 0px;
+                            
+                            #indexView {
+                                // width: 100vw;
+                                flex: 1;
+                            }
+
+                            #card {
+                                // width: 100vw;
+                                flex: 1;
+                            }
+
+                            &.CardFromReference {
+                                left: -100vw;
+                            }
+
                         }
                     }
                 }
@@ -164,10 +154,40 @@ $extraWide-minSize: 1100px;
     //
     //  WIDE
     //
+//    html div.page.main div#homePage div#cardsManager div.cardToolbarFrame #indexView
     html {
         div.page {
             &.main {
                 div#homePage {
+                    div#cardsManager {
+                        div.cardToolbarFrame {
+                            header.frame {
+                                display: flex;
+                                visibility: visible;
+
+                            }
+
+                            header.cardList {
+                                display: none;
+                                visibility: hidden;
+                            }
+
+                            #mainView {
+                                position: static;
+                                width: auto;
+
+                                #indexView {
+                                    // min-width: 30%;
+                                    // max-width: 30%;
+                                }
+                                #card {
+                                    // width: auto;
+                                    flex: 2;
+                                }
+                            }
+                        }
+                    }
+
                     div#userPage {
                         .extraFeatureContent {
                             header {

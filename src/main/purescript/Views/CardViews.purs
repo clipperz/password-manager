@@ -17,22 +17,23 @@ import Views.SimpleWebComponents (simpleButton, confirmationWidget)
 
 -- -----------------------------------
 
-data CardAction = Edit Card | Clone Card | Archive Card | Restore Card | Delete Card | Used Card
+data CardAction = Edit Card | Clone Card | Archive Card | Restore Card | Delete Card | Used Card | Exit Card
 instance showCardAction :: Show CardAction where
   show (Edit _)    = "edit"
-  show (Used _)      = "used"
+  show (Used _)    = "used"
   show (Clone _)   = "clone"
   show (Archive _) = "archive"
   show (Restore _) = "restore"
   show (Delete _)  = "delete"
+  show (Exit _ )   = "exit"
 
 -- -----------------------------------
 
 cardView :: Card -> ProxyConnectionStatus -> Widget HTML CardAction
 cardView c@(Card r) proxyConnectionStatus = do
-  res <- div [Props._id "card"] [
-      cardActions c proxyConnectionStatus
-    , (Used c) <$ cardContent r.content
+  res <- div [Props._id "cardView"] [
+    cardActions c proxyConnectionStatus
+  , (Used c) <$ cardContent r.content
   ]
   case res of
     Delete _ -> do
@@ -46,7 +47,8 @@ cardView c@(Card r) proxyConnectionStatus = do
 
 cardActions :: Card -> ProxyConnectionStatus -> Widget HTML CardAction
 cardActions c@(Card r) proxyConnectionStatus = div [Props.className "cardActions"] [
-    simpleButton (show (Edit c))    disabled (Edit c)
+    simpleButton (show (Exit c))    false    (Exit c)
+  , simpleButton (show (Edit c))    disabled (Edit c)
   , simpleButton (show (Clone c))   disabled (Clone c)
   , if r.archived then simpleButton (show (Restore c)) disabled (Restore c) else simpleButton (show (Archive c)) disabled (Archive c)
   , simpleButton (show (Delete c))  disabled (Delete c)
