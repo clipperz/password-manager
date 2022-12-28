@@ -16,7 +16,7 @@ import Data.Eq ((/=))
 import Data.Function (($))
 import Data.Functor ((<$>), flap)
 import Data.List ((:), filter)
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..), InvalidStateError(..), ProxyConnectionStatus(..))
 import DataModel.Card (emptyCard)
@@ -60,7 +60,7 @@ cardsManagerWidget proxyConnectionStatus ind cardViewState =
         OpResult i cv e f -> go (info { index = i, indexFilter = f, error = e, cardViewState = cv }) view Nothing
 
 getUpdateIndexOp :: CardsViewInfo -> IndexUpdateData -> Aff CardsViewResult
-getUpdateIndexOp { index: index@(Index list), indexFilter } (IndexUpdateData action _) =
+getUpdateIndexOp { index: index@(Index list), indexFilter } (IndexUpdateData action card) =
   case action of 
     AddReference                        entry -> flap (addEntryToIndex entry) { archived: false, indexFilter: ComposedOrFilter (SpecificCardFilter entry) indexFilter.indexFilter } 
     CloneReference                      entry -> flap (addEntryToIndex entry) (((addLastCardFilterInOr entry) <<< removeAllLastCardFilter) indexFilter)
@@ -68,6 +68,7 @@ getUpdateIndexOp { index: index@(Index list), indexFilter } (IndexUpdateData act
     ChangeReferenceWithoutEdit oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) (((addLastCardFilterInOr entry) <<< removeAllLastCardFilter) indexFilter)
     DeleteReference            oldEntry       -> flap (removeReferenceFromIndex oldEntry) indexFilter
     NoUpdateNecessary          oldEntry       -> pure $ OpResult index { cardView: CardFromReference oldEntry, cardViewState: Default } Nothing indexFilter
+    NoUpdate                                  -> pure $ OpResult index { cardView: JustCard (fromMaybe emptyCard card), cardViewState: Default } Nothing indexFilter
     _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing indexFilter
 
   where
