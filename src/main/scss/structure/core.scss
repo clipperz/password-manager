@@ -159,7 +159,48 @@ $extraWide-minSize: 1100px;
         div.page {
             &.main {
                 div#homePage {
+                    height: 100%;
+                    overflow: hidden;
+                    
                     div#cardsManager {
+                        height: 100%;
+                        overflow: hidden;
+
+                        div#filterView {
+                            height: 100%;
+                            overflow: hidden;
+                            
+                            div.content {
+                                height: 100%;
+                                overflow: hidden;
+                                display: flex;
+                                flex-direction: column;
+                                
+                                div.filter {
+                                    display: flex;
+                                    flex-direction: column;
+                                    overflow: hidden;
+                                    
+                                    div.tags {
+                                        display: flex;
+                                        flex-direction: column;
+                                        overflow: hidden;
+
+                                        span {
+                                            display: block;
+                                        }
+
+                                        ol#tagFilter {
+                                            flex: auto;
+                                            overflow-x: hidden;
+                                            overflow-y: auto;
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+
                         div.cardToolbarFrame {
                             header.frame {
                                 display: flex;

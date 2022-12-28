@@ -2,8 +2,9 @@ module Views.CardsManagerView where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text, ol, p', button, header)
+import Concur.React.DOM (div, text, ol, p', button, header, span)
 import Concur.React.Props as Props
+import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Semigroupoid ((<<<))
 import Control.Bind (bind, discard)
@@ -89,15 +90,15 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
       (ShowFilters FilterViewClosed) <$ div [Props.onClick, Props.className "mask"] []
     , ChangeFilter <$> div [Props.className "content"] [
         prepareFilter <$> div [Props.className "filter"] [
-          ol [][
-            getFilterListElement NoFilter "All"
-          , getFilterListElement RecentFilter "Recent (TODO)"
-          , getFilterListElement UntaggedFilter "Untagged"
+          ol [Props.className "defaultSets"][
+            getFilterListElement NoFilter "All" ["allCards"]
+          , getFilterListElement RecentFilter "Recent (TODO)" ["recentCards"]
+          , getFilterListElement UntaggedFilter "Untagged" ["untaggedCards"]
           ]
         , GeneralFilter <$> div [Props._id "generalFilterArea"] [simpleTextInputWidgetWithFocus "generalFilter" (text "Search") "Search" currentGeneralFilter]
-        , div [] [
-            text "Tags"
-          , ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag) <$> shownSortedTags)
+        , div [Props.className "tags"] [
+            span [Props.className "tags"] [text "Tags"]
+          , ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag []) <$> shownSortedTags)
           ]
         ]
       , toggleArchivedButton
@@ -270,5 +271,6 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
     countShownCards RecentFilter = length $ filter (toFilterFunc lastUses RecentFilter) entries
     countShownCards indexFilt = length $ filter (toFilterFunc lastUses indexFilt) shownEntries
 
-    getFilterListElement :: IndexFilter -> String -> Widget HTML IndexFilter
-    getFilterListElement indexFilt s = clickableListItemWidget false (div [] [ text s, div [] [text $ show $ countShownCards indexFilt]]) [] indexFilt
+    getFilterListElement :: IndexFilter -> String -> Array String -> Widget HTML IndexFilter
+    -- getFilterListElement indexFilt s classes = clickableListItemWidget false (div [] [ text s, div [] [text $ show $ countShownCards indexFilt]]) classes indexFilt
+    getFilterListElement indexFilt s classes = clickableListItemWidget false (span [Props.className "label"] [ text s ] <|> span [Props.className "count"] [text $ show $ countShownCards indexFilt]) classes indexFilt

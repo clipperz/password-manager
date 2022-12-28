@@ -1,0 +1,83 @@
+@import "./palette.scss";
+
+#filterView {
+    background-color: $core-alternate-color;
+
+    // ol.defaultSets {
+    ol {
+        padding-top: 10px;
+        padding-bottom: 10px;
+
+        li {
+            display: flex;
+            flex-direction: row;
+            padding: 7px 8px 7px 8px;
+            padding-left: 35px;
+            font-size: 14pt;
+
+            &::before {
+                font-family: 'clipperz-icons';
+                padding-right: 8px;
+            }
+
+            &.allCards {
+                padding-left: 7px;
+                &::before {
+                    content: "clipperz";
+                }
+            }
+
+            &.recentCards {
+                padding-left: 7px;
+                &::before {
+                    content: "recent";
+                }
+            }
+
+            &.untaggedCards {
+                // &::before {
+                //     content: "";
+                // }
+            }
+
+            span {
+                &.label {
+                    flex: auto;
+                    cursor: pointer;
+                }
+
+                &.count {
+                    flex: none;
+
+                    color: $core-alternate-color;
+                    background-color: $core-alternate-text-color;
+
+                    align-self: flex-end;
+                    font-size: 10pt;
+                    margin-right: 12px;
+                    padding: 3px 5px;
+                    border-radius: 4px;
+                    font-weight: 300;
+                }
+            }
+        }
+    }
+
+    div.tags {
+        span.tags {
+            display: inline-block;
+            font-size: 14pt;
+            padding: 10px 8px 10px 8px;
+
+            &::before {
+                content: "tag";
+                font-family: "clipperz-icons";
+                padding-right: 8px;
+            }
+        }
+
+        ol {
+            padding-top: 0px;
+        }
+    }
+}
