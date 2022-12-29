@@ -18,6 +18,7 @@
             &::before {
                 font-family: 'clipperz-icons';
                 padding-right: 8px;
+                color: $main-text-color;
             }
 
             &.allCards {
@@ -40,26 +41,32 @@
                 // }
             }
 
-            span {
-                &.label {
-                    flex: auto;
-                    cursor: pointer;
-                }
-
-                &.count {
-                    flex: none;
-
-                    color: $core-alternate-color;
-                    background-color: $core-alternate-text-color;
-
-                    align-self: flex-end;
-                    font-size: 10pt;
-                    margin-right: 4px;
-                    padding: 3px 5px;
-                    border-radius: 4px;
-                    font-weight: 300;
+            &.selected {
+                color: $main-color;
+                span.label {
                 }
             }
+        }
+    }
+
+    span {
+        &.label {
+            flex: auto;
+            cursor: pointer;
+        }
+
+        &.count {
+            flex: none;
+
+            color: $core-alternate-color;
+            background-color: $core-alternate-text-color;
+
+            align-self: flex-end;
+            font-size: 10pt;
+            margin-right: 4px;
+            padding: 3px 5px;
+            border-radius: 4px;
+            font-weight: 300;
         }
     }
 
@@ -78,6 +85,33 @@
 
         ol {
             padding-top: 0px;
+        }
+    }
+
+    div#archivedFilterArea {
+        // background-color: pink;
+        display: flex;
+        flex-direction: row;
+
+        border-top: 1px dotted #333;
+        padding: 10px;
+        font-size: 10pt;
+
+        div {
+            flex: 1;
+        }
+
+        input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        label {
+            padding-left: 5px;
+            cursor: pointer;
+        }
+
+        span.count {
+            margin-right: 2px;
         }
     }
 }

@@ -58,11 +58,13 @@ html {
                                 display: flex;
                                 flex-direction: column;
                                 overflow: hidden;
+                                flex: auto;
                                 
                                 div.tags {
                                     display: flex;
                                     flex-direction: column;
                                     overflow: hidden;
+                                    flex: auto;
 
                                     span {
                                         display: block;
