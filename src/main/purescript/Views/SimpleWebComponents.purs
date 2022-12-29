@@ -49,7 +49,7 @@ import Control.Alt (class Alt, (<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (=<<), (>>=))
 import Control.Semigroupoid ((<<<))
-import Data.Array (length, zipWith, range, catMaybes, updateAt, deleteAt, insertAt, filter, intersperse, drop, take, sortWith, union, dropEnd, takeEnd, (!!))
+import Data.Array (length, zipWith, range, catMaybes, updateAt, deleteAt, insertAt, filter, intersperse, drop, take, sortWith, union, dropEnd, takeEnd, (!!), (:))
 import Data.Bifunctor (lmap, rmap)
 import Data.Boolean (otherwise)
 import Data.Either (Either(..), hush)
@@ -68,6 +68,7 @@ import Data.Ring ((-))
 import Data.Semigroup ((<>))
 import Data.Semiring ((+), (*))
 import Data.Show (show, class Show)
+import Data.String (joinWith)
 import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
@@ -252,8 +253,8 @@ checkboxesSignal ts lablesMap = loopS ts \m -> do
 
 clickableListItemWidget :: forall a. Boolean -> Widget HTML a -> Array String -> a -> Widget HTML a
 clickableListItemWidget disable item classes reference = 
-  let classProps = Props.className <$> classes
-  in li ([if disable then Props.emptyProp else reference <$ Props.onClick] <> classProps) [item]
+  let classProps = Props.className (joinWith " " classes)
+  in li (classProps : [if disable then Props.emptyProp else reference <$ Props.onClick]) [item]
 
 passwordStrengthShow :: forall a. PasswordStrength -> Widget HTML a
 passwordStrengthShow = text <<< show

@@ -95,7 +95,7 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
           , getFilterListElement RecentFilter "Recent (TODO)" ["recentCards"]
           , getFilterListElement UntaggedFilter "Untagged" ["untaggedCards"]
           ]
-        , GeneralFilter <$> div [Props._id "generalFilterArea"] [simpleTextInputWidgetWithFocus "generalFilter" (text "Search") "Search" currentGeneralFilter]
+        , GeneralFilter <$> div [Props._id "generalFilterArea", Props.className (if indexFilter == GeneralFilter currentGeneralFilter then "selected" else  "")] [simpleTextInputWidgetWithFocus "generalFilter" (text "Search") "Search" currentGeneralFilter]
         , div [Props.className "tags"] [
             span [Props.className "tags"] [text "Tags"]
           , ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag []) <$> shownSortedTags)
@@ -273,4 +273,4 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
 
     getFilterListElement :: IndexFilter -> String -> Array String -> Widget HTML IndexFilter
     -- getFilterListElement indexFilt s classes = clickableListItemWidget false (div [] [ text s, div [] [text $ show $ countShownCards indexFilt]]) classes indexFilt
-    getFilterListElement indexFilt s classes = clickableListItemWidget false (span [Props.className "label"] [ text s ] <|> span [Props.className "count"] [text $ show $ countShownCards indexFilt]) classes indexFilt
+    getFilterListElement indexFilt s classes = clickableListItemWidget false (span [Props.className "label"] [ text s ] <|> span [Props.className "count"] [text $ show $ countShownCards indexFilt]) (if indexFilter == indexFilt then (classes <> ["selected"]) else classes) indexFilt
