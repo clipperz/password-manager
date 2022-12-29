@@ -181,7 +181,7 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
     toolbarHeader className = 
       header [Props.className className] [
         (ShowFilters FilterViewOpen) <$ div [Props.className "tags"] [button [Props.onClick] [text "tags"]],
-        div [Props.className "selection"] [button [] [getFilterHeader indexFilter]],
+        div [Props.className "selection"] [getFilterHeader indexFilter],
         (CardViewAction ShowUserArea) <$ div [Props.className "menu"] [button [Props.onClick] [text "menu"]]
       ]
 
@@ -258,9 +258,9 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
       case f of
         ComposedAndFilter f' f'' -> p' [getFilterHeader f', text " and ", getFilterHeader f'']
         ComposedOrFilter f' f''  -> p' [getFilterHeader f', text " or ", getFilterHeader f'']
-        GeneralFilter title      -> text title
+        GeneralFilter title      -> span [] [text title]
         SpecificCardFilter _     -> text "last created card"
-        TagFilter tag            -> text tag
+        TagFilter tag            -> span [] [text tag]
         RecentFilter             -> text "recent"
         UntaggedFilter           -> text "untagged"
         NoFilter                 -> text "clipperz"
