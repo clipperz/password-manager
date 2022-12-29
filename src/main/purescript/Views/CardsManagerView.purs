@@ -229,13 +229,14 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
                       Just ref -> currentInfo { selectedIndexPosition = Just newN, cardViewState = {cardView: CardFromReference ref, cardViewState: Default}}
 
     toggleArchivedButton = 
-      (\b -> { archived: b, indexFilter }) <$> div [Props._id "archivedFilterArea"] [ simpleCheckboxWidget 
-                                                          "show_archived_checkbox" 
-                                                          (div [] [ text "Show archived cards", div [] [text $ show countArchivedCards]]) 
-                                                          true
-                                                          archived
-                                                      ]
-
+      (\b -> { archived: b, indexFilter }) <$> div [Props._id "archivedFilterArea"] [
+        simpleCheckboxWidget 
+            "show_archived_checkbox" 
+            (text "Show archived cards") 
+            true
+            archived
+      , (span [Props.className "count"] [text $ show countArchivedCards])
+      ]
     countArchivedCards = length $ filter (\(CardEntry r) -> r.archived) entries
 
     prepareFilter :: IndexFilter -> ComplexIndexFilter
