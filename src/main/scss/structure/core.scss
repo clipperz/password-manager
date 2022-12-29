@@ -1,6 +1,8 @@
 @import "behavior.scss";
 @import "../style/palette.scss";
 
+$filterPanel_width: 250px;
+
 html {
     position: fixed;
     height: 100%;
@@ -11,13 +13,20 @@ html {
 
         &.main {
             div#homePage {
+                height: 100%;
+                overflow: hidden;
+                width: calc(100% + $filterPanel_width);
+                transition: width 0.3s ease-in-out;
+
                 div#cardsManager {
-                    $panelWidth: 250px;
+                    height: 100%;
+                    overflow: hidden;
+
                     // width: 100%;
                     position: relative;
-                    width: calc(100% + $panelWidth);
+                    // width: calc(100% + $filterPanel_width);
                     transition: left 0.3s ease-in-out;
-                    left: - $panelWidth;
+                    left: - $filterPanel_width;
 
                     &.filterView_open {
                         left: 0px;
@@ -28,16 +37,45 @@ html {
                     }
 
                     div#filterView {
+                        height: 100%;
+                        overflow: hidden;
+
                         // position: absolute;
                         flex: 0;
-                        width: $panelWidth;
-                        min-width: $panelWidth;
+                        width: $filterPanel_width;
+                        min-width: $filterPanel_width;
 
-                        .content {
+                        div.content {
                             position: relative;
                             z-index: 20;
-                        }
-                        // left: - $panelWidth;
+
+                            height: 100%;
+                            overflow: hidden;
+                            display: flex;
+                            flex-direction: column;
+                            
+                            div.filter {
+                                display: flex;
+                                flex-direction: column;
+                                overflow: hidden;
+                                
+                                div.tags {
+                                    display: flex;
+                                    flex-direction: column;
+                                    overflow: hidden;
+
+                                    span {
+                                        display: block;
+                                    }
+
+                                    ol#tagFilter {
+                                        flex: auto;
+                                        overflow-x: hidden;
+                                        overflow-y: auto;
+                                    }
+                                }
+                            }                        }
+                        // left: - $filterPanel_width;
                         // height: 100%;
                     }
 
@@ -86,8 +124,8 @@ html {
                     position: fixed;
                     top: 0;
                     display: flex;
-                    $panelWidth: 300px;
-                    right: -$panelWidth;
+                    $filterPanel_width: 300px;
+                    right: -$filterPanel_width;
 
                     div.panel {
                         display: flex;
@@ -107,7 +145,7 @@ html {
                             // position: fixed;
                             // right: 0px;
                             z-index: 20;
-                            width: $panelWidth;
+                            width: $filterPanel_width;
                         }
                         
                         @include mask();
@@ -129,7 +167,7 @@ html {
 
                     &.closed {
                         div.panel {
-                            right: - $panelWidth;
+                            right: - $filterPanel_width;
                         }
 
                         div.mask {
@@ -159,58 +197,30 @@ $extraWide-minSize: 1100px;
         div.page {
             &.main {
                 div#homePage {
-                    height: 100%;
-                    overflow: hidden;
+                    // transition: width 0.3s ease-in-out;
                     
                     div#cardsManager {
-                        height: 100%;
-                        overflow: hidden;
 
                         div#filterView {
-                            height: 100%;
-                            overflow: hidden;
                             
                             div.content {
-                                height: 100%;
-                                overflow: hidden;
-                                display: flex;
-                                flex-direction: column;
-                                
-                                div.filter {
-                                    display: flex;
-                                    flex-direction: column;
-                                    overflow: hidden;
-                                    
-                                    div.tags {
-                                        display: flex;
-                                        flex-direction: column;
-                                        overflow: hidden;
 
-                                        span {
-                                            display: block;
-                                        }
-
-                                        ol#tagFilter {
-                                            flex: auto;
-                                            overflow-x: hidden;
-                                            overflow-y: auto;
-                                        }
-                                    }
-                                }
 
                             }
                         }
 
                         div.cardToolbarFrame {
-                            header.frame {
-                                display: flex;
-                                visibility: visible;
+                            header {
+                                &.frame {
+                                    display: flex;
+                                    visibility: visible;
 
-                            }
+                                }
 
-                            header.cardList {
-                                display: none;
-                                visibility: hidden;
+                                &.cardList {
+                                    display: none;
+                                    visibility: hidden;
+                                }
                             }
 
                             #mainView {
@@ -258,10 +268,28 @@ $extraWide-minSize: 1100px;
         div.page {
             &.main {
                 div#homePage {
+                    width: 100vw;
+                    // transition: width 0s ease-in-out;
+
                     div#cardsManager {
                         overflow-x: hidden;
                         left: 0px;
                     }
+                }
+            }
+        }
+    }
+}
+
+@media only screen and (min-width: calc($extraWide-minSize + 50px)) {
+    //
+    //  EXTRA WIDE
+    //
+    html {
+        div.page {
+            &.main {
+                div#homePage {
+                    transition: width 0s ease-in-out;
                 }
             }
         }

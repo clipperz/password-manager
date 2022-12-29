@@ -11,8 +11,8 @@
         li {
             display: flex;
             flex-direction: row;
-            padding: 7px 8px 7px 8px;
-            padding-left: 35px;
+            padding: 7px 8px 7px 35px;
+            // padding-left: 35px;
             font-size: 14pt;
 
             &::before {
@@ -21,14 +21,14 @@
             }
 
             &.allCards {
-                padding-left: 7px;
+                padding-left: 8px;
                 &::before {
                     content: "clipperz";
                 }
             }
 
             &.recentCards {
-                padding-left: 7px;
+                padding-left: 8px;
                 &::before {
                     content: "recent";
                 }
@@ -54,7 +54,7 @@
 
                     align-self: flex-end;
                     font-size: 10pt;
-                    margin-right: 12px;
+                    margin-right: 4px;
                     padding: 3px 5px;
                     border-radius: 4px;
                     font-weight: 300;
