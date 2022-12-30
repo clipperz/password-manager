@@ -121,14 +121,14 @@ createCardView card allTags state = do
 
     formSignal :: PasswordGeneratorSettings -> Signal HTML (Maybe (Maybe Card))
     formSignal settings = do
-      Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card {content: (CardValues {title, tags, fields, notes}), timestamp})) ->
+      Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card {content: (CardValues {title, tags, fields, notes}), archived, timestamp})) ->
         div_ [Props.className "cardFormFields"] do
           title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title") "Card title")
           Tuple newTag' tags' <- tagsSignal newTag tags
           fields' <- fieldsSignal settings fields
           notes' :: String <- simpleTextAreaSignal "notes" (text "Notes") "notes" notes
           pure $ Tuple newTag' $ Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
-                                      , archived: false
+                                      , archived: archived
                                       , timestamp
                                       }
       res <- fireOnce $ div [Props.className "submitButtons"] [(cancelButton formValues) <|> (saveButton formValues)]
