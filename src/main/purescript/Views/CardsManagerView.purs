@@ -10,10 +10,10 @@ import Control.Semigroupoid ((<<<))
 import Control.Bind (bind, discard)
 import Data.Array (nub, sort)
 import Data.EuclideanRing (mod)
-import Data.Eq ((==))
+import Data.Eq ((==), (/=))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
-import Data.HeytingAlgebra ((||), not)
+import Data.HeytingAlgebra ((||), (&&), not)
 import Data.List as List
 import Data.List (fold, filter, length, List(..), (!!), elemIndex)
 import Data.Maybe (Maybe(..))
@@ -95,7 +95,10 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
           , getFilterListElement RecentFilter "Recent (TODO)" ["recentCards"]
           , getFilterListElement UntaggedFilter "Untagged" ["untaggedCards"]
           ]
-        , GeneralFilter <$> div [Props._id "searchForm", Props.className (if indexFilter == GeneralFilter currentGeneralFilter then "selected" else  "")] [simpleTextInputWidgetWithFocus "generalFilter" (text "search") "search" currentGeneralFilter]
+        , GeneralFilter <$> div [Props._id "searchForm", Props.className (if (indexFilter == GeneralFilter currentGeneralFilter && currentGeneralFilter /= "") then "selected" else  "")] [
+            simpleTextInputWidgetWithFocus "generalFilter" (text "search") "search" currentGeneralFilter
+          , span [Props.className "count"] [text $ show $ countShownCards (GeneralFilter currentGeneralFilter)]
+          ]
         , div [Props.className "tags"] [
             span [Props.className "tags"] [text "Tags"]
           , ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag []) <$> shownSortedTags)
