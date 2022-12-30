@@ -43,8 +43,6 @@
 
             &.selected {
                 color: $main-color;
-                span.label {
-                }
             }
         }
     }
@@ -53,6 +51,9 @@
         &.label {
             flex: auto;
             cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 10px;
         }
 
         &.count {
@@ -85,6 +86,30 @@
 
         ol {
             padding-top: 0px;
+        }
+    }
+
+    div#searchForm {
+        label {
+            font-family: "clipperz-icons";
+            font-size: 14pt;
+            margin-left: 8px;
+            margin-right: 6px;
+        }
+        input {
+            font-size: 14pt;
+            border: 0px;
+            border-bottom: 1px solid #333;
+            outline: none;
+            width: 160px;
+            color: $main-color;
+            background-color: $core-alternate-color;
+
+            &::placeholder {
+                font-style: italic;
+                color: #666;
+                font-size: 12pt;
+            }
         }
     }
 

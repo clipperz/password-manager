@@ -25,7 +25,8 @@ div#homePage {
                 div {
                     padding: 4px;
                     // flex: 0;
-                    button {
+                    button,
+                    &.selection {
                         background-color: inherit;
                         border: 0px;
                         color: $main-text-color;
@@ -44,8 +45,22 @@ div#homePage {
                     }
 
                     &.selection {
-                        button {
-                            font-size: 28pt;
+                        font-size: 28pt;
+                        margin-top: 1px;
+
+                        span {
+                            &::before {
+                                content: "tag";
+                                font-family: 'clipperz-icons';
+                                font-size: 14pt;
+                                display: inline-block;
+                                padding-right: 7px;
+                            }
+
+                            font-family: 'clipperz-font';
+                            font-size: 18pt;
+                            display: block;
+                            margin-top: 8px;
                         }
                     }
 

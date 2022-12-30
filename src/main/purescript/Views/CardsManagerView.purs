@@ -95,7 +95,7 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
           , getFilterListElement RecentFilter "Recent (TODO)" ["recentCards"]
           , getFilterListElement UntaggedFilter "Untagged" ["untaggedCards"]
           ]
-        , GeneralFilter <$> div [Props._id "generalFilterArea", Props.className (if indexFilter == GeneralFilter currentGeneralFilter then "selected" else  "")] [simpleTextInputWidgetWithFocus "generalFilter" (text "Search") "Search" currentGeneralFilter]
+        , GeneralFilter <$> div [Props._id "searchForm", Props.className (if indexFilter == GeneralFilter currentGeneralFilter then "selected" else  "")] [simpleTextInputWidgetWithFocus "generalFilter" (text "search") "search" currentGeneralFilter]
         , div [Props.className "tags"] [
             span [Props.className "tags"] [text "Tags"]
           , ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag []) <$> shownSortedTags)
