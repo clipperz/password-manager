@@ -3,7 +3,7 @@ module Views.CreateCardView where
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopS, loopW, demand, display, justWait, hold, fireOnce)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', text, div_, form, label, input, datalist, option)
+import Concur.React.DOM (div, div', text, div_, ul_, li_, form, label, input, datalist, option)
 import Concur.React.Props as Props
 import Control.Alt((<|>), class Alt)
 import Control.Applicative (pure)
@@ -35,7 +35,7 @@ import Functions.Time (getCurrentTimestamp)
 import Functions.Communication.Users (getUserPreferences)
 import React.SyntheticEvent (SyntheticMouseEvent)
 import Views.PasswordGenerator (passwordGenerator)
-import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleButtonWithClass, dragAndDropAndRemoveList, confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, simpleCheckboxWidget, disableOverlay, simpleTextAreaSignal)
+import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleButtonWithClass, dragAndDropAndRemoveList, confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, simpleCheckboxWidget, simpleTextAreaSignal)
 
 import Debug (traceM)
 
@@ -46,9 +46,9 @@ createCardView card allTags state = do
   passwordGeneratorSettings <- ((fromRight standardPasswordGeneratorSettings) <<< ((<$>) fromAppStateToPasswordSettings)) <$> (liftEffect getAppState)
   mCard <- div [Props._id "cardForm"] do
     case state of
-      Default   -> [disableOverlay, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
-      Loading   -> [disableOverlay, loadingDiv, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
-      Error err -> [disableOverlay, text err, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
+      Default   -> [form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
+      Loading   -> [loadingDiv, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
+      Error err -> [text err, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
   case mCard of
     Just (Card { content, timestamp: _ }) -> do
       -- liftEffect $ log $ show content
@@ -89,8 +89,8 @@ createCardView card allTags state = do
       pure $ fst <$> fields'
 
     tagSignal :: String -> Signal HTML (Maybe String)
-    tagSignal tag = do
-      removeTag <- fireOnce $ simpleButton "x" false unit
+    tagSignal tag = li_ [] do
+      removeTag <- fireOnce $ simpleButton "remove tag" false unit
       tag' <- loopW tag text
       case removeTag of
         Nothing -> pure $ Just tag'
@@ -110,14 +110,15 @@ createCardView card allTags state = do
     , datalist [Props._id "tags-list"] ((\t -> option [] [text t]) <$> allTags)
     ])
 
-    tagsSignal newTag tags = div_ [] do
-      tags' <- (\ts -> ((maybe [] singleton) =<< filter isJust ts)) <$> (sequence $ tagSignal <$> sort tags)
-      newTag' <- inputTagSignal newTag
-      -- newTag' <- loopW newTag (simpleTextInputWidget "" (text "add tag"))
-      addTag  <- fireOnce $ simpleButton "Add tag" (newTag' == "") unit --TODO change with form that returns with `return` key
-      case addTag of
-        Nothing -> pure $ Tuple newTag' tags'
-        Just _  -> pure $ Tuple "" $ snoc tags' newTag
+    tagsSignal newTag tags = div_ [Props.className "tags"] do
+      ul_ [] do
+        tags' <- (\ts -> ((maybe [] singleton) =<< filter isJust ts)) <$> (sequence $ tagSignal <$> sort tags)
+        li_ [Props.className "addTag"] do
+          newTag' <- inputTagSignal newTag
+          addTag  <- fireOnce $ simpleButton "Add tag" (newTag' == "") unit --TODO change with form that returns with `return` key
+          case addTag of
+            Nothing -> pure $ Tuple newTag' tags'
+            Just _  -> pure $ Tuple "" $ snoc tags' newTag
 
     formSignal :: PasswordGeneratorSettings -> Signal HTML (Maybe (Maybe Card))
     formSignal settings = do
@@ -137,11 +138,11 @@ createCardView card allTags state = do
 
     cancelButton v = 
       if card == v then 
-        simpleButtonWithClass "Cancel" "inactive" false Nothing 
+        simpleButtonWithClass "Cancel" "inactive cancel" false Nothing 
       else do
-        _ <- simpleButtonWithClass "Cancel" "active" false Nothing 
-        confirmation <- (false <$ simpleButtonWithClass "Cancel" "active" false Nothing) <|> (confirmationWidget "Are you sure you want to exit without saving?")
+        _ <- simpleButtonWithClass "Cancel" "active cancel" false Nothing 
+        confirmation <- (false <$ simpleButtonWithClass "Cancel" "active cancel" false Nothing) <|> (confirmationWidget "Are you sure you want to exit without saving?")
         if confirmation then pure Nothing else (cancelButton v)
 
     saveButton v = 
-      simpleButton "Save" (card == v) (Just v)
+      simpleButtonWithClass "Save" "save" (card == v) (Just v)

@@ -1,4 +1,5 @@
 @import "palette.scss";
+@import "../structure/mixin.scss";
 
 div#homePage {
     // overflow: hidden;
@@ -84,10 +85,12 @@ div#homePage {
                 color: $alternate-text-color;
         
                 div#indexView {
-                    overflow: auto;
-                    height: 100%;
+                    // overflow: auto;
+                    // height: 100%;
                     z-index: 5;
                     box-shadow: 2px 0 6px 0 rgba(0, 0, 0, 0.1);
+                    display: flex;
+                    flex-direction: column;
 
                     & > button {
                         font-family: 'clipperz-icons';
@@ -117,6 +120,7 @@ div#homePage {
                     }
         
                     ol {
+                        overflow: auto;
                         padding-bottom: 100px;
 						background-color: #1863a1;
                         li {
@@ -167,6 +171,17 @@ div#homePage {
                             font-size: 12pt;
                             background-color: $accent-color;
                             color: $accent-text-color;
+                            cursor: pointer;
+
+                            &.exit {
+                                &::before {
+                                    content: "back";
+                                    font-family: 'clipperz-icons';
+                                    font-size: 28pt;
+                                }
+                                font-size: 0px;
+                                flex: 0;
+                            }
                         }
                     }
 
@@ -262,6 +277,127 @@ div#homePage {
                         }
                     }
 
+                    #cardForm {
+                        // background-color: pink;
+                        flex: auto;
+                        display: flex;
+                        height: 100%;
+
+                        form.cardForm {
+                            display: flex;
+                            width: 100%;
+                            height: 100%;
+
+                            flex-direction: column;
+
+                            .cardFormFields {
+                                flex: auto;
+                                overflow: auto;
+
+                                input {
+                                    border: 0px;
+
+                                    &#title {
+                                        font-size: 24pt;
+                                        width: 100%;
+                                        padding: 13px 20px 13px 42px;
+                                    }
+                                }
+
+                                label[for=title] {
+                                    @include fancyHidden;
+                                }
+
+                                .tags {
+                                    ul {
+                                        display: flex;
+                                        flex-wrap: wrap;
+
+                                        &:before {
+                                            content: "tag";
+                                            font-family: 'clipperz-icons';
+                                            font-size: 16pt;
+                                            color: #ccc;
+                                            padding: 4px 10px;
+                                        }
+
+                                        li {
+                                            display: flex;
+                                            flex-direction: row-reverse;
+                                            align-items: center;
+
+                                            button {
+                                                font-family: 'clipperz-icons';
+                                                cursor: pointer;
+                                                background-color: inherit;
+                                                border: 0px;
+                                                color: #ccc;
+                                                font-size: 16pt;
+                                                margin-right: 8px;
+
+                                                &:hover {
+                                                    color: #999;
+                                                }
+                                            }
+
+                                            &.addTag {
+                                                flex-direction: row;
+                                                button {
+                                                    font-family: 'clipperz-font';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                            }
+                            .submitButtons {
+                                flex: 0;
+                                display: flex;
+                                flex-direction: row-reverse;
+
+                                & > button {
+                                    flex: 1;
+                                    height: 48px;
+                                    border: 0px;
+                                    cursor: pointer;
+
+                                    &.cancel {
+                                        color: white;
+                                        background-color: #d11;
+
+                                        &:hover {
+                                            background-color: #911;
+                                        }
+
+                                        &.inactive {
+                                            background-color: #666;
+    
+                                            &:hover {
+                                                background-color: #444;
+                                            }
+                                        }
+                                    }
+
+                                    &.save {
+                                        color: white;
+                                        background-color: #2a2;
+
+                                        &:hover {
+                                            background-color: #1a801a;
+                                        }
+                                        &:disabled {
+                                            background-color: #5a5;
+                                            &:hover {
+                                                background-color: #5a5;
+                                            }
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
