@@ -278,6 +278,8 @@ div#homePage {
                     }
 
                     #cardForm {
+                        $side-margin: 40px;
+
                         // background-color: pink;
                         flex: auto;
                         display: flex;
@@ -294,13 +296,16 @@ div#homePage {
                                 flex: auto;
                                 overflow: auto;
 
+                                div {
+                                    display: flex;
+                                }
                                 input {
                                     border: 0px;
 
                                     &#title {
                                         font-size: 24pt;
                                         width: 100%;
-                                        padding: 13px 20px 13px 42px;
+                                        padding: 13px $side-margin 13px $side-margin;
                                     }
                                 }
 
@@ -309,6 +314,8 @@ div#homePage {
                                 }
 
                                 .tags {
+                                    margin-left: $side-margin;
+
                                     ul {
                                         display: flex;
                                         flex-wrap: wrap;
@@ -319,12 +326,17 @@ div#homePage {
                                             font-size: 16pt;
                                             color: #ccc;
                                             padding: 4px 10px;
+                                            margin-left: -$side-margin;
                                         }
 
                                         li {
                                             display: flex;
                                             flex-direction: row-reverse;
                                             align-items: center;
+
+                                            &:has(button:hover) {
+                                                font-weight: bold;
+                                            }
 
                                             button {
                                                 font-family: 'clipperz-icons';
@@ -342,14 +354,131 @@ div#homePage {
 
                                             &.addTag {
                                                 flex-direction: row;
+                                                label {
+                                                    @include fancyHidden;
+                                                }
+                                                input {
+                                                    font-size: 12pt;
+                                                    line-height: 24px;
+                                                    border: 0px;
+
+                                                    &::placeholder {
+                                                        font-style: italic;
+                                                        color: #ccc;
+                                                    }
+                                                }
                                                 button {
                                                     font-family: 'clipperz-font';
+                                                    font-size: 12pt;
+                                                    &:disabled {
+                                                        // display: none;
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
 
+                                .dragAndDropList {
+                                    flex-direction: column;
+
+                                    .draggableElem {
+                                        flex-direction: row;
+
+                                        &:hover {
+                                            background-color: #eee;
+                                        }
+
+                                        .remove {
+                                            width: $side-margin;
+                                            display: flex;
+                                            justify-content: center;
+                                            align-items: flex-start;
+                                            margin-top: 10px;
+
+                                            button {
+                                                font-family: 'clipperz-icons';
+                                                font-size: 18pt;
+                                                cursor: pointer;
+                                                border: 0px;
+                                                background-color: inherit;
+                                                color: #ccc;
+                                                padding: 0px;
+
+                                                &:hover {
+                                                    color: #666;
+                                                }
+                                            }
+                                        }
+
+                                        .fieldForm {
+                                            flex: auto;
+                                            .inputs {
+                                                flex: auto;
+                                                flex-direction: column;
+                                                label {
+                                                    display: flex;
+                                                    span {
+                                                        @include fancyHidden;
+                                                    }
+
+                                                    &.label {
+                                                        // background-color: pink;
+                                                        margin-top: 10px;
+                                                        margin-bottom: 10px;
+                                                        input {
+                                                            flex: auto;
+                                                            color: gray;
+                                                            font-size: 12pt;
+                                                        }
+                                                    }
+
+                                                    &.value {
+                                                        // background-color: greenyellow;
+
+                                                        textarea {
+                                                            border: 0px;
+                                                            flex: auto;
+                                                            font-size: 18pt;
+                                                            line-height: 24pt;
+                                                            white-space: pre-wrap;
+                                                            word-wrap: break-word;
+                                                            user-select: text;
+                                                            resize: vertical;
+                                                            margin-bottom: 10px;
+                                                        }
+                                                    }
+
+                                                }
+                                            }
+                                            .fieldActions {
+                                                flex-direction: column;
+                                                background-color: purple;
+
+                                                div {
+                                                    label {
+                                                        // @include fancyHidden;
+                                                    }
+                                                    input {
+                                                        // @include fancyHidden;
+                                                        &:before {
+                                                            content: "unlocked";
+                                                        }
+
+                                                        &:checked {
+                                                            &:before {
+                                                                content: "locked";
+                                                            }
+                                                        }
+                                                        
+                                                    }
+                                                }
+                                                //  unlocked
+                                                //  locked
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             .submitButtons {
                                 flex: 0;

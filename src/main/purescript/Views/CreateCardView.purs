@@ -3,7 +3,7 @@ module Views.CreateCardView where
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopS, loopW, demand, display, justWait, hold, fireOnce)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', text, div_, ul_, li_, form, label, input, datalist, option)
+import Concur.React.DOM (div, div', text, div_, ul_, li_, form, label, input, datalist, option, span, textarea)
 import Concur.React.Props as Props
 import Control.Alt((<|>), class Alt)
 import Control.Applicative (pure)
@@ -71,10 +71,19 @@ createCardView card allTags state = do
                                       ]
       div [Props.className "fieldForm"] [
         div [Props.className "inputs"] [
-          (\v -> CardField $ r { name  = v }) <$> simpleTextInputWidget ("name")  (text "Name")  "Field name"  name
-        , (\v -> CardField $ r { value = v }) <$> simpleTextInputWidget ("value") (text "Value") "Field value" value
+          -- (\v -> CardField $ r { name  = v }) <$> simpleTextInputWidget ("name")  (text "Name")  "Field name"  name
+          ((\v -> CardField $ r { name  = v }) <<< (Props.unsafeTargetValue)) <$> label [Props.className "label"] [
+            span [] [text "Field label"]
+          , input [Props._type "text", Props.placeholder "label", Props.value name, Props.onChange]
+          ]
+        -- , (\v -> CardField $ r { value = v }) <$> simpleTextInputWidget ("value") (text "Value") "Field value" value
+        , ((\v -> CardField $ r { value  = v }) <<< (Props.unsafeTargetValue)) <$> label [Props.className "value"] [
+            span [] [text "Field value"]
+          -- , input [Props._type "text", Props.placeholder "value", Props.value value, Props.onChange]
+          , textarea [Props.placeholder "value", Props.value value, Props.onChange] []
+          ]
         ]
-      , div [] $ generatePasswordWidgets <> [(\v -> CardField $ r { locked = v }) <$> (simpleCheckboxWidget "locked" (text "Locked") false locked)]
+      , div [Props.className "fieldActions"] $ generatePasswordWidgets <> [(\v -> CardField $ r { locked = v }) <$> (simpleCheckboxWidget "locked" (text "Locked") false locked)]
       ]
 
     fieldsSignal :: PasswordGeneratorSettings -> Array CardField -> Signal HTML (Array CardField)
@@ -110,6 +119,7 @@ createCardView card allTags state = do
     , datalist [Props._id "tags-list"] ((\t -> option [] [text t]) <$> allTags)
     ])
 
+    tagsSignal :: String -> Array String -> Signal HTML (Tuple String (Array String))
     tagsSignal newTag tags = div_ [Props.className "tags"] do
       ul_ [] do
         tags' <- (\ts -> ((maybe [] singleton) =<< filter isJust ts)) <$> (sequence $ tagSignal <$> sort tags)
