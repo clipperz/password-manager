@@ -136,3 +136,8 @@ enablePlugins(AshScriptPlugin)
 dockerBaseImage       := "openjdk:jre-alpine"
 
 Compile / mainClass := Some("is.clipperz.backend.Main")
+
+assemblyMergeStrategy in assembly := {
+ case PathList("META-INF", _*) => MergeStrategy.discard
+ case _                        => MergeStrategy.first
+}

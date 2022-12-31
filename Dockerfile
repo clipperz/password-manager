@@ -15,9 +15,10 @@ FROM sbtscala/scala-sbt:eclipse-temurin-19.0.1_10_1.8.0_3.2.1 AS backend
 WORKDIR /app
 COPY --from=frontend /app/spago.dhall ./spago.dhall
 COPY ./ ./
-RUN sbt compile && sbt package
+# remove option to remove tests when everything else works
+RUN sbt 'set test in assembly := {}' clean assembly  
 
 FROM openjdk:jre-alpine
 COPY --from=frontend /app/target/output.parcel ./target/output.parcel
-COPY --from=backend /app/target/scala-3.2.0/clipperz-backend_3-0.1.0-SNAPSHOT.jar /app/target/scala-3.2.0/clipperz-backend_3-0.1.0-SNAPSHOT.jar
-CMD [ "java", "-jar", "/app/target/scala-3.2.0/clipperz-backend_3-0.1.0-SNAPSHOT.jar"]
+COPY --from=backend /app/target/scala-3.2.0/clipperz\ backend-assembly-0.1.0-SNAPSHOT.jar /app/target/scala-3.2.0/clipperz\ backend-assembly-0.1.0-SNAPSHOT.jar
+CMD [ "java", "-jar", "/app/target/scala-3.2.0/clipperz\ backend-assembly-0.1.0-SNAPSHOT.jar"]
