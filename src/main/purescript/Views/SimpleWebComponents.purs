@@ -9,7 +9,6 @@ module Views.SimpleWebComponents
   , complexMenu'
   , MenuStatus(..)
   , confirmationWidget
-  , disableOverlay
   , disabledSimpleTextInputWidget
   , dragAndDropAndRemoveList
   , dragAndDropFileInputWidget
@@ -277,14 +276,19 @@ loadingDiv = div [ (Props.className "loading") ] [
   ]
 ]  
 
-disableOverlay :: forall a. Widget HTML a
-disableOverlay = div [(Props.className "disableOverlay")] []
+-- disableOverlay :: forall a. Widget HTML a
+-- disableOverlay = div [(Props.className "disableOverlay")] []
 
 confirmationWidget :: String -> Widget HTML Boolean
 confirmationWidget message = div [(Props.className "disableOverlay")] [
-  text message
-, simpleButton "Yes" false true
-, simpleButton "No" false false
+  div [Props.className "mask", false <$ Props.onClick] []
+, div [Props.className "dialog"] [
+    div [Props.className "message"] [text message]
+  , div [Props.className "answers"] [
+      simpleButtonWithClass "Yes" "confirm" false true
+    , simpleButtonWithClass "No"  "cancel"  false false
+    ]
+  ]
 ]
 
 data MenuStatus = MenuOpen | MenuClosed

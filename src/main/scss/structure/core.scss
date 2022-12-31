@@ -135,7 +135,7 @@ html {
                                 flex: 1;
                             }
 
-                            &.CardFromReference {
+                            &.CardFromReference, &.CardForm {
                                 left: -100vw;
                             }
 
@@ -205,6 +205,66 @@ html {
     }
 }
 
+div.disableOverlay {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 100vw;
+    height: 100vh;
+
+    @include mask;
+
+    div.dialog {
+        border-radius: 8px;
+        max-width: 70%;
+        background-color: white;
+        padding: 30px;
+        box-shadow: 4px 4px 6px 5px rgba(0, 0, 0, 0.3);
+        z-index: 99999;
+        position: relative;
+
+        margin-left: auto;
+        margin-right: auto;
+        top: 30%;
+
+        div.message {
+            font-size: 18pt;
+            font-weight: bold;
+            padding-bottom: 20px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        div.answers {
+            display: flex;
+            flex-direction: row-reverse;
+            // justify-content: flex-start;
+
+            button {
+                margin-left: 10px;
+                font-size: 16pt;
+                line-height: 16pt;
+                padding: 15px 25px;
+                flex: 0;
+                border: 0px;
+                cursor: pointer;
+
+                &.confirm {
+                    color: black;
+                    background-color: #ddd;
+                }
+
+                &.cancel {
+                    color: white;
+                    background-color: #666;
+                    font-weight: bold;
+                }
+            }
+        }
+    }
+    // po
+}
+
 // ========================================================================================
 
 $wide-minSize: 700px;
@@ -253,6 +313,15 @@ $extraWide-minSize: 1100px;
                                 }
                                 #card {
                                     flex: 2;
+
+                                    #cardView {
+                                        .cardActions {
+                                            button.exit {
+                                                display: none;
+                                                visibility: hidden;
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
