@@ -455,26 +455,19 @@ div#homePage {
                                                 flex-direction: column;
                                                 background-color: purple;
 
-                                                div {
-                                                    label {
-                                                        // @include fancyHidden;
-                                                    }
-                                                    input {
-                                                        // @include fancyHidden;
-                                                        &:before {
-                                                            content: "unlocked";
-                                                        }
+												button.lock {
+													font-family: 'clipperz-icons';
+													font-size: 18pt;
+													cursor: pointer;
+													border: 0px;
+													background-color: inherit;
+													color: #ccc;
+													padding: 0px;
 
-                                                        &:checked {
-                                                            &:before {
-                                                                content: "locked";
-                                                            }
-                                                        }
-                                                        
-                                                    }
-                                                }
-                                                //  unlocked
-                                                //  locked
+													&:hover {
+														color: #666;
+													}
+												}
                                             }
                                         }
                                     }

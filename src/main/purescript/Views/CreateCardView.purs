@@ -3,7 +3,7 @@ module Views.CreateCardView where
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopS, loopW, demand, display, justWait, hold, fireOnce)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', text, div_, ul_, li_, form, label, input, datalist, option, span, textarea)
+import Concur.React.DOM (div, div', text, div_, ul_, li_, form, label, input, datalist, option, span, textarea, button)
 import Concur.React.Props as Props
 import Control.Alt((<|>), class Alt)
 import Control.Applicative (pure)
@@ -15,6 +15,7 @@ import Data.Either (Either(..), fromRight, hush)
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$), class Functor)
+import Data.HeytingAlgebra (not)
 import Data.Maybe (Maybe(..), isJust, maybe, fromMaybe)
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
@@ -83,7 +84,12 @@ createCardView card allTags state = do
           , textarea [Props.placeholder "value", Props.value value, Props.onChange] []
           ]
         ]
-      , div [Props.className "fieldActions"] $ generatePasswordWidgets <> [(\v -> CardField $ r { locked = v }) <$> (simpleCheckboxWidget "locked" (text "Locked") false locked)]
+      -- , div [Props.className "fieldActions"] $ generatePasswordWidgets <> [(\v -> CardField $ r { locked = v }) <$> (simpleCheckboxWidget "locked" (text "Locked") false locked)]
+      , div [Props.className "fieldActions"] $ generatePasswordWidgets <> [
+          (\v -> CardField $ r { locked = v })
+          <$>
+          button [not locked <$ Props.onClick, Props.className "lock"] [text if locked then "locked" else "unlocked"]
+        ]
       ]
 
     fieldsSignal :: PasswordGeneratorSettings -> Array CardField -> Signal HTML (Array CardField)
