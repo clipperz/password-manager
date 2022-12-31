@@ -129,3 +129,10 @@ lazy val dependencies = Seq(
 
 cancelable in Global := true
 fork in Global := true
+
+enablePlugins(JavaAppPackaging)
+enablePlugins(DockerPlugin)
+enablePlugins(AshScriptPlugin)
+dockerBaseImage       := "openjdk:jre-alpine"
+
+Compile / mainClass := Some("is.clipperz.backend.Main")
