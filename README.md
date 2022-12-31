@@ -42,3 +42,9 @@ Command to run inside of the sbt console to execute tests:
 ```
 sbt docker:publishLocal
 ```
+
+or
+
+```
+docker build . --platform=linux/amd64
+```
