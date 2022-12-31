@@ -418,7 +418,7 @@ removableDraggableWidget isDragging initialState widgetFunc = do
          else 
            [(Result (DraggableWidgetResult { isDragging: true, exitState: initialState })) <$ Props.onDragStart]
        ) 
-      [ simpleButton "x" false Remove
+      [ div [Props.className "remove"] [simpleButton "remove field" false Remove]
       , (\a -> Result (DraggableWidgetResult { isDragging, exitState: a })) <$> (widgetFunc initialState)
       ]
 
