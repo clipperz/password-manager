@@ -60,6 +60,26 @@ html {
                                 overflow: hidden;
                                 flex: auto;
                                 
+								div#searchForm {
+									display: flex;
+									flex-direction: row;
+									justify-content: space-between;
+									align-items: center;
+									padding: 7px 8px 7px 0px;
+
+									span {
+										display: none;
+										visibility: hidden;
+									}
+
+									&.selected {
+										span {
+											display: block;
+											visibility: visible;
+										}
+									}
+								}
+
                                 div.tags {
                                     display: flex;
                                     flex-direction: column;
@@ -250,7 +270,7 @@ div.disableOverlay {
 $wide-minSize: 700px;
 $extraWide-minSize: 1100px;
 
-@media only screen and (min-width: $wide-minSize) {
+@media /* only screen and */ (min-width: $wide-minSize) {
     //
     //  WIDE
     //
@@ -331,7 +351,7 @@ $extraWide-minSize: 1100px;
     }
 }
 
-@media only screen and (min-width: $extraWide-minSize) {
+@media /* only screen and */ (min-width: $extraWide-minSize) {
     //
     //  EXTRA WIDE
     //
@@ -369,7 +389,7 @@ $extraWide-minSize: 1100px;
     }
 }
 
-@media only screen and (min-width: calc($extraWide-minSize + 50px)) {
+@media /* only screen and */ (min-width: calc($extraWide-minSize + 50px)) {
     //
     //  EXTRA-EXTRA WIDE (hack to partially fix resize animation)
     //
