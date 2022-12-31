@@ -46,5 +46,10 @@ sbt docker:publishLocal
 or
 
 ```
-docker build . --platform=linux/amd64
+docker build . --platform=linux/amd64 -t clipperz
+```
+
+To run:
+```
+docker run -p 8080:8080 -v ${PWD}/target/archive/user:/archive/user -v ${PWD}/target/archive/blob:/archive/blob clipperz
 ```
