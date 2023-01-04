@@ -263,6 +263,11 @@ div#homePage {
                                         line-height: 28px;
                                         margin-top: -2px;                                        
                                     }
+
+									&[disabled] {
+										background-color: white;
+										color: $alternate-text-color;
+									}
                                 }
                             }
                         }
