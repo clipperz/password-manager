@@ -154,7 +154,7 @@ createCardView card allTags state = do
           -- notes' :: String <- simpleTextAreaSignal "notes" (text "Notes") "notes" notes
           notes' :: String <- loopW notes (\v -> Props.unsafeTargetValue <$> label [Props.className "notes"] [
               span [] [text "Notes"]
-            , textarea [Props.value v, Props.onChange, Props.placeholder "notes"] []
+            , textarea [Props.value v, Props.onChange, Props.placeholder "notes", Props.style { height: "40px" }] []
             ])
 
           pure $ Tuple newTag' $ Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
