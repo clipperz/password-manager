@@ -1,13 +1,15 @@
 module Views.SimpleWebComponents
-  ( LoopableWidget
+  ( DraggableWidgetResult(..)
+  , LoopableWidget
+  , MenuStatus(..)
   , PasswordForm
+  , RemovableDraggableWidgetResult(..)
   , SubMenuAction(..)
   , SubmenuVoice
   , checkboxesSignal
   , clickableListItemWidget
   , complexMenu
   , complexMenu'
-  , MenuStatus(..)
   , confirmationWidget
   , disabledSimpleTextInputWidget
   , dragAndDropAndRemoveList
@@ -42,7 +44,7 @@ module Views.SimpleWebComponents
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopW, demand, debounce, loopS, display, step)
 import Concur.React (HTML)
-import Concur.React.DOM (text, textarea, input, label, div', div, button, ul, li)
+import Concur.React.DOM (text, textarea, input, label, div', div, button, ul, li, span)
 import Concur.React.Props as Props
 import Control.Alt (class Alt, (<|>))
 import Control.Applicative (pure)
@@ -60,7 +62,7 @@ import Data.Functor ((<$), (<$>), class Functor)
 import Data.HeytingAlgebra (not)
 import Data.Int (even, odd)
 import Data.Map (Map, lookup)
-import Data.Maybe (fromMaybe, Maybe(..))
+import Data.Maybe (fromMaybe, fromJust, Maybe(..))
 import Data.Monoid (power)
 import Data.Ord ((>))
 import Data.Ring ((-))
@@ -71,7 +73,8 @@ import Data.String (joinWith)
 import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
-import Data.Unit (unit)
+import Data.Unit (unit, Unit)
+import Effect (Effect)
 import Effect.Aff (delay)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -81,7 +84,21 @@ import Functions.Password (PasswordStrengthFunction, PasswordStrength)
 import Functions.Time (getCurrentTimestamp)
 import React.SyntheticEvent (currentTarget, preventDefault, SyntheticEvent_, NativeEventTarget, SyntheticMouseEvent)
 
+import Unsafe.Coerce (unsafeCoerce)
+import Web.DOM.Node (fromEventTarget, Node(..))
+import Web.DOM.Element (fromNode)
+import Web.DOM.Document (toNonElementParentNode)
+import Web.DOM.NonElementParentNode (getElementById)
+import Web.HTML (window)
+import Web.HTML.HTMLDocument (toDocument)
+import Web.HTML.Window (document)
+import Effect.Unsafe (unsafePerformEffect)
+import Concur.Core.Props (Props(..), handleProp)
+import React.SyntheticEvent (NativeEvent)
+
 import Debug (traceM)
+
+foreign import handleDragEvent :: NativeEvent -> String -> Effect Unit 
 
 loadingBar :: Int -> Int -> Int -> String
 loadingBar current total width = 
@@ -394,12 +411,15 @@ instance showDraggableWidgetResult :: Show (DraggableWidgetResult a) where
 
 draggableWidget :: forall a. Boolean -> a -> (a -> Widget HTML a) -> Widget HTML (DraggableWidgetResult a)
 draggableWidget isDragging initialState widgetFunc = do
-  res <- div ([ Props.draggable true
-              , Props.classList [Just "draggableElem", (if isDragging then Just "draggingElem" else Nothing)]
+  res <- div ([ 
+                Props.classList [Just "draggableElem", (if isDragging then Just "draggingElem" else Nothing)]
               ]
-              <> if isDragging then [EndDrag <$> Props.onDragEnd] else [StartDrag <$> Props.onDragStart]
+              -- <> if isDragging then [EndDrag <$> Props.onDragEnd] else [StartDrag <$> Props.onDragStart]
               ) 
-              [Value <$> (widgetFunc initialState), text (show isDragging)]
+              [
+                  div ([Props.draggable true] <> (if isDragging then [EndDrag <$> Props.onDragEnd] else [StartDrag <$> Props.onDragStart])) [span [] [text "aaa"]]
+                , Value <$> (widgetFunc initialState), text (show isDragging)
+              ]
   case res of
     -- do not prevent defaults, otherwise strange behaviours occur
     StartDrag ev -> pure $ DraggableWidgetResult { isDragging: true, exitState: initialState }
@@ -411,16 +431,20 @@ data RemovableDraggableWidgetResult a = Remove | Result (DraggableWidgetResult a
 
 removableDraggableWidget :: forall a. Boolean -> a -> (a -> Widget HTML a) -> Widget HTML (RemovableDraggableWidgetResult a)
 removableDraggableWidget isDragging initialState widgetFunc = do
-  div ([ Props.draggable true
-       , Props.classList [Just "draggableElem", (if isDragging then Just "draggingElem" else Nothing)]]
-       <> if isDragging then 
-           [(Result (DraggableWidgetResult { isDragging: false, exitState: initialState })) <$ Props.onDragEnd] 
-         else 
-           [(Result (DraggableWidgetResult { isDragging: true, exitState: initialState })) <$ Props.onDragStart]
-       ) 
-      [ div [Props.className "remove"] [simpleButton "remove field" false Remove]
-      , (\a -> Result (DraggableWidgetResult { isDragging, exitState: a })) <$> (widgetFunc initialState)
+  div [Props.classList [Just "draggableElem", (if isDragging then Just "draggingElem" else Nothing)]]
+    [ div [Props.className "editActions"] [
+        div [Props.className "remove"] [simpleButton "remove field" false Remove]
+      , div ([Props.draggable true] <>
+          if isDragging then 
+            [(Result (DraggableWidgetResult { isDragging: false, exitState: initialState })) <$ Props.onDragEnd] 
+          else 
+            [(Result (DraggableWidgetResult { isDragging: true, exitState: initialState })) <$ (
+              handleProp (\e -> handleDragEvent (unsafeCoerce e).nativeEvent "draggableElem") $ Props.onDragStart
+            )]
+        ) [span [] [text "drag"]]
       ]
+    , (\a -> Result (DraggableWidgetResult { isDragging, exitState: a })) <$> (widgetFunc initialState)
+    ]
 
 type DroppableAreaResult = { isSelected :: Boolean, result :: (OnDropAreaEvents SyntheticMouseEvent) }
 type IndexedResult a = {index :: Int, result :: a}

@@ -394,28 +394,33 @@ div#homePage {
                                         &:hover {
                                             background-color: #eee;
                                         }
+										
+										.editActions {
+											display: flex;
+											flex-direction: column;
 
-                                        .remove {
-                                            width: $side-margin;
-                                            display: flex;
-                                            justify-content: center;
-                                            align-items: flex-start;
-                                            margin-top: 10px;
-
-                                            button {
-                                                font-family: 'clipperz-icons';
-                                                font-size: 18pt;
-                                                cursor: pointer;
-                                                border: 0px;
-                                                background-color: inherit;
-                                                color: #ccc;
-                                                padding: 0px;
-
-                                                &:hover {
-                                                    color: #666;
-                                                }
-                                            }
-                                        }
+											.remove {
+												width: $side-margin;
+												display: flex;
+												justify-content: center;
+												align-items: flex-start;
+												margin-top: 10px;
+	
+												button {
+													font-family: 'clipperz-icons';
+													font-size: 18pt;
+													cursor: pointer;
+													border: 0px;
+													background-color: inherit;
+													color: #ccc;
+													padding: 0px;
+	
+													&:hover {
+														color: #666;
+													}
+												}
+											}
+										}
 
                                         .fieldForm {
                                             flex: auto;
