@@ -389,6 +389,7 @@ div#homePage {
 
                                     .draggableElem {
                                         flex-direction: row;
+                                        border-bottom: 1px solid #eee;
 
                                         &:hover {
                                             background-color: #eee;
@@ -445,7 +446,7 @@ div#homePage {
                                                             border: 0px;
                                                             flex: auto;
                                                             font-size: 18pt;
-                                                            line-height: 24pt;
+                                                            line-height: 28pt;
                                                             white-space: pre-wrap;
                                                             word-wrap: break-word;
                                                             user-select: text;
@@ -458,9 +459,11 @@ div#homePage {
                                             }
                                             .fieldActions {
                                                 flex-direction: column;
-                                                background-color: purple;
+                                                padding-left: 5px;
+                                                padding-right: 5px;
+                                                // background-color: purple;
 
-												button.lock {
+												button {
 													font-family: 'clipperz-icons';
 													font-size: 18pt;
 													cursor: pointer;
@@ -468,12 +471,109 @@ div#homePage {
 													background-color: inherit;
 													color: #ccc;
 													padding: 0px;
+                                                    margin-left: 10px;
+                                                    margin-top: 10px;
 
-													&:hover {
+                                                    &:hover {
 														color: #666;
 													}
+
+                                                    &.passwordGenerator {
+                                                        visibility: hidden;
+                                                        font-size: 15pt;
+                                                        margin-left: 0px;
+                                                    }
 												}
                                             }
+
+                                            &.locked {
+                                                .inputs {
+                                                    .value {
+                                                        textarea {
+                                                            font-family: 'clipperz-password';
+                                                            font-size: 22pt;
+                                                            line-height: 28pt;
+                                                        }
+                                                    }
+                                                }
+                                                .fieldActions {
+                                                    button {
+                                                        &.passwordGenerator {
+                                                            visibility: visible;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                .newCardField {
+                                    display: block;
+                                    height: 86px;
+                                    border-bottom: 3px double #eee;
+                                    cursor: pointer;
+
+                                    .fieldGhostShadow {
+                                        display: block;
+                                        padding: 10px $side-margin 10px $side-margin;
+                                        .label {
+                                            background-color: white;
+                                            height: 25px;
+                                            margin-bottom: 8px;
+                                        }
+
+                                        .value {
+                                            background-color: white;
+                                            height: 33px;
+                                        }
+                                    }
+
+                                    button.addNewField {
+                                        cursor: pointer;
+                                        display: block;
+                                        margin-top: -78px;
+                                        width: 70px;
+                                        font-size: 50pt;
+                                        padding: 0px;
+                                        border: 0px;
+                                        background-color: transparent;
+                                        margin-left: auto;
+                                        margin-right: auto;
+                                        font-family: 'clipperz-icons';
+                                        color: #eee;
+                                    }
+
+                                    &:hover {
+                                        background-color: #eee;
+
+                                        button.addNewField {
+                                            color: #7c7;
+                                        }
+                                    }
+                                }
+
+                                .notes {
+                                    display: block;
+                                    padding: 10px $side-margin 10px $side-margin;
+
+                                    span {
+                                        @include fancyHidden;
+                                    }
+
+                                    textarea {
+                                        // font-size: 12pt;
+                                        // line-height: 18pt;
+                                        font-size: 10pt;
+                                        line-height: 1.5em;
+                                        white-space: pre-wrap;
+                                        word-wrap: break-word;
+                                        width: 100%;
+                                        border: 0px;
+
+                                        &::placeholder {
+                                            font-style: italic;
+                                            color: #ccc;
                                         }
                                     }
                                 }
