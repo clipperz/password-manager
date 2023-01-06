@@ -1,35 +1,19 @@
 "use strict"
 
-// const handleDragEvent = function(e) {
-// 	return function (clazzName) {
-// 		let dragElement = e.target
-// 		console.log("Inizio la ricerca del parent")
-// 		while (!dragElement.classList.contains(clazzName)) {
-// 			console.log(dragElement.classList)
-// 			console.log(dragElement.parentElement)
-// 			dragElement = dragElement.parentElement
-// 		}
-// 		console.log("Trovata la classe")
-// 		console.log(dragElement)
-
-// 		e.dataTransfer.setDragImage(dragElement, 30, 30)
-// 	}
-// }
-
-const handleDragStartEvent_ = function(clazzName) {
-    return function (x) {
-        return function (y) {
-            return function (e) {
-                let dragElement = e.target
-                // console.log("Inizio la ricerca del parent")
-                while (!dragElement.classList.contains(clazzName)) {
-                    // console.log(dragElement.classList)
-                    // console.log(dragElement.parentElement)
-                    dragElement = dragElement.parentElement
+//  String -> Int -> Int -> NativeEvent -> Effect Unit
+const handleDragStartEvent_ = function(clazzName) { //  String
+    return function (x) {                           //  Int
+        return function (y) {                       //  Int
+            return function (e) {                   //  NativeEvent
+                return function () {                //  Effect
+                    let dragElement = e.target
+                    while (!dragElement.classList.contains(clazzName)) {
+                        dragElement = dragElement.parentElement
+                    }
+                    e.dataTransfer.setDragImage(dragElement, x, y)
+                    return e;
+                    //  no return statement         //  Unit
                 }
-                // console.log("Trovata la classe")
-                // console.log(dragElement)
-                e.dataTransfer.setDragImage(dragElement, x, y)
             }
         }
 	}
