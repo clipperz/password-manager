@@ -98,7 +98,8 @@ import React.SyntheticEvent (NativeEvent)
 
 import Debug (traceM)
 
-foreign import handleDragEvent :: NativeEvent -> String -> Effect Unit 
+-- foreign import handleDragEvent :: NativeEvent -> String -> Effect Unit 
+foreign import handleDragStartEvent_ :: String -> Int -> Int -> NativeEvent -> Effect Unit
 
 loadingBar :: Int -> Int -> Int -> String
 loadingBar current total width = 
@@ -429,22 +430,28 @@ draggableWidget isDragging initialState widgetFunc = do
 
 data RemovableDraggableWidgetResult a = Remove | Result (DraggableWidgetResult a)
 
+-- handleDragEvent :: NativeEvent -> Effect Unit 
+handleDragStartEvent :: SyntheticMouseEvent -> Effect Unit 
+handleDragStartEvent e = handleDragStartEvent_ "draggableElem" 20 50 (unsafeCoerce e).nativeEvent
+
 removableDraggableWidget :: forall a. Boolean -> a -> (a -> Widget HTML a) -> Widget HTML (RemovableDraggableWidgetResult a)
 removableDraggableWidget isDragging initialState widgetFunc = do
-  div [Props.classList [Just "draggableElem", (if isDragging then Just "draggingElem" else Nothing)]]
-    [ div [Props.className "editActions"] [
-        div [Props.className "remove"] [simpleButton "remove field" false Remove]
-      , div ([Props.draggable true] <>
-          if isDragging then 
-            [(Result (DraggableWidgetResult { isDragging: false, exitState: initialState })) <$ Props.onDragEnd] 
-          else 
-            [(Result (DraggableWidgetResult { isDragging: true, exitState: initialState })) <$ (
-              handleProp (\e -> handleDragEvent (unsafeCoerce e).nativeEvent "draggableElem") $ Props.onDragStart
-            )]
-        ) [span [] [text "drag"]]
-      ]
-    , (\a -> Result (DraggableWidgetResult { isDragging, exitState: a })) <$> (widgetFunc initialState)
+  div [Props.classList [Just "draggableElem", (if isDragging then Just "draggingElem" else Nothing)]] [
+      div [Props.className "editActions"] [
+      div [Props.className "remove"] [simpleButton "remove field" false Remove]
+    , div ([Props.draggable true, Props.className "dragHandler"] <>
+        if isDragging then 
+          [(Result (DraggableWidgetResult { isDragging: false, exitState: initialState })) <$ Props.onDragEnd] 
+        else 
+          [(Result (DraggableWidgetResult { isDragging: true, exitState: initialState })) <$ (
+            -- handleProp (\e -> handleDragEvent (unsafeCoerce e).nativeEvent "draggableElem") $ Props.onDragStart
+            -- handleProp (\e -> handleDragEvent (unsafeCoerce e).nativeEvent) $ Props.onDragStart
+            handleProp handleDragStartEvent $ Props.onDragStart
+          )]
+      ) [span [] []]
     ]
+  , (\a -> Result (DraggableWidgetResult { isDragging, exitState: a })) <$> (widgetFunc initialState)
+  ]
 
 type DroppableAreaResult = { isSelected :: Boolean, result :: (OnDropAreaEvents SyntheticMouseEvent) }
 type IndexedResult a = {index :: Int, result :: a}

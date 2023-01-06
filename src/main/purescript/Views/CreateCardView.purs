@@ -14,7 +14,7 @@ import Data.Array (snoc, filter, catMaybes, singleton, sort, length, range, zipW
 import Data.Either (Either(..), fromRight, hush)
 import Data.Eq ((==))
 import Data.Function (($))
-import Data.Functor ((<$>), (<$), class Functor)
+import Data.Functor ((<$>), (<$), class Functor, void)
 import Data.HeytingAlgebra (not)
 import Data.Maybe (Maybe(..), isJust, maybe, fromMaybe)
 import Data.Ring ((-))
@@ -47,9 +47,9 @@ createCardView card allTags state = do
   passwordGeneratorSettings <- ((fromRight standardPasswordGeneratorSettings) <<< ((<$>) fromAppStateToPasswordSettings)) <$> (liftEffect getAppState)
   mCard <- div [Props._id "cardForm"] do
     case state of
-      Default   -> [form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
-      Loading   -> [loadingDiv, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
-      Error err -> [text err, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
+      Default   -> [mask, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
+      Loading   -> [mask, loadingDiv, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
+      Error err -> [mask, text err, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
   case mCard of
     Just (Card { content, timestamp: _ }) -> do
       -- liftEffect $ log $ show content
@@ -58,6 +58,8 @@ createCardView card allTags state = do
     Nothing -> pure Nothing
 
   where 
+    mask = div [Props.className "mask"] []
+
     cardFieldWidget :: PasswordGeneratorSettings -> CardField -> Widget HTML CardField
     cardFieldWidget settings (CardField r@{ name, value, locked }) = do
       let generatePasswordWidgets = [(\v -> CardField $ r { value = v })
@@ -141,7 +143,7 @@ createCardView card allTags state = do
           addTag  <- fireOnce $ simpleButton "Add tag" (newTag' == "") unit --TODO change with form that returns with `return` key
           case addTag of
             Nothing -> pure $ Tuple newTag' tags'
-            Just _  -> pure $ Tuple "" $ snoc tags' newTag
+            Just _  -> pure $ Tuple ""    $ snoc tags' newTag
 
     formSignal :: PasswordGeneratorSettings -> Signal HTML (Maybe (Maybe Card))
     formSignal settings = do

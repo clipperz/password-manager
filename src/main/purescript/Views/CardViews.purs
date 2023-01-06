@@ -75,7 +75,7 @@ cardField :: forall a. CardField -> Widget HTML a
 cardField f@(CardField {name, value, locked}) = do
   res <- div [Props.className "fieldValue"] [
     div [Props.className "fieldLabel"] [text name]
-  , textarea ((if locked then [Props.className "PASSWORD"] else []) <> [Props.onClick, Props.disabled true]) [text value]
+  , textarea ((if locked then [Props.className "PASSWORD"] else []) <> [Props.onClick, Props.disabled true, Props.value value]) []
   ] --TODO add class based on content for urls and emails
   _ <- pure $ copyToClipboard value
   cardField f

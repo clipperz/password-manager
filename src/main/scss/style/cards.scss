@@ -290,11 +290,18 @@ div#homePage {
                         display: flex;
                         height: 100%;
 
+                        @include mask;
+                        .mask {
+                            z-index: 20;
+                        }
+
                         form.cardForm {
                             display: flex;
                             width: 100%;
                             height: 100%;
-
+                            z-index: 20;
+                            background-color: white;
+    
                             flex-direction: column;
 
                             .cardFormFields {
@@ -420,6 +427,29 @@ div#homePage {
 													}
 												}
 											}
+
+                                            .dragHandler {
+                                                width: 40px;
+                                                height: 25px;
+                                                display: block;
+
+                                                span {
+                                                    background: repeating-linear-gradient(
+                                                        0deg,
+                                                        white,
+                                                        white 1px,
+                                                        #ccc 1px,
+                                                        #ccc 2px
+                                                    );
+                                                    display: block;
+                                                    width: 6px;
+                                                    height: 24px;
+                                                    margin-left: 17px;
+                                                    margin-top: 10px;                                                    
+                                                    cursor: grab;
+
+                                                }
+                                            }
 										}
 
                                         .fieldForm {
