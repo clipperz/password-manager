@@ -117,7 +117,7 @@ html {
                             }
                         }
                         
-                        #mainView {
+                        div#mainView {
                             display: flex;
                             flex-direction: row;
                             position: relative;
@@ -125,9 +125,15 @@ html {
                             transition: left 0.3s ease-in-out;
                             left: 0px;
                             
-                            #indexView {
+                            div#indexView {
                                 // width: 100vw;
                                 flex: 1;
+
+                                .addCard {
+                                    position: fixed;
+                                    bottom: 20px;
+                                    left: 80%;
+                                }
                             }
 
                             #card {
@@ -305,11 +311,14 @@ $extraWide-minSize: 1100px;
                                 }
                             }
 
-                            #mainView {
+                            div#mainView {
                                 position: static;
                                 width: auto;
 
-                                #indexView {
+                                div#indexView {
+                                    .addCard {
+                                        left: calc(27% - 30px);
+                                    }
                                 }
                                 #card {
                                     flex: 2;
@@ -378,6 +387,14 @@ $extraWide-minSize: 1100px;
                                     button {
                                         display: none;
                                         visibility: hidden;
+                                    }
+                                }
+                            }
+
+                            div#mainView {
+                                div#indexView {
+                                    .addCard {
+                                        left: calc(32% + 100px);
                                     }
                                 }
                             }
