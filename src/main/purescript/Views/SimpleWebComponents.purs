@@ -466,11 +466,19 @@ type IndexedResult a = {index :: Int, result :: a}
 droppableArea :: Boolean -> Widget HTML DroppableAreaResult
 droppableArea isSelected = do
   result <- div [ Props.classList [Just "dropzone", (if isSelected then Just "selected" else Nothing)]
-                , EvDrop <$> Props.onDrop
-                , EvDragLeave <$> Props.onDragLeave
-                , EvDragEnter <$> Props.onDragEnter
+                -- , EvDrop <$> Props.onDrop
+                -- , EvDragLeave <$> Props.onDragLeave
+                -- , EvDragEnter <$> Props.onDragEnter
                 -- , EvDragOver <$> Props.onDragOver -- managed by js for performance
-                ] [span [] []]
+                ] [
+                  span [
+                    Props.className "activationArea"
+                  , EvDrop      <$> Props.onDrop
+                  , EvDragLeave <$> Props.onDragLeave
+                  , EvDragEnter <$> Props.onDragEnter
+                  ] []
+                , span [Props.className "dropArea"] []
+                ]
   case result of
     EvDragOver ev -> do
       liftEffect $ preventDefault ev

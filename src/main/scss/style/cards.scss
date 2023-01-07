@@ -406,26 +406,55 @@ div#homePage {
                                         .dropzone {
                                             $dropzoneHeight: 80px;
                                             $dropzoneBoxHeigh: 40px;
+                                            flex-direction: column;
 
-                                            height: $dropzoneHeight;
-                                            margin-top: - $dropzoneHeight / 2;
-                                            margin-bottom: - $dropzoneHeight / 2;
-                                            position: relative;
-                                            background-color: rgba(255, 192, 203, 0.392);
-                                            z-index: 20;
-                                            // background-color: #ffffff00;
+                                            // height: $dropzoneHeight;
+                                            // margin-top: - $dropzoneHeight / 2;
+                                            // margin-bottom: - $dropzoneHeight / 2;
+                                            // // position: relative;
+                                            // background-color: rgba(255, 192, 203, 0.392);
+                                            // z-index: 20;
+                                            // // background-color: #ffffff00;
+                                            span {
+                                                width: 100%;
+
+                                                &.activationArea {
+                                                    height: $dropzoneHeight;
+                                                    margin-top: - calc($dropzoneHeight / 2);
+                                                    margin-bottom: - calc($dropzoneHeight / 2);
+                                                    // background-color: rgba(255, 192, 203, 0.392);
+                                                    z-index: 30;
+                                                }
+
+                                                &.dropArea {
+                                                    // display: none;
+                                                    // visibility: hidden;
+                                                    height: 2px;
+                                                    background-color: #999;
+                                                }
+                                            }
 
                                             &.selected {
-                                                height: $dropzoneHeight + $dropzoneBoxHeigh;
-                                                // background-color: #ffc0cbdc;
 
                                                 span {
-                                                    display: block;
-                                                    margin-top: $dropzoneHeight / 2;
-                                                    height: $dropzoneBoxHeigh;
-                                                    width: 100%;
-                                                    background-color: #ccc;
-                                                    z-index: 10;
+                                                    &.activationArea {
+                                                        // background-color: rgba(255, 192, 203, 0.392);
+                                                        height: $dropzoneHeight + $dropzoneBoxHeigh;
+                                                    }
+
+                                                    &.dropArea {
+                                                        // display: block;
+                                                        // visibility: visible;
+
+                                                        z-index: 25;
+                                                        height: $dropzoneBoxHeigh;
+                                                        margin-top: - calc($dropzoneHeight / 2);
+
+                                                        &:hover {
+                                                            background-color: #999;
+                                                        }
+
+                                                    }
                                                 }
                                             }
 
