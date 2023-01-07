@@ -113,7 +113,7 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
     , div [Props._id "mainView", Props.className $ getMainViewClassFromCardState cvs] [
         div [Props._id "indexView"] [
           toolbarHeader "cardList"
-        , simpleButton "add card" false (CardViewAction ShowAddCard) 
+        , div [Props.className "addCard"] [simpleButton "add card" false (CardViewAction ShowAddCard)]
         , (CardViewAction <<< ShowCard) <$> indexView i cEntry cif -- TODO:
         ]
       , div [Props._id "card"] [

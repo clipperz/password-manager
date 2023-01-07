@@ -35,6 +35,7 @@ import Data.Unit (unit, Unit)
 import DataModel.WidgetState as WS
 import DataModel.AppState (UserConnectionStatus(..))
 import DataModel.Credentials (Credentials)
+import Effect (Effect)
 import Effect.Aff (delay, never, Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -57,8 +58,7 @@ import Web.Storage.Storage (getItem, setItem, Storage)
 
 import Debug (traceM)
 
-commitHash :: String
-commitHash = "epsilon"
+foreign import currentCommit :: Effect String
 
 emptyCredentials :: Credentials
 emptyCredentials = { username: "", password: "" }
@@ -218,7 +218,8 @@ actionPage (InitState action)   = Loading (Just (actionPage action))
 --     div_ [Props.className "content"] do
 
 headerPage :: forall a. Page -> Page -> Array (Widget HTML a) -> Widget HTML a
-headerPage currentPage page innerContent = 
+headerPage currentPage page innerContent = do
+  commitHash <- liftEffect $ currentCommit
   div [Props.classList (Just <$> ["page", pageClassName page, show $ location page currentPage])] [
     div [Props.className "content"] [
       headerComponent

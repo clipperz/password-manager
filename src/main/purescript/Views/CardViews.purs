@@ -48,13 +48,15 @@ cardView c@(Card r) proxyConnectionStatus = do
 cardActions :: Card -> ProxyConnectionStatus -> Widget HTML CardAction
 cardActions c@(Card r) proxyConnectionStatus = div [Props.className "cardActions"] [
     simpleButtonWithClass (show (Exit c)) "exit"   false    (Exit c)
-  , simpleButton          (show (Edit c))    disabled (Edit c)
-  , simpleButton          (show (Clone c))   disabled (Clone c)
-  , if r.archived then
-      simpleButton (show (Restore c)) disabled (Restore c)
-    else
-      simpleButton (show (Archive c)) disabled (Archive c)
-  , simpleButton (show (Delete c))  disabled (Delete c)
+    -- , div [] [
+      ,  simpleButton          (show (Edit c))    disabled (Edit c)
+      , simpleButton          (show (Clone c))   disabled (Clone c)
+      , if r.archived then
+          simpleButton (show (Restore c)) disabled (Restore c)
+        else
+          simpleButton (show (Archive c)) disabled (Archive c)
+      , simpleButton (show (Delete c))  disabled (Delete c)
+    -- ]
 ]
   where
     disabled = case proxyConnectionStatus of
@@ -73,7 +75,7 @@ cardField :: forall a. CardField -> Widget HTML a
 cardField f@(CardField {name, value, locked}) = do
   res <- div [Props.className "fieldValue"] [
     div [Props.className "fieldLabel"] [text name]
-  , textarea ((if locked then [Props.className "PASSWORD"] else []) <> [Props.onClick]) [text value]
+  , textarea ((if locked then [Props.className "PASSWORD"] else []) <> [Props.onClick, Props.disabled true, Props.value value]) []
   ] --TODO add class based on content for urls and emails
   _ <- pure $ copyToClipboard value
   cardField f

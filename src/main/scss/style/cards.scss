@@ -92,37 +92,44 @@ div#homePage {
                     display: flex;
                     flex-direction: column;
 
-                    & > button {
-                        font-family: 'clipperz-icons';
-                        font-feature-settings: "liga" 1, "dlig" 1;
-                        text-rendering: optimizeLegibility;
-        
-                        border: 0px;
-                        border-radius: 30px;
-                        z-index: 5;
-        
-                        bottom: 0px;
-                        font-size: 45pt;
-                        color: white;
-                        background-color: #1863a1;
-                        box-shadow: 2px 8px 6px 0 rgba(0, 0, 0, 0.2);
-                        width: 60px;
-                        height: 60px;
-                        position: absolute;
-                        margin-left: 25%;
-                        margin-bottom: 20px;
-                        font-size: 36pt;
-                        cursor: pointer;             
-                        
-                        &:hover {
-                            background-color: #114875;
+                    .addCard {
+                        // background-color: rgba(255,0,0, 0.2);
+                        // position: absolute;
+                        // bottom: 30px;
+                        // left: calc(32% + 100px);
+
+                        button {
+                            font-family: 'clipperz-icons';
+                            font-feature-settings: "liga" 1, "dlig" 1;
+                            text-rendering: optimizeLegibility;
+            
+                            border: 0px;
+                            border-radius: 30px;
+                            z-index: 5;
+            
+                            // bottom: 0px;
+                            font-size: 45pt;
+                            color: white;
+                            background-color: #1863a1;
+                            box-shadow: 2px 8px 6px 0 rgba(0, 0, 0, 0.2);
+                            width: 60px;
+                            height: 60px;
+                            // position: absolute;
+                            // margin-left: 25%;
+                            // margin-bottom: 20px;
+                            font-size: 36pt;
+                            cursor: pointer;             
+                            
+                            &:hover {
+                                background-color: #114875;
+                            }
                         }
                     }
         
                     ol {
                         overflow: auto;
                         padding-bottom: 100px;
-						background-color: #1863a1;
+						// background-color: #1863a1;
                         li {
                             cursor: pointer;
                             border-bottom: 1px solid #eee;
@@ -263,6 +270,11 @@ div#homePage {
                                         line-height: 28px;
                                         margin-top: -2px;                                        
                                     }
+
+									&[disabled] {
+										background-color: white;
+										color: $alternate-text-color;
+									}
                                 }
                             }
                         }
@@ -285,12 +297,20 @@ div#homePage {
                         display: flex;
                         height: 100%;
 
+                        @include mask;
+                        .mask {
+                            z-index: 20;
+                        }
+
                         form.cardForm {
                             display: flex;
+                            flex-direction: column;
+
                             width: 100%;
                             height: 100%;
-
-                            flex-direction: column;
+                            z-index: 20;
+                            background-color: white;
+                            box-shadow: -5px 0px 5px 0px rgba(0, 0, 0, 0.75);
 
                             .cardFormFields {
                                 flex: auto;
@@ -382,34 +402,131 @@ div#homePage {
                                 .dragAndDropList {
                                     flex-direction: column;
 
+                                    &.dragging {
+                                        .dropzone {
+                                            $dropzoneHeight: 80px;
+                                            $dropzoneBoxHeigh: 40px;
+                                            flex-direction: column;
+
+                                            // height: $dropzoneHeight;
+                                            // margin-top: - $dropzoneHeight / 2;
+                                            // margin-bottom: - $dropzoneHeight / 2;
+                                            // // position: relative;
+                                            // background-color: rgba(255, 192, 203, 0.392);
+                                            // z-index: 20;
+                                            // // background-color: #ffffff00;
+                                            span {
+                                                width: 100%;
+
+                                                &.activationArea {
+                                                    height: $dropzoneHeight;
+                                                    margin-top: - calc($dropzoneHeight / 2);
+                                                    margin-bottom: - calc($dropzoneHeight / 2);
+                                                    // background-color: rgba(255, 192, 203, 0.392);
+                                                    z-index: 30;
+                                                }
+
+                                                &.dropArea {
+                                                    // display: none;
+                                                    // visibility: hidden;
+                                                    height: 2px;
+                                                    background-color: #999;
+                                                }
+                                            }
+
+                                            &.selected {
+
+                                                span {
+                                                    &.activationArea {
+                                                        // background-color: rgba(255, 192, 203, 0.392);
+                                                        height: $dropzoneHeight + $dropzoneBoxHeigh;
+                                                    }
+
+                                                    &.dropArea {
+                                                        // display: block;
+                                                        // visibility: visible;
+
+                                                        z-index: 25;
+                                                        height: $dropzoneBoxHeigh;
+                                                        margin-top: - calc($dropzoneHeight / 2);
+
+                                                        &:hover {
+                                                            background-color: #999;
+                                                        }
+
+                                                    }
+                                                }
+                                            }
+
+                                            // &:hover {
+                                            //     background-color: #ffc0cbdc;
+                                            //     // span {
+                                            //     //     display: block;
+                                            //     //     height: 40px;
+                                            //     //     width: 100%;
+                                            //     //     background-color: purple;
+                                            //     // }
+                                            // }
+                                        }
+                                    }
+
                                     .draggableElem {
                                         flex-direction: row;
+                                        border-bottom: 1px solid #eee;
 
                                         &:hover {
                                             background-color: #eee;
                                         }
+										
+										.editActions {
+											display: flex;
+											flex-direction: column;
 
-                                        .remove {
-                                            width: $side-margin;
-                                            display: flex;
-                                            justify-content: center;
-                                            align-items: flex-start;
-                                            margin-top: 10px;
+											.remove {
+												width: $side-margin;
+												display: flex;
+												justify-content: center;
+												align-items: flex-start;
+												margin-top: 10px;
+	
+												button {
+													font-family: 'clipperz-icons';
+													font-size: 18pt;
+													cursor: pointer;
+													border: 0px;
+													background-color: inherit;
+													color: #ccc;
+													padding: 0px;
+	
+													&:hover {
+														color: #666;
+													}
+												}
+											}
 
-                                            button {
-                                                font-family: 'clipperz-icons';
-                                                font-size: 18pt;
-                                                cursor: pointer;
-                                                border: 0px;
-                                                background-color: inherit;
-                                                color: #ccc;
-                                                padding: 0px;
+                                            .dragHandler {
+                                                width: 40px;
+                                                height: 25px;
+                                                display: block;
 
-                                                &:hover {
-                                                    color: #666;
+                                                span {
+                                                    background: repeating-linear-gradient(
+                                                        0deg,
+                                                        white,
+                                                        white 1px,
+                                                        #ccc 1px,
+                                                        #ccc 2px
+                                                    );
+                                                    display: block;
+                                                    width: 6px;
+                                                    height: 24px;
+                                                    margin-left: 17px;
+                                                    margin-top: 10px;                                                    
+                                                    cursor: grab;
+
                                                 }
                                             }
-                                        }
+										}
 
                                         .fieldForm {
                                             flex: auto;
@@ -440,7 +557,7 @@ div#homePage {
                                                             border: 0px;
                                                             flex: auto;
                                                             font-size: 18pt;
-                                                            line-height: 24pt;
+                                                            line-height: 28pt;
                                                             white-space: pre-wrap;
                                                             word-wrap: break-word;
                                                             user-select: text;
@@ -453,9 +570,11 @@ div#homePage {
                                             }
                                             .fieldActions {
                                                 flex-direction: column;
-                                                background-color: purple;
+                                                padding-left: 5px;
+                                                padding-right: 5px;
+                                                // background-color: purple;
 
-												button.lock {
+												button {
 													font-family: 'clipperz-icons';
 													font-size: 18pt;
 													cursor: pointer;
@@ -463,12 +582,109 @@ div#homePage {
 													background-color: inherit;
 													color: #ccc;
 													padding: 0px;
+                                                    margin-left: 10px;
+                                                    margin-top: 10px;
 
-													&:hover {
+                                                    &:hover {
 														color: #666;
 													}
+
+                                                    &.passwordGenerator {
+                                                        visibility: hidden;
+                                                        font-size: 15pt;
+                                                        margin-left: 0px;
+                                                    }
 												}
                                             }
+
+                                            &.locked {
+                                                .inputs {
+                                                    .value {
+                                                        textarea {
+                                                            font-family: 'clipperz-password';
+                                                            font-size: 22pt;
+                                                            line-height: 28pt;
+                                                        }
+                                                    }
+                                                }
+                                                .fieldActions {
+                                                    button {
+                                                        &.passwordGenerator {
+                                                            visibility: visible;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                .newCardField {
+                                    display: block;
+                                    height: 86px;
+                                    border-bottom: 3px double #eee;
+                                    cursor: pointer;
+
+                                    .fieldGhostShadow {
+                                        display: block;
+                                        padding: 10px $side-margin 10px $side-margin;
+                                        .label {
+                                            background-color: white;
+                                            height: 25px;
+                                            margin-bottom: 8px;
+                                        }
+
+                                        .value {
+                                            background-color: white;
+                                            height: 33px;
+                                        }
+                                    }
+
+                                    button.addNewField {
+                                        cursor: pointer;
+                                        display: block;
+                                        margin-top: -75px;
+                                        width: 70px;
+                                        font-size: 50pt;
+                                        padding: 0px;
+                                        border: 0px;
+                                        background-color: transparent;
+                                        margin-left: auto;
+                                        margin-right: auto;
+                                        font-family: 'clipperz-icons';
+                                        color: #eee;
+                                    }
+
+                                    &:hover {
+                                        background-color: #eee;
+
+                                        button.addNewField {
+                                            color: #7c7;
+                                        }
+                                    }
+                                }
+
+                                .notes {
+                                    display: block;
+                                    padding: 10px $side-margin 10px $side-margin;
+
+                                    span {
+                                        @include fancyHidden;
+                                    }
+
+                                    textarea {
+                                        // font-size: 12pt;
+                                        // line-height: 18pt;
+                                        font-size: 10pt;
+                                        line-height: 1.5em;
+                                        white-space: pre-wrap;
+                                        word-wrap: break-word;
+                                        width: 100%;
+                                        border: 0px;
+
+                                        &::placeholder {
+                                            font-style: italic;
+                                            color: #ccc;
                                         }
                                     }
                                 }

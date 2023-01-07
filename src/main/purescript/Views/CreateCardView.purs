@@ -14,7 +14,7 @@ import Data.Array (snoc, filter, catMaybes, singleton, sort, length, range, zipW
 import Data.Either (Either(..), fromRight, hush)
 import Data.Eq ((==))
 import Data.Function (($))
-import Data.Functor ((<$>), (<$), class Functor)
+import Data.Functor ((<$>), (<$), class Functor, void)
 import Data.HeytingAlgebra (not)
 import Data.Maybe (Maybe(..), isJust, maybe, fromMaybe)
 import Data.Ring ((-))
@@ -47,9 +47,9 @@ createCardView card allTags state = do
   passwordGeneratorSettings <- ((fromRight standardPasswordGeneratorSettings) <<< ((<$>) fromAppStateToPasswordSettings)) <$> (liftEffect getAppState)
   mCard <- div [Props._id "cardForm"] do
     case state of
-      Default   -> [form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
-      Loading   -> [loadingDiv, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
-      Error err -> [text err, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
+      Default   -> [mask, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
+      Loading   -> [mask, loadingDiv, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
+      Error err -> [mask, text err, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
   case mCard of
     Just (Card { content, timestamp: _ }) -> do
       -- liftEffect $ log $ show content
@@ -58,19 +58,21 @@ createCardView card allTags state = do
     Nothing -> pure Nothing
 
   where 
+    mask = div [Props.className "mask"] []
+
     cardFieldWidget :: PasswordGeneratorSettings -> CardField -> Widget HTML CardField
     cardFieldWidget settings (CardField r@{ name, value, locked }) = do
-      let generatePasswordWidgets = case locked of
-                                      false -> []
-                                      true -> [
-                                        (\v -> CardField $ r { value = v }) <$> do
-                                                                                 simpleButton "Gen Pass" false unit
-                                                                                 div [Props.className "passwordGeneratorOverlay"] [
-                                                                                   div [value <$ Props.onClick] []
-                                                                                  , passwordGenerator settings
-                                                                                 ]
-                                      ]
-      div [Props.className "fieldForm"] [
+      let generatePasswordWidgets = [(\v -> CardField $ r { value = v })
+        <$> do
+              simpleButtonWithClass "password generator" "passwordGenerator" false unit
+              div [Props.className "passwordGeneratorOverlay"] [
+                div [value <$ Props.onClick] []
+              , passwordGenerator settings
+              ]
+      ]
+
+      --   div [Props.className "fieldForm"] [
+      div [Props.classList ([Just "fieldForm", if (locked) then Just "locked" else Nothing])] [
         div [Props.className "inputs"] [
           -- (\v -> CardField $ r { name  = v }) <$> simpleTextInputWidget ("name")  (text "Name")  "Field name"  name
           ((\v -> CardField $ r { name  = v }) <<< (Props.unsafeTargetValue)) <$> label [Props.className "label"] [
@@ -96,11 +98,18 @@ createCardView card allTags state = do
     fieldsSignal settings fields = do
       let loopables = (\f -> Tuple f (cardFieldWidget settings)) <$> fields 
       fields' <- loopS loopables $ \ls -> do
-                                           es <- loopW ls dragAndDropAndRemoveList
-                                           addField <- fireOnce $ simpleButton "Add field" false unit
-                                           case addField of
-                                             Nothing -> pure es
-                                             Just _ -> pure $ snoc es (Tuple emptyCardField (cardFieldWidget settings))
+                                            es <- loopW ls dragAndDropAndRemoveList
+                                            -- addField <- fireOnce $ simpleButton "Add field" false unit
+                                            addField <- fireOnce $ div [Props.className "newCardField", Props.onClick] [
+                                              div [Props.className "fieldGhostShadow"] [
+                                                div [Props.className "label"] []
+                                              , div [Props.className "value"] []
+                                              ]
+                                            , button [Props.className "addNewField"] [text "add new field"]
+                                            ]
+                                            case addField of
+                                              Nothing -> pure es
+                                              Just _  -> pure $ snoc es (Tuple emptyCardField (cardFieldWidget settings))
       pure $ fst <$> fields'
 
     tagSignal :: String -> Signal HTML (Maybe String)
@@ -134,7 +143,7 @@ createCardView card allTags state = do
           addTag  <- fireOnce $ simpleButton "Add tag" (newTag' == "") unit --TODO change with form that returns with `return` key
           case addTag of
             Nothing -> pure $ Tuple newTag' tags'
-            Just _  -> pure $ Tuple "" $ snoc tags' newTag
+            Just _  -> pure $ Tuple ""    $ snoc tags' newTag
 
     formSignal :: PasswordGeneratorSettings -> Signal HTML (Maybe (Maybe Card))
     formSignal settings = do
@@ -143,7 +152,13 @@ createCardView card allTags state = do
           title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title") "Card title")
           Tuple newTag' tags' <- tagsSignal newTag tags
           fields' <- fieldsSignal settings fields
-          notes' :: String <- simpleTextAreaSignal "notes" (text "Notes") "notes" notes
+          
+          -- notes' :: String <- simpleTextAreaSignal "notes" (text "Notes") "notes" notes
+          notes' :: String <- loopW notes (\v -> Props.unsafeTargetValue <$> label [Props.className "notes"] [
+              span [] [text "Notes"]
+            , textarea [Props.value v, Props.onChange, Props.placeholder "notes", Props.style { height: "40px" }] []
+            ])
+
           pure $ Tuple newTag' $ Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
                                       , archived: archived
                                       , timestamp

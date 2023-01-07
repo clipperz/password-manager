@@ -54,6 +54,7 @@
   , "transformers"
   , "tuples"
   , "unfoldable"
+  , "unsafe-coerce"
   , "web-dom"
   , "web-events"
   , "web-file"
