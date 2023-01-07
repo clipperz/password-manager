@@ -23,7 +23,7 @@ buildPurescript := {
 lazy val packagePurescript = TaskKey[Unit]("packagePurescript", "Package frontend")
 packagePurescript := {
   import sys.process._
-  "yarn package" !
+  Process(Seq("bash", "-c", "yarn package"), None, "CURRENT_COMMIT" -> "development").!
 }
 
 lazy val keepPackagingPurescript = TaskKey[Unit]("keepPackagingPurescript", "Keep packaging frontend")
