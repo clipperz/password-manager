@@ -1,4 +1,6 @@
 FROM --platform=linux/amd64 node:18 AS frontend
+ARG CURRENT_COMMIT_ARG
+ENV CURRENT_COMMIT=$CURRENT_COMMIT_ARG
 WORKDIR /app
 COPY ./src ./src
 COPY package.json package.json

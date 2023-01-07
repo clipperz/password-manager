@@ -1,4 +1,4 @@
-import Util._
+import Util.*
 
 addCommandAlias("buildAll", "installPurescript; buildPurescript; compile")
 addCommandAlias("runAll", "installPurescript; buildPurescript; packagePurescript; run \"target/archive/blobs\" \"target/archive/users\" \"8090\"")

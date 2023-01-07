@@ -46,7 +46,7 @@ sbt docker:publishLocal
 or
 
 ```
-docker build . --platform=linux/amd64 -t clipperz
+docker build . --platform=linux/amd64 -t clipperz --build-arg CURRENT_COMMIT_ARG=`git rev-parse HEAD`
 ```
 
 To run:
