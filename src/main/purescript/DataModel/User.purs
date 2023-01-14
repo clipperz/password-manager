@@ -3,6 +3,7 @@ module DataModel.User where
 import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
 import Data.Bifunctor (rmap)
+import Data.Either (Either(..))
 import Data.Eq (class Eq)
 import Data.HexString (HexString)
 import Data.Maybe (Maybe)
@@ -40,7 +41,7 @@ instance decodeJsonIndexReference :: DecodeJson IndexReference where
 newtype UserPreferences = 
   UserPreferences
     { passwordGeneratorSettings :: PasswordGeneratorSettings
-    , automaticLock :: Maybe Int
+    , automaticLock :: Either Int Int
     }
 
 instance encodeJsonUserPreferences :: EncodeJson UserPreferences where

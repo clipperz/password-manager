@@ -75,7 +75,7 @@ prepareSignupParameters form = runExceptT $ do
   let indexReference     = IndexReference { reference: indexCardContentHash, masterKey: masterKeyHex, indexVersion: currentIndexVersion }
 
   let userPreferences = UserPreferences { passwordGeneratorSettings: standardPasswordGeneratorSettings
-                                        , automaticLock: Just 10
+                                        , automaticLock: Right 10
                                         }
   preferencesContent     :: ArrayBuffer <- ExceptT $ Right <$> encryptJson masterKey2 userPreferences
   preferencesContentHash :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> conf.hash (preferencesContent : Nil)

@@ -2,7 +2,8 @@ module Views.PasswordGenerator where
   
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div', text)
+import Concur.React.DOM (div, div', text)
+import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
@@ -32,8 +33,8 @@ import Views.SimpleWebComponents (simpleButton, simpleNumberInputWidget, disable
 extractValue :: forall a. Monoid a => AsyncValue a -> a
 extractValue v = 
   case v of
-    Done a -> a
-    Loading (Just a) -> a
+    Done     a        -> a
+    Loading (Just a)  -> a
     Loading (Nothing) -> mempty
 
 ---------------------------
@@ -48,9 +49,7 @@ data ComposedWidgetAction = ModifiedSettingsAction PasswordGeneratorSettings
 composedWidget :: PasswordGeneratorSettings -> AsyncValue String -> Widget HTML String
 composedWidget settings av = do
   res <- case av of
-    -- Just: just show the widget and wait for the user to do something
-    Done _    -> widget settings av
-    -- Nothing: show the widget while waiting for the computation of a password
+    Done    _ -> widget settings av
     Loading _ -> widget settings av <|> (ObtainedNewSuggestion <$> (computePassword settings))
   case res of
     ModifiedSettingsAction s'   -> composedWidget s' (Loading (Just (extractValue av))) -- need to regenerate password
@@ -113,16 +112,16 @@ data SettingsWidgetAction = LengthChange Int | CharSetToggle String | Chars Stri
 settingsWidget :: PasswordGeneratorSettings -> Widget HTML PasswordGeneratorSettings
 settingsWidget s = do
   let lengthWidget = (LengthChange <<< (fromMaybe 0) <<< fromString) <$> simpleNumberInputWidget "password_length" (text "Password Length") "" (show s.length)
-  let charsWidget = Chars <$> simpleTextInputWidget "password_characters" (text "Possible characters") "" s.characters
   let setsWidgets = (\(Tuple id v) -> (CharSetToggle id) <$ simpleCheckboxWidget ("char_set_" <> id) (text id) false v) <$> s.characterSets
-  res <- div' $ concat [[lengthWidget], setsWidgets, [charsWidget]]
+  let charsWidget = Chars <$> simpleTextInputWidget "password_characters" (text "Possible characters") "" s.characters
+  res <- div [Props.className "passwordGeneratorSettings"] $ concat [[lengthWidget], setsWidgets, [charsWidget]]
   case res of
-    LengthChange n -> pure $ s { length = n }
+    LengthChange  n   -> pure $ s { length = n }
     CharSetToggle key -> do
       let newArray = (toUnfoldable <<< update (\v -> Just (not v)) key <<< fromFoldable) s.characterSets
       let (CharacterSet chars) = charactersFromSets newArray
       pure $ s { characterSets = newArray, characters = chars }
-    Chars str -> pure $ s { characterSets = (checkCharSetsToggle s.characterSets str), characters = str }
+    Chars         str -> pure $ s { characterSets = (checkCharSetsToggle s.characterSets str), characters = str }
 
 checkCharSetsToggle :: Array (Tuple String Boolean) -> String -> Array (Tuple String Boolean)
 checkCharSetsToggle charSets chars = do

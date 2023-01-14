@@ -41,8 +41,8 @@ doLogin { username, password } =
     withExceptT (prettyShow) (ExceptT $ updateAppState { userPreferences: Just up, userCard: Just uc })
     
     case userPreferences.automaticLock of
-      Nothing -> except $ Right unit
-      Just n -> ExceptT $ Right <$> (liftEffect $ activateTimer n)
+      Left  _ -> except  $ Right unit
+      Right n -> ExceptT $ Right <$> (liftEffect $ activateTimer n)
     
     pure unit
   else except $ Left $ "Empty credentials"

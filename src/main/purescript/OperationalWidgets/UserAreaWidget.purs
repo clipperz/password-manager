@@ -96,7 +96,7 @@ userAreaWidget hidden proxyConnectionStatus = userAreaView hidden (defaultMenu p
         Import          -> frame (Loaded        <$> importWidget)
         Pin             -> frame (setPinWidget Default)
         Delete          -> frame (DeleteAccount <$  deleteUserWidget)
-        Preferences     -> frame (NoAction  <$ userPreferencesWidget Default)
+        Preferences     -> frame (NoAction      <$  userPreferencesWidget Default)
         ChangePassword  -> frame (changePasswordWidget Default emptyChangePasswordDataForm)
         VLock           -> pure $ Just Lock
         VLogout         -> pure $ Just Logout

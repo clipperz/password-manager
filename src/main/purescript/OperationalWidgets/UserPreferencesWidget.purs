@@ -6,19 +6,22 @@ module OperationalWidgets.UserPreferencesWidget
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, fireOnce, hold, loopW, loopS)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text, form, h3, h1)
+import Concur.React.DOM (div, text, form, h3, h1, ol_, li_, label, span, input)
+import Concur.React.Props as Props
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (runExceptT, except, ExceptT)
-import Data.Either (Either(..), note)
+import Data.Either (Either(..), note, isRight, either, hush)
 import Data.Eq ((==))
 import Data.Function (($))
-import Data.Functor (void, (<$>))
+import Data.Functor (void, (<$>), (<$))
+import Data.HeytingAlgebra (not)
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..), isJust, isNothing, fromMaybe)
 import Data.PrettyShow (prettyShow)
 import Data.Show (show)
+import Data.Tuple (Tuple(..))
 import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.User (UserPreferences(..))
@@ -51,8 +54,8 @@ userPreferencesWidget wstate = do
           let updateOp = do
                           liftEffect $ stopTimer
                           case r.automaticLock of
-                            Nothing -> pure unit
-                            Just n -> liftEffect $ activateTimer n
+                            Left  _ -> pure unit
+                            Right n -> liftEffect $ activateTimer n
                           liftAff $ runExceptT $ updateUserPreferences up
           (NewSettings <$> (div [] [loadingDiv, userPreferencesView up])) <|> (SettingsChanged <$> updateOp)
         Error err -> NewSettings <$> (div [] [userPreferencesView up, errorDiv err])
@@ -68,27 +71,47 @@ userPreferencesWidget wstate = do
       demand $ do
         newUP <- loopS up (\(UserPreferences r@{ passwordGeneratorSettings, automaticLock }) -> do
           _ <- hold unit $ void $ h1 [] [text "Preferences"]
-          _ <- hold unit $ void $ h3 [] [text "Lock"]
-          lockSettings <- loopW automaticLock automaticLockWidget
-          _ <- hold unit $ void $ h3 [] [text "Password generator"]
-          pswdSettings <- loopW passwordGeneratorSettings settingsWidget
+          Tuple lockSettings pswdSettings <- ol_ [] do
+            lockSettings' <- li_ [] do
+              _ <- hold unit $ void $ h3 [] [text "Lock"]
+              loopW automaticLock automaticLockWidget
+            pswdSettings' <- li_ [] do
+              _ <- hold unit $ void $ h3 [] [text "Password generator"]
+              loopW passwordGeneratorSettings settingsWidget
+            pure $ Tuple lockSettings' pswdSettings'
           pure $ UserPreferences $ r { passwordGeneratorSettings = pswdSettings, automaticLock = lockSettings }
         )
-        fireOnce (simpleButton "Change preferences" (up == newUP) newUP)
+        fireOnce (simpleButton "Save Preferences" (up == newUP) newUP)
     ]
 
-    automaticLockWidget :: Maybe Int -> Widget HTML (Maybe Int)
+    automaticLockWidget :: Either Int Int -> Widget HTML (Either Int Int)
     automaticLockWidget lockTime = do
+      let isEnabled = (isRight lockTime) :: Boolean
+      let value = either (\l -> l) (\r -> r) lockTime
       res <- div [] [
-        ChangeEnable <$> simpleCheckboxWidget "lockEnabled" (text "Enable auto-lock") false (isJust lockTime)
-      , ChangeValue <$> simpleInputWidget "lockTime" (text "Lock timeout:") (isNothing lockTime) "Lock time" (show (fromMaybe 0 lockTime)) "number"
+        ChangeEnable  <$> label [Props.className "autolock"] [
+                            span [] [text "Enable auto-lock"]
+                          , (not isEnabled) <$ input [Props._type "checkbox", Props.checked isEnabled, Props.onChange]
+                          ]
+      , ChangeValue   <$> (Props.unsafeTargetValue) <$> label [Props.classList [Just "lockTime", (\_ -> "enabled") <$> hush lockTime]] [
+                span [Props.className "label"] [text "Lock timeout"]
+              , input [
+                  Props._type "number"
+                , Props.placeholder "Lock time"
+                , Props.value $ show value
+                , Props.disabled (not isEnabled)
+                , Props.onChange
+                ]
+              , span [Props.className "units"] [text "minutes"]
+              ]
       ]
       case res of
-        ChangeEnable false -> pure Nothing
-        ChangeEnable true -> pure (Just 10)
-        ChangeValue v -> 
+        ChangeEnable  false -> pure (Left  value)
+        ChangeEnable  true  -> pure (Right value)
+        ChangeValue   v     -> 
           case fromString v of
-            Just newTime -> pure $ Just newTime
-            Nothing -> pure (Just 0)
+            Just newTime  -> pure (Right newTime)
+            Nothing       -> pure (Right value)
+
 
 data AutomaticLockWidgetAction = ChangeEnable Boolean | ChangeValue String
