@@ -143,6 +143,13 @@ html {
 
                             &.CardFromReference, &.CardForm {
                                 left: -100vw;
+
+                                #indexView {
+                                    .addCard {
+                                        display: none;
+                                        visibility: hidden;
+                                    }
+                                }
                             }
 
                         }
@@ -315,7 +322,17 @@ $extraWide-minSize: 1100px;
                                 position: static;
                                 width: auto;
 
+                                &.CardFromReference, &.CardForm {
+                                    div#indexView {
+                                        .addCard {
+                                            display: block;
+                                            visibility: visible;
+                                        }
+                                    }
+                                }
+
                                 div#indexView {
+
                                     .addCard {
                                         left: calc(27% - 30px);
                                     }
