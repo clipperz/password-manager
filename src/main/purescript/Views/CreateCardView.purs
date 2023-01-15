@@ -36,7 +36,7 @@ import Functions.Time (getCurrentTimestamp)
 import Functions.Communication.Users (getUserPreferences)
 import React.SyntheticEvent (SyntheticMouseEvent)
 import Views.PasswordGenerator (passwordGenerator)
-import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleButtonWithClass, dragAndDropAndRemoveList, confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, simpleCheckboxWidget, simpleTextAreaSignal)
+import Views.SimpleWebComponents (loadingDiv, simpleButton, dragAndDropAndRemoveList, confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, simpleCheckboxWidget, simpleTextAreaSignal)
 
 import Debug (traceM)
 
@@ -64,7 +64,7 @@ createCardView card allTags state = do
     cardFieldWidget settings (CardField r@{ name, value, locked }) = do
       let generatePasswordWidgets = [(\v -> CardField $ r { value = v })
         <$> do
-              simpleButtonWithClass "password generator" "passwordGenerator" false unit
+              simpleButton "password generator" "passwordGenerator" false unit
               div [Props.className "passwordGeneratorOverlay"] [
                 div [value <$ Props.onClick] []
               , passwordGenerator settings
@@ -114,7 +114,7 @@ createCardView card allTags state = do
 
     tagSignal :: String -> Signal HTML (Maybe String)
     tagSignal tag = li_ [] do
-      removeTag <- fireOnce $ simpleButton "remove tag" false unit
+      removeTag <- fireOnce $ simpleButton "remove" "remove tag" false unit
       tag' <- loopW tag text
       case removeTag of
         Nothing -> pure $ Just tag'
@@ -140,7 +140,7 @@ createCardView card allTags state = do
         tags' <- (\ts -> ((maybe [] singleton) =<< filter isJust ts)) <$> (sequence $ tagSignal <$> sort tags)
         li_ [Props.className "addTag"] do
           newTag' <- inputTagSignal newTag
-          addTag  <- fireOnce $ simpleButton "Add tag" (newTag' == "") unit --TODO change with form that returns with `return` key
+          addTag  <- fireOnce $ simpleButton "add tag" "Add tag" (newTag' == "") unit --TODO change with form that returns with `return` key
           case addTag of
             Nothing -> pure $ Tuple newTag' tags'
             Just _  -> pure $ Tuple ""    $ snoc tags' newTag
@@ -169,11 +169,11 @@ createCardView card allTags state = do
 
     cancelButton v = 
       if card == v then 
-        simpleButtonWithClass "Cancel" "inactive cancel" false Nothing 
+        simpleButton "inactive cancel" "cancel" false Nothing 
       else do
-        _ <- simpleButtonWithClass "Cancel" "active cancel" false Nothing 
-        confirmation <- (false <$ simpleButtonWithClass "Cancel" "active cancel" false Nothing) <|> (confirmationWidget "Are you sure you want to exit without saving?")
+        _ <- simpleButton "active cancel" "cancel" false Nothing 
+        confirmation <- (false <$ simpleButton "cancel" "active cancel" false Nothing) <|> (confirmationWidget "Are you sure you want to exit without saving?")
         if confirmation then pure Nothing else (cancelButton v)
 
     saveButton v = 
-      simpleButtonWithClass "Save" "save" (card == v) (Just v)
+      simpleButton "save" "save" (card == v) (Just v)

@@ -24,7 +24,7 @@ import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Logout (doLogout)
 import Functions.Communication.Users (getIndex)
-import Views.SimpleWebComponents (simpleButton, simpleButtonWithId, submenu, complexMenu, SubmenuVoice)
+import Views.SimpleWebComponents (simpleButton, submenu, complexMenu, SubmenuVoice)
 import OperationalWidgets.ImportWidget (importWidget)
 import OperationalWidgets.ExportWidget (exportWidget)
 import OperationalWidgets.ChangePasswordWidget (changePasswordWidget, emptyChangePasswordDataForm)
@@ -42,19 +42,19 @@ data UserAreaInternalAction = MenuAction (Tuple (Array (SubmenuVoice UserAreaLis
 
 defaultMenu :: ProxyConnectionStatus -> Array (SubmenuVoice UserAreaListVoice)
 defaultMenu proxyConnectionStatus = [
-  Tuple false (\b -> submenu b (simpleButton "Account" false unit) [
-    li [] [simpleButtonWithId "preferencesButton"  "Preferences"     disabled  Preferences]
-  , li [] [simpleButtonWithId "passphraseButton"   "Passphrase"      disabled  ChangePassword]
-  , li [] [simpleButtonWithId "deviceButton"       "Device PIN"      false     Pin]
-  , li [] [simpleButtonWithId "deleteButton"       "Delete account"  disabled  Delete]
+  Tuple false (\b -> submenu b (simpleButton "account" "Account" false unit) [
+    li [] [simpleButton "preferencesButton"  "Preferences"     disabled  Preferences]
+  , li [] [simpleButton "passphraseButton"   "Passphrase"      disabled  ChangePassword]
+  , li [] [simpleButton "deviceButton"       "Device PIN"      false     Pin]
+  , li [] [simpleButton "deleteButton"       "Delete account"  disabled  Delete]
   ])
-, Tuple false (\b -> submenu b (simpleButton "Data" false unit) [
-    li [] [simpleButtonWithId "importButton"       "Import"          disabled  Import]
-  , li [] [simpleButtonWithId "exportButton"       "Export"          false     Export]
+, Tuple false (\b -> submenu b (simpleButton "data" "Data" false unit) [
+    li [] [simpleButton "importButton"       "Import"          disabled  Import]
+  , li [] [simpleButton "exportButton"       "Export"          false     Export]
   ])
-, Tuple true (\b -> submenu b (text "") [simpleButtonWithId "aboutButton"   "About"   false About])
-, Tuple true (\b -> submenu b (text "") [simpleButtonWithId "lockButton"    "Lock"    false VLock])
-, Tuple true (\b -> submenu b (text "") [simpleButtonWithId "logoutButton"  "Logout"  false VLogout])
+, Tuple true (\b -> submenu b (text "") [simpleButton "aboutButton"   "About"   false About])
+, Tuple true (\b -> submenu b (text "") [simpleButton "lockButton"    "Lock"    false VLock])
+, Tuple true (\b -> submenu b (text "") [simpleButton "logoutButton"  "Logout"  false VLogout])
 ]
   where
     disabled = case proxyConnectionStatus of

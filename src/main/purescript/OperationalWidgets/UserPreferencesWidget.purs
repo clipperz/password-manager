@@ -81,7 +81,7 @@ userPreferencesWidget wstate = do
             pure $ Tuple lockSettings' pswdSettings'
           pure $ UserPreferences $ r { passwordGeneratorSettings = pswdSettings, automaticLock = lockSettings }
         )
-        fireOnce (simpleButton "Save Preferences" (up == newUP) newUP)
+        fireOnce (simpleButton "save" "Save Preferences" (up == newUP) newUP)
     ]
 
     automaticLockWidget :: Either Int Int -> Widget HTML (Either Int Int)

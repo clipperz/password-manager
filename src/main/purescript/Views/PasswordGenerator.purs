@@ -65,7 +65,7 @@ composedWidget settings av = do
     widget :: PasswordGeneratorSettings -> AsyncValue String -> Widget HTML ComposedWidgetAction
     widget s v = div' [
       ModifiedSettingsAction <$> settingsWidget s
-    , simpleButton "Regenerate" false RequestedNewSuggestion
+    , simpleButton "regenerate" "Regenerate" false RequestedNewSuggestion
     , (either ObtainedNewSuggestion ApprovedSuggestion) <$> suggestionWidget v
     ]
 
@@ -78,8 +78,8 @@ suggestionWidget av =
     go :: Boolean -> String -> Widget HTML (Either String String)
     go b s = do
       res <- div' [
-        PasswordChange <$> disabledSimpleTextInputWidget "generated_password" (text "Generated password") b "" s
-      , InsertPassword <$> simpleButton "Insert" b s
+        PasswordChange <$> disabledSimpleTextInputWidget "generatePassword" (text "Generated password") b "" s
+      , InsertPassword <$> simpleButton "setPassword" "Insert" b s
       ]
       case res of
         PasswordChange p       -> suggestionWidget $ Done p
@@ -99,9 +99,9 @@ passwordWidget settings str =
     go s = do
       liftEffect $ log s
       res <- div' [
-        PasswordChange <$> simpleTextInputWidget "generated_password" (text "GeneratedPassword") "" s
-      , simpleButton "Regenerate" false UpdatePassword
-      , InsertPassword <$> simpleButton "Insert" false s
+        PasswordChange <$> simpleTextInputWidget "password" (text "GeneratedPassword") "" s
+      , simpleButton "regenerate" "Regenerate" false UpdatePassword
+      , InsertPassword <$> simpleButton "insert" "Insert" false s
       ]
       case res of
         PasswordChange p       -> passwordWidget settings (Just p)

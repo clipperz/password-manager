@@ -78,9 +78,9 @@ deleteUserWidget = do
       h1 [] [text "Delete account"]
     , demand $ do
         formValues <- loopS (merge creds {notRecoverable: false}) $ \{username, password, notRecoverable} -> do
-          username' :: String <- simpleUserSignal username
+          username' :: String <- simpleUserSignal "username" username
           password' :: String <- loopW password (simplePasswordInputWidget "password" (text "Password"))
-          checkbox' :: Boolean <- simpleCheckboxSignal "not_recoverable" (text "All my data will be permanently deleted. I understand that this action cannot be undone or canceled.") true notRecoverable
+          checkbox' :: Boolean <- simpleCheckboxSignal "warning" (text "All my data will be permanently deleted. I understand that this action cannot be undone or canceled.") notRecoverable
           pure { username: username', password: password', notRecoverable: checkbox' }
         fireOnce (submitWidget formValues)
     ] 
@@ -88,13 +88,11 @@ deleteUserWidget = do
     submitWidget :: { username :: String, password :: String, notRecoverable :: Boolean } -> Widget HTML DeleteUserWidgetAction
     submitWidget f@{ username, password, notRecoverable } = do
       check <- liftEffect $ if username == "" || password == "" then pure (Right false) else checkC f
-      case check of
-        Left err -> do
-          log $ show err
-          simpleButton "Delete account" true PleaseDelete
-        Right b -> do
-          let enable = b && notRecoverable
-          simpleButton "Delete account" (not enable) PleaseDelete
+      disabled  <- pure $ case check of
+        Left  err -> true
+        Right b   -> not (b && notRecoverable)
+
+      simpleButton "delete" "Delete account" disabled PleaseDelete
     
     checkC :: { username :: String, password :: String, notRecoverable :: Boolean } -> Effect (Either AppError Boolean)
     checkC { username, password } = runExceptT $ do

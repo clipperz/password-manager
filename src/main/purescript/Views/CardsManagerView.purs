@@ -96,7 +96,7 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
           , getFilterListElement UntaggedFilter "Untagged" ["untaggedCards"]
           ]
         , GeneralFilter <$> div [Props._id "searchForm", Props.className (if (indexFilter == GeneralFilter currentGeneralFilter && currentGeneralFilter /= "") then "selected" else  "")] [
-            simpleTextInputWidgetWithFocus "generalFilter" (text "search") "search" currentGeneralFilter
+            simpleTextInputWidgetWithFocus "search" (text "search") "search" currentGeneralFilter
           , span [Props.className "count"] [text $ show $ countShownCards (GeneralFilter currentGeneralFilter)]
           ]
         , div [Props.className "tags"] [
@@ -113,7 +113,7 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
     , div [Props._id "mainView", Props.className $ getMainViewClassFromCardState cvs] [
         div [Props._id "indexView"] [
           toolbarHeader "cardList"
-        , div [Props.className "addCard"] [simpleButton "add card" false (CardViewAction ShowAddCard)]
+        , div [Props.className "addCard"] [simpleButton "addCard" "add card" false (CardViewAction ShowAddCard)]
         , (CardViewAction <<< ShowCard) <$> indexView i cEntry cif -- TODO:
         ]
       , div [Props._id "card"] [
@@ -233,11 +233,7 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
 
     toggleArchivedButton = 
       (\b -> { archived: b, indexFilter }) <$> div [Props._id "archivedFilterArea"] [
-        simpleCheckboxWidget 
-            "show_archived_checkbox" 
-            (text "Show archived cards") 
-            true
-            archived
+        simpleCheckboxWidget "showArchived" (text "Show archived cards") archived
       , (span [Props.className "count"] [text $ show countArchivedCards])
       ]
     countArchivedCards = length $ filter (\(CardEntry r) -> r.archived) entries

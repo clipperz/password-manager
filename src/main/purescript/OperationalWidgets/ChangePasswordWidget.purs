@@ -75,10 +75,10 @@ changePasswordWidget state changeForm = go state changeForm
     , do
         signalResult <- demand $ do
           formValues :: ChangePasswordDataForm <- loopS changeForm $ \{username, oldPassword, password, verifyPassword, notRecoverable} -> do
-            username' :: String <- simpleUserSignal username
-            oldPassword' :: String <- loopW oldPassword (simplePasswordInputWidget "password" (text "Old password"))
-            eitherPassword :: Either PasswordForm String <- simpleVerifiedPasswordSignal standardPasswordStrengthFunction $ Left {password, verifyPassword}
-            checkbox' :: Boolean <- simpleCheckboxSignal "not_recoverable" (text "I understand Clipperz won't be able to recover a lost password") false notRecoverable
+            username'       :: String   <- simpleUserSignal "username" username
+            oldPassword'    :: String   <- loopW oldPassword (simplePasswordInputWidget "old_password" (text "Old password"))
+            eitherPassword  :: Either PasswordForm String <- simpleVerifiedPasswordSignal standardPasswordStrengthFunction $ Left {password, verifyPassword}
+            checkbox'       :: Boolean  <- simpleCheckboxSignal "no_recovery" (text "I understand Clipperz won't be able to recover a lost password") notRecoverable
             case eitherPassword of
               Left  passwords -> pure $ merge passwords { username: username', oldPassword: oldPassword', notRecoverable: checkbox'}
               Right s         -> pure { username: username', oldPassword: oldPassword', password: s, verifyPassword: s, notRecoverable: checkbox' }
@@ -89,14 +89,11 @@ changePasswordWidget state changeForm = go state changeForm
 
     submitWidget :: ChangePasswordDataForm -> Widget HTML ChangePasswordDataForm
     submitWidget f@{ username, oldPassword } = do
-      check <- liftEffect $ if username == "" || oldPassword == "" then pure (Right false) else checkC f
-      case check of
-        Left err -> do
-          log $ show err
-          simpleButton "Change password" true f
-        Right b -> do
-          let enable = b && (isNewDataValid f)
-          simpleButton "Change password" (not enable) f
+      check     <- liftEffect $ if username == "" || oldPassword == "" then pure (Right false) else checkC f
+      disabled  <- pure $ case check of
+        Left  err -> true
+        Right b   -> not (b && (isNewDataValid f))
+      simpleButton "cange_password" "Change password" disabled f
     
     checkC :: ChangePasswordDataForm -> Effect (Either AppError Boolean)
     checkC { username, oldPassword } = runExceptT $ do

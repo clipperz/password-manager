@@ -146,7 +146,7 @@ loginFormView state loginFormData = do
       ] 
 
     submitButton :: LoginDataForm -> Widget HTML LoginDataForm
-    submitButton f = simpleButton "login" (not (isFormValid f)) f
+    submitButton f = simpleButton "login" "login" (not (isFormValid f)) f
 
 loginFormView' :: LoginDataForm -> Widget HTML (Either PinCredentials Credentials)
 loginFormView' loginFormData = do
@@ -236,4 +236,4 @@ loginFormView' loginFormData = do
       ] 
 
     submitButton :: LoginDataForm -> Widget HTML LoginDataForm
-    submitButton f = simpleButton "login" (not (isFormValid f)) f
+    submitButton f = simpleButton "login" "login" (not (isFormValid f)) f

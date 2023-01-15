@@ -76,7 +76,7 @@ formSignal formData = do
 
   where
     submitButton :: LoginDataForm -> Widget HTML LoginDataForm
-    submitButton f = simpleButton "login" (not (isFormValid f)) f
+    submitButton f = simpleButton "login" "login" (not (isFormValid f)) f
 
     isFormValid :: LoginDataForm -> Boolean
     isFormValid { username, password } = username /= "" && password /= ""

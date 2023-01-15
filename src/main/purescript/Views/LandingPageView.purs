@@ -37,7 +37,7 @@ landingPageView view = do
                         ]
           SignupView state form -> div [Props.className "bodyContent"] [
                           Login <$ signupWidgetWithLogin state form -- TODO
-                        , simpleButton "login" false (LandingPageView (LoginView Default { username: form.username, password: form.password }))
+                        , simpleButton "login" "login" false (LandingPageView (LoginView Default { username: form.username, password: form.password }))
                         ]
         )
       ],

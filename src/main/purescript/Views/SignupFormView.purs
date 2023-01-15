@@ -64,7 +64,7 @@ signupFormView state formData =
       do
         signalResult <- demand $ do
           formValues :: SignupDataForm <- loopS formData $ \{username: username, password: password, verifyPassword: verifyPassword, checkboxes: checkboxMap} -> do
-            username' :: String <- simpleUserSignal username
+            username' :: String <- simpleUserSignal "username" username
             eitherPassword :: Either PasswordForm String <- simpleVerifiedPasswordSignal standardPasswordStrengthFunction $ Left {password: password, verifyPassword: verifyPassword}
             checkboxMap' :: Array (Tuple String Boolean) <- div_ [Props.className "checkboxes"] $ checkboxesSignal checkboxMap checkboxesLabels   
             case eitherPassword of
@@ -77,4 +77,4 @@ signupFormView state formData =
     ]
 
 submitWidget :: SignupDataForm -> Widget HTML Credentials
-submitWidget f@{ username, password } = simpleButton "Sign up" (not (isFormValid f)) { username, password }
+submitWidget f@{ username, password } = simpleButton "signup" "Sign up" (not (isFormValid f)) { username, password }

@@ -18,8 +18,8 @@ module Views.SimpleWebComponents
   , loadingDiv
   , passwordStrengthShow
   , simpleButton
-  , simpleButtonWithClass
-  , simpleButtonWithId
+  -- , simpleButtonWithClass
+  -- , simpleButtonWithId
   , simpleCheckboxSignal
   , simpleCheckboxWidget
   , simpleFileInputWidget
@@ -106,40 +106,37 @@ loadingBar current total width =
   in full <> empty <> "% (" <> (show current) <> " of " <> (show total) <> ")"
 
 simpleTextAreaWidget :: String -> Widget HTML String -> String -> String -> Widget HTML String
-simpleTextAreaWidget id lbl placeholder content = do
-  div [Props.className "textarea"] [
-    label [Props.htmlFor id, Props.className "hide-element"] [lbl]
-    , Props.unsafeTargetValue <$> textarea [
-        Props.value content
-      , Props.onChange
-      , Props.placeholder placeholder
+simpleTextAreaWidget className lbl placeholder content = do
+  label [Props.className className] [
+    span [Props.className "label"] [lbl]
+  , Props.unsafeTargetValue <$> textarea [
+      Props.value content
+    , Props.onChange
+    , Props.placeholder placeholder
     ] []
   ]
 
 simpleInputWidget :: String -> Widget HTML String -> Boolean -> String -> String -> String -> Widget HTML String
-simpleInputWidget id lbl disable placeholder value t = do
-  res <- div' [
-      label [Props.htmlFor id] [lbl]
-    , (Props.unsafeTargetValue) <$> input [
-        Props._type t
-      , Props._id id
-      , Props.placeholder placeholder
-      , Props.value value
-      , Props.disabled disable
-      , Props.onChange
-      ]
+simpleInputWidget className lbl disable placeholder value t =
+  label [Props.className className] [
+    span [Props.className "label"] [lbl]
+  , (Props.unsafeTargetValue) <$> input [
+      Props._type t
+    , Props.placeholder placeholder
+    , Props.value value
+    , Props.disabled disable
+    , Props.onChange
+    ]
   ]
-  pure res
 
 simpleFileInputWidget :: String -> Widget HTML String -> Widget HTML String
-simpleFileInputWidget id lbl = do
-  div' [
-      label [Props.htmlFor id] [lbl]
-    , fromSyntheticEvent =<< input [
-        Props._type "file"
-      , Props._id id
-      , Props.onChange
-      ]
+simpleFileInputWidget className lbl = do
+  label [Props.className className] [
+    span [Props.className "label"] [lbl]
+  , fromSyntheticEvent =<< input [
+      Props._type "file"
+    , Props.onChange
+    ]
   ]
 
   where 
@@ -156,11 +153,13 @@ dragAndDropFileInputWidget id lbl = do
 
   where 
     dropDiv highlight = do
-      res <- div [ Props.classList (Just <$> (["dropFile"] <> if highlight then ["highlight"] else []))
-                 , Props._id id
-                 , DragEnter <$> Props.onDragEnter
-                 , DragLeave <$> Props.onDragLeave
-                 , Drop <$> Props.onDropCapture] [ FileContent <$> (simpleFileInputWidget "importButton" (text lbl)) ]
+      res <- div  [ Props.classList (Just <$> (["dropFile"] <> if highlight then ["highlight"] else []))
+                  , Props._id id
+                  , DragEnter <$> Props.onDragEnter
+                  , DragLeave <$> Props.onDragLeave
+                  , Drop <$> Props.onDropCapture
+                  ]
+                  [ FileContent <$> (simpleFileInputWidget "importButton" (text lbl)) ]
       case res of
         DragEnter _ -> dropDiv true
         DragLeave _ -> dropDiv false
@@ -168,76 +167,61 @@ dragAndDropFileInputWidget id lbl = do
         FileContent s -> pure s
 
 simpleTextInputWidgetWithFocus :: String -> Widget HTML String -> String -> String -> Widget HTML String
-simpleTextInputWidgetWithFocus id lbl placeholder s = do
-  res <- div' [
-      label [Props.htmlFor id] [lbl]
-    , input [
-        Props._type "text"
-      , Props._id id
-      , Props.placeholder placeholder
-      , Props.value s
-      , Props.disabled false
-      , Props.unsafeTargetValue <$> Props.onChange
-      , Props.unsafeTargetValue <$> Props.onFocus
-      ]
+simpleTextInputWidgetWithFocus className lbl placeholder s = do
+  label [Props.className className] [
+    span [Props.className "label"] [lbl]
+  , input [
+      Props._type "text"
+    , Props.placeholder placeholder
+    , Props.value s
+    , Props.disabled false
+    , Props.unsafeTargetValue <$> Props.onChange
+    , Props.unsafeTargetValue <$> Props.onFocus
+    ]
   ]
-  pure res
 
 simpleTextInputWidget :: String -> Widget HTML String -> String -> String -> Widget HTML String
-simpleTextInputWidget id lbl placeholder s = simpleInputWidget id lbl false placeholder s "text"
+simpleTextInputWidget className lbl placeholder s = simpleInputWidget className lbl false placeholder s "text"
 
 disabledSimpleTextInputWidget :: String -> Widget HTML String -> Boolean -> String -> String -> Widget HTML String
-disabledSimpleTextInputWidget id lbl disable placeholder s = simpleInputWidget id lbl disable placeholder s "text"
+disabledSimpleTextInputWidget className lbl disable placeholder s = simpleInputWidget className lbl disable placeholder s "text"
 
 simplePasswordInputWidget :: String -> Widget HTML String -> String -> Widget HTML String
-simplePasswordInputWidget id lbl s = simpleInputWidget id lbl false "password" s "password"
+simplePasswordInputWidget className lbl s = simpleInputWidget className lbl false "password" s "password"
 
 simpleNumberInputWidget :: String -> Widget HTML String -> String -> String -> Widget HTML String
-simpleNumberInputWidget id lbl placeholder s = simpleInputWidget id lbl false placeholder s "number"
+simpleNumberInputWidget className lbl placeholder s = simpleInputWidget className lbl false placeholder s "number"
 
-simpleCheckboxWidget :: String -> Widget HTML Boolean -> Boolean -> Boolean -> Widget HTML Boolean 
-simpleCheckboxWidget id lbl lblOnLeft v = do
-  res <- if lblOnLeft then div' [
-    (not v) <$ input [
-        Props._type "checkbox"
-      , Props._id id 
-      , Props.checked v
-      , Props.onChange
-      ]
-    , label [Props.htmlFor id] [lbl]
-  ]
-  
-  else div' [
-      label [Props.htmlFor id] [lbl]
-    , (not v) <$ input [
-        Props._type "checkbox"
-      , Props._id id 
-      , Props.checked v
-      , Props.onChange
-      ]
-  ]
-  pure res
+simpleCheckboxWidget :: String -> Widget HTML Boolean -> Boolean -> Widget HTML Boolean 
+simpleCheckboxWidget className lbl v =  label [Props.className className] [
+                                span [Props.className "label"] [lbl]
+                              , (not v) <$  input [
+                                  Props._type "checkbox"
+                                , Props.checked v
+                                , Props.onChange
+                                ]
+                              ]
 
-simpleButton :: forall a. String -> Boolean -> a -> Widget HTML a
-simpleButton label disable value = button [value <$ Props.onClick, Props.disabled disable] [text label]
+simpleButton :: forall a. String -> String -> Boolean -> a -> Widget HTML a
+simpleButton className label disable value = button [value <$ Props.onClick, Props.disabled disable, Props.className className ] [text label]
 
-simpleButtonWithId :: forall a. String -> String -> Boolean -> a -> Widget HTML a
-simpleButtonWithId id label disable value = button [Props._id id, value <$ Props.onClick, Props.disabled disable] [text label]
+-- simpleButtonWithId :: forall a. String -> String -> Boolean -> a -> Widget HTML a
+-- simpleButtonWithId id label disable value = button [Props._id id, value <$ Props.onClick, Props.disabled disable] [text label]
 
-simpleButtonWithClass :: forall a. String -> String -> Boolean -> a -> Widget HTML a
-simpleButtonWithClass label classes disable value = button [value <$ Props.onClick, Props.disabled disable, Props.className classes] [text label]
+-- simpleButtonWithClass :: forall a. String -> String -> Boolean -> a -> Widget HTML a
+-- simpleButtonWithClass label classes disable value = button [value <$ Props.onClick, Props.disabled disable, Props.className classes] [text label]
 
 simpleTextAreaSignal :: String -> Widget HTML String -> String -> String -> Signal HTML String
-simpleTextAreaSignal id label placeholder content = loopW content (simpleTextAreaWidget id label placeholder)
+simpleTextAreaSignal className label placeholder content = loopW content (simpleTextAreaWidget className label placeholder)
 
-simpleUserSignal :: String -> Signal HTML String
-simpleUserSignal u = loopW u (simpleTextInputWidget "username" (text "Username") "username")
+simpleUserSignal :: String -> String -> Signal HTML String
+simpleUserSignal className u = loopW u (simpleTextInputWidget className (text "Username") "username")
 
-simplePasswordSignal :: String -> Signal HTML String
-simplePasswordSignal p = loopW p (simplePasswordInputWidget "password" (text "Password"))
+simplePasswordSignal :: String -> String -> Signal HTML String
+simplePasswordSignal className p = loopW p (simplePasswordInputWidget className (text "Password"))
 
-simpleCheckboxSignal :: String -> Widget HTML Boolean -> Boolean -> Boolean -> Signal HTML Boolean
-simpleCheckboxSignal id lbl lblOnLeft v = loopW v (simpleCheckboxWidget id lbl lblOnLeft)
+simpleCheckboxSignal :: String -> Widget HTML Boolean -> Boolean -> Signal HTML Boolean
+simpleCheckboxSignal className lbl v = loopW v (simpleCheckboxWidget className lbl)
 
 type PasswordForm = { password       :: String
                     , verifyPassword :: String
@@ -259,7 +243,7 @@ simpleVerifiedPasswordSignal psf f = loopS f $ \ef ->
 
 checkboxesSignal :: Array (Tuple String Boolean) ->  Map String (Widget HTML Boolean) -> Signal HTML (Array (Tuple String Boolean))
 checkboxesSignal ts lablesMap = loopS ts \m -> do
-  let checkboxes = ((\(Tuple id value) -> Tuple id (simpleCheckboxSignal id (fromMaybe (text "Label not found") (lookup id lablesMap)) false value)) <$> m) :: Array (Tuple String (Signal HTML Boolean))
+  let checkboxes = ((\(Tuple id value) -> Tuple id (simpleCheckboxSignal id (fromMaybe (text "Label not found") (lookup id lablesMap)) value)) <$> m) :: Array (Tuple String (Signal HTML Boolean))
   let checkboxes2 = ((\(Tuple id s) -> do
                             res <- s
                             pure $ Tuple id res) <$> checkboxes) :: Array (Signal HTML (Tuple String Boolean))
@@ -300,8 +284,8 @@ confirmationWidget message = div [(Props.className "disableOverlay")] [
 , div [Props.className "dialog"] [
     div [Props.className "message"] [text message]
   , div [Props.className "answers"] [
-      simpleButtonWithClass "Yes" "confirm" false true
-    , simpleButtonWithClass "No"  "cancel"  false false
+      simpleButton "confirm" "Yes" false true
+    , simpleButton "cancel"  "No"  false false
     ]
   ]
 ]
@@ -439,7 +423,7 @@ removableDraggableWidget isDragging initialState widgetFunc = do
   , (Result (DraggableWidgetResult { isDragging: false, exitState: initialState })) <$ Props.onDragEnd
   ] [
     div [Props.className "editActions"] [
-      div [Props.className "remove"] [simpleButton "remove field" false Remove]
+      div [Props.className "remove"] [simpleButton "remove" "remove field" false Remove]
     , div [
         Props.className "dragHandler"
       , Props.draggable true

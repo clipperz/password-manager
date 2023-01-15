@@ -65,7 +65,7 @@ setPinWidget ws = do
       text $ "PIN is " <> (if pinExists then "" else "not ") <> "set on this device"
     , do
         signalResult <- demand $ do
-          pin <- loopW "" (\value -> simpleInputWidget "pinField" (text "PIN") pinExists (if pinExists then "*****" else "PIN") value "number")
+          pin <- loopW "" (\value -> simpleInputWidget "pin" (text "PIN") pinExists (if pinExists then "*****" else "PIN") value "number")
           result :: Maybe PinWidgetAction <- fireOnce (submitWidget pin pinExists)
           pure result
         pure signalResult
@@ -73,10 +73,10 @@ setPinWidget ws = do
 
     submitWidget pin pinExists =
       if pinExists then
-        simpleButton "Reset" false Reset
+        simpleButton "reset" "Reset" false Reset
       else case fromString pin of
-        Just p -> simpleButton "Save" (not (isPinValid p)) (SetPin p)
-        Nothing -> simpleButton "Save" true (SetPin 0)
+        Just p  -> simpleButton "save" "Save" (not (isPinValid p)) (SetPin p)
+        Nothing -> simpleButton "save" "Save" true (SetPin 0)
 
 pinPage :: forall a. Maybe String -> Widget HTML a -> Widget HTML a
 pinPage error internalForm = div [Props._id "pinPage"] [
