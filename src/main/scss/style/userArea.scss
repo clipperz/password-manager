@@ -147,9 +147,8 @@ div#userPage {
                                     }
 
                                     span.label {
-                                        margin-right: 6px;
                                         &::after {
-                                            content: ":";
+                                            content: ": ";
                                         }
                                     }
 
@@ -160,6 +159,7 @@ div#userPage {
                                         background-color: black;
                                         color: white;
                                         border: 1px solid #333;
+                                        appearance: textfield;
 
                                         &:disabled {
                                             color: gray;
