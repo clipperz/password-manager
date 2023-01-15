@@ -94,15 +94,9 @@ userPreferencesWidget wstate = do
                           , (not isEnabled) <$ input [Props._type "checkbox", Props.checked isEnabled, Props.onChange]
                           ]
       , ChangeValue   <$> (Props.unsafeTargetValue) <$> label [Props.classList [Just "lockTime", (\_ -> "enabled") <$> hush lockTime]] [
-                span [Props.className "label"] [text "Lock timeout"]
-              , input [
-                  Props._type "number"
-                , Props.placeholder "Lock time"
-                , Props.value $ show value
-                , Props.disabled (not isEnabled)
-                , Props.onChange
-                ]
-              , span [Props.className "units"] [text "minutes"]
+                span  [Props.className "label"] [text "Lock timeout"]
+              , input [Props._type "number", Props.placeholder "Lock time", Props.value $ show value, Props.disabled (not isEnabled), Props.onChange]
+              , span  [Props.className "units"] [text "minutes"]
               ]
       ]
       case res of
