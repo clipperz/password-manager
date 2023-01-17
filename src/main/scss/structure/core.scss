@@ -334,6 +334,7 @@ $extraWide-minSize: 1100px;
                                 div#indexView {
 
                                     .addCard {
+										transition: left 0.3s ease-in-out;
                                         left: calc(27% - 30px);
                                     }
                                 }
@@ -351,6 +352,19 @@ $extraWide-minSize: 1100px;
                                 }
                             }
                         }
+
+						&.filterView_open {
+							div.cardToolbarFrame {
+								div#mainView {
+									div#indexView {
+										.addCard {
+											left: calc(27% - 30px + 250px);
+										}
+									}
+								}
+							}
+						}
+
                     }
 
                     div#userPage {
