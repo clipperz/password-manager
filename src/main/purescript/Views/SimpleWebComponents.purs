@@ -391,24 +391,6 @@ newtype DraggableWidgetResult a = DraggableWidgetResult { isDragging :: Boolean,
 instance showDraggableWidgetResult :: Show (DraggableWidgetResult a) where
   show (DraggableWidgetResult {isDragging}) = "DWR " <> (show isDragging)
 
--- draggableWidget :: forall a. Boolean -> a -> (a -> Widget HTML a) -> Widget HTML (DraggableWidgetResult a)
--- draggableWidget isDragging initialState widgetFunc = do
---   res <- div ([ 
---                 Props.classList [Just "draggableElem", (if isDragging then Just "draggingElem" else Nothing)]
---               ]
---               -- <> if isDragging then [EndDrag <$> Props.onDragEnd] else [StartDrag <$> Props.onDragStart]
---               ) 
---               [
---                   div ([Props.draggable true] <> (if isDragging then [EndDrag <$> Props.onDragEnd] else [StartDrag <$> Props.onDragStart])) [span [] [text "aaa"]]
---                 , Value <$> (widgetFunc initialState), text (show isDragging)
---               ]
---   case res of
---     -- do not prevent defaults, otherwise strange behaviours occur
---     StartDrag ev -> pure $ DraggableWidgetResult { isDragging: true, exitState: initialState }
---     EndDrag   ev -> pure $ DraggableWidgetResult { isDragging: false, exitState: initialState }
---     Dragging  ev -> pure $ DraggableWidgetResult { isDragging: true, exitState: initialState }
---     Value     a  -> pure $ DraggableWidgetResult { isDragging, exitState: a }
-
 data RemovableDraggableWidgetResult a = Remove | Result (DraggableWidgetResult a)
 
 handleDragStartEvent :: SyntheticMouseEvent -> Effect Unit 
@@ -416,7 +398,7 @@ handleDragStartEvent e = handleDragStartEvent_ "draggableElem" 20 50 (unsafeCoer
 
 removableDraggableWidget :: forall a. Boolean -> a -> (a -> Widget HTML a) -> Widget HTML (RemovableDraggableWidgetResult a)
 removableDraggableWidget isDragging initialState widgetFunc = do
-  log $ "start element " <> (show isDragging)
+  -- log $ "start element " <> (show isDragging)
   res <- div [
     Props.classList [Just "draggableElem", (if isDragging then Just "draggingElem" else Nothing)]
   , (Result (DraggableWidgetResult { isDragging: true, exitState: initialState })) <$ Props.onDragStart
@@ -427,22 +409,19 @@ removableDraggableWidget isDragging initialState widgetFunc = do
     , div [
         Props.className "dragHandler"
       , Props.draggable true
+      -- , (Result (DraggableWidgetResult { isDragging: true, exitState: initialState })) <$ Props.onMouseOver
+      -- , (Result (DraggableWidgetResult { isDragging: false, exitState: initialState })) <$ Props.onMouseOut
       , handleProp handleDragStartEvent Props.onDragStart
       ] [span [] []]
---  , div ([Props.draggable true, Props.className "dragHandler"] <>
---      if isDragging then 
---        [(Result (DraggableWidgetResult { isDragging: false, exitState: initialState })) <$ Props.onDragEnd] 
---      else 
---        [handleProp handleDragStartEvent Props.onDragStart]
---    ) [span [] []]
     ]
   , (\a -> Result (DraggableWidgetResult { isDragging, exitState: a })) <$> (widgetFunc initialState)
   ]
-  case res of
-    Result (DraggableWidgetResult { isDragging: isDr, exitState }) -> do
-      log $ show isDr
-      pure res
-    _ -> pure res
+  pure res
+  -- case res of
+  --   Result (DraggableWidgetResult { isDragging: isDr, exitState }) -> do
+  --     -- log $ show isDr
+  --     pure res
+  --   _ -> pure res
 
 type DroppableAreaResult = { isSelected :: Boolean, result :: (OnDropAreaEvents SyntheticMouseEvent) }
 type IndexedResult a = {index :: Int, result :: a}
@@ -503,11 +482,11 @@ dragAndDropAndRemoveList widgets = do
       let droppableWidget = droppableArea isSelected
       in Tuple result droppableWidget
 
-    manageDraggableWidgetResult :: RemovableDraggableWidgetResult a -> RemovableDraggableWidgetType a -> Maybe (Tuple a (RemovableDraggableWidgetType a))
-    manageDraggableWidgetResult Remove _ = Nothing
-    manageDraggableWidgetResult (Result (DraggableWidgetResult { isDragging, exitState })) { widgetFunc, widget } =
-      let newWidget = mapWidget isDragging (Tuple exitState widgetFunc)
-      in Just $ Tuple exitState newWidget
+    -- manageDraggableWidgetResult :: RemovableDraggableWidgetResult a -> RemovableDraggableWidgetType a -> Maybe (Tuple a (RemovableDraggableWidgetType a))
+    -- manageDraggableWidgetResult Remove _ = Nothing
+    -- manageDraggableWidgetResult (Result (DraggableWidgetResult { isDragging, exitState })) { widgetFunc, widget } =
+    --   let newWidget = mapWidget isDragging (Tuple exitState widgetFunc)
+    --   in Just $ Tuple exitState newWidget
 
     includeEither :: forall m b c. Functor m => Either (m b) (m c) -> m (Either b c)
     includeEither (Left w) = Left <$> w

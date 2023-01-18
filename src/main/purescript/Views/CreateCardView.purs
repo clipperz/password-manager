@@ -2,8 +2,9 @@ module Views.CreateCardView where
 
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopS, loopW, demand, display, justWait, hold, fireOnce)
+import Concur.Core.Props (filterProp)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', text, div_, ul_, li_, form, label, input, datalist, option, span, textarea, button)
+import Concur.React.DOM (div, div', text, div_, ul_, li_, form_, form, label, input, datalist, option, span, textarea, button)
 import Concur.React.Props as Props
 import Control.Alt((<|>), class Alt)
 import Control.Applicative (pure)
@@ -12,21 +13,22 @@ import Control.Monad.Except.Trans (runExceptT)
 import Control.Semigroupoid ((<<<))
 import Data.Array (snoc, filter, catMaybes, singleton, sort, length, range, zipWith)
 import Data.Either (Either(..), fromRight, hush)
-import Data.Eq ((==))
+import Data.Eq ((==), (/=))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$), class Functor, void)
-import Data.HeytingAlgebra (not)
+import Data.HeytingAlgebra (not, (&&), (||))
 import Data.Maybe (Maybe(..), isJust, maybe, fromMaybe)
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
-import Data.Unit (unit)
+import Data.Unit (Unit, unit)
 import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
 import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
 import DataModel.User (UserPreferences(..))
 import DataModel.WidgetState (WidgetState(..))
+import Effect (Effect)
 import Effect.Aff (never)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -40,6 +42,10 @@ import Views.SimpleWebComponents (loadingDiv, simpleButton, dragAndDropAndRemove
 
 import Debug (traceM)
 
+import Unsafe.Coerce (unsafeCoerce)
+import Concur.Core.Props (handleProp)
+import React.SyntheticEvent (NativeEvent, SyntheticKeyboardEvent)
+
 createCardView :: Card -> Array String -> WidgetState -> Widget HTML (Maybe Card)
 createCardView card allTags state = do
   maybeUp <- hush <$> (liftAff $ runExceptT getUserPreferences)
@@ -47,9 +53,12 @@ createCardView card allTags state = do
   passwordGeneratorSettings <- ((fromRight standardPasswordGeneratorSettings) <<< ((<$>) fromAppStateToPasswordSettings)) <$> (liftEffect getAppState)
   mCard <- div [Props._id "cardForm"] do
     case state of
-      Default   -> [mask, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
-      Loading   -> [mask, loadingDiv, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
-      Error err -> [mask, text err, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
+      Default   -> [mask, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
+      Loading   -> [mask, loadingDiv, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
+      Error err -> [mask, text err, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
+      -- Default   -> [mask, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
+      -- Loading   -> [mask, loadingDiv, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
+      -- Error err -> [mask, text err, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
   case mCard of
     Just (Card { content, timestamp: _ }) -> do
       -- liftEffect $ log $ show content
@@ -120,39 +129,79 @@ createCardView card allTags state = do
         Nothing -> pure $ Just tag'
         Just _  -> pure $ Nothing
 
-    inputTagSignal :: String -> Signal HTML String
-    inputTagSignal newTag = loopW newTag (\value -> div' [
-      label [Props.htmlFor "new-tag", Props.className "hide-element"] [text "New Tag"]
-    , (Props.unsafeTargetValue) <$> input [
-        Props._type "text"
-      , Props._id "new-tag"
-      , Props.placeholder "add tag"
-      , Props.value value
-      , Props.onChange
-      , Props.list "tags-list"
-      ]
-    , datalist [Props._id "tags-list"] ((\t -> option [] [text t]) <$> allTags)
-    ])
+    -- isTabEvent e = e'.which == 33 || e'.keyCode == 33
+    --   where
+    --   e' = unsafeCoerce e
+
+    -- onTabEnter = filterProp isTabEvent Props.onKeyDown
+
+    inputTagSignal :: String -> Signal HTML (Tuple String Boolean)
+    inputTagSignal newTag = do
+      -- result <- loopW newTag (\value ->
+      --   div' [
+      --     label [Props.htmlFor "new-tag", Props.className "hide-element"] [text "New Tag"]
+      --   , input [
+      --       Props._type "text"
+      --     , Props._id "new-tag"
+      --     , Props.placeholder "add tag"
+      --     , Props.value value
+      --     , Props.unsafeTargetValue <$> Props.onChange
+      --     , Props.list "tags-list"
+      --     ]
+      --   , datalist [Props._id "tags-list"] ((\t -> option [] [text t]) <$> allTags)
+      --   ])
+      -- addTag <- fireOnce $ simpleButton "addTag" "Add tag" (result == "") unit --TODO change with form that returns with `return` key
+      -- pure $ case addTag of
+      --   Just _ -> (Tuple result true)
+      --   Nothing -> (Tuple result false)
+
+      loopW (Tuple newTag false) (\(Tuple value _) -> do
+        -- log value
+        result@(Tuple value enter) <- form [(\e -> Tuple value (value /= "")) <$> Props.onSubmit] [
+          label [Props.htmlFor "new-tag", Props.className "hide-element"] [text "New Tag"]
+        , input [
+            Props._type "text"
+          , Props._id "new-tag"
+          , Props.placeholder "add tag"
+          , Props.value value
+          -- , Props.defaultValue value
+          -- , (\e -> do
+          --     let e' = unsafeCoerce e
+          --     Tuple (value <> e'.key) (value /= "" && (e'.which == 32 || e'.keyCode == 32))
+          --   ) <$> Props.onKeyDown
+          , Props.list "tags-list"
+          -- , (Tuple value (value /= "")) <$ Props.onKeyEnter
+          , (\e -> Tuple (Props.unsafeTargetValue e) false) <$> Props.onChange
+          ]
+        , datalist [Props._id "tags-list"] ((\t -> option [] [text t]) <$> allTags)
+        ]
+        -- log $ "Enter: " <> show enter
+        pure result
+      )
 
     tagsSignal :: String -> Array String -> Signal HTML (Tuple String (Array String))
     tagsSignal newTag tags = div_ [Props.className "tags"] do
       ul_ [] do
         tags' <- (\ts -> ((maybe [] singleton) =<< filter isJust ts)) <$> (sequence $ tagSignal <$> sort tags)
         li_ [Props.className "addTag"] do
-          newTag' <- inputTagSignal newTag
-          addTag  <- fireOnce $ simpleButton "add tag" "Add tag" (newTag' == "") unit --TODO change with form that returns with `return` key
+          Tuple newTag' addTag <- inputTagSignal newTag
           case addTag of
-            Nothing -> pure $ Tuple newTag' tags'
-            Just _  -> pure $ Tuple ""    $ snoc tags' newTag
+            false -> pure $ Tuple newTag' tags'
+            true  -> do
+              traceM "newTag field exited"
+              pure $ Tuple ""    $ snoc tags' newTag'
 
     formSignal :: PasswordGeneratorSettings -> Signal HTML (Maybe (Maybe Card))
     formSignal settings = do
       Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card {content: (CardValues {title, tags, fields, notes}), archived, timestamp})) ->
         div_ [Props.className "cardFormFields"] do
           title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title") "Card title")
+         
           Tuple newTag' tags' <- tagsSignal newTag tags
-          fields' <- fieldsSignal settings fields
           
+          fields' <- fieldsSignal settings fields
+          -- fields' <- form_ [(\e -> fields) <$> Props.onSubmit] (fieldsSignal settings fields)
+
           -- notes' :: String <- simpleTextAreaSignal "notes" (text "Notes") "notes" notes
           notes' :: String <- loopW notes (\v -> Props.unsafeTargetValue <$> label [Props.className "notes"] [
               span [] [text "Notes"]
