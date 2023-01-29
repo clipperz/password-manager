@@ -38,3 +38,4 @@ Command to run inside of the sbt console to execute tests:
 	- `testPurescript`: starts a server on `localhost:1234` that runs all the Purescript tests on browser and prints the result in the browser console
 - `t` (or `testAll`): run `test` first and `testPurescript` after that. Note that if a Scala test doesn't pass `testPurescript` will not be executed.
 
+
