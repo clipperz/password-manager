@@ -24,3 +24,4 @@ FROM openjdk:jre-alpine
 COPY --from=frontend /app/target/output.parcel ./target/output.parcel
 COPY --from=backend '/app/target/scala-3.2.0/clipperz.jar' /app/target/scala-3.2.0/clipperz.jar
 CMD [ "java", "-jar", "/app/target/scala-3.2.0/clipperz.jar", "/archive/blob", "/archive/user", "8080"]
+
