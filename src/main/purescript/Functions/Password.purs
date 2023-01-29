@@ -1,4 +1,12 @@
-module Functions.Password where
+module Functions.Password
+  (
+    PasswordStrengthFunction
+  , PasswordStrength
+  , passwordStrengthClass
+  , standardPasswordStrengthFunction
+  , randomPassword
+  )
+  where
 
 import Bytes (foldMapBytesToString)
 import Control.Applicative (pure)
@@ -51,6 +59,14 @@ instance showPasswordStrengh :: Show PasswordStrength where
   show Acceptable = "acceptable"
   show Strong     = "strong"
   show VeryStrong = "very strong"
+
+passwordStrengthClass :: PasswordStrength -> String
+passwordStrengthClass VeryWeak    = "veryWeak"
+passwordStrengthClass Weak        = "weak"
+passwordStrengthClass Acceptable  = "acceptable"
+passwordStrengthClass Strong      = "strong"
+passwordStrengthClass VeryStrong  = "veryStrong"
+
 
 type PasswordStrengthFunction = String -> PasswordStrength
 

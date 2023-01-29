@@ -137,43 +137,27 @@ createCardView card allTags state = do
 
     inputTagSignal :: String -> Signal HTML (Tuple String Boolean)
     inputTagSignal newTag = do
-      -- result <- loopW newTag (\value ->
-      --   div' [
-      --     label [Props.htmlFor "new-tag", Props.className "hide-element"] [text "New Tag"]
-      --   , input [
-      --       Props._type "text"
-      --     , Props._id "new-tag"
-      --     , Props.placeholder "add tag"
-      --     , Props.value value
-      --     , Props.unsafeTargetValue <$> Props.onChange
-      --     , Props.list "tags-list"
-      --     ]
-      --   , datalist [Props._id "tags-list"] ((\t -> option [] [text t]) <$> allTags)
-      --   ])
-      -- addTag <- fireOnce $ simpleButton "addTag" "Add tag" (result == "") unit --TODO change with form that returns with `return` key
-      -- pure $ case addTag of
-      --   Just _ -> (Tuple result true)
-      --   Nothing -> (Tuple result false)
 
       loopW (Tuple newTag false) (\(Tuple value _) -> do
         -- log value
         result@(Tuple value enter) <- form [(\e -> Tuple value (value /= "")) <$> Props.onSubmit] [
-          label [Props.htmlFor "new-tag", Props.className "hide-element"] [text "New Tag"]
-        , input [
-            Props._type "text"
-          , Props._id "new-tag"
-          , Props.placeholder "add tag"
-          , Props.value value
-          -- , Props.defaultValue value
-          -- , (\e -> do
-          --     let e' = unsafeCoerce e
-          --     Tuple (value <> e'.key) (value /= "" && (e'.which == 32 || e'.keyCode == 32))
-          --   ) <$> Props.onKeyDown
-          , Props.list "tags-list"
-          -- , (Tuple value (value /= "")) <$ Props.onKeyEnter
-          , (\e -> Tuple (Props.unsafeTargetValue e) false) <$> Props.onChange
+          label [] [
+            span [Props.className "label"] [text "New Tag"]
+            , input [
+                Props._type "text"
+              , Props.placeholder "add tag"
+              , Props.value value
+              -- , Props.defaultValue value
+              -- , (\e -> do
+              --     let e' = unsafeCoerce e
+              --     Tuple (value <> e'.key) (value /= "" && (e'.which == 32 || e'.keyCode == 32))
+              --   ) <$> Props.onKeyDown
+              , Props.list "tags-list"
+              -- , (Tuple value (value /= "")) <$ Props.onKeyEnter
+              , (\e -> Tuple (Props.unsafeTargetValue e) false) <$> Props.onChange
+              ]
+            , datalist [Props._id "tags-list"] ((\t -> option [] [text t]) <$> allTags)
           ]
-        , datalist [Props._id "tags-list"] ((\t -> option [] [text t]) <$> allTags)
         ]
         -- log $ "Enter: " <> show enter
         pure result

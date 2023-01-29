@@ -196,7 +196,33 @@ div#userPage {
         }
 
         #changePasswordArea {
-            
+            label {
+                display: block;
+
+                &.no_recovery {
+                    @include fancyVisible()
+                }
+                @include fancyHidden();
+
+                input {
+                    font-size: 18pt;
+                    padding: 6px 10px;
+                    border: 0px solid white;
+                    width: 350px;
+                    margin-bottom: 8px;
+                    color: #999;
+
+                    &::placeholder {
+                        color: #aaa;
+                    }
+                }
+
+                &.valid {
+                    input {
+                        color: black;
+                    }
+                }
+            }
         }
     }
 }

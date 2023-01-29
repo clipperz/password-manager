@@ -18,8 +18,6 @@ module Views.SimpleWebComponents
   , loadingDiv
   , passwordStrengthShow
   , simpleButton
-  -- , simpleButtonWithClass
-  -- , simpleButtonWithId
   , simpleCheckboxSignal
   , simpleCheckboxWidget
   , simpleFileInputWidget
@@ -61,6 +59,7 @@ import Data.Int (even, odd)
 import Data.Map (Map, lookup)
 import Data.Maybe (fromMaybe, fromJust, Maybe(..))
 import Data.Monoid (power)
+import Data.Newtype (class Newtype, unwrap)
 import Data.Ord ((>))
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
@@ -77,7 +76,7 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Events (readFile, readFileFromDrop, getClickCoordinates, printEvent)
-import Functions.Password (PasswordStrengthFunction, PasswordStrength)
+import Functions.Password (PasswordStrengthFunction, PasswordStrength, passwordStrengthClass)
 import Functions.Time (getCurrentTimestamp)
 import React.SyntheticEvent (currentTarget, preventDefault, SyntheticEvent_, NativeEventTarget, SyntheticMouseEvent)
 
@@ -115,6 +114,7 @@ simpleTextAreaWidget className lbl placeholder content = do
     , Props.placeholder placeholder
     ] []
   ]
+
 
 simpleInputWidget :: String -> Widget HTML String -> Boolean -> String -> String -> String -> Widget HTML String
 simpleInputWidget className lbl disable placeholder value t =
@@ -232,9 +232,9 @@ simpleVerifiedPasswordSignal psf f = loopS f $ \ef ->
     Left { password, verifyPassword } -> go password verifyPassword
     Right p -> go p p
     where go p vp = do
-                      pswd <- loopW p (simplePasswordInputWidget "password" (text "Password"))
+                      pswd <- loopW p (simplePasswordInputWidget ("password" <> " " <> (passwordStrengthClass $ psf p)) (text "Password"))
                       display $ passwordStrengthShow $ psf pswd
-                      pswd2 <- loopW vp (simplePasswordInputWidget "verify_password" (text "Verify password"))
+                      pswd2 <- loopW vp (simplePasswordInputWidget ("verify_password" <> (if pswd == vp then "" else " different")) (text "Verify password"))
                       display $ text $ if pswd == pswd2 then "The passwords are the same" else "The passwords are not the same"
                       if pswd == pswd2 then
                         pure $ Right pswd
