@@ -57,7 +57,7 @@ homePageWidget status =
       res <- case widgetState of
         Default -> div [] []
         Loading -> loadingDiv <|> ((UserAreaAction <<< Loaded) <$> (liftAff $ runExceptT $ getIndex))
-        Error err -> div [] [text err, simpleButton "Go back to login" false LogoutAction]
+        Error err -> div [] [text err, simpleButton "back" "Go back to login" false LogoutAction]
       interpretHomePageActions proxyConnectionStatus hideUserAreaWidget Nothing Nothing res 
     
     homePage :: ProxyConnectionStatus -> Boolean -> Index -> CardView -> Widget HTML HomePageExitStatus

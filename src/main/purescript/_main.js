@@ -9,8 +9,9 @@ function addEventBubblingBlockers() {
             for(var i = 0; i < mutation.addedNodes.length; i++)
                 mutation.addedNodes.forEach(node => {
                     try {
-                        document.getElementById("cardForm").addEventListener("keydown", ev => ev.stopImmediatePropagation())
-                        document.getElementById("card").addEventListener("keydown", ev => ev.stopImmediatePropagation())
+                        document.getElementById("cardForm").addEventListener("keydown", ev => ev.stopImmediatePropagation() )
+						// document.getElementById("new-tag").addEventListener("keydown", ev => {if(ev.keyCode == 13) { console.log("Enter pressend"); ev.stopImmediatePropagation() }})
+                        document.getElementById("card").addEventListener("keydown", ev => ev.stopImmediatePropagation() )
                         for (let item of document.getElementsByClassName("dropFile")) {
                             ["drop", "dragover"].forEach(eventName => item.addEventListener(eventName, ev => { ev.stopPropagation(); ev.preventDefault();} ))
                         }
@@ -25,41 +26,41 @@ function addEventBubblingBlockers() {
     });
 }
 
-function addShortcutsManagement() {
-    Mousetrap.bind("/", function(ev) {
-        document.getElementById("generalFilter").focus();
-        ev.preventDefault();
-    })
-    Mousetrap.bind("*", function(ev) {
-        document.getElementById("generalFilter").value = "";
-        document.getElementById("generalFilter").focus();
-        document.getElementById("generalFilter").blur();
-    })
-    Mousetrap.bind(["a", "s", "d", "w", "left", "up", "right", "down", "esc", "enter"], function(ev) {
-        // console.log(ev.key)
-        if (ev.key === "Escape" && !document.getElementById("shortcutsHelp").classList.contains("hidden")) {
-            try {
-                document.getElementById("shortcutsHelp").classList.add("hidden")
-            } catch (error) {}
-        } else {
-            if (document.getElementById("cardForm") == null && ev.target.nodeName === "BODY") {
-                document.getElementById("cardsManager").dispatchEvent(new KeyboardEvent("keydown", ev))
-            }
-        }
-    })
-    Mousetrap.bind("?", function(ev) {
-        // console.log(document.getElementById("shortcutsHelp").classList)
-        document.getElementById("shortcutsHelp").classList.remove("hidden")
-        // console.log(document.getElementById("shortcutsHelp").classList)
-    })
-    Mousetrap.bind("l o c k", function(ev) { // order is important
-        document.getElementById("lockButton").dispatchEvent(new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true,
-            view: window,
-        }))
-    })
-}
+// function addShortcutsManagement() {
+//     Mousetrap.bind("/", function(ev) {
+//         document.getElementById("generalFilter").focus();
+//         ev.preventDefault();
+//     })
+//     Mousetrap.bind("*", function(ev) {
+//         document.getElementById("generalFilter").value = "";
+//         document.getElementById("generalFilter").focus();
+//         document.getElementById("generalFilter").blur();
+//     })
+//     Mousetrap.bind(["a", "s", "d", "w", "left", "up", "right", "down", "esc", "enter"], function(ev) {
+//         // console.log(ev.key)
+//         if (ev.key === "Escape" && !document.getElementById("shortcutsHelp").classList.contains("hidden")) {
+//             try {
+//                 document.getElementById("shortcutsHelp").classList.add("hidden")
+//             } catch (error) {}
+//         } else {
+//             if (document.getElementById("cardForm") == null && ev.target.nodeName === "BODY") {
+//                 document.getElementById("cardsManager").dispatchEvent(new KeyboardEvent("keydown", ev))
+//             }
+//         }
+//     })
+//     Mousetrap.bind("?", function(ev) {
+//         // console.log(document.getElementById("shortcutsHelp").classList)
+//         document.getElementById("shortcutsHelp").classList.remove("hidden")
+//         // console.log(document.getElementById("shortcutsHelp").classList)
+//     })
+//     Mousetrap.bind("l o c k", function(ev) { // order is important
+//         document.getElementById("lockButton").dispatchEvent(new MouseEvent("click", {
+//             bubbles: true,
+//             cancelable: true,
+//             view: window,
+//         }))
+//     })
+// }
 
 function addPreventDefaults() {
     /*
@@ -85,7 +86,7 @@ function main () {
         You will probably want to make it a function from String -> Effect ()
     */
     addEventBubblingBlockers();
-    addShortcutsManagement();
+    // addShortcutsManagement();
     addPreventDefaults();
 
     // document.addEventListener("keydown", ev => console.log(ev))

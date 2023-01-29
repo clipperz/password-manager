@@ -5,6 +5,7 @@ import Concur.Core.FRP (loopS, fireOnce, demand)
 import Concur.React (HTML)
 import Concur.React.DOM (text, a, p, div, form, div', div_, fieldset)
 import Concur.React.Props as Props
+import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Data.Either (Either(..))
@@ -45,8 +46,8 @@ isFormValid { username, password, verifyPassword, checkboxes } =
 
 checkboxesLabels :: forall a. Map String (Widget HTML a) 
 checkboxesLabels = fromFoldable [
-  Tuple "terms_of_service" (p [] [(text "I agree to the "), a [Props.href "https://clipperz.is/terms_service/", Props.target "_blank"] [(text "terms of service")]]),
-  Tuple "not_recoverable" (text "I understand Clipperz won't be able to recover a lost password")
+  Tuple "terms_of_service" ((text "I agree to the ") <|> (a [Props.href "https://clipperz.is/terms_service/", Props.target "_blank"] [(text "terms of service")])),
+  Tuple "not_recoverable"   (text "I understand Clipperz won't be able to recover a lost password")
 ]
 
 --------------------------------
@@ -64,7 +65,7 @@ signupFormView state formData =
       do
         signalResult <- demand $ do
           formValues :: SignupDataForm <- loopS formData $ \{username: username, password: password, verifyPassword: verifyPassword, checkboxes: checkboxMap} -> do
-            username' :: String <- simpleUserSignal username
+            username' :: String <- simpleUserSignal "username" username
             eitherPassword :: Either PasswordForm String <- simpleVerifiedPasswordSignal standardPasswordStrengthFunction $ Left {password: password, verifyPassword: verifyPassword}
             checkboxMap' :: Array (Tuple String Boolean) <- div_ [Props.className "checkboxes"] $ checkboxesSignal checkboxMap checkboxesLabels   
             case eitherPassword of
@@ -77,4 +78,4 @@ signupFormView state formData =
     ]
 
 submitWidget :: SignupDataForm -> Widget HTML Credentials
-submitWidget f@{ username, password } = simpleButton "Sign up" (not (isFormValid f)) { username, password }
+submitWidget f@{ username, password } = simpleButton "signup" "Sign up" (not (isFormValid f)) { username, password }

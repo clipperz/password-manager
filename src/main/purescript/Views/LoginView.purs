@@ -10,7 +10,7 @@ import Control.Bind (bind, (>>=), discard)
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopS, loopW, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', text, form, label, input, a)
+import Concur.React.DOM (div, div', text, form, label, input, a, span)
 import Concur.React.Props as Props
 
 import Data.Eq ((/=))
@@ -46,11 +46,10 @@ formSignal :: LoginDataForm -> Signal HTML (Maybe Credentials)
 formSignal formData = do
   formValues <- loopS formData $ \{username: username, password: password} -> do
     -- username' <- simpleUserSignal username
-    username' <- loopW username (\v -> div [] [
-        label [Props.htmlFor "username"] [text "User[1]name"]
+    username' <- loopW username (\v -> label [] [
+        span [Props.className "label"] [text "User[1]name"]
       , (Props.unsafeTargetValue) <$> input [
           Props._type "text"
-        , Props._id "username"
         , Props.placeholder "username"
         , Props.value v
         , Props.disabled false
@@ -58,8 +57,8 @@ formSignal formData = do
         ]
       ])
       -- password' <- simplePasswordSignal password
-    password' <- loopW password (\v -> div [] [
-        label [Props.htmlFor "passphrase"] [text "Passphrase"]
+    password' <- loopW password (\v -> label [] [
+      span [Props.className "label"] [text "Passphrase"]
       , (Props.unsafeTargetValue) <$> input [
           Props._type "password"
         , Props._id "passphrase"
@@ -76,7 +75,7 @@ formSignal formData = do
 
   where
     submitButton :: LoginDataForm -> Widget HTML LoginDataForm
-    submitButton f = simpleButton "login" (not (isFormValid f)) f
+    submitButton f = simpleButton "login" "login" (not (isFormValid f)) f
 
     isFormValid :: LoginDataForm -> Boolean
     isFormValid { username, password } = username /= "" && password /= ""

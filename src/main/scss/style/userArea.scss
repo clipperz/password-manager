@@ -86,22 +86,142 @@ div#userPage {
 
             header {
                 border-bottom: 1px solid white;
+                height: 48px;
+
                 div {
                     button {
                         cursor: pointer;
                         background-color: inherit;
                         border: 0px;
                         color: $main-text-color;
-                        font-size: 24pt;
+                        font-size: 16pt;
                         font-family: 'clipperz-icons';
                         font-feature-settings: "liga" 1, "dlig" 1;
                         text-rendering: optimizeLegibility;
+
+                        padding-top: 15px;
+                        padding-left: 10px;
                     }
                 }
             }
 
             & > div {
                 padding: 20px;
+
+                form {
+                    h1 {
+                        font-size: 20pt;
+                        padding-bottom: 20px;
+                    }
+
+                    ol {
+                        padding-bottom: 20px;
+
+                        li {
+                            h3 {
+                                font-size: 18pt;
+                                border-bottom: 1px solid white;
+                            }
+                            label {
+                                display: block;
+                                margin-top: 8px;
+                                margin-bottom: 8px;
+
+                                &.autolock {
+                                    display: flex;
+                                    flex-direction: row-reverse;
+                                    justify-content: flex-end;
+
+                                    input {
+                                        margin: 0px;
+                                        width: 40px;
+                                    }
+                                }
+
+                                &.lockTime {
+                                    color: gray;
+                                    padding-left: 40px;
+
+                                    &.enabled {
+                                        color: white;
+                                    }
+
+                                    span.label {
+                                        &::after {
+                                            content: ": ";
+                                        }
+                                    }
+
+                                    input {
+                                        font-size: 13pt;
+                                        width: 50px;
+                                        text-align: right;
+                                        background-color: black;
+                                        color: white;
+                                        border: 1px solid #333;
+                                        appearance: textfield;
+
+                                        &:disabled {
+                                            color: gray;
+                                        }
+                                    }
+
+                                    span.units {
+                                        margin-left: 6px;
+                                    }
+                                }
+                            }
+
+                            .passwordGeneratorSettings {
+                                padding-left: 40px;
+                            }
+                        }
+                    }
+
+                    button {
+                        background-color: $main-color;
+                        color: $main-text-color;
+                        font-size: 14pt;
+                        border: 1px solid $main-text-color;
+                        padding: 10px 14px;
+                        cursor: pointer;
+
+                        &:disabled {
+                            cursor: default;
+                            background-color: #c0c0c0;
+                        }
+                    }
+                }
+            }
+        }
+
+        #changePasswordArea {
+            label {
+                display: block;
+
+                &.no_recovery {
+                    @include fancyVisible()
+                }
+                @include fancyHidden();
+
+                input {
+                    font-size: 18pt;
+                    padding: 6px 10px;
+                    border: 0px solid white;
+                    width: 350px;
+                    margin-bottom: 8px;
+                    color: #999;
+
+                    &::placeholder {
+                        color: #aaa;
+                    }
+                }
+
+                &.valid {
+                    input {
+                        color: black;
+                    }
+                }
             }
         }
     }

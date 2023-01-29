@@ -7,7 +7,7 @@ import Control.Semigroupoid ((<<<))
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, loopW, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', form, text, label, input, a)
+import Concur.React.DOM (div, div', form, text, label, input, a, span)
 import Concur.React.Props as Props
 import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (Either(..))
@@ -95,26 +95,28 @@ loginFormView state loginFormData = do
           formValues <- loopS formData $ \{username: username, password: password} -> do
             -- username' <- simpleUserSignal username
             username' <- loopW username (\v -> div [] [
-              label [Props.htmlFor "username"] [text "User[3]name"],
-              (Props.unsafeTargetValue) <$> input [
-                Props._type "text"
-              , Props._id "username"
-              , Props.placeholder "username"
-              , Props.value v
-              , Props.disabled false
-              , Props.onChange
+              label [] [
+                span [Props.className "label"] [text "User[3]name"]
+              , (Props.unsafeTargetValue) <$> input [
+                  Props._type "text"
+                , Props.placeholder "username"
+                , Props.value v
+                , Props.disabled false
+                , Props.onChange
+                ]
               ]
             ])
             -- password' <- simplePasswordSignal password
             password' <- loopW password (\v -> div [] [
-              label [Props.htmlFor "passphrase"] [text "Passphrase"],
-              (Props.unsafeTargetValue) <$> input [
-                Props._type "password"
-              , Props._id "passphrase"
-              , Props.placeholder "passphrase"
-              , Props.value v
-              , Props.disabled false
-              , Props.onChange
+              label [] [
+                span [Props.className "label"] [text "Passphrase"]
+              , (Props.unsafeTargetValue) <$> input [
+                  Props._type "password"
+                , Props.placeholder "passphrase"
+                , Props.value v
+                , Props.disabled false
+                , Props.onChange
+                ]
               ]
             ])
             pure { username: username', password: password' }
@@ -129,15 +131,16 @@ loginFormView state loginFormData = do
         Pin <$> do
           signalResult <- demand $ do
             pin <- loopW (if active then pl else "00000") (\v -> div [] [ -- TODO: don't really understand why changing the placeholder here works
-              label [Props.htmlFor "pinField"] [text "Login"]
-            , (Props.unsafeTargetValue) <$> input [
-                Props._type "password"
-              , Props._id "pinField"
-              , Props.placeholder "PIN"
-              , Props.value v
-              , Props.disabled false
-              , Props.onChange
-              , Props.pattern "[0-9]{5}"
+              label [] [
+                span [Props.className "label"] [text "Login"]
+              , (Props.unsafeTargetValue) <$> input [
+                  Props._type "password"
+                , Props.placeholder "PIN"
+                , Props.value v
+                , Props.disabled false
+                , Props.onChange
+                , Props.pattern "[0-9]{5}"
+                ]
               ]
             ])
             pure $ (fromString pin) >>= (\p -> if (isPinValid p) && active then Just p else Nothing) 
@@ -146,7 +149,7 @@ loginFormView state loginFormData = do
       ] 
 
     submitButton :: LoginDataForm -> Widget HTML LoginDataForm
-    submitButton f = simpleButton "login" (not (isFormValid f)) f
+    submitButton f = simpleButton "login" "login" (not (isFormValid f)) f
 
 loginFormView' :: LoginDataForm -> Widget HTML (Either PinCredentials Credentials)
 loginFormView' loginFormData = do
@@ -182,29 +185,29 @@ loginFormView' loginFormData = do
         signalResult <- demand $ do
           formValues <- loopS formData $ \{username: username, password: password} -> do
             -- username' <- simpleUserSignal username
-            username' <- loopW username (\v -> div [] [
-              label [Props.htmlFor "username"] [text "Username"],
-              (Props.unsafeTargetValue) <$> input [
-                Props._type "text"
-              , Props._id "username"
-              , Props.placeholder "username"
-              , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
-              , Props.value v
-              , Props.disabled false
-              , Props.onChange
-              ]
-            ])
+            username' <- loopW username (\v -> label [] [
+                span [Props.className "label"] [text "Username"]
+              , (Props.unsafeTargetValue) <$> input [
+                  Props._type "text"
+                , Props.placeholder "username"
+                , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
+                , Props.value v
+                , Props.disabled false
+                , Props.onChange
+                ]
+              ])
             -- password' <- simplePasswordSignal password
             password' <- loopW password (\v -> div [] [
-              label [Props.htmlFor "passphrase"] [text "Passphrase"],
-              (Props.unsafeTargetValue) <$> input [
-                Props._type "password"
-              , Props._id "passphrase"
-              , Props.placeholder "passphrase"
-              , Props.value v
-              , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
-              , Props.disabled false
-              , Props.onChange
+              label [] [
+                span [Props.className "label"] [text "Passphrase"]
+              , (Props.unsafeTargetValue) <$> input [
+                  Props._type "password"
+                , Props.placeholder "passphrase"
+                , Props.value v
+                , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
+                , Props.disabled false
+                , Props.onChange
+                ]
               ]
             ])
             pure { username: username', password: password' }
@@ -219,15 +222,16 @@ loginFormView' loginFormData = do
         Pin <$> do
           signalResult <- demand $ do
             pin <- loopW (if active then pl else "00000") (\v -> div [] [ -- TODO: don't really understand why changing the placeholder here works
-              label [Props.htmlFor "pinField"] [text "Login"]
-            , (Props.unsafeTargetValue) <$> input [
-                Props._type "password"
-              , Props._id "pinField"
-              , Props.placeholder "PIN"
-              , Props.value v
-              , Props.disabled false
-              , Props.onChange
-              , Props.pattern "[0-9]{5}"
+              label [] [
+                span [Props.className "label"] [text "Login"]
+              , (Props.unsafeTargetValue) <$> input [
+                  Props._type "password"
+                , Props.placeholder "PIN"
+                , Props.value v
+                , Props.disabled false
+                , Props.onChange
+                , Props.pattern "[0-9]{5}"
+                ]
               ]
             ])
             pure $ (fromString pin) >>= (\p -> if (isPinValid p) && active then Just p else Nothing) 
@@ -236,4 +240,4 @@ loginFormView' loginFormData = do
       ] 
 
     submitButton :: LoginDataForm -> Widget HTML LoginDataForm
-    submitButton f = simpleButton "login" (not (isFormValid f)) f
+    submitButton f = simpleButton "login" "login" (not (isFormValid f)) f

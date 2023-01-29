@@ -1,10 +1,18 @@
-module Functions.Password where
+module Functions.Password
+  (
+    PasswordStrengthFunction
+  , PasswordStrength
+  , passwordStrengthClass
+  , standardPasswordStrengthFunction
+  , randomPassword
+  )
+  where
 
 import Bytes (foldMapBytesToString)
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Semigroupoid ((<<<))
-import Data.Array (elem, nub)
+import Data.Array (elem, nub, filter)
 import Data.Array as Array
 import Data.Boolean (otherwise)
 import Data.EuclideanRing ((/))
@@ -12,7 +20,7 @@ import Data.Foldable (fold)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Int (toNumber)
-import Data.List (filter, List)
+import Data.List (List)
 import Data.Map (values)
 import Data.Newtype (unwrap, wrap)
 import Data.Number (log, isNaN)
@@ -21,23 +29,28 @@ import Data.Ring ((-))
 import Data.Semigroup ((<>))
 import Data.Semiring ((+), (*))
 import Data.Show (class Show)
-import Data.String.CodePoints (length, take, drop)
-import Data.String.CodeUnits (fromCharArray, toCharArray)
-import DataModel.Password (CharacterSet(..), characterSets)
+import Data.String.CodePoints (length, take, drop, fromCodePointArray, toCodePointArray, CodePoint)
+-- import Data.String.CodeUnits ()
+import Data.Tuple (snd)
+import DataModel.Password (CharacterSet(..), defaultCharacterSets, elemInCharacterSet)
 import Effect.Aff (Aff)
 import Effect.Fortuna (randomBytes)
 
+
+-- filter (elemInCharacterSet c) (snd <$> defaultCharacterSets)
+{-
 getSets :: Char -> List CharacterSet
 getSets c = 
   let
-    allSets = values characterSets :: List CharacterSet
-    allStrings = (unwrap <$> allSets) :: List String
-    allArrays = toCharArray <$> allStrings
-    relevantArrays = filter (elem c) allArrays
-  in (CharacterSet <<< fromCharArray) <$> relevantArrays
+    allSets = values defaultCharacterSets   :: Array CharacterSet
+    allStrings = (unwrap <$> allSets)       :: Array String
+    allArrays = toCodePointArray <$> allStrings
+    relevantArrays = filter (elem c) (snd <$> defaultCharacterSets)
+  in (CharacterSet <<< fromCodePointArray) <$> relevantArrays
 
 compactSets :: List CharacterSet -> CharacterSet
-compactSets = wrap <<< fromCharArray <<< nub <<< toCharArray <<< unwrap <<< fold
+compactSets = wrap <<< fromCodePointArray <<< nub <<< toCodePointArray <<< unwrap <<< fold
+-}
 
 data PasswordStrength = VeryWeak | Weak | Acceptable | Strong | VeryStrong
 instance showPasswordStrengh :: Show PasswordStrength where
@@ -47,20 +60,33 @@ instance showPasswordStrengh :: Show PasswordStrength where
   show Strong     = "strong"
   show VeryStrong = "very strong"
 
+passwordStrengthClass :: PasswordStrength -> String
+passwordStrengthClass VeryWeak    = "veryWeak"
+passwordStrengthClass Weak        = "weak"
+passwordStrengthClass Acceptable  = "acceptable"
+passwordStrengthClass Strong      = "strong"
+passwordStrengthClass VeryStrong  = "veryStrong"
+
+
 type PasswordStrengthFunction = String -> PasswordStrength
 
 standardPasswordStrengthFunction :: PasswordStrengthFunction
 standardPasswordStrengthFunction = formatPasswordEntropy <<< computePasswordEntropy
 
+matchingCharacterSet :: CodePoint -> Array CharacterSet
+matchingCharacterSet c = filter (elemInCharacterSet c) (snd <$> defaultCharacterSets)
+
 computePasswordEntropy :: String -> Number
 computePasswordEntropy s =
-  let 
-    setsPerChar = (getSets <$> (toCharArray s)) :: Array (List CharacterSet)
-    sets = (Array.fold setsPerChar) :: List CharacterSet
+  let
+    
+    relevantCharsets = (matchingCharacterSet <$> (toCodePointArray s)) :: Array (Array CharacterSet)
+    relevantChars = (fromCodePointArray <<< nub <<< fold) $ (toCodePointArray <<< unwrap) <$> fold relevantCharsets :: String
     adjustmentFactor = 1.0 -- 0.15 * (toNumber (List.length (List.nub (unwrap <$> sets)))) // factor to adjust for the presence of different types of characters
-    poolSize = toNumber $ length $ unwrap $ compactSets sets
-    pLength = toNumber $ length s
-  in adjustmentFactor * pLength * (log poolSize) / (log 2.0)
+    -- poolSize = toNumber $ length $ unwrap $ compactSets sets
+    poolSize  = toNumber $ length relevantChars
+    pLength   = toNumber $ length s
+  in adjustmentFactor * pLength * (log poolSize) / (log 2.0)  
 
 formatPasswordEntropy :: Number -> PasswordStrength
 formatPasswordEntropy n

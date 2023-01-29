@@ -145,7 +145,7 @@ importWidget = do
       in do
           res <- form [Props.className "importPage"] [
             text $ "Import " <> (show toImport) <> " cards (of " <> (show total) <> ")?"
-          , ((simpleButton "<<" false false) <|> (simpleButton "Import" false true))
+          , ((simpleButton "back" "<<" false false) <|> (simpleButton "import" "Import" false true))
           ]
           if res then loadingDiv <|> (div [Props.className "importList"] [div [] [saveImport (fromFoldable toImportCards) index]])
           else importPage index Nothing (ChooseCards cards) 
@@ -159,7 +159,7 @@ importWidget = do
         , p [] [text "Alternatively you may type or paste any properly formatted JSON data."]
         , Right <$> (demand $ do
                               textContent <- simpleTextAreaSignal "importText" (text "Import") "Type or copy your data here" pl
-                              fireOnce (simpleButton "Import" (isLeft (jsonParser textContent)) textContent))
+                              fireOnce (simpleButton "import" "Import" (isLeft (jsonParser textContent)) textContent))
         ]
       ]
 
@@ -169,15 +169,15 @@ importWidget = do
       form [Props.classList (Just <$> ["importPage", "scrollable"])] [ 
           (demand $ do
             newTag <- loopS { sel: Nothing, tag: newTagWithDate, cb: true } $ \v -> do
-                                                            newSel <- loopW v.sel (\_ -> Just <$> selectWidget)
-                                                            newTagCB <- simpleCheckboxSignal "addTag" (text "Apply the following tag to imported cards:") true v.cb
-                                                            newTag <- loopW v.tag (simpleTextInputWidget "newTag" (text "Tag") "Tag")
+                                                            newSel    <- loopW v.sel (\_ -> Just <$> selectWidget)
+                                                            newTagCB  <- simpleCheckboxSignal "apply_tag" (text "Apply the following tag to imported cards:") v.cb
+                                                            newTag    <- loopW v.tag (simpleTextInputWidget "tag" (text "Tag") "Tag")
                                                             pure $ { sel: newSel, tag: newTag, cb: newTagCB }
             selectedCards <- case newTag.sel of
               Nothing -> sequence $ importCardProposalWidget <$> cards
               Just f -> sequence $ importCardProposalWidget <$> (filterCards f cards)
             let importInfo = { tag: (if newTag.cb then Just newTag.tag else Nothing), selectedCards }
-            fireOnce (div [Props.className "fixedFoot"] [(simpleButton "<<" false goBackValue) <|> (simpleButton "Import" false (Confirm importInfo))]))
+            fireOnce (div [Props.className "fixedFoot"] [(simpleButton "back" "<<" false goBackValue) <|> (simpleButton "import" "Import" false (Confirm importInfo))]))
         ]
 
     filterCards :: QuickSelection -> Array (Tuple Boolean Card) -> Array (Tuple Boolean Card)
@@ -189,15 +189,15 @@ importWidget = do
     selectWidget :: Widget HTML QuickSelection
     selectWidget = div [] [
       p [] [text "Select:"]
-    , simpleButton "All" false All
-    , simpleButton "None" false None
-    , simpleButton "Archived" false Archived
-    , simpleButton "Not archived" false NonArchived
+    , simpleButton "all"          "All"           false All
+    , simpleButton "none"         "None"          false None
+    , simpleButton "archived"     "Archived"      false Archived
+    , simpleButton "not_archived" "Not archived"  false NonArchived
     ]
 
     importCardProposalWidget :: Tuple Boolean Card -> Signal HTML (Tuple Boolean Card)
     importCardProposalWidget (Tuple b c@(Card { content: cv@(CardValues content), archived, timestamp})) = do
-      cb <- simpleCheckboxSignal ("importCheckbox_" <> content.title) (cardContent cv) true b
+      cb <- simpleCheckboxSignal "select_card" (cardContent cv) b
       pure $ Tuple cb c
 
     cardContent :: forall a. CardValues -> Widget HTML a

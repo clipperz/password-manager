@@ -302,7 +302,8 @@ div#homePage {
                             z-index: 20;
                         }
 
-                        form.cardForm {
+                        div.cardForm {
+                        // form.cardForm {
                             display: flex;
                             flex-direction: column;
 
@@ -329,9 +330,9 @@ div#homePage {
                                     }
                                 }
 
-                                label[for=title] {
-                                    @include fancyHidden;
-                                }
+                                // label[for=title] {
+                                //     @include fancyHidden;
+                                // }
 
                                 .tags {
                                     margin-left: $side-margin;
@@ -535,9 +536,7 @@ div#homePage {
                                                 flex-direction: column;
                                                 label {
                                                     display: flex;
-                                                    span {
-                                                        @include fancyHidden;
-                                                    }
+                                                    @include fancyHidden;
 
                                                     &.label {
                                                         // background-color: pink;
@@ -667,10 +666,7 @@ div#homePage {
                                 .notes {
                                     display: block;
                                     padding: 10px $side-margin 10px $side-margin;
-
-                                    span {
-                                        @include fancyHidden;
-                                    }
+                                    @include fancyHidden;
 
                                     textarea {
                                         // font-size: 12pt;

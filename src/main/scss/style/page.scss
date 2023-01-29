@@ -16,6 +16,36 @@ div.page {
         background-color: $core-alternate-color;
         color: $core-alternate-text-color;
 
+        form {
+            label.terms_of_service, label.not_recoverable {
+                color: #666;
+                // background-color: pink;
+                @include fancyVisible();
+
+                flex-direction: row-reverse;
+                align-items: flex-start;
+                margin-bottom: 10px;
+
+                span.label {
+                    width: 100%;
+                    align-self: baseline;
+                    text-align: left;
+                    margin-left: 10px;
+                    height: auto;
+                    line-height: 18pt;
+
+                    a {
+                        color: $main-color;
+                    }
+                }
+
+                input {
+                    align-self: baseline;
+                    flex: 1;
+                    width: auto;
+                }
+            }
+        }
         button {
             &:hover {
                 background-color: $main-color;
@@ -34,35 +64,30 @@ div.page {
             margin-right: auto;
             text-align: center;
 
-            // & > div:has(input[type=checkbox]) {
-            div {
+            label {
                 display: flex;
+                @include fancyHidden();
+            }
 
-                label { 
-                    display: none;
-                }
-                // background-color: purple;
+            &.checkboxes {
+                flex-direction: column;
+                div {
+                    flex: auto;
+                    display: flex;
+                    flex-direction: row-reverse;
+                    justify-content: flex-end;
+                    align-items: flex-start;
 
-                &.checkboxes {
-                    flex-direction: column;
-                    div {
-                        flex: auto;
-                        display: flex;
-                        flex-direction: row-reverse;
-                        justify-content: flex-end;
-                        align-items: flex-start;
+                    label {
+                        color: black;
+                        display: block;
+                        text-align: left;
+                        line-height: 14pt;
+                        padding: 3px 6px;
+                    }
 
-                        label {
-                            color: black;
-                            display: block;
-                            text-align: left;
-                            line-height: 14pt;
-                            padding: 3px 6px;
-                        }
-
-                        input {
-                            width: auto;
-                        }
+                    input {
+                        width: auto;
                     }
                 }
             }
@@ -124,77 +149,17 @@ div.page {
     }
 
     div.content {
+        height: 100%;
+        overflow: auto;
+
         div.body {
             display: flex;
             flex-direction: column;
 
             margin-left: auto;
             margin-right: auto;
-/*
-            form.form, div.form {
-                background: $alternate-color;
-                padding: 20px;
-                max-width: 400px;
 
-                label {
-                    display: none;
-                    visibility: hidden;
-                }
 
-                input {
-                    border: 1px solid #ccc;
-
-                    display: block;
-                    padding: 5px;
-                    margin-top: 5px;
-                    margin-bottom: 10px;
-                    font-size: 100%;
-                    font-size: 24pt;
-                    width: 100%;
-                    border-radius: 0px;                
-                }
-            }
-
-            button {
-                background-color: $main-color;
-                border: 1px solid $main-text-color;                             
-                color: $main-text-color;
-
-                display: inline-block;
-                margin-top: 25px;
-                margin-bottom: 25px;
-                line-height: 34pt;
-
-                min-height: 46px;
-                min-width: 46px;
-                font-size: 24pt;
-                font-weight: 500;
-                border: 0px;
-                padding: 10px 25px;
-
-                cursor: pointer;
-
-                &:disabled {
-                    background-color: $neutral-color;
-                    color: $neutral-text-color;
-                    cursor: default;
-
-                    &:hover {
-                    };
-                }
-
-                &.registrationLink {
-                    background-color: $neutral-color;
-                    color: $neutral-text-color;
-
-                    &:hover {
-                        background-color: $core-alternate-color;
-                        color: $core-alternate-text-color;
-                    };
-    
-                }
-            }
-*/
         }
 
         .other {

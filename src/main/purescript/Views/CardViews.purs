@@ -13,7 +13,7 @@ import Data.Show (show, class Show)
 import DataModel.AppState (ProxyConnectionStatus(..))
 import DataModel.Card (CardField(..), CardValues(..), Card(..))
 import Functions.Clipboard (copyToClipboard)
-import Views.SimpleWebComponents (simpleButton, simpleButtonWithClass, confirmationWidget)
+import Views.SimpleWebComponents (simpleButton, confirmationWidget)
 
 -- -----------------------------------
 
@@ -47,15 +47,14 @@ cardView c@(Card r) proxyConnectionStatus = do
 
 cardActions :: Card -> ProxyConnectionStatus -> Widget HTML CardAction
 cardActions c@(Card r) proxyConnectionStatus = div [Props.className "cardActions"] [
-    simpleButtonWithClass (show (Exit c)) "exit"   false    (Exit c)
-    -- , div [] [
-      ,  simpleButton          (show (Edit c))    disabled (Edit c)
-      , simpleButton          (show (Clone c))   disabled (Clone c)
+    simpleButton (show (Exit c)) "exit"   false    (Exit c)
+      , simpleButton "edit"       (show (Edit c))    disabled (Edit c)
+      , simpleButton "clone"      (show (Clone c))   disabled (Clone c)
       , if r.archived then
-          simpleButton (show (Restore c)) disabled (Restore c)
+          simpleButton "restore"  (show (Restore c)) disabled (Restore c)
         else
-          simpleButton (show (Archive c)) disabled (Archive c)
-      , simpleButton (show (Delete c))  disabled (Delete c)
+          simpleButton "archive"  (show (Archive c)) disabled (Archive c)
+      , simpleButton "delete"     (show (Delete c))  disabled (Delete c)
     -- ]
 ]
   where
