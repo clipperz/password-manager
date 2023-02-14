@@ -111,7 +111,7 @@ div#userPage {
                 form {
                     h1 {
                         font-size: 20pt;
-                        padding-bottom: 20px;
+                        padding: 20px 0;
                     }
 
                     ol {
@@ -200,7 +200,25 @@ div#userPage {
                 display: block;
 
                 &.no_recovery {
-                    @include fancyVisible()
+                    @include fancyVisible();
+					
+					padding-top: 8px;
+					display: flex;
+					flex-direction: row;
+
+					input {
+						flex-grow: 0;
+						align-self: flex-start;
+						width: 30px;
+					}
+
+					span {
+						flex: auto;
+						font-size: 12pt;
+						display: block;
+						cursor: pointer;
+						line-height: 1.5em;
+					}
                 }
                 @include fancyHidden();
 
@@ -223,6 +241,10 @@ div#userPage {
                     }
                 }
             }
+
+			button.change_password {
+				margin-top: 20px;
+			}
         }
     }
 }

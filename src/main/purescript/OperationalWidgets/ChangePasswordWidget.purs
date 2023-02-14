@@ -7,7 +7,7 @@ module OperationalWidgets.ChangePasswordWidget
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, fireOnce, loopS, loopW)
 import Concur.React (HTML)
-import Concur.React.DOM (text, div, div', h1, form)
+import Concur.React.DOM (text, div, div', h1, form, label, input, span)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
@@ -81,12 +81,20 @@ changePasswordWidget state changeForm = go state changeForm
           formValues :: ChangePasswordDataForm <- loopS changeForm $ \{username, oldPassword, password, verifyPassword, notRecoverable} -> do
             -- username'       :: String   <- simpleUserSignal "username" username
             -- oldPassword'    :: String   <- loopW oldPassword (simplePasswordInputWidget "old_password" (text "Old password"))
-            username'       :: String   <- loopW username       $ verySimpleInputWidget (InputType "text")      (ClassName "username")  (Label "Username")        (Enabled true)  (Placeholder "username")              (matchingValueClassName currentCredentials.username)
-            oldPassword'    :: String   <- loopW oldPassword    $ verySimpleInputWidget (InputType "password")  (ClassName "password")  (Label "Old password")    (Enabled true)  (Placeholder "old password")          (matchingValueClassName currentCredentials.password)
+            username'       :: String   <-  loopW username       $ verySimpleInputWidget (InputType "text")      (ClassName "username")  (Label "Username")        (Enabled true)  (Placeholder "username")              (matchingValueClassName currentCredentials.username)
+            oldPassword'    :: String   <-  loopW oldPassword    $ verySimpleInputWidget (InputType "password")  (ClassName "password")  (Label "Old passphrase")    (Enabled true)  (Placeholder "old passphrase")          (matchingValueClassName currentCredentials.password)
             -- eitherPassword  :: Either PasswordForm String <- simpleVerifiedPasswordSignal standardPasswordStrengthFunction $ Left {password, verifyPassword}
-            password'       :: String   <- loopW password       $ verySimpleInputWidget (InputType "password")  (ClassName "password")  (Label "New password")    (Enabled true)  (Placeholder "new password")          (\_ -> Just $ ClassName "valid")
-            verifyPassword' :: String   <- loopW verifyPassword $ verySimpleInputWidget (InputType "password")  (ClassName "password")  (Label "Verify password") (Enabled true)  (Placeholder "confirm new password")  (matchingValueClassName $ Just password')
-            checkbox'       :: Boolean  <- simpleCheckboxSignal "no_recovery" (text "I understand Clipperz won't be able to recover a lost password") notRecoverable
+            password'       :: String   <-  loopW password       $ verySimpleInputWidget (InputType "password")  (ClassName "password")  (Label "New passphrase")    (Enabled true)  (Placeholder "new passphrase")          (\_ -> Just $ ClassName "valid")
+            verifyPassword' :: String   <-  loopW verifyPassword $ verySimpleInputWidget (InputType "password")  (ClassName "password")  (Label "Verify passphrase") (Enabled true)  (Placeholder "confirm new passphrase")  (matchingValueClassName $ Just password')
+            -- checkbox'       :: Boolean  <-  simpleCheckboxSignal "no_recovery" (text "I understand Clipperz won't be able to recover a lost password") notRecoverable
+            checkbox'       :: Boolean  <-  loopW notRecoverable (\v -> label [Props.className "no_recovery"] [
+                                              (not v) <$ input [
+                                                Props._type "checkbox"
+                                              , Props.checked v
+                                              , Props.onChange
+                                              ]
+                                            , span [Props.className "label"] [text "I understand Clipperz won't be able to recover a lost passphrase"]
+                                            ])
             -- case eitherPassword of
             --   Left  passwords -> pure $ merge passwords { username: username', oldPassword: oldPassword', notRecoverable: checkbox'}
             --   Right s         -> pure                   { username: username', oldPassword: oldPassword', password: s, verifyPassword: s, notRecoverable: checkbox' }
@@ -105,7 +113,7 @@ changePasswordWidget state changeForm = go state changeForm
       disabled  <- pure $ case check of
         Left  err -> true
         Right b   -> not (b && (isNewDataValid f))
-      simpleButton "cange_password" "Change password" disabled f
+      simpleButton "change_password" "Change passphrase" disabled f
     
     checkC :: ChangePasswordDataForm -> Effect (Either AppError Boolean)
     checkC { username, oldPassword } = runExceptT $ do
