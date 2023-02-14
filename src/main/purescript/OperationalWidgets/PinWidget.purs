@@ -4,7 +4,7 @@ import Bytes (asArrayBuffer)
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.Core.FRP (demand, fireOnce, loopW)
-import Concur.React.DOM (h1, p, div, form, text, label, span, input)
+import Concur.React.DOM (h1, p, div, form, text, label, span, input, strong)
 import Concur.React.Props as Props
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
@@ -67,7 +67,7 @@ setPinWidget ws = do
 
   where 
     formWidget :: Boolean -> Widget HTML PinWidgetAction
-    formWidget pinExists = form [] [
+    formWidget pinExists = div [Props.className "content"] [
       text $ "PIN is " <> (if pinExists then "" else "not ") <> "set on this device"
     , do
         signalResult <- demand $ do
@@ -105,11 +105,11 @@ setPinWidget ws = do
         Nothing -> simpleButton "save" "Save" true (SetPin 0)
 
 pinPage :: forall a. Maybe String -> Widget HTML a -> Widget HTML a
-pinPage error internalForm = div [Props._id "pinPage"] [
+pinPage error internalForm = div [Props._id "pinPage"] [ form [] [
   h1 [] [text "Device PIN"]
 , div [Props.className "description"] $ [
     p [] [text "You may create a 5-digit PIN to be used instead of your passphrase. Please note that the PIN is specific to the device you are now using."]
-  , p [] [text "Warning: enabling a PIN on your device may represent a security risk! Make sure to keep the device with you at all times!"]  
+  , p [] [strong [] [text "Warning"], text ": enabling a PIN on your device may represent a security risk! Make sure to keep the device with you at all times!"]  
   ] <> (fromMaybe $ (\t -> p [Props.className "error"] [text t]) <$> error)
-, div [Props.className "content"] [internalForm]
-]
+, internalForm
+]]

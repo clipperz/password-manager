@@ -1,3 +1,5 @@
+@import "palette.scss";
+
 div#userPage {
     div.panel {
         background-color: black;
@@ -115,7 +117,7 @@ div#userPage {
                     }
 
                     ol {
-                        padding-bottom: 20px;
+                        // padding-bottom: 20px;
 
                         li {
                             h3 {
@@ -179,12 +181,15 @@ div#userPage {
                     }
 
                     button {
+						display: inline-block;
                         background-color: $main-color;
                         color: $main-text-color;
                         font-size: 14pt;
                         border: 1px solid $main-text-color;
                         padding: 10px 14px;
+						margin-top: 20px;
                         cursor: pointer;
+						width: fit-content;
 
                         &:disabled {
                             cursor: default;
@@ -241,10 +246,43 @@ div#userPage {
                     }
                 }
             }
-
-			button.change_password {
-				margin-top: 20px;
-			}
         }
+
+		#pinPage {
+			
+			.description {
+				padding: 10px 0px 20px 0px;
+
+				p {
+					font-size: 10pt;
+					padding: 10px 0px 20px 0px;
+					margin-bottom: 7px;
+					line-height: 1.4em;
+					color: #bbb;
+
+					strong {
+						font-weight: bold;
+					}
+				}
+			}
+
+			.content {
+				@include fancyHidden();
+
+				display: flex;
+
+				input {
+					&:enabled {
+						border: 2px solid $main-color;
+					}
+
+					display: block;
+					width: 4em;
+					margin-top: 8px;
+					font-size: 18pt;
+					padding: 6px 10px;
+				}
+			}
+		}
     }
 }
