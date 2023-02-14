@@ -4,27 +4,30 @@ import Bytes (asArrayBuffer)
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.Core.FRP (demand, fireOnce, loopW)
-import Concur.React.DOM (h1, p, div, form, text)
+import Concur.React.DOM (h1, p, div, form, text, label, span, input)
 import Concur.React.Props as Props
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT, except)
 import Control.Semigroupoid ((<<<))
+import Data.Array (elem)
 import Data.Either (note, Either(..))
 import Data.EuclideanRing ((/))
 import Data.Function (($))
 import Data.Functor ((<$>), void)
 import Data.HexString (fromArrayBuffer, hex, toArrayBuffer)
-import Data.HeytingAlgebra (not)
+import Data.HeytingAlgebra (not, (&&), (||))
 import Data.Int (fromString)
 import Data.List (List(..), (:))
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (Maybe(..), isJust, isNothing)
+import Data.Ord ((>), (>=), (<=))
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
 import Data.Semiring ((*))
 import Data.Show (show)
-import Data.String.CodeUnits (length)
+import Data.String.CodeUnits (length, dropWhile)
+import Data.String.Common (null)
 import Data.Unfoldable (fromMaybe)
 import Data.Unit (Unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
@@ -40,6 +43,9 @@ import Views.SimpleWebComponents (simpleButton, simpleInputWidget)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
 import Web.Storage.Storage (getItem, setItem, removeItem, Storage)
+import Unsafe.Coerce (unsafeCoerce)
+
+import Effect.Class.Console (log)
 
 data PinWidgetAction = Reset | SetPin Int
 
@@ -65,7 +71,27 @@ setPinWidget ws = do
       text $ "PIN is " <> (if pinExists then "" else "not ") <> "set on this device"
     , do
         signalResult <- demand $ do
-          pin <- loopW "" (\value -> simpleInputWidget "pin" (text "PIN") pinExists (if pinExists then "*****" else "PIN") value "number")
+          pin <- loopW "" (\value -> do
+            result <- label [Props.className "pin"] [
+              span [Props.className "label"] [text "PIN"]
+            , input [
+                Props._type "text"
+              , Props.inputMode "numeric"
+              , Props.placeholder (if pinExists then "*****" else "PIN")
+              , Props.value value
+              , Props.disabled pinExists
+              , Props.pattern "^[0-9]+$"
+              , (\e -> 
+                  if (unsafeCoerce e).target.validity.valid
+                  then Props.unsafeTargetValue e
+                  else value
+                ) <$> Props.onChange
+              ]
+            ]
+            pure $  if (length result) > 5
+                    then value
+                    else result
+          )
           result :: Maybe PinWidgetAction <- fireOnce (submitWidget pin pinExists)
           pure result
         pure signalResult
