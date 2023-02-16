@@ -49,7 +49,7 @@ userPreferencesWidget wstate = do
   where
     go state up@(UserPreferences r) = do
       res <- case state of
-        Default -> NewSettings <$> (div [] [userPreferencesView up])
+        Default -> NewSettings <$> (div [Props._id "userPreferencesArea"] [userPreferencesView up])
         Loading -> do
           let updateOp = do
                           liftEffect $ stopTimer

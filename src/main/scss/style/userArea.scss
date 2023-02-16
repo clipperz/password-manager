@@ -83,6 +83,8 @@ div#userPage {
         display: flex;
         flex-direction: column;
 
+		border-right: 1px solid #222;
+
         &.open {
             background-color: black;
 
@@ -108,76 +110,12 @@ div#userPage {
             }
 
             & > div {
-                padding: 20px;
+                padding: 0 20px;
 
                 form {
                     h1 {
                         font-size: 20pt;
                         padding: 20px 0;
-                    }
-
-                    ol {
-                        // padding-bottom: 20px;
-
-                        li {
-                            h3 {
-                                font-size: 18pt;
-                                border-bottom: 1px solid white;
-                            }
-                            label {
-                                display: block;
-                                margin-top: 8px;
-                                margin-bottom: 8px;
-
-                                &.autolock {
-                                    display: flex;
-                                    flex-direction: row-reverse;
-                                    justify-content: flex-end;
-
-                                    input {
-                                        margin: 0px;
-                                        width: 40px;
-                                    }
-                                }
-
-                                &.lockTime {
-                                    color: gray;
-                                    padding-left: 40px;
-
-                                    &.enabled {
-                                        color: white;
-                                    }
-
-                                    span.label {
-                                        &::after {
-                                            content: ": ";
-                                        }
-                                    }
-
-                                    input {
-                                        font-size: 13pt;
-                                        width: 50px;
-                                        text-align: right;
-                                        background-color: black;
-                                        color: white;
-                                        border: 1px solid #333;
-                                        appearance: textfield;
-
-                                        &:disabled {
-                                            color: gray;
-                                        }
-                                    }
-
-                                    span.units {
-                                        margin-left: 6px;
-                                    }
-                                }
-                            }
-
-                            .passwordGeneratorSettings {
-                                padding-left: 40px;
-                            }
-                        }
                     }
 
                     button {
@@ -199,6 +137,80 @@ div#userPage {
                 }
             }
         }
+
+		#userPreferencesArea {
+			form {
+				ol {
+					// padding-bottom: 20px;
+	
+					li {
+						padding-bottom: 20px;
+	
+						h3 {
+							font-size: 18pt;
+							border-bottom: 1px solid white;
+						}
+						label {
+							display: block;
+							margin-top: 8px;
+							margin-bottom: 8px;
+	
+							&.autolock {
+								display: flex;
+								flex-direction: row-reverse;
+								justify-content: flex-end;
+	
+								input {
+									margin: 0px;
+									width: 40px;
+								}
+							}
+	
+							&.lockTime {
+								color: gray;
+								padding-left: 40px;
+	
+								&.enabled {
+									color: white;
+								}
+	
+								span.label {
+									&::after {
+										content: ": ";
+									}
+								}
+	
+								input {
+									font-size: 13pt;
+									width: 50px;
+									text-align: right;
+									background-color: black;
+									color: white;
+									border: 1px solid #333;
+									appearance: textfield;
+	
+									&:disabled {
+										color: gray;
+									}
+								}
+	
+								span.units {
+									margin-left: 6px;
+								}
+							}
+						}
+	
+						.passwordGeneratorSettings {
+							padding-left: 40px;
+						}
+					}
+				}
+
+				button {
+					margin-top: 0;
+				}
+			}
+		}
 
         #changePasswordArea {
             label {
