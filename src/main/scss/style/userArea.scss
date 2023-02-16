@@ -87,6 +87,8 @@ div#userPage {
 
         &.open {
             background-color: black;
+			height: 100%;
+			overflow: auto;
 
             header {
                 border-bottom: 1px solid white;
@@ -110,7 +112,7 @@ div#userPage {
             }
 
             & > div {
-                padding: 0 20px;
+                padding: 0 20px 20px;
 
                 form {
                     h1 {
@@ -126,6 +128,7 @@ div#userPage {
                         border: 1px solid $main-text-color;
                         padding: 10px 14px;
 						margin-top: 20px;
+						
                         cursor: pointer;
 						width: fit-content;
 
