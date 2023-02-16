@@ -212,16 +212,30 @@ div#userPage {
 			}
 		}
 
-        #changePasswordArea {
+        #changePasswordArea, #deleteUserArea {
             label {
-                display: block;
+				@include fancyHidden();
+				display: block;
 
-                &.no_recovery {
+				input {
+					font-size: 18pt;
+					padding: 6px 10px;
+					border: 0px solid white;
+					width: 350px;
+					margin-bottom: 8px;
+					color: #999;
+
+					&::placeholder {
+						color: #aaa;
+					}
+				}
+
+                &.no_recovery, &.warning {
                     @include fancyVisible();
 					
 					padding-top: 8px;
 					display: flex;
-					flex-direction: row;
+					flex-direction: row-reverse;
 
 					input {
 						flex-grow: 0;
@@ -236,20 +250,6 @@ div#userPage {
 						cursor: pointer;
 						line-height: 1.5em;
 					}
-                }
-                @include fancyHidden();
-
-                input {
-                    font-size: 18pt;
-                    padding: 6px 10px;
-                    border: 0px solid white;
-                    width: 350px;
-                    margin-bottom: 8px;
-                    color: #999;
-
-                    &::placeholder {
-                        color: #aaa;
-                    }
                 }
 
                 &.valid {
@@ -296,5 +296,53 @@ div#userPage {
 				}
 			}
 		}
+
+		// #deleteUserArea {
+		// 	label {
+		// 		@include fancyHidden();
+		// 		display: block;
+
+		// 		input {
+		// 			font-size: 18pt;
+		// 			padding: 6px 10px;
+		// 			border: 0px solid white;
+		// 			width: 350px;
+		// 			margin-bottom: 8px;
+		// 			color: #999;
+
+		// 			&::placeholder {
+		// 				color: #aaa;
+		// 			}
+		// 		}
+
+		// 		&.warning {
+		// 			@include fancyVisible();
+
+		// 			padding-top: 8px;
+		// 			display: flex;
+		// 			flex-direction: row-reverse;
+
+		// 			input {
+		// 				flex-grow: 0;
+		// 				align-self: flex-start;
+		// 				width: 30px;
+		// 			}
+
+		// 			span {
+		// 				flex: auto;
+		// 				font-size: 12pt;
+		// 				display: block;
+		// 				cursor: pointer;
+		// 				line-height: 1.5em;
+		// 			}
+		// 		}
+
+		// 		&.valid {
+        //             input {
+        //                 color: black;
+        //             }
+        //         }
+		// 	}
+		// }
     }
 }

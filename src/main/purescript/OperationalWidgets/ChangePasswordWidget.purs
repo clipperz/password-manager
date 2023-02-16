@@ -86,15 +86,7 @@ changePasswordWidget state changeForm = go state changeForm
             -- eitherPassword  :: Either PasswordForm String <- simpleVerifiedPasswordSignal standardPasswordStrengthFunction $ Left {password, verifyPassword}
             password'       :: String   <-  loopW password       $ verySimpleInputWidget (InputType "password")  (ClassName "password")  (Label "New passphrase")    (Enabled true)  (Placeholder "new passphrase")          (\_ -> Just $ ClassName "valid")
             verifyPassword' :: String   <-  loopW verifyPassword $ verySimpleInputWidget (InputType "password")  (ClassName "password")  (Label "Verify passphrase") (Enabled true)  (Placeholder "confirm new passphrase")  (matchingValueClassName $ Just password')
-            -- checkbox'       :: Boolean  <-  simpleCheckboxSignal "no_recovery" (text "I understand Clipperz won't be able to recover a lost password") notRecoverable
-            checkbox'       :: Boolean  <-  loopW notRecoverable (\v -> label [Props.className "no_recovery"] [
-                                              (not v) <$ input [
-                                                Props._type "checkbox"
-                                              , Props.checked v
-                                              , Props.onChange
-                                              ]
-                                            , span [Props.className "label"] [text "I understand Clipperz won't be able to recover a lost passphrase"]
-                                            ])
+            checkbox'       :: Boolean  <-  simpleCheckboxSignal "no_recovery" (text "I understand Clipperz won't be able to recover a lost password") notRecoverable
             -- case eitherPassword of
             --   Left  passwords -> pure $ merge passwords { username: username', oldPassword: oldPassword', notRecoverable: checkbox'}
             --   Right s         -> pure                   { username: username', oldPassword: oldPassword', password: s, verifyPassword: s, notRecoverable: checkbox' }
