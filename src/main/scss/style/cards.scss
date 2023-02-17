@@ -173,128 +173,132 @@ div#homePage {
                     flex-direction: column;
                     overflow: hidden;
                     height: 100%;
+					
+					div#cardView {
+						height: 100%;
 
-                    div.cardActions {
-                        display: flex;
-                        flex-direction: row;
-                        height: 48px;
-
-                        button {
-                            flex: 1;
-                            border: 0px;
-                            font-size: 12pt;
-                            background-color: $accent-color;
-                            color: $accent-text-color;
-                            cursor: pointer;
-
-                            &.exit {
-                                &::before {
-                                    content: "back";
-                                    font-family: 'clipperz-icons';
-                                    font-size: 28pt;
-                                }
-                                font-size: 0px;
-                                flex: 0;
-                            }
-                        }
-                    }
-
-                    div#cardContent {
-                        display: flex;
-                        flex-direction: column;
-                        overflow: auto;
-                        height: 100%;
-
-                        h3 {
-                            user-select: text;
-                            font-size: 24pt;
-                            padding: 20px 20px 20px 42px;
-                            border: 0px;
-                        }
-                        
-                        div.card_tags {
-                            padding: 10px;
-                            ul {
-                                display: flex;
-                                flex-direction: row;
-                                align-items: flex-start;
-                                width: calc(100% - 31px);
-                                flex-wrap: wrap;
-                                padding-left: 31px;
-
-                                &::before {
-                                    margin-left: -32px;                                
-                                    content: 'tag';
-                                    font-family: 'clipperz-icons';
-                                    font-feature-settings: "liga" 1, "dlig" 1;
-                                    text-rendering: optimizeLegibility;
-                                    font-size: 16pt;
-                                    padding-right: 11px;
-                                    line-height: 27px;
-                                    color: #ccc;
-                                }
-
-                                li {
-                                    flex: none;
-                                    font-size: 13pt;
-                                    font-weight: 100;
-                                    margin-right: 10px;
-                                    padding-left: 1px;
-                                    padding-right: 30px;
-                                    line-height: 27px;
-                                }
-                            }
-                        }
-
-                        div.card_fields {
-                            padding: 10px 42px 10px 32px;
-                            
-                            div.fieldValue {
-                                padding: 10px;
-
-                                div.fieldLabel {
-                                    color: gray;
-                                    padding-bottom: 4px;
-                                    margin-bottom: 4px;
-                                    user-select: text;
-                                }
-                                textarea {
-                                    outline: none;
-                                    cursor: pointer;
-                                    font-size: 18pt;
-                                    line-height: 28px;
-                                    user-select: text;
-                                    resize: none;
-                                    white-space: pre-wrap;
-                                    word-wrap: break-word;
-                                    border: 0px;
-                                    width: 100%;
-                                    height: 33px;
-
-                                    &.PASSWORD {
-                                        font-family: clipperz-password;
-                                        font-size: 22pt;
-                                        line-height: 28px;
-                                        margin-top: -2px;                                        
-                                    }
-
-									&[disabled] {
-										background-color: white;
-										color: $alternate-text-color;
+						div.cardActions {
+							display: flex;
+							flex-direction: row;
+							height: 48px;
+	
+							button {
+								flex: 1;
+								border: 0px;
+								font-size: 12pt;
+								background-color: $accent-color;
+								color: $accent-text-color;
+								cursor: pointer;
+	
+								&.exit {
+									&::before {
+										content: "back";
+										font-family: 'clipperz-icons';
+										font-size: 28pt;
 									}
-                                }
-                            }
-                        }
-                        div.card_notes {
-                            border: 0px;
-                            font-size: 10pt;
-                            padding: 10px 42px 10px 42px;
-
-                            user-select: text;
-                            line-height: 1.5em;
-                            white-space: pre-wrap;
-                        }
-                    }
+									font-size: 0px;
+									flex: 0;
+								}
+							}
+						}
+	
+						div#cardContent {
+							display: flex;
+							flex-direction: column;
+							overflow: auto;
+							height: calc(100% - 48px);
+	
+							h3 {
+								user-select: text;
+								font-size: 24pt;
+								padding: 20px 20px 20px 42px;
+								border: 0px;
+							}
+							
+							div.card_tags {
+								padding: 10px;
+								ul {
+									display: flex;
+									flex-direction: row;
+									align-items: flex-start;
+									width: calc(100% - 31px);
+									flex-wrap: wrap;
+									padding-left: 31px;
+	
+									&::before {
+										margin-left: -32px;                                
+										content: 'tag';
+										font-family: 'clipperz-icons';
+										font-feature-settings: "liga" 1, "dlig" 1;
+										text-rendering: optimizeLegibility;
+										font-size: 16pt;
+										padding-right: 11px;
+										line-height: 27px;
+										color: #ccc;
+									}
+	
+									li {
+										flex: none;
+										font-size: 13pt;
+										font-weight: 100;
+										margin-right: 10px;
+										padding-left: 1px;
+										padding-right: 30px;
+										line-height: 27px;
+									}
+								}
+							}
+	
+							div.card_fields {
+								padding: 10px 42px 10px 32px;
+								
+								div.fieldValue {
+									padding: 10px;
+	
+									div.fieldLabel {
+										color: gray;
+										padding-bottom: 4px;
+										margin-bottom: 4px;
+										user-select: text;
+									}
+									textarea {
+										outline: none;
+										cursor: pointer;
+										font-size: 18pt;
+										line-height: 28px;
+										user-select: text;
+										resize: none;
+										white-space: pre-wrap;
+										word-wrap: break-word;
+										border: 0px;
+										width: 100%;
+										height: 33px;
+	
+										&.PASSWORD {
+											font-family: clipperz-password;
+											font-size: 22pt;
+											line-height: 28px;
+											margin-top: -2px;                                        
+										}
+	
+										&[disabled] {
+											background-color: white;
+											color: $alternate-text-color;
+										}
+									}
+								}
+							}
+							div.card_notes {
+								border: 0px;
+								font-size: 10pt;
+								padding: 10px 42px 10px 42px;
+	
+								user-select: text;
+								line-height: 1.5em;
+								white-space: pre-wrap;
+							}
+						}
+					}
 
                     #cardForm {
                         $side-margin: 40px;
