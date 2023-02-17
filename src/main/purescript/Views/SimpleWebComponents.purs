@@ -13,7 +13,7 @@ module Views.SimpleWebComponents
   , confirmationWidget
   , disabledSimpleTextInputWidget
   , dragAndDropAndRemoveList
-  , dragAndDropFileInputWidget
+  -- , dragAndDropFileInputWidget
   , loadingBar
   , loadingDiv
   , passwordStrengthShow
@@ -145,26 +145,26 @@ simpleFileInputWidget className lbl = do
       nve <- liftEffect $ currentTarget se
       liftAff $ readFile nve
 
-data DragFileEvents a = DragEnter a | DragLeave a | Drop a | FileContent String
+-- data DragFileEvents a = DragEnter a | DragLeave a | Drop a | FileContent String
 
-dragAndDropFileInputWidget :: String -> String -> Widget HTML String
-dragAndDropFileInputWidget id lbl = do
-  dropDiv false
+-- dragAndDropFileInputWidget :: String -> String -> Widget HTML String
+-- dragAndDropFileInputWidget id lbl = do
+--   dropDiv false
 
-  where 
-    dropDiv highlight = do
-      res <- div  [ Props.classList (Just <$> (["dropFile"] <> if highlight then ["highlight"] else []))
-                  , Props._id id
-                  , DragEnter <$> Props.onDragEnter
-                  , DragLeave <$> Props.onDragLeave
-                  , Drop <$> Props.onDropCapture
-                  ]
-                  [ FileContent <$> (simpleFileInputWidget "importButton" (text lbl)) ]
-      case res of
-        DragEnter _ -> dropDiv true
-        DragLeave _ -> dropDiv false
-        Drop a -> liftAff $ readFileFromDrop a
-        FileContent s -> pure s
+--   where 
+--     dropDiv highlight = do
+--       res <- div  [ Props.classList (Just <$> (["dropFile"] <> if highlight then ["highlight"] else []))
+--                   , Props._id id
+--                   , DragEnter <$> Props.onDragEnter
+--                   , DragLeave <$> Props.onDragLeave
+--                   , Drop <$> Props.onDropCapture
+--                   ]
+--                   [ FileContent <$> (simpleFileInputWidget "importButton" (text lbl)) ]
+--       case res of
+--         DragEnter _ -> dropDiv true
+--         DragLeave _ -> dropDiv false
+--         Drop a -> liftAff $ readFileFromDrop a
+--         FileContent s -> pure s
 
 simpleTextInputWidgetWithFocus :: String -> Widget HTML String -> String -> String -> Widget HTML String
 simpleTextInputWidgetWithFocus className lbl placeholder s = do
@@ -203,7 +203,7 @@ simpleCheckboxWidget className lbl v =  label [Props.className className] [
                               ]
 
 simpleButton :: forall a. String -> String -> Boolean -> a -> Widget HTML a
-simpleButton className label disable value = button [value <$ Props.onClick, Props.disabled disable, Props.className className ] [text label]
+simpleButton className label disable value = button [value <$ Props.onClick, Props.disabled disable, Props.className className ] [span [] [text label]]
 
 -- simpleButtonWithId :: forall a. String -> String -> Boolean -> a -> Widget HTML a
 -- simpleButtonWithId id label disable value = button [Props._id id, value <$ Props.onClick, Props.disabled disable] [text label]

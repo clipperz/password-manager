@@ -1,4 +1,6 @@
 @import "palette.scss";
+@import "hide.scss";
+@import "../structure/mixin.scss";
 
 div#userPage {
     div.panel {
@@ -65,7 +67,7 @@ div#userPage {
 							&.selected {
 								background-color: #333;
 							}
-							
+
                             button {
                                 padding: 10px;
                                 padding-left: 20px;
@@ -303,53 +305,5 @@ div#userPage {
 				}
 			}
 		}
-
-		// #deleteUserArea {
-		// 	label {
-		// 		@include fancyHidden();
-		// 		display: block;
-
-		// 		input {
-		// 			font-size: 18pt;
-		// 			padding: 6px 10px;
-		// 			border: 0px solid white;
-		// 			width: 350px;
-		// 			margin-bottom: 8px;
-		// 			color: #999;
-
-		// 			&::placeholder {
-		// 				color: #aaa;
-		// 			}
-		// 		}
-
-		// 		&.warning {
-		// 			@include fancyVisible();
-
-		// 			padding-top: 8px;
-		// 			display: flex;
-		// 			flex-direction: row-reverse;
-
-		// 			input {
-		// 				flex-grow: 0;
-		// 				align-self: flex-start;
-		// 				width: 30px;
-		// 			}
-
-		// 			span {
-		// 				flex: auto;
-		// 				font-size: 12pt;
-		// 				display: block;
-		// 				cursor: pointer;
-		// 				line-height: 1.5em;
-		// 			}
-		// 		}
-
-		// 		&.valid {
-        //             input {
-        //                 color: black;
-        //             }
-        //         }
-		// 	}
-		// }
     }
 }

@@ -3,7 +3,7 @@ module OperationalWidgets.ImportWidget where
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, fireOnce, demand, loopW, loopS, step, dyn, hold)
 import Concur.React (HTML)
-import Concur.React.DOM (text, div, h1, form, h3, ul, li', p)
+import Concur.React.DOM (text, div, h1, form, h3, h5, ul, li', p, span, br', a', a, div_, label, input, ul_, li_, dl, dt, dd)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
@@ -14,35 +14,38 @@ import Data.Argonaut.Core (stringify)
 import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Argonaut.Parser (jsonParser)
-import Data.Array (filter, length, cons)
+import Data.Array (filter, length, cons, concat)
 import Data.Bifunctor (lmap)
 import Data.Bitraversable (bisequence)
 import Data.Either (Either(..), isLeft)
+import Data.EuclideanRing ((/))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
+import Data.Maybe (maybe)
 import Data.HeytingAlgebra (not)
 import Data.List as List
-import Data.List (List(..), (:), concat, fromFoldable, snoc, zipWith, (..))
+import Data.List (List(..), (:), fromFoldable, snoc, zipWith, (..))
 import Data.Maybe (Maybe(..), fromMaybe, isJust)
 import Data.Operation (OperationStep(..), extractResult, runOperation)
 import Data.Semigroup ((<>))
-import Data.Semiring ((+))
+import Data.Semiring ((+), (*))
 import Data.Show (show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), snd)
 import Data.Unit (unit)
 import DataModel.AppState (AppError(..))
-import DataModel.Card (Card(..), CardValues(..))
+import DataModel.Card (Card(..), CardValues(..), CardField(..))
 import DataModel.Index (Index(..), CardEntry(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Cards (postCard, deleteCard)
 import Functions.Communication.Users (updateIndex, getIndex)
+import Functions.Events (readFile, readFileFromDrop, getClickCoordinates, printEvent)
 import Functions.Import (decodeImport, parseHTMLImport, decodeHTML)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate)
 import Views.CardViews (cardField)
-import Views.SimpleWebComponents (loadingDiv, loadingBar, simpleFileInputWidget, dragAndDropFileInputWidget, simpleTextInputWidget, simpleTextAreaSignal, simpleCheckboxSignal, simpleButton)
+import Views.SimpleWebComponents (loadingDiv, loadingBar, simpleFileInputWidget, simpleTextInputWidget, simpleTextAreaSignal, simpleCheckboxSignal, simpleButton)
 
 data QuickSelection = All | None | Archived | NonArchived
 
@@ -51,12 +54,38 @@ data SelectionAction = Cards (Array (Tuple Boolean Card)) | NewQuickSelection Qu
 type CardSelectionInfo = { tag :: Maybe String, selectedCards :: (Array (Tuple Boolean Card)) }
 
 data ImportStep = UploadContent String | ChooseCards (Array (Tuple Boolean Card)) | Confirm CardSelectionInfo
+  
+data DragFileEvents a = DragEnter a | DragLeave a | Drop a | FileContent String
+
+dragAndDropFileInputWidget :: Widget HTML String
+dragAndDropFileInputWidget = do
+  dropDiv false
+
+  where 
+    dropDiv highlight = do
+      res <- div  [ Props.classList (Just <$> (["dropArea"] <> if highlight then ["highlight"] else []))
+                  , Props._id "import"
+                  , DragEnter <$> Props.onDragEnter
+                  , DragLeave <$> Props.onDragLeave
+                  , Drop <$> Props.onDropCapture
+                  ]
+                  [ span [] [text "Drag your CSV or Clipperz export file here"]
+                  , br'
+                  , span [] [text "or"]
+                  , br'
+                  , FileContent <$> (simpleFileInputWidget "importButton" (a' [text "select it manually"]))
+                  ]
+      case res of
+        DragEnter _ -> dropDiv true
+        DragLeave _ -> dropDiv false
+        Drop a -> liftAff $ readFileFromDrop a
+        FileContent s -> pure s
 
 importWidget :: Widget HTML (Either AppError Index)
 importWidget = do
   newIndex <- ((Right (Index Nil)) <$ (importView "" Nothing)) <|> (liftAff $ runExceptT $ getIndex)
   case newIndex of
-    Right index@(Index es) -> div [Props._id "importPage"] [h1 [] [text "Import"], importPage index Nothing (UploadContent "")]
+    Right index@(Index es) -> div [Props._id "importPage"] [importPage index Nothing (UploadContent "")]
     Left err -> pure $ Left err
 
   where 
@@ -95,10 +124,16 @@ importWidget = do
                                                 let newIndex = Index (entries <> es)
                                                 _ <- updateIndex newIndex
                                                 pure newIndex
-                              ) (text "Saving index")
+                              ) (form [] [h1 [] [text "Import"], text "Saving index"])
       let funcs = saveCardFunc <$> cards
       let total = List.length cards
-      let mkPlaceholder = \{index, card: (Card {content: (CardValues r)})} -> div [] [p [] [text (loadingBar (index + 1) total 80)], p [] [text ("Saving " <> r.title)]]
+      let mkPlaceholder = \{index, card: (Card {content: (CardValues r)})} -> form [Props.className "savingImport"] [
+        h1 [] [text "Import"]
+      , div [Props.className "loadingBarContainer"] [
+          div[Props.className "loadingBar", Props.style {width: "" <> show ((index + 1) * 100 / total) <> "%"}] []  
+        ]
+      , p [] [text ("Saving " <> show (index + 1) <> " of " <> show total <> " (" <> r.title <> ")")]
+      ]
       let pls = mkPlaceholder <$> (zipWith (\i -> \c -> {index: i, card: c}) (0 .. total) cards)
       let zipped = zipWith (\func -> \pl -> {func, pl}) funcs pls
       let steps = (snoc ((\{func, pl} -> IntermediateStep func pl) <$> zipped) lastStep) :: List (OperationStep (Either (Tuple AppError (List CardEntry)) (List CardEntry)) (Either AppError Index) (Widget HTML))
@@ -144,22 +179,33 @@ importWidget = do
           toImport = length toImportCards
       in do
           res <- form [Props.className "importPage"] [
-            text $ "Import " <> (show toImport) <> " cards (of " <> (show total) <> ")?"
-          , ((simpleButton "back" "<<" false false) <|> (simpleButton "import" "Import" false true))
+            h1 [] [text "Import"]
+          , h5 [] [text $ "Import " <> (show toImport) <> " cards (of " <> (show total) <> ")?"]
+          , simpleButton "import" "Import" false true
+          , div [Props.className "importButtons"] [
+              simpleButton "back" "previous" false false
+            , simpleButton "next hide" "next"     true false
+            ]
+          -- , simpleButton "back" "previous" false false
+          -- , ((simpleButton "back" "<<" false false) <|> (simpleButton "import" "Import" false true))
           ]
           if res then loadingDiv <|> (div [Props.className "importList"] [div [] [saveImport (fromFoldable toImportCards) index]])
           else importPage index Nothing (ChooseCards cards) 
 
     importView :: String -> Maybe String -> Widget HTML (Either String String)
     importView pl error = form [Props.className "importPage"] [
-        text (fromMaybe "" error)
-      , p [] [text "Import data from another Clipperz account using a JSON/HTML export file created by Clipperz."]
+        h1 [] [text "Import"]
+      , text (fromMaybe "" error)
+      , p [Props.className "description"] [text "Import data from another Clipperz account using a JSON/HTML export file created by Clipperz."]
       , div [Props.className "importInput"] [
-          Left <$> (dragAndDropFileInputWidget "import" "Import")
-        , p [] [text "Alternatively you may type or paste any properly formatted JSON data."]
+          Left <$> dragAndDropFileInputWidget
+        , p [Props.className "description"] [text "Alternatively you may type or paste any properly formatted JSON data."]
         , Right <$> (demand $ do
                               textContent <- simpleTextAreaSignal "importText" (text "Import") "Type or copy your data here" pl
-                              fireOnce (simpleButton "import" "Import" (isLeft (jsonParser textContent)) textContent))
+                              fireOnce (div [Props.className "importButtons"] [
+                                simpleButton "back" "previous" true ""
+                              , simpleButton "next" "next" (isLeft (jsonParser textContent)) textContent
+                              ]))
         ]
       ]
 
@@ -167,18 +213,31 @@ importWidget = do
     cardSelectionWidget goBackValue cards = do
       newTagWithDate <- (((<>) "Import_") <<< formatDateTimeToDate) <$> (liftEffect getCurrentDateTime)
       form [Props.classList (Just <$> ["importPage", "scrollable"])] [ 
-          (demand $ do
-            newTag <- loopS { sel: Nothing, tag: newTagWithDate, cb: true } $ \v -> do
-                                                            newSel    <- loopW v.sel (\_ -> Just <$> selectWidget)
-                                                            newTagCB  <- simpleCheckboxSignal "apply_tag" (text "Apply the following tag to imported cards:") v.cb
-                                                            newTag    <- loopW v.tag (simpleTextInputWidget "tag" (text "Tag") "Tag")
+        h1 [] [text "Import"]
+      , (demand $ do
+          newTag <- loopS { sel: Nothing, tag: newTagWithDate, cb: true } $ \v -> do
+                                                          newSel    <- loopW v.sel (\_ -> Just <$> selectWidget)
+                                                          div_ [Props.className "tagButtons"] do
+                                                            -- newTagCB  <-  simpleCheckboxSignal "apply_tag" (text "Apply the following tag to imported cards:") v.cb
+                                                            newTagCB  <-  loopW v.cb (\v -> label [Props.className "apply_tag"] [
+                                                                            (not v) <$  input [
+                                                                              Props._type "checkbox"
+                                                                            , Props.checked v
+                                                                            , Props.onChange
+                                                                            ]
+                                                                          , span [Props.className "label"] [text "Apply the following tag to imported cards:"]
+                                                                          ])
+                                                            newTag    <-  loopW v.tag (simpleTextInputWidget "tag" (text "Tag") "Tag")
                                                             pure $ { sel: newSel, tag: newTag, cb: newTagCB }
-            selectedCards <- case newTag.sel of
-              Nothing -> sequence $ importCardProposalWidget <$> cards
-              Just f -> sequence $ importCardProposalWidget <$> (filterCards f cards)
-            let importInfo = { tag: (if newTag.cb then Just newTag.tag else Nothing), selectedCards }
-            fireOnce (div [Props.className "fixedFoot"] [(simpleButton "back" "<<" false goBackValue) <|> (simpleButton "import" "Import" false (Confirm importInfo))]))
-        ]
+          selectedCards <- ul_ [] $ case newTag.sel of
+            Nothing -> sequence $ (importCardProposalWidget if newTag.cb then Just newTag.tag else Nothing) <$> cards
+            Just f  -> sequence $ (importCardProposalWidget if newTag.cb then Just newTag.tag else Nothing) <$> (filterCards f cards)
+          let importInfo = { tag: (if newTag.cb then Just newTag.tag else Nothing), selectedCards }
+          fireOnce  (div [Props.className "importButtons"] [
+                      simpleButton "back" "previous" false goBackValue
+                    , simpleButton "next" "next"     false (Confirm importInfo)
+                    ]))
+      ]
 
     filterCards :: QuickSelection -> Array (Tuple Boolean Card) -> Array (Tuple Boolean Card)
     filterCards All arr = (\(Tuple _ c) -> Tuple true c) <$> arr
@@ -187,25 +246,30 @@ importWidget = do
     filterCards NonArchived arr = (\(Tuple _ c@(Card r)) -> Tuple (not r.archived) c) <$> arr
 
     selectWidget :: Widget HTML QuickSelection
-    selectWidget = div [] [
-      p [] [text "Select:"]
-    , simpleButton "all"          "All"           false All
-    , simpleButton "none"         "None"          false None
-    , simpleButton "archived"     "Archived"      false Archived
-    , simpleButton "not_archived" "Not archived"  false NonArchived
+    selectWidget = div [Props.className "selectButtons"] [
+      span [] [text "Select:"]
+    , a [Props.className "all",          All         <$ Props.onClick] [text "All"]
+    , a [Props.className "none",         None        <$ Props.onClick] [text "None"]
+    , a [Props.className "archived",     Archived    <$ Props.onClick] [text "Archived"]
+    , a [Props.className "not_archived", NonArchived <$ Props.onClick] [text "Not Archived"]
     ]
 
-    importCardProposalWidget :: Tuple Boolean Card -> Signal HTML (Tuple Boolean Card)
-    importCardProposalWidget (Tuple b c@(Card { content: cv@(CardValues content), archived, timestamp})) = do
-      cb <- simpleCheckboxSignal "select_card" (cardContent cv) b
+    importCardProposalWidget :: Maybe String -> Tuple Boolean Card -> Signal HTML (Tuple Boolean Card)
+    importCardProposalWidget newTag (Tuple b c@(Card { content: cv@(CardValues content), archived, timestamp})) = li_ [] do
+      cb <- simpleCheckboxSignal "select_card" (cardContent cv newTag) b
       pure $ Tuple cb c
 
-    cardContent :: forall a. CardValues -> Widget HTML a
-    cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) = div [Props.className "cardContent"] [
+    cardContent :: forall a. CardValues -> Maybe String -> Widget HTML a
+    cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) newTag = div [Props.className "cardContent"] [
       h3  [Props.className "card_title"]  [text t]
-    , ul  [Props.className "card_tags"]   $ (\s -> li' [text s]) <$> ts
-    , div [Props.className "card_fields"] $ cardField <$> fs
-    , div [Props.className "card_notes"]  [text n]
+    , ul  [Props.className "card_tags"]   $ (\s -> li' [text s]) <$> (maybe ts (\nt -> ts <> [nt]) newTag)
+    , dl [Props.className "card_fields"] $ concat $ (\field@(CardField {name, value, locked}) -> [
+          dt [] [text name]
+        , dd [Props.classList [if locked then (Just "password") else Nothing]] [
+            text value
+          ]
+      ]) <$> fs
+    , p [Props.className "card_notes"] [text n]
     ]
 
     prepareSelectedCards :: String -> Array (Tuple Boolean Card) -> Array (Tuple Boolean Card)
