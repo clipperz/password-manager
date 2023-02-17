@@ -329,19 +329,19 @@ submenu showing b1 bs = do
     ClickOnVoice a -> pure $ Right a
 
 --  Each `SubmenuVoice` can be thought as a menu section, with an open/close status
-type SubmenuVoice a = Tuple Boolean (Boolean -> Widget HTML (Either Boolean a))
+type SubmenuVoice a = Tuple Boolean (Boolean -> a -> Widget HTML (Either Boolean a))
 
 type IntermediateWidget a = Widget HTML (Either (Array Boolean) a)
 
 --  Given a series of sections (arr :: Array (SumbenuVoice a)) they are bound to an index, so that a sorted list of sections is available (newArr)
-complexMenu :: forall a. Maybe String -> Maybe String -> Array (SubmenuVoice a) -> Widget HTML (Tuple (Array (SubmenuVoice a)) a)
-complexMenu mId mClass arr = do
+complexMenu :: forall a. Maybe String -> Maybe String -> Array (SubmenuVoice a) -> a -> Widget HTML (Tuple (Array (SubmenuVoice a)) a)
+complexMenu mId mClass arr currentItemSelected = do
   let pid    = fromMaybe [] ((\id -> [Props._id id])      <$> mId)
   let pclass = fromMaybe [] (( \c -> [Props.className c]) <$> mClass) 
   inter <- ul (pid <> pclass) (fromVoiceToWidget <$> newArr)
   case inter of
     Right a   -> pure $ Tuple arr a   --  If a subitem is selected, it is returned with the whole status (open/close) of all other sections.
-    Left  bs  -> complexMenu mId mClass $ redraw bs
+    Left  bs  -> complexMenu mId mClass (redraw bs) currentItemSelected 
 
   where
     indexes :: Array Int
@@ -365,7 +365,7 @@ complexMenu mId mClass arr = do
     --  The menu item widget may return either a change in status of the widget itself (open/close) or whether a subitems has been clicked.
     fromVoiceToWidget :: { index :: Int, tuple :: SubmenuVoice a } -> Widget HTML (Either (Array Boolean) a)
     fromVoiceToWidget { index, tuple: (Tuple b f) } = do
-      res <- f b
+      res <- f b currentItemSelected
       case res of 
         Left bool -> pure $ Left  $ fromMaybe booleans (updateAt index bool booleans) --  If a section is opened/closed the array with all the stati of the sections,
                                                                                       --  and the item at the matching position is updated

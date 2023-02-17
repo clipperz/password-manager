@@ -62,6 +62,10 @@ div#userPage {
 
                         li {
 
+							&.selected {
+								background-color: #333;
+							}
+							
                             button {
                                 padding: 10px;
                                 padding-left: 20px;

@@ -9,7 +9,7 @@ import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (Either(..))
-import Data.Eq (class Eq)
+import Data.Eq (class Eq, (==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.HeytingAlgebra (not)
@@ -34,7 +34,7 @@ import OperationalWidgets.PinWidget (setPinWidget)
 
 data UserAreaAction = Loaded (Either AppError Index) | Lock | Logout | DeleteAccount | NoAction | GetIndexError AppError
 
-data UserAreaListVoice = Export | Import | Pin | Delete | Preferences | ChangePassword | VLock | VLogout | About
+data UserAreaListVoice = Export | Import | Pin | Delete | Preferences | ChangePassword | VLock | VLogout | About | None
 
 derive instance eqUserAreaListVoice :: Eq UserAreaListVoice
 
@@ -42,52 +42,58 @@ data UserAreaInternalAction = MenuAction (Tuple (Array (SubmenuVoice UserAreaLis
 
 defaultMenu :: ProxyConnectionStatus -> Array (SubmenuVoice UserAreaListVoice)
 defaultMenu proxyConnectionStatus = [
-  Tuple false (\b -> submenu b (simpleButton "account" "Account" false unit) [
-    li [] [simpleButton "preferencesButton"  "Preferences"     disabled  Preferences]
-  , li [] [simpleButton "passphraseButton"   "Passphrase"      disabled  ChangePassword]
-  , li [] [simpleButton "deviceButton"       "Device PIN"      false     Pin]
-  , li [] [simpleButton "deleteButton"       "Delete account"  disabled  Delete]
+  Tuple false (\b -> \area -> submenu b (simpleButton "account" "Account" false unit) [
+    submenuItem "preferencesButton"  "Preferences"     disabled  Preferences area
+  , submenuItem "passphraseButton"   "Passphrase"      disabled  ChangePassword area
+  , submenuItem "deviceButton"       "Device PIN"      false     Pin area
+  , submenuItem "deleteButton"       "Delete account"  disabled  Delete area
   ])
-, Tuple false (\b -> submenu b (simpleButton "data" "Data" false unit) [
-    li [] [simpleButton "importButton"       "Import"          disabled  Import]
-  , li [] [simpleButton "exportButton"       "Export"          false     Export]
+, Tuple false (\b -> \area -> submenu b (simpleButton "data" "Data" false unit) [
+    submenuItem "importButton"       "Import"          disabled  Import area
+  , submenuItem "exportButton"       "Export"          false     Export area
   ])
-, Tuple true (\b -> submenu b (text "") [simpleButton "aboutButton"   "About"   false About])
-, Tuple true (\b -> submenu b (text "") [simpleButton "lockButton"    "Lock"    false VLock])
-, Tuple true (\b -> submenu b (text "") [simpleButton "logoutButton"  "Logout"  false VLogout])
+, Tuple true (\b -> \_ -> submenu b (text "") [simpleButton "aboutButton"   "About"   false About])
+, Tuple true (\b -> \_ -> submenu b (text "") [simpleButton "lockButton"    "Lock"    false VLock])
+, Tuple true (\b -> \_ -> submenu b (text "") [simpleButton "logoutButton"  "Logout"  false VLogout])
 ]
   where
     disabled = case proxyConnectionStatus of
       ProxyOnline   -> false
       ProxyOffline  -> true
+  
+    submenuItem :: forall a. String -> String -> Boolean -> UserAreaListVoice -> UserAreaListVoice -> Widget HTML UserAreaListVoice
+    submenuItem className label disable area currentArea = 
+      li [Props.classList [if area == currentArea then Just "selected" else Nothing]] [
+        button [area <$ Props.onClick, Props.disabled disable, Props.className className] [text label]
+      ]
 
 userAreaWidget :: Boolean -> ProxyConnectionStatus -> Widget HTML UserAreaAction
-userAreaWidget hidden proxyConnectionStatus = userAreaView hidden (defaultMenu proxyConnectionStatus) emptyUserComponent
+userAreaWidget hidden proxyConnectionStatus = userAreaView hidden (defaultMenu proxyConnectionStatus) None
   where 
     emptyUserComponent :: Widget HTML (Maybe UserAreaAction)
     emptyUserComponent = (div [(Just NoAction) <$ Props.onClick, Props.className "extraFeatureContent"] [])
 
-    userAreaList :: forall a. Array (SubmenuVoice a) -> Widget HTML (Tuple (Array (SubmenuVoice a)) a)
-    userAreaList arr = complexMenu (Just "userSidebar") Nothing arr
+    userAreaList :: forall a. Array (SubmenuVoice a) -> a -> Widget HTML (Tuple (Array (SubmenuVoice a)) a)
+    userAreaList arr area = complexMenu (Just "userSidebar") Nothing arr area
 
-    userAreaView :: Boolean -> Array (SubmenuVoice UserAreaListVoice) -> Widget HTML (Maybe UserAreaAction) -> Widget HTML UserAreaAction
+    userAreaView :: Boolean -> Array (SubmenuVoice UserAreaListVoice) -> UserAreaListVoice -> Widget HTML UserAreaAction
     userAreaView hidden' arr area = do
       let userPageClassName = if hidden' then "closed" else "open"
       res <- div [Props._id "userPage", Props.className userPageClassName] [
         CloseUserArea <$ div [Props.onClick, Props.className "mask"] [], --TODO - doesn't work
         div [Props.className "panel"] [
           CloseUserArea <$ header [] [div [] [button [Props.onClick] [text "menu"]]],
-          div [] [MenuAction <$> (userAreaList arr)],
+          div [] [MenuAction <$> (userAreaList arr area)],
           footer [] [text "footer"]
         ],
-        UserAction <$> area
+        UserAction <$> (userAreaInternalView area)
       ]
       case res of
-        CloseUserArea -> userAreaView true arr emptyUserComponent
+        CloseUserArea -> userAreaView true arr None
         UserAction maybeUserAreaAction -> case maybeUserAreaAction of
           Just ac -> pure $ ac 
-          Nothing -> userAreaView false arr emptyUserComponent
-        MenuAction (Tuple newMenus ac) -> userAreaView false newMenus (userAreaInternalView ac)
+          Nothing -> userAreaView false arr None
+        MenuAction (Tuple newMenus ac) -> userAreaView false newMenus ac
 
     userAreaInternalView :: UserAreaListVoice -> Widget HTML (Maybe UserAreaAction)
     userAreaInternalView choice = 
@@ -101,6 +107,7 @@ userAreaWidget hidden proxyConnectionStatus = userAreaView hidden (defaultMenu p
         VLock           -> pure $ Just Lock
         VLogout         -> pure $ Just Logout
         About           -> frame (text "This is Clipperz")
+        None            -> emptyUserComponent
 
       where
         frame :: Widget HTML UserAreaAction -> Widget HTML (Maybe UserAreaAction)
