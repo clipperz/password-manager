@@ -162,6 +162,7 @@ div#userPage .extraFeatureContent {
 			label.select_card {
 				display: flex;
 				flex-direction: row-reverse;
+				justify-content: flex-end;
 				padding-top: 15px;
 				padding-bottom: 0px;
 				border-bottom: 1px solid #333;
