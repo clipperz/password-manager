@@ -218,10 +218,21 @@ html {
     }
 }
 
+div.loadingBarContainer {
+	border-bottom: 1px solid white;
+	height: 20px;
+	margin-bottom: 10px;
+
+	.loadingBar {
+		height: 100%;
+		background-color: white;
+	}
+}
+
 div.disableOverlay {
     position: absolute;
     top: 0px;
-    right: 0px;
+    left: 0px;
     width: 100vw;
     height: 100vh;
 
@@ -233,12 +244,17 @@ div.disableOverlay {
         background-color: white;
         padding: 30px;
         box-shadow: 4px 4px 6px 5px rgba(0, 0, 0, 0.3);
-        z-index: 99999;
+        z-index: 50;
         position: relative;
+		color: black;
 
         margin-left: auto;
         margin-right: auto;
         top: 30%;
+
+		div.mask {
+			z-index: 30;
+		}
 
         div.message {
             font-size: 18pt;

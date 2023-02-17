@@ -233,19 +233,6 @@ div#userPage .extraFeatureContent {
 			button.import {
 				margin: 0;
 			}
-
-			&.savingImport {
-				div.loadingBarContainer {
-					border-bottom: 1px solid white;
-					height: 20px;
-					margin-bottom: 10px;
-
-					.loadingBar {
-						height: 100%;
-						background-color: white;
-					}
-				}
-			}
 		}
 	}
 }

@@ -12,6 +12,7 @@ import Control.Monad.Except.Trans (runExceptT, except, mapExceptT, ExceptT(..))
 import Control.Semigroupoid ((<<<))
 import Data.Either (either, Either(..))
 import Data.Eq ((==))
+import Data.EuclideanRing ((/))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$), void)
 import Data.HeytingAlgebra ((||), (&&), not)
@@ -19,6 +20,7 @@ import Data.List (List(..), length)
 import Data.Maybe (Maybe(..))
 import Data.Operation (runOperation)
 import Data.Semigroup ((<>))
+import Data.Semiring ((+), (*))
 import Data.Show (show)
 import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..))
@@ -66,7 +68,14 @@ deleteUserWidget = do
           -- let deleteUserOp = liftAff $ (either FailedDelete (\_ -> Done) <$> (runExceptT $ deleteUserAndPin))
           -- div' [loadingDiv, simpleButton "Delete account" true DoNothing] <|> deleteUserOp
           let total = length entries
-          res <- runOperation (Right unit) $ deleteUserSteps index (\i -> p [] [text $ "Deleting cards: " <> (loadingBar i total 80)]) text
+          -- res <- runOperation (Right unit) $ deleteUserSteps index (\i -> p [] [text $ "Deleting cards: " <> (loadingBar i total 80)]) text
+          res <- runOperation (Right unit) $ deleteUserSteps index (\i -> div [Props._id "deleteUserArea"] [form [] [
+            h1 [] [text "Delete account"]
+          , div [Props.className "loadingBarContainer"] [
+              div[Props.className "loadingBar", Props.style {width: "" <> show ((i + 1) * 100 / total) <> "%"}] []  
+            ]
+          , p [] [text ("Deleting " <> show (i + 1) <> " of " <> show total)]
+          ]]) text
           pure $ case res of
             Right (Left err) -> FailedDelete err
             Left (Left err) -> FailedDelete err
