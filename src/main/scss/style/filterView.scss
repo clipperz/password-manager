@@ -90,12 +90,23 @@
     }
 
     div#searchForm {
+
+
+		&::before {
+			content: "search";
+			font-family: 'clipperz-icons';
+			color: #fff;
+			padding-right: 8px;
+			font-size: 14pt;
+		}
+
         label {
             font-family: "clipperz-icons";
             font-size: 14pt;
-            margin-left: 8px;
+            // margin-left: 8px;
             margin-right: 6px;
         }
+
         input {
             font-size: 14pt;
             border: 0px;
@@ -117,22 +128,32 @@
         // background-color: pink;
         display: flex;
         flex-direction: row;
+		justify-content: space-between;
 
         border-top: 1px dotted #333;
         padding: 10px;
         font-size: 10pt;
 
-        div {
-            flex: 1;
-        }
-
-        input[type="checkbox"] {
-            cursor: pointer;
-        }
-
+        // div {
+        //     flex: 1;
+        // }
+		
         label {
-            padding-left: 5px;
+			padding-left: 5px;
             cursor: pointer;
+			display: flex;
+			flex-direction: row-reverse;
+			align-items: flex-start;
+
+			input[type="checkbox"] {
+				cursor: pointer;
+			}
+
+			span {
+				line-height: initial;
+				padding-left: 5px;
+				align-self: baseline;
+			}
         }
 
         span.count {

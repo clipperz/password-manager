@@ -63,9 +63,9 @@ html {
 								div#searchForm {
 									display: flex;
 									flex-direction: row;
-									justify-content: space-between;
+									justify-content: flex-start;
 									align-items: center;
-									padding: 7px 8px 7px 0px;
+									padding: 0 8px 10px;
 
 									span {
 										display: none;
