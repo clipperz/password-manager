@@ -128,7 +128,8 @@ div#homePage {
         
                     ol {
                         overflow: auto;
-						background-color: #1863a1;
+						// background-color: #1863a1;
+                        background-color: #ddd;
 
 						&::after {
 							content: "";
@@ -146,6 +147,7 @@ div#homePage {
                             word-wrap: break-word;
                             display: flex;
                             flex-direction: row; 
+                            justify-content: space-between;
         
                             font-size: 14pt;
                             padding-top: 16px;
@@ -164,6 +166,26 @@ div#homePage {
 								background-color: #eeeeee;
 								color: #999;
 							}
+
+                            &::after {
+                                content: "show detail";
+                                // flex: none;
+                                font-family: 'clipperz-icons';
+                                font-feature-settings: "liga" 1, "dlig" 1;
+                                text-rendering: optimizeLegibility;
+                                min-width: 32px;
+                                // height: 48px;
+                                font-size: 24pt;
+                                // line-height: 48px;
+                                // margin-right: 25px;
+                                color: #ccc;
+                            }
+
+                            &:hover {
+                                &::after {
+                                    color: $main-color;
+                                }
+                            }
                         }
                     }
                 }

@@ -375,6 +375,15 @@ $extraWide-minSize: 1100px;
 										transition: left 0.3s ease-in-out;
                                         left: calc(27% - 30px);
                                     }
+                                    
+                                    ol {
+                                        li {
+                                            &::after {
+                                                display: none;
+                                                visibility: hidden;
+                                            }
+                                        }
+                                    }
                                 }
                                 #card {
                                     flex: 2;
