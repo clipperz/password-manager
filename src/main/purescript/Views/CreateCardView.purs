@@ -39,6 +39,7 @@ import Functions.Communication.Users (getUserPreferences)
 import React.SyntheticEvent (SyntheticMouseEvent)
 import Views.PasswordGenerator (passwordGenerator)
 import Views.SimpleWebComponents (loadingDiv, simpleButton, dragAndDropAndRemoveList, confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, simpleCheckboxWidget, simpleTextAreaSignal)
+import Views.Components (dynamicWrapper)
 
 import Debug (traceM)
 
@@ -85,14 +86,14 @@ createCardView card allTags state = do
         div [Props.className "inputs"] [
           -- (\v -> CardField $ r { name  = v }) <$> simpleTextInputWidget ("name")  (text "Name")  "Field name"  name
           ((\v -> CardField $ r { name  = v }) <<< (Props.unsafeTargetValue)) <$> label [Props.className "label"] [
-            span [] [text "Field label"]
+            span [Props.className "label"] [text "Field label"]
           , input [Props._type "text", Props.placeholder "label", Props.value name, Props.onChange]
           ]
         -- , (\v -> CardField $ r { value = v }) <$> simpleTextInputWidget ("value") (text "Value") "Field value" value
         , ((\v -> CardField $ r { value  = v }) <<< (Props.unsafeTargetValue)) <$> label [Props.className "value"] [
-            span [] [text "Field value"]
+            span [Props.className "label"] [text "Field value"]
           -- , input [Props._type "text", Props.placeholder "value", Props.value value, Props.onChange]
-          , textarea [Props.placeholder "value", Props.value value, Props.onChange] []
+          , dynamicWrapper value $ textarea [Props.placeholder "value", Props.value value, Props.onChange] []
           ]
         ]
       -- , div [Props.className "fieldActions"] $ generatePasswordWidgets <> [(\v -> CardField $ r { locked = v }) <$> (simpleCheckboxWidget "locked" (text "Locked") false locked)]
@@ -189,7 +190,7 @@ createCardView card allTags state = do
           -- notes' :: String <- simpleTextAreaSignal "notes" (text "Notes") "notes" notes
           notes' :: String <- loopW notes (\v -> Props.unsafeTargetValue <$> label [Props.className "notes"] [
               span [] [text "Notes"]
-            , textarea [Props.value v, Props.onChange, Props.placeholder "notes", Props.style { height: "40px" }] []
+            , dynamicWrapper v $ textarea [Props.value v, Props.onChange, Props.placeholder "notes"] []
             ])
 
           pure $ Tuple newTag' $ Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})

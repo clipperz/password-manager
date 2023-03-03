@@ -363,12 +363,24 @@ div#homePage {
                                     }
                                 }
 
+								label.title {
+									@include fancyHidden;
+									width: 100%;
+
+									input {
+										border: 0;
+										font-size: 24pt;
+										padding: 13px 20px 13px 42px;
+									}
+								}
+
                                 // label[for=title] {
                                 //     @include fancyHidden;
                                 // }
 
                                 .tags {
                                     margin-left: $side-margin;
+									padding: 10px;
 
                                     ul {
                                         display: flex;
@@ -398,23 +410,27 @@ div#homePage {
                                                 background-color: inherit;
                                                 border: 0px;
                                                 color: #ccc;
-                                                font-size: 16pt;
+                                                font-size: 12pt;
                                                 margin-right: 8px;
 
                                                 &:hover {
-                                                    color: #999;
+                                                    color: #9b0000;
                                                 }
                                             }
 
                                             &.addTag {
+												max-width: 30%;
                                                 flex-direction: row;
+
                                                 label {
                                                     @include fancyHidden;
                                                 }
                                                 input {
+													display: inline-block;
+    												width: 100%;
+                                                    border: 0px;
                                                     font-size: 12pt;
                                                     line-height: 24px;
-                                                    border: 0px;
 
                                                     &::placeholder {
                                                         font-style: italic;
@@ -506,7 +522,11 @@ div#homePage {
 
                                     .draggableElem {
                                         flex-direction: row;
-                                        border-bottom: 1px solid #eee;
+										border-top: 1px solid #eee;
+
+										&:nth-last-child(2) {
+											border-bottom: 1px solid #eee;
+										}
 
                                         &:hover {
                                             background-color: #eee;
@@ -564,38 +584,73 @@ div#homePage {
 
                                         .fieldForm {
                                             flex: auto;
+
+											&.locked {
+                                                .inputs {
+                                                    .value {
+														.dynamicWrap {
+															textarea, &::after {
+																font-family: 'clipperz-password';
+																font-size: 22pt;
+																// line-height: 28pt;
+															}
+														}
+                                                    }
+                                                }
+                                                .fieldActions {
+                                                    button {
+                                                        &.passwordGenerator {
+                                                            visibility: visible;
+                                                        }
+                                                    }
+                                                }
+                                            }
+
                                             .inputs {
                                                 flex: auto;
                                                 flex-direction: column;
-                                                label {
-                                                    display: flex;
-                                                    @include fancyHidden;
+												padding: 10px;
 
-                                                    &.label {
-                                                        // background-color: pink;
-                                                        margin-top: 10px;
-                                                        margin-bottom: 10px;
-                                                        input {
-                                                            flex: auto;
-                                                            color: gray;
-                                                            font-size: 12pt;
-                                                        }
-                                                    }
+                                                label {
+													display: flex;
+													padding-bottom: 4px;
+    												margin-bottom: 4px;
+													@include fancyHidden;
+
+													input {
+														flex: auto;
+														color: gray;
+														font-size: 12pt;
+														width: 100%;													
+													}
 
                                                     &.value {
-                                                        // background-color: greenyellow;
-
-                                                        textarea {
-                                                            border: 0px;
-                                                            flex: auto;
-                                                            font-size: 18pt;
-                                                            line-height: 28pt;
-                                                            white-space: pre-wrap;
-                                                            word-wrap: break-word;
-                                                            user-select: text;
-                                                            resize: vertical;
-                                                            margin-bottom: 10px;
-                                                        }
+														.dynamicWrap {
+															display: grid;
+															width: 100%;
+															
+															&::after {
+																content: attr(replicatedValue) " ";
+																white-space: pre-wrap;
+																visibility: hidden;
+															}
+					
+															textarea {
+																resize: none;
+																overflow: hidden;
+															}
+					
+															textarea, &::after {
+																border: 0px;
+																width: 100%;
+																padding: 0;
+																line-height: 28pt;
+																font-size: 18pt;
+																margin-top: -2px;
+																
+																grid-area: 1 / 1 / 2 / 2;
+															}
+														}
                                                     }
 
                                                 }
@@ -627,25 +682,6 @@ div#homePage {
                                                         margin-left: 0px;
                                                     }
 												}
-                                            }
-
-                                            &.locked {
-                                                .inputs {
-                                                    .value {
-                                                        textarea {
-                                                            font-family: 'clipperz-password';
-                                                            font-size: 22pt;
-                                                            line-height: 28pt;
-                                                        }
-                                                    }
-                                                }
-                                                .fieldActions {
-                                                    button {
-                                                        &.passwordGenerator {
-                                                            visibility: visible;
-                                                        }
-                                                    }
-                                                }
                                             }
                                         }
                                     }
@@ -701,21 +737,40 @@ div#homePage {
                                     padding: 10px $side-margin 10px $side-margin;
                                     @include fancyHidden;
 
-                                    textarea {
-                                        // font-size: 12pt;
-                                        // line-height: 18pt;
-                                        font-size: 10pt;
-                                        line-height: 1.5em;
-                                        white-space: pre-wrap;
-                                        word-wrap: break-word;
-                                        width: 100%;
-                                        border: 0px;
+									//--- fancy stuff, maybe can generalize ------
+									.dynamicWrap {
+										display: grid;
+										
+										&::after {
+											content: attr(replicatedValue) " ";
+											white-space: pre-wrap;
+											visibility: hidden;
+										}
 
-                                        &::placeholder {
-                                            font-style: italic;
-                                            color: #ccc;
-                                        }
-                                    }
+										textarea {
+											resize: none;
+											overflow: hidden;
+
+											&::placeholder {
+												font-style: italic;
+												color: #ccc;
+											}
+
+										}
+
+										textarea, &::after {
+											font-size: 10pt;
+											line-height: 1.5em;
+											white-space: pre-wrap;
+											word-wrap: break-word;
+											width: 100%;
+											border: 0px;
+											
+											grid-area: 1 / 1 / 2 / 2;
+										}
+									}
+									//---------------------------------------------
+
                                 }
                             }
                             .submitButtons {

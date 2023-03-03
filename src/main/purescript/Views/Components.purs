@@ -4,6 +4,7 @@ module Views.Components
   , InputType(..)
   , Label(..)
   , Placeholder(..)
+  , dynamicWrapper
   , verySimpleInputWidget
   )
   where
@@ -40,3 +41,6 @@ verySimpleInputWidget (InputType t) (ClassName className) (Label lbl) (Enabled e
     , Props.onChange
     ]
   ]
+
+dynamicWrapper :: forall a. String -> Widget HTML a -> Widget HTML a
+dynamicWrapper content elem = div [Props.className "dynamicWrap", Props.unsafeMkProp "replicatedValue" content] [ elem ]
