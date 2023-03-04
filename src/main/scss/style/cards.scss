@@ -378,12 +378,8 @@ div#homePage {
 									}
 								}
 
-                                // label[for=title] {
-                                //     @include fancyHidden;
-                                // }
-
                                 .tags {
-                                    margin-left: $side-margin;
+                                    margin-left: calc($side-margin - 10px);
 									padding: 10px;
 
                                     ul {
@@ -545,7 +541,7 @@ div#homePage {
 												display: flex;
 												justify-content: center;
 												align-items: flex-start;
-												margin-top: 10px;
+												margin-top: 5px;
 	
 												button {
 													font-family: 'clipperz-icons';
@@ -557,7 +553,7 @@ div#homePage {
 													padding: 0px;
 	
 													&:hover {
-														color: #666;
+														color: #DD1010;
 													}
 												}
 											}
@@ -617,15 +613,16 @@ div#homePage {
 
                                                 label {
 													display: flex;
-													padding-bottom: 4px;
-    												margin-bottom: 4px;
+													// padding-bottom: 4px;
+    												// margin-bottom: 4px;
 													@include fancyHidden;
 
 													input {
 														flex: auto;
 														color: gray;
 														font-size: 12pt;
-														width: 100%;													
+														width: 100%;
+														margin-bottom: 8px;													
 													}
 
                                                     &.value {
@@ -659,10 +656,11 @@ div#homePage {
 
                                                 }
                                             }
+
                                             .fieldActions {
                                                 flex-direction: column;
                                                 padding-left: 5px;
-                                                padding-right: 5px;
+                                                padding-right: 10px;
                                                 // background-color: purple;
 
 												button {
@@ -673,17 +671,23 @@ div#homePage {
 													background-color: inherit;
 													color: #ccc;
 													padding: 0px;
-                                                    margin-left: 10px;
-                                                    margin-top: 10px;
-
-                                                    &:hover {
+													margin: 10px 0 6px;
+													
+                                                    &:hover:enabled {
 														color: #666;
+													}
+													
+													&.lock {
+														margin-left: 10px;
+														margin-top: 10px;
 													}
 
                                                     &.passwordGenerator {
                                                         visibility: hidden;
                                                         font-size: 15pt;
-                                                        margin-left: 0px;
+                                                        // margin-left: 0px;
+														// margin-bottom: 6px;
+    													color: #aaa;
                                                     }
 												}
                                             }

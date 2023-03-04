@@ -1,4 +1,9 @@
-module Functions.Card where
+module Functions.Card
+  ( FieldType(..)
+  , getCardContent
+  , getFieldType
+  )
+  where
 
 import Control.Applicative (pure)
 import Control.Bind (bind)
@@ -14,9 +19,12 @@ import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (fromArrayBuffer, toArrayBuffer, toString, Base(..))
+import Data.Maybe (Maybe(..))
+import Data.String.Regex (Regex, test, regex)
+import Data.String.Regex.Flags (noFlags) 
 import Data.Show (class Show, show)
 import DataModel.AppState (AppError(..))
-import DataModel.Card (Card)
+import DataModel.Card (Card, CardField(..))
 import DataModel.CardVersions.CardV1 (Card_V1, cardFromV1)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardReference(..))
@@ -38,3 +46,31 @@ getCardContent bytes (CardReference ref) =
   where
     mapError :: forall a e. Show e => ExceptT e Aff a -> ExceptT AppError Aff a
     mapError = withExceptT (\err -> ProtocolError $ CryptoError $ show err)
+
+data FieldType = Email | Url | Passphrase | None
+
+testRegex :: Either String Regex -> String -> Boolean
+testRegex eitherRegex value =
+  case eitherRegex of
+    Left _ -> false
+    Right regex -> test regex value
+
+emailRegex :: Either String Regex
+emailRegex = regex "^([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+)\\.([a-zA-Z]{2,})$" noFlags
+
+isValidEmail :: String -> Boolean
+isValidEmail email = testRegex emailRegex email
+
+urlRegex :: Either String Regex
+-- urlRegex = regex "^(?:(ht|f)tp(s?)\\:\\/\\/)?[0-9a-zA-Z]([-\\.\\w]*[0-9a-zA-Z])*(:(0-9)*)*(\\/?)([a-zA-Z0-9\\-\\.\\?\\,'\\/\\\\\\+&amp;%\\$#_]*)?$" noFlags
+urlRegex = regex "^https?://[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*(:[0-9]+)?(/.*)?$" noFlags
+
+isValidUrl :: String -> Boolean
+isValidUrl url = testRegex urlRegex url
+
+getFieldType :: CardField -> FieldType
+getFieldType cf@(CardField { name, value, locked })
+  | locked              = Passphrase
+  | isValidEmail value  = Email
+  | isValidUrl value    = Url
+  | true                = None

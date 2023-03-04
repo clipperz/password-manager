@@ -4,7 +4,7 @@ import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopS, loopW, demand, display, justWait, hold, fireOnce)
 import Concur.Core.Props (filterProp)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', text, div_, ul_, li_, form_, form, label, input, datalist, option, span, textarea, button)
+import Concur.React.DOM (a, div, div', text, div_, ul_, li_, form_, form, label, input, datalist, option, span, textarea, button)
 import Concur.React.Props as Props
 import Control.Alt((<|>), class Alt)
 import Control.Applicative (pure)
@@ -33,6 +33,7 @@ import Effect.Aff (never)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
+import Functions.Card (getFieldType, FieldType(..))
 import Functions.JSState (getAppState)
 import Functions.Time (getCurrentTimestamp)
 import Functions.Communication.Users (getUserPreferences)
@@ -70,34 +71,43 @@ createCardView card allTags state = do
   where 
     mask = div [Props.className "mask"] []
 
+    getActionButton :: CardField -> Widget HTML Unit
+    getActionButton cardField@(CardField { name, value, locked }) =
+      case getFieldType cardField of
+        Passphrase  -> button [unit <$ Props.onClick, Props.disabled false, Props.className "action passwordGenerator" ] [span [] [text "password generator"]]
+        Email       -> button [Props.disabled true, Props.className "action email"] [span [] [text "email"]]
+        -- Url         -> button [Props.className "action url"] [span [] [a [Props.href value, Props.target "_blank"] [text "url"]]]
+        Url         -> button [Props.className "action url", Props.disabled true]  [span [] [text "url"]]
+        None        -> button [Props.className "action none", Props.disabled true] [span [] [text "none"]]
+
     cardFieldWidget :: PasswordGeneratorSettings -> CardField -> Widget HTML CardField
-    cardFieldWidget settings (CardField r@{ name, value, locked }) = do
-      let generatePasswordWidgets = [(\v -> CardField $ r { value = v })
+    cardFieldWidget settings cf@(CardField r@{ name, value, locked }) = do
+      let fieldActionWidget = [(\v -> CardField $ r { value = v })
         <$> do
-              simpleButton "password generator" "passwordGenerator" false unit
-              div [Props.className "passwordGeneratorOverlay"] [
-                div [value <$ Props.onClick] []
-              , passwordGenerator settings
-              ]
+              getActionButton cf
+              if locked then
+                div [] [
+                  button [Props.disabled true, Props.className "action passwordGenerator" ] [span [] [text "password generator"]]
+                , (div [Props.className "passwordGeneratorOverlay"] [
+                    div [value <$ Props.onClick] []
+                  , passwordGenerator settings
+                  ])
+                ]
+              else div [] []
       ]
 
-      --   div [Props.className "fieldForm"] [
       div [Props.classList ([Just "fieldForm", if (locked) then Just "locked" else Nothing])] [
         div [Props.className "inputs"] [
-          -- (\v -> CardField $ r { name  = v }) <$> simpleTextInputWidget ("name")  (text "Name")  "Field name"  name
           ((\v -> CardField $ r { name  = v }) <<< (Props.unsafeTargetValue)) <$> label [Props.className "label"] [
             span [Props.className "label"] [text "Field label"]
           , input [Props._type "text", Props.placeholder "label", Props.value name, Props.onChange]
           ]
-        -- , (\v -> CardField $ r { value = v }) <$> simpleTextInputWidget ("value") (text "Value") "Field value" value
         , ((\v -> CardField $ r { value  = v }) <<< (Props.unsafeTargetValue)) <$> label [Props.className "value"] [
             span [Props.className "label"] [text "Field value"]
-          -- , input [Props._type "text", Props.placeholder "value", Props.value value, Props.onChange]
-          , dynamicWrapper value $ textarea [Props.rows 1, Props.placeholder "value", Props.value value, Props.onChange] []
+          , dynamicWrapper value $ textarea [Props.rows 1, Props.placeholder (if locked then "" else "value"), Props.value value, Props.onChange] []
           ]
         ]
-      -- , div [Props.className "fieldActions"] $ generatePasswordWidgets <> [(\v -> CardField $ r { locked = v }) <$> (simpleCheckboxWidget "locked" (text "Locked") false locked)]
-      , div [Props.className "fieldActions"] $ generatePasswordWidgets <> [
+      , div [Props.className "fieldActions"] $ fieldActionWidget <> [
           (\v -> CardField $ r { locked = v })
           <$>
           button [not locked <$ Props.onClick, Props.className "lock"] [text if locked then "locked" else "unlocked"]
@@ -130,12 +140,6 @@ createCardView card allTags state = do
         Nothing -> pure $ Just tag'
         Just _  -> pure $ Nothing
 
-    -- isTabEvent e = e'.which == 33 || e'.keyCode == 33
-    --   where
-    --   e' = unsafeCoerce e
-
-    -- onTabEnter = filterProp isTabEvent Props.onKeyDown
-
     inputTagSignal :: String -> Signal HTML (Tuple String Boolean)
     inputTagSignal newTag = do
 
@@ -148,19 +152,12 @@ createCardView card allTags state = do
                 Props._type "text"
               , Props.placeholder "add tag"
               , Props.value value
-              -- , Props.defaultValue value
-              -- , (\e -> do
-              --     let e' = unsafeCoerce e
-              --     Tuple (value <> e'.key) (value /= "" && (e'.which == 32 || e'.keyCode == 32))
-              --   ) <$> Props.onKeyDown
               , Props.list "tags-list"
-              -- , (Tuple value (value /= "")) <$ Props.onKeyEnter
               , (\e -> Tuple (Props.unsafeTargetValue e) false) <$> Props.onChange
               ]
             , datalist [Props._id "tags-list"] ((\t -> option [] [text t]) <$> allTags)
           ]
         ]
-        -- log $ "Enter: " <> show enter
         pure result
       )
 
@@ -185,13 +182,11 @@ createCardView card allTags state = do
           Tuple newTag' tags' <- tagsSignal newTag tags
           
           fields' <- fieldsSignal settings fields
-          -- fields' <- form_ [(\e -> fields) <$> Props.onSubmit] (fieldsSignal settings fields)
 
-          -- notes' :: String <- simpleTextAreaSignal "notes" (text "Notes") "notes" notes
           notes' :: String <- loopW notes (\v -> Props.unsafeTargetValue <$> label [Props.className "notes"] [
-              span [] [text "Notes"]
-            , dynamicWrapper v $ textarea [Props.rows 1, Props.value v, Props.onChange, Props.placeholder "notes"] []
-            ])
+            span [Props.className "label"] [text "Notes"]
+          , dynamicWrapper v $ textarea [Props.rows 1, Props.value v, Props.onChange, Props.placeholder "notes"] []
+          ])
 
           pure $ Tuple newTag' $ Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
                                       , archived: archived
