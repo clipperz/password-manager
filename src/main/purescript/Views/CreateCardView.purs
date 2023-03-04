@@ -93,7 +93,7 @@ createCardView card allTags state = do
         , ((\v -> CardField $ r { value  = v }) <<< (Props.unsafeTargetValue)) <$> label [Props.className "value"] [
             span [Props.className "label"] [text "Field value"]
           -- , input [Props._type "text", Props.placeholder "value", Props.value value, Props.onChange]
-          , dynamicWrapper value $ textarea [Props.placeholder "value", Props.value value, Props.onChange] []
+          , dynamicWrapper value $ textarea [Props.rows 1, Props.placeholder "value", Props.value value, Props.onChange] []
           ]
         ]
       -- , div [Props.className "fieldActions"] $ generatePasswordWidgets <> [(\v -> CardField $ r { locked = v }) <$> (simpleCheckboxWidget "locked" (text "Locked") false locked)]
@@ -190,7 +190,7 @@ createCardView card allTags state = do
           -- notes' :: String <- simpleTextAreaSignal "notes" (text "Notes") "notes" notes
           notes' :: String <- loopW notes (\v -> Props.unsafeTargetValue <$> label [Props.className "notes"] [
               span [] [text "Notes"]
-            , dynamicWrapper v $ textarea [Props.value v, Props.onChange, Props.placeholder "notes"] []
+            , dynamicWrapper v $ textarea [Props.rows 1, Props.value v, Props.onChange, Props.placeholder "notes"] []
             ])
 
           pure $ Tuple newTag' $ Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})

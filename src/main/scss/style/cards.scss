@@ -646,8 +646,8 @@ div#homePage {
 					
 															textarea, &::after {
 																border: 0px;
-																width: 100%;
-																padding: 0;
+																width: calc(100% - 2px);
+																padding: 0 0 0 2px;
 																line-height: 28pt;
 																font-size: 18pt;
 																margin-top: -2px;
