@@ -157,7 +157,7 @@ div#homePage {
                             line-height: 1.2em;
 
                             &.selected {
-                                margin-left: 40px;
+                                margin-left: 20px;
                                 padding-right: 0px;
                                 box-shadow: -4px 0px 3px -1px rgba(0, 0, 0, 0.2);                                
                             }
@@ -212,6 +212,10 @@ div#homePage {
 								color: $accent-text-color;
 								cursor: pointer;
 	
+                                &:hover {
+                                    background-color: $accent-color-lighter;
+                                }
+
 								&.exit {
 									&::before {
 										content: "back";
