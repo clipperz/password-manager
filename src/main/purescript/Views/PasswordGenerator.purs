@@ -2,7 +2,7 @@ module Views.PasswordGenerator where
   
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', text, label, span, input, textarea)
+import Concur.React.DOM (div, div', text, label, span, input, textarea, header, button)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
@@ -29,8 +29,10 @@ import DataModel.Password (PasswordGeneratorSettings, CharacterSet(..), defaultC
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
-import Functions.Password (randomPassword)
+import Functions.Password (randomPassword, standardPasswordStrengthFunction, passwordStrengthClass)
+import Views.Components (dynamicWrapper)
 import Views.SimpleWebComponents (simpleButton, simpleNumberInputWidget, disabledSimpleTextInputWidget, simpleTextInputWidget, simpleCheckboxWidget)
+
 
 extractValue :: forall a. Monoid a => AsyncValue a -> a
 extractValue v = 
@@ -42,31 +44,38 @@ extractValue v =
 ---------------------------
 
 passwordGenerator :: PasswordGeneratorSettings -> Widget HTML String
-passwordGenerator initialSettings = composedWidget initialSettings (Loading Nothing)
+passwordGenerator initialSettings = composedWidget initialSettings false (Loading Nothing)
 
 data ComposedWidgetAction = ModifiedSettingsAction PasswordGeneratorSettings 
                           | RequestedNewSuggestion
                           | ApprovedSuggestion String
                           | ObtainedNewSuggestion String
-composedWidget :: PasswordGeneratorSettings -> AsyncValue String -> Widget HTML String
-composedWidget settings av = do
+                          | TogglePasswordSettings Boolean
+composedWidget :: PasswordGeneratorSettings -> Boolean -> AsyncValue String -> Widget HTML String
+composedWidget settings isOpen av = do
   res <- case av of
-    Done    _ -> widget settings av
-    Loading _ -> widget settings av <|> (ObtainedNewSuggestion <$> (computePassword settings))
+    Done    _ -> widget settings isOpen av
+    Loading _ -> widget settings isOpen av <|> (ObtainedNewSuggestion <$> (computePassword settings))
   case res of
-    ModifiedSettingsAction s'   -> composedWidget s' (Loading (Just (extractValue av))) -- need to regenerate password
-    RequestedNewSuggestion      -> composedWidget settings (Loading (Just (extractValue av)))
-    ObtainedNewSuggestion  pswd -> composedWidget settings (Done pswd)
+    ModifiedSettingsAction s'   -> composedWidget s' isOpen (Loading (Just (extractValue av))) -- need to regenerate password
+    RequestedNewSuggestion      -> composedWidget settings isOpen (Loading (Just (extractValue av)))
+    TogglePasswordSettings bool -> composedWidget settings bool   av
+    ObtainedNewSuggestion  pswd -> composedWidget settings isOpen (Done pswd)
     ApprovedSuggestion     pwsd -> pure pwsd
   where 
     computePassword :: PasswordGeneratorSettings -> Widget HTML String
     computePassword s' = liftAff $ randomPassword s'.length s'.characters
 
-    widget :: PasswordGeneratorSettings -> AsyncValue String -> Widget HTML ComposedWidgetAction
-    widget s v = div' [
-      ModifiedSettingsAction <$> settingsWidget s
-    , simpleButton "regenerate" "Regenerate" false RequestedNewSuggestion
-    , (either ObtainedNewSuggestion ApprovedSuggestion) <$> suggestionWidget v
+    widget :: PasswordGeneratorSettings -> Boolean -> AsyncValue String -> Widget HTML ComposedWidgetAction
+    widget s isOpen v = div [Props.className "passwordGeneratorForm"] [
+      div [Props.classList [Just "optionWrapper", Just (if isOpen then "open" else "close")]] [
+        header [] [button [(TogglePasswordSettings $ not isOpen) <$ Props.onClick] [text "options"]]
+      , ModifiedSettingsAction <$> settingsWidget s
+      ]
+    , div [Props.className "passwordGenerator"] [
+        simpleButton "generatePassword" "generate password" false RequestedNewSuggestion
+      , (either ObtainedNewSuggestion ApprovedSuggestion) <$> suggestionWidget v
+      ]
     ]
 
 suggestionWidget :: AsyncValue String -> Widget HTML (Either String String)
@@ -77,10 +86,18 @@ suggestionWidget av =
   where
     go :: Boolean -> String -> Widget HTML (Either String String)
     go b s = do
-      res <- div' [
-        PasswordChange <$> disabledSimpleTextInputWidget "generatePassword" (text "Generated password") b "" s
-      , InsertPassword <$> simpleButton "setPassword" "Insert" b s
-      ]
+      res <-
+        -- PasswordChange <$> disabledSimpleTextInputWidget "passwordSuggestion" (text "Generated password") b "" s
+        (PasswordChange <$> (div [Props.className "generatedValue"] [
+          label [] [
+            span [Props.className "label"] [text "Generated value"]
+          , dynamicWrapper s $ textarea [Props.rows 1, Props.spellCheck false, Props.disabled b, Props.value s, Props.unsafeTargetValue <$> Props.onChange] [] 
+          ]
+        , div [Props.classList [Just "entropyWrapper", Just $ passwordStrengthClass (standardPasswordStrengthFunction s){--, Just $ show $ computePasswordEntropy s--}]] [] --TODO
+        ]))
+        <>
+        (InsertPassword <$> simpleButton "setPassword" "set password" b s)
+      
       case res of
         PasswordChange p       -> suggestionWidget $ Done p
         UpdatePassword         -> suggestionWidget $ Done ""
@@ -147,15 +164,16 @@ settingsWidget s = do
   let characters = s.characters
   res <- div [Props.className "passwordSettings"] [
     (LengthChange <<< (fromMaybe 0) <<< fromString <<< Props.unsafeTargetValue) <$> label [Props.className "passwordLength"] [
-      span  [Props.className "label"] [text "Password length"]
-    , input [Props._type "number", Props.placeholder "Lock time", Props.value $ show length, Props.onChange]
+      span  [Props.className "label"] [text "length"]
+    , input [Props._type "number", Props.value $ show length, Props.onChange]
     , span  [Props.className "unit"] [text "characters"]
     ]
   , Chars <$> label [Props.className "charList"] [
-      span  [Props.className "label"] [text "Characters"]
+      span  [Props.className "label"] [text "characters"]
     , div   [Props.className "charset"] [
         div [Props.className "charsetSets"] ((charsetSelector characters) <$> defaultCharacterSets)
-      , textarea [Props.value characters, Props.unsafeTargetValue <$> Props.onChange, Props.value characters] []
+      , dynamicWrapper characters $ textarea [Props.rows 1, Props.spellCheck false, Props.value characters, Props.unsafeTargetValue <$> Props.onChange] [] 
+      -- , textarea [Props.value characters, Props.unsafeTargetValue <$> Props.onChange, Props.value characters] []
     ]
   ]
   ]

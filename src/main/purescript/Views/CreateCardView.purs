@@ -86,13 +86,12 @@ createCardView card allTags state = do
         <$> do
               getActionButton cf
               if locked then
-                div [] [
-                  button [Props.disabled true, Props.className "action passwordGenerator" ] [span [] [text "password generator"]]
-                , (div [Props.className "passwordGeneratorOverlay"] [
-                    div [value <$ Props.onClick] []
-                  , passwordGenerator settings
-                  ])
-                ]
+                button [Props.disabled true, Props.className "action passwordGenerator" ] [span [] [text "password generator"]]
+                <>
+                (div [Props.className "passwordGenerator"] [
+                  div [value <$ Props.onClick, Props.className "passwordGeneratorMask"] []
+                , div [Props.className "passwordGeneratorPopup"] [passwordGenerator settings]
+                ])
               else div [] []
       ]
 

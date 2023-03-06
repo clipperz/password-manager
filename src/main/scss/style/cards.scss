@@ -601,8 +601,32 @@ div#homePage {
                                                     button {
                                                         &.passwordGenerator {
                                                             visibility: visible;
+
                                                         }
                                                     }
+
+													div.passwordGenerator {
+														.passwordGeneratorMask {
+															position: fixed;
+															top: 0px;
+															left: 0px;
+															height: 100%;
+															width: 100%;
+															background-color: transparent;
+															// background-color: blue;
+															z-index: 100;
+														}
+
+														.passwordGeneratorPopup {
+															position: relative;
+															z-index: 101;
+															
+															// .passwordGeneratorForm {
+															// 	//
+															// }
+
+														}
+													}
                                                 }
                                             }
 
@@ -642,6 +666,7 @@ div#homePage {
 															}
 					
 															textarea, &::after {
+																@include dontBreakOut;
 																border: 0px;
 																width: calc(100% - 2px);
 																padding: 0 0 0 2px;
@@ -767,6 +792,7 @@ div#homePage {
 										}
 
 										textarea, &::after {
+											@include dontBreakOut;
 											font-size: 10pt;
 											line-height: 1.5em;
 											white-space: pre-wrap;
@@ -833,4 +859,3 @@ div#homePage {
         }
     }
 }
-

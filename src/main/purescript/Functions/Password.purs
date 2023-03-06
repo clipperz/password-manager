@@ -1,10 +1,9 @@
 module Functions.Password
-  (
-    PasswordStrengthFunction
-  , PasswordStrength
+  ( PasswordStrength
+  , PasswordStrengthFunction
   , passwordStrengthClass
-  , standardPasswordStrengthFunction
   , randomPassword
+  , standardPasswordStrengthFunction
   )
   where
 
@@ -24,7 +23,7 @@ import Data.List (List)
 import Data.Map (values)
 import Data.Newtype (unwrap, wrap)
 import Data.Number (log, isNaN)
-import Data.Ord ((<=), (<))
+import Data.Ord ((<=), (<), (>=))
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
 import Data.Semiring ((+), (*))
@@ -90,12 +89,13 @@ computePasswordEntropy s =
 
 formatPasswordEntropy :: Number -> PasswordStrength
 formatPasswordEntropy n
-  | isNaN n   = VeryWeak
-  | n < 15.0  = VeryWeak
-  | n < 30.0  = Weak
-  | n < 65.0  = Acceptable
-  | n < 80.0  = Strong
-  | otherwise = VeryStrong
+  -- | isNaN n   = VeryWeak
+  | n >= 80.0 = VeryStrong
+  -- | n < 80.0  = Strong
+  | n >= 65.0  = Strong
+  | n >= 30.0  = Acceptable
+  | n >= 15.0  = Weak
+  | otherwise = VeryWeak
 
 randomPassword :: Int -> String -> Aff String
 randomPassword l characters = appendRandomChars (repeatStringUpToSize 256 characters) l ""
