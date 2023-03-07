@@ -1,7 +1,9 @@
 module DataModel.CardVersions.CardV1 where
 
 import Data.Functor ((<$>))
+import Data.Maybe (Maybe)
 import DataModel.Card (Card(..), CardValues(..), CardField(..))
+import DataModel.Password (PasswordGeneratorSettings)
 
 type Card_V1 = 
   { content :: CardValues_V1
@@ -20,6 +22,7 @@ type CardField_V1 =
   { name   :: String
   , value  :: String
   , locked :: Boolean
+  , settings :: Maybe PasswordGeneratorSettings
   }
 
 cardFromV1 :: Card_V1 -> Card

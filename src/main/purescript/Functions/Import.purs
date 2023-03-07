@@ -17,7 +17,7 @@ import Data.Eq (eq, (==))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HeytingAlgebra (not)
-import Data.Maybe (fromMaybe, Maybe)
+import Data.Maybe (fromMaybe, Maybe(..))
 import Data.String (split)
 import Data.String.Common (replace)
 import Data.String.Pattern (Pattern(..), Replacement(..))
@@ -96,5 +96,6 @@ decodeCardField json = runExcept $ do
   obj    <- except $ note (ImportError "Cannot convert json to json object") $ (toObject json)
   label  <- except $ note (ImportError "Cannot find field label")  $ (toString  =<< lookup "label"  obj)
   value  <- except $ note (ImportError "Cannot find field value")  $ (toString  =<< lookup "value"  obj)
+  -- passwordGeneratorSettings <- except $ note (ImportError "Cannot find field value")  $ (toString  =<< lookup "value"  obj)
   let hidden = fromMaybe false $ (toBoolean =<< lookup "hidden" obj)
-  pure $ CardField {name: label, value: value, locked: hidden}
+  pure $ CardField {name: label, value: value, locked: hidden, settings: Nothing}

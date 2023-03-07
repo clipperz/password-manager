@@ -5,8 +5,10 @@ import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
 import Data.Bifunctor (rmap)
 import Data.Eq (class Eq, eq)
 import Data.List.Types (List(..), (:))
+import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
+import DataModel.Password (PasswordGeneratorSettings)
 
 currentCardVersion :: String
 currentCardVersion = "V1"
@@ -16,6 +18,7 @@ newtype CardField =
     { name   :: String
     , value  :: String
     , locked :: Boolean
+    , settings :: Maybe PasswordGeneratorSettings
     }
   
 instance eqCardField :: Eq CardField where
@@ -77,15 +80,15 @@ instance decodeJsonCard :: DecodeJson Card where
 -- --------------------------------------------
 
 emptyCardField :: CardField
-emptyCardField = CardField { name: "", value: "", locked: false }
+emptyCardField = CardField { name: "", value: "", locked: false, settings: Nothing }
 
 emptyCard :: Card
 emptyCard = Card { timestamp: 0.0
                     , archived: false
                     , content: CardValues { title: ""
                                               , tags: []
-                                              , fields: [ CardField { name: "username", value: "", locked: false }
-                                                        , CardField { name: "password", value: "", locked: true }
+                                              , fields: [ CardField { name: "username", value: "", locked: false, settings: Nothing }
+                                                        , CardField { name: "password", value: "", locked: true,  settings: Nothing }
                                                         ]
                                               , notes: ""
                                               }
@@ -94,19 +97,19 @@ emptyCard = Card { timestamp: 0.0
 card0 :: CardValues
 card0 = CardValues { title: "Mail account (SAMPLE)"
                       , tags: ["mail", "sample"]
-                      , fields: [ (CardField {name: "username", value: "sample@mail.com", locked: false})
-                                , (CardField {name: "password", value: "i3k^{flhadhse93na[{%oq[;6-", locked: true})]
+                      , fields: [ (CardField {name: "username", value: "sample@mail.com", locked: false, settings: Nothing})
+                                , (CardField {name: "password", value: "i3k^{flhadhse93na[{%oq[;6-", locked: true, settings: Nothing})]
                       , notes: "Mail account notes"}
 
 card1 :: CardValues
 card1 = CardValues { title: "Bank account (SAMPLE)"
                       , tags: ["finance", "sample"]
-                      , fields: [ (CardField {name: "IBAN", value: "DE89370400440532015007", locked: false})
-                                , (CardField {name: "password", value: "?)E%[9=GcgzaAftgP[LSEK7JJv", locked: true})
-                                , (CardField {name: "User ID", value: "76238784", locked: false})
-                                , (CardField {name: "Web", value: "https://www.db.com", locked: false})
-                                , (CardField {name: "Bank", value: "Deutsche Bank", locked: false})
-                                , (CardField {name: "Branch n.", value: "774942", locked: false})]
+                      , fields: [ (CardField {name: "IBAN", value: "DE89370400440532015007", locked: false, settings: Nothing})
+                                , (CardField {name: "password", value: "?)E%[9=GcgzaAftgP[LSEK7JJv", locked: true, settings: Nothing})
+                                , (CardField {name: "User ID", value: "76238784", locked: false, settings: Nothing})
+                                , (CardField {name: "Web", value: "https://www.db.com", locked: false, settings: Nothing})
+                                , (CardField {name: "Bank", value: "Deutsche Bank", locked: false, settings: Nothing})
+                                , (CardField {name: "Branch n.", value: "774942", locked: false, settings: Nothing})]
                       , notes: ""}
 
 defaultCards :: List Card

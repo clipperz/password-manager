@@ -39,10 +39,10 @@ importSpec  =
                            , archived: false
                            , content: CardValues { title: "Amazon.com"
                                                      , tags: ["shopping"]
-                                                     , fields: [ CardField { name: "email", value: "joe@clipperz.com", locked: false }
-                                                               , CardField { name: "password", value: "8gJcYP~bJh#PMfA[|eU", locked: true }
-                                                               , CardField { name: "URL", value: "https://www.amazon.com", locked: false }
-                                                               , CardField { name: "", value: "", locked: true }
+                                                     , fields: [ CardField { name: "email", value: "joe@clipperz.com", locked: false, settings: Nothing }
+                                                               , CardField { name: "password", value: "8gJcYP~bJh#PMfA[|eU", locked: true, settings: Nothing }
+                                                               , CardField { name: "URL", value: "https://www.amazon.com", locked: false, settings: Nothing }
+                                                               , CardField { name: "", value: "", locked: true, settings: Nothing }
                                                                ]
                                                      , notes: ""
                                                      }
@@ -56,9 +56,9 @@ importSpec  =
                            , archived: true
                            , content: CardValues { title: "AOL "
                                                      , tags: ["", "social"]
-                                                     , fields: [ CardField { name: "URL", value: "http://www.aol.com", locked: false }
-                                                               , CardField { name: "ID", value: "88440023", locked: false }
-                                                               , CardField { name: "password", value: "I9EJpXaOzNoNATZB0NjUcUZYBa", locked: true }
+                                                     , fields: [ CardField { name: "URL", value: "http://www.aol.com", locked: false, settings: Nothing }
+                                                               , CardField { name: "ID", value: "88440023", locked: false, settings: Nothing }
+                                                               , CardField { name: "password", value: "I9EJpXaOzNoNATZB0NjUcUZYBa", locked: true, settings: Nothing }
                                                                ]
                                                      , notes: "Ah the good old times. :)"
                                                      }

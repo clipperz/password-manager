@@ -81,16 +81,16 @@ createCardView card allTags state = do
         None        -> button [Props.className "action none", Props.disabled true] [span [] [text "none"]]
 
     cardFieldWidget :: PasswordGeneratorSettings -> CardField -> Widget HTML CardField
-    cardFieldWidget settings cf@(CardField r@{ name, value, locked }) = do
-      let fieldActionWidget = [(\v -> CardField $ r { value = v })
+    cardFieldWidget defaultSettings cf@(CardField r@{ name, value, locked, settings}) = do
+      let fieldActionWidget = [(\(Tuple v s) -> CardField $ r { value = v, settings = s })
         <$> do
               getActionButton cf
               if locked then
                 button [Props.disabled true, Props.className "action passwordGenerator" ] [span [] [text "password generator"]]
                 <>
                 (div [Props.className "passwordGenerator"] [
-                  div [value <$ Props.onClick, Props.className "passwordGeneratorMask"] []
-                , div [Props.className "passwordGeneratorPopup"] [passwordGenerator settings]
+                  div [(Tuple value settings) <$ Props.onClick, Props.className "passwordGeneratorMask"] []
+                , div [Props.className "passwordGeneratorPopup"] [passwordGenerator (fromMaybe defaultSettings settings)]
                 ])
               else div [] []
       ]

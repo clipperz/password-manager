@@ -10,12 +10,13 @@ import Control.Bind (bind, discard)
 import Control.Semigroupoid ((<<<))
 import Data.Array (concat, nub, difference, all, elem, sort)
 import Data.Either (Either(..), either)
+import Data.Eq ((==), (/=))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
-import Data.HeytingAlgebra (not)
+import Data.HeytingAlgebra (not, (&&))
 import Data.Int (fromString)
 import Data.Map (update, fromFoldable, toUnfoldable, lookup)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, fromJust, isJust)
 import Data.Monoid (class Monoid, mempty)
 import Data.Semigroup ((<>))
 import Data.Show (show)
@@ -43,15 +44,20 @@ extractValue v =
 
 ---------------------------
 
-passwordGenerator :: PasswordGeneratorSettings -> Widget HTML String
+passwordGenerator :: PasswordGeneratorSettings -> Widget HTML (Tuple String (Maybe PasswordGeneratorSettings))
 passwordGenerator initialSettings = composedWidget initialSettings false (Loading Nothing)
+-- passwordGenerator initialSettings = do
+--   result@(Tuple newPassword newSettings) <- composedWidget initialSettings false (Loading Nothing) --check if settings have changed 
+--   if (isJust newSettings) && ((fromJust newSettings) == initialSettings)
+--   then pure (Tuple newPassword Nothing)
+--   else pure result
 
 data ComposedWidgetAction = ModifiedSettingsAction PasswordGeneratorSettings 
                           | RequestedNewSuggestion
                           | ApprovedSuggestion String
                           | ObtainedNewSuggestion String
                           | TogglePasswordSettings Boolean
-composedWidget :: PasswordGeneratorSettings -> Boolean -> AsyncValue String -> Widget HTML String
+composedWidget :: PasswordGeneratorSettings -> Boolean -> AsyncValue String -> Widget HTML (Tuple String (Maybe PasswordGeneratorSettings))
 composedWidget settings isOpen av = do
   res <- case av of
     Done    _ -> widget settings isOpen av
@@ -61,7 +67,7 @@ composedWidget settings isOpen av = do
     RequestedNewSuggestion      -> composedWidget settings isOpen (Loading (Just (extractValue av)))
     TogglePasswordSettings bool -> composedWidget settings bool   av
     ObtainedNewSuggestion  pswd -> composedWidget settings isOpen (Done pswd)
-    ApprovedSuggestion     pwsd -> pure pwsd
+    ApprovedSuggestion     pwsd -> pure (Tuple pwsd (Just settings))
   where 
     computePassword :: PasswordGeneratorSettings -> Widget HTML String
     computePassword s' = liftAff $ randomPassword s'.length s'.characters
