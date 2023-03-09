@@ -45,12 +45,12 @@ extractValue v =
 ---------------------------
 
 passwordGenerator :: PasswordGeneratorSettings -> Widget HTML (Tuple String (Maybe PasswordGeneratorSettings))
-passwordGenerator initialSettings = composedWidget initialSettings false (Loading Nothing)
--- passwordGenerator initialSettings = do
---   result@(Tuple newPassword newSettings) <- composedWidget initialSettings false (Loading Nothing) --check if settings have changed 
---   if (isJust newSettings) && ((fromJust newSettings) == initialSettings)
---   then pure (Tuple newPassword Nothing)
---   else pure result
+-- passwordGenerator initialSettings = composedWidget initialSettings false (Loading Nothing)
+passwordGenerator initialSettings = do
+  result@(Tuple newPassword newSettings) <- composedWidget initialSettings false (Loading Nothing) --check if settings have changed 
+  pure $ case newSettings of
+    Just s -> if s == initialSettings then Tuple newPassword Nothing else result 
+    Nothing -> result
 
 data ComposedWidgetAction = ModifiedSettingsAction PasswordGeneratorSettings 
                           | RequestedNewSuggestion

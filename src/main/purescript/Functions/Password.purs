@@ -66,7 +66,6 @@ passwordStrengthClass Acceptable  = "acceptable"
 passwordStrengthClass Strong      = "strong"
 passwordStrengthClass VeryStrong  = "veryStrong"
 
-
 type PasswordStrengthFunction = String -> PasswordStrength
 
 standardPasswordStrengthFunction :: PasswordStrengthFunction
