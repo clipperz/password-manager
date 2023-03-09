@@ -250,7 +250,7 @@ div.loadingBarContainer {
 div.disableOverlay {
     position: absolute;
     top: 0px;
-    left: 0px;
+    right: 0px;
     width: 100vw;
     height: 100vh;
 	display: flex;
@@ -272,7 +272,7 @@ div.disableOverlay {
 
     & > div.dialog {
         border-radius: 8px;
-        max-width: 70%;
+        max-width: 50%;
         background-color: white;
         padding: 30px;
         box-shadow: 4px 4px 6px 5px rgba(0, 0, 0, 0.3);

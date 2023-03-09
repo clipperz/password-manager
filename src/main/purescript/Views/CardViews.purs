@@ -37,7 +37,7 @@ cardView c@(Card r) proxyConnectionStatus = do
   ]
   case res of
     Delete _ -> do
-      confirmation <- div [] [
+      confirmation <- div [Props._id "cardView"] [
         false <$ cardActions c proxyConnectionStatus
       , cardContent r.content
       , confirmationWidget "Are you sure you want to delete this card?"
