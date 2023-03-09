@@ -200,7 +200,7 @@ createCardView card allTags state = do
         simpleButton "inactive cancel" "cancel" false Nothing 
       else do
         _ <- simpleButton "active cancel" "cancel" false Nothing 
-        confirmation <- (false <$ simpleButton "cancel" "active cancel" false Nothing) <|> (confirmationWidget "Are you sure you want to exit without saving?")
+        confirmation <- (false <$ simpleButton "active cancel" "cancel" false Nothing) <|> (confirmationWidget "Are you sure you want to exit without saving?")
         if confirmation then pure Nothing else (cancelButton v)
 
     saveButton v = 
