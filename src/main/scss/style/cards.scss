@@ -334,8 +334,8 @@ div#homePage {
                         display: flex;
                         height: 100%;
 
-                        @include mask;
-                        .mask {
+                        & > .mask {
+							@include mask;
                             z-index: 20;
                         }
 

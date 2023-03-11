@@ -91,6 +91,10 @@ div#userPage {
 
 		border-right: 1px solid #222;
 
+		.disableOverlay {
+			left: 50vw;
+		}
+
         &.open {
             background-color: black;
 			height: 100%;

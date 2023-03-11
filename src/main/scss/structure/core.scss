@@ -32,7 +32,9 @@ html {
                         left: 0px;
 
                         div#filterView {
-                            @include mask();
+							& > .mask {
+								@include mask();
+							}
                         }
                     }
 
@@ -190,18 +192,8 @@ html {
                         }
                         
 						& > .mask {
-							position: absolute;
-							top: 0;
-							left: 0;
-							// width: 100%;
-							// width: 100vw;
-							width: 200%;
-							// height: 100%;
-							height: 100vh;
-							z-index: 10;
-							background-color: rgba(0, 0, 0, 0.5);
+							@include mask();
 						}
-                        // @include mask();
 
                         div.extraFeatureContent {
                             flex: 1;
@@ -250,24 +242,17 @@ div.loadingBarContainer {
 div.disableOverlay {
     position: absolute;
     top: 0px;
-    right: 0px;
-    width: 100vw;
+    right: 50vw;
+    // right: 0px;
+    // width: 100vw;
     height: 100vh;
 	display: flex;
 	z-index: 50;
 	justify-content: center;
 
 	& > div.mask {
+		@include mask();
 		position: fixed;
-		top: 0;
-		left: 0;
-		// width: 100%;
-		// width: 100vw;
-		width: 200%;
-		// height: 100%;
-		height: 100vh;
-		z-index: 10;
-		background-color: rgba(0, 0, 0, 0.5);
 	}
 
     & > div.dialog {
