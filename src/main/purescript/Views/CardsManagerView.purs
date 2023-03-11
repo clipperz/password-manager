@@ -256,13 +256,9 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
     getFilterHeader :: forall a. IndexFilter -> Widget HTML a
     getFilterHeader f =
       case f of
-        -- ComposedAndFilter f' f'' -> p' [getFilterHeader f', text " and ", getFilterHeader f'']
         ComposedAndFilter f' f'' -> p' [getFilterHeader f', getFilterHeader f'']
-        -- ComposedOrFilter f' f''  -> p' [getFilterHeader f', text " or ", getFilterHeader f'']
         ComposedOrFilter f' f''  -> p' [getFilterHeader f', getFilterHeader f'']
         GeneralFilter title      -> span [] [text title]
-        -- SpecificCardFilter _     -> text "last created card"
-        SpecificCardFilter _     -> text ""
         TagFilter tag            -> span [] [text tag]
         RecentFilter             -> text "recent"
         UntaggedFilter           -> text "untagged"
