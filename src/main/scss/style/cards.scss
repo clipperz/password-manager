@@ -118,6 +118,7 @@ div#homePage {
                             // margin-left: 25%;
                             // margin-bottom: 20px;
                             font-size: 36pt;
+							text-align: left;
                             cursor: pointer;             
                             
                             &:hover {
@@ -288,6 +289,7 @@ div#homePage {
 										user-select: text;
 									}
 									textarea {
+										font-family: clipperz-font;
 										outline: none;
 										cursor: pointer;
 										font-size: 18pt;
@@ -666,6 +668,7 @@ div#homePage {
 															}
 					
 															textarea, &::after {
+																font-family: 'clipperz-font';
 																@include dontBreakOut;
 																border: 0px;
 																width: calc(100% - 2px);
@@ -793,6 +796,7 @@ div#homePage {
 
 										textarea, &::after {
 											@include dontBreakOut;
+											font-family: 'clipperz-font';
 											font-size: 10pt;
 											line-height: 1.5em;
 											white-space: pre-wrap;
