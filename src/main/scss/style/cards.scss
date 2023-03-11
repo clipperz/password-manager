@@ -655,7 +655,7 @@ div#homePage {
 															width: 100%;
 															
 															&::after {
-																content: attr(replicatedValue) " ";
+																content: attr(replicatedvalue) " ";
 																white-space: pre-wrap;
 																visibility: hidden;
 															}
@@ -775,7 +775,7 @@ div#homePage {
 										display: grid;
 										
 										&::after {
-											content: attr(replicatedValue) " ";
+											content: attr(replicatedvalue) " ";
 											white-space: pre-wrap;
 											visibility: hidden;
 										}
