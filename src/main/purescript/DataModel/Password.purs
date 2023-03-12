@@ -1,6 +1,6 @@
 module DataModel.Password where
 
-import Data.Array (mapMaybe, filter, sort)
+import Data.Array (mapMaybe, filter, sort, elem)
 import Data.Eq ((/=))
 import Data.Foldable (fold)
 import Data.Function (($))
@@ -29,7 +29,7 @@ derive newtype instance characterSetMonoid :: Monoid CharacterSet
 derive instance newtypeCharacterSet :: Newtype CharacterSet _
 
 elemInCharacterSet :: CodePoint -> CharacterSet -> Boolean
-elemInCharacterSet c set = false
+elemInCharacterSet c (CharacterSet set) = elem c (toCodePointArray set)
 
 
 capitalLetters    = (CharacterSet "ABCDEFGHIJKLMNOPQRSTUVWXYZ")

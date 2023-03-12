@@ -31,7 +31,7 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Password (randomPassword, standardPasswordStrengthFunction, passwordStrengthClass)
-import Views.Components (dynamicWrapper)
+import Views.Components (dynamicWrapper, entropyMeter)
 import Views.SimpleWebComponents (simpleButton, simpleNumberInputWidget, disabledSimpleTextInputWidget, simpleTextInputWidget, simpleCheckboxWidget)
 
 
@@ -99,7 +99,7 @@ suggestionWidget av =
             span [Props.className "label"] [text "Generated value"]
           , dynamicWrapper Nothing s $ textarea [Props.rows 1, Props.spellCheck false, Props.disabled b, Props.value s, Props.unsafeTargetValue <$> Props.onChange] [] 
           ]
-        , div [Props.classList [Just "entropyWrapper", Just $ passwordStrengthClass (standardPasswordStrengthFunction s){--, Just $ show $ computePasswordEntropy s--}]] [] --TODO
+        , entropyMeter s
         ]))
         <>
         (InsertPassword <$> simpleButton "setPassword" "set password" b s)

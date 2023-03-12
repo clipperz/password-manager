@@ -39,7 +39,7 @@ module Views.SimpleWebComponents
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopW, demand, debounce, loopS, display, step)
 import Concur.React (HTML)
-import Concur.React.DOM (text, textarea, input, label, div', div, button, ul, li, span)
+import Concur.React.DOM (text, textarea, input, label, div', div, button, ul, li, span, div_)
 import Concur.React.Props as Props
 import Control.Alt (class Alt, (<|>))
 import Control.Applicative (pure)
@@ -91,6 +91,7 @@ import Web.HTML.Window (document)
 import Effect.Unsafe (unsafePerformEffect)
 import Concur.Core.Props (Props(..), handleProp, filterProp)
 import React.SyntheticEvent (NativeEvent)
+import Views.Components (entropyMeter)
 
 import Debug (traceM)
 
@@ -233,7 +234,8 @@ simpleVerifiedPasswordSignal psf f = loopS f $ \ef ->
     Right p -> go p p
     where go p vp = do
                       pswd <- loopW p (simplePasswordInputWidget ("password" <> " " <> (passwordStrengthClass $ psf p)) (text "Password"))
-                      display $ passwordStrengthShow $ psf pswd
+                      _ <- loopW p entropyMeter
+                      -- display $ passwordStrengthShow $ psf pswd
                       pswd2 <- loopW vp (simplePasswordInputWidget ("verify_password" <> (if pswd == vp then "" else " different")) (text "Verify password"))
                       display $ text $ if pswd == pswd2 then "The passwords are the same" else "The passwords are not the same"
                       if pswd == pswd2 then

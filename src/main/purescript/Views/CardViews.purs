@@ -15,7 +15,7 @@ import DataModel.AppState (ProxyConnectionStatus(..))
 import DataModel.Card (CardField(..), CardValues(..), Card(..))
 import Functions.Clipboard (copyToClipboard)
 import Views.SimpleWebComponents (simpleButton, confirmationWidget)
-import Views.Components (dynamicWrapper)
+import Views.Components (dynamicWrapper, entropyMeter)
 
 -- -----------------------------------
 
@@ -77,6 +77,10 @@ cardField f@(CardField {name, value, locked}) = do
   res <- div [Props.className "fieldValue"] [
     div [Props.className "fieldLabel"] [text name]
   , dynamicWrapper (if locked then Just "PASSWORD" else Nothing) value $ textarea [Props.rows 1, Props.value value, Props.onClick, Props.disabled true] [] 
+  , (if locked
+    then (entropyMeter value)
+    else (text "")
+    )
   ] --TODO add class based on content for urls and emails
   _ <- pure $ copyToClipboard value
   cardField f

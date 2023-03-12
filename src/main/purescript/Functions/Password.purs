@@ -1,6 +1,7 @@
 module Functions.Password
   ( PasswordStrength
   , PasswordStrengthFunction
+  , computePasswordEntropy
   , passwordStrengthClass
   , randomPassword
   , standardPasswordStrengthFunction
@@ -77,14 +78,14 @@ matchingCharacterSet c = filter (elemInCharacterSet c) (snd <$> defaultCharacter
 computePasswordEntropy :: String -> Number
 computePasswordEntropy s =
   let
-    
     relevantCharsets = (matchingCharacterSet <$> (toCodePointArray s)) :: Array (Array CharacterSet)
     relevantChars = (fromCodePointArray <<< nub <<< fold) $ (toCodePointArray <<< unwrap) <$> fold relevantCharsets :: String
     adjustmentFactor = 1.0 -- 0.15 * (toNumber (List.length (List.nub (unwrap <$> sets)))) // factor to adjust for the presence of different types of characters
     -- poolSize = toNumber $ length $ unwrap $ compactSets sets
     poolSize  = toNumber $ length relevantChars
     pLength   = toNumber $ length s
-  in adjustmentFactor * pLength * (log poolSize) / (log 2.0)  
+  in adjustmentFactor * pLength * (log poolSize) / (log 2.0)
+  -- in pLength
 
 formatPasswordEntropy :: Number -> PasswordStrength
 formatPasswordEntropy n

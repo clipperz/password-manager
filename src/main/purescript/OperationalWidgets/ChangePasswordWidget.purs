@@ -19,6 +19,7 @@ import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.HeytingAlgebra ((&&), (||), not)
 import Data.Maybe (Maybe(..))
+import Data.Semigroup ((<>))
 import Data.Show (show)
 import DataModel.AppState (AppError)
 import DataModel.WidgetState (WidgetState(..))
@@ -31,7 +32,7 @@ import Functions.Password (standardPasswordStrengthFunction)
 import Functions.User (changeUserPassword)
 import Views.SimpleWebComponents (PasswordForm, loadingDiv, simpleButton, simpleCheckboxSignal, simplePasswordInputWidget, simpleUserSignal, simpleVerifiedPasswordSignal)
 import Record (merge)
-import Views.Components (ClassName(..), verySimpleInputWidget, InputType(..), Enabled(..), Placeholder(..), Label(..))
+import Views.Components (ClassName(..), verySimpleInputWidget, InputType(..), Enabled(..), Placeholder(..), Label(..), entropyMeter)
 
 type ChangePasswordDataForm = { username       :: String
                               , oldPassword    :: String
@@ -84,7 +85,11 @@ changePasswordWidget state changeForm = go state changeForm
             username'       :: String   <-  loopW username       $ verySimpleInputWidget (InputType "text")      (ClassName "username")  (Label "Username")        (Enabled true)  (Placeholder "username")              (matchingValueClassName currentCredentials.username)
             oldPassword'    :: String   <-  loopW oldPassword    $ verySimpleInputWidget (InputType "password")  (ClassName "password")  (Label "Old passphrase")    (Enabled true)  (Placeholder "old passphrase")          (matchingValueClassName currentCredentials.password)
             -- eitherPassword  :: Either PasswordForm String <- simpleVerifiedPasswordSignal standardPasswordStrengthFunction $ Left {password, verifyPassword}
-            password'       :: String   <-  loopW password       $ verySimpleInputWidget (InputType "password")  (ClassName "password")  (Label "New passphrase")    (Enabled true)  (Placeholder "new passphrase")          (\_ -> Just $ ClassName "valid")
+            password'       :: String   <-  loopW password       (\p -> (
+                                                                    verySimpleInputWidget (InputType "password")  (ClassName "password")  (Label "New passphrase")    (Enabled true)  (Placeholder "new passphrase")          (\_ -> Just $ ClassName "valid") p
+                                                                    <>
+                                                                    entropyMeter p
+                                                                 ))
             verifyPassword' :: String   <-  loopW verifyPassword $ verySimpleInputWidget (InputType "password")  (ClassName "password")  (Label "Verify passphrase") (Enabled true)  (Placeholder "confirm new passphrase")  (matchingValueClassName $ Just password')
             checkbox'       :: Boolean  <-  simpleCheckboxSignal "no_recovery" (text "I understand Clipperz won't be able to recover a lost password") notRecoverable
             -- case eitherPassword of

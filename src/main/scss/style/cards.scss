@@ -608,6 +608,8 @@ div#homePage {
 											&.locked {
                                                 .inputs {
                                                     .value {
+														flex-direction: column;
+														
 														.dynamicWrap {
 															textarea, &::after {
 																font-family: 'clipperz-password';

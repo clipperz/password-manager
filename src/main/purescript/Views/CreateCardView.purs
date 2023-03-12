@@ -40,7 +40,7 @@ import Functions.Communication.Users (getUserPreferences)
 import React.SyntheticEvent (SyntheticMouseEvent)
 import Views.PasswordGenerator (passwordGenerator)
 import Views.SimpleWebComponents (loadingDiv, simpleButton, dragAndDropAndRemoveList, confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, simpleCheckboxWidget, simpleTextAreaSignal)
-import Views.Components (dynamicWrapper)
+import Views.Components (dynamicWrapper, entropyMeter)
 
 import Debug (traceM)
 
@@ -104,6 +104,10 @@ createCardView card allTags state = do
         , ((\v -> CardField $ r { value  = v }) <<< (Props.unsafeTargetValue)) <$> label [Props.className "value"] [
             span [Props.className "label"] [text "Field value"]
           , dynamicWrapper Nothing value $ textarea [Props.rows 1, Props.placeholder (if locked then "" else "value"), Props.value value, Props.onChange] []
+          , (if locked
+            then (entropyMeter value)
+            else (text "")
+            )
           ]
         ]
       , div [Props.className "fieldActions"] $ fieldActionWidget <> [
