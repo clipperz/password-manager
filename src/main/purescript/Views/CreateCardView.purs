@@ -103,7 +103,7 @@ createCardView card allTags state = do
           ]
         , ((\v -> CardField $ r { value  = v }) <<< (Props.unsafeTargetValue)) <$> label [Props.className "value"] [
             span [Props.className "label"] [text "Field value"]
-          , dynamicWrapper value $ textarea [Props.rows 1, Props.placeholder (if locked then "" else "value"), Props.value value, Props.onChange] []
+          , dynamicWrapper Nothing value $ textarea [Props.rows 1, Props.placeholder (if locked then "" else "value"), Props.value value, Props.onChange] []
           ]
         ]
       , div [Props.className "fieldActions"] $ fieldActionWidget <> [
@@ -184,7 +184,7 @@ createCardView card allTags state = do
 
           notes' :: String <- loopW notes (\v -> Props.unsafeTargetValue <$> label [Props.className "notes"] [
             span [Props.className "label"] [text "Notes"]
-          , dynamicWrapper v $ textarea [Props.rows 1, Props.value v, Props.onChange, Props.placeholder "notes"] []
+          , dynamicWrapper Nothing v $ textarea [Props.rows 1, Props.value v, Props.onChange, Props.placeholder "notes"] []
           ])
 
           pure $ Tuple newTag' $ Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})

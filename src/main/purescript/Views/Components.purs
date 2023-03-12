@@ -42,5 +42,5 @@ verySimpleInputWidget (InputType t) (ClassName className) (Label lbl) (Enabled e
     ]
   ]
 
-dynamicWrapper :: forall a. String -> Widget HTML a -> Widget HTML a
-dynamicWrapper content elem = div [Props.className "dynamicWrap", Props.unsafeMkProp "replicatedvalue" content] [ elem ]
+dynamicWrapper :: forall a. Maybe String -> String -> Widget HTML a -> Widget HTML a
+dynamicWrapper maybeClass content elem = div [Props.classList [Just "dynamicWrap", maybeClass], Props.unsafeMkProp "replicatedvalue" content] [ elem ]

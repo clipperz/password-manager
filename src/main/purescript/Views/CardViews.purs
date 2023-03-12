@@ -8,12 +8,14 @@ import Control.Applicative (pure)
 import Control.Bind (bind)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
+import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
 import DataModel.AppState (ProxyConnectionStatus(..))
 import DataModel.Card (CardField(..), CardValues(..), Card(..))
 import Functions.Clipboard (copyToClipboard)
 import Views.SimpleWebComponents (simpleButton, confirmationWidget)
+import Views.Components (dynamicWrapper)
 
 -- -----------------------------------
 
@@ -74,7 +76,7 @@ cardField :: forall a. CardField -> Widget HTML a
 cardField f@(CardField {name, value, locked}) = do
   res <- div [Props.className "fieldValue"] [
     div [Props.className "fieldLabel"] [text name]
-  , textarea ((if locked then [Props.className "PASSWORD"] else []) <> [Props.onClick, Props.disabled true, Props.value value]) []
+  , dynamicWrapper (if locked then Just "PASSWORD" else Nothing) value $ textarea [Props.rows 1, Props.value value, Props.onClick, Props.disabled true] [] 
   ] --TODO add class based on content for urls and emails
   _ <- pure $ copyToClipboard value
   cardField f

@@ -97,7 +97,7 @@ suggestionWidget av =
         (PasswordChange <$> (div [Props.className "generatedValue"] [
           label [] [
             span [Props.className "label"] [text "Generated value"]
-          , dynamicWrapper s $ textarea [Props.rows 1, Props.spellCheck false, Props.disabled b, Props.value s, Props.unsafeTargetValue <$> Props.onChange] [] 
+          , dynamicWrapper Nothing s $ textarea [Props.rows 1, Props.spellCheck false, Props.disabled b, Props.value s, Props.unsafeTargetValue <$> Props.onChange] [] 
           ]
         , div [Props.classList [Just "entropyWrapper", Just $ passwordStrengthClass (standardPasswordStrengthFunction s){--, Just $ show $ computePasswordEntropy s--}]] [] --TODO
         ]))
@@ -178,7 +178,7 @@ settingsWidget s = do
       span  [Props.className "label"] [text "characters"]
     , div   [Props.className "charset"] [
         div [Props.className "charsetSets"] ((charsetSelector characters) <$> defaultCharacterSets)
-      , dynamicWrapper characters $ textarea [Props.rows 1, Props.spellCheck false, Props.value characters, Props.unsafeTargetValue <$> Props.onChange] [] 
+      , dynamicWrapper Nothing characters $ textarea [Props.rows 1, Props.spellCheck false, Props.value characters, Props.unsafeTargetValue <$> Props.onChange] [] 
       -- , textarea [Props.value characters, Props.unsafeTargetValue <$> Props.onChange, Props.value characters] []
     ]
   ]
