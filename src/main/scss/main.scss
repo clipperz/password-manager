@@ -1,2 +1,16 @@
-@import "reset.scss";
-@import "OtherStyles";
+@import "style/reset.scss";
+@import "structure/core.scss";
+@import "structure/main.scss";
+@import "structure/overlay.scss";
+
+@import "style/fonts.scss";
+@import "style/core.scss";
+@import "style/page.scss";
+@import "style/cards.scss";
+@import "style/filterView.scss";
+@import "style/userArea.scss";
+@import "style/importPage.scss";
+@import "style/passwordSettings.scss";
+@import "style/passwordGenerator.scss";
+
+@import "development-warning.scss";

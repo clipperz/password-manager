@@ -4,6 +4,7 @@
 .dotty-ide*
 .idea/
 .metals/
+.psc-ide-port
 .scala/
 .spago/
 .vscode/
@@ -15,3 +16,6 @@ target/
 node_modules
 /yarn-error.log
 /.editorconfig
+output/
+.yarnrc
+.yarn/

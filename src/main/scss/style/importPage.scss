@@ -1,0 +1,239 @@
+@import "../structure/mixin.scss";
+
+
+div#userPage .extraFeatureContent {
+	#importPage {
+		form {
+			margin-bottom: 100px;
+			.description {
+				padding: 10px 0px 20px 0px;
+				font-size: 10pt;
+				// margin-bottom: 7px;
+				line-height: 1.4em;
+				color: #bbb;
+			}
+
+			div.dropArea {
+				width: calc(100% - 6px);
+				text-align: center;
+				height: inherit;
+				line-height: 2em;
+				padding: 1em 0;
+				margin-bottom: .5em;
+				border: 3px dashed white;
+				background: black;
+
+				label {
+					a {
+						margin: .5em 0;
+						padding: 0px 14px;
+						font-size: 12pt;
+						display: inline-block;
+						cursor: pointer;
+						color: $main-text-color;
+						background-color: $main-color;
+						border: 1px solid $alternate-color;
+					}
+					
+					input {
+						@include hide-element();
+					}
+				}
+			}
+
+			.importText {
+				@include fancyHidden();
+
+				textarea {
+					width: 100%;
+					min-height: 100px;
+					display: block;
+					margin: 1em 0;
+					border: 0;
+					resize: none;
+					// margin-bottom: 100px;
+				}
+
+			}
+
+			.importButtons {
+				position: fixed;
+				bottom: 0;
+				left: 0;
+				display: flex;
+				justify-content: center;
+				background-color: black;
+				width: calc(100vw - 300px);
+				padding: 10px 0 20px;
+
+				button {
+					display: inline-block;
+					color: white;
+					background-color: $main-color;
+					font-size: 14pt;
+					border: 1px solid white;
+					padding: 10px 14px;
+					margin: 0px 5px;
+
+					span {
+						@include hide-element();
+					}
+
+					&:disabled {
+						background-color: #d3d3d3;
+					}
+
+					&.back {
+						&:disabled {
+							visibility: hidden;
+						}
+
+						&::after {
+							content: "<<"
+						}
+					}
+
+					&.next {
+						&.hide {
+							visibility: hidden;
+						}
+						&::after {
+							content: ">>"
+						}
+					}
+
+
+				}
+
+			}
+
+			.selectButtons {
+				span {
+					padding-right: 10px;
+					color: gray;
+				}
+
+				a {
+					cursor: pointer;
+					color: white;
+					font-weight: bold;
+
+					&:last-child::after {
+						content: "";
+					}
+
+					&::after {
+						font-weight: normal;
+						color: gray;
+						content: " - ";
+					}
+				}
+			}
+
+			.tagButtons {
+				color: gray;
+				padding-top: 5px;
+				padding-bottom: 5px;
+				border-bottom: 1px solid #333;
+
+				label.apply_tag {
+					// display: flex;
+					// flex-direction: row-reverse;
+					cursor: pointer;
+					line-height: 1.5em;
+				}
+
+				label.tag {
+					@include fancyHidden();
+
+					input {
+						font-size: 12pt;
+						color: white;
+						background-color: black;
+						border: 0px;
+						border-bottom: 1px solid #333;
+						outline: none;
+						margin-left: 5px;
+					}
+				}
+
+			}
+
+			label.select_card {
+				display: flex;
+				flex-direction: row-reverse;
+				justify-content: flex-end;
+				padding-top: 15px;
+				padding-bottom: 0px;
+				border-bottom: 1px solid #333;
+
+				input {
+					align-self: flex-start;
+					width: 30px;
+					margin-top: 6px;
+					flex: none;
+				}
+
+				span.label {
+					h3.card_title {
+						font-size: 24pt;
+						padding-bottom: 6px;
+					}
+
+					ul.card_tags {
+						li {
+							display: inline-block;
+							padding-right: 10px;
+							padding-bottom: 5px;
+
+							&::before {
+								content: 'tag';
+								font-family: 'clipperz-icons';
+								font-feature-settings: "liga" 1, "dlig" 1;
+								-webkit-font-smoothing: antialiased;
+								text-rendering: optimizeLegibility;
+								font-size: 10pt;
+								padding-right: 5px;
+								line-height: 28px;
+								color: #ccc;
+							}
+						}
+					}
+
+					dl {
+						dt {
+							font-size: 12pt;
+							color: gray;
+							line-height: 16pt;
+						}
+
+						dd {
+							font-size: 16pt;
+							color: white;
+							line-height: 24pt;
+							padding-bottom: 6pt;
+
+							&.password {
+								font-family: clipperz-password;
+							}
+						}
+					}
+
+					p.card_notes {
+						font-size: 10pt;
+						padding-top: 10px;
+						padding-bottom: 10px;
+					}
+				}
+			}
+
+			h5 {
+				padding-bottom: 15px;
+			}
+
+			button.import {
+				margin: 0;
+			}
+		}
+	}
+}

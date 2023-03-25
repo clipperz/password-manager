@@ -2,21 +2,86 @@ package is.clipperz.backend.services
 
 import zio.{ ZIO, Layer, ZLayer, Tag, Task }
 import zio.internal.stacktracer.Tracer
+import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder, EncoderOps }
 
-type TollCost = Int
-type TollContent = String
-type TollChallenge = String
-case class Toll(toll: TollChallenge, cost: TollCost)
+import is.clipperz.backend.data.HexString
+import is.clipperz.backend.functions.ByteArrays
+import is.clipperz.backend.functions.crypto.HashFunction
+
+type TollCost = Int // bit
+type TollReceipt = HexString
+type Toll = HexString
+
+case class TollChallenge(toll: Toll, cost: TollCost)
+
+object TollChallenge:
+  implicit val decoder: JsonDecoder[TollChallenge] = DeriveJsonDecoder.gen[TollChallenge]
+  implicit val encoder: JsonEncoder[TollChallenge] = DeriveJsonEncoder.gen[TollChallenge]
+
+enum ChallengeType:
+  case CONNECT, REGISTER, MESSAGE
+
+val tollByteSize = 32
+
+def byteToBinary(b: Byte): String =
+  String.format("%8s", Integer.toBinaryString(b & 0xff)).nn.replace(' ', '0').nn
 
 trait TollManager:
-  def getToll(cost: TollCost): Task[Toll]
-  def verifyToll(challenge: TollChallenge, toll: TollContent): Task[Boolean]
+  def getToll(cost: TollCost): Task[TollChallenge]
+  def verifyToll(challenge: TollChallenge, receipt: TollReceipt): Task[Boolean]
+  def getChallengeCost(challengeType: ChallengeType): TollCost
 
 object TollManager:
-  case class EmptyTollManager(/* */ ) extends TollManager:
-    override def getToll(cost: TollCost): Task[Toll] = ZIO.succeed(Toll("--------", 0))
-    override def verifyToll(challenge: TollChallenge, toll: TollContent): Task[Boolean] =
-      ZIO.succeed(false)
+  val tollHeader = "clipperz-hashcash-tollchallenge"
+  val tollCostHeader = "clipperz-hashcash-tollcost"
+  val tollReceiptHeader = "clipperz-hashcash-tollreceipt"
 
-  val live: Layer[Nothing, TollManager] =
-    ZLayer.succeed[TollManager](new EmptyTollManager)(Tag[TollManager], Tracer.newTrace)
+  val tollChallengeContentKey = "tollChallenge"
+
+  case class DefaultTollManager(prng: PRNG) extends TollManager:
+    override def getToll(cost: TollCost): Task[TollChallenge] =
+      if cost >= 0 then
+        prng
+          .nextBytes(tollByteSize)
+          .map(bytes => TollChallenge(HexString.bytesToHex(bytes), cost))
+      else ZIO.fail(new IllegalArgumentException("Toll cost can not be negative"))
+
+    override def verifyToll(challenge: TollChallenge, receipt: TollReceipt): Task[Boolean] =
+      if challenge.cost >= 0 then
+        val binaryToll = challenge.toll.toByteArray.map(byteToBinary).mkString
+        ByteArrays
+          .hashOfArrays(HashFunction.hashSHA256, receipt.toByteArray) // receipt hash
+          .map(hash => hash.map(byteToBinary).mkString) // get binary string
+          .map(binaryHash =>
+            if binaryHash.take(challenge.cost) == binaryToll.take(challenge.cost) then true
+            else
+              // println(s" Toll -> ${binaryToll}; Receipt -> ${receipt}; Hash -> ${binaryHash}")
+              false
+          ) // check if equal bits are more than the cost of the challenge
+      else ZIO.fail(new IllegalArgumentException("Invalid challenge cost"))
+
+    override def getChallengeCost(challengeType: ChallengeType): TollCost =
+      challengeType match
+        case ChallengeType.CONNECT => 3
+        case ChallengeType.REGISTER => 3
+        case ChallengeType.MESSAGE => 2
+
+  val live: ZLayer[PRNG, Throwable, TollManager] =
+    ZLayer.scoped(
+      for {
+        prng <- ZIO.service[PRNG]
+      } yield DefaultTollManager(prng)
+    )
+
+  def computeReceipt(prng: PRNG, tollManager: TollManager)(challenge: TollChallenge): Task[TollReceipt] =
+    prng
+      .nextBytes(tollByteSize)
+      .map(HexString.bytesToHex(_))
+      .flatMap(receipt =>
+        ZIO
+          .ifZIO(tollManager.verifyToll(challenge, receipt))
+          .apply(
+            ZIO.succeed(receipt),
+            computeReceipt(prng, tollManager)(challenge),
+          )
+      )

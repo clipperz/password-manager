@@ -1,0 +1,278 @@
+@mixin fancyHidden () {
+	span.label {
+		border: 0;
+		clip: rect(1px 1px 1px 1px); /* IE6, IE7 */
+		clip: rect(1px, 1px, 1px, 1px);
+		height: 1px;
+		margin: -1px;
+		overflow: hidden;
+		padding: 0;
+		position: absolute;
+		width: 1px; 
+	}
+}
+
+@mixin fancyVisible () {
+	span.label {
+		border: 0;
+		clip: auto;
+		height: auto;
+		margin: auto;
+		overflow: auto;
+		padding: auto;
+		position: relative;
+		width: auto; 
+	}
+}
+
+@mixin dontBreakOut () {
+	/* These are technically the same, but use both */
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+
+	-ms-word-break: break-all;
+	/* This is the dangerous one in WebKit, as it breaks things wherever */
+	word-break: break-all;
+	/* Instead use this non-standard one: */
+	word-break: break-word;
+
+	/* Adds a hyphen where the word breaks, if supported (No Blink) */
+	-ms-hyphens: auto;
+	-moz-hyphens: auto;
+	-webkit-hyphens: auto;
+	hyphens: auto;
+}
+
+@mixin border-radius ($radius) {
+	-webkit-border-radius: $radius;
+	   -moz-border-radius: $radius;
+	        border-radius: $radius;
+}
+
+@mixin radial-gradient ($inner-color, $outer-color) {
+	background-image:     -ms-radial-gradient(center, circle farthest-corner, $inner-color 0%, $outer-color 100%);		/* IE10 */ 
+	background-image:    -moz-radial-gradient(center, circle farthest-corner, $inner-color 0%, $outer-color 100%);		/* Mozilla Firefox */ 
+	background-image:      -o-radial-gradient(center, circle farthest-corner, $inner-color 0%, $outer-color 100%);		/* Opera */ 
+	background-image: -webkit-radial-gradient(center, circle farthest-corner, $inner-color 0%, $outer-color 100%);		/* Webkit (Chrome 11+) */ 
+	background-image:         radial-gradient(center, circle farthest-corner, $inner-color 0%, $outer-color 100%);		/* Proposed W3C Markup */ 
+	background-image:        -webkit-gradient(radial, center center, 0, center center, 495, color-stop(0, $inner-color), color-stop(1, $outer-color));	/* Webkit (Safari/Chrome 10) */ 
+}
+
+@mixin font-feature-settings ($foo, $bar) {
+	-webkit-font-feature-settings:$foo 1, $bar 1;
+//	-moz-font-feature-settings:$foo = 1, $bar = 1;
+	-moz-font-feature-settings:$foo 1, $bar 1;
+	-ms-font-feature-settings:$foo 1, $bar 1;
+	-o-font-feature-settings:$foo 1, $bar 1;
+	font-feature-settings:$foo 1, $bar 1;
+}
+
+@mixin icon-font () {
+	font-family: 'clipperz-icons';
+	@include font-feature-settings("liga", "dlig");
+	-webkit-font-smoothing: antialiased;
+	text-rendering:optimizeLegibility;
+}
+
+@mixin password-font () {
+	font-family: 'clipperz-password';
+	-webkit-font-smoothing: antialiased;
+	text-rendering:optimizeLegibility;
+}
+
+@mixin animation ($animation, $duration, $timing-function:linear, $iteration-count:1, $fill-mode:none) {
+	-webkit-animation-name: $animation;
+	-webkit-animation-duration: $duration;
+	-webkit-animation-timing-function: $timing-function;
+	-webkit-animation-iteration-count: $iteration-count;
+	-webkit-animation-fill-mode: $fill-mode;
+
+	-moz-animation-name: $animation;
+	-moz-animation-duration: $duration;
+	-moz-animation-timing-function: $timing-function;
+	-moz-animation-iteration-count: $iteration-count;
+	-moz-animation-fill-mode: $fill-mode;
+
+	-ms-animation-name: $animation;
+	-ms-animation-duration: $duration;
+	-ms-animation-timing-function: $timing-function;
+	-ms-animation-iteration-count: $iteration-count;
+	-ms-animation-fill-mode: $fill-mode;
+
+	-o-animation-name: $animation;
+	-o-animation-duration: $duration;
+	-o-animation-timing-function: $timing-function;
+	-o-animation-iteration-count: $iteration-count;
+	-o-animation-fill-mode: $fill-mode;
+
+	animation-name: $animation;
+	animation-duration: $duration;
+	animation-timing-function: $timing-function;
+	animation-iteration-count: $iteration-count;
+	animation-fill-mode: $fill-mode;
+}
+
+@mixin transition ($item, $time, $function) {
+	-webkit-transition: $item $time $function;
+	   -moz-transition: $item $time $function;
+	     -o-transition: $item $time $function;
+	    -ms-transition: $item $time $function;
+	        transition: $item $time $function;
+}
+
+@mixin transform ($rotateAngle, $translateX, $translateY) {
+	-webkit-transform: rotate(  $rotateAngle) translate($translateX, $translateY);
+	   -moz-transform: rotate(  $rotateAngle) translate($translateX, $translateY);
+	    -ms-transform: rotate(  $rotateAngle) translate($translateX, $translateY);
+	     -o-transform: rotate(  $rotateAngle) translate($translateX, $translateY);
+	        transform: rotate(  $rotateAngle) translate($translateX, $translateY);
+}
+
+@mixin transform3d ($tx, $ty, $tz) {
+	-webkit-transform: translate3d($tx, $ty, $tz);
+	        transform: translate3d($tx, $ty, $tz);
+}
+
+@mixin transition-duration ($duration) {
+	-webkit-transition-duration: $duration;
+	        transition-duration: $duration;
+}
+
+
+@mixin animation-delay ($delay) {
+	-webkit-animation-delay: $delay;
+	   -moz-animation-delay: $delay;
+	    -ms-animation-delay: $delay;
+	     -o-animation-delay: $delay;
+	        animation-delay: $delay;
+}
+
+@mixin box-shadow ($xOffset, $yOffset, $size, $color) {
+	-webkit-box-shadow: $xOffset $yOffset $size $color;	
+	   -moz-box-shadow: $xOffset $yOffset $size $color;	
+	    -ms-box-shadow: $xOffset $yOffset $size $color;	
+	     -o-box-shadow: $xOffset $yOffset $size $color;	
+	        box-shadow: $xOffset $yOffset $size $color;	
+}
+
+@mixin keyframes ($name) {
+	@-webkit-keyframes #{$name} {
+		@content; 
+	}
+	@-moz-keyframes #{$name} {
+		@content;
+	}
+	@-ms-keyframes #{$name} {
+		@content;
+	}
+	@keyframes #{$name} {
+		@content;
+	} 
+}
+
+@mixin mask () {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: 10;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+
+@include keyframes(spin) {
+	0% { @include transform(0deg, 0, 0); }
+	100% { @include transform(359deg, 0, 0); }
+}
+
+@mixin user-select($value) {
+	//	http://css-tricks.com/almanac/properties/u/user-select/
+	//	none | text | all | element
+	-webkit-user-select: $value;	/* Chrome all / Safari all */
+	-moz-user-select: $value;		/* Firefox all */
+	-ms-user-select: $value;		/* IE 10+ */
+
+	/* No support for these yet, use at own risk */
+	-o-user-select: $value;
+	user-select: $value;
+}
+
+@mixin overflow-auto () {
+	overflow: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+@mixin chromeFix () {
+	-webkit-transform: translate3d(0,0,0);
+}
+
+@mixin placeholder {
+	&::-webkit-input-placeholder {@content}
+	&:-moz-placeholder           {@content}
+	&::-moz-placeholder          {@content}
+	&:-ms-input-placeholder      {@content}  
+}
+
+@mixin cursor-grab () {
+	cursor: grab;
+	cursor: -moz-grab;
+	cursor: -webkit-grab;
+}
+
+@mixin cursor-grabbing () {
+	cursor: grabbing;
+	cursor: -moz-grabbing;
+	cursor: -webkit-grabbing;
+}
+
+@mixin dotted-background () {
+	//	http://codepen.io/aleprieto/pen/nAmIy
+	background-image: -webkit-repeating-radial-gradient(center center, rgba(0,0,0,.2), rgba(0,0,0,.2) 1px, transparent 1px, transparent 100%);
+	background-image: -moz-repeating-radial-gradient(center center, rgba(0,0,0,.2), rgba(0,0,0,.2) 1px, transparent 1px, transparent 100%);
+	background-image: -ms-repeating-radial-gradient(center center, rgba(0,0,0,.2), rgba(0,0,0,.2) 1px, transparent 1px, transparent 100%);
+	background-image: repeating-radial-gradient(center center, rgba(0,0,0,.2), rgba(0,0,0,.2) 1px, transparent 1px, transparent 100%);
+	-webkit-background-size: 3px 3px;
+	-moz-background-size: 3px 3px;
+	background-size: 3px 3px;
+}
+
+@mixin fixHeighHack ($offsetHeight /*, $padding*/) {
+/*
+	#mainPanel {
+		&.extra-wide {
+			.subpanel {
+				&.cardContent {
+					height: calc(100% - #{$offsetHeight});
+				}
+			}
+		}
+
+		&.wide {
+				.cardContent {
+					height: calc(100% - #{$offsetHeight});
+				}
+		}
+	}
+
+	div.cardContent {
+		div.cardListColumn.column {
+			&.addCard {
+				height: calc(100% + #{$offsetHeight});
+			}
+
+			div.cardList {
+//				height: calc(100% - #{$padding} - #{$offsetHeight});
+				height: calc(100% - #{$offsetHeight});
+			}
+		}
+	}
+*/
+}
+
+@mixin userSelectNone () {
+	-moz-user-select: -moz-none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}

@@ -1,26 +1,30 @@
 module Test.Utilities where
 
 import Control.Bind (bind, discard)
-import Data.Argonaut.Core as A
-import Data.BigInt (fromInt, toString, fromString)
+import Data.BigInt (fromInt, toString)
 import Data.Function (($))
-import Data.HexString (hex, toArrayBuffer, fromArrayBuffer, toBigInt, Base(..))
+import Data.Functor ((<$>))
+import Data.HexString (hex, toArrayBuffer, fromArrayBuffer, toBigInt, fromBigInt, Base(..))
 import Data.HexString as HexString
 import Data.Identity (Identity)
 import Data.List (List(..), (:))
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
 import Data.Unit (Unit)
+import DataModel.SRP (hashFuncSHA256)
 import Effect.Aff (Aff)
-import SRP (hashFuncSHA256)
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
-import TestUtilities (makeTestableOnBrowser, failOnBrowser)
-import Utilities (emptyByteArrayBuffer, xor, arrayBufferToBigInt, bigIntToArrayBuffer)
+import Test.QuickCheck ((===), Result)
+import TestClasses (PositiveInt, UnicodeString)
+import TestUtilities (makeTestableOnBrowser, makeQuickCheckOnBrowser)
+import Functions.ArrayBuffer (emptyByteArrayBuffer, xor, arrayBufferToBigInt, bigIntToArrayBuffer)
 
 utilitiesSpec :: SpecT Aff Unit Identity Unit
 utilitiesSpec =
   describe "Utilities" do
+    let samples = 50
     
     let xorEmptyAb = "calculates xor between two emtpy arraybuffers of same length"
     it xorEmptyAb do
@@ -59,20 +63,18 @@ utilitiesSpec =
 
     let hexStringAb = "converts Hex String to ArrayBuffer and ArrayBuffer to Hex String"
     it hexStringAb do
-      let initialString = hex $ "7556aa045aef2cdd07abaf0f665c3e818913186f"
-      let s = fromArrayBuffer (toArrayBuffer initialString)
-      makeTestableOnBrowser hexStringAb initialString shouldEqual s
+      let prop = (\(h :: HexString.HexString) -> h === (fromArrayBuffer (toArrayBuffer h))) :: HexString.HexString -> Result
+      makeQuickCheckOnBrowser hexStringAb samples prop
 
     let hexStringToBigInt = "converts Hex String to BigInt and BigInt to Hex String"
     it hexStringToBigInt do
-      let hexString = hex $ "8e450b3ad3793a4b7e83d01d312f745b84593eed5fe61da138d73d57579c06b72a3d7a8e139eb610c1d33d7f0fb20dfcde1feefffb1922667b0f1fecd524c403ad6a338c950db11724b45af9519ba19c4f09edbd86f2ba2a022fdcddf61a26ae74d26c137876136b470e131d8e0b2ba4a14488030bb1fbde2e3dc0b650880896"
-      let bigInt = fromMaybe (fromInt 0) (fromString "99905182682926710034291505584774964118706026472968269892820516099472446894131080528280228945656820340253787827762984065893078244231584865127194615626559242385750842515189538992818614416042581168624977993291417312000510083931042565737037728892271188331053661275313041128939302890592560743204670369750965553302")
-      makeTestableOnBrowser (hexStringToBigInt <> " 1 upper") bigInt shouldEqual (fromMaybe (fromInt 0) (toBigInt hexString))
-
+      let prop = (\(h :: HexString.HexString) -> (Just h) === (fromBigInt <$> (toBigInt h))) :: HexString.HexString -> Result
+      makeQuickCheckOnBrowser hexStringToBigInt samples prop
+      
     let stringToHexAndBack = "converts String to Hex String and Hex String to String"
     it stringToHexAndBack do
-      let initialString = "tschüs"
-      makeTestableOnBrowser stringToHexAndBack initialString shouldEqual (HexString.toString Dec $ hex initialString)
+      let prop = (\(as :: UnicodeString) -> let s = unwrap as in s === (HexString.toString Dec $ hex s)) :: UnicodeString -> Result
+      makeQuickCheckOnBrowser stringToHexAndBack samples prop
 
     let stringToHex = "converts String to Hex string"
     it stringToHex do
@@ -88,28 +90,22 @@ utilitiesSpec =
 
     let bigIntAb = "converts BigInt to ArrayBuffer and ArrayBuffer to BigInt"
     it bigIntAb do
-      let initialBigInt = fromInt 94125839
-      let bi = fromMaybe (fromInt 0) $ arrayBufferToBigInt (bigIntToArrayBuffer initialBigInt)
-      makeTestableOnBrowser bigIntAb initialBigInt shouldEqual bi
+      let prop = (\i -> let bi = fromInt (unwrap i) in bi === (fromMaybe (fromInt 0) $ arrayBufferToBigInt (bigIntToArrayBuffer bi))) :: PositiveInt -> Result
+      makeQuickCheckOnBrowser bigIntAb samples prop
     
     let bigIntAbHex = "converts BigInt to ArrayBuffer to Hex and back (fromArrayBuffer)"
     it bigIntAbHex do
-      let initialBigInt = fromInt 94   
-      let res = fromArrayBuffer (bigIntToArrayBuffer initialBigInt)
-      let eebi = toBigInt res
-      case eebi of
-        Nothing -> failOnBrowser bigIntAbHex "fromArrayBuffer doesn't return an hex string"
-        Just bi -> do
-          makeTestableOnBrowser (bigIntAbHex) initialBigInt shouldEqual bi
+      let prop = (\i -> let bi = fromInt (unwrap i) 
+                            hx = fromArrayBuffer (bigIntToArrayBuffer bi)
+                            mbi = toBigInt hx
+                        in (Just bi) === mbi) :: PositiveInt -> Result
+      makeQuickCheckOnBrowser bigIntAbHex samples prop
 
-    let hexToJson = "converts String to Json and Back"
-    it hexToJson do
-      let initialHexString = "7556AA045AEF2CDD07ABAF0F665C3E818913186F"
-      let maybeHex = A.toString (A.fromString initialHexString)
-      case maybeHex of
-        Nothing  -> failOnBrowser hexToJson "Cannot convert json to string"
-        Just hex -> do
-          makeTestableOnBrowser hexToJson initialHexString shouldEqual hex
+    -- This tests functions of libraries not written by us, it is necessary?
+    -- let hexToJson = "converts String to Json and Back"
+    -- it hexToJson do
+    --   let prop = (\s -> s === A.toString (A.fromString s)) :: String -> Result 
+    --   makeQuickCheckOnBrowser bigIntAbHex samples prop
 
     let hashOfArrayBuffer = "computes hash of array buffer"
     it hashOfArrayBuffer do

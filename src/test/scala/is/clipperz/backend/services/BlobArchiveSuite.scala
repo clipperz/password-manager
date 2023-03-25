@@ -1,7 +1,5 @@
 package is.clipperz.backend.services
 
-import org.scalacheck.Test
-
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.{ Files, Paths, FileSystems }
@@ -9,74 +7,88 @@ import java.security.MessageDigest
 import scala.language.postfixOps
 import zio.{ Chunk, ZIO }
 import zio.stream.{ ZStream, ZSink }
-import zio.test.Assertion.{ nothing }
-import zio.test.{ ZIOSpecDefault, assertTrue, assert }
+import zio.test.Assertion.{ nothing, throws, throwsA, fails, isSubtype, anything }
+import zio.test.{ ZIOSpecDefault, assertTrue, assert, assertCompletes, assertZIO, TestAspect }
 import zio.json.EncoderOps
-import zhttp.http.{ Version, Headers, Method, URL, Request, HttpData }
+import zhttp.http.{ Version, Headers, Method, URL, Request, Body }
 import zhttp.http.*
 import is.clipperz.backend.Main
+import java.nio.file.Path
+import _root_.is.clipperz.backend.exceptions.ResourceNotFoundException
+import is.clipperz.backend.functions.FileSystem
+import is.clipperz.backend.exceptions.EmptyContentException
+import zio.Clock
+import zio.Clock.ClockLive
+import zio.test.TestClock
+import zio.Duration
 import is.clipperz.backend.data.HexString
-import is.clipperz.backend.data.HexString.{ bytesToHex }
-import is.clipperz.backend.functions.crypto.HashFunction
+import is.clipperz.backend.exceptions.BadRequestException
+import zio.test.TestEnvironment
+import zio.ZLayer
 
-object BlobSpec extends ZIOSpecDefault:
-  val app = Main.clipperzBackend
+object BlobArchiveSpec extends ZIOSpecDefault:
   val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
-  val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
 
-  val environment =
-    PRNG.live ++
-    SessionManager.live ++
-    TollManager.live ++
-    UserArchive.fs(userBasePath, 2) ++
-    BlobArchive.fs(blobBasePath, 2) ++
-    ((UserArchive.fs(userBasePath, 2) ++ PRNG.live) >>> SrpManager.v6a())
+  val environment = BlobArchive.fs(blobBasePath, 2, false)
 
-  val testFile = new File(
-    "src/test/resources/blobs/4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63.blob"
-  )
-  val blobData : SaveBlobData = SaveBlobData(
-    data = bytesToHex(Files.readAllBytes(Paths.get( "src/test/resources/blobs/4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63.blob")).nn),
-    hash = HexString("4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63")
-  )
+  val testContent = ZStream.fromIterable("testContent".getBytes().nn)
+  val failingContent = ZStream.never
+  val testKey = HexString("d1d733a8041744d6e4b7b991b5f38df48a3767acd674c9df231c92068801a460")
+  val failingKey = HexString("d1d733a8041744d6e4b7b991b5f38df48a3767acd674c9df231c92068801a789")
 
-  val post = Request(
-    url = URL(!! / "blobs"),
-    method = Method.POST,
-    headers = Headers.empty,
-    data = HttpData.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
-    version = Version.Http_1_1,
-  )
-
-  val get = Request(
-    url = URL(!! / "blobs" / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
-    method = Method.GET,
-    headers = Headers.empty,
-    version = Version.Http_1_1,
-  )
-
-  def spec = suite("http - blob")(
-    test("POST -> status") {
+  def spec = suite("BlobArchive")(
+    test("getBlob - fail") {
       for {
-        statusCode <- app(post).map(response => response.status.code)
-      } yield assertTrue(statusCode == 200)
+        archive <- ZIO.service[BlobArchive]
+        res <- assertZIO(archive.getBlob(testKey).exit)(fails(isSubtype[ResourceNotFoundException](anything)))
+      } yield res
     } +
-    test("POST -> hash response") {
-      for {
-        body <- app(post).flatMap(response => response.bodyAsString)
-      } yield assertTrue(body == "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63")
-    } +
-    test("POST / GET") {
-      for {
-        hash <- app(post).flatMap(_ =>
-          app(get).flatMap(response =>
-            HashFunction.hashSHA256(response.bodyAsStream).map(bytesToHex)
-          )
-        )
-      } yield assertTrue(hash == HexString("4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"))
-    } +
-    test("POST / DELETE / GET") {
-      assert("TODO")(nothing)
-    }
-
-  ).provideCustomLayerShared(environment)
+      test("saveBlob - success") {
+        for {
+          archive <- ZIO.service[BlobArchive]
+          fiber <- archive.saveBlob(testKey, testContent).fork
+          _ <- TestClock.adjust(Duration.fromMillis(BlobArchive.WAIT_TIME + 10))
+          _ <- fiber.join
+          content <- archive.getBlob(testKey)
+          result <- testContent.zip(content).map((a, b) => a == b).toIterator.map(_.map(_.getOrElse(false)).reduce(_ && _))
+        } yield assertTrue(result)
+      } +
+      test("saveBlob with failing stream - success") {
+        for {
+          archive <- ZIO.service[BlobArchive]
+          fiber <- archive.saveBlob(failingKey, failingContent).fork
+          _ <- TestClock.adjust(Duration.fromMillis(BlobArchive.WAIT_TIME + 10))
+          res <- assertZIO(fiber.await)(fails(isSubtype[EmptyContentException](anything)))
+        } yield res
+      } +
+      test("saveBlob with wrong hash - success") {
+        for {
+          archive <- ZIO.service[BlobArchive]
+          fiber <- archive.saveBlob(failingKey, testContent).fork
+          _ <- TestClock.adjust(Duration.fromMillis(BlobArchive.WAIT_TIME + 10))
+          res <- assertZIO(fiber.await)(fails(isSubtype[BadRequestException](anything)))
+        } yield res
+      } +
+      test("getBlob - success") {
+        for {
+          archive <- ZIO.service[BlobArchive]
+          content <- archive.getBlob(testKey)
+          result <- testContent.zip(content).map((a, b) => a == b).toIterator.map(_.map(_.getOrElse(false)).reduce(_ && _))
+        } yield assertTrue(result)
+      } +
+      test("deleteBlob - success") {
+        for {
+          archive <- ZIO.service[BlobArchive]
+          res <- archive.deleteBlob(testContent)
+        } yield assertTrue(res)
+      } +
+      test("deleteBlob - fail") {
+        for {
+          archive <- ZIO.service[BlobArchive]
+          res <- archive.deleteBlob(testContent)
+        } yield assertTrue(!res)
+      }
+  ).provideSomeLayerShared(environment) @@
+    TestAspect.sequential @@
+    TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn))) @@
+    TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))

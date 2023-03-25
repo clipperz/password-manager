@@ -1,37 +1,58 @@
-module Main where
+module Main
+  ( main
+  )
+  where
 
 import Concur.React.Run (runWidgetInDom)
-import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind, discard, (>>=))
+import Data.Array (index, catMaybes)
 import Data.Function (($))
-import Data.Show (show)
+import Data.Functor ((<$>))
+import Data.Map (fromFoldable, lookup)
+import Data.Maybe (Maybe(..))
+import Data.String (drop, split)
+import Data.String.Pattern (Pattern(..))
+import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
 import Effect (Effect)
-import Effect.Class (liftEffect)
+import OperationalWidgets.App (app, Page(..), SharedCardReference, doTestLogin)
+import Web.HTML (window)
+import Web.HTML.Location (hash, search)
+import Web.HTML.Window (location)
+
 import Effect.Class.Console (log)
-
-import SRP as SRP
-
--- import Widgets.LoginForm as Widgets.LoginForm
--- import Widgets.SignupForm as Widgets.SignupForm
--- import Widgets.PasswordGenerator as Widgets.PasswordGenerator
--- import Widgets.CardsIndex as Widgets.CardsIndex
--- import Widgets.Cards as Widgets.Cards
--- import Widgets.HomePage as Widgets.HomePage
-
--- import WidgetManagers.SignupManager as SignupManager
--- import WidgetManagers.LoginManager as LoginManager
-import WidgetManagers.LandingPage as LandingPage
+import Data.Semigroup ((<>))
+import Data.Show (show)
 
 main :: Effect Unit
 main = do
-  runWidgetInDom "app" $ do
-    -- result <- (Widgets.LoginForm.loginForm)
-    -- result <- (Widgets.PasswordGenerator.passwordGenerator)
-    -- result <- (Widgets.HomePage.homePage)
-    -- result <- (Widgets.SignupForm.signupForm)
-    -- result <- (SignupManager.signupManager SRP.baseConfiguration)
-    -- result <- (LoginManager.loginManager SRP.baseConfiguration)
-    result <- (LandingPage.landingPage SRP.baseConfiguration)
-    liftEffect $ log $ show result
-    pure result
+  l <- window >>= location
+  h <- hash l
+  s <- search l
+  case h of
+    "#registration" -> runWidgetInDom "app" (app Signup)
+    str -> do
+      case split (Pattern "?") str of
+        [ "#login", query ] -> do
+          let parameters = fromFoldable $ parseQueryString query
+          log $ show parameters
+          case (lookup "username" parameters), (lookup "password" parameters) of
+            Just u, Just p -> runWidgetInDom "app" (doTestLogin u p)
+            _, _ -> defaultPage
+        [ "#share", query ] -> do
+          let parameters = fromFoldable $ parseQueryString query
+          case lookup "token" parameters of
+            Just token -> runWidgetInDom "app" (app (Share (Just token)))
+            _ -> defaultPage
+        r -> defaultPage
+
+defaultPage :: Effect Unit
+defaultPage = runWidgetInDom "app" (app (Loading (Just Login)))
+
+parseQueryString :: String -> Array (Tuple String String)
+parseQueryString query = 
+  let keyValues = split (Pattern "&") query
+      splitKeyValue = \s -> case split (Pattern "=") s of
+                              [key, value] -> Just $ Tuple key value
+                              _ -> Nothing
+  in catMaybes $ splitKeyValue <$> keyValues 

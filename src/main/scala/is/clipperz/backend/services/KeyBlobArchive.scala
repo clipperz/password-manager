@@ -1,9 +1,17 @@
 package is.clipperz.backend.services
 
-import java.io.File
+import java.io.{ File, FileNotFoundException }
 import java.nio.file.{ Files, Path }
 import zio.{ Task, ZIO }
 import zio.stream.{ ZSink, ZStream }
+
+import is.clipperz.backend.exceptions.{
+  NonWritableArchiveException,
+  NonReadableArchiveException,
+  ResourceNotFoundException,
+  EmptyContentException,
+}
+import zio.Duration
 
 // ============================================================================
 
@@ -12,28 +20,49 @@ type Key = String
 trait KeyBlobArchive:
   def getBlob(key: Key): Task[ZStream[Any, Throwable, Byte]]
   def saveBlob(key: Key, content: ZStream[Any, Throwable, Byte]): Task[Unit]
-  def deleteBlob(key: Key): Task[Unit]
+  def deleteBlob(key: Key): Task[Boolean]
 
 object KeyBlobArchive:
-  case class FileSystemKeyBlobArchive(basePath: Path, levels: Int) extends KeyBlobArchive:
+  val WAIT_TIME = 100
+
+  class FileSystemKeyBlobArchive private (basePath: Path, levels: Int) extends KeyBlobArchive:
     override def getBlob(key: Key): Task[ZStream[Any, Throwable, Byte]] =
       getBlobPath(key, false)
-        .map(path => ZIO.succeed(ZStream.fromPath(path)))
-        .getOrElse(ZIO.fail(new Exception("Path not found")))
+        .map(path =>
+          if Files.exists(path) then ZIO.succeed(ZStream.fromPath(path))
+          else ZIO.fail(new ResourceNotFoundException("Blob not found"))
+        )
+        .getOrElse(ZIO.fail(new ResourceNotFoundException("Blob not found")))
+        .catchSome {
+          case ex: ResourceNotFoundException => ZIO.fail(ex)
+          case ex => ZIO.fail(new NonReadableArchiveException(s"${ex}"))
+        }
 
     override def saveBlob(key: Key, content: ZStream[Any, Throwable, Byte]): Task[Unit] =
-      ZIO.scoped {
-        getBlobPath(key, true)
-          // .get // TODO: (DONE??) this takes time to create the file: needs a way to be sure the ZSink is applied after this has finished
-          .map(path => content.run(ZSink.fromPath(path)).map(_ => ()))
-          .get
-      }
+      ZIO
+        .fromOption(getBlobPath(key, true))
+        .mapError(_ => new NonWritableArchiveException("Could not create blob file"))
+        .flatMap(path =>
+          content
+            .timeoutFail(new EmptyContentException)(Duration.fromMillis(WAIT_TIME))
+            .run(ZSink.fromPath(path))
+            .map(_ => ())
+        )
+        .catchSome {
+          case ex: EmptyContentException => ZIO.fail(ex)
+          case ex: NonReadableArchiveException => ZIO.fail(ex)
+          case ex => ZIO.fail(new NonWritableArchiveException(s"${ex}"))
+        }
 
-    override def deleteBlob(key: Key): Task[Unit] =
-      ZIO.succeed {
-        Files.deleteIfExists(getBlobPath(key, false).get)
-        // TODO: delete empty folder?
-      }
+    override def deleteBlob(key: Key): Task[Boolean] =
+      ZIO
+        .attempt {
+          getBlobPath(key, false)
+            .map(path => Files.deleteIfExists(path))
+            .get
+          // TODO: delete empty folder?
+        }
+        .foldZIO(err => ZIO.fail(new NonWritableArchiveException(err.toString())), data => ZIO.succeed(data))
 
     private def getBlobFile(key: Key): File =
       val piecesLength: Int = key.length / levels
@@ -56,3 +85,13 @@ object KeyBlobArchive:
         file.createNewFile()
 
       optionalPath
+
+  object FileSystemKeyBlobArchive:
+    def apply(
+        basePath: Path,
+        levels: Int,
+        requireExistingPath: Boolean = true,
+      ): FileSystemKeyBlobArchive =
+      if (Files.exists(basePath) && Files.isDirectory(basePath)) || !requireExistingPath then
+        new FileSystemKeyBlobArchive(basePath, levels)
+      else throw new IllegalArgumentException("Base path does not exist")

@@ -1,0 +1,499 @@
+@import "behavior.scss";
+@import "../style/palette.scss";
+
+$filterPanel_width: 250px;
+
+html {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+
+    div.page {
+        @include pageElement();
+
+        &.main {
+            div#homePage {
+                height: 100%;
+                overflow: hidden;
+                width: calc(100% + $filterPanel_width);
+                transition: width 0.3s ease-in-out;
+
+                div#cardsManager {
+                    height: 100%;
+                    overflow: hidden;
+
+                    // width: 100%;
+                    position: relative;
+                    // width: calc(100% + $filterPanel_width);
+                    transition: left 0.3s ease-in-out;
+                    left: - $filterPanel_width;
+
+                    &.filterView_open {
+                        left: 0px;
+
+                        div#filterView {
+							& > .mask {
+								@include mask();
+							}
+                        }
+                    }
+
+                    div#filterView {
+                        height: 100%;
+                        overflow: hidden;
+
+                        // position: absolute;
+                        flex: 0;
+                        width: $filterPanel_width;
+                        min-width: $filterPanel_width;
+
+                        div.content {
+                            position: relative;
+                            z-index: 20;
+
+                            height: 100%;
+                            overflow: hidden;
+                            display: flex;
+                            flex-direction: column;
+                            
+                            div.filter {
+                                display: flex;
+                                flex-direction: column;
+                                overflow: hidden;
+                                flex: auto;
+                                
+								div#searchForm {
+									display: flex;
+									flex-direction: row;
+									// justify-content: space-between;
+									align-items: center;
+									padding: 0 8px 10px;
+
+									span {
+										display: none;
+										visibility: hidden;
+									}
+
+									&.selected {
+										span {
+											display: block;
+											visibility: visible;
+										}
+									}
+								}
+
+                                div.tags {
+                                    display: flex;
+                                    flex-direction: column;
+                                    overflow: hidden;
+                                    flex: auto;
+
+                                    span {
+                                        display: block;
+                                    }
+
+                                    ol#tagFilter {
+                                        flex: auto;
+                                        overflow-x: hidden;
+                                        overflow-y: auto;
+                                    }
+                                }
+                            }                        }
+                        // left: - $filterPanel_width;
+                        // height: 100%;
+                    }
+
+                    div.cardToolbarFrame {
+                        flex: 1;
+                        width: 100vw;
+
+                        header {
+                            div.tags {
+                                display: block;
+                                visibility: visible;
+                            }
+
+                            &.frame {
+                                display: none;
+                                visibility: hidden;
+                            }
+                        }
+                        
+                        div#mainView {
+                            display: flex;
+                            flex-direction: row;
+                            position: relative;
+                            width: 200vw;
+                            transition: left 0.3s ease-in-out;
+                            left: 0px;
+                            
+                            div#indexView {
+                                // width: 100vw;
+                                flex: 1;
+
+                                .addCard {
+                                    position: fixed;
+                                    bottom: 20px;
+                                    left: 80%;
+                                }
+                            }
+
+                            #card {
+                                // width: 100vw;
+                                flex: 1;
+
+								#cardForm div.cardForm .cardFormFields .dragAndDropList .draggableElem .fieldForm .fieldActions div.passwordGenerator div.passwordGeneratorPopup div.passwordGeneratorForm {
+									transition: left 0.3s ease-in-out;
+									left: calc(-100vw + 90px);
+									width: 80vw
+								}
+                            }
+
+                            &.CardFromReference, &.CardForm {
+                                left: -100vw;
+
+                                #indexView {
+                                    .addCard {
+                                        display: none;
+                                        visibility: hidden;
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                }
+                div#userPage {
+                    position: fixed;
+                    top: 0;
+                    display: flex;
+                    $filterPanel_width: 300px;
+                    right: -$filterPanel_width;
+
+                    div.panel {
+                        display: flex;
+                    }
+
+                    &.open {
+                        display: flex;
+                        flex-direction: row-reverse;
+                        z-index: 20;
+                        left: 0px;    
+                        height: 100%;
+                        width: 100%;
+                        transition: right 0.3s ease-in-out;
+                            // width: 100%;
+
+                        div.panel {
+                            // position: fixed;
+                            // right: 0px;
+                            z-index: 20;
+                            width: $filterPanel_width;
+                        }
+                        
+						& > .mask {
+							@include mask();
+						}
+
+                        div.extraFeatureContent {
+                            flex: 1;
+                            
+                            &.open {
+                                z-index: 20;
+
+                                position: fixed;
+                                left: 0px;
+                                top: 0px;
+                                width: 100%;
+                                height: 100%;
+                            }
+                        }
+                    }
+
+                    &.closed {
+                        div.panel {
+                            right: - $filterPanel_width;
+                        }
+
+                        div.mask {
+                            display: none;
+                            visibility: hidden;
+                            // background-color: rgba(255, 255, 255, 0.5);
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+}
+
+div.loadingBarContainer {
+	border-bottom: 1px solid white;
+	height: 20px;
+	margin-bottom: 10px;
+
+	.loadingBar {
+		height: 100%;
+		background-color: white;
+	}
+}
+
+div.disableOverlay {
+    position: absolute;
+    top: 0px;
+    right: 50vw;
+    // right: 0px;
+    // width: 100vw;
+    height: 100vh;
+	display: flex;
+	z-index: 50;
+	justify-content: center;
+
+	& > div.mask {
+		@include mask();
+		position: fixed;
+	}
+
+    & > div.dialog {
+        border-radius: 8px;
+        max-width: 50%;
+        background-color: white;
+        padding: 30px;
+        box-shadow: 4px 4px 6px 5px rgba(0, 0, 0, 0.3);
+        z-index: 50;
+        position: fixed;
+		color: black;
+
+        margin-left: auto;
+        margin-right: auto;
+        top: 30%;
+
+        div.message {
+            font-size: 18pt;
+            font-weight: bold;
+            padding-bottom: 20px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        div.answers {
+            display: flex;
+            flex-direction: row-reverse;
+            // justify-content: flex-start;
+
+            button {
+                margin-left: 10px;
+                font-size: 16pt;
+                line-height: 16pt;
+                padding: 15px 25px;
+                flex: 0;
+                border: 0px;
+                cursor: pointer;
+
+                &.confirm {
+                    color: black;
+                    background-color: #ddd;
+                }
+
+                &.cancel {
+                    color: white;
+                    background-color: #666;
+                    font-weight: bold;
+                }
+            }
+        }
+    }
+    // po
+}
+
+// ========================================================================================
+
+$wide-minSize: 700px;
+$extraWide-minSize: 1100px;
+
+@media /* only screen and */ (min-width: $wide-minSize) {
+    //
+    //  WIDE
+    //
+//    html div.page.main div#homePage div#cardsManager div.cardToolbarFrame #indexView
+    html {
+        div.page {
+            &.main {
+                div#homePage {
+                    // transition: width 0.3s ease-in-out;
+
+                    div#cardsManager {
+
+                        div#filterView {
+                            
+                            div.content {
+
+
+                            }
+                        }
+
+                        div.cardToolbarFrame {
+                            header {
+                                &.frame {
+                                    display: flex;
+                                    visibility: visible;
+
+                                }
+
+                                &.cardList {
+                                    display: none;
+                                    visibility: hidden;
+                                }
+                            }
+
+                            div#mainView {
+                                position: static;
+                                width: auto;
+
+                                &.CardFromReference, &.CardForm {
+                                    div#indexView {
+                                        .addCard {
+                                            display: block;
+                                            visibility: visible;
+                                        }
+                                    }
+                                }
+
+                                div#indexView {
+
+                                    .addCard {
+										transition: left 0.3s ease-in-out;
+                                        left: calc(27% - 30px);
+                                    }
+                                    
+                                    ol {
+                                        li {
+                                            &::after {
+                                                display: none;
+                                                visibility: hidden;
+                                            }
+                                        }
+                                    }
+                                }
+                                #card {
+                                    flex: 2;
+
+                                    #cardView {
+                                        .cardActions {
+                                            button.exit {
+                                                display: none;
+                                                visibility: hidden;
+                                            }
+                                        }
+                                    }
+
+									#cardForm div.cardForm .cardFormFields .dragAndDropList .draggableElem .fieldForm .fieldActions div.passwordGenerator div.passwordGeneratorPopup div.passwordGeneratorForm {
+										left: calc(-100vw + 90px + 33vw);
+									}
+                                }
+                            }
+                        }
+
+						&.filterView_open {
+							div.cardToolbarFrame {
+								div#mainView {
+									div#indexView {
+										.addCard {
+											left: calc(27% - 30px + 250px);
+										}
+									}
+								}
+							}
+						}
+
+                    }
+
+                    div#userPage {
+                        .extraFeatureContent {
+                            header {
+                                display: none;
+                                visibility: hidden;
+                            }
+                        }
+
+                        &.open {
+                            div.extraFeatureContent {
+                                &.open {
+                                    position: relative;
+                                    width: auto;
+                                    height: auto;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media /* only screen and */ (min-width: $extraWide-minSize) {
+    //
+    //  EXTRA WIDE
+    //
+    html {
+        div.page {
+            &.main {
+                div#homePage {
+                    width: 100vw;
+                    // transition: width 0s ease-in-out;
+
+                    div#cardsManager {
+                        overflow-x: hidden;
+                        left: 0px;
+
+                        div#filterView {
+                            div.mask {
+                                display: none;
+                                visibility: hidden;
+                            }
+                        }
+                        div.cardToolbarFrame {
+                            header {
+                                div.tags {
+                                    button {
+                                        display: none;
+                                        visibility: hidden;
+                                    }
+                                }
+                            }
+
+                            div#mainView {								
+								div#indexView {
+									.addCard {
+										left: calc(32% + 100px);
+                                    }
+                                }
+
+								#card #cardForm div.cardForm .cardFormFields .dragAndDropList .draggableElem .fieldForm .fieldActions div.passwordGenerator div.passwordGeneratorPopup div.passwordGeneratorForm {
+									left: calc(-100vw + 90px + 26.5vw + $filterPanel_width);
+								}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media /* only screen and */ (min-width: calc($extraWide-minSize + 50px)) {
+    //
+    //  EXTRA-EXTRA WIDE (hack to partially fix resize animation)
+    //
+    html {
+        div.page {
+            &.main {
+                div#homePage {
+                    transition: width 0s ease-in-out;
+                }
+            }
+        }
+    }
+}

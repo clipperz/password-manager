@@ -1,80 +1,115 @@
 package is.clipperz.backend.services
 
+import java.io.File
 import java.nio.charset.StandardCharsets
-import java.nio.file.FileSystems
-import zio.ZIO
-import zio.json.{ EncoderOps }
-import zio.test.{ ZIOSpecDefault, assertTrue }
-import zhttp.http.{ Version, Headers, Method, URL, Request, HttpData }
+import java.nio.file.{ Files, Paths, FileSystems }
+import java.security.MessageDigest
+import scala.language.postfixOps
+import zio.{ Chunk, ZIO }
+import zio.stream.{ ZStream, ZSink }
+import zio.test.Assertion.{ nothing, throws, throwsA, fails, isSubtype, anything }
+import zio.test.{ ZIOSpecDefault, assertTrue, assert, assertCompletes, assertZIO, TestAspect }
+import zio.json.EncoderOps
+import zhttp.http.{ Version, Headers, Method, URL, Request, Body }
 import zhttp.http.*
 import is.clipperz.backend.Main
+import java.nio.file.Path
+import _root_.is.clipperz.backend.exceptions.ResourceNotFoundException
+import is.clipperz.backend.functions.FileSystem
+import is.clipperz.backend.exceptions.EmptyContentException
+import zio.Clock
+import zio.Clock.ClockLive
+import zio.test.TestClock
+import zio.Duration
 import is.clipperz.backend.data.HexString
-import is.clipperz.backend.data.HexString.{ bytesToHex }
+import is.clipperz.backend.exceptions.BadRequestException
+import zio.test.TestEnvironment
+import zio.ZLayer
+import is.clipperz.backend.exceptions.ResourceConflictException
+import zio.test.TestConsole
 
-object UserSpec extends ZIOSpecDefault:
-  val app = Main.clipperzBackend
-  val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
+object UserArchiveSpec extends ZIOSpecDefault:
   val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
 
-  val environment =
-    PRNG.live ++
-    SessionManager.live ++
-    TollManager.live ++
-    UserArchive.fs(userBasePath, 2) ++
-    BlobArchive.fs(blobBasePath, 2) ++
-    ((UserArchive.fs(userBasePath, 2) ++ PRNG.live) >>> SrpManager.v6a())
+  val environment = UserArchive.fs(userBasePath, 2, false)
 
-  def preparePut (c: HexString)=     
-    val testUser = UserCard(c, HexString("s"), HexString("v"), "srpVersion_test", "masterKeyEncodingVersion_test", HexString("masterKeyContent_test"))
-    val testRequest = SignupData(testUser, "af22025a81131eca3c315f2ef038ab2234a54730910a48530ce3f8d71e0ed718", "34f233155174be0c7cde653552919d4a6b37483830550c5542c6d3e626fb66b5514e93f4343997666c3638f52738e9")
-    Request(
-      url = URL(!! / "users" / c.toString),
-      method = Method.PUT,
-      headers = Headers.empty,
-      data = HttpData.fromString(testRequest.toJson, StandardCharsets.UTF_8.nn),
-      version = Version.Http_1_1,
-    )
+  val c = HexString("abcdef0192837465")
+  val testUser = UserCard(
+    c,
+    HexString("adc"),
+    HexString("adcf"),
+    "srpVersion_test",
+    "masterKeyEncodingVersion_test",
+    HexString("masterKeyContent_test")
+  )
+  val testUser2 = UserCard(
+    c,
+    HexString("adc2"),
+    HexString("adcf2"),
+    "srpVersion_test",
+    "masterKeyEncodingVersion_test",
+    HexString("masterKeyContent_test")
+  )
 
-  def prepareGet (c: HexString): Request =
-    Request(
-      url = URL(!! / "users" / c.toString),
-      method = Method.GET,
-      headers = Headers.empty,
-      version = Version.Http_1_1,
-    )
-
-  def spec = suite("http - user")(
-    test("PUT -> status") {
+  def spec = suite("UserArchive")(
+    test("getUser - fail") {
       for {
-        prng <- ZIO.service[PRNG]
-        c <- prng.nextBytes(64).map(bytesToHex(_))
-        statusCode <- app(preparePut(c)).map(response => response.status.code)
-      } yield assertTrue(statusCode == 200)
+        archive <- ZIO.service[UserArchive]
+        user <- archive.getUser(c)
+      } yield assertTrue(user == None)
     } +
-    test("PUT -> hash response") {
-      for {
-        prng <- ZIO.service[PRNG]
-        c <- prng.nextBytes(64).map(bytesToHex(_))
-        body <- app(preparePut(c)).flatMap(response => response.bodyAsString)
-      } yield assertTrue(HexString(body) == c)
-    } +
-    test("UserArchive doesn't overwrite old users when creating a new user") {
-      for {
-        prng <- ZIO.service[PRNG]
-        c <- prng.nextBytes(64).map(bytesToHex(_))
-        _ <- app(preparePut(c))
-        statusCode <- app(preparePut(c)).map(response => response.status.code)
-      } yield assertTrue(statusCode == 409)
-    } +
-    test("UserArchive overwrites user cards when requested") {
-      // TODO: to update the implementation when the function to update the user cards will be implemented
-      for {
-        prng <- ZIO.service[PRNG]
-        card <- prng.nextBytes(64).map(bytesToHex(_)).map(UserCard(_, HexString("s"), HexString("v"), "srpVersion_test", "masterKeyEncodingVersion_test", HexString("masterKeyContent_test")))
-        userArchive <- ZIO.service[UserArchive]
-        _ <- userArchive.saveUser(card, false)
-        c <- userArchive.saveUser(card, true)
-      } yield assertTrue(c == card.c) 
-    }
-
-  ).provideCustomLayerShared(environment)
+      test("saveBlob - success") {
+        for {
+          archive <- ZIO.service[UserArchive]
+          fiber <- archive.saveUser(testUser, false).fork
+          _ <- TestClock.adjust(Duration.fromMillis(10))
+          res <- fiber.join
+          user <- archive.getUser(c)
+        } yield assertTrue(user == Some(testUser), res == c)
+      } +
+      test("saveBlob with no overwrite - fail") {
+        for {
+          archive <- ZIO.service[UserArchive]
+          fiber <- archive.saveUser(testUser2, false).fork
+          _ <- TestClock.adjust(Duration.fromMillis(10))
+          res <- assertZIO(fiber.await)(fails(isSubtype[ResourceConflictException](anything)))
+        } yield res
+      } +
+      test("saveBlob with overwrite - success") {
+        for {
+          archive <- ZIO.service[UserArchive]
+          fiber <- archive.saveUser(testUser2, true).fork
+          _ <- TestClock.adjust(Duration.fromMillis(10))
+          res <- fiber.join
+          user <- archive.getUser(c)
+        } yield assertTrue(user == Some(testUser2), res == c)
+      } +
+      test("getUser - success") {
+        for {
+          archive <- ZIO.service[UserArchive]
+          user <- archive.getUser(c)
+        } yield assertTrue(user == Some(testUser2))
+      } +
+      test("deleteBlob - fail - different user") {
+        for {
+          archive <- ZIO.service[UserArchive]
+          res <- assertZIO(archive.deleteUser(testUser).exit)(fails(isSubtype[BadRequestException](anything)))
+        } yield res
+      } +
+      test("deleteBlob - success") {
+        for {
+          archive <- ZIO.service[UserArchive]
+          resDelete <- archive.deleteUser(testUser2)
+          resGet <- archive.getUser(c).map(_.isDefined)
+        } yield assertTrue(resDelete, !resGet)
+      } +
+      test("deleteBlob - fail - not present") {
+        for {
+          archive <- ZIO.service[UserArchive]
+          res <- assertZIO(archive.deleteUser(testUser2).exit)(fails(isSubtype[ResourceNotFoundException](anything)))
+        } yield res
+      }
+  ).provideSomeLayerShared(environment) @@
+    TestAspect.sequential @@
+    TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))) @@
+    TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn)))

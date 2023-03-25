@@ -1,4 +1,6 @@
+import complete.DefaultParsers._
 import Dependencies._
+import java.nio.file.Paths
 
 lazy val installPurescript = TaskKey[Unit]("installPurescript", "Install purescript")
 installPurescript := {
@@ -12,10 +14,22 @@ buildPurescript := {
   "yarn build" !
 }
 
+// lazy val keepBuildingPurescript = TaskKey[Unit]("keepBuildingPurescript", "Keep building frontend")
+// keepBuildingPurescript := {
+//   import sys.process._
+//   "yarn keep-building" !
+// }
+
 lazy val packagePurescript = TaskKey[Unit]("packagePurescript", "Package frontend")
 packagePurescript := {
   import sys.process._
-  "yarn package" !
+  Process(Seq("bash", "-c", "yarn package"), None, "CURRENT_COMMIT" -> "development").!
+}
+
+lazy val keepPackagingPurescript = TaskKey[Unit]("keepPackagingPurescript", "Keep packaging frontend")
+keepPackagingPurescript := {
+  import sys.process._
+  "yarn keep-packaging" !
 }
 
 lazy val servePurescript = TaskKey[Unit]("servePurescript", "Serve frontend")
@@ -43,10 +57,18 @@ runTestPurescript := {
   "yarn test-browser" !
 }
 
+lazy val cleanTargetSubdir = inputKey[Unit]("Clean the given subdirectory of the target directory")
+cleanTargetSubdir := {
+  import sys.process._
+  val directory: String = spaceDelimited("<arg>").parsed(0)
+  val path = Paths.get(baseDirectory.value.toString(), "target", directory)
+  s"rm -rf ${path}" !
+}
+
 //=====================================================================
 
 ThisBuild / organization := "is.clipperz"
-ThisBuild / scalaVersion := "3.1.2"
+ThisBuild / scalaVersion := "3.2.1"
 
 ThisBuild / scalacOptions ++=
   Seq(
@@ -81,8 +103,9 @@ lazy val commonScalacOptions = Seq(
     (Compile / console / scalacOptions).value,
 )
 
-val zio_version = "2.0.0"
-val zio_http_version = "2.0.0-RC10"
+val zio_version = "2.0.3"
+val zio_http_version = "2.0.0-RC11"
+val zio_logging_version = "2.1.3"
 val zio_json = "0.3.0-RC11"
 
 lazy val dependencies = Seq(
@@ -90,11 +113,15 @@ lazy val dependencies = Seq(
     "dev.zio" %% "zio" % zio_version,
     "dev.zio" %% "zio-streams" % zio_version,
     "dev.zio" %% "zio-json" % zio_json,
+    "dev.zio" %% "zio-cache" % "0.2.0",
     "io.d11" %% "zhttp" % zio_http_version,
+    "dev.zio" %% "zio-logging"       % zio_logging_version,
+    "dev.zio" %% "zio-logging-slf4j" % zio_logging_version,
+    "org.slf4j" % "slf4j-simple" % "1.7.36",
   ),
   libraryDependencies ++= Seq(
-    org.scalatest.scalatest,
-    org.scalatestplus.`scalacheck-1-15`,
+    // org.scalatest.scalatest,
+    // org.scalatestplus.`scalacheck-1-15`,
     "dev.zio" %% "zio-test" % zio_version,
     "dev.zio" %% "zio-test-sbt" % zio_version,
   ).map(_ % Test),
@@ -102,3 +129,16 @@ lazy val dependencies = Seq(
 
 cancelable in Global := true
 fork in Global := true
+
+// enablePlugins(JavaAppPackaging)
+// enablePlugins(DockerPlugin)
+// enablePlugins(AshScriptPlugin)
+// dockerBaseImage       := "openjdk:jre-alpine"
+
+Compile / mainClass := Some("is.clipperz.backend.Main")
+
+assemblyJarName in assembly := "clipperz.jar"
+assemblyMergeStrategy in assembly := {
+ case PathList("META-INF", _*) => MergeStrategy.discard
+ case _                        => MergeStrategy.first
+}

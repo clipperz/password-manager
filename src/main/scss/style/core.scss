@@ -1,0 +1,94 @@
+@import "./palette.scss";
+
+html, input, button {
+    font-family: clipperz-font;
+}
+
+body {
+    background-color: $main-color;
+}
+
+
+div.page {
+    color: $main-text-color;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    // display: flex;
+
+    div.content {
+        display: flex;
+        flex-direction: column;
+
+        header {
+            width: 100%;
+            text-align: center;
+            padding: 10px 0px;
+
+            flex: auto;
+            // align-items: flex-end;
+
+            h1 {
+                font-size: 40pt;
+                font-weight: bold;
+                // color: $main-alternate-text-color;
+                margin-top: 10%;
+                margin-bottom: 5px;
+            }
+
+            h3 {
+                font-size: 18pt;
+                // color: $main-alternate-text-color;
+                margin: 0px;
+            }
+        }
+
+        div.body {
+            flex: auto;
+            align-items: flex-start;
+            display: flex;
+
+            margin-left: auto;
+            margin-right: auto;
+            // position: relative;
+        }
+
+        div.other {
+            width: 100%;
+            flex: none;
+        }
+
+        footer {
+            width: 100%;
+            flex: none;
+        }
+    }
+}
+
+.entropyWrapper {
+	height: 2px;
+	width: 10%;
+	max-width: 100% !important;
+	min-width: 10%  !important;
+
+	&.veryWeak {
+		background-color: rgb(255, 50, 54);
+		// background-color: rgb(231, 64, 48);
+	}
+	&.weak {
+		background-color: rgb(183, 92, 36);
+		// background-color: rgb(159, 106, 30);
+	}
+	&.acceptable {
+		background-color: rgb(135, 120, 24);
+		// background-color: rgb(111, 134, 18);
+	}
+	&.strong {
+		background-color: rgb(87, 148, 12);
+		// background-color: rgb(63, 162, 6);
+	}
+	&.veryStrong {
+		background-color: rgb(37, 173, 0);
+	}
+}

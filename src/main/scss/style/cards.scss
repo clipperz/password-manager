@@ -1,0 +1,885 @@
+@import "palette.scss";
+@import "../structure/mixin.scss";
+
+div#homePage {
+    // overflow: hidden;
+    // height: 100%;
+
+    div#cardsManager {
+        // overflow-x: hidden;
+        // overflow-y: hidden;
+        height: 100%;
+
+        div.cardToolbarFrame {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+        
+            header {
+                display: flex;
+                flex-direction: row;
+                height: 48px;
+                justify-content: space-between;
+                background-color: $main-color;
+
+                div {
+                    padding: 4px;
+                    // flex: 0;
+                    button,
+                    &.selection {
+                        background-color: inherit;
+                        border: 0px;
+                        color: $main-text-color;
+                        font-size: 24pt;
+                        font-family: 'clipperz-icons';
+                        font-feature-settings: "liga" 1, "dlig" 1;
+                        text-rendering: optimizeLegibility;
+                    }
+
+                    &.tags {
+                        button {
+                            cursor: pointer;
+                        }
+                        // flex: 1;
+        
+                    }
+
+                    &.selection {
+                        font-size: 28pt;
+                        margin-top: 1px;
+
+                        span {
+                            &::before {
+                                content: "tag";
+                                font-family: 'clipperz-icons';
+                                font-size: 14pt;
+                                display: inline-block;
+                                padding-right: 7px;
+                            }
+
+                            font-family: 'clipperz-font';
+                            font-size: 18pt;
+                            display: block;
+                            margin-top: 8px;
+                        }
+                    }
+
+                    &.menu {
+                        button {
+                            cursor: pointer;
+                        }
+                        align-content: flex-end;
+                        // flex: 1;
+                    }
+            
+                }
+            }
+        
+            div#mainView {
+                display: flex;
+                overflow: hidden;
+                height: 100%;
+        
+                background-color: $alternate-color;
+                color: $alternate-text-color;
+        
+                div#indexView {
+                    // overflow: auto;
+                    // height: 100%;
+                    z-index: 5;
+                    box-shadow: 2px 0 6px 0 rgba(0, 0, 0, 0.1);
+                    display: flex;
+                    flex-direction: column;
+
+                    .addCard {
+                        // background-color: rgba(255,0,0, 0.2);
+                        // position: absolute;
+                        // bottom: 30px;
+                        // left: calc(32% + 100px);
+
+                        button {
+                            font-family: 'clipperz-icons';
+                            font-feature-settings: "liga" 1, "dlig" 1;
+                            text-rendering: optimizeLegibility;
+            
+                            border: 0px;
+                            border-radius: 30px;
+                            z-index: 5;
+            
+                            // bottom: 0px;
+                            font-size: 45pt;
+                            color: white;
+                            background-color: #1863a1;
+                            box-shadow: 2px 8px 6px 0 rgba(0, 0, 0, 0.2);
+                            width: 60px;
+                            height: 60px;
+                            // position: absolute;
+                            // margin-left: 25%;
+                            // margin-bottom: 20px;
+                            font-size: 36pt;
+							text-align: left;
+                            cursor: pointer;             
+                            
+                            &:hover {
+                                background-color: #114875;
+                            }
+                        }
+                    }
+        
+                    ol {
+                        overflow: auto;
+						// background-color: #1863a1;
+                        background-color: #ddd;
+
+						&::after {
+							content: "";
+							background-color: white;
+							width: 100%;
+							height: 100px;
+							display: block;
+						}
+                        li {
+                            cursor: pointer;
+                            border-bottom: 1px solid #eee;
+                            background-color: white;
+                            transition: margin-left 0.1s ease-in-out, padding-right 0.1s ease-in-out;
+                            white-space: pre-wrap;
+                            word-wrap: break-word;
+                            display: flex;
+                            flex-direction: row; 
+                            justify-content: space-between;
+        
+                            font-size: 14pt;
+                            padding-top: 16px;
+                            padding-bottom: 14px;
+                            padding-left: 16px;
+                            padding-right: 8px;
+                            line-height: 1.2em;
+
+                            &.selected {
+                                margin-left: 20px;
+                                padding-right: 0px;
+                                box-shadow: -4px 0px 3px -1px rgba(0, 0, 0, 0.2);                                
+                            }
+
+							&.archived {
+								background-color: #eeeeee;
+								color: #999;
+							}
+
+                            &::after {
+                                content: "show detail";
+                                // flex: none;
+                                font-family: 'clipperz-icons';
+                                font-feature-settings: "liga" 1, "dlig" 1;
+                                text-rendering: optimizeLegibility;
+                                min-width: 32px;
+                                // height: 48px;
+                                font-size: 24pt;
+                                // line-height: 48px;
+                                // margin-right: 25px;
+                                color: #ccc;
+                            }
+
+                            &:hover {
+                                &::after {
+                                    color: $main-color;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                div#card {
+                    display: flex;
+                    flex-direction: column;
+                    overflow: hidden;
+                    height: 100%;
+					
+					div#cardView {
+						height: 100%;
+
+						div.cardActions {
+							display: flex;
+							flex-direction: row;
+							height: 48px;
+	
+							button {
+								flex: 1;
+								border: 0px;
+								font-size: 12pt;
+								background-color: $accent-color;
+								color: $accent-text-color;
+								cursor: pointer;
+	
+                                &:hover {
+                                    background-color: $accent-color-lighter;
+                                }
+
+								&.exit {
+									&::before {
+										content: "back";
+										font-family: 'clipperz-icons';
+										font-size: 28pt;
+									}
+									font-size: 0px;
+									flex: 0;
+								}
+							}
+						}
+	
+						div#cardContent {
+							display: flex;
+							flex-direction: column;
+							overflow: auto;
+							height: calc(100% - 48px);
+	
+							h3 {
+								user-select: text;
+								font-size: 24pt;
+								padding: 20px 20px 20px 42px;
+								border: 0px;
+							}
+							
+							div.card_tags {
+								padding: 10px;
+								ul {
+									display: flex;
+									flex-direction: row;
+									align-items: flex-start;
+									width: calc(100% - 31px);
+									flex-wrap: wrap;
+									padding-left: 31px;
+	
+									&::before {
+										margin-left: -32px;                                
+										content: 'tag';
+										font-family: 'clipperz-icons';
+										font-feature-settings: "liga" 1, "dlig" 1;
+										text-rendering: optimizeLegibility;
+										font-size: 16pt;
+										padding-right: 11px;
+										line-height: 27px;
+										color: #ccc;
+									}
+	
+									li {
+										flex: none;
+										font-size: 13pt;
+										font-weight: 100;
+										margin-right: 10px;
+										padding-left: 1px;
+										padding-right: 30px;
+										line-height: 27px;
+									}
+								}
+							}
+	
+							div.card_fields {
+								padding: 10px 42px 10px 32px;
+								
+								div.fieldValue {
+									padding: 10px;
+	
+									div.fieldLabel {
+										color: gray;
+										padding-bottom: 4px;
+										margin-bottom: 4px;
+										user-select: text;
+									}
+
+									.dynamicWrap {
+										display: grid;
+										width: 100%;
+										
+										&::after {
+											content: attr(replicatedvalue) " ";
+											white-space: pre-wrap;
+											visibility: hidden;
+										}
+
+										textarea {
+											resize: none;
+											overflow: hidden;
+										}
+
+										&.PASSWORD {
+											textarea, &::after {
+												font-family: clipperz-password;
+												font-size: 22pt;
+												line-height: 28px;
+												margin-top: -2px;  
+											}
+										}
+
+										textarea, &::after {
+											font-family: 'clipperz-font';
+											outline: none;
+											cursor: pointer;
+											font-size: 18pt;
+											line-height: 28px;
+											user-select: text;
+											resize: none;
+											white-space: pre-wrap;
+											word-wrap: break-word;
+											border: 0px;
+											width: 100%;
+											background-color: white;
+											color: $alternate-text-color;
+											
+											@include dontBreakOut;
+											grid-area: 1 / 1 / 2 / 2;
+										}
+									}
+								}
+							}
+							div.card_notes {
+								border: 0px;
+								font-size: 10pt;
+								padding: 10px 42px 10px 42px;
+	
+								user-select: text;
+								line-height: 1.5em;
+								white-space: pre-wrap;
+							}
+						}
+					}
+
+                    #cardForm {
+                        $side-margin: 40px;
+
+                        // background-color: pink;
+                        flex: auto;
+                        display: flex;
+                        height: 100%;
+
+                        & > .mask {
+							@include mask;
+                            z-index: 20;
+                        }
+
+                        div.cardForm {
+                        // form.cardForm {
+                            display: flex;
+                            flex-direction: column;
+
+                            width: 100%;
+                            height: 100%;
+                            z-index: 20;
+                            background-color: white;
+                            box-shadow: -5px 0px 5px 0px rgba(0, 0, 0, 0.75);
+
+                            .cardFormFields {
+                                flex: auto;
+                                overflow: auto;
+
+                                div {
+                                    display: flex;
+                                }
+                                input {
+                                    border: 0px;
+
+                                    &#title {
+                                        font-size: 24pt;
+                                        width: 100%;
+                                        padding: 13px $side-margin 13px $side-margin;
+                                    }
+                                }
+
+								label.title {
+									@include fancyHidden;
+									width: 100%;
+
+									input {
+										border: 0;
+										font-size: 24pt;
+										padding: 13px 20px 13px 42px;
+									}
+								}
+
+                                .tags {
+                                    margin-left: calc($side-margin - 10px);
+									padding: 10px;
+
+                                    ul {
+                                        display: flex;
+                                        flex-wrap: wrap;
+
+                                        &:before {
+                                            content: "tag";
+                                            font-family: 'clipperz-icons';
+                                            font-size: 16pt;
+                                            color: #ccc;
+                                            padding: 4px 10px;
+                                            margin-left: -$side-margin;
+                                        }
+
+                                        li {
+                                            display: flex;
+                                            flex-direction: row-reverse;
+                                            align-items: center;
+
+                                            &:has(button:hover) {
+                                                font-weight: bold;
+                                            }
+
+                                            button {
+                                                font-family: 'clipperz-icons';
+                                                cursor: pointer;
+                                                background-color: inherit;
+                                                border: 0px;
+                                                color: #ccc;
+                                                font-size: 12pt;
+                                                margin-right: 8px;
+
+                                                &:hover {
+                                                    color: #9b0000;
+                                                }
+                                            }
+
+                                            &.addTag {
+												max-width: 30%;
+                                                flex-direction: row;
+
+                                                label {
+                                                    @include fancyHidden;
+                                                }
+                                                input {
+													display: inline-block;
+    												width: 100%;
+                                                    border: 0px;
+                                                    font-size: 12pt;
+                                                    line-height: 24px;
+
+                                                    &::placeholder {
+                                                        font-style: italic;
+                                                        color: #ccc;
+                                                    }
+                                                }
+                                                button {
+                                                    font-family: 'clipperz-font';
+                                                    font-size: 12pt;
+                                                    &:disabled {
+                                                        // display: none;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                .dragAndDropList {
+                                    flex-direction: column;
+
+                                    &.dragging {
+                                        .dropzone {
+                                            $dropzoneHeight: 80px;
+                                            $dropzoneBoxHeigh: 40px;
+                                            flex-direction: column;
+
+                                            // height: $dropzoneHeight;
+                                            // margin-top: - $dropzoneHeight / 2;
+                                            // margin-bottom: - $dropzoneHeight / 2;
+                                            // // position: relative;
+                                            // background-color: rgba(255, 192, 203, 0.392);
+                                            // z-index: 20;
+                                            // // background-color: #ffffff00;
+                                            span {
+                                                width: 100%;
+
+                                                &.activationArea {
+                                                    height: $dropzoneHeight;
+                                                    margin-top: - calc($dropzoneHeight / 2);
+                                                    margin-bottom: - calc($dropzoneHeight / 2);
+                                                    // background-color: rgba(255, 192, 203, 0.392);
+                                                    z-index: 30;
+                                                }
+
+                                                &.dropArea {
+                                                    // display: none;
+                                                    // visibility: hidden;
+                                                    height: 2px;
+                                                    background-color: #999;
+                                                }
+                                            }
+
+                                            &.selected {
+
+                                                span {
+                                                    &.activationArea {
+                                                        // background-color: rgba(255, 192, 203, 0.392);
+                                                        height: $dropzoneHeight + $dropzoneBoxHeigh;
+                                                    }
+
+                                                    &.dropArea {
+                                                        // display: block;
+                                                        // visibility: visible;
+
+                                                        z-index: 25;
+                                                        height: $dropzoneBoxHeigh;
+                                                        margin-top: - calc($dropzoneHeight / 2);
+
+                                                        &:hover {
+                                                            background-color: #999;
+                                                        }
+
+                                                    }
+                                                }
+                                            }
+
+                                            // &:hover {
+                                            //     background-color: #ffc0cbdc;
+                                            //     // span {
+                                            //     //     display: block;
+                                            //     //     height: 40px;
+                                            //     //     width: 100%;
+                                            //     //     background-color: purple;
+                                            //     // }
+                                            // }
+                                        }
+                                    }
+
+                                    .draggableElem {
+                                        flex-direction: row;
+										border-top: 1px solid #eee;
+
+										&:nth-last-child(2) {
+											border-bottom: 1px solid #eee;
+										}
+
+                                        &:hover {
+                                            background-color: #eee;
+                                        }
+										
+										.editActions {
+											display: flex;
+											flex-direction: column;
+
+											.remove {
+												width: $side-margin;
+												display: flex;
+												justify-content: center;
+												align-items: flex-start;
+												margin-top: 5px;
+	
+												button {
+													font-family: 'clipperz-icons';
+													font-size: 18pt;
+													cursor: pointer;
+													border: 0px;
+													background-color: inherit;
+													color: #ccc;
+													padding: 0px;
+	
+													&:hover {
+														color: #DD1010;
+													}
+												}
+											}
+
+                                            .dragHandler {
+                                                width: 40px;
+                                                height: 25px;
+                                                display: block;
+
+                                                span {
+                                                    background: repeating-linear-gradient(
+                                                        0deg,
+                                                        white,
+                                                        white 1px,
+                                                        #ccc 1px,
+                                                        #ccc 2px
+                                                    );
+                                                    display: block;
+                                                    width: 6px;
+                                                    height: 24px;
+                                                    margin-left: 17px;
+                                                    margin-top: 10px;                                                    
+                                                    cursor: grab;
+
+                                                }
+                                            }
+										}
+
+                                        .fieldForm {
+                                            flex: auto;
+
+											&.locked {
+                                                .inputs {
+                                                    .value {
+														flex-direction: column;
+														
+														.dynamicWrap {
+															textarea, &::after {
+																font-family: 'clipperz-password';
+																font-size: 22pt;
+																// line-height: 28pt;
+															}
+														}
+                                                    }
+                                                }
+                                                .fieldActions {
+                                                    button {
+                                                        &.passwordGenerator {
+                                                            visibility: visible;
+
+                                                        }
+                                                    }
+
+													div.passwordGenerator {
+														.passwordGeneratorMask {
+															position: fixed;
+															top: 0px;
+															left: 0px;
+															height: 100%;
+															width: 100%;
+															background-color: transparent;
+															// background-color: blue;
+															z-index: 100;
+														}
+
+														.passwordGeneratorPopup {
+															position: relative;
+															z-index: 101;
+															
+															// .passwordGeneratorForm {
+															// 	//
+															// }
+
+														}
+													}
+                                                }
+                                            }
+
+                                            .inputs {
+                                                flex: auto;
+                                                flex-direction: column;
+												padding: 10px;
+
+                                                label {
+													display: flex;
+													// padding-bottom: 4px;
+    												// margin-bottom: 4px;
+													@include fancyHidden;
+
+													input {
+														flex: auto;
+														color: gray;
+														font-size: 12pt;
+														width: 100%;
+														margin-bottom: 8px;													
+													}
+
+                                                    &.value {
+														.dynamicWrap {
+															display: grid;
+															width: 100%;
+															
+															&::after {
+																content: attr(replicatedvalue) " ";
+																white-space: pre-wrap;
+																visibility: hidden;
+															}
+					
+															textarea {
+																resize: none;
+																overflow: hidden;
+															}
+					
+															textarea, &::after {
+																font-family: 'clipperz-font';
+																@include dontBreakOut;
+																border: 0px;
+																width: calc(100% - 2px);
+																padding: 0 0 0 2px;
+																line-height: 28pt;
+																font-size: 18pt;
+																margin-top: -2px;
+																
+																grid-area: 1 / 1 / 2 / 2;
+															}
+														}
+                                                    }
+
+                                                }
+                                            }
+
+                                            .fieldActions {
+                                                flex-direction: column;
+                                                padding-left: 5px;
+                                                padding-right: 10px;
+                                                // background-color: purple;
+
+												button {
+													font-family: 'clipperz-icons';
+													font-size: 18pt;
+													cursor: pointer;
+													border: 0px;
+													background-color: inherit;
+													color: #ccc;
+													padding: 0px;
+													margin: 10px 0 6px;
+													
+                                                    &:hover:enabled {
+														color: #666;
+													}
+													
+													&.lock {
+														margin-left: 10px;
+														margin-top: 10px;
+													}
+
+                                                    &.passwordGenerator {
+                                                        visibility: hidden;
+                                                        font-size: 15pt;
+                                                        // margin-left: 0px;
+														// margin-bottom: 6px;
+    													color: #aaa;
+                                                    }
+												}
+                                            }
+                                        }
+                                    }
+                                }
+
+                                .newCardField {
+                                    display: block;
+                                    height: 86px;
+                                    border-bottom: 3px double #eee;
+                                    cursor: pointer;
+
+                                    .fieldGhostShadow {
+                                        display: block;
+                                        padding: 10px $side-margin 10px $side-margin;
+                                        .label {
+                                            background-color: white;
+                                            height: 25px;
+                                            margin-bottom: 8px;
+                                        }
+
+                                        .value {
+                                            background-color: white;
+                                            height: 33px;
+                                        }
+                                    }
+
+                                    button.addNewField {
+                                        cursor: pointer;
+                                        display: block;
+                                        margin-top: -75px;
+                                        width: 70px;
+                                        font-size: 50pt;
+                                        padding: 0px;
+                                        border: 0px;
+                                        background-color: transparent;
+                                        margin-left: auto;
+                                        margin-right: auto;
+                                        font-family: 'clipperz-icons';
+                                        color: #eee;
+                                    }
+
+                                    &:hover {
+                                        background-color: #eee;
+
+                                        button.addNewField {
+                                            color: #7c7;
+                                        }
+                                    }
+                                }
+
+                                .notes {
+                                    display: block;
+                                    padding: 10px $side-margin 10px $side-margin;
+                                    @include fancyHidden;
+
+									//--- fancy stuff, maybe can generalize ------
+									.dynamicWrap {
+										display: grid;
+										
+										&::after {
+											content: attr(replicatedvalue) " ";
+											white-space: pre-wrap;
+											visibility: hidden;
+										}
+
+										textarea {
+											resize: none;
+											overflow: hidden;
+
+											&::placeholder {
+												font-style: italic;
+												color: #ccc;
+											}
+
+										}
+
+										textarea, &::after {
+											@include dontBreakOut;
+											font-family: 'clipperz-font';
+											font-size: 10pt;
+											line-height: 1.5em;
+											white-space: pre-wrap;
+											word-wrap: break-word;
+											width: 100%;
+											border: 0px;
+											
+											grid-area: 1 / 1 / 2 / 2;
+										}
+									}
+									//---------------------------------------------
+
+                                }
+                            }
+                            .submitButtons {
+                                flex: 0;
+                                display: flex;
+                                flex-direction: row-reverse;
+
+                                & > button {
+                                    flex: 1;
+                                    height: 48px;
+                                    border: 0px;
+                                    cursor: pointer;
+
+                                    &.cancel {
+                                        color: white;
+                                        background-color: #d11;
+
+                                        &:hover {
+                                            background-color: #911;
+                                        }
+
+                                        &.inactive {
+                                            background-color: #666;
+    
+                                            &:hover {
+                                                background-color: #444;
+                                            }
+                                        }
+                                    }
+
+                                    &.save {
+                                        color: white;
+                                        background-color: #2a2;
+
+                                        &:hover {
+                                            background-color: #1a801a;
+                                        }
+                                        &:disabled {
+                                            background-color: #5a5;
+                                            &:hover {
+                                                background-color: #5a5;
+                                            }
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

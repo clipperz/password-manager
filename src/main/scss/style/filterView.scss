@@ -1,0 +1,168 @@
+@import "./palette.scss";
+@import "../structure/mixin.scss";
+
+#filterView {
+    background-color: $core-alternate-color;
+
+    // ol.defaultSets {
+    ol {
+        padding-top: 10px;
+        padding-bottom: 10px;
+
+        li {
+            display: flex;
+            flex-direction: row;
+            padding: 7px 8px 7px 35px;
+            // padding-left: 35px;
+            font-size: 14pt;
+
+            &::before {
+                font-family: 'clipperz-icons';
+                padding-right: 8px;
+                color: $main-text-color;
+            }
+
+            &.allCards {
+                padding-left: 8px;
+                &::before {
+                    content: "clipperz";
+                }
+            }
+
+            &.recentCards {
+                padding-left: 8px;
+                &::before {
+                    content: "recent";
+                }
+            }
+
+            &.untaggedCards {
+                // &::before {
+                //     content: "";
+                // }
+            }
+
+            &.selected {
+                color: $main-color;
+            }
+        }
+    }
+
+    span {
+        &.label {
+            flex: auto;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 10px;
+        }
+
+        &.count {
+            flex: none;
+
+            color: $core-alternate-color;
+            background-color: $core-alternate-text-color;
+
+            align-self: flex-end;
+            font-size: 10pt;
+            margin-right: 4px;
+            padding: 3px 5px;
+            border-radius: 4px;
+            font-weight: 300;
+        }
+    }
+
+    div.tags {
+        span.tags {
+            display: inline-block;
+            font-size: 14pt;
+            padding: 10px 8px 10px 8px;
+
+            &::before {
+                content: "tag";
+                font-family: "clipperz-icons";
+                padding-right: 8px;
+            }
+        }
+
+        ol {
+            padding-top: 0px;
+        }
+    }
+
+    div#searchForm {
+
+
+		&::before {
+			content: "search";
+			font-family: 'clipperz-icons';
+			color: #fff;
+			padding-right: 8px;
+			font-size: 14pt;
+		}
+
+        label.search {
+            // font-family: "clipperz-icons";
+            font-size: 14pt;
+            // margin-left: 8px;
+            margin-right: 6px;
+			flex: 1;
+
+			@include fancyHidden();
+			
+			input {
+				font-size: 14pt;
+				border: 0px;
+				border-bottom: 1px solid #333;
+				outline: none;
+				width: 160px;
+				color: $main-color;
+				background-color: $core-alternate-color;
+	
+				&::placeholder {
+					font-style: italic;
+					color: #666;
+					font-size: 12pt;
+				}
+			}
+        }
+
+    }
+
+    div#archivedFilterArea {
+        // background-color: pink;
+        display: flex;
+        flex-direction: row;
+		justify-content: space-between;
+
+        border-top: 1px dotted #333;
+        padding: 10px;
+        font-size: 10pt;
+
+        // div {
+        //     flex: 1;
+        // }
+		
+        label {
+			padding-left: 5px;
+            cursor: pointer;
+			display: flex;
+			flex-direction: row-reverse;
+			align-items: flex-start;
+
+			input[type="checkbox"] {
+				cursor: pointer;
+			}
+
+			span {
+				line-height: initial;
+				padding-left: 5px;
+				align-self: baseline;
+			}
+        }
+
+        span.count {
+            margin-right: 2px;
+        }
+    }
+}

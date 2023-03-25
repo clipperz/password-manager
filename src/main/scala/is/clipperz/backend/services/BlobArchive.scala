@@ -7,17 +7,22 @@ import zio.{ ZIO, ZLayer, Task, Chunk }
 import zio.stream.{ ZStream, ZSink }
 import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder }
 import is.clipperz.backend.data.HexString
-import is.clipperz.backend.data.HexString.{ bytesToHex }
+import is.clipperz.backend.data.HexString.bytesToHex
 import is.clipperz.backend.functions.crypto.HashFunction
+import is.clipperz.backend.exceptions.EmptyContentException
+import zio.Duration
+import java.io.FileNotFoundException
+import is.clipperz.backend.exceptions.NonWritableArchiveException
+import is.clipperz.backend.exceptions.BadRequestException
 
 // ----------------------------------------------------------------------------
 
 type BlobHash = HexString
 
 case class SaveBlobData(
-  data: HexString,
-  hash: BlobHash
-)
+    data: HexString,
+    hash: BlobHash,
+  )
 
 object SaveBlobData:
   implicit val decoder: JsonDecoder[SaveBlobData] = DeriveJsonDecoder.gen[SaveBlobData]
@@ -28,37 +33,51 @@ object SaveBlobData:
 trait BlobArchive:
   def getBlob(hash: BlobHash): Task[ZStream[Any, Throwable, Byte]]
   def saveBlob(key: BlobHash, content: ZStream[Any, Throwable, Byte]): Task[BlobHash]
-  def deleteBlob(content: ZStream[Any, Throwable, Byte]): Task[Unit]
+  def deleteBlob(content: ZStream[Any, Throwable, Byte]): Task[Boolean]
 
 object BlobArchive:
+  val WAIT_TIME = 100
+
   case class FileSystemBlobArchive(keyBlobArchive: KeyBlobArchive, tmpDir: Path) extends BlobArchive:
     override def getBlob(hash: BlobHash): Task[ZStream[Any, Throwable, Byte]] =
       keyBlobArchive.getBlob(hash.toString)
 
     override def saveBlob(key: BlobHash, content: ZStream[Any, Throwable, Byte]): Task[BlobHash] =
       val tmpFile = File.createTempFile("pre", "suff", tmpDir.toFile())
-      ZIO.scoped {
-        content
-          .tapSink(ZSink.fromOutputStream(new FileOutputStream(tmpFile)))
-          .run(ZSink.digest(MessageDigest.getInstance("SHA-256").nn))
-          .map((chunk: Chunk[Byte]) => HexString.bytesToHex(chunk.toArray))
-      }.flatMap { hash =>
-        if (hash == key)
-          ZIO.scoped {
-            keyBlobArchive
-              .saveBlob(hash.toString, ZStream.fromPath(tmpFile.nn.toPath().nn))
-              .map(_ => tmpFile.nn.delete())
-              .map(_ => hash)
-          }
-        else
-          ZIO.fail(new Exception(s"hash of content does not match with hash in request"))
-      }
+      ZIO
+        .scoped {
+          content
+            .timeoutFail(new EmptyContentException)(Duration.fromMillis(WAIT_TIME))
+            .tapSink(ZSink.fromOutputStream(new FileOutputStream(tmpFile)))
+            .run(ZSink.digest(MessageDigest.getInstance("SHA-256").nn))
+            .map((chunk: Chunk[Byte]) => HexString.bytesToHex(chunk.toArray))
+        }
+        .flatMap { hash =>
+          if (hash == key)
+            ZIO.scoped {
+              keyBlobArchive
+                .saveBlob(hash.toString, ZStream.fromPath(tmpFile.nn.toPath().nn))
+                .map(_ => tmpFile.nn.delete())
+                .map(_ => hash)
+            }
+          else
+            ZIO.fail(new BadRequestException(s"Hash of content does not match with hash in request"))
+        }
+        .catchSome {
+          case ex: FileNotFoundException =>
+            val str: String =
+              if ex.getMessage() == null then "The temporary file or the blob could not be saved" else ex.getMessage().nn
+            ZIO.fail(new NonWritableArchiveException(str))
+          case ex: BadRequestException => ZIO.fail(ex)
+          case ex: EmptyContentException => ZIO.fail(ex)
+          case ex => ZIO.fail(new NonWritableArchiveException(s"${ex}"))
+        }
 
-    override def deleteBlob(content: ZStream[Any, Throwable, Byte]): Task[Unit] =
+    override def deleteBlob(content: ZStream[Any, Throwable, Byte]): Task[Boolean] =
       ZIO.scoped {
         HashFunction
           .hashSHA256(content)
-          .map(hash => keyBlobArchive.deleteBlob(bytesToHex(hash).toString))        
+          .flatMap(hash => keyBlobArchive.deleteBlob(bytesToHex(hash).toString))
       }
 
   // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
@@ -76,8 +95,12 @@ object BlobArchive:
         throw new IOException("Failed initialization of temporary blob directory")
     }
 
-  def fs(basePath: Path, levels: Int): ZLayer[Any, Throwable, BlobArchive] =
-    val keyBlobArchive = new KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels)
+  def fs(
+      basePath: Path,
+      levels: Int,
+      requireExistingPath: Boolean = true,
+    ): ZLayer[Any, Throwable, BlobArchive] =
+    val keyBlobArchive = KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels, requireExistingPath)
     val baseTmpPath = basePath.resolve("tmp").nn
 
     ZLayer.scoped(
