@@ -2,7 +2,7 @@ module Views.CardViews where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, h3, li', p, p', text, ul, textarea)
+import Concur.React.DOM (div, h3, h4, li', p, p', text, ul, textarea)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind)
@@ -13,9 +13,12 @@ import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
 import DataModel.AppState (ProxyConnectionStatus(..))
 import DataModel.Card (CardField(..), CardValues(..), Card(..))
+import Effect.Unsafe (unsafePerformEffect)
 import Functions.Clipboard (copyToClipboard)
 import Views.SimpleWebComponents (simpleButton, confirmationWidget)
 import Views.Components (dynamicWrapper, entropyMeter)
+
+import MarkdownIt (renderString)
 
 -- -----------------------------------
 
@@ -69,7 +72,11 @@ cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) = div [Props
   h3  [Props.className "card_title"]  [text t]
 , div [Props.className "card_tags"]   [ul  []   $ (\s -> li' [text s]) <$> ts]
 , div [Props.className "card_fields"] $ cardField <$> fs
-, div [Props.className "card_notes"]  [text n]
+-- , div [Props.className "card_notes"]  [text n]
+, div [Props.className "card_notes"] [
+    h3 [] [text "Notes"]
+  , div [Props.className "markdown-body", Props.dangerouslySetInnerHTML { __html: unsafePerformEffect $ renderString n}] []
+  ]
 ]
 
 cardField :: forall a. CardField -> Widget HTML a

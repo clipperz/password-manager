@@ -335,13 +335,25 @@ div#homePage {
 								}
 							}
 							div.card_notes {
-								border: 0px;
-								font-size: 10pt;
-								padding: 10px 42px 10px 42px;
+								// border: 0px;
+								// font-size: 10pt;
+								// padding: 10px 42px 10px 42px;
+								border: 0 double black;
+								border-width: 10px 0 0 0;
+								width: 100%;
+
+								& > h3 {
+									color: $alternate-text-color;
+									border-bottom-style: dashed;
+									border-bottom-width: 1px;
+									// color: $main-text-color;
+									// background-color: $accent-color-even-lighter;
+								}
+								// all: initial;
 	
-								user-select: text;
-								line-height: 1.5em;
-								white-space: pre-wrap;
+								// user-select: text;
+								// line-height: 1.5em;
+								// white-space: pre-wrap;
 							}
 						}
 					}
@@ -787,6 +799,13 @@ div#homePage {
                                         }
                                     }
                                 }
+
+								button.preview {
+									width: 100%;
+									border: 0;
+									height: 40px;
+									cursor: pointer;
+								}
 
                                 .notes {
                                     display: block;

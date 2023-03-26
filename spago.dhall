@@ -38,6 +38,7 @@
   , "lcg"
   , "lists"
   , "maybe"
+  , "markdown-it"
   , "media-types"
   , "newtype"
   , "now"

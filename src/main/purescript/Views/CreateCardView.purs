@@ -33,6 +33,7 @@ import Effect.Aff (never)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
+import Effect.Unsafe (unsafePerformEffect)
 import Functions.Card (getFieldType, FieldType(..))
 import Functions.JSState (getAppState)
 import Functions.Time (getCurrentTimestamp)
@@ -43,6 +44,7 @@ import Views.SimpleWebComponents (loadingDiv, simpleButton, dragAndDropAndRemove
 import Views.Components (dynamicWrapper, entropyMeter)
 
 import Debug (traceM)
+import MarkdownIt (renderString)
 
 import Unsafe.Coerce (unsafeCoerce)
 import Concur.Core.Props (handleProp)
@@ -175,10 +177,30 @@ createCardView card allTags state = do
             true  -> do
               traceM "newTag field exited"
               pure $ Tuple ""    $ snoc tags' newTag'
+      
+    notesSignal :: String -> Boolean -> Signal HTML (Tuple String Boolean)
+    -- notesSignal :: String -> Boolean -> Signal HTML String
+    notesSignal notes preview = do
+      -- fst <$> loopW (Tuple notes preview) (\(Tuple _notes _preview) ->
+      loopW (Tuple notes preview) (\(Tuple _notes _preview) ->
+        button [(Tuple _notes (not _preview)) <$ Props.onClick, Props.className "preview"] [text if _preview then "Edit" else "Preview Markdown"]
+        <>
+        (if _preview 
+        then
+          (Tuple _notes _preview) <$ div [Props.className "card_notes"] [
+            div [Props.className "markdown-body", Props.dangerouslySetInnerHTML { __html: unsafePerformEffect $ renderString notes}] []
+          ]       
+        else
+          (\e -> (Tuple (Props.unsafeTargetValue e) _preview)) <$> label [Props.className "notes"] [
+            span [Props.className "label"] [text "Notes"]
+          , dynamicWrapper Nothing _notes $ textarea [Props.rows 1, Props.value _notes, Props.onChange, Props.placeholder "notes"] []
+          ]
+        )
+      )
 
     formSignal :: PasswordGeneratorSettings -> Signal HTML (Maybe (Maybe Card))
     formSignal settings = do
-      Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card {content: (CardValues {title, tags, fields, notes}), archived, timestamp})) ->
+      { card: formValues } <- loopS { newTag: "", preview: false, card: card } $ \{ newTag, preview, card: Card {content: (CardValues {title, tags, fields, notes}), archived, timestamp} } ->
         div_ [Props.className "cardFormFields"] do
           title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title") "Card title")
          
@@ -186,15 +208,16 @@ createCardView card allTags state = do
           
           fields' <- fieldsSignal settings fields
 
-          notes' :: String <- loopW notes (\v -> Props.unsafeTargetValue <$> label [Props.className "notes"] [
-            span [Props.className "label"] [text "Notes"]
-          , dynamicWrapper Nothing v $ textarea [Props.rows 1, Props.value v, Props.onChange, Props.placeholder "notes"] []
-          ])
+          Tuple notes' preview' <- notesSignal notes preview
 
-          pure $ Tuple newTag' $ Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
-                                      , archived: archived
-                                      , timestamp
-                                      }
+          pure $ {
+            newTag: newTag'
+          , preview: preview'
+          , card: Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
+                       , archived: archived
+                       , timestamp
+                       }
+          }
       res <- fireOnce $ div [Props.className "submitButtons"] [(cancelButton formValues) <|> (saveButton formValues)]
       -- TODO: add check for form validity
       pure res
