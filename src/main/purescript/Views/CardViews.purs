@@ -6,11 +6,14 @@ import Concur.React.DOM (div, h3, h4, li', p, p', text, ul, textarea)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind)
+import Data.Array (null)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
+import Data.HeytingAlgebra ((&&))
 import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
+import Data.Unit (unit)
 import DataModel.AppState (ProxyConnectionStatus(..))
 import DataModel.Card (CardField(..), CardValues(..), Card(..))
 import Effect.Unsafe (unsafePerformEffect)
@@ -70,11 +73,11 @@ cardActions c@(Card r) proxyConnectionStatus = div [Props.className "cardActions
 cardContent :: forall a. CardValues -> Widget HTML a
 cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) = div [Props._id "cardContent"] [
   h3  [Props.className "card_title"]  [text t]
-, div [Props.className "card_tags"]   [ul  []   $ (\s -> li' [text s]) <$> ts]
-, div [Props.className "card_fields"] $ cardField <$> fs
+, if (null ts) then (text "") else div [Props.className "card_tags"] [ul  []   $ (\s -> li' [text s]) <$> ts]
+, if (null fs) then (text "") else div [Props.className "card_fields"] $ cardField <$> fs
 -- , div [Props.className "card_notes"]  [text n]
 , div [Props.className "card_notes"] [
-    h3 [] [text "Notes"]
+    if (null ts && null fs) then (text "") else h3 [] [text "Notes"]
   , div [Props.className "markdown-body", Props.dangerouslySetInnerHTML { __html: unsafePerformEffect $ renderString n}] []
   ]
 ]

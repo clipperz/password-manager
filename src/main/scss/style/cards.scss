@@ -236,10 +236,19 @@ div#homePage {
 							height: calc(100% - 48px);
 	
 							h3 {
-								user-select: text;
-								font-size: 24pt;
-								padding: 20px 20px 20px 42px;
-								border: 0px;
+								font-weight: var(--base-text-weight-semibold, 600);
+								padding-bottom: .3em;
+								font-size: 2em;
+								border-bottom: 1px solid hsla(210,18%,87%,1);
+								margin-bottom: 10px;
+								font-weight: 600;
+								line-height: 1.25;
+								padding: 20px 20px 10px 42px;
+
+								// user-select: text;
+								// font-size: 24pt;
+								// padding: 20px 20px 20px 42px;
+								// border: 0px;
 							}
 							
 							div.card_tags {
@@ -338,14 +347,18 @@ div#homePage {
 								// border: 0px;
 								// font-size: 10pt;
 								// padding: 10px 42px 10px 42px;
-								border: 0 double black;
-								border-width: 10px 0 0 0;
 								width: 100%;
-
+								
 								& > h3 {
+									border-top-width: 10;
+									border-top-style: double;
+
 									color: $alternate-text-color;
+									
 									border-bottom-style: dashed;
 									border-bottom-width: 1px;
+									
+									margin-bottom: 10px;
 									// color: $main-text-color;
 									// background-color: $accent-color-even-lighter;
 								}
