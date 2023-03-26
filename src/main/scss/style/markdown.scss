@@ -128,7 +128,8 @@ div#homePage div#cardsManager div.cardToolbarFrame div#mainView div#card #cardFo
 	  word-wrap: break-word;
 	}
 	
-	.markdown-body pre code, .markdown-body table {
+	  .markdown-body pre code {
+	// , .markdown-body table {
 		color: var(--dark-color-fg-default);
 	}
 
@@ -693,16 +694,16 @@ div#homePage div#cardsManager div.cardToolbarFrame div#mainView div#card #cardFo
 	.markdown-body table th,
 	.markdown-body table td {
 	  padding: 6px 13px;
-	  border: 1px solid var(--dark-color-border-default);
+	  border: 1px solid var(--color-border-default);
 	}
 	
 	.markdown-body table tr {
-	  background-color: var(--dark-color-canvas-default);
-	  border-top: 1px solid var(--dark-color-border-muted);
+	  background-color: var(--color-canvas-default);
+	  border-top: 1px solid var(--color-border-muted);
 	}
 	
 	.markdown-body table tr:nth-child(2n) {
-	  background-color: var(--dark-color-canvas-subtle);
+	  background-color: var(--color-canvas-subtle);
 	}
 	
 	.markdown-body table img {
