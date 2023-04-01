@@ -5,56 +5,56 @@ import java.nio.file.Paths
 lazy val installPurescript = TaskKey[Unit]("installPurescript", "Install purescript")
 installPurescript := {
   import sys.process._
-  "yarn install" !
+  "npm install" !
 }
 
 lazy val buildPurescript = TaskKey[Unit]("buildPurescript", "Build frontend")
 buildPurescript := {
   import sys.process._
-  "yarn build" !
+  "npm run build" !
 }
 
 // lazy val keepBuildingPurescript = TaskKey[Unit]("keepBuildingPurescript", "Keep building frontend")
 // keepBuildingPurescript := {
 //   import sys.process._
-//   "yarn keep-building" !
+//   "npm run keep-building" !
 // }
 
 lazy val packagePurescript = TaskKey[Unit]("packagePurescript", "Package frontend")
 packagePurescript := {
   import sys.process._
-  Process(Seq("bash", "-c", "yarn package"), None, "CURRENT_COMMIT" -> "development").!
+  Process(Seq("bash", "-c", "npm run package"), None, "CURRENT_COMMIT" -> "development").!
 }
 
 lazy val keepPackagingPurescript = TaskKey[Unit]("keepPackagingPurescript", "Keep packaging frontend")
 keepPackagingPurescript := {
   import sys.process._
-  "yarn keep-packaging" !
+  "npm run keep-packaging" !
 }
 
 lazy val servePurescript = TaskKey[Unit]("servePurescript", "Serve frontend")
 servePurescript := {
   import sys.process._
-  "yarn go" !
+  "npm run go" !
 }
 
 lazy val cleanDependenciesPurescript =
   TaskKey[Unit]("cleanDependenciesPurescript", "Clean dependencies frontend")
 cleanDependenciesPurescript := {
   import sys.process._
-  "yarn nuke" !
+  "npm run nuke" !
 }
 
 lazy val packageTestPurescript = TaskKey[Unit]("packageTestPurescript", "Package test frontend")
 packageTestPurescript := {
   import sys.process._
-  "yarn test-package" !
+  "npm run test-package" !
 }
 
 lazy val runTestPurescript = TaskKey[Unit]("runTestPurescript", "Run test frontend")
 runTestPurescript := {
   import sys.process._
-  "yarn test-browser" !
+  "npm run test-browser" !
 }
 
 lazy val cleanTargetSubdir = inputKey[Unit]("Clean the given subdirectory of the target directory")
