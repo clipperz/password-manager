@@ -8,6 +8,11 @@ const webpack = require('webpack');
  module.exports = {
 	mode: 'development',
 	// mode: 'production',
+	watchOptions: {
+		aggregateTimeout: 200,
+		poll: 1000,
+		ignored: /node_modules/
+	},
 	entry: {
     	index: '/src/main/purescript/_main.js',
 	},
@@ -21,6 +26,7 @@ const webpack = require('webpack');
 		}),
 		new HtmlInlineScriptPlugin({
 			htmlMatchPattern: [/index.html$/],
+			scriptMatchPattern: [/bundle.[a-zA-Z0-9]+.js/],
 		}),
 	],
 	module: {
@@ -47,7 +53,7 @@ const webpack = require('webpack');
 		minimize: true,
 	},
 	output: {
-		filename: 'bundle.js',
+		filename: 'bundle.[fullhash].js',
 		path: path.resolve(__dirname, 'target', "output.webpack"),
 		clean: true,
 	},

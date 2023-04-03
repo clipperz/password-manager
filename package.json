@@ -12,7 +12,7 @@
         "go": "parcel --host 0.0.0.0 --https --no-cache --no-hmr --dist-dir ./target/output.parcel ./src/main/html/index.html target/output.purescript/*",
         "package": "webpack build --config ./webpack.config.js --stats verbose",
         "keep-building": "spago --jobs 10 build --watch --purs-args '--codegen js,sourcemaps -o ./target/output.purescript'",
-        "keep-packaging": "webpack --watch --config ./webpack.config.js --stats verbose",
+        "keep-packaging": "webpack watch --config ./webpack.config.js --stats verbose",
         "rebuild": "clear; npm run clean; npm run build",
         "test-package": "parcel build --no-cache --cache-dir ./target/.parcel-cache --dist-dir ./target/output.parcel.test ./src/test/html/index.html /target/output.purescript/*",
         "test-browser": "parcel --host 0.0.0.0 --https --no-cache --cache-dir ./target/.parcel-cache --no-hmr --dist-dir ./target/output.parcel.test ./src/test/html/index.html /target/output.purescript/*"
