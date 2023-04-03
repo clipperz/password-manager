@@ -7,5 +7,5 @@ import is.clipperz.backend.Main.ClipperzHttpApp
 
 val staticApi: ClipperzHttpApp = Http.collectHttp[Request] {
   case request @ Method.GET -> !! / file =>
-    Http.fromFile(File(s"target/output.parcel/${file}"))
+    Http.fromFile(File(s"target/output.webpack/${file}"))
 }
