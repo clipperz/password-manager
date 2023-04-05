@@ -17,7 +17,6 @@ import Data.HexString (toArrayBuffer, fromArrayBuffer)
 import Data.HTTP.Method (Method(..))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
@@ -27,7 +26,6 @@ import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardReference(..), CardEntry(..), createCardEntry)
 import DataModel.SRP (hashFuncSHA256)
 import Effect.Aff (Aff)
-import Effect.Class.Console (log)
 import Functions.Card (getCardContent)
 import Functions.CardsCache (getCardFromCache, addCardToCache)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
@@ -64,11 +62,11 @@ postCard card = do
   _ <- ExceptT $ Right <$> (fromArrayBuffer <$> exportKey raw key)
   Tuple encryptedCard cardEntry <- ExceptT $ Right <$> (createCardEntry card key hashFuncSHA256)
   case cardEntry of
-    CardEntry { title: cardTitle
-                 , cardReference: (CardReference { reference, key: _ })
-                 , archived: _
-                 , tags: _
-                 } -> do
+    CardEntry { title: _
+              , cardReference: (CardReference { reference, key: _ })
+              , archived: _
+              , tags: _
+              } -> do
     --   log $ "posting card " <> cardTitle
       _ <- postBlob encryptedCard (toArrayBuffer reference)
       addCardToCache reference card

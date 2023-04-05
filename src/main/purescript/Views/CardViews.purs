@@ -2,7 +2,7 @@ module Views.CardViews where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, h3, h4, li', p, p', text, ul, textarea)
+import Concur.React.DOM (div, h3, li', text, textarea, ul)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind)
@@ -11,9 +11,7 @@ import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.HeytingAlgebra ((&&))
 import Data.Maybe (Maybe(..))
-import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
-import Data.Unit (unit)
 import DataModel.AppState (ProxyConnectionStatus(..))
 import DataModel.Card (CardField(..), CardValues(..), Card(..))
 import Effect.Unsafe (unsafePerformEffect)
@@ -84,7 +82,7 @@ cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) = div [Props
 
 cardField :: forall a. CardField -> Widget HTML a
 cardField f@(CardField {name, value, locked}) = do
-  res <- div [Props.className "fieldValue"] [
+  _ <- div [Props.className "fieldValue"] [
     div [Props.className "fieldLabel"] [text name]
   , dynamicWrapper (if locked then Just "PASSWORD" else Nothing) value $ textarea [Props.rows 1, Props.value value, Props.onClick, Props.disabled true] [] 
   , (if locked

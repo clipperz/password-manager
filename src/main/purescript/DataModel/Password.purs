@@ -1,19 +1,15 @@
 module DataModel.Password where
 
-import Data.Array (mapMaybe, filter, sort, elem)
-import Data.Eq ((/=))
-import Data.Foldable (fold)
+import Data.Array (elem, sort)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Monoid (class Monoid)
-import Data.Map (Map, fromFoldable, keys, lookup)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Show (class Show)
-import Data.Semigroup (class Semigroup, (<>))
-import Data.Set as Set
+import Data.Semigroup (class Semigroup)
 import Data.String.Common (joinWith)
-import Data.String.CodePoints (length, take, drop, fromCodePointArray, toCodePointArray, CodePoint)
-import Data.Tuple (Tuple(..), fst)
+import Data.String.CodePoints (CodePoint, fromCodePointArray, toCodePointArray)
+import Data.Tuple (Tuple(..))
 
 type PasswordGeneratorSettings = {
     length              :: Int,
@@ -31,9 +27,13 @@ derive instance newtypeCharacterSet :: Newtype CharacterSet _
 elemInCharacterSet :: CodePoint -> CharacterSet -> Boolean
 elemInCharacterSet c (CharacterSet set) = elem c (toCodePointArray set)
 
-
+capitalLetters :: CharacterSet
 capitalLetters    = (CharacterSet "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+lowercaseLetters :: CharacterSet
 lowercaseLetters  = (CharacterSet "abcdefghijklmnopqrstuvwxyz")
+
+numbersChars :: CharacterSet
 numbersChars      = (CharacterSet "0123456789")
 
 defaultCharacterSets :: Array (Tuple String CharacterSet)

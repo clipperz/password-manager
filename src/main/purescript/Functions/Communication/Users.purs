@@ -20,7 +20,6 @@ import Data.HTTP.Method (Method(..))
 import Data.List (List(..), (:))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.PrettyShow (prettyShow)
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Unit (Unit, unit)
@@ -30,12 +29,11 @@ import DataModel.Index (Index)
 import DataModel.User (UserCard(..), IndexReference(..), UserPreferences, UserInfoReferences(..), UserPreferencesReference(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
 import Functions.Communication.Blobs (postBlob, getBlob, deleteBlob, getDecryptedBlob)
 import Functions.EncodeDecode (encryptJson)
 import Functions.Index (getIndexContent)
-import Functions.JSState (getAppState, modifyAppState, updateAppState)
+import Functions.JSState (getAppState, updateAppState)
 import Functions.State (getHashFromState)
 
 getUserCard :: ExceptT AppError Aff UserCard
@@ -98,7 +96,7 @@ updateIndex :: Index -> ExceptT AppError Aff Unit
 updateIndex newIndex = do
   currentState <- ExceptT $ liftEffect getAppState
   case currentState of
-    { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) })  } -> do
+    { p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) })  } -> do
       UserCard userCard <- getUserCard
       masterPassword       :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       cryptoKey            :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer oldReference.masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]

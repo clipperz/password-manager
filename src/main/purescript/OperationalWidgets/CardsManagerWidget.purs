@@ -18,7 +18,7 @@ import Data.Functor ((<$>), flap)
 import Data.List ((:), filter)
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.Tuple (Tuple(..))
-import DataModel.AppState (AppError(..), InvalidStateError(..), ProxyConnectionStatus(..))
+import DataModel.AppState (AppError(..), InvalidStateError(..), ProxyConnectionStatus)
 import DataModel.Card (emptyCard)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index(..), CardEntry(..))
@@ -27,7 +27,7 @@ import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Users (updateIndex)
-import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState, CardsViewInfo, mkCardsViewInfo, FilterViewStatus(..))
+import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState, CardsViewInfo, FilterViewStatus(..))
 import Views.IndexView (IndexFilter(..), ComplexIndexFilter, addLastCardFilterInOr, removeAllLastCardFilter)
 
 data CardsManagerAction = OpenUserArea
@@ -35,7 +35,7 @@ data CardsManagerAction = OpenUserArea
 data CardsViewResult = CardsViewResult (Tuple CardsViewInfo CardViewAction) | OpResult Index CardViewState (Maybe AppError) ComplexIndexFilter
 
 cardsManagerWidget :: ProxyConnectionStatus -> Index -> CardViewState -> Widget HTML CardsManagerAction
-cardsManagerWidget proxyConnectionStatus ind cardViewState = 
+cardsManagerWidget proxyConnectionStatus ind _ = 
   let info = { index: ind
              , indexFilter: { archived: false, indexFilter: NoFilter }
              , selectedIndexPosition: Nothing
@@ -69,7 +69,7 @@ getUpdateIndexOp { index: index@(Index list), indexFilter } (IndexUpdateData act
     DeleteReference            oldEntry       -> flap (removeReferenceFromIndex oldEntry) indexFilter
     NoUpdateNecessary          oldEntry       -> pure $ OpResult index { cardView: CardFromReference oldEntry, cardViewState: Default } Nothing indexFilter
     NoUpdate                                  -> pure $ OpResult index { cardView: JustCard (fromMaybe emptyCard card), cardViewState: Default } Nothing indexFilter
-    _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing indexFilter
+    -- _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing indexFilter
 
   where
     addEntryToIndex entry = do
@@ -110,11 +110,11 @@ getUpdateIndexOp { index: index@(Index list), indexFilter } (IndexUpdateData act
             ImportError           _                           -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
 
 getUpdateIndexInfo :: ProxyConnectionStatus -> CardsViewInfo -> IndexUpdateData -> Maybe AppError -> CardsViewInfo
-getUpdateIndexInfo proxyConnectionStatus info (IndexUpdateData action card) err = 
+getUpdateIndexInfo _ info (IndexUpdateData action card) err = 
   case action of 
     AddReference                 _ -> info { error = err, indexFilter = { archived: false, indexFilter: NoFilter }, cardViewState = { cardView: (maybe NoCard CardForm card), cardViewState: Loading } }
     CloneReference               _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }
     DeleteReference              _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }
     ChangeReferenceWithEdit    _ _ -> info { error = err, cardViewState = { cardView: (maybe NoCard CardForm card), cardViewState: Loading } }
     ChangeReferenceWithoutEdit _ _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }
-    _                              -> info { error = err, cardViewState = { cardView: NoCard         , cardViewState: Default } }
+    _                              -> info { error = err, cardViewState = { cardView: NoCard                      , cardViewState: Default } }

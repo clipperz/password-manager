@@ -5,22 +5,19 @@ module Views.LoginView
   where
 
 import Control.Applicative (pure)
-import Control.Bind (bind, (>>=), discard)
-
+import Control.Bind (bind)
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, loopS, loopW, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', text, form, label, input, a, span)
+import Concur.React.DOM (form, input, label, span, text)
 import Concur.React.Props as Props
-
 import Data.Eq ((/=))
 import Data.Function (($))
-import Data.Functor ((<$>), (<$), void)
+import Data.Functor ((<$>))
 import Data.HeytingAlgebra ((&&), not)
 import Data.Maybe (Maybe)
-
 import DataModel.Credentials (Credentials)
-import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleNumberInputWidget)
+import Views.SimpleWebComponents (simpleButton)
 
 type LoginDataForm =  { username :: String
                       , password :: String

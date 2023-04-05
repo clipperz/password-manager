@@ -1,26 +1,23 @@
 module Views.CreateCardView where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, loopS, loopW, demand, display, justWait, hold, fireOnce)
-import Concur.Core.Props (filterProp)
+import Concur.Core.FRP (Signal, demand, fireOnce, loopS, loopW)
 import Concur.React (HTML)
-import Concur.React.DOM (a, div, div', text, div_, ul_, li_, form_, form, label, input, datalist, option, span, textarea, button)
+import Concur.React.DOM (button, datalist, div, div_, form, input, label, li_, option, span, text, textarea, ul_)
 import Concur.React.Props as Props
-import Control.Alt((<|>), class Alt)
+import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, (=<<), (>>=), discard)
+import Control.Bind (bind, discard, (=<<))
 import Control.Monad.Except.Trans (runExceptT)
 import Control.Semigroupoid ((<<<))
-import Data.Array (snoc, filter, catMaybes, singleton, sort, length, range, zipWith)
-import Data.Either (Either(..), fromRight, hush)
+import Data.Array (filter, singleton, snoc, sort)
+import Data.Either (fromRight, hush)
 import Data.Eq ((==), (/=))
 import Data.Function (($))
-import Data.Functor ((<$>), (<$), class Functor, void)
-import Data.HeytingAlgebra (not, (&&), (||))
+import Data.Functor ((<$), (<$>))
+import Data.HeytingAlgebra (not)
 import Data.Maybe (Maybe(..), isJust, maybe, fromMaybe)
-import Data.Ring ((-))
 import Data.Semigroup ((<>))
-import Data.Show (show, class Show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
 import Data.Unit (Unit, unit)
@@ -28,44 +25,31 @@ import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
 import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
 import DataModel.User (UserPreferences(..))
 import DataModel.WidgetState (WidgetState(..))
-import Effect (Effect)
-import Effect.Aff (never)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
 import Functions.Card (getFieldType, FieldType(..))
 import Functions.JSState (getAppState)
 import Functions.Time (getCurrentTimestamp)
 import Functions.Communication.Users (getUserPreferences)
-import React.SyntheticEvent (SyntheticMouseEvent)
+import MarkdownIt (renderString)
 import Views.PasswordGenerator (passwordGenerator)
-import Views.SimpleWebComponents (loadingDiv, simpleButton, dragAndDropAndRemoveList, confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, simpleCheckboxWidget, simpleTextAreaSignal)
+import Views.SimpleWebComponents (confirmationWidget, dragAndDropAndRemoveList, loadingDiv, simpleButton, simpleTextInputWidget)
 import Views.Components (dynamicWrapper, entropyMeter)
 
-import Debug (traceM)
-import MarkdownIt (renderString)
-
-import Unsafe.Coerce (unsafeCoerce)
-import Concur.Core.Props (handleProp)
-import React.SyntheticEvent (NativeEvent, SyntheticKeyboardEvent)
 
 createCardView :: Card -> Array String -> WidgetState -> Widget HTML (Maybe Card)
 createCardView card allTags state = do
   maybeUp <- hush <$> (liftAff $ runExceptT getUserPreferences)
-  let fromAppStateToPasswordSettings = \as -> fromMaybe standardPasswordGeneratorSettings $ (\(UserPreferences up) -> up.passwordGeneratorSettings) <$> maybeUp
+  let fromAppStateToPasswordSettings = \_ -> fromMaybe standardPasswordGeneratorSettings $ (\(UserPreferences up) -> up.passwordGeneratorSettings) <$> maybeUp
   passwordGeneratorSettings <- ((fromRight standardPasswordGeneratorSettings) <<< ((<$>) fromAppStateToPasswordSettings)) <$> (liftEffect getAppState)
   mCard <- div [Props._id "cardForm"] do
     case state of
       Default   -> [mask, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
       Loading   -> [mask, loadingDiv, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
       Error err -> [mask, text err, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
-      -- Default   -> [mask, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
-      -- Loading   -> [mask, loadingDiv, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
-      -- Error err -> [mask, text err, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
   case mCard of
     Just (Card { content, timestamp: _ }) -> do
-      -- liftEffect $ log $ show content
       timestamp' <- liftEffect $ getCurrentTimestamp
       pure $ Just $ Card { content: content, archived: false, timestamp: timestamp' }
     Nothing -> pure Nothing
@@ -74,7 +58,7 @@ createCardView card allTags state = do
     mask = div [Props.className "mask"] []
 
     getActionButton :: CardField -> Widget HTML Unit
-    getActionButton cardField@(CardField { name, value, locked }) =
+    getActionButton cardField =
       case getFieldType cardField of
         Passphrase  -> button [unit <$ Props.onClick, Props.disabled false, Props.className "action passwordGenerator" ] [span [] [text "password generator"]]
         Email       -> button [Props.disabled true, Props.className "action email"] [span [] [text "email"]]
@@ -150,7 +134,7 @@ createCardView card allTags state = do
 
       loopW (Tuple newTag false) (\(Tuple value _) -> do
         -- log value
-        result@(Tuple value enter) <- form [(\e -> Tuple value (value /= "")) <$> Props.onSubmit] [
+        result <- form [(\_ -> Tuple value (value /= "")) <$> Props.onSubmit] [
           label [] [
             span [Props.className "label"] [text "New Tag"]
             , input [
@@ -175,7 +159,6 @@ createCardView card allTags state = do
           case addTag of
             false -> pure $ Tuple newTag' tags'
             true  -> do
-              traceM "newTag field exited"
               pure $ Tuple ""    $ snoc tags' newTag'
       
     notesSignal :: String -> Boolean -> Signal HTML (Tuple String Boolean)

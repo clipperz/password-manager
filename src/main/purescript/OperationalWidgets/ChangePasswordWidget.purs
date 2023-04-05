@@ -7,13 +7,13 @@ module OperationalWidgets.ChangePasswordWidget
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, fireOnce, loopS, loopW)
 import Concur.React (HTML)
-import Concur.React.DOM (text, div, div', h1, form, label, input, span)
+import Concur.React.DOM (div, div', form, h1, text)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard, (>>=))
+import Control.Bind (bind, (>>=))
 import Control.Monad.Except.Trans (runExceptT, ExceptT(..), except)
-import Data.Either (Either(..), either, fromRight)
+import Data.Either (Either(..), either)
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
@@ -26,12 +26,9 @@ import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Effect (Effect)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Functions.JSState (getAppState)
-import Functions.Password (standardPasswordStrengthFunction)
 import Functions.User (changeUserPassword)
-import Views.SimpleWebComponents (PasswordForm, loadingDiv, simpleButton, simpleCheckboxSignal, simplePasswordInputWidget, simpleUserSignal, simpleVerifiedPasswordSignal)
-import Record (merge)
+import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleCheckboxSignal)
 import Views.Components (ClassName(..), verySimpleInputWidget, InputType(..), Enabled(..), Placeholder(..), Label(..), entropyMeter)
 
 type ChangePasswordDataForm = { username       :: String
@@ -59,7 +56,7 @@ changePasswordWidget state changeForm = go state changeForm
   where 
     go :: WidgetState -> ChangePasswordDataForm -> forall a. Widget HTML a
     go s cf@{ username, password } = do
-      currentCredentials :: Credentials <- liftEffect $ either (\_ -> {username: Nothing, password: Nothing}) (\s -> {username: s.username, password: s.password}) <$> getAppState
+      currentCredentials :: Credentials <- liftEffect $ either (\_ -> {username: Nothing, password: Nothing}) (\state_ -> {username: state_.username, password: state_.password}) <$> getAppState
       res <- case s of
         Default   -> div [Props._id "changePasswordArea"] [Change <$> formWidget currentCredentials (Enabled true)]
         Loading   -> do
@@ -108,7 +105,7 @@ changePasswordWidget state changeForm = go state changeForm
     submitWidget f@{ username, oldPassword } = do
       check     <- liftEffect $ if username == "" || oldPassword == "" then pure (Right false) else checkC f
       disabled  <- pure $ case check of
-        Left  err -> true
+        Left  _ -> true
         Right b   -> not (b && (isNewDataValid f))
       simpleButton "change_password" "Change passphrase" disabled f
     

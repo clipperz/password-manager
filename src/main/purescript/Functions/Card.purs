@@ -19,7 +19,6 @@ import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (fromArrayBuffer, toArrayBuffer, toString, Base(..))
-import Data.Maybe (Maybe(..))
 import Data.String.Regex (Regex, test, regex)
 import Data.String.Regex.Flags (noFlags) 
 import Data.Show (class Show, show)
@@ -69,7 +68,7 @@ isValidUrl :: String -> Boolean
 isValidUrl url = testRegex urlRegex url
 
 getFieldType :: CardField -> FieldType
-getFieldType cf@(CardField { name, value, locked })
+getFieldType (CardField { value, locked })
   | locked              = Passphrase
   | isValidEmail value  = Email
   | isValidUrl value    = Url

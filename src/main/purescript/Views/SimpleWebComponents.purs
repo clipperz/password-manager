@@ -37,63 +37,44 @@ module Views.SimpleWebComponents
   where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, loopW, demand, debounce, loopS, display, step)
+import Concur.Core.FRP (Signal, display, loopS, loopW)
 import Concur.React (HTML)
-import Concur.React.DOM (text, textarea, input, label, div', div, button, ul, li, span, div_)
+import Concur.React.DOM (button, div, input, label, li, span, text, textarea, ul)
 import Concur.React.Props as Props
-import Control.Alt (class Alt, (<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (=<<), (>>=))
 import Control.Semigroupoid ((<<<))
-import Data.Array (length, zipWith, range, catMaybes, updateAt, deleteAt, insertAt, filter, intersperse, drop, take, sortWith, union, dropEnd, takeEnd, (!!), (:))
+import Data.Array (catMaybes, deleteAt, insertAt, intersperse, length, range, updateAt, zipWith, (:))
 import Data.Bifunctor (lmap, rmap)
-import Data.Boolean (otherwise)
 import Data.Either (Either(..), hush)
-import Data.Enum (enumFromThenTo)
 import Data.EuclideanRing ((/))
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>), class Functor)
 import Data.HeytingAlgebra (not)
-import Data.Int (even, odd)
 import Data.Map (Map, lookup)
-import Data.Maybe (fromMaybe, fromJust, Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Monoid (power)
-import Data.Newtype (class Newtype, unwrap)
-import Data.Ord ((>))
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
-import Data.Semiring ((+), (*))
+import Data.Semiring ((*))
 import Data.Show (show, class Show)
 import Data.String (joinWith)
-import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
-import Data.Unit (unit, Unit)
+import Data.Unit (Unit)
 import Effect (Effect)
-import Effect.Aff (delay)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
-import Functions.Events (readFile, readFileFromDrop, getClickCoordinates, printEvent)
+import Functions.Events (readFile)
 import Functions.Password (PasswordStrengthFunction, PasswordStrength, passwordStrengthClass)
-import Functions.Time (getCurrentTimestamp)
-import React.SyntheticEvent (currentTarget, preventDefault, SyntheticEvent_, NativeEventTarget, SyntheticMouseEvent)
+import React.SyntheticEvent (currentTarget, preventDefault, SyntheticEvent_, NativeEventTarget, NativeEvent, SyntheticMouseEvent)
 
 import Unsafe.Coerce (unsafeCoerce)
-import Web.DOM.Node (fromEventTarget, Node(..))
-import Web.DOM.Element (fromNode)
-import Web.DOM.Document (toNonElementParentNode)
-import Web.DOM.NonElementParentNode (getElementById)
-import Web.HTML (window)
-import Web.HTML.HTMLDocument (toDocument)
-import Web.HTML.Window (document)
-import Effect.Unsafe (unsafePerformEffect)
-import Concur.Core.Props (Props(..), handleProp, filterProp)
-import React.SyntheticEvent (NativeEvent)
+import Concur.Core.Props (handleProp)
 import Views.Components (entropyMeter)
 
-import Debug (traceM)
 
 -- foreign import handleDragEvent :: NativeEvent -> String -> Effect Unit 
 foreign import handleDragStartEvent_ :: String -> Int -> Int -> NativeEvent -> Effect Unit
@@ -377,17 +358,17 @@ complexMenu mId mClass arr currentItemSelected = do
 
 data OnDraggableEvents a b = StartDrag a | EndDrag a | Dragging a | Value b
 instance showOnDraggableEvents :: Show (OnDraggableEvents a b) where
-  show (StartDrag a)  = "StartDrag"
-  show (EndDrag   a)  = "EndDrag"
-  show (Dragging  a)  = "Dragging"
-  show (Value     b)  = "Value"
+  show (StartDrag _)  = "StartDrag"
+  show (EndDrag   _)  = "EndDrag"
+  show (Dragging  _)  = "Dragging"
+  show (Value     _)  = "Value"
 
 data OnDropAreaEvents a = EvDrop a | EvDragEnter a | EvDragLeave a | EvDragOver a
 instance showOnDropAreaEvents :: Show (OnDropAreaEvents a) where
-  show (EvDrop      a)  = "EvDrop"
-  show (EvDragEnter a)  = "EvDragEnter"
-  show (EvDragLeave a)  = "EvDragLeave"
-  show (EvDragOver  a)  = "EvDragOver"    --  menu is redrawn [366?]
+  show (EvDrop      _)  = "EvDrop"
+  show (EvDragEnter _)  = "EvDragEnter"
+  show (EvDragLeave _)  = "EvDragLeave"
+  show (EvDragOver  _)  = "EvDragOver"    --  menu is redrawn [366?]
 
 newtype DraggableWidgetResult a = DraggableWidgetResult { isDragging :: Boolean, exitState :: a }
 instance showDraggableWidgetResult :: Show (DraggableWidgetResult a) where
@@ -448,9 +429,9 @@ droppableArea isSelected = do
     EvDragOver ev -> do
       liftEffect $ preventDefault ev
       droppableArea isSelected
-    EvDragEnter ev -> do
+    EvDragEnter _ -> do
       pure { isSelected: true, result }
-    EvDragLeave ev -> do
+    EvDragLeave _ -> do
       pure { isSelected: false, result }
     EvDrop ev -> do
       liftEffect $ preventDefault ev
@@ -479,10 +460,10 @@ dragAndDropAndRemoveList widgets = do
       let widget = removableDraggableWidget isDragging is widgetFunc
       in { widgetFunc, widget }
 
-    manageDroppableAreaResult :: DroppableAreaResult  -> Tuple (OnDropAreaEvents SyntheticMouseEvent) DroppableWidget
-    manageDroppableAreaResult { isSelected, result } = 
-      let droppableWidget = droppableArea isSelected
-      in Tuple result droppableWidget
+    -- manageDroppableAreaResult :: DroppableAreaResult  -> Tuple (OnDropAreaEvents SyntheticMouseEvent) DroppableWidget
+    -- manageDroppableAreaResult { isSelected, result } = 
+    --   let droppableWidget = droppableArea isSelected
+    --   in Tuple result droppableWidget
 
     -- manageDraggableWidgetResult :: RemovableDraggableWidgetResult a -> RemovableDraggableWidgetType a -> Maybe (Tuple a (RemovableDraggableWidgetType a))
     -- manageDraggableWidgetResult Remove _ = Nothing
@@ -497,46 +478,46 @@ dragAndDropAndRemoveList widgets = do
     mapDraggableWidget :: RemovableDraggableWidgetType a -> Widget HTML (RemovableDraggableSupportType a)
     mapDraggableWidget { widgetFunc, widget } = (\result -> { widgetFunc, result }) <$> widget
 
-    prepareNewElements :: Array (Widget HTML (Either DroppableAreaResult (RemovableDraggableSupportType a))) 
-                       -> SelectedDraggableInfo a
-                       -> Int
-                       -> Array (Widget HTML (Either DroppableAreaResult (RemovableDraggableSupportType a)))
-    prepareNewElements elements { index: dragIndex, state, widgetFunc } dropIndex 
-      | dragIndex > dropIndex =
-          let untouchedFirstElems = take (dropIndex + 1) elements
-              untouchedLastElems = drop (dragIndex + 1) elements
-              elemsToBeShifted = takeEnd (dragIndex - dropIndex - 1) $ take (dragIndex - 1) elements
-          in case elements !! dragIndex of
-              Nothing -> elements
-              Just elem -> 
-                let newElem = Right <$> (mapDraggableWidget $ mapWidget false (Tuple state widgetFunc))
-                in untouchedFirstElems
-                  <> [newElem]
-                  <> elemsToBeShifted
-                  <> untouchedLastElems
-      | otherwise = 
-          let untouchedFirstElems = take (dragIndex - 1) elements
-              untouchedLastElems = drop dropIndex elements
-              elemsToBeShifted = takeEnd (dropIndex - dragIndex - 1) $ take dropIndex elements
-          in case elements !! dragIndex of
-              Nothing -> elements
-              Just elem -> 
-                let newElem = Right <$> (mapDraggableWidget $ mapWidget false (Tuple state widgetFunc))
-                in untouchedFirstElems
-                  <> elemsToBeShifted
-                  <> [includeEither $ Left $ droppableArea false]
-                  <> [newElem]
-                  <> untouchedLastElems
+    -- prepareNewElements :: Array (Widget HTML (Either DroppableAreaResult (RemovableDraggableSupportType a))) 
+    --                    -> SelectedDraggableInfo a
+    --                    -> Int
+    --                    -> Array (Widget HTML (Either DroppableAreaResult (RemovableDraggableSupportType a)))
+    -- prepareNewElements elements { index: dragIndex, state, widgetFunc } dropIndex 
+    --   | dragIndex > dropIndex =
+    --       let untouchedFirstElems = take (dropIndex + 1) elements
+    --           untouchedLastElems = drop (dragIndex + 1) elements
+    --           elemsToBeShifted = takeEnd (dragIndex - dropIndex - 1) $ take (dragIndex - 1) elements
+    --       in case elements !! dragIndex of
+    --           Nothing -> elements
+    --           Just elem -> 
+    --             let newElem = Right <$> (mapDraggableWidget $ mapWidget false (Tuple state widgetFunc))
+    --             in untouchedFirstElems
+    --               <> [newElem]
+    --               <> elemsToBeShifted
+    --               <> untouchedLastElems
+    --   | otherwise = 
+    --       let untouchedFirstElems = take (dragIndex - 1) elements
+    --           untouchedLastElems = drop dropIndex elements
+    --           elemsToBeShifted = takeEnd (dropIndex - dragIndex - 1) $ take dropIndex elements
+    --       in case elements !! dragIndex of
+    --           Nothing -> elements
+    --           Just elem -> 
+    --             let newElem = Right <$> (mapDraggableWidget $ mapWidget false (Tuple state widgetFunc))
+    --             in untouchedFirstElems
+    --               <> elemsToBeShifted
+    --               <> [includeEither $ Left $ droppableArea false]
+    --               <> [newElem]
+    --               <> untouchedLastElems
 
-    convertToLoopableWidget :: Either DroppableAreaResult (RemovableDraggableSupportType a) -> Maybe (LoopableWidget a)
-    convertToLoopableWidget (Left _) = Nothing
-    convertToLoopableWidget (Right { widgetFunc: _, result: Remove}) = Nothing
-    convertToLoopableWidget (Right { widgetFunc, result: (Result (DraggableWidgetResult { isDragging, exitState }))}) = Just (Tuple exitState widgetFunc)
+    -- convertToLoopableWidget :: Either DroppableAreaResult (RemovableDraggableSupportType a) -> Maybe (LoopableWidget a)
+    -- convertToLoopableWidget (Left _) = Nothing
+    -- convertToLoopableWidget (Right { widgetFunc: _, result: Remove}) = Nothing
+    -- convertToLoopableWidget (Right { widgetFunc, result: (Result (DraggableWidgetResult { isDragging, exitState }))}) = Just (Tuple exitState widgetFunc)
 
-    convertToResult :: Array (Widget HTML (Either DroppableAreaResult (RemovableDraggableSupportType a))) -> Widget HTML (Array (LoopableWidget a))
-    convertToResult arr =
-      let sequencedWidgets = sequence arr
-      in (\eithers -> catMaybes (convertToLoopableWidget <$> eithers)) <$> sequencedWidgets
+    -- convertToResult :: Array (Widget HTML (Either DroppableAreaResult (RemovableDraggableSupportType a))) -> Widget HTML (Array (LoopableWidget a))
+    -- convertToResult arr =
+    --   let sequencedWidgets = sequence arr
+    --   in (\eithers -> catMaybes (convertToLoopableWidget <$> eithers)) <$> sequencedWidgets
 
     go :: Array (Either Boolean (LoopableWidget a)) -> Maybe (SelectedDraggableInfo a) -> Widget HTML (Array (LoopableWidget a))
     go widgetsInfo selectedIndex = do
@@ -550,9 +531,9 @@ dragAndDropAndRemoveList widgets = do
       {index, res} <- div [Props.classList [Just "dragAndDropList", (\_ -> "dragging") <$> selectedIndex]] newWidgets
       -- pure $ catMaybes $ hush <$> widgetsInfo
       case res of 
-        Left { isSelected, result } -> do
+        Left { result } -> do
           case result of
-            EvDrop a -> do
+            EvDrop _ -> do
               case selectedIndex of
                 Just { state, index: ix, widgetFunc } -> do
                   let withoutElem = (deleteAt ix widgetsInfo)
@@ -567,21 +548,21 @@ dragAndDropAndRemoveList widgets = do
                 Nothing -> do
                   log "error1"
                   go widgetsInfo selectedIndex
-            EvDragEnter a -> do
+            EvDragEnter _ -> do
               let newElements = updateAt index (Left true) widgetsInfo
               case newElements of
                 Nothing -> do
                   log "error2"
                   go widgetsInfo selectedIndex
                 Just elements' -> go elements' selectedIndex
-            EvDragLeave a -> do
+            EvDragLeave _ -> do
               let newElements = updateAt index (Left false) widgetsInfo
               case newElements of
                 Nothing -> do
                   log "error2"
                   go widgetsInfo selectedIndex
                 Just elements' -> go elements' selectedIndex
-            EvDragOver a -> do
+            EvDragOver _ -> do
               let newElements = updateAt index (Left true) widgetsInfo
               case newElements of
                 Nothing -> do

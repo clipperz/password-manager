@@ -29,9 +29,8 @@ import DataModel.Card (Card)
 import DataModel.Proxy (Proxy)
 import DataModel.Communication.ProtocolError (ProtocolError)
 import DataModel.SRP(SRPGroup, group1024, k)
-import DataModel.User (IndexReference, UserPreferences, UserCard, UserInfoReferences)
+import DataModel.User (UserCard, UserInfoReferences, UserPreferences)
 import Functions.HashCash (TollChallenge)
-
 
 data UserConnectionStatus = UserLoggedIn | UserAnonymous
 data ProxyConnectionStatus = ProxyOnline | ProxyOffline
@@ -101,6 +100,6 @@ instance prettyShowAppError :: PrettyShow AppError where
   prettyShow (ProtocolError err)         = prettyShow err
   prettyShow (ImportError err)           = "Your imported values are not in the right format! (" <> err <> ")" 
   prettyShow (CannotInitState _)         = "Cannot init state, please try to reload"
-  prettyShow (InvalidOperationError err) = "Invalid operation error, something was not programmed correctly."
+  prettyShow (InvalidOperationError _) = "Invalid operation error, something was not programmed correctly."
 
 derive instance eqAppError :: Eq AppError

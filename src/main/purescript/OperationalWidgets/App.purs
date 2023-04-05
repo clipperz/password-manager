@@ -7,31 +7,24 @@ module OperationalWidgets.App
   where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, demand, loopS, loopW, always, fireOnce, hold, dyn)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text, ul, li, p, h1, h3, footer, header, span, a, button, div_, footer_, p_, ul_, li_, a_, h1_, h3_, header_, span_)
+import Concur.React.DOM (a, button, div, footer, h1, h3, header, li, p, span, text, ul)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, (>>=), discard)
 import Control.Monad.Except.Trans (runExceptT)
-import Control.Semigroupoid ((<<<))
 import Data.Array (range)
 import Data.Either as E
 import Data.Eq ((==), class Eq)
 import Data.Formatter.Number (Formatter(..), format)
 import Data.Function (($))
-import Data.Functor (map, (<$), void, (<$>))
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Int (toNumber, fromString)
-import Data.List (List(..), (:))
+import Data.Functor (map, (<$), (<$>))
+import Data.Maybe (Maybe(..))
+import Data.Int (toNumber)
 import Data.Semigroup ((<>))
-import Data.Semiring ((+))
 import Data.Show(class Show, show)
 import Data.Time.Duration (Milliseconds(..))
-import Data.Traversable (sequence)
-import Data.Unit (unit, Unit)
--- import Data.Unit (unit)
 import DataModel.WidgetState as WS
 import DataModel.AppState (UserConnectionStatus(..))
 import DataModel.Credentials (Credentials)
@@ -44,19 +37,13 @@ import Functions.Communication.Signup (signupUser)
 import Functions.Login (doLogin)
 import Functions.State (computeInitialState)
 import Functions.JSState (modifyAppState)
-import Effect.Class.Console (log)
-import Functions.Pin (decryptPassphraseWithRemoval, makeKey)
+import Functions.Pin (decryptPassphraseWithRemoval)
 import OperationalWidgets.HomePageWidget (homePageWidget)
 import Record (merge)
 import Views.LoginFormView (loginFormView', PinCredentials)
-import Views.SignupFormView (SignupDataForm, emptyDataForm, signupFormView)
--- import Views.LandingPageView (landingPageView, LandingPageView(..))
-import Views.LoginView ( loginView )
+import Views.SignupFormView (emptyDataForm, signupFormView)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
-import Web.Storage.Storage (getItem, setItem, Storage)
-
-import Debug (traceM)
 
 foreign import currentCommit :: Effect String
 
@@ -86,38 +73,11 @@ data Action = DoLogout
             | ShowError Page 
             | ShowSuccess Page 
             | InitState Action
-            -- | ShowMain
 
 app' :: forall a. Action -> { credentials :: Credentials } -> Widget HTML a
 app' action st@{ credentials } = do
   log $ show action
   nextAction:: Action <- exitBooting action <|>
-
---     (demand $ div_ [Props.className "mainDiv"] do
---       _             <- headerPage (actionPage action) (Loading Nothing) $ always unit
---       loginPageRes  <- headerPage (actionPage action) Login $ do
---           loginFormResult <- ((<$>) DoLogin) <$> loginViewSignal
---           loginChangeViewRes <- fireOnce $ (ShowPage Signup) <$ button [Props.onClick] [text "=> signup"]
---           traceM $ "login result: " <> show (loginFormResult <|> loginChangeViewRes)
---           pure $ loginFormResult <|> loginChangeViewRes
---       signupPageRes <- headerPage (actionPage action) Signup $ do
---         -- DoSignup <$> signupView,
---           signupFormResult <- ((<$>) DoSignup) <$> loginViewSignal
---           signupChangeViewRes <- fireOnce $ (ShowPage Login) <$ button [Props.onClick] [text "<= login"]
---           traceM $ "signup result: " <> show (signupFormResult <|> signupChangeViewRes)
---           pure $ signupFormResult <|> signupChangeViewRes
---       sharePageRes  <- div_ [Props.classList (Just <$> ["page", "main", show $ location (Share Nothing) (actionPage action)])] $ do
---         _ <- div_ [Props.className "content"] (hold unit $ text "share")
---         pure Nothing
---       mainPageRes   <- div_ [Props.classList (Just <$> ["page", "main", show $ location Main (actionPage action)])] $ do
---         _ <- div_ [Props.className "content"] (hold unit $ text "main")
---         pure Nothing
---       pure $ loginPageRes <|> signupPageRes <|> sharePageRes <|> mainPageRes)
---     <|>
---     overlay { status: Hidden, message: "loading" }
---   log $ "--------------------\npage action " <> show nextAction <> "\n======================"
---   app' nextAction
-
     div [Props.className "mainDiv"] [
         headerPage (actionPage action) (Loading Nothing) []
       , headerPage (actionPage action) Login [
@@ -149,7 +109,7 @@ app' action st@{ credentials } = do
   where 
     getLoginActionType :: E.Either PinCredentials Credentials -> Action
     getLoginActionType (E.Left pinCredentials) = DoLoginWithPin pinCredentials
-    getLoginActionType (E.Right credentials) = DoLogin credentials
+    getLoginActionType (E.Right credentials_) = DoLogin credentials_
 
 overlayFromAction :: forall a. Action -> Widget HTML a
 overlayFromAction (DoLogin _)        = overlay { status: Spinner, message: "loading" }
@@ -261,6 +221,7 @@ footerComponent commit =
     ]
   ]
 
+shortcutsDiv :: forall a. Widget HTML a
 shortcutsDiv = div [Props._id "shortcutsHelp", Props.className "hidden"] [
   p [] [span [] [text "/"]], p [] [text "search"]
 , p [] [span [] [text "*"]], p [] [text "reset search"]
@@ -302,7 +263,7 @@ doOp (DoLogin cred) = do
       log $ "Login error: " <> (show err)
       pure $ ShowError Login
 doOp (DoLoginWithPin {pin, user, passphrase}) = do
-  storage <- liftEffect $ window >>= localStorage
+  _  <- liftEffect $ window >>= localStorage
   ei <- runExceptT $ decryptPassphraseWithRemoval pin user passphrase
   case ei of
     E.Right cred -> pure (DoLogin cred)
@@ -351,53 +312,3 @@ instance showAction :: Show Action where
   show (InitState action)   = "Show InitState " <> show action
 
 derive instance eqAction :: Eq Action
-
-{-
-app :: Widget HTML Unit
-app = do
-  initialState <- liftEffect computeInitialState
-  liftAff $ modifyAppState initialState
-  _ <- do
-    landingPageView (LoginView Default emptyForm)
-
-    -- !!! AUTOLOGIN FOR DEVELOPING !!! --
-    -- landingPageView (LoginView Loading {username: "joe", password: "clipperz"})
-    -- -------------------------------- --
-
-    void $ HomePageWidget.homePageWidget
-  app
--}
-
-
-{-
-
-app :: Widget HTML Unit
-app = shortcutsDiv <|> (app' Nothing)
-
-  where 
-    app' :: Maybe String -> Widget HTML Unit
-    app' maybeUsername = do
-      initialState' <- liftEffect $ runExceptT computeInitialState
-      case initialState' of
-        Right initialState@{proxy} -> do
-          liftAff $ modifyAppState initialState
-          let offlineCopyBanner = case proxy of
-                                    OfflineProxy _ -> [p [Props.className "notice"] [text "Offline copy"]]
-                                    _ -> []
-          res <- div [Props.className "wrapper"] $ offlineCopyBanner <> [
-            do
-            let form = fromMaybe emptyForm ((\u -> { username: u, password: "" }) <$> maybeUsername )
-            landingPageView (LoginView Default form)
-            -- !!! AUTOLOGIN FOR DEVELOPING !!! --
-            -- let form = fromMaybe {username: "joe", password: "clipperz"} ((\u -> { username: u, password: "" }) <$> maybeUsername )
-            -- landingPageView (LoginView Loading form)
-            -- -------------------------------- --
-            homePageWidget
-          ]
-          case res of
-            Clean -> app' Nothing
-            ReadyForLogin username -> app' (Just username)
-
-Left _ -> text "Could not initialize app"
--}
-

@@ -7,15 +7,14 @@ import Concur.React.DOM (text, div, h1, div', form, p)
 import Concur.React.Props as Props
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard, (>>=))
-import Control.Monad.Except.Trans (runExceptT, except, mapExceptT, ExceptT(..))
-import Control.Semigroupoid ((<<<))
+import Control.Bind (bind, (>>=))
+import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (either, Either(..))
 import Data.Eq ((==))
 import Data.EuclideanRing ((/))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$), void)
-import Data.HeytingAlgebra ((||), (&&), not)
+import Data.HeytingAlgebra (not, (&&))
 import Data.List (List(..), length)
 import Data.Maybe (Maybe(..))
 import Data.Operation (runOperation)
@@ -26,26 +25,23 @@ import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..))
 import DataModel.Index (Index(..))
 import DataModel.WidgetState (WidgetState(..))
-import Effect (Effect)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Functions.Communication.Users (getIndex)
 import Functions.JSState (getAppState)
-import Functions.Pin (deleteCredentials)
-import Functions.User (deleteUser, deleteUserSteps)
-import Record (merge)
+import Functions.User (deleteUserSteps)
 import Views.Components (ClassName(..), verySimpleInputWidget, InputType(..), Enabled(..), Placeholder(..), Label(..))
-import Views.LoginFormView (emptyForm)
-import Views.SimpleWebComponents (loadingDiv, loadingBar, simpleButton, confirmationWidget, simpleUserSignal, simpleCheckboxSignal, simplePasswordInputWidget)
-import Web.HTML (window)
-import Web.HTML.Window (localStorage)
+import Views.SimpleWebComponents (confirmationWidget, simpleButton, simpleCheckboxSignal)
 
 data DeleteUserWidgetAction = PleaseDelete DeleteFormValue | DoNothing | FailedDelete AppError | Done
 
 type Credentials = {username:: Maybe String, password:: Maybe String }
 
 type DeleteFormValue = {username :: String, password :: String, notRecoverable :: Boolean}
+emptyFormValues :: { notRecoverable :: Boolean
+, password :: String
+, username :: String
+}
 emptyFormValues = {username: "", password: "", notRecoverable: false}
 
 emptyCredentials :: Credentials

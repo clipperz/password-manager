@@ -19,7 +19,7 @@ import Data.Function (($))
 import Data.Functor ((<$>), void)
 import Data.HexString (HexString, fromArrayBuffer, toArrayBuffer)
 import Data.HTTP.Method (Method(..))
-import Data.List (List(..), length, zipWith, (..))
+import Data.List (List, length, zipWith, (..))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Operation (OperationStep(..))
@@ -98,7 +98,7 @@ deleteUserSteps :: forall m. MonadAff m
                     -> (Int -> m (Either AppError Unit))
                     -> (String -> m (Either AppError Unit))
                     -> List (OperationStep (Either AppError Unit) (Either AppError Unit) m)
-deleteUserSteps index@(Index entries) progressBarFunc stepPlaceholderFunc = do
+deleteUserSteps (Index entries) progressBarFunc stepPlaceholderFunc = do
   let total = length entries
   let deleteSteps = fromFoldable $ deleteCardStep <$> (zipWith (\i -> \c -> {index: i, entry: c}) (0 .. total) entries)
   toUnfoldable $ deleteSteps <> [ IntermediateStep (\psr ->

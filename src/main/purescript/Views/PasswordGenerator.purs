@@ -8,31 +8,28 @@ import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Semigroupoid ((<<<))
-import Data.Array (concat, nub, difference, all, elem, sort)
+import Data.Array (all, difference, elem, nub, sort)
 import Data.Either (Either(..), either)
-import Data.Eq ((==), (/=))
+import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
-import Data.HeytingAlgebra (not, (&&))
+import Data.HeytingAlgebra (not)
 import Data.Int (fromString)
-import Data.Map (update, fromFoldable, toUnfoldable, lookup)
-import Data.Maybe (Maybe(..), fromMaybe, fromJust, isJust)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Monoid (class Monoid, mempty)
 import Data.Semigroup ((<>))
 import Data.Show (show)
-import Data.String (contains)
 -- import Data.String.CodeUnits (fromCodePointArray, toCodePointArray)
-import Data.String.CodePoints (length, take, drop, fromCodePointArray, toCodePointArray, CodePoint)
-import Data.String.Pattern (Pattern(..))
+import Data.String.CodePoints (fromCodePointArray, toCodePointArray)
 import Data.Tuple(Tuple(..))
 import DataModel.AsyncValue (AsyncValue(..))
 import DataModel.Password (PasswordGeneratorSettings, CharacterSet(..), defaultCharacterSets)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
-import Functions.Password (randomPassword, standardPasswordStrengthFunction, passwordStrengthClass)
+import Functions.Password (randomPassword)
 import Views.Components (dynamicWrapper, entropyMeter)
-import Views.SimpleWebComponents (simpleButton, simpleNumberInputWidget, disabledSimpleTextInputWidget, simpleTextInputWidget, simpleCheckboxWidget)
+import Views.SimpleWebComponents (simpleButton, simpleTextInputWidget)
 
 
 extractValue :: forall a. Monoid a => AsyncValue a -> a
@@ -73,7 +70,7 @@ composedWidget settings isOpen av = do
     computePassword s' = liftAff $ randomPassword s'.length s'.characters
 
     widget :: PasswordGeneratorSettings -> Boolean -> AsyncValue String -> Widget HTML ComposedWidgetAction
-    widget s isOpen v = div [Props.className "passwordGeneratorForm"] [
+    widget s _ v = div [Props.className "passwordGeneratorForm"] [
       div [Props.classList [Just "optionWrapper", Just (if isOpen then "open" else "close")]] [
         header [] [button [(TogglePasswordSettings $ not isOpen) <$ Props.onClick] [text "options"]]
       , ModifiedSettingsAction <$> settingsWidget s

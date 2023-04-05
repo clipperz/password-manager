@@ -2,7 +2,7 @@ module Data.Operation where
 
 import Control.Alt ((<|>), class Alt)
 import Control.Applicative (pure, class Applicative)
-import Control.Bind ((>>=), class Bind, bind, discard)
+import Control.Bind (class Bind, bind)
 import Data.Either (Either(..))
 import Data.Functor (class Functor, (<$>))
 import Data.List (List(..))
@@ -21,7 +21,7 @@ runOperation iv list = go (pure (Right iv)) list
     go result (Cons step steps) = do
       res <- result
       case res of
-        Left b -> pure res
+        Left  _ -> pure res
         Right a -> do
           res' <- case step of
                     IntermediateStep f pl -> Right <$> ((f a) <|> pl)

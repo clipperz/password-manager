@@ -7,7 +7,7 @@ import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Semigroupoid ((<<<))
-import Control.Bind (bind, discard)
+import Control.Bind (bind)
 import Data.Array (nub, sort)
 import Data.EuclideanRing (mod)
 import Data.Eq ((==), (/=))
@@ -24,13 +24,12 @@ import Data.Semiring ((+))
 import Data.Show (class Show, show)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
-import DataModel.AppState (AppError, ProxyConnectionStatus(..))
+import DataModel.AppState (AppError, ProxyConnectionStatus)
 import DataModel.Card (Card)
 import DataModel.Index (Index(..), CardEntry(..))
 import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import React.SyntheticEvent as Events
 import Views.CardViews (cardView)
 import Views.CreateCardView (createCardView)
@@ -173,8 +172,8 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
       where keyboardAction = cardsManagerView proxyConnectionStatus filterViewStatus
 
   where
-    getMainViewClassFromCardState cvs =
-      case cvs of
+    getMainViewClassFromCardState cvs_ =
+      case cvs_ of
         { cardView: NoCard,               cardViewState: _ }        -> "NoCard"
         { cardView: _,                    cardViewState: Loading }  -> "Loading"
         { cardView: CardForm _,           cardViewState: _       }  -> "CardForm"

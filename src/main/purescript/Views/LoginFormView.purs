@@ -26,7 +26,7 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Pin (decryptPassphrase, makeKey, isPinValid)
-import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleNumberInputWidget)
+import Views.SimpleWebComponents (loadingDiv, simpleButton)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
 import Web.Storage.Storage (getItem, setItem, Storage)
@@ -162,23 +162,11 @@ loginFormView' loginFormData = do
   
   where
     formPin :: String -> String -> Storage -> Widget HTML (Either PinCredentials Credentials)
-    formPin user encryptedPassphrase storage = do
+    formPin user encryptedPassphrase _ = do
       maybePin <- pinView true ""
       case maybePin of
         NormalLogin -> Right <$> (formWidget (emptyForm { username = user }))
         Pin pin -> pure $ Left {pin, user, passphrase: encryptedPassphrase}
-          -- ei :: Either AppError Credentials <- (Left (CannotInitState "ciao") <$ div [] [pinView false (show pin)]) <|> (liftAff $ runExceptT $ decryptPassphrase pin user encryptedPassphrase)
-          -- case ei of
-          --   Right f -> do
-          --     (void $ div [] [pinView false (show pin)]) <|> (liftEffect $ setItem (makeKey "failures") (show 0) storage)
-          --     pure f
-          --   Left e -> do
-          --     log $ show e
-          --     failures <- liftEffect $ getItem (makeKey "failures") storage
-          --     let count = (((fromMaybe 0) <<< fromString <<< (fromMaybe "")) failures) + 1
-          --     liftEffect $ setItem (makeKey "failures") (show count) storage
-          --     pure { username: "", password: "" }
-              -- formPin user encryptedPassphrase storage
 
     formWidget :: LoginDataForm -> Widget HTML Credentials
     formWidget formData = form [Props.className "form"] [ do

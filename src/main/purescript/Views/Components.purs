@@ -20,9 +20,8 @@ import Data.Semigroup ((<>))
 import Data.Semiring ((*))
 import Data.Show (show)
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, loopW, demand, debounce, loopS, display, step)
 import Concur.React (HTML)
-import Concur.React.DOM (text, textarea, input, label, div', div, button, ul, li, span)
+import Concur.React.DOM (div, input, label, span, text)
 import Concur.React.Props as Props
 import Functions.Password (computePasswordEntropy, passwordStrengthClass, standardPasswordStrengthFunction)
 
