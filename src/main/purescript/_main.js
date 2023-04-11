@@ -1,5 +1,7 @@
 const Main = require ("../../../target/output.purescript/Main")
 
+import "../scss/main.scss";
+
 function addEventBubblingBlockers() {
     const observer = new MutationObserver(mutations => {
         mutations.forEach(function(mutation) {
