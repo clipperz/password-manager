@@ -1,4 +1,4 @@
-const Main = require ("../../../target/output.purescript/Main")
+const Main = require ("../../../target/output.purescript/AppMain")
 
 import "../scss/main.scss";
 

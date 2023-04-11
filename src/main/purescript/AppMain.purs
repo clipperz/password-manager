@@ -1,10 +1,10 @@
-module Main
+module AppMain
   ( main
   )
   where
 
 import Concur.React.Run (runWidgetInDom)
-import Control.Bind (bind, discard, (>>=))
+import Control.Bind (bind, (>>=))
 import Data.Array (catMaybes)
 import Data.Function (($))
 import Data.Functor ((<$>))
@@ -17,7 +17,7 @@ import Data.Unit (Unit)
 import Effect (Effect)
 import OperationalWidgets.App (app, Page(..), doTestLogin)
 import Web.HTML (window)
-import Web.HTML.Location (hash, search)
+import Web.HTML.Location (hash)
 import Web.HTML.Window (location)
 
 main :: Effect Unit

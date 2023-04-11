@@ -14,19 +14,34 @@ const webpack = require('webpack');
 		ignored: /node_modules/
 	},
 	entry: {
-    	index: '/src/main/purescript/_main.js',
+    	app: '/src/main/purescript/_app_main.js',
+    	pg: '/src/main/purescript/_pg_main.js',
 	},
 	plugins: [
 		new webpack.ProvidePlugin({
 			process: 'process/browser',
 		}),
+		// app html package configuration
 		new HtmlWebpackPlugin({
-			template: '/src/main/html/index.html',
+			template: '/src/main/html/app_index.html',
+			filename: 'app_index.html',
 			scriptLoading: 'module',
+			minify: true,
 		}),
 		new HtmlInlineScriptPlugin({
-			htmlMatchPattern: [/index.html$/],
-			scriptMatchPattern: [/bundle.[a-zA-Z0-9]+.js/],
+			htmlMatchPattern: [/app_index.html$/],
+			scriptMatchPattern: [/app-bundle.[a-zA-Z0-9]+.js/],
+		}),
+		// password generator html package configuration
+		new HtmlWebpackPlugin({
+			template: '/src/main/html/pg_index.html',
+			filename: 'pg_index.html',
+			scriptLoading: 'module',
+			minify: true,
+		}),
+		new HtmlInlineScriptPlugin({
+			htmlMatchPattern: [/pg_index.html$/],
+			scriptMatchPattern: [/pg-bundle.[a-zA-Z0-9]+.js/],
 		}),
 	],
 	module: {
@@ -53,7 +68,7 @@ const webpack = require('webpack');
 		minimize: true,
 	},
 	output: {
-		filename: 'bundle.[fullhash].js',
+		filename: '[name]-bundle.[fullhash].js',
 		path: path.resolve(__dirname, 'target', "output.webpack"),
 		clean: true,
 	},
