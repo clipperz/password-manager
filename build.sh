@@ -1,6 +1,7 @@
 #!/bin/sh
 
-app_version=$1
+imageName="clipperz-app"
+version=$1
 commit=$2
 
-docker build -t "clipperz-app:${app_version}" -t "clipperz-app:${commit}" --build-arg CURRENT_COMMIT_ARG=${commit} .
+docker build -t "${imageName}:${version}" -t "${imageName}:${commit}" --build-arg CURRENT_COMMIT_ARG=${commit} .

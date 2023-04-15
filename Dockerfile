@@ -1,12 +1,15 @@
-FROM --platform=linux/amd64 node:18 AS frontend
+# FROM --platform=linux/amd64 node:18 AS frontend
+FROM  node:18.15.0 AS frontend
 ARG CURRENT_COMMIT_ARG
 ENV CURRENT_COMMIT=$CURRENT_COMMIT_ARG
 WORKDIR /app
 COPY ./src ./src
-COPY package.json package.json
-COPY packages.dhall packages.dhall
-COPY spago.dhall spago.dhall
-RUN npm install -g purescript
+COPY package.json     package.json
+COPY packages.dhall   packages.dhall
+COPY spago.dhall      spago.dhall
+# COPY yarn.lock        yarn.lock
+
+RUN npm install -g purescript@0.15.7
 RUN npm install -g yarn@1.22.18 --force
 RUN yarn install
 RUN mkdir ./target
