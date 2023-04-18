@@ -1,3 +1,6 @@
+services:
+  - docker:dind
+
 build-job:
   stage: build
   tags: 
