@@ -8,7 +8,7 @@ build-job:
   variables:
    IMAGE_NAME: password-manager
   before_script:
-    - docker login -u '$CI_REGISTRY_USER' -p '$CI_JOB_TOKEN' registry.imolab.it
+    - echo "'$CI_JOB_TOKEN'" | docker login -u ${CI_REGISTRY_USER} --password-stdin
   script:
     - docker build -t clipperz/'$IMAGE_NAME':'$CI_COMMIT_SHORT_SHA' .
     - docker push registry.imolab.it/clipperz/'$IMAGE_NAME:$CI_COMMIT_SHORT_SHA'
