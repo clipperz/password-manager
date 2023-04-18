@@ -1,5 +1,7 @@
 build-job:
   stage: build
+  tags: 
+    - clipperz-build
   variables:
    IMAGE_NAME: password-manager
   before_script:
