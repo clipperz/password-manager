@@ -10,7 +10,7 @@ COPY spago.dhall      spago.dhall
 # COPY yarn.lock        yarn.lock
 
 RUN npm install -g purescript@0.15.7
-RUN npm install -g yarn@1.22.18 --force
+RUN npm install -g yarn@1.22.19 --force
 RUN yarn install
 RUN mkdir ./target
 RUN yarn spago --jobs 10 build --purs-args '--codegen js,sourcemaps -o ./target/output.purescript' -v
