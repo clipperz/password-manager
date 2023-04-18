@@ -6,8 +6,8 @@ const HtmlInlineScriptPlugin = require('html-inline-script-webpack-plugin');
 const webpack = require('webpack');
 
  module.exports = {
-	mode: 'development',
-	// mode: 'production',
+	// mode: 'development',
+	mode: 'production',
 	watchOptions: {
 		aggregateTimeout: 200,
 		poll: 1000,
@@ -16,6 +16,14 @@ const webpack = require('webpack');
 	entry: {
     	app: '/src/main/purescript/_app_main.js',
     	pg: '/src/main/purescript/_pg_main.js',
+	},
+	output: {
+		filename: '[name]-bundle.[fullhash].js',
+		path: path.resolve(__dirname, 'target', "output.webpack"),
+		clean: true,
+	},
+	optimization: {
+		minimize: true,
 	},
 	plugins: [
 		new webpack.ProvidePlugin({
@@ -26,6 +34,7 @@ const webpack = require('webpack');
 			template: '/src/main/html/app_index.html',
 			filename: 'app_index.html',
 			scriptLoading: 'module',
+			chunks: ["app"],
 			minify: true,
 		}),
 		new HtmlInlineScriptPlugin({
@@ -37,6 +46,7 @@ const webpack = require('webpack');
 			template: '/src/main/html/pg_index.html',
 			filename: 'pg_index.html',
 			scriptLoading: 'module',
+			chunks: ["pg"],
 			minify: true,
 		}),
 		new HtmlInlineScriptPlugin({
@@ -63,13 +73,5 @@ const webpack = require('webpack');
 			],
 		},
 		]
-	},
-	optimization: {
-		minimize: true,
-	},
-	output: {
-		filename: '[name]-bundle.[fullhash].js',
-		path: path.resolve(__dirname, 'target', "output.webpack"),
-		clean: true,
-	},
+	}
  };
