@@ -6,8 +6,8 @@ build-job:
   tags: 
     - clipperz-build
   variables:
-   IMAGE_NAME: password-manager
-   IMAGE_FULL_NAME: clipperz/${IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}
+    IMAGE_NAME: password-manager
+    IMAGE_FULL_NAME: clipperz/${IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}
   before_script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
