@@ -1,9 +1,9 @@
 build-job:
   stage: build
   variables:
-   IMAGE_NAME: clipperz-app
+   IMAGE_NAME: password-manager
   before_script:
-    - docker login -u '$CI_REGISTRY_USER' -p '$CI_REGISTRY_PASSWORD' '$CI_REGISTRY'
+    - docker login -u '$CI_REGISTRY_USER' -p '$CI_REGISTRY_PASSWORD' registry.imolab.it
   script:
-    - docker build -t '$IMAGE_NAME':'$CI_COMMIT_SHORT_SHA' .
-    - docker push registry.imolab.it/'$IMAGE_NAME:$CI_COMMIT_SHORT_SHA'
+    - docker build -t clipperz/'$IMAGE_NAME':'$CI_COMMIT_SHORT_SHA' .
+    - docker push registry.imolab.it/clipperz/'$IMAGE_NAME:$CI_COMMIT_SHORT_SHA'
