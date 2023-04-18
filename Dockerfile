@@ -7,6 +7,7 @@ COPY ./src ./src
 COPY package.json     package.json
 COPY packages.dhall   packages.dhall
 COPY spago.dhall      spago.dhall
+COPY webpack.config.js webpack.config.js
 # COPY yarn.lock        yarn.lock
 
 RUN npm install -g purescript@0.15.7
