@@ -22,10 +22,10 @@ WORKDIR /app
 COPY --from=frontend /app/spago.dhall ./spago.dhall
 COPY ./ ./
 # remove option to remove tests when everything else works
-RUN sbt 'set test in assembly := {}' clean assembly  
+RUN sbt 'set test in assembly := {}' clean assembly
 
 FROM openjdk:jre-alpine
 COPY --from=frontend /app/target/output.webpack ./target/output.webpack
-COPY --from=backend '/app/target/scala-3.2.0/clipperz.jar' /app/target/scala-3.2.0/clipperz.jar
-CMD [ "java", "-jar", "/app/target/scala-3.2.0/clipperz.jar", "/archive/blob", "/archive/user", "8080"]
+COPY --from=backend '/app/target/*/clipperz.jar' /app/target/clipperz.jar
+CMD [ "java", "-jar", "/app/target/clipperz.jar", "/archive/blob", "/archive/user", "8080"]
 
