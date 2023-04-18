@@ -17,7 +17,7 @@ RUN mkdir ./target
 RUN yarn spago --jobs 10 build --purs-args '--codegen js,sourcemaps -o ./target/output.purescript' -v
 RUN ls ./src/main/js && yarn package
 
-FROM sbtscala/scala-sbt:eclipse-temurin-19.0.1_10_1.8.0_3.2.1 AS backend
+FROM sbtscala/scala-sbt:eclipse-temurin-17.0.4_1.7.1_3.2.0 AS backend
 WORKDIR /app
 COPY --from=frontend /app/spago.dhall ./spago.dhall
 COPY ./ ./
