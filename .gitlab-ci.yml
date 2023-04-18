@@ -3,5 +3,5 @@ build-job:
   variables:
    IMAGE_NAME: clipperz-app
   script:
-    - docker build -t $IMAGE_NAME:$CI_COMMIT_SHORT_SHA .
-    - docker push registry.imolab.it/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - docker build -t "$IMAGE_NAME:$CI_COMMIT_SHORT_SHA" .
+    - docker push "registry.imolab.it/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA"
