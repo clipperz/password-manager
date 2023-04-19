@@ -28,6 +28,8 @@ commit-compose:
     FILENAME: docker-compose.yml
   before_script:
     - apk update && apk add git
+    - git config user.email "you@example.com"
+    - git config user.name "Your Name"
   script:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker.git
     - cd clipperz-docker
