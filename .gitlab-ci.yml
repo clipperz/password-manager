@@ -31,7 +31,7 @@ commit-compose:
     - git config --global user.email "dpicchiotti@imolainformatica.it"
     - git config --global user.name "Davide Picchiotti"
   script:
-    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker.git
+    - git clone https://oauth2:${COMPOSE_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker.git
     - cd clipperz-docker
     - git checkout ci
     - sed -E -i "s/${VERSION_REGEX}/${SUBSTITUTE}/g" ${FILENAME}
