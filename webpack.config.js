@@ -6,16 +6,17 @@ const HtmlInlineScriptPlugin = require('html-inline-script-webpack-plugin');
 const webpack = require('webpack');
 
  module.exports = {
-	// mode: 'development',
-	mode: 'production',
+	mode: 'development',
+	// mode: 'production',
 	watchOptions: {
 		aggregateTimeout: 200,
-		poll: 1000,
+		poll: 500,
 		ignored: /node_modules/
 	},
 	entry: {
-    	app: '/src/main/purescript/_app_main.js',
-    	pg: '/src/main/purescript/_pg_main.js',
+    	app:   '/src/main/purescript/_app_main.js',
+    	pg:    '/src/main/purescript/_pg_main.js',
+		share: '/src/main/purescript/_share_main.js',
 	},
 	output: {
 		filename: '[name]-bundle.[fullhash].js',
@@ -52,6 +53,18 @@ const webpack = require('webpack');
 		new HtmlInlineScriptPlugin({
 			htmlMatchPattern: [/pg_index.html$/],
 			scriptMatchPattern: [/pg-bundle.[a-zA-Z0-9]+.js/],
+		}),
+		// share html package configuration
+		new HtmlWebpackPlugin({
+			template: '/src/main/html/share_index.html',
+			filename: 'share_index.html',
+			scriptLoading: 'module',
+			chunks: ["share"],
+			minify: true,
+		}),
+		new HtmlInlineScriptPlugin({
+			htmlMatchPattern: [/share_index.html$/],
+			scriptMatchPattern: [/share-bundle.[a-zA-Z0-9]+.js/],
 		}),
 	],
 	module: {

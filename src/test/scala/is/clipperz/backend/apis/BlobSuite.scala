@@ -27,17 +27,20 @@ import is.clipperz.backend.services.TollManager
 import is.clipperz.backend.services.SrpManager
 
 import is.clipperz.backend.functions.fromStream
+import is.clipperz.backend.services.OneTimeShareArchive
 
 object BlobSpec extends ZIOSpecDefault:
   val app = Main.clipperzBackend
   val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
   val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
+  val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "one_time_share").nn
 
   val environment =
     PRNG.live ++
       SessionManager.live ++
       UserArchive.fs(userBasePath, 2, false) ++
       BlobArchive.fs(blobBasePath, 2, false) ++
+      OneTimeShareArchive.fs(oneTimeShareBasePath, 2, false) ++
       ((UserArchive.fs(userBasePath, 2, false) ++ PRNG.live) >>> SrpManager.v6a()) ++
       (PRNG.live >>> TollManager.live)
 
