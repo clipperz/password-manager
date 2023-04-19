@@ -14,7 +14,7 @@ build-image:
     IMAGE_FULL_NAME: clipperz/${IMAGE_NAME}:${CI_COMMIT_SHA}
   before_script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
-  script:
+  #script:
     #- docker build -t ${IMAGE_FULL_NAME} .
     #- docker push ${CI_REGISTRY}/${IMAGE_FULL_NAME}
 
