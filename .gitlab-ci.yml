@@ -11,5 +11,6 @@ build-job:
   before_script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
-    - docker build -t ${IMAGE_FULL_NAME} .
-    - docker push ${CI_REGISTRY}/${IMAGE_FULL_NAME}
+    #- docker build -t ${IMAGE_FULL_NAME} .
+    #- docker push ${CI_REGISTRY}/${IMAGE_FULL_NAME}
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker-compose.git
