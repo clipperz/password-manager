@@ -1,17 +1,38 @@
+stages:
+  - build
+  - commit
+
 services:
   - docker:dind
 
-build-job:
+build-image:
   stage: build
   tags: 
     - clipperz-build
   variables:
     IMAGE_NAME: password-manager
-    IMAGE_FULL_NAME: clipperz/${IMAGE_NAME}:${CI_COMMIT_SHORT_SHA}
+    IMAGE_FULL_NAME: clipperz/${IMAGE_NAME}:${CI_COMMIT_SHA}
   before_script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
     #- docker build -t ${IMAGE_FULL_NAME} .
     #- docker push ${CI_REGISTRY}/${IMAGE_FULL_NAME}
+
+commit-compose:
+  stage: commit
+  tags:
+    - clipperz-build
+  variables:
+    VERSION_REGEX: password-manager:[0-9a-f]{40}
+    SUBSTITUTE: password-manager:${CI_COMMIT_SHA}
+    FILENAME: docker-compose.yml
+  before_script:
     - apk update && apk add git
+  script:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker.git
+    - git checkout staging
+    - sed -i "s/${VERSION_REGEX}/${SUBSTITUTE}/" ${FILENAME}
+    - git add ./${FILENAME}
+    - git commit -m "Modified docker-compose.yml to use new image of '$CI_REPOSITORY_URL' (triggered by commit '$CI_COMMIT_SHA')"
+    - git push
+  
