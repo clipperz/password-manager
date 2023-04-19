@@ -33,7 +33,7 @@ commit-compose:
   script:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker.git
     - cd clipperz-docker
-    - git checkout staging
+    - git checkout ci
     - cat ${FILENAME}
     - sed -i "s/${VERSION_REGEX}/${SUBSTITUTE}/" ${FILENAME}
     - cat ${FILENAME}
