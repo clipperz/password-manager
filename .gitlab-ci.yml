@@ -14,4 +14,4 @@ build-job:
     #- docker build -t ${IMAGE_FULL_NAME} .
     #- docker push ${CI_REGISTRY}/${IMAGE_FULL_NAME}
     - apk update && apk add git
-    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker-compose.git
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker.git
