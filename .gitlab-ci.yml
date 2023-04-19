@@ -34,7 +34,9 @@ commit-compose:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker.git
     - cd clipperz-docker
     - git checkout staging
+    - cat ${FILENAME}
     - sed -i "s/${VERSION_REGEX}/${SUBSTITUTE}/" ${FILENAME}
+    - cat ${FILENAME}
     - git add ./${FILENAME}
     - git commit -m "Modified docker-compose.yml to use new image of '$CI_REPOSITORY_URL' (triggered by commit '$CI_COMMIT_SHA')"
     - git push
