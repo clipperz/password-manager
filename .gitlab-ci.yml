@@ -35,7 +35,7 @@ commit-compose:
     - cd clipperz-docker
     - git checkout ci
     - cat ${FILENAME}
-    - sed --posix -E "s/${VERSION_REGEX}/${SUBSTITUTE}/g" ${FILENAME}
+    - sed -E "s/${VERSION_REGEX}/${SUBSTITUTE}/g" ${FILENAME}
     - cat ${FILENAME}
     - git add ./${FILENAME}
     - git commit -m "Modified docker-compose.yml to use new image of '$CI_REPOSITORY_URL' (triggered by commit '$CI_COMMIT_SHA')"
