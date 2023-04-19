@@ -30,6 +30,7 @@ commit-compose:
     - apk update && apk add git
   script:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker.git
+    - cd clipperz-docker
     - git checkout staging
     - sed -i "s/${VERSION_REGEX}/${SUBSTITUTE}/" ${FILENAME}
     - git add ./${FILENAME}
