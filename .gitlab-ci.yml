@@ -28,15 +28,13 @@ commit-compose:
     FILENAME: docker-compose.yml
   before_script:
     - apk update && apk add git
-    - git config --global user.email "you@example.com"
-    - git config --global user.name "Your Name"
+    - git config --global user.email "dpicchiotti@imolainformatica.it"
+    - git config --global user.name "Davide Picchiotti"
   script:
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker.git
     - cd clipperz-docker
     - git checkout ci
-    - cat ${FILENAME}
     - sed -E -i "s/${VERSION_REGEX}/${SUBSTITUTE}/g" ${FILENAME}
-    - cat ${FILENAME}
     - git add ./${FILENAME}
     - git commit -m "Modified docker-compose.yml to use new image of '$CI_REPOSITORY_URL' (triggered by commit '$CI_COMMIT_SHA')"
     - git push
