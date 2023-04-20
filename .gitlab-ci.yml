@@ -7,6 +7,24 @@ services:
 
 variables:
   IMAGE_NAME: password-manager
+  VERSION_REGEX: ${IMAGE_NAME}:[0-9a-f]{40}
+  SUBSTITUTE: ${IMAGE_NAME}:${CI_COMMIT_SHA}
+  FILENAME: docker-compose.yml
+
+.git-config: &git-config
+  - apk update && apk add git
+  - git config --global user.email "dpicchiotti@imolainformatica.it"
+  - git config --global user.name "Davide Picchiotti"
+
+.before-checkout: &before-checkout
+  - git clone https://oauth2:${COMPOSE_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker.git
+  - cd clipperz-docker
+
+.after-checkout: &after-checkout
+  - sed -E -i "s/${VERSION_REGEX}/${SUBSTITUTE}/g" ${FILENAME}
+  - git add ./${FILENAME}
+  - git commit -m "Modified docker-compose.yml to use new image of '$IMAGE_NAME' (triggered by commit '$CI_COMMIT_SHA')"
+  - git push
 
 .build-image:
   stage: build
@@ -24,19 +42,37 @@ commit-compose:
   stage: commit
   tags:
     - clipperz-build
-  variables:
-    VERSION_REGEX: ${IMAGE_NAME}:[0-9a-f]{40}
-    SUBSTITUTE: ${IMAGE_NAME}:${CI_COMMIT_SHA}
-    FILENAME: docker-compose.yml
   before_script:
-    - apk update && apk add git
-    - git config --global user.email "dpicchiotti@imolainformatica.it"
-    - git config --global user.name "Davide Picchiotti"
+    - *git-config
   script:
-    - git clone https://oauth2:${COMPOSE_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker.git
-    - cd clipperz-docker
+    - *before-checkout
     - git checkout ci
-    - sed -E -i "s/${VERSION_REGEX}/${SUBSTITUTE}/g" ${FILENAME}
-    - git add ./${FILENAME}
-    - git commit -m "Modified docker-compose.yml to use new image of '$IMAGE_NAME' (triggered by commit '$CI_COMMIT_SHA')"
-    - git push
+    - *after-checkout 
+  rules:
+    - if: $CI_COMMIT_BRANCH == "ci"
+
+commit-compose-prod:
+  stage: commit
+  tags:
+    - clipperz-build
+  before_script:
+    - *git-config
+  script:
+    - *before-checkout
+    - git checkout production
+    - *after-checkout 
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+
+commit-compose-staging:
+  stage: commit
+  tags:
+    - clipperz-build
+  before_script:
+    - *git-config
+  script:
+    - *before-checkout
+    - git checkout staging
+    - *after-checkout 
+  rules:
+    - if: '$CI_COMMIT_BRANCH != "master" && $CI_COMMIT_BRANCH != "ci"'
