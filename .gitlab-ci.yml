@@ -32,11 +32,12 @@ build-image:
     - clipperz-build
   variables:
     IMAGE_FULL_NAME: clipperz/${IMAGE_NAME}:${CI_COMMIT_SHA}
+    IMAGE_FULL_URL: ${CI_REGISTRY}/${IMAGE_FULL_NAME}
   before_script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
-    - docker build -t ${IMAGE_FULL_NAME} .
-    - docker push ${CI_REGISTRY}/${IMAGE_FULL_NAME}
+    - docker build -t ${IMAGE_FULL_URL} .
+    - docker push ${IMAGE_FULL_URL}
 
 commit-compose:
   stage: commit
