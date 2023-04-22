@@ -1,6 +1,6 @@
 const Main = require ("../../../target/output.purescript/PasswordGeneratorMain")
 
-import "../scss/main.scss";
+// import "../scss/main.scss";
 
 function main () {
     Main.main();

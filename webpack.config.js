@@ -10,12 +10,21 @@ const webpack = require('webpack');
 	// mode: 'production',
 	watchOptions: {
 		aggregateTimeout: 200,
-		poll: 1000,
+		poll: 500,
 		ignored: /node_modules/
 	},
 	entry: {
-    	app: '/src/main/purescript/_app_main.js',
-    	pg: '/src/main/purescript/_pg_main.js',
+    	app:   '/src/main/purescript/_app_main.js',
+    	pg:    '/src/main/purescript/_pg_main.js',
+		share: '/src/main/purescript/_share_main.js',
+	},
+	output: {
+		filename: '[name]-bundle.[fullhash].js',
+		path: path.resolve(__dirname, 'target', "output.webpack"),
+		clean: true,
+	},
+	optimization: {
+		minimize: true,
 	},
 	plugins: [
 		new webpack.ProvidePlugin({
@@ -26,6 +35,7 @@ const webpack = require('webpack');
 			template: '/src/main/html/app_index.html',
 			filename: 'app_index.html',
 			scriptLoading: 'module',
+			chunks: ["app"],
 			minify: true,
 		}),
 		new HtmlInlineScriptPlugin({
@@ -37,11 +47,24 @@ const webpack = require('webpack');
 			template: '/src/main/html/pg_index.html',
 			filename: 'pg_index.html',
 			scriptLoading: 'module',
+			chunks: ["pg"],
 			minify: true,
 		}),
 		new HtmlInlineScriptPlugin({
 			htmlMatchPattern: [/pg_index.html$/],
 			scriptMatchPattern: [/pg-bundle.[a-zA-Z0-9]+.js/],
+		}),
+		// share html package configuration
+		new HtmlWebpackPlugin({
+			template: '/src/main/html/share_index.html',
+			filename: 'share_index.html',
+			scriptLoading: 'module',
+			chunks: ["share"],
+			minify: true,
+		}),
+		new HtmlInlineScriptPlugin({
+			htmlMatchPattern: [/share_index.html$/],
+			scriptMatchPattern: [/share-bundle.[a-zA-Z0-9]+.js/],
 		}),
 	],
 	module: {
@@ -63,13 +86,5 @@ const webpack = require('webpack');
 			],
 		},
 		]
-	},
-	optimization: {
-		minimize: true,
-	},
-	output: {
-		filename: '[name]-bundle.[fullhash].js',
-		path: path.resolve(__dirname, 'target', "output.webpack"),
-		clean: true,
-	},
+	}
  };

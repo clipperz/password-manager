@@ -26,6 +26,7 @@ import zio.test.ZIOSpec
 import zio.{ Scope, ZLayer, Layer }
 import zio.test.TestResult.all
 import is.clipperz.backend.services.ModifyUserCard
+import is.clipperz.backend.services.OneTimeShareArchive
 
 object UserSpec extends ZIOSpec[SessionManager]:
   override def bootstrap: ZLayer[Any, Any, SessionManager] =
@@ -34,6 +35,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
   val app = Main.clipperzBackend
   val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
   val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
+  val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "one_time_share").nn
 
   val sessionManagerLayer: Layer[Nothing, SessionManager] = SessionManager.live
 
@@ -42,6 +44,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
       sessionManagerLayer ++
       UserArchive.fs(userBasePath, 2, false) ++
       BlobArchive.fs(blobBasePath, 2, false) ++
+      OneTimeShareArchive.fs(oneTimeShareBasePath, 2, false) ++
       ((UserArchive.fs(userBasePath, 2, false) ++ PRNG.live) >>> SrpManager.v6a()) ++
       (PRNG.live >>> TollManager.live)
 
