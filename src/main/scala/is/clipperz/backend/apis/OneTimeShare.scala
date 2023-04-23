@@ -66,15 +66,12 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO {
     ZIO
       .service[OneTimeShareArchive]
       .flatMap(archive =>
-        for {
-          secret  <- archive.getSecret(id).flatMap(stream => stream.run(ZSink.collectAll[Byte]))
-          _       <- archive.deleteSecret(id)
-        } yield secret
+        archive.getSecret(id).map(secret => secret.ensuring(archive.deleteSecret(id).isSuccess))
       )
-      .map((bytes: Chunk[Byte]) =>
+      .map((bytes: ZStream[Any, Throwable, Byte]) =>
         Response(
           status = Status.Ok,
-          body = Body.fromChunk(bytes),
+          body = Body.fromStream(bytes),
           headers = Headers(HeaderNames.contentType, HeaderValues.applicationOctetStream),
         )
       )
