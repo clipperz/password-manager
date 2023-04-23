@@ -20,6 +20,7 @@ import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Functions.JSState (modifyAppState)
 import Functions.State (computeInitialState)
+import OperationalWidgets.RedeemWidget (redeemWidget)
 import OperationalWidgets.ShareWidget (shareWidget)
 import Web.HTML (window)
 import Web.HTML.Location (hash)
@@ -43,6 +44,6 @@ main = do
   fragment <- hash l
   runWidgetInDom "share" ( wrapper $ case split (Pattern "=") fragment of
     [ "#share", secret ]     -> shareWidget (Just secret)
-    [ "#redeem", idPayload ] -> text ("REDEEM:" <> idPayload )
+    [ "#redeem", idPayload ] -> redeemWidget idPayload
     _                        -> shareWidget Nothing
   )

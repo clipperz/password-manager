@@ -29,15 +29,17 @@ type SecretId = String
 trait OneTimeShareArchive:
   def getSecret(id: SecretId): Task[ZStream[Any, Throwable, Byte]]
   def saveSecret(content: ZStream[Any, Throwable, Byte]): Task[SecretId]
+  def deleteSecret(id: SecretId): Task[Boolean]
 
 object OneTimeShareArchive:
   val WAIT_TIME = 100
 
   case class FileSystemOneTimeShareArchive(keyBlobArchive: KeyBlobArchive) extends OneTimeShareArchive:
     override def getSecret(id: SecretId): Task[ZStream[Any, Throwable, Byte]] =
-      val result = keyBlobArchive.getBlob(id.toString)
-      keyBlobArchive.deleteBlob(id.toString)
-      result
+      keyBlobArchive.getBlob(id)
+    
+    override def deleteSecret(id: SecretId): Task[Boolean] = 
+      keyBlobArchive.deleteBlob(id)
 
     override def saveSecret(content: ZStream[Any, Throwable, Byte]): Task[SecretId] =
       val id = UUID.randomUUID().nn.toString();

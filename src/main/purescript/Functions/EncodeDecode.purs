@@ -1,14 +1,15 @@
 module Functions.EncodeDecode where
 
 import Control.Applicative (pure)
-import Control.Bind ((>>=), bind)
+import Control.Bind ((>>=), bind, discard)
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT, except, withExceptT)
 import Control.Semigroupoid ((<<<))
 import Crypto.Subtle.Encrypt as Encrypt
 import Crypto.Subtle.Key.Types as Key.Types
+import Data.Argonaut.Core (stringify)
 import Data.Argonaut.Core as A
-import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
+import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Parser as P
 import Data.ArrayBuffer.Typed as ABTyped
 import Data.ArrayBuffer.Types (ArrayBuffer, ArrayView, Uint8)
@@ -17,6 +18,7 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (fromArrayBuffer, toArrayBuffer, hex, toString, Base(..))
 import Data.Maybe (Maybe(..))
+import Data.Semigroup ((<>))
 import Data.Semiring ((*))
 import Data.Show (show)
 import Data.TextDecoder as Decoder
@@ -24,6 +26,7 @@ import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
+import Effect.Console (log)
 import Effect.Exception as EX
 import Functions.ArrayBuffer (emptyByteArrayBuffer)
 
@@ -74,7 +77,9 @@ decryptJson :: forall a. DecodeJson a => Key.Types.CryptoKey -> ArrayBuffer -> A
 decryptJson key bytes = do
     result :: Either EX.Error a <- runExceptT $ do
       decryptedData :: ArrayBuffer <- ExceptT $ liftAff $ decryptWithAesCTR bytes key
+      liftEffect $ log ("DECRYPTED JSON: " <> toString Dec (fromArrayBuffer decryptedData))
       parsedJson  <- withExceptT (\err -> EX.error $ show err) (except $ P.jsonParser $ toString Dec $ fromArrayBuffer decryptedData)
+      liftEffect $ log ("PARSED JSON: " <> stringify parsedJson)
       object :: a <- withExceptT (\err -> EX.error $ show err) (except $ decodeJson parsedJson)
       pure object
     pure result
