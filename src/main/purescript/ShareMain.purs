@@ -2,18 +2,15 @@ module ShareMain where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (text)
 import Concur.React.Run (runWidgetInDom)
-import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))
 import Control.Monad.Except (runExceptT)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Maybe (Maybe(..))
-import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String (Pattern(..), split)
-import Data.Unit (Unit, unit)
+import Data.Unit (Unit)
 import Effect (Effect)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -38,8 +35,6 @@ wrapper widget = do
 
 main :: Effect Unit
 main = do
-
-
   l <- window >>= location
   fragment <- hash l
   runWidgetInDom "share" ( wrapper $ case split (Pattern "=") fragment of

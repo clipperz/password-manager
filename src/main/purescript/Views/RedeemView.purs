@@ -8,12 +8,8 @@ import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Data.Function (($))
-import Data.Functor ((<$>), (<$))
-import Data.HeytingAlgebra ((||))
-import Data.Maybe (Maybe, fromMaybe, isJust)
+import Data.Functor ((<$>))
 import Data.String (null)
-import Data.Tuple (Tuple(..), fst, snd)
-import Data.Unit (Unit, unit)
 import Views.SimpleWebComponents (simpleButton)
 
 redeemView :: Widget HTML String

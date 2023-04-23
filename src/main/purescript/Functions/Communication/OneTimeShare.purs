@@ -9,7 +9,6 @@ import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Types (decrypt, encrypt, raw, unwrapKey)
 import Data.Argonaut.Decode (class DecodeJson)
 import Data.Argonaut.Encode.Class (encodeJson)
-import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
