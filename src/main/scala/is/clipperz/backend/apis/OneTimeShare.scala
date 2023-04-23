@@ -17,6 +17,24 @@ import zio.stream.ZStream
 import is.clipperz.backend.exceptions.ResourceConflictException
 import is.clipperz.backend.exceptions.ConflictualRequestException
 import is.clipperz.backend.exceptions.NonWritableArchiveException
+import zio.json.JsonDecoder
+import zio.json.DeriveJsonDecoder
+import zio.json.JsonEncoder
+import zio.json.DeriveJsonEncoder
+import zio.stream.ZSink
+import zio.Chunk
+
+// ------------------------------------------------------------------------------------
+
+case class SaveOTSData(
+    data: HexString
+  )
+
+object SaveOTSData:
+  implicit val decoder: JsonDecoder[SaveOTSData] = DeriveJsonDecoder.gen[SaveOTSData]
+  implicit val encoder: JsonEncoder[SaveOTSData] = DeriveJsonEncoder.gen[SaveOTSData]
+
+// ------------------------------------------------------------------------------------
 
 val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO {
   case request @ Method.POST -> !! / "share" =>
@@ -24,7 +42,10 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO {
       .service[OneTimeShareArchive]
       .zip(ZIO.succeed(request.body.asStream))
       .flatMap((archive, bytes) =>
-        archive.saveSecret(bytes)
+        // fromStream[SaveOTSData](bytes)
+        fromStream[HexString](bytes)
+          .flatMap(saveData => archive.saveSecret(ZStream.fromIterable(saveData.toByteArray)))
+        // archive.saveSecret(bytes)
       )
       .map(id => Response.text(s"${id}"))
       .catchSome {
@@ -41,32 +62,27 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO {
         case ex => ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).flatMap(_ => ZIO.fail(ex))
       } @@ LogAspect.logAnnotateRequestData(request)
 
-  case request @ Method.POST -> !! / "reedeem" / id =>
+  case request @ Method.GET -> !! / "redeem" / id =>
     ZIO
-      .service[SessionManager]
-      .zip(ZIO.service[SrpManager])
-      .zip(ZIO.attempt(request.headers.headerValue(SessionManager.sessionKeyHeaderName).get)) // TODO: return significant status in response
-      .zip(ZIO.succeed(request.body.asStream))
-      .flatMap((sessionManager, srpManager, sessionKey, content) =>
-        fromStream[SRPStep2Data](content)
-          .flatMap { loginStep2Data =>
-            for {
-              session <- sessionManager.getSession(sessionKey)
-              // _ <- ZIO.succeed(println(s"OPTIONAL SESSION: ${optionalSession}"))
-              (step2Response, session) <- srpManager.srpStep2(loginStep2Data, session)
-              _ <- sessionManager.saveSession(session)
-            } yield step2Response
-          }
+      .service[OneTimeShareArchive]
+      .flatMap(archive =>
+        archive.getSecret(id).map(secret => secret.ensuring(archive.deleteSecret(id).isSuccess))
       )
-      .map(step2Response => Response.json(step2Response.toJson))
+      .map((bytes: ZStream[Any, Throwable, Byte]) =>
+        Response(
+          status = Status.Ok,
+          body = Body.fromStream(bytes),
+          headers = Headers(HeaderNames.contentType, HeaderValues.applicationOctetStream),
+        )
+      )
       .catchSome {
         case ex: ResourceNotFoundException =>
           ZIO.logInfo(s"${ex.getMessage()}").as(Response(status = Status.NotFound))
+        case ex: NonWritableArchiveException =>
+          ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
         case ex: FailedConversionException =>
-          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-        case ex: BadRequestException =>
-          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.Forbidden))
-        case ex: NoSuchElementException =>
-          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
+          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
       } @@ LogAspect.logAnnotateRequestData(request)
+      // .zipLeft(ZIO.service[OneTimeShareArchive].flatMap(archive => archive.deleteSecret(id))) @@ LogAspect.logAnnotateRequestData(request)
+
 }

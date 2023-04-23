@@ -14,8 +14,6 @@ import Data.Show (show)
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
 import Effect.Aff.Class (liftAff)
-import Effect.Class (liftEffect)
-import Effect.Console (log)
 import Effect.Unsafe (unsafePerformEffect)
 import Functions.Communication.OneTimeShare (share)
 import Views.ShareView (shareView)
@@ -23,17 +21,9 @@ import Web.HTML (window)
 import Web.HTML.Location (setHash)
 import Web.HTML.Window (location)
 
--- data ShareWidgetAction = FailedShare err |
-
--- shareWidget :: Maybe String -> WidgetState -> Widget HTML Unit
--- shareWidget secret state = do
 shareWidget :: Maybe String -> Widget HTML Unit
 shareWidget secret = do
   pure $ unsafePerformEffect (setHash "" (unsafePerformEffect (location (unsafePerformEffect window))))
-  -- result <- case state of
-  --   Default -> shareView secret
-  --   Error e -> shareView secret
-  --   Loading -> shareView secret
   (Tuple secret_ password_) <- shareView secret
   result <- liftAff $ runExceptT $ share secret_ password_
   case result of

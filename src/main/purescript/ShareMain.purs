@@ -2,24 +2,22 @@ module ShareMain where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (text)
 import Concur.React.Run (runWidgetInDom)
-import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))
 import Control.Monad.Except (runExceptT)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Maybe (Maybe(..))
-import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String (Pattern(..), split)
-import Data.Unit (Unit, unit)
+import Data.Unit (Unit)
 import Effect (Effect)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Functions.JSState (modifyAppState)
 import Functions.State (computeInitialState)
+import OperationalWidgets.RedeemWidget (redeemWidget)
 import OperationalWidgets.ShareWidget (shareWidget)
 import Web.HTML (window)
 import Web.HTML.Location (hash)
@@ -37,12 +35,10 @@ wrapper widget = do
 
 main :: Effect Unit
 main = do
-
-
   l <- window >>= location
   fragment <- hash l
   runWidgetInDom "share" ( wrapper $ case split (Pattern "=") fragment of
     [ "#share", secret ]     -> shareWidget (Just secret)
-    [ "#redeem", idPayload ] -> text ("REDEEM:" <> idPayload )
+    [ "#redeem", idPayload ] -> redeemWidget idPayload
     _                        -> shareWidget Nothing
   )
