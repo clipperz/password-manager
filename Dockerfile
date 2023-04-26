@@ -13,6 +13,7 @@ COPY webpack.config.js webpack.config.js
 RUN npm install -g purescript-installer@0.3.3
 # RUN npm install -g purescript@0.15.7
 RUN install-purescript --purs-ver=0.15.7
+ENV PATH="${PATH}:/app/purs"
 RUN npm install -g yarn@1.22.19 --force
 RUN yarn install
 RUN mkdir ./target
