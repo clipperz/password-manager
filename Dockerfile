@@ -1,5 +1,5 @@
 # FROM --platform=linux/amd64 node:18 AS frontend
-FROM  node:18 AS frontend
+FROM  node:18.15.0 AS frontend
 ARG CURRENT_COMMIT_ARG
 ENV CURRENT_COMMIT=$CURRENT_COMMIT_ARG
 WORKDIR /app
@@ -10,7 +10,9 @@ COPY spago.dhall      spago.dhall
 COPY webpack.config.js webpack.config.js
 # COPY yarn.lock        yarn.lock
 
-RUN npm install -g purescript@0.15.7
+RUN npm install -g purescript-installer@0.3.3
+# RUN npm install -g purescript@0.15.7
+RUN install-purescript --purs-ver=0.15.7
 RUN npm install -g yarn@1.22.19 --force
 RUN yarn install
 RUN mkdir ./target
