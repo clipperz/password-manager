@@ -1,4 +1,5 @@
 # FROM --platform=linux/amd64 node:18 AS frontend
+#
 FROM  node:18.15.0 AS frontend
 ARG CURRENT_COMMIT_ARG
 ENV CURRENT_COMMIT=$CURRENT_COMMIT_ARG
@@ -8,6 +9,7 @@ COPY package.json     package.json
 COPY packages.dhall   packages.dhall
 COPY spago.dhall      spago.dhall
 COPY webpack.config.js webpack.config.js
+#
 # COPY yarn.lock        yarn.lock
 
 RUN npm install -g purescript-installer@0.3.3
