@@ -63,7 +63,8 @@ object UserArchive:
             ZStream.fromChunks(Chunk.fromArray(userCard.toJson.getBytes(StandardCharsets.UTF_8).nn)),
           )
           .map(_ => userCard.c)
-      getUser(userCard.c).flatMap(optionalUser =>
+
+      this.getUser(userCard.c).flatMap(optionalUser =>
         optionalUser match
           case Some(user) =>
             if (overwrite) saveUserCard(userCard) else ZIO.fail(new ResourceConflictException("User already present"))
