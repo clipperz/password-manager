@@ -3,8 +3,8 @@ package is.clipperz.backend.apis
 import java.io.FileNotFoundException
 import zio.ZIO
 import zio.stream.ZStream
-import zhttp.http.{ Headers, HeaderNames, HeaderValues, Http, Body, Method, Path, PathSyntax, Response, Status }
-import zhttp.http.* //TODO: fix How do you import `!!` and `/`?
+import zio.http.{ Headers, Http, Body, /*HeaderValues,*/ Method, Path, PathSyntax, Response, Status }
+import zio.http.* //TODO: fix How do you import `!!` and `/`?
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.exceptions.{
   NonWritableArchiveException,
@@ -19,8 +19,10 @@ import is.clipperz.backend.exceptions.EmptyContentException
 import is.clipperz.backend.exceptions.BadRequestException
 import zio.Cause
 import is.clipperz.backend.LogAspect
+import zio.http.codec.HeaderCodec
+import zio.http.Header.ContentTransferEncoding
 
-val blobsApi: ClipperzHttpApp = Http.collectZIO {
+val blobsApi: ClipperzHttpApp = Http.collectZIO[Request] {
   case request @ Method.POST -> !! / "blobs" =>
     ZIO
       .service[BlobArchive]
@@ -48,11 +50,7 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
       .zip(ZIO.succeed(request.body.asStream))
       .flatMap((archive, bytes) =>
         fromStream[SaveBlobData](bytes)
-          .flatMap(blobData =>
-            if (blobData.hash.toString() == hash) ZIO.succeed(blobData)
-            else ZIO.fail(new BadRequestException("Different hashes"))
-          )
-          .flatMap(blobData => archive.deleteBlob(ZStream.fromIterable(blobData.data.toByteArray)))
+          .flatMap(blobData => archive.deleteBlob(HexString(hash), ZStream.fromIterable(blobData.data.toByteArray)))
       )
       .map(b => if b then Response.ok else Response(status = Status.NotFound))
       .catchSome {
@@ -73,7 +71,7 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO {
         Response(
           status = Status.Ok,
           body = Body.fromStream(bytes),
-          headers = Headers(HeaderNames.contentType, HeaderValues.applicationOctetStream),
+          headers = Headers(ContentTransferEncoding.Binary),
         )
       )
       .catchSome {

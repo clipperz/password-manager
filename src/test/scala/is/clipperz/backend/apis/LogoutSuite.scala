@@ -10,8 +10,8 @@ import zio.stream.{ ZStream, ZSink }
 import zio.test.Assertion.{ nothing, isTrue }
 import zio.test.{ ZIOSpecDefault, assertZIO, assertNever, assertTrue, assert, TestAspect }
 import zio.json.EncoderOps
-import zhttp.http.{ Version, Headers, Method, URL, Request, Body }
-import zhttp.http.*
+import zio.http.{ Version, Headers, Method, URL, Request, Body }
+import zio.http.*
 import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.bytesToHex
@@ -62,32 +62,36 @@ object LogoutSpec extends ZIOSpecDefault:
     url = URL(!! / "logout"),
     method = Method.POST,
     headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
+    body = Body.empty,
     version = Version.Http_1_1,
+    remoteAddress = None
   )
 
   val logoutNoSession = Request(
     url = URL(!! / "logout"),
     method = Method.POST,
     headers = Headers.empty,
+    body = Body.empty,
     version = Version.Http_1_1,
+    remoteAddress = None
   )
 
   def spec = suite("LogoutApis")(
     test("logout - fail - no session key in header") {
       for {
-        responseCode <- app(logoutNoSession).map(response => response.status.code)
+        responseCode <- app.runZIO(logoutNoSession).map(response => response.status.code)
       } yield assertTrue(responseCode == 400)
     },
     test("logout - success") {
       for {
         sessionManager <- ZIO.service[SessionManager]
         _ <- sessionManager.getSession(sessionKey)
-        responseCode <- app(logoutWithSession).map(response => response.status.code)
+        responseCode <- app.runZIO(logoutWithSession).map(response => response.status.code)
       } yield assertTrue(responseCode == 200)
     },
     test("logout - success - no session in store") {
       for {
-        responseCode <- app(logoutWithSession).map(response => response.status.code)
+        responseCode <- app.runZIO(logoutWithSession).map(response => response.status.code)
       } yield assertTrue(responseCode == 200)
     },
   ).provideLayerShared(environment) @@

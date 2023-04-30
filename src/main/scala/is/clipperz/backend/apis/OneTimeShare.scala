@@ -2,8 +2,8 @@ package is.clipperz.backend.apis
 
 import zio.ZIO
 import zio.json.EncoderOps
-import zhttp.http.{ Http, Method, Path, PathSyntax, Response, Status }
-import zhttp.http.* //TODO: fix How do you import `!!` and `/`?
+import zio.http.{ Http, Method, Path, PathSyntax, Response, Request, Status }
+import zio.http.* //TODO: fix How do you import `!!` and `/`?
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.functions.fromStream
 import is.clipperz.backend.services.{ SessionManager, SrpManager, SRPStep1Data, SRPStep2Data }
@@ -14,8 +14,6 @@ import zio.Cause
 import is.clipperz.backend.LogAspect
 import is.clipperz.backend.services.OneTimeShareArchive
 import zio.stream.ZStream
-import is.clipperz.backend.exceptions.ResourceConflictException
-import is.clipperz.backend.exceptions.ConflictualRequestException
 import is.clipperz.backend.exceptions.NonWritableArchiveException
 import zio.json.JsonDecoder
 import zio.json.DeriveJsonDecoder
@@ -23,36 +21,21 @@ import zio.json.JsonEncoder
 import zio.json.DeriveJsonEncoder
 import zio.stream.ZSink
 import zio.Chunk
+import zio.http.codec.HeaderCodec
 
 // ------------------------------------------------------------------------------------
 
-case class SaveOTSData(
-    data: HexString
-  )
-
-object SaveOTSData:
-  implicit val decoder: JsonDecoder[SaveOTSData] = DeriveJsonDecoder.gen[SaveOTSData]
-  implicit val encoder: JsonEncoder[SaveOTSData] = DeriveJsonEncoder.gen[SaveOTSData]
-
-// ------------------------------------------------------------------------------------
-
-val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO {
+val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
   case request @ Method.POST -> !! / "share" =>
     ZIO
       .service[OneTimeShareArchive]
       .zip(ZIO.succeed(request.body.asStream))
       .flatMap((archive, bytes) =>
-        // fromStream[SaveOTSData](bytes)
         fromStream[HexString](bytes)
           .flatMap(saveData => archive.saveSecret(ZStream.fromIterable(saveData.toByteArray)))
-        // archive.saveSecret(bytes)
       )
       .map(id => Response.text(s"${id}"))
       .catchSome {
-        case ex: ResourceConflictException =>
-          ZIO.logDebugCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.Conflict))
-        case ex: ConflictualRequestException =>
-          ZIO.logDebugCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.Conflict))
         case ex: BadRequestException =>
           ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
         case ex: NonWritableArchiveException =>
@@ -72,7 +55,6 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO {
         Response(
           status = Status.Ok,
           body = Body.fromStream(bytes),
-          headers = Headers(HeaderNames.contentType, HeaderValues.applicationOctetStream),
         )
       )
       .catchSome {
@@ -83,6 +65,5 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO {
         case ex: FailedConversionException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
       } @@ LogAspect.logAnnotateRequestData(request)
-      // .zipLeft(ZIO.service[OneTimeShareArchive].flatMap(archive => archive.deleteSecret(id))) @@ LogAspect.logAnnotateRequestData(request)
 
 }

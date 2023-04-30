@@ -24,8 +24,8 @@ import Web.HTML.Window (location)
 wrapperWidget :: PasswordGeneratorSettings -> Widget HTML Unit
 wrapperWidget settings = do
   Tuple secret newSettings <- passwordGenerator settings
-  pure $ unsafePerformEffect (assign ("https://clipperz.is/share#" <> secret) (unsafePerformEffect (location (unsafePerformEffect window))))
-  -- pure $ unsafePerformEffect (assign ("http://localhost:8090/share_index.html#share=" <> secret) (unsafePerformEffect (location (unsafePerformEffect window))))
+  -- pure $ unsafePerformEffect (assign ("https://clipperz.is/share#" <> secret) (unsafePerformEffect (location (unsafePerformEffect window))))
+  pure $ unsafePerformEffect (assign ("http://localhost:8090/share_index.html#share=" <> secret) (unsafePerformEffect (location (unsafePerformEffect window))))
   wrapperWidget (fromMaybe standardPasswordGeneratorSettings newSettings)
 
 main :: Effect Unit
