@@ -78,15 +78,17 @@ object LogoutSpec extends ZIOSpecDefault:
 
   def spec = suite("LogoutApis")(
     test("logout - fail - no session key in header") {
+      val request = logoutNoSession
       for {
-        responseCode <- app.runZIO(logoutNoSession).map(response => response.status.code)
+        responseCode <- app.runZIO(request).map(response => response.status.code)
       } yield assertTrue(responseCode == 400)
     },
     test("logout - success") {
+      val request = logoutWithSession
       for {
         sessionManager <- ZIO.service[SessionManager]
-        _ <- sessionManager.getSession(sessionKey)
-        responseCode <- app.runZIO(logoutWithSession).map(response => response.status.code)
+        _ <- sessionManager.getSession(request)
+        responseCode <- app.runZIO(request).map(response => response.status.code)
       } yield assertTrue(responseCode == 200)
     },
     test("logout - success - no session in store") {

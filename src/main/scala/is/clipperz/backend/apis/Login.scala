@@ -19,14 +19,13 @@ val loginApi: ClipperzHttpApp = Http.collectZIO[Request] {
     ZIO
       .service[SessionManager]
       .zip(ZIO.service[SrpManager])
-      .zip(ZIO.attempt(request.rawHeader(SessionManager.sessionKeyHeaderName).get)) //TODO: fix using new HeaderType
       .zip(ZIO.succeed(request.body.asStream))
-      .flatMap((sessionManager, srpManager, sessionKey, content) =>
+      .flatMap((sessionManager, srpManager, content) =>
         fromStream[SRPStep1Data](content)
           .flatMap { loginStep1Data =>
             if HexString(c) == loginStep1Data.c then
               for {
-                session <- sessionManager.getSession(sessionKey) // create new session
+                session <- sessionManager.getSession(request) // create new session
                 (step1Response, session) <- srpManager.srpStep1(loginStep1Data, session)
                 _ <- sessionManager.saveSession(session)
               } yield step1Response
@@ -49,13 +48,12 @@ val loginApi: ClipperzHttpApp = Http.collectZIO[Request] {
     ZIO
       .service[SessionManager]
       .zip(ZIO.service[SrpManager])
-      .zip(ZIO.attempt(request.rawHeader(SessionManager.sessionKeyHeaderName).get)) // TODO: return significant status in response
       .zip(ZIO.succeed(request.body.asStream))
-      .flatMap((sessionManager, srpManager, sessionKey, content) =>
+      .flatMap((sessionManager, srpManager, content) =>
         fromStream[SRPStep2Data](content)
           .flatMap { loginStep2Data =>
             for {
-              session <- sessionManager.getSession(sessionKey)
+              session <- sessionManager.getSession(request)
               // _ <- ZIO.succeed(println(s"OPTIONAL SESSION: ${optionalSession}"))
               (step2Response, session) <- srpManager.srpStep2(loginStep2Data, session)
               _ <- sessionManager.saveSession(session)

@@ -18,7 +18,7 @@ import zio.Trace
 
 type TollMiddleware = RequestHandlerMiddleware[Nothing, TollManager & SessionManager, Throwable, Any]
 
-def verifyTollNecessity(req: Request): Boolean =
+def isTollRequired(req: Request): Boolean =
   List("users", "login", "blobs").contains(extractPath(req))
 
 def getChallengeType(req: Request): ChallengeType =
@@ -32,11 +32,11 @@ def getNextChallengeType(req: Request): ChallengeType =
     case "users" => ChallengeType.CONNECT
     case "login" => ChallengeType.MESSAGE
     case "blobs" => ChallengeType.MESSAGE
-
+/*
 def isTollInSession(req: Request): ZIO[SessionManager, Throwable, Boolean] =
   ZIO
     .service[SessionManager]
-    .zip(ZIO.attempt(req.rawHeader(SessionManager.sessionKeyHeaderName).get))
+    .zip(ZIO.attempt(req.rawHeader(SessionManager.sessionKeyHeaderName).get))       //  "clipperz-usersession-id"
     .zip(ZIO.attempt(req.rawHeader(TollManager.tollHeader).map(HexString(_)).get))
     .zip(ZIO.attempt(req.rawHeader(TollManager.tollCostHeader).map(_.toInt).get))
     .flatMap((sessionManager, sessionKey, challengeToll, cost) =>
@@ -137,9 +137,74 @@ val tollPresentMiddleware: Request => TollMiddleware = req =>
     wrongTollMiddleware(Status.PaymentRequired)(req)
   )
 
-val hashcash: TollMiddleware = RequestHandlerMiddlewares
+val _hashcash: TollMiddleware = RequestHandlerMiddlewares
   .ifRequestThenElseFunction[TollManager & SessionManager, Throwable](req => req.hasHeader(TollManager.tollReceiptHeader))(tollPresentMiddleware, missingTollMiddleware)
   .when(verifyTollNecessity)
+*/
+
+// ============================================================================
+//
+//  Now we have two types of middlewares, `RequestHandlerMiddleware` transforms a `Handler` which is basically a Request => Response function,
+//  while `HttpRouteMiddleware` transforms a Http which includes transforming the routing.
+//  Most of the middleware use cases are request handler middlewares - one example for a route middleware is dynamically turning on/off complete
+//  "routing subtrees".
+//  So your use case should be a request handler middleware: it gets a Handler and returns a Handler - in the new handler you can look into the
+//  request and decide to either pass the request to the original handler, or just return with a response. 
+//
+
+//  TollMiddleware = RequestHandlerMiddleware[Nothing, TollManager & SessionManager, Throwable, Any]
+
+def verifyRequestToll(request: Request): ZIO[TollManager & SessionManager, Throwable, (Boolean, TollChallenge)] =
+  ZIO.service[SessionManager].zip(ZIO.service[TollManager])
+    .flatMap { (sessionManager, tollManager) =>
+      sessionManager.getSession(request).flatMap(session => {
+        var tollIsValid = for {
+          challengeJson     <-  ZIO.attempt(session(TollManager.tollChallengeContentKey).get)
+                                  .mapError(e => new BadRequestException("No challenge related to this session"))
+          _                 <-  ZIO.log(s"Challenge JSON: ${challengeJson}")
+          challenge         <-  fromString[TollChallenge](challengeJson)
+          receipt           <-  ZIO.attempt(request.rawHeader(TollManager.tollReceiptHeader).map(HexString(_)).get)
+          tollIsValid       <-  tollManager.verifyToll(challenge, receipt)
+        } yield tollIsValid
+
+        tollIsValid.catchAll(_ => ZIO.succeed(false))
+        .flatMap(tollIsValid => for {
+            nextChallengeType <-  ZIO.succeed(if (tollIsValid) then getNextChallengeType(request) else getChallengeType(request))
+            nextChallenge     <-  tollManager.getToll(tollManager.getChallengeCost(nextChallengeType))
+            _                 <-  sessionManager.saveSession(session + (TollManager.tollChallengeContentKey, nextChallenge.toJson))
+          } yield (tollIsValid, nextChallenge)
+        )
+      })
+    }
+
+val hashcash: TollMiddleware = new RequestHandlerMiddleware.Simple[TollManager & SessionManager, Throwable] {
+  override def apply[R1 <: TollManager & SessionManager, Err1 >: Throwable](handler: Handler[R1, Err1, Request, Response])(implicit trace: Trace): Handler[R1, Err1, Request, Response] =
+    Handler.fromFunctionZIO[Request] { request =>
+        verifyRequestToll(request)
+          .map((isRequestTollValid, newToll) =>
+            ( isRequestTollValid match 
+                case true  => handler
+                case false => Handler.status(Status.PaymentRequired)
+            ) .addHeader(TollManager.tollHeader,      newToll.toll.toString)
+              .addHeader(TollManager.tollCostHeader,  newToll.cost.toString)
+          )
+    }.flatten
+}.when(isTollRequired)
+  
+// final def customAuthZIO[R, E](
+//   verify: Headers => ZIO[R, E, Boolean],
+//   responseHeaders: Headers = Headers.empty,
+//   responseStatus: Status = Status.Unauthorized,
+// ): RequestHandlerMiddleware[Nothing, R, E, Any] =
+//   new RequestHandlerMiddleware.Simple[R, E] {
+//     override def apply[R1 <: R, Err1 >: E](handler: Handler[R1, Err1, Request, Response])(implicit trace: Trace): Handler[R1, Err1, Request, Response] =
+//       Handler.fromFunctionZIO[Request] { request =>
+//         verify(request.headers).map {
+//           case true  => handler
+//           case false => Handler.status(responseStatus).addHeaders(responseHeaders)
+//         }
+//       }.flatten
+//   }
 
 //===============//===============//===============//===============//===============//===============//===============
 

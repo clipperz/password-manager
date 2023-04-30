@@ -28,11 +28,6 @@ import is.clipperz.backend.services.tollByteSize
 import is.clipperz.backend.services.SrpManager
 import is.clipperz.backend.middleware.{
   hashcash,
-  tollPresentMiddleware,
-  correctReceiptMiddleware,
-  missingTollMiddleware,
-  wrongTollMiddleware,
-  checkReceipt,
 }
 import is.clipperz.backend.services.TollChallenge
 import is.clipperz.backend.services.TollReceipt
@@ -44,7 +39,7 @@ object HashCashMiddlewareSpec extends ZIOSpecDefault:
       SessionManager.live ++
       (PRNG.live >>> TollManager.live)
 
-  val sessionKey = "sessionKey"
+  val sessionKey = "____sessionKey____"
 
   val get = Request(
     url = URL(!! / "blobs" / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),

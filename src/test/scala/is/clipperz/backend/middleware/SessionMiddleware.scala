@@ -29,11 +29,6 @@ import is.clipperz.backend.services.tollByteSize
 import is.clipperz.backend.services.SrpManager
 import is.clipperz.backend.middleware.{
   hashcash,
-  tollPresentMiddleware,
-  correctReceiptMiddleware,
-  missingTollMiddleware,
-  wrongTollMiddleware,
-  checkReceipt,
 }
 import is.clipperz.backend.services.TollChallenge
 import is.clipperz.backend.services.TollReceipt
@@ -83,7 +78,7 @@ object SessionMiddlewareSpec extends ZIOSpecDefault:
     case request @ Method.GET -> !! / "create" / key =>
       ZIO
         .service[SessionManager]
-        .flatMap(sessionManager => sessionManager.getSession(key).map((sessionManager, _)))
+        .flatMap(sessionManager => sessionManager.getSession(request).map((sessionManager, _)))
         .flatMap((sessionManager, session) => sessionManager.saveSession(Session(session._1, Map(("c", key)))))
         .map(_ => Response.ok)
   }

@@ -14,10 +14,9 @@ val logoutApi: ClipperzHttpApp = Http.collectZIO[Request] {
   case request @ Method.POST -> !! / "logout" =>
     ZIO
       .service[SessionManager]
-      .zip(ZIO.attempt(request.headers.rawHeader(SessionManager.sessionKeyHeaderName).get))
-      .flatMap((sessionManager, sessionKey) =>
+      .flatMap((sessionManager) =>
         sessionManager
-          .deleteSession(sessionKey)
+          .deleteSession(request)
           .map(_ => Response.text(""))
       )
       .catchSome {
