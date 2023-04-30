@@ -28,6 +28,6 @@ shareWidget secret = do
   result <- liftAff $ runExceptT $ share secret_ password_
   case result of
     Left err -> text ("error:" <> show err)
-    -- Right id -> text ("copy: http://localhost:8090/share_index.html#redeem=" <> id)
-    Right id -> text ("copy: http://clipperz.is/share/redeem#" <> id)
+    Right id -> text ("copy: http://localhost:8090/share_index.html#redeem=" <> id)
+    -- Right id -> text ("copy: http://clipperz.is/share/redeem#" <> id)
     

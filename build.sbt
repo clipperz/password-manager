@@ -103,10 +103,11 @@ lazy val commonScalacOptions = Seq(
     (Compile / console / scalacOptions).value,
 )
 
-val zio_version = "2.0.3"
-val zio_http_version = "2.0.0-RC11"
-val zio_logging_version = "2.1.3"
-val zio_json = "0.3.0-RC11"
+val zio_version = "2.0.13"
+// val zio_http_version = "2.0.0-RC11"
+val zio_http_version = "3.0.0-RC1"
+val zio_logging_version = "2.1.12"
+val zio_json = "0.5.0"
 
 lazy val dependencies = Seq(
   libraryDependencies ++= Seq(
@@ -114,7 +115,8 @@ lazy val dependencies = Seq(
     "dev.zio" %% "zio-streams" % zio_version,
     "dev.zio" %% "zio-json" % zio_json,
     "dev.zio" %% "zio-cache" % "0.2.0",
-    "io.d11" %% "zhttp" % zio_http_version,
+    // "io.d11" %% "zhttp" % zio_http_version,
+    "dev.zio" %% "zio-http" % zio_http_version,
     "dev.zio" %% "zio-logging"       % zio_logging_version,
     "dev.zio" %% "zio-logging-slf4j" % zio_logging_version,
     "org.slf4j" % "slf4j-simple" % "1.7.36",

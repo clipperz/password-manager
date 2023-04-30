@@ -33,7 +33,7 @@ object SaveBlobData:
 trait BlobArchive:
   def getBlob(hash: BlobHash): Task[ZStream[Any, Throwable, Byte]]
   def saveBlob(key: BlobHash, content: ZStream[Any, Throwable, Byte]): Task[BlobHash]
-  def deleteBlob(content: ZStream[Any, Throwable, Byte]): Task[Boolean]
+  def deleteBlob(key: BlobHash, content: ZStream[Any, Throwable, Byte]): Task[Boolean]
 
 object BlobArchive:
   val WAIT_TIME = 100
@@ -73,11 +73,17 @@ object BlobArchive:
           case ex => ZIO.fail(new NonWritableArchiveException(s"${ex}"))
         }
 
-    override def deleteBlob(content: ZStream[Any, Throwable, Byte]): Task[Boolean] =
+    override def deleteBlob(key: BlobHash, content: ZStream[Any, Throwable, Byte]): Task[Boolean] =
       ZIO.scoped {
         HashFunction
           .hashSHA256(content)
-          .flatMap(hash => keyBlobArchive.deleteBlob(bytesToHex(hash).toString))
+          .map(hash => bytesToHex(hash))
+          .flatMap(hash =>
+            if key == hash then
+              keyBlobArchive.deleteBlob(hash.toString)
+            else
+              ZIO.fail(new BadRequestException(s"Different hashes: computed = ${hash}, passed = ${key}"))
+          )
       }
 
   // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .

@@ -3,7 +3,7 @@ package is.clipperz.backend.services
 import scala.collection.immutable.HashMap
 import zio.{ ZIO, Layer, ZLayer, Tag, Task }
 import zio.internal.stacktracer.Tracer
-import zhttp.http.Request
+import zio.http.Request
 import is.clipperz.backend.exceptions.BadRequestException
 
 type SessionKey = String
@@ -21,7 +21,7 @@ trait SessionManager:
   def getSession(key: SessionKey): Task[Session]
   def saveSession(content: Session): Task[SessionKey]
   def verifySessionUser(c: String, request: Request): Task[Unit] =
-    request.headers.headerValue(SessionManager.sessionKeyHeaderName) match
+    request.rawHeader(SessionManager.sessionKeyHeaderName) match
       case Some(sessionKey) =>
         this
           .getSession(sessionKey)

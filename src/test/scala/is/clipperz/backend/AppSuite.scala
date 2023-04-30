@@ -11,8 +11,8 @@ import zio.test.Assertion.nothing
 import zio.test.TestResult.all
 import zio.test.{ ZIOSpecDefault, assertTrue, assertNever, assert, TestAspect }
 import zio.json.EncoderOps
-import zhttp.http.{ Version, Headers, Method, URL, Request, Body }
-import zhttp.http.*
+import zio.http.{ Version, Headers, Method, URL, Request, Body }
+import zio.http.*
 import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.bytesToHex
@@ -45,6 +45,7 @@ import is.clipperz.backend.services.SRPStep1Response.apply
 import is.clipperz.backend.services.SRPStep1Response
 import is.clipperz.backend.services.SRPStep2Data
 import is.clipperz.backend.services.OneTimeShareArchive
+import java.net.InetAddress
 
 object AppSpec extends ZIOSpecDefault:
   val app = Main.completeClipperzBackend
@@ -66,7 +67,7 @@ object AppSpec extends ZIOSpecDefault:
   val blob = SaveBlobData(
     data = HexString("f5a34923d74831d3bf89733671f50949225dd117f60da6d8902cdbe45dd6df0feef9a4147358cd90d77e8696526ab605aeedd272a7bec6070bf9d08d63487b3a5fd14f3683c62eac4fbafce314684bad9eec5bc1f92caa39735b42aa269b840b12790339936c49ef51964f153754fd602efd74b1f03aa92f367c010e700f9637c72a3349b3e7eb6ecb3ce10b9e01300dfe5400347d1aad5a364d8d9ff3d67100e5f51e2d2cb23625977226263c584acc3f7d83652e486d7c69a732a7b71ae8"),
     hash = HexString("da50820830b6d3a1257c5fc75e2119543a733e6b728a265b05af8ea2e7163184")
-    )
+  )
 
   val sessionKey1 = "sessionKey1"
   val sessionKey2 = "sessionKey2"
@@ -122,22 +123,25 @@ object AppSpec extends ZIOSpecDefault:
   )
 
   private def manageRequestWithTollPayment(req: Request): ZIO[ClipperzEnvironment, Any, Response] =
-    app(req).flatMap(response =>
+    app.runZIO(req).flatMap(response =>
       if response.status.code != 402 then
         ZIO.succeed(response)
       else
         computeReceiptFromResponse(response)
-          .zip(ZIO.attempt(response.headers.header(TollManager.tollHeader).get))
-          .zip(ZIO.attempt(response.headers.header(TollManager.tollCostHeader).get))
+          .zip(ZIO.attempt(response.rawHeader(TollManager.tollHeader).get))
+          .zip(ZIO.attempt(response.rawHeader(TollManager.tollCostHeader).get))
           .flatMap((receipt, tollHeader, tollCostHeader) =>
-            manageRequestWithTollPayment(req.addHeaders(Headers((TollManager.tollReceiptHeader, receipt.toString())))
-                                            .addHeaders(Headers(tollHeader, tollCostHeader)))
+            manageRequestWithTollPayment(
+              req.addHeaders(Headers(TollManager.tollReceiptHeader, receipt.toString()))
+                 .addHeaders(Headers(TollManager.tollHeader, tollHeader))
+                 .addHeaders(Headers(TollManager.tollCostHeader, tollCostHeader))
+            )
           )
     )
   
   private def computeReceiptFromResponse(res: Response) =
-    val toll = res.headerValue(TollManager.tollHeader).map(HexString(_)).get
-    val cost = res.headerValue(TollManager.tollCostHeader).map(_.toInt).get
+    val toll = res.rawHeader(TollManager.tollHeader).map(HexString(_)).get
+    val cost = res.rawHeader(TollManager.tollCostHeader).map(_.toInt).get
     ZIO
       .service[PRNG]
       .zip(ZIO.service[TollManager])
@@ -149,9 +153,10 @@ object AppSpec extends ZIOSpecDefault:
     val signupRequest = Request(
       url = URL(!! / "users" / userCard.c.toString()),
       method = Method.POST,
-      headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
+      headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
       body = Body.fromString(signupData.toJson, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
+      remoteAddress = Some(InetAddress.getLocalHost().nn)
     )
     for {
       requestResult <- manageRequestWithTollPayment(signupRequest)
@@ -164,17 +169,19 @@ object AppSpec extends ZIOSpecDefault:
     val step1Request = Request(
       url = URL(!! / "login" / "step1" / userCard.c.toString()),
       method = Method.POST,
-      headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
+      headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
       body = Body.fromString(stepData.toJson, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
+      remoteAddress = Some(InetAddress.getLocalHost().nn)
     )
     val step2Request: SRPStep2Data => Request = data =>
       Request(
         url = URL(!! / "login" / "step2" / userCard.c.toString()),
         method = Method.POST,
-        headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
+        headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
         body = Body.fromString(data.toJson, StandardCharsets.UTF_8.nn),
         version = Version.Http_1_1,
+        remoteAddress = Some(InetAddress.getLocalHost().nn)
       )
     for {
       response1 <- manageRequestWithTollPayment(step1Request)
@@ -198,9 +205,10 @@ object AppSpec extends ZIOSpecDefault:
     val request = Request(
       url = URL(!! / "blobs"),
       method = Method.POST,
-      headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
+      headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
       body = Body.fromString(blob.toJson, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
+      remoteAddress = Some(InetAddress.getLocalHost().nn)
     )
     for {
       result <- manageRequestWithTollPayment(request)
@@ -210,8 +218,10 @@ object AppSpec extends ZIOSpecDefault:
     val request = Request(
       url = URL(!! / "blobs" / blob.hash.toString() ),
       method = Method.GET,
-      headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
+      headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
+      body = Body.empty,
       version = Version.Http_1_1,
+      remoteAddress = Some(InetAddress.getLocalHost().nn)
     )
     for {
       result <- manageRequestWithTollPayment(request)
@@ -221,9 +231,10 @@ object AppSpec extends ZIOSpecDefault:
     val request = Request(
       url = URL(!! / "blobs" / blob.hash.toString() ),
       method = Method.DELETE,
-      headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
+      headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
       body = Body.fromString(blob.toJson, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
+      remoteAddress = Some(InetAddress.getLocalHost().nn)
     )
     for {
       result <- manageRequestWithTollPayment(request)
@@ -233,8 +244,10 @@ object AppSpec extends ZIOSpecDefault:
     val request = Request(
       url = URL(!! / "logout"),
       method = Method.POST,
-      headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
+      headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
+      body = Body.empty,
       version = Version.Http_1_1,
+      remoteAddress = Some(InetAddress.getLocalHost().nn)
     )
     for {
       result <- manageRequestWithTollPayment(request)

@@ -10,8 +10,6 @@ import zio.stream.{ ZStream, ZSink }
 import zio.test.Assertion.{ nothing, isTrue, isFalse, throws, throwsA, fails, isSubtype, anything }
 import zio.test.{ ZIOSpecDefault, check, assertTrue, assert, assertCompletes, assertNever, assertZIO, TestAspect }
 import zio.json.EncoderOps
-import zhttp.http.{ Version, Headers, Method, URL, Request, Body }
-import zhttp.http.*
 import is.clipperz.backend.Main
 import java.nio.file.Path
 import _root_.is.clipperz.backend.exceptions.ResourceNotFoundException

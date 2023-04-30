@@ -31,6 +31,7 @@ On a console, in the base folder run `sbt` to open the sbt console, after that t
 ### Running tests
 Command to run inside of the sbt console to execute tests:
 - Scala
+	- `Test/compile`: compiles the tests
 	- `test`: runs all the Scala tests
 	- `Test/test {path of the test suit}` (ex: `Test/test is.clipperz.backend.SrpFunctionsConversionsSuite`): run a specific test suite
 	- `Test/run`: show a list of all the test suits from which you can choose one to run

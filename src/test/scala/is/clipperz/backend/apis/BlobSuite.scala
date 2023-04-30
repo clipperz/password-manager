@@ -10,8 +10,8 @@ import zio.stream.{ ZStream, ZSink }
 import zio.test.Assertion.nothing
 import zio.test.{ ZIOSpecDefault, assertTrue, assert, TestAspect }
 import zio.json.EncoderOps
-import zhttp.http.{ Version, Headers, Method, URL, Request, Body }
-import zhttp.http.*
+import zio.http.{ Version, Headers, Method, URL, Request, Body }
+import zio.http.*
 import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.bytesToHex
@@ -63,6 +63,7 @@ object BlobSpec extends ZIOSpecDefault:
     headers = Headers.empty,
     body = Body.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
     version = Version.Http_1_1,
+    remoteAddress = None
   )
 
   val delete = Request(
@@ -71,6 +72,7 @@ object BlobSpec extends ZIOSpecDefault:
     headers = Headers.empty,
     body = Body.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
     version = Version.Http_1_1,
+    remoteAddress = None
   )
 
   val deleteDifferentHashes = Request(
@@ -79,6 +81,7 @@ object BlobSpec extends ZIOSpecDefault:
     headers = Headers.empty,
     body = Body.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
     version = Version.Http_1_1,
+    remoteAddress = None
   )
 
   val invalidDelete = Request(
@@ -87,13 +90,16 @@ object BlobSpec extends ZIOSpecDefault:
     headers = Headers.empty,
     body = Body.fromString("invalidData", StandardCharsets.UTF_8.nn),
     version = Version.Http_1_1,
+    remoteAddress = None
   )
 
   val get = Request(
     url = URL(!! / "blobs" / blobData.hash.toString()),
     method = Method.GET,
     headers = Headers.empty,
+    body = Body.empty,
     version = Version.Http_1_1,
+    remoteAddress = None
   )
 
   val invalidBlobKey = "f1234d75178d892a133a410355a5a990cf75d2f33eba25d575943d4df632f3a4"
@@ -105,6 +111,7 @@ object BlobSpec extends ZIOSpecDefault:
     headers = Headers.empty,
     body = Body.fromString(invalidBlobContent, StandardCharsets.UTF_8.nn),
     version = Version.Http_1_1,
+    remoteAddress = None
   )
 
   val postEmpty = Request(
@@ -113,54 +120,55 @@ object BlobSpec extends ZIOSpecDefault:
     headers = Headers.empty,
     body = Body.fromString("", StandardCharsets.UTF_8.nn),
     version = Version.Http_1_1,
+    remoteAddress = None
   )
 
   def spec = suite("BlobApis")(
     test("DELETE valid blob -> 404") {
       for {
-        statusCodeDelete <- app(delete).map(response => response.status.code)
+        statusCodeDelete <- app.runZIO(delete).map(response => response.status.code)
       } yield assertTrue(statusCodeDelete == 404)
     },
     test("DELETE invalid blob -> 400") {
       for {
-        statusCodeDelete <- app(invalidDelete).map(response => response.status.code)
+        statusCodeDelete <- app.runZIO(invalidDelete).map(response => response.status.code)
       } yield assertTrue(statusCodeDelete == 400)
     },
     test("GET non existent blob -> 404") {
       for {
-        statusCode <- app(get).map(response => response.status.code)
+        statusCode <- app.runZIO(get).map(response => response.status.code)
       } yield assertTrue(statusCode == 404)
     },
     test("POST invalid blob -> 400") {
       for {
-        statusCode <- app(postInvalid).map(response => response.status.code)
+        statusCode <- app.runZIO(postInvalid).map(response => response.status.code)
       } yield assertTrue(statusCode == 400)
     },
     test("POST empty blob -> 400") {
       for {
-        statusCode <- app(postEmpty).map(response => response.status.code)
+        statusCode <- app.runZIO(postEmpty).map(response => response.status.code)
       } yield assertTrue(statusCode == 400)
     },
     test("POST correct blob -> 200") {
       for {
-        statusCode <- app(post).map(response => response.status.code)
+        statusCode <- app.runZIO(post).map(response => response.status.code)
       } yield assertTrue(statusCode == 200)
     },
     test("POST -> hash response") {
       for {
-        body <- app(post).flatMap(response => response.body.asString)
+        body <- app.runZIO(post).flatMap(response => response.body.asString)
       } yield assertTrue(body == blobData.hash.toString())
     },
     test("POST / GET -> 200") {
       for {
-        postReseponse <- app(post)
-        code <- app(get).map(_.status.code)
+        postReseponse <- app.runZIO(post)
+        code <- app.runZIO(get).map(_.status.code)
       } yield assertTrue(code == 200)
     },
     test("POST / GET -> response content") {
       for {
-        postReseponse <- app(post)
-        hash <- app(get).flatMap(response =>
+        postReseponse <- app.runZIO(post)
+        hash <- app.runZIO(get).flatMap(response =>
           response
             .body.asStream
             .run(ZSink.digest(MessageDigest.getInstance("SHA-256").nn))
@@ -170,19 +178,19 @@ object BlobSpec extends ZIOSpecDefault:
     },
     test("POST / DELETE -> _, 200") {
       for {
-        statusCode <- app(post).flatMap(_ => app(delete).map(response => response.status.code))
+        statusCode <- app.runZIO(post).flatMap(_ => app.runZIO(delete).map(response => response.status.code))
       } yield assertTrue(statusCode == 200)
     },
     test("POST / DELETE different hashes -> _, 400") {
       for {
-        statusCode <- app(post).flatMap(_ => app(deleteDifferentHashes).map(response => response.status.code))
+        statusCode <- app.runZIO(post).flatMap(_ => app.runZIO(deleteDifferentHashes).map(response => response.status.code))
       } yield assertTrue(statusCode == 400)
     },
     test("POST / DELETE / GET -> 200, 200, 404") {
       for {
-        statusCodePost <- app(post).map(response => response.status.code)
-        statusCodeDelete <- app(delete).map(response => response.status.code)
-        statusCodeGet <- app(get).map(response => response.status.code)
+        statusCodePost <- app.runZIO(post).map(response => response.status.code)
+        statusCodeDelete <- app.runZIO(delete).map(response => response.status.code)
+        statusCodeGet <- app.runZIO(get).map(response => response.status.code)
       } yield assertTrue(statusCodePost == 200, statusCodeDelete == 200, statusCodeGet == 404)
     },
   ).provideLayerShared(environment) @@

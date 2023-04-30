@@ -2,8 +2,8 @@ package is.clipperz.backend.apis
 
 import zio.ZIO
 import zio.json.EncoderOps
-import zhttp.http.{ Http, Method, Path, PathSyntax, Response, Status }
-import zhttp.http.* //TODO: fix How do you import `!!` and `/`?
+import zio.http.{ Http, Method, Path, PathSyntax, Response, Status }
+import zio.http.* //TODO: fix How do you import `!!` and `/`?
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.functions.fromStream
 import is.clipperz.backend.services.{ SessionManager, SrpManager, SRPStep1Data, SRPStep2Data }
@@ -12,13 +12,14 @@ import is.clipperz.backend.exceptions.{ BadRequestException, FailedConversionExc
 import java.util
 import zio.Cause
 import is.clipperz.backend.LogAspect
+import zio.http.Header.HeaderType
 
-val loginApi: ClipperzHttpApp = Http.collectZIO {
+val loginApi: ClipperzHttpApp = Http.collectZIO[Request] {
   case request @ Method.POST -> !! / "login" / "step1" / c =>
     ZIO
       .service[SessionManager]
       .zip(ZIO.service[SrpManager])
-      .zip(ZIO.attempt(request.headers.headerValue(SessionManager.sessionKeyHeaderName).get))
+      .zip(ZIO.attempt(request.rawHeader(SessionManager.sessionKeyHeaderName).get)) //TODO: fix using new HeaderType
       .zip(ZIO.succeed(request.body.asStream))
       .flatMap((sessionManager, srpManager, sessionKey, content) =>
         fromStream[SRPStep1Data](content)
@@ -48,7 +49,7 @@ val loginApi: ClipperzHttpApp = Http.collectZIO {
     ZIO
       .service[SessionManager]
       .zip(ZIO.service[SrpManager])
-      .zip(ZIO.attempt(request.headers.headerValue(SessionManager.sessionKeyHeaderName).get)) // TODO: return significant status in response
+      .zip(ZIO.attempt(request.rawHeader(SessionManager.sessionKeyHeaderName).get)) // TODO: return significant status in response
       .zip(ZIO.succeed(request.body.asStream))
       .flatMap((sessionManager, srpManager, sessionKey, content) =>
         fromStream[SRPStep2Data](content)
