@@ -81,7 +81,7 @@ object HashCashMiddlewareSpec extends ZIOSpecDefault:
       assertZIO(response.map(res => res.headers.hasHeader(TollManager.tollCostHeader)))(isTrue)
     },
     test("400 if hashcash present but never issued") {
-      assertZIO(idApp(getWithFixedToll).map(res => res.status == Status.BadRequest))(isTrue)
+      assertZIO(idApp(getWithFixedToll).map(res => res.status == Status.PaymentRequired))(isTrue)
     },
     test("402 if hashcash is present but incorrect") {
       for {
@@ -129,7 +129,7 @@ object HashCashMiddlewareSpec extends ZIOSpecDefault:
           )
         )
         response2 <- idApp(newGet)
-      } yield assertTrue(response2.status == Status.BadRequest)
+      } yield assertTrue(response2.status == Status.PaymentRequired)
     },
     test("200 if hashcash is present and correct") {
       for {
