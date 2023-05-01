@@ -21,7 +21,6 @@ ALL the code included in this project, if not otherwise stated, is released with
 ## Developing
 Necessary tools:
 - `NodeJS`: if on a Unix like system, our advice is to use [`nvm`](http://nvm.sh), otherwise you can find [here](https://nodejs.org/en/) the official distribution
-- `yarn`: after installing node, use `npm install -g yarn@1.22.18`
 - [`Scala 3 + sbt`](https://www.scala-lang.org/download/)
 
 ### Building and running the application
