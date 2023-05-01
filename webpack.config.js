@@ -32,14 +32,14 @@ const webpack = require('webpack');
 		}),
 		// app html package configuration
 		new HtmlWebpackPlugin({
-			template: '/src/main/html/app_index.html',
-			filename: 'app_index.html',
+			template: '/src/main/html/index.html',
+			filename: 'index.html',
 			scriptLoading: 'module',
 			chunks: ["app"],
 			minify: true,
 		}),
 		new HtmlInlineScriptPlugin({
-			htmlMatchPattern: [/app_index.html$/],
+			htmlMatchPattern: [/index.html$/],
 			scriptMatchPattern: [/app-bundle.[a-zA-Z0-9]+.js/],
 		}),
 		// password generator html package configuration
