@@ -20,10 +20,6 @@ import java.util.UUID
 
 type SecretId = String
 
-// object SaveOneTimeSecretData:
-//   implicit val decoder: JsonDecoder[SaveBlobData] = DeriveJsonDecoder.gen[SaveBlobData]
-//   implicit val encoder: JsonEncoder[SaveBlobData] = DeriveJsonEncoder.gen[SaveBlobData]
-
 // ----------------------------------------------------------------------------
 
 trait OneTimeShareArchive:

@@ -54,7 +54,6 @@ val loginApi: ClipperzHttpApp = Http.collectZIO[Request] {
           .flatMap { loginStep2Data =>
             for {
               session <- sessionManager.getSession(request)
-              // _ <- ZIO.succeed(println(s"OPTIONAL SESSION: ${optionalSession}"))
               (step2Response, session) <- srpManager.srpStep2(loginStep2Data, session)
               _ <- sessionManager.saveSession(session)
             } yield step2Response
@@ -67,7 +66,7 @@ val loginApi: ClipperzHttpApp = Http.collectZIO[Request] {
         case ex: FailedConversionException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
         case ex: BadRequestException =>
-          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.Forbidden))
+          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
         case ex: NoSuchElementException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
       } @@ LogAspect.logAnnotateRequestData(request)

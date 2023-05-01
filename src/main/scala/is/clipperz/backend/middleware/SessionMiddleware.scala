@@ -24,7 +24,6 @@ val presentSessionHeaderMiddleware: SessionMiddleware =
     .ifRequestThenElseZIO(req =>
       ZIO
         .service[SessionManager]
-        // .zip(ZIO.attempt(req.rawHeader(SessionManager.sessionKeyHeaderName).get))
         .flatMap((sessionManager) => sessionManager.getSession(req))
         .map(_.isEmpty)
     )(

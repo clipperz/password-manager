@@ -67,16 +67,10 @@ object Main extends zio.ZIOAppDefault:
 
       val config           = Server.Config.default
                               .port(port)
-                              .withRequestStreaming(RequestStreaming.Enabled)
+                              // .withRequestStreaming(RequestStreaming.Enabled) //TODO: enable and change handling in frontend
       val nettyConfig      = NettyConfig.default
                               .leakDetection(LeakDetectionLevel.PARANOID)
                               .maxThreads(nThreads)
-
-      // val server =
-      //   Server.port(port) ++
-      //     Server.enableObjectAggregator(5*MB) ++
-      //     Server.paranoidLeakDetection ++
-      //     Server.app(completeClipperzBackend)
 
       val blobBasePath = FileSystems.getDefault().nn.getPath(blobsArchivePath(0), blobsArchivePath.drop(1)*).nn
       val userBasePath = FileSystems.getDefault().nn.getPath(usersArchivePath(0), usersArchivePath.drop(1)*).nn

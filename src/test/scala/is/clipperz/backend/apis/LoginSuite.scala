@@ -170,7 +170,7 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
         response <- app.runZIO(request)
         stepResponse <- fromStream[SRPStep1Response](response.body.asStream)
         response2 <- app.runZIO(loginRequestStep2(c.toString(), SRPStep2Data(m1).toJson, true))
-      } yield assertTrue(response2.status.code == 403)
+      } yield assertTrue(response2.status.code == 400)
     },
     test("Login step 1, 2 - fail - no sessionKey") {
       val aa = RFCTestVector.aa

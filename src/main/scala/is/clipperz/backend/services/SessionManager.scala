@@ -41,8 +41,6 @@ object SessionManager:
     var sessions: Map[SessionKey, Session] = new HashMap[SessionKey, Session]()
     def emptySession(key: SessionKey) = Session(key, new HashMap[String, String]())
 
-    // override def getSession(key: SessionKey): Task[Session] =
-    //   ZIO.succeed(sessions.getOrElse(key, emptySession(key)))
     override def getSession(request: Request): Task[Session] =
       ZIO
         .attempt(request.rawHeader(SessionManager.sessionKeyHeaderName).get)
@@ -53,12 +51,10 @@ object SessionManager:
       sessions = sessions + ((content._1, content))
       ZIO.succeed(content._1)
 
-    // override def deleteSession(key: SessionKey): Task[Unit] =
     override def deleteSession(request: Request): Task[Unit] =
       ZIO.attempt(request.rawHeader(SessionManager.sessionKeyHeaderName).get)
          .map(key => sessions = sessions - key)
          .mapError(_ => new NoSuchElementException("session header key not found when deleting session"))
-        //  .catchAll(_ => ZIO.succeed(()))
 
   val live: Layer[Nothing, SessionManager] =
     ZLayer.succeed[SessionManager](new TrivialSessionManager)(Tag[SessionManager], Tracer.newTrace)

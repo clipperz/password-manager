@@ -193,7 +193,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
         _ <- prepareSession(c.toString())
         statusCode <- app.runZIO(prepareDelete(c.toString(), testUser.toJson, false)).map(res => res.status.code)
       } yield assertTrue(statusCode == 400)
-    } @@ TestAspect.after(deleteSession(prepareDelete(c.toString(), testUser.toJson, false))),
+    },
     test("POST different c -> 400") {
       for {
         statusCode <- app.runZIO(preparePost("wrongC", testSignupData.toJson, true)).map(res => res.status.code)
@@ -238,8 +238,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
         _ <- prepareSession(c.toString())
         putCode <- app.runZIO(preparePut(c.toString(), ModifyUserCard(c, testUser, testUser2).toJson, false)).map(res => res.status.code)
       } yield assertTrue(putCode == 400)
-    } @@ TestAspect.after(deleteSession(preparePut(c.toString(), ModifyUserCard(c, testUser, testUser2).toJson, false)))
-      @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
+    } @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
     test("PUT non existent user -> 404") {
       for {
         _ <- prepareSession(c.toString())

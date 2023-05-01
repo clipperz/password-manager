@@ -58,7 +58,6 @@ object KeyBlobArchive:
       ZIO
         .attempt {
           getBlobPath(key, false)
-            // .map(path => {print(s"Trying to delete path: ${path}"); path})
             .map(path => Files.deleteIfExists(path))
             .get
           // TODO: delete empty folder?
