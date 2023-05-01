@@ -1,18 +1,18 @@
 module Functions.Communication.Blobs where
 
-import Affjax.Web as AXW
-import Affjax.RequestBody (RequestBody, json)
+import Affjax.RequestBody (formData)
 import Affjax.ResponseFormat as RF
-import Control.Bind (bind)
+import Affjax.Web as AXW
+import Control.Bind (bind, discard, pure)
 import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT)
 import Crypto.Subtle.Key.Types (CryptoKey)
-import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Either (Either(..))
 import Data.Function (($))
+import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
-import Data.HexString (HexString, fromArrayBuffer)
+import Data.HexString (Base(..), HexString, fromArrayBuffer, toString)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
@@ -21,8 +21,11 @@ import Data.String.Common (joinWith)
 import DataModel.AppState (AppError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff)
-import Functions.EncodeDecode (decryptJson)
+import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
+import Functions.Communication.BlobFromArrayBuffer (blobFromArrayBuffer)
+import Functions.EncodeDecode (decryptJson)
+import Web.XHR.FormData (EntryName(..), FileName(..), appendBlob, new)
 
 -- ----------------------------------------------------------------------------
 
@@ -44,24 +47,23 @@ getDecryptedBlob reference key = do
 postBlob :: ArrayBuffer -> ArrayBuffer -> ExceptT AppError Aff (AXW.Response String)
 postBlob blob hash = do
   let url = joinWith "/" ["blobs"]
-  -- type BlobData = { data :: HexString, hash :: HexString }
-  let body = json $ encodeJson $ { data: fromArrayBuffer blob, hash: fromArrayBuffer hash } :: RequestBody
+  body <- formData <$> (liftEffect $ do
+      formData <- new
+      appendBlob (EntryName "blob") (blobFromArrayBuffer blob) (Just $ FileName (toString Hex (fromArrayBuffer hash))) formData
+      pure $ formData
+  )
   manageGenericRequest url POST (Just body) RF.string
 
 deleteBlob :: HexString -> ExceptT AppError Aff String
-deleteBlob  reference = do
-  let url = joinWith "/" ["blobs", show reference]
+deleteBlob reference = do
+  let url = joinWith "/" ["blobs", toString Hex reference]
   encryptedCard <- getBlob reference
-  let body = json $ encodeJson $ { data: fromArrayBuffer encryptedCard, hash: reference } :: RequestBody
+  body <- formData <$> (liftEffect $ do
+      formData <- new
+      appendBlob (EntryName "blob") (blobFromArrayBuffer encryptedCard) (Just $ FileName (toString Hex reference)) formData
+      pure $ formData
+  )
   response <- manageGenericRequest url DELETE (Just body) RF.string
   if isStatusCodeOk response.status
     then except $ Right $ response.body
     else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
-
--- postEncryptedBlob :: forall a. EncodeJson a => a -> CryptoKey -> ExceptT AppError Aff HexString
--- postEncryptedBlob blob key = do
---   encryptedBlob <- ExceptT $ Right <$> encryptJson key blob
---   response <- postBlob encryptedBlob
---   if isStatusCodeOk response.status
---     then except $ Right $ hex response.body
---     else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status

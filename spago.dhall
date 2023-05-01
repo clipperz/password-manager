@@ -61,6 +61,7 @@
   , "web-file"
   , "web-html"
   , "web-storage"
+  ,	"web-xhr"
   ]
 , packages = ./packages.dhall
 }
