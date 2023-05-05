@@ -1,7 +1,5 @@
 # FROM --platform=linux/amd64 node:18 AS frontend
 FROM  node:18.15.0 AS frontend
-ARG CURRENT_COMMIT_ARG
-ENV CURRENT_COMMIT=$CURRENT_COMMIT_ARG
 WORKDIR /app
 COPY ./src ./src
 COPY package.json     package.json
@@ -26,7 +24,9 @@ COPY ./ ./
 # remove option to remove tests when everything else works
 RUN sbt 'set test in assembly := {}' clean assembly
 
-FROM eclipse-temurin:17.0.6_10-jre
+FROM eclipse-temurin:17.0.7_7-jre
+ARG CURRENT_COMMIT_ARG
+ENV CURRENT_COMMIT=$CURRENT_COMMIT_ARG
 RUN addgroup --system clipperz && adduser --system clipperz --ingroup clipperz
 USER clipperz
 WORKDIR /app
