@@ -25,11 +25,12 @@ COPY ./ ./
 RUN sbt 'set test in assembly := {}' clean assembly
 
 FROM eclipse-temurin:17.0.7_7-jre
+WORKDIR /app
 ARG CURRENT_COMMIT_ARG
 ENV CURRENT_COMMIT=$CURRENT_COMMIT_ARG
 RUN addgroup --system clipperz && adduser --system clipperz --ingroup clipperz
+RUN chown -R clipperz: ./
 USER clipperz
-WORKDIR /app
 COPY --from=frontend /app/target/output.webpack ./target/output.webpack
 COPY --from=backend '/app/target/*/*.jar' ./target/clipperz.jar 
 # CMD [ "java", "-jar", "/app/target/clipperz.jar", "/archive/blob", "/archive/user", "/archive/one_time_share", "8080"]
