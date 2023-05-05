@@ -26,7 +26,7 @@ COPY ./ ./
 # remove option to remove tests when everything else works
 RUN sbt 'set test in assembly := {}' clean assembly
 
-FROM eclipse-temurin:17.0.6_10-jre-alpine
+FROM eclipse-temurin:17.0.6_10-jre
 RUN addgroup -S clipperz && adduser -S clipperz -G clipperz
 USER clipperz
 WORKDIR /app
