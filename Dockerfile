@@ -27,7 +27,7 @@ COPY ./ ./
 RUN sbt 'set test in assembly := {}' clean assembly
 
 FROM eclipse-temurin:17.0.6_10-jre
-RUN addgroup -S clipperz && adduser -S clipperz -G clipperz
+RUN addgroup -S clipperz && adduser --system clipperz -G clipperz
 USER clipperz
 WORKDIR /app
 COPY --from=frontend /app/target/output.webpack ./target/output.webpack
