@@ -13,6 +13,7 @@ variables:
 
 .git-config: &git-config
   - apk update && apk add git
+  - apk add curl
   - git config --global user.email "dpicchiotti@imolainformatica.it"
   - git config --global user.name "Davide Picchiotti"
 
@@ -39,20 +40,7 @@ build-image:
     - docker build -t ${IMAGE_FULL_URL} .
     - docker push ${IMAGE_FULL_URL}
 
-commit-compose:
-  stage: commit
-  tags:
-    - clipperz-build
-  before_script:
-    - *git-config
-  script:
-    - *before-checkout
-    - git checkout ci
-    - *after-checkout 
-  rules:
-    - if: $CI_COMMIT_BRANCH == "ci"
-
-commit-compose-prod:
+deploy-prod:
   stage: commit
   tags:
     - clipperz-build
@@ -63,17 +51,20 @@ commit-compose-prod:
     - git checkout production
     - *after-checkout 
   rules:
-    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_BRANCH == "main"
 
-commit-compose-staging:
+deploy-dev:
   stage: commit
   tags:
     - clipperz-build
+  variables:
+    PORTAINER_WEBHOOK: http://192.168.5.177:9000/api/stacks/webhooks/a615cf80-1c16-4159-9a19-616ec7ea186f
   before_script:
     - *git-config
   script:
     - *before-checkout
     - git checkout staging
-    - *after-checkout 
+    - *after-checkout
+    - curl -X POST ${PORTAINER_WEBHOOK}
   rules:
-    - if: '$CI_COMMIT_BRANCH != "master" && $CI_COMMIT_BRANCH != "ci"'
+    - if: $CI_COMMIT_BRANCH == "develop"
