@@ -81,7 +81,39 @@ div#userPage {
         }
 
         footer {
-            flex: 0;
+            background-color: $core-alternate-color;
+			font-size: 8pt;
+			padding: 5px 5px 5px 5px;
+			border-top: 1px solid #999999;
+
+            .footerContent {
+                text-align: center;
+
+                max-height: 50px;
+
+                .applicationVersion {
+                    padding: 2px;
+                    font-size: 8pt;
+                    
+                    span {
+                        color: $core-alternate-text-color;
+                        white-space: nowrap;
+                        &:after {
+                            content: ":";
+                        };
+                    }
+    
+                    a {
+						display: block;
+						color: $core-alternate-text-color;
+
+                        text-decoration: none;
+                        padding-left: 5px;
+                        font-weight: bold;
+                    }
+                }
+                    
+            }
         }
     }
 

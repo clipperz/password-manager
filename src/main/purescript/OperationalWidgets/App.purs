@@ -8,7 +8,7 @@ module OperationalWidgets.App
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (a, button, div, footer, h1, h3, header, li, p, span, text, ul)
+import Concur.React.DOM (a, button, div, h1, h3, header, li, p, span, text, ul)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
@@ -20,32 +20,31 @@ import Data.Eq ((==), class Eq)
 import Data.Formatter.Number (Formatter(..), format)
 import Data.Function (($))
 import Data.Functor (map, (<$), (<$>))
-import Data.Maybe (Maybe(..))
 import Data.Int (toNumber)
+import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
-import Data.Show(class Show, show)
+import Data.Show (class Show, show)
 import Data.Time.Duration (Milliseconds(..))
-import DataModel.WidgetState as WS
 import DataModel.AppState (UserConnectionStatus(..))
 import DataModel.Credentials (Credentials)
-import Effect (Effect)
+import DataModel.WidgetState as WS
 import Effect.Aff (delay, never, Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Signup (signupUser)
-import Functions.Login (doLogin)
-import Functions.State (computeInitialState)
+import Functions.EnvironmentalVariables (currentCommit)
 import Functions.JSState (modifyAppState)
+import Functions.Login (doLogin)
 import Functions.Pin (decryptPassphraseWithRemoval)
+import Functions.State (computeInitialState)
 import OperationalWidgets.HomePageWidget (homePageWidget)
 import Record (merge)
+import Views.Components (footerComponent)
 import Views.LoginFormView (loginFormView', PinCredentials)
 import Views.SignupFormView (emptyDataForm, signupFormView)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
-
-foreign import currentCommit :: Effect String
 
 emptyCredentials :: Credentials
 emptyCredentials = { username: "", password: "" }
@@ -170,13 +169,6 @@ actionPage (ShowError page)     = page
 actionPage (ShowSuccess page)   = page
 actionPage (InitState action)   = Loading (Just (actionPage action))
 
--- headerPage :: forall a. Page -> Page -> Signal HTML a -> Signal HTML a
--- headerPage currentPage page innerContent = do
---   traceM $ "drawing headerPage " <> show page
---   div_ [Props.classList (Just <$> ["page", pageClassName page, show $ location currentPage page])] do
---     traceM $ "drawing content headerPage " <> show currentPage <> " [" <> show page <> "]"
---     div_ [Props.className "content"] do
-
 headerPage :: forall a. Page -> Page -> Array (Widget HTML a) -> Widget HTML a
 headerPage currentPage page innerContent = do
   commitHash <- liftEffect $ currentCommit
@@ -206,17 +198,6 @@ otherComponent =
         li [] [a [Props.href "https://clipperz.is/about/",          Props.target "_blank"] [text "About"]]
       , li [] [a [Props.href "https://clipperz.is/terms_service/",  Props.target "_blank"] [text "Terms of service"]]
       , li [] [a [Props.href "https://clipperz.is/privacy_policy/", Props.target "_blank"] [text "Privacy"]]
-      ]
-    ]
-  ]
-
-footerComponent :: forall a. String -> Widget HTML a
-footerComponent commit =
-  footer [] [
-    div [Props.className "footerContent"] [
-      div [Props.className "applicationVersion"] [
-        span [] [text "application version"]
-      , a [Props.href ("https://github.com/clipperz/password-manager/commit/" <> commit), Props.target "_black"] [text commit]
       ]
     ]
   ]
@@ -305,7 +286,6 @@ instance showAction :: Show Action where
   show (DoLoginWithPin _)   = "Do LoginWithPint"
   show (DoSignup _)         = "Do Signup"
   show (ShowSharedCard _ _) = "Show Shared Card"
-  -- show (ShowMain)           = "Show Main"
   show (ShowError page)     = "Show Error " <> show page 
   show (ShowSuccess page)   = "Show Success " <> show page 
   show DoLogout = "DoLogout"

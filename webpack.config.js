@@ -5,7 +5,12 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlInlineScriptPlugin = require('html-inline-script-webpack-plugin');
 const webpack = require('webpack');
 
- module.exports = {
+const child_process = require('child_process');
+function git(command) {
+  return child_process.execSync(`git ${command}`, { encoding: 'utf8' }).trim();
+}
+
+module.exports = {
 	mode: 'development',
 	// mode: 'production',
 	watchOptions: {
@@ -29,6 +34,11 @@ const webpack = require('webpack');
 	plugins: [
 		new webpack.ProvidePlugin({
 			process: 'process/browser',
+		}),
+		// environmental variables definition
+		new webpack.EnvironmentPlugin({
+			CURRENT_COMMIT: git('rev-parse HEAD'),
+			// GIT_AUTHOR_DATE: git('log -1 --format=%aI'),
 		}),
 		// app html package configuration
 		new HtmlWebpackPlugin({
