@@ -1,14 +1,14 @@
 module Functions.Communication.OneTimeShare where
 
-import Affjax.RequestBody (RequestBody, json)
+import Affjax.RequestBody (formData)
 import Affjax.ResponseFormat as RF
+import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT)
 import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Types (decrypt, encrypt, raw, unwrapKey)
 import Data.Argonaut.Decode (class DecodeJson)
-import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
@@ -27,7 +27,9 @@ import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
+import Functions.Communication.BlobFromArrayBuffer (blobFromArrayBuffer)
 import Functions.EncodeDecode (decryptJson, encryptJson)
+import Web.XHR.FormData (EntryName(..), appendBlob, new)
 
 share :: String -> String -> ExceptT AppError Aff String
 share secret password = do
@@ -35,8 +37,11 @@ share secret password = do
   cryptoKey <- ExceptT $ Right <$> KI.importKey raw key (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   encryptedSecret <- ExceptT $ Right <$> encryptJson cryptoKey secret
   let url = joinWith "/" ["share"]
-  -- let body = json $ encodeJson $ { data: fromArrayBuffer encryptedSecret } :: RequestBody
-  let body = json $ encodeJson $ fromArrayBuffer encryptedSecret :: RequestBody
+  body <- formData <$> (liftEffect $ do
+    formData <- new
+    appendBlob (EntryName "blob") (blobFromArrayBuffer encryptedSecret) Nothing formData
+    pure $ formData
+  )
   response <- manageGenericRequest url POST (Just body) RF.string
   if isStatusCodeOk response.status
     then except $ Right $ response.body

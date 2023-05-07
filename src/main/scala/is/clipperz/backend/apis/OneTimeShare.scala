@@ -29,10 +29,19 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
   case request @ Method.POST -> !! / "share" =>
     ZIO
       .service[OneTimeShareArchive]
-      .zip(ZIO.succeed(request.body.asStream))
-      .flatMap((archive, bytes) =>
-        fromStream[HexString](bytes)
-          .flatMap(saveData => archive.saveSecret(ZStream.fromIterable(saveData.toByteArray)))
+      .zip(request.body.asMultipartFormStream)
+      .flatMap((archive, stream) =>
+        stream.fields
+          .filter(field => field.name == "blob")
+          .run(ZSink.last)
+          .flatMap(field => 
+            field match {
+              case Some(FormField.StreamingBinary(_, _, _, _, data)) =>
+                archive.saveSecret(data)
+              case _ =>
+                ZIO.fail(new BadRequestException("Parameter 'file' must be a binary file"))
+            }
+          )
       )
       .map(id => Response.text(s"${id}"))
       .catchSome {
