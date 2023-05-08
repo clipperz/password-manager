@@ -15,7 +15,9 @@ import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
 import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
 import Effect (Effect)
+import Effect.Class (liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
+import Functions.EnvironmentalVariables (shareURL)
 import Views.PasswordGenerator (passwordGenerator)
 import Web.HTML (window)
 import Web.HTML.Location (assign)
@@ -24,8 +26,8 @@ import Web.HTML.Window (location)
 wrapperWidget :: PasswordGeneratorSettings -> Widget HTML Unit
 wrapperWidget settings = do
   Tuple secret newSettings <- passwordGenerator settings
-  -- pure $ unsafePerformEffect (assign ("https://clipperz.is/share#" <> secret) (unsafePerformEffect (location (unsafePerformEffect window))))
-  pure $ unsafePerformEffect (assign ("http://localhost:8090/share_index.html#share=" <> secret) (unsafePerformEffect (location (unsafePerformEffect window))))
+  shareUrl <- liftEffect $ shareURL
+  pure $ unsafePerformEffect (assign (shareUrl <> secret) (unsafePerformEffect (location (unsafePerformEffect window))))
   wrapperWidget (fromMaybe standardPasswordGeneratorSettings newSettings)
 
 main :: Effect Unit

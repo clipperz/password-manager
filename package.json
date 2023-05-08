@@ -3,16 +3,15 @@
     "scripts": {
         "build": "spago --jobs 10 build --purs-args '--codegen js,sourcemaps -o ./target/output.purescript'",
         "clean-purescript": "rm -rf target/output.purescript",
-		"clean-spago": "rm -rf .spago",
+        "clean-spago": "rm -rf .spago",
         "clean-node": "rm -rf node_modules",
         "clean-webpack": "rm -rf target/output.webpack",
         "clean-test": "rm -rf target/output.purescript/test.js",
         "nuke": "npm run clean-node; npm run clean-spago; npm run clean-purescript; npm run clean-webpack",
         "docs": "spago docs --open",
-        "go": "parcel --host 0.0.0.0 --https --no-cache --no-hmr --dist-dir ./target/output.parcel ./src/main/html/index.html target/output.purescript/*",
         "package": "webpack build --config ./webpack.config.js --stats verbose",
         "keep-building": "spago --jobs 10 build --watch --purs-args '--codegen js,sourcemaps -o ./target/output.purescript'",
-        "keep-packaging": "webpack watch --config ./webpack.config.js --stats verbose",
+        "keep-packaging": "webpack watch --config ./webpack.config.js --stats verbose --env production",
         "rebuild": "clear; npm run clean; npm run build",
         "test-package": "parcel build --no-cache --cache-dir ./target/.parcel-cache --dist-dir ./target/output.parcel.test ./src/test/html/index.html /target/output.purescript/*",
         "test-browser": "parcel --host 0.0.0.0 --https --no-cache --cache-dir ./target/.parcel-cache --no-hmr --dist-dir ./target/output.parcel.test ./src/test/html/index.html /target/output.purescript/*"
@@ -31,14 +30,13 @@
         "webpack-cli": "^5.0.1"
     },
     "dependencies": {
-		"big-integer": "^1.6.51",
+        "big-integer": "^1.6.51",
         "buffer": "^6.0.3",
         "decimal.js": "^10.3.1",
         "long": "4.0.0",
-		"markdown-it": "^13.0.1",
+        "markdown-it": "^13.0.1",
         "react": "17.0.2",
         "react-dom": "17.0.2",
         "xhr2": "0.2.1"
-    },
-    "packageManager": "yarn@1.22.18"
+    }
 }
