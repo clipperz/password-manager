@@ -24,21 +24,18 @@ variables:
 .after-checkout: &after-checkout
   - sed -E -i "s/${VERSION_REGEX}/${SUBSTITUTE}/g" ${FILENAME}
   - git add ./${FILENAME}
-  - git commit -m "Modified docker-compose.yml to use new image of '$IMAGE_NAME' (triggered by commit '$CI_COMMIT_SHA')"
+  - git commit -m "Modified docker-compose.yml to use new image of '$CI_REGISTRY_IMAGE' (triggered by commit '$CI_COMMIT_SHA')"
   - git push
 
 build-image:
   stage: build
   tags: 
     - clipperz-build
-  variables:
-    IMAGE_FULL_NAME: clipperz/${IMAGE_NAME}:${CI_COMMIT_SHA}
-    IMAGE_FULL_URL: ${CI_REGISTRY}/${IMAGE_FULL_NAME}
   before_script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
-    - docker build -t ${IMAGE_FULL_URL} .
-    - docker push ${IMAGE_FULL_URL}
+    - docker build -t ${CI_REGISTRY_IMAGE} .
+    - docker push ${CI_REGISTRY_IMAGE}
 
 deploy-prod:
   stage: commit
@@ -65,6 +62,6 @@ deploy-dev:
     - *before-checkout
     - git checkout staging
     - *after-checkout
-    - curl -X POST ${PORTAINER_WEBHOOK}
+    #- curl -X POST ${PORTAINER_WEBHOOK}
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
