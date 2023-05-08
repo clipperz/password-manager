@@ -4,20 +4,19 @@ ARG CURRENT_COMMIT_ARG
 ENV CURRENT_COMMIT=$CURRENT_COMMIT_ARG
 WORKDIR /app
 COPY ./src ./src
-COPY package.json     package.json
-COPY packages.dhall   packages.dhall
-COPY spago.dhall      spago.dhall
-COPY webpack.config.js webpack.config.js
-# COPY yarn.lock        yarn.lock
+COPY package.json     	package.json
+COPY packages.dhall   	packages.dhall
+COPY spago.dhall      	spago.dhall
+COPY webpack.config.js	webpack.config.js
+COPY package-lock.json	package-lock.json
 
 # RUN npm install -g purescript-installer@0.3.3
-RUN npm install -g purescript@0.15.7
-# RUN install-purescript --purs-ver=0.15.7
-RUN npm install -g yarn@1.22.19 --force
-RUN yarn install
+RUN npm ci
 RUN mkdir ./target
-RUN yarn spago --jobs 10 build --purs-args '--codegen js,sourcemaps -o ./target/output.purescript' -v
-RUN ls ./src/main/js && yarn package
+RUN npm run build
+# RUN yarn spago --jobs 10 build --purs-args '--codegen js,sourcemaps -o ./target/output.purescript' -v
+RUN ls ./src/main/js && npm run package --env production
+# RUN ls ./src/main/js && yarn package
 
 FROM sbtscala/scala-sbt:eclipse-temurin-17.0.4_1.7.1_3.2.0 AS backend
 WORKDIR /app
