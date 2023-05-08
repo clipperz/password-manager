@@ -45,12 +45,6 @@ cleanDependenciesPurescript := {
   "npm run nuke" !
 }
 
-lazy val packageTestPurescript = TaskKey[Unit]("packageTestPurescript", "Package test frontend")
-packageTestPurescript := {
-  import sys.process._
-  "npm run test-package" !
-}
-
 lazy val runTestPurescript = TaskKey[Unit]("runTestPurescript", "Run test frontend")
 runTestPurescript := {
   import sys.process._

@@ -6,7 +6,7 @@ addCommandAlias("cleanAll", "clean; cleanDependenciesPurescript")
 addCommandAlias("cleanArchive", "cleanTargetSubdir archive")
 addCommandAlias(
   "testPurescript",
-  "installPurescript; buildPurescript; packageTestPurescript; runTestPurescript",
+  "installPurescript; buildPurescript; runTestPurescript",
 )
 addCommandAlias("testAll", "test; testPurescript")
 

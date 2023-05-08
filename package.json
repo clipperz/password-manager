@@ -13,8 +13,7 @@
         "keep-building": "spago --jobs 10 build --watch --purs-args '--codegen js,sourcemaps -o ./target/output.purescript'",
         "keep-packaging": "webpack watch --config ./webpack.config.js --stats verbose --env production",
         "rebuild": "clear; npm run clean; npm run build",
-        "test-package": "parcel build --no-cache --cache-dir ./target/.parcel-cache --dist-dir ./target/output.parcel.test ./src/test/html/index.html /target/output.purescript/*",
-        "test-browser": "parcel --host 0.0.0.0 --https --no-cache --cache-dir ./target/.parcel-cache --no-hmr --dist-dir ./target/output.parcel.test ./src/test/html/index.html /target/output.purescript/*"
+        "test-browser": "webpack serve --config ./webpack.test.config.js --stats verbose"
     },
     "devDependencies": {
         "css-loader": "^6.7.3",
@@ -27,7 +26,8 @@
         "spago": "0.20.9",
         "style-loader": "^3.3.2",
         "webpack": "^5.77.0",
-        "webpack-cli": "^5.0.1"
+        "webpack-cli": "^5.0.1",
+        "webpack-dev-server": "^4.15.0"
     },
     "dependencies": {
         "big-integer": "^1.6.51",
