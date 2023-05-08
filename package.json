@@ -20,6 +20,7 @@
         "html-inline-script-webpack-plugin": "^3.1.0",
         "html-webpack-plugin": "^5.5.0",
         "process": "^0.11.10",
+        "purescript": "0.15.7",
         "sass": "^1.49.0",
         "sass-loader": "^13.2.2",
         "spago": "0.20.9",
