@@ -1,0 +1,70 @@
+stages:
+  - build
+  - commit
+
+services:
+  - docker:dind
+
+variables:
+  IMAGE_NAME: password-manager
+  VERSION_REGEX: ${IMAGE_NAME}:[0-9a-f]{40}
+  SUBSTITUTE: ${IMAGE_NAME}:${CI_COMMIT_SHA}
+  FILENAME: docker-compose.yml
+
+.git-config: &git-config
+  - apk update && apk add git
+  - apk add curl
+  - git config --global user.email "dpicchiotti@imolainformatica.it"
+  - git config --global user.name "Davide Picchiotti"
+
+.before-checkout: &before-checkout
+  - git clone https://oauth2:${COMPOSE_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker.git
+  - cd clipperz-docker
+
+.after-checkout: &after-checkout
+  - sed -E -i "s/${VERSION_REGEX}/${SUBSTITUTE}/g" ${FILENAME}
+  - git add ./${FILENAME}
+  - git commit -m "Modified docker-compose.yml to use new image of '$IMAGE_NAME' (triggered by commit '$CI_COMMIT_SHA')"
+  - git push
+
+build-image:
+  stage: build
+  tags: 
+    - clipperz-build
+  variables:
+    IMAGE_FULL_NAME: clipperz/${IMAGE_NAME}:${CI_COMMIT_SHA}
+    IMAGE_FULL_URL: ${CI_REGISTRY}/${IMAGE_FULL_NAME}
+  before_script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+  script:
+    - docker build -t ${IMAGE_FULL_URL} .
+    - docker push ${IMAGE_FULL_URL}
+
+deploy-prod:
+  stage: commit
+  tags:
+    - clipperz-build
+  before_script:
+    - *git-config
+  script:
+    - *before-checkout
+    - git checkout production
+    - *after-checkout 
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+deploy-dev:
+  stage: commit
+  tags:
+    - clipperz-build
+  variables:
+    PORTAINER_WEBHOOK: http://192.168.5.177:9000/api/stacks/webhooks/a615cf80-1c16-4159-9a19-616ec7ea186f
+  before_script:
+    - *git-config
+  script:
+    - *before-checkout
+    - git checkout staging
+    - *after-checkout
+    - curl -X POST ${PORTAINER_WEBHOOK}
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
