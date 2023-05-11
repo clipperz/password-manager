@@ -54,7 +54,6 @@ app nextPage = app' (InitState (ShowPage (Loading (Just nextPage)))) { credentia
 
 doTestLogin :: forall a. String -> String -> Widget HTML a
 doTestLogin username password = do
-  log "Do test login"
   app' (InitState (DoLogin testCredentials)) { credentials: testCredentials }
   where
     testCredentials = { username: username, password: password}
