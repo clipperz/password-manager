@@ -35,6 +35,7 @@
   , "http-methods"
   , "identity"
   , "integers"
+  , "js-uri"
   , "lcg"
   , "lists"
   , "maybe"

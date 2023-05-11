@@ -2,24 +2,28 @@ module Views.CardViews where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, h3, li', text, textarea, ul)
+import Concur.React.DOM (a, button, div, h3, li', text, textarea, ul)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind)
+import Data.Argonaut.Core (stringify)
+import Data.Argonaut.Encode (encodeJson)
 import Data.Array (null)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.HeytingAlgebra ((&&))
 import Data.Maybe (Maybe(..))
+import Data.Semigroup ((<>))
 import Data.Show (show, class Show)
 import DataModel.AppState (ProxyConnectionStatus(..))
 import DataModel.Card (CardField(..), CardValues(..), Card(..))
+import Effect.Class (liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
 import Functions.Clipboard (copyToClipboard)
-import Views.SimpleWebComponents (simpleButton, confirmationWidget)
-import Views.Components (dynamicWrapper, entropyMeter)
-
+import Functions.EnvironmentalVariables (shareURL)
 import MarkdownIt (renderString)
+import Views.Components (dynamicWrapper, entropyMeter)
+import Views.SimpleWebComponents (simpleButton, confirmationWidget)
 
 -- -----------------------------------
 
@@ -54,14 +58,20 @@ cardView c@(Card r) proxyConnectionStatus = do
 cardActions :: Card -> ProxyConnectionStatus -> Widget HTML CardAction
 cardActions c@(Card r) proxyConnectionStatus = div [Props.className "cardActions"] [
     simpleButton (show (Exit c)) "exit"   false    (Exit c)
-      , simpleButton "edit"       (show (Edit c))    disabled (Edit c)
-      , simpleButton "clone"      (show (Clone c))   disabled (Clone c)
-      , if r.archived then
-          simpleButton "restore"  (show (Restore c)) disabled (Restore c)
-        else
-          simpleButton "archive"  (show (Archive c)) disabled (Archive c)
-      , simpleButton "delete"     (show (Delete c))  disabled (Delete c)
-    -- ]
+  , simpleButton "edit"       (show (Edit c))    disabled (Edit c)
+  , simpleButton "clone"      (show (Clone c))   disabled (Clone c)
+  , if r.archived then
+      simpleButton "restore"  (show (Restore c)) disabled (Restore c)
+    else
+      simpleButton "archive"  (show (Archive c)) disabled (Archive c)
+  , simpleButton "delete"     (show (Delete c))  disabled (Delete c)
+  , do
+      shareURL <- liftEffect $ shareURL
+      button [Props.disabled disabled, Props.className "share"] [
+        a [Props.href ((shareURL) <> (stringify $ encodeJson c)), Props.target "_blank"] [
+          text "share"
+        ]
+      ]            
 ]
   where
     disabled = case proxyConnectionStatus of

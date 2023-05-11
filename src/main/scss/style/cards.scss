@@ -226,6 +226,11 @@ div#homePage {
 									font-size: 0px;
 									flex: 0;
 								}
+
+								a {
+									color: $accent-text-color;
+									text-decoration: none;
+								}
 							}
 						}
 	
@@ -485,9 +490,9 @@ div#homePage {
                                                 button {
                                                     font-family: 'clipperz-font';
                                                     font-size: 12pt;
-                                                    &:disabled {
+                                                    // &:disabled {
                                                         // display: none;
-                                                    }
+                                                    // }
                                                 }
                                             }
                                         }
