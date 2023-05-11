@@ -11,7 +11,7 @@
         "docs": "spago docs --open",
         "package": "webpack build --config ./webpack.config.js --stats verbose",
         "keep-building": "spago --jobs 10 build --watch --purs-args '--codegen js,sourcemaps -o ./target/output.purescript'",
-        "keep-packaging": "webpack watch --config ./webpack.config.js --stats verbose --env production",
+        "keep-packaging": "webpack watch --config ./webpack.config.js --stats verbose",
         "rebuild": "clear; npm run clean; npm run build",
         "test-browser": "webpack serve --config ./webpack.test.config.js --stats verbose"
     },
