@@ -63,7 +63,7 @@ cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ })
       case action of
         Exit cc -> pure $ IndexUpdateData NoUpdate (Just cc)
         Edit cc -> do
-          IndexUpdateData indexUpdateAction newCard <- createCardWidget cc tags Default -- here the modified card has already been saved
+          IndexUpdateData indexUpdateAction newCard <- createCardWidget (Just cc) tags Default -- here the modified card has already been saved
           case indexUpdateAction of
             AddReference newEntry -> pure $ IndexUpdateData (ChangeReferenceWithEdit entry newEntry) newCard
             _ -> cardWidget entry tags Default
@@ -106,7 +106,7 @@ cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ })
 
     inertCardFormView :: forall a. Card -> Widget HTML a
     inertCardFormView card = do
-      _ <- createCardView card tags Loading -- TODO: need to deactivate buttons to avoid returning some value here
+      _ <- createCardView card tags false Loading -- TODO: need to deactivate buttons to avoid returning some value here
       loadingDiv
 
 cloneCardNow :: Card -> Aff Card

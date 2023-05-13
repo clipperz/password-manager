@@ -47,7 +47,7 @@ instance showCardViewAction :: Show CardViewAction where
 
 type CardViewState = { cardView :: CardView, cardViewState :: WidgetState }
 
-data CardView = NoCard | CardFromReference CardEntry | JustCard Card | CardForm Card
+data CardView = NoCard | CardFromReference CardEntry | JustCard Card | CardForm (Maybe Card)
 instance showCardView :: Show CardView where
   show NoCard = "NoCard"
   show (CardFromReference cr) = "CardFromReference " <> show cr
@@ -117,7 +117,7 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
         ]
       , div [Props._id "card"] [
           case cvs of
-          { cardView: CardForm card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ createCardView card allSortedTags cardViewState
+          { cardView: CardForm (Just card),  cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ createCardView card allSortedTags false cardViewState
           { cardView: CardForm card,         cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> createCardWidget card allSortedTags cardViewState
           { cardView: CardFromReference ref, cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> cardWidget ref allSortedTags cardViewState
           { cardView: JustCard card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ (div [] [loadingDiv, cardView card proxyConnectionStatus])

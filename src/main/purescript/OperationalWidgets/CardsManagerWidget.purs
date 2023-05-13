@@ -54,7 +54,7 @@ cardsManagerWidget proxyConnectionStatus ind _ =
         CardsViewResult (Tuple f cva) -> case cva of 
           UpdateIndex updateData -> do
             go (getUpdateIndexInfo proxyConnectionStatus f updateData Nothing) view (Just (getUpdateIndexOp f updateData))
-          ShowAddCard   -> go (info { cardViewState = {cardView: (CardForm emptyCard), cardViewState: Default} }) view Nothing
+          ShowAddCard   -> go (info { cardViewState = {cardView: (CardForm Nothing), cardViewState: Default} }) view Nothing
           ShowUserArea  -> pure $ OpenUserArea
           ShowCard ref  -> go (info { cardViewState = {cardView: (CardFromReference ref), cardViewState: Default} }) view Nothing
         OpResult i cv e f -> go (info { index = i, indexFilter = f, error = e, cardViewState = cv }) view Nothing
@@ -112,9 +112,9 @@ getUpdateIndexOp { index: index@(Index list), indexFilter } (IndexUpdateData act
 getUpdateIndexInfo :: ProxyConnectionStatus -> CardsViewInfo -> IndexUpdateData -> Maybe AppError -> CardsViewInfo
 getUpdateIndexInfo _ info (IndexUpdateData action card) err = 
   case action of 
-    AddReference                 _ -> info { error = err, indexFilter = { archived: false, indexFilter: NoFilter }, cardViewState = { cardView: (maybe NoCard CardForm card), cardViewState: Loading } }
+    AddReference                 _ -> info { error = err, indexFilter = { archived: false, indexFilter: NoFilter }, cardViewState = { cardView: (maybe NoCard CardForm (Just card)), cardViewState: Loading } }
     CloneReference               _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }
     DeleteReference              _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }
-    ChangeReferenceWithEdit    _ _ -> info { error = err, cardViewState = { cardView: (maybe NoCard CardForm card), cardViewState: Loading } }
+    ChangeReferenceWithEdit    _ _ -> info { error = err, cardViewState = { cardView: (maybe NoCard CardForm (Just card)), cardViewState: Loading } }
     ChangeReferenceWithoutEdit _ _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }
     _                              -> info { error = err, cardViewState = { cardView: NoCard                      , cardViewState: Default } }

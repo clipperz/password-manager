@@ -2,6 +2,7 @@
 , sources = [ "src/**/*.purs" ]
 , dependencies =
   [ "aff"
+  , "aff-promise"
   , "affjax"
   , "affjax-web"
   , "argonaut-codecs"

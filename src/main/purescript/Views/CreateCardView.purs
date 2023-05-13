@@ -15,13 +15,13 @@ import Data.Either (fromRight, hush)
 import Data.Eq ((==), (/=))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
-import Data.HeytingAlgebra (not)
+import Data.HeytingAlgebra (not, (&&), (||))
 import Data.Maybe (Maybe(..), isJust, maybe, fromMaybe)
 import Data.Semigroup ((<>))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
 import Data.Unit (Unit, unit)
-import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
+import DataModel.Card (Card(..), CardField(..), CardValues(..), emptyCard, emptyCardField)
 import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
 import DataModel.User (UserPreferences(..))
 import DataModel.WidgetState (WidgetState(..))
@@ -29,17 +29,17 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
 import Functions.Card (getFieldType, FieldType(..))
+import Functions.Communication.Users (getUserPreferences)
 import Functions.JSState (getAppState)
 import Functions.Time (getCurrentTimestamp)
-import Functions.Communication.Users (getUserPreferences)
 import MarkdownIt (renderString)
+import Views.Components (dynamicWrapper, entropyMeter)
 import Views.PasswordGenerator (passwordGenerator)
 import Views.SimpleWebComponents (confirmationWidget, dragAndDropAndRemoveList, loadingDiv, simpleButton, simpleTextInputWidget)
-import Views.Components (dynamicWrapper, entropyMeter)
 
 
-createCardView :: Card -> Array String -> WidgetState -> Widget HTML (Maybe Card)
-createCardView card allTags state = do
+createCardView :: Card -> Array String -> Boolean -> WidgetState -> Widget HTML (Maybe Card)
+createCardView card allTags isNew state = do
   maybeUp <- hush <$> (liftAff $ runExceptT getUserPreferences)
   let fromAppStateToPasswordSettings = \_ -> fromMaybe standardPasswordGeneratorSettings $ (\(UserPreferences up) -> up.passwordGeneratorSettings) <$> maybeUp
   passwordGeneratorSettings <- ((fromRight standardPasswordGeneratorSettings) <<< ((<$>) fromAppStateToPasswordSettings)) <$> (liftEffect getAppState)
@@ -206,7 +206,7 @@ createCardView card allTags state = do
       pure res
 
     cancelButton v = 
-      if card == v then 
+      if ((card == v && not isNew) || (v == emptyCard && isNew)) then 
         simpleButton "inactive cancel" "cancel" false Nothing 
       else do
         _ <- simpleButton "active cancel" "cancel" false Nothing 
@@ -214,4 +214,4 @@ createCardView card allTags state = do
         if confirmation then pure Nothing else (cancelButton v)
 
     saveButton v = 
-      simpleButton "save" "save" (card == v) (Just v)
+      simpleButton "save" "save" ((not isNew && card == v) || (isNew && v == emptyCard)) (Just v)
