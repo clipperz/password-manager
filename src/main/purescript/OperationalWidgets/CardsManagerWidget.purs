@@ -19,7 +19,6 @@ import Data.List ((:), filter)
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..), InvalidStateError(..), ProxyConnectionStatus)
-import DataModel.Card (emptyCard)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index(..), CardEntry(..))
 import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
@@ -68,7 +67,7 @@ getUpdateIndexOp { index: index@(Index list), indexFilter } (IndexUpdateData act
     ChangeReferenceWithoutEdit oldEntry entry -> flap (updateReferenceInIndex oldEntry entry) (((addLastCardFilterInOr entry) <<< removeAllLastCardFilter) indexFilter)
     DeleteReference            oldEntry       -> flap (removeReferenceFromIndex oldEntry) indexFilter
     NoUpdateNecessary          oldEntry       -> pure $ OpResult index { cardView: CardFromReference oldEntry, cardViewState: Default } Nothing indexFilter
-    NoUpdate                                  -> pure $ OpResult index { cardView: JustCard (fromMaybe emptyCard card), cardViewState: Default } Nothing indexFilter
+    NoUpdate                                  -> pure $ OpResult index { cardView: fromMaybe NoCard (JustCard <$> card), cardViewState: Default } Nothing indexFilter
     -- _ -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } Nothing indexFilter
 
   where
