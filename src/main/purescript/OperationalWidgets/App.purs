@@ -26,7 +26,7 @@ import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.Time.Duration (Milliseconds(..))
 import DataModel.AppState (UserConnectionStatus(..))
-import DataModel.Credentials (Credentials)
+import DataModel.Credentials (Credentials, emptyCredentials)
 import DataModel.WidgetState as WS
 import Effect.Aff (delay, never, Aff)
 import Effect.Aff.Class (liftAff)
@@ -46,14 +46,11 @@ import Views.SignupFormView (emptyDataForm, signupFormView)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
 
-emptyCredentials :: Credentials
-emptyCredentials = { username: "", password: "" }
-
 app :: forall a. Page -> Widget HTML a
 app nextPage = app' (InitState (ShowPage (Loading (Just nextPage)))) { credentials: emptyCredentials }
 
-doTestLogin :: forall a. String -> String -> Widget HTML a
-doTestLogin username password = do
+doTestLogin :: forall a. Credentials -> Widget HTML a
+doTestLogin {username, password} = do
   app' (InitState (DoLogin testCredentials)) { credentials: testCredentials }
   where
     testCredentials = { username: username, password: password}
