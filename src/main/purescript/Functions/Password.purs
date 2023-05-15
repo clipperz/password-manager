@@ -27,27 +27,10 @@ import Data.Semigroup ((<>))
 import Data.Semiring ((+), (*))
 import Data.Show (class Show)
 import Data.String.CodePoints (length, take, drop, fromCodePointArray, toCodePointArray, CodePoint)
--- import Data.String.CodeUnits ()
 import Data.Tuple (snd)
 import DataModel.Password (CharacterSet, defaultCharacterSets, elemInCharacterSet)
 import Effect.Aff (Aff)
 import Effect.Fortuna (randomBytes)
-
-
--- filter (elemInCharacterSet c) (snd <$> defaultCharacterSets)
-{-
-getSets :: Char -> List CharacterSet
-getSets c = 
-  let
-    allSets = values defaultCharacterSets   :: Array CharacterSet
-    allStrings = (unwrap <$> allSets)       :: Array String
-    allArrays = toCodePointArray <$> allStrings
-    relevantArrays = filter (elem c) (snd <$> defaultCharacterSets)
-  in (CharacterSet <<< fromCodePointArray) <$> relevantArrays
-
-compactSets :: List CharacterSet -> CharacterSet
-compactSets = wrap <<< fromCodePointArray <<< nub <<< toCodePointArray <<< unwrap <<< fold
--}
 
 data PasswordStrength = VeryWeak | Weak | Acceptable | Strong | VeryStrong
 instance showPasswordStrengh :: Show PasswordStrength where
@@ -86,9 +69,7 @@ computePasswordEntropy s =
 
 formatPasswordEntropy :: Number -> PasswordStrength
 formatPasswordEntropy n
-  -- | isNaN n   = VeryWeak
   | n >= 80.0 = VeryStrong
-  -- | n < 80.0  = Strong
   | n >= 65.0  = Strong
   | n >= 30.0  = Acceptable
   | n >= 15.0  = Weak

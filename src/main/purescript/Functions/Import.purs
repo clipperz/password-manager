@@ -96,6 +96,5 @@ decodeCardField json = runExcept $ do
   obj    <- except $ note (ImportError "Cannot convert json to json object") $ (toObject json)
   label  <- except $ note (ImportError "Cannot find field label")  $ (toString  =<< lookup "label"  obj)
   value  <- except $ note (ImportError "Cannot find field value")  $ (toString  =<< lookup "value"  obj)
-  -- passwordGeneratorSettings <- except $ note (ImportError "Cannot find field value")  $ (toString  =<< lookup "value"  obj)
   let hidden = fromMaybe false $ (toBoolean =<< lookup "hidden" obj)
   pure $ CardField {name: label, value: value, locked: hidden, settings: Nothing}

@@ -42,7 +42,6 @@ loginViewSignal = formSignal emptyForm
 formSignal :: LoginDataForm -> Signal HTML (Maybe Credentials)
 formSignal formData = do
   formValues <- loopS formData $ \{username: username, password: password} -> do
-    -- username' <- simpleUserSignal username
     username' <- loopW username (\v -> label [] [
         span [Props.className "label"] [text "User[1]name"]
       , (Props.unsafeTargetValue) <$> input [
@@ -53,7 +52,6 @@ formSignal formData = do
         , Props.onChange
         ]
       ])
-      -- password' <- simplePasswordSignal password
     password' <- loopW password (\v -> label [] [
       span [Props.className "label"] [text "Passphrase"]
       , (Props.unsafeTargetValue) <$> input [
@@ -68,7 +66,6 @@ formSignal formData = do
     pure { username: username', password: password' }
   result <- fireOnce (submitButton formValues)
   pure result
-  -- liftEffect $ log $ "signalResult " <> show signalResult
 
   where
     submitButton :: LoginDataForm -> Widget HTML LoginDataForm

@@ -13,7 +13,6 @@ import Data.Tuple (Tuple(..))
 
 type PasswordGeneratorSettings = {
     length              :: Int,
---  characterSets       :: Array (Tuple String Boolean),
     characters          :: String
 }
 
@@ -46,23 +45,5 @@ defaultCharacterSets = [
 , Tuple "😀"    (CharacterSet "💪😀😢🤷🥶")
 ]
 
-{-
-defaultCharacterSets :: Array (Tuple String Boolean)
-defaultCharacterSets = (\k -> Tuple k (k /= "space")) <$> (Set.toUnfoldable (keys characterSets))
-
-charactersFromSets :: Array (Tuple String Boolean) -> CharacterSet
-charactersFromSets ar =
-  let chosenKeys = (fst <$> (filter (\(Tuple _ checked) -> checked) ar)) :: Array String
-      cSets = (mapMaybe (\a -> a) $ (\k -> lookup k characterSets) <$> chosenKeys) :: Array CharacterSet
-  in fold cSets
-
-defaultCharacters :: String
-defaultCharacters = 
-  let (CharacterSet chars) = charactersFromSets defaultCharacterSets
-  in chars
--}
-
 standardPasswordGeneratorSettings :: PasswordGeneratorSettings
--- standardPasswordGeneratorSettings = { length: 16, characterSets: defaultCharacterSets, characters: defaultCharacters}
--- standardPasswordGeneratorSettings = { length: 16, characters: "ABCDEFGHIJKLMNOPQRSTUVWXYZ" <> "abcdefghijklmnopqrstuvwxyz" <> "0123456789"}
 standardPasswordGeneratorSettings = { length: 16, characters: fromCodePointArray $ sort $ toCodePointArray $ joinWith "" (unwrap <$> [capitalLetters, lowercaseLetters, numbersChars])}

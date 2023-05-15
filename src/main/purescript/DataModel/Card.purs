@@ -114,5 +114,3 @@ card1 = CardValues { title: "Bank account (SAMPLE)"
 
 defaultCards :: List Card
 defaultCards = Nil
--- defaultCards = Card { content: card0, timestamp: 1661377622.0, archived: false} :
---                Card { content: card1, timestamp: 166137865.0 , archived: false} : Nil

@@ -61,7 +61,6 @@ isValidEmail :: String -> Boolean
 isValidEmail email = testRegex emailRegex email
 
 urlRegex :: Either String Regex
--- urlRegex = regex "^(?:(ht|f)tp(s?)\\:\\/\\/)?[0-9a-zA-Z]([-\\.\\w]*[0-9a-zA-Z])*(:(0-9)*)*(\\/?)([a-zA-Z0-9\\-\\.\\?\\,'\\/\\\\\\+&amp;%\\$#_]*)?$" noFlags
 urlRegex = regex "^https?://[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*(:[0-9]+)?(/.*)?$" noFlags
 
 isValidUrl :: String -> Boolean

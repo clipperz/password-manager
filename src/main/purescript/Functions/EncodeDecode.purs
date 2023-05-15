@@ -30,7 +30,6 @@ import Functions.ArrayBuffer (emptyByteArrayBuffer)
 defaultBlockSize = 16 :: Int
 
 getCounter :: Int -> Effect ArrayBuffer
--- getCounter = Fortuna.randomBytes blockSizeBytes
 getCounter = pure <<< emptyByteArrayBuffer
 
 setAES :: Int -> Effect Encrypt.EncryptAlgorithm

@@ -12,7 +12,6 @@ import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
 import Data.Generic.Rep (class Generic)
 
--- import Data.Map (Map)
 type BackendSessionRecord = {
   b :: Maybe HexString
 , aa :: Maybe HexString

@@ -167,8 +167,6 @@ importWidget = do
               simpleButton "back" "previous" false false
             , simpleButton "next hide" "next"     true false
             ]
-          -- , simpleButton "back" "previous" false false
-          -- , ((simpleButton "back" "<<" false false) <|> (simpleButton "import" "Import" false true))
           ]
           if res then loadingDiv <|> (div [Props.className "importList"] [div [] [saveImport (fromFoldable toImportCards) index]])
           else importPage index Nothing (ChooseCards cards) 
@@ -199,7 +197,6 @@ importWidget = do
           newTag <- loopS { sel: Nothing, tag: newTagWithDate, cb: true } $ \v -> do
                                                           newSel    <- loopW v.sel (\_ -> Just <$> selectWidget)
                                                           div_ [Props.className "tagButtons"] do
-                                                            -- newTagCB  <-  simpleCheckboxSignal "apply_tag" (text "Apply the following tag to imported cards:") v.cb
                                                             newTagCB  <-  loopW v.cb (\v_ -> label [Props.className "apply_tag"] [
                                                                             (not v_) <$  input [
                                                                               Props._type "checkbox"

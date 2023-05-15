@@ -38,11 +38,6 @@ exportWidget = do
   exportView (lmap (\_ -> "Current index could not be loaded, please reload the application.") newIndex)
 
   where
-    -- go _ tuple@(Tuple (Right (Just _)) (Right (Just _))) = exportView tuple
-    -- go index tuple = do
-    --   res <- (Nothing <$ exportView tuple) <|> (Just <$> liftAff (prepareDownloads index))
-    --   go index $ fromMaybe tuple res
-
     exportView :: Either String Index -> Widget HTML Unit
     exportView (Left err) = div [Props._id "exportPage"] [
       h1 [] [text "Export"]
@@ -68,7 +63,6 @@ exportWidget = do
 
     offlineCopyWidget :: Index -> Widget HTML Unit
     offlineCopyWidget index@(Index entries) = do
-      -- res <- (p [] [text "Preparing download"]) <|> (liftAff $ prepareOfflineCopy index)
       let placeholders = fromFoldable [ (Tuple PrepareBlobList (text "Preparing blobs...")) 
                                       , (Tuple GetUserCard (text "Getting card list...")) 
                                       , (Tuple GetFileStructure (text "Preparing document template...")) 
@@ -77,7 +71,6 @@ exportWidget = do
                                       ]
       let total = (length entries) + 2
       let plFunc = \i -> p [] [text $ "Getting blobs: " <> (loadingBar (i + 1) total 30)]
-      -- let plFunc = \i -> text ("Getting blob " <> (show i) <> " of " <> (show total))
       steps <- liftAff $ prepareOfflineCopySteps placeholders plFunc index
       res <- runOperation (Right Start) steps
       case res of
@@ -89,7 +82,6 @@ exportWidget = do
 
     unencryptedCopyWidget :: Index -> Widget HTML Unit
     unencryptedCopyWidget index@(Index entries) = do
-      -- res <- (p [] [text "Preparing download"]) <|> (liftAff $ prepareUnencryptedCopy index)
       let placeholders = fromFoldable [ (Tuple PrepareCardList (text "Preparing cards...")) 
                                       , (Tuple PrepareContent (text "Preparing document content...")) 
                                       , (Tuple PrepareDoc (text "Preparing document...")) 

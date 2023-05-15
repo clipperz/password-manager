@@ -37,7 +37,6 @@ verySimpleInputWidget :: InputType -> ClassName -> Label -> Enabled -> Placehold
 verySimpleInputWidget (InputType t) (ClassName className) (Label lbl) (Enabled enabled) (Placeholder placeholder) dynamicClassName value = do
   let c = dynamicClassName value :: Maybe ClassName
   let c' = unwrap <$> c :: Maybe String
-  -- label [Props.classList [Just className, unwrap <$> (dynamicClassName value)]] [
   label [Props.classList [Just className, c']] [
     span [Props.className "label"] [text lbl]
   , (Props.unsafeTargetValue) <$> input [

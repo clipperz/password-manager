@@ -146,7 +146,7 @@ prepareUnencryptedCopy index = runExceptT $ do
   cardList <- mapExceptT (\m -> (lmap show) <$> m) $ prepareCardList index
   let styleString = "<style type=\"text/css\">" <> unencryptedExportStyle <> "</style>"
   let htmlDocString1 = "<div><header><h1>Your data on Clipperz</h1><h5>Export generated on " <> date <> " at " <> time <> "</h5></header>"
-  let htmlDocString2 = "</div>" -- "<footer></footer></div>"
+  let htmlDocString2 = "</div>"
   let htmlDocContent = prepareUnencryptedContent cardList
   let htmlDocString = styleString <> htmlDocString1 <> htmlDocContent <> htmlDocString2
   doc :: Document <- ExceptT $ Right <$> (liftEffect $ FS.fromString htmlDocString)
@@ -193,7 +193,7 @@ prepareUnencryptedCopySteps placeholders mkPlaceholderGetCard index = toUnfoldab
                                                           let time = formatDateTimeToTime dt
                                                           let styleString = "<style type=\"text/css\">" <> unencryptedExportStyle <> "</style>"
                                                           let htmlDocString1 = "<div><header><h1>Your data on Clipperz</h1><h5>Export generated on " <> date <> " at " <> time <> "</h5></header>"
-                                                          let htmlDocString2 = "</div>" -- "<footer></footer></div>"
+                                                          let htmlDocString2 = "</div>"
                                                           let htmlDocContent = prepareUnencryptedContent cardList
                                                           pure $ styleString <> htmlDocString1 <> htmlDocContent <> htmlDocString2
                             Right _ -> pure $ Left "Wrong step before defining document content"

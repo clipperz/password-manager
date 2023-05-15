@@ -19,7 +19,6 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Monoid (class Monoid, mempty)
 import Data.Semigroup ((<>))
 import Data.Show (show)
--- import Data.String.CodeUnits (fromCodePointArray, toCodePointArray)
 import Data.String.CodePoints (fromCodePointArray, toCodePointArray)
 import Data.Tuple(Tuple(..))
 import DataModel.AsyncValue (AsyncValue(..))
@@ -42,7 +41,6 @@ extractValue v =
 ---------------------------
 
 passwordGenerator :: PasswordGeneratorSettings -> Widget HTML (Tuple String (Maybe PasswordGeneratorSettings))
--- passwordGenerator initialSettings = composedWidget initialSettings false (Loading Nothing)
 passwordGenerator initialSettings = do
   result@(Tuple newPassword newSettings) <- composedWidget initialSettings false (Loading Nothing) --check if settings have changed 
   pure $ case newSettings of
@@ -90,7 +88,6 @@ suggestionWidget av =
     go :: Boolean -> String -> Widget HTML (Either String String)
     go b s = do
       res <-
-        -- PasswordChange <$> disabledSimpleTextInputWidget "passwordSuggestion" (text "Generated password") b "" s
         (PasswordChange <$> (div [Props.className "generatedValue"] [
           label [] [
             span [Props.className "label"] [text "Generated value"]
@@ -176,25 +173,10 @@ settingsWidget s = do
     , div   [Props.className "charset"] [
         div [Props.className "charsetSets"] ((charsetSelector characters) <$> defaultCharacterSets)
       , dynamicWrapper Nothing characters $ textarea [Props.rows 1, Props.spellCheck false, Props.value characters, Props.unsafeTargetValue <$> Props.onChange] [] 
-      -- , textarea [Props.value characters, Props.unsafeTargetValue <$> Props.onChange, Props.value characters] []
     ]
   ]
   ]
-{-
-  let lengthWidget = (LengthChange <<< (fromMaybe 0) <<< fromString) <$> simpleNumberInputWidget "password_length" (text "Password Length") "" (show s.length)
-  let setsWidgets = (\(Tuple id v) -> (CharSetToggle id) <$ simpleCheckboxWidget ("char_set_" <> id) (text id) false v) <$> s.characterSets
-  let charsWidget = Chars <$> simpleTextInputWidget "password_characters" (text "Possible characters") "" s.characters
-  res <- div [Props.className "passwordGeneratorSettings"] $ concat [[lengthWidget], setsWidgets, [charsWidget]]
--}
+
   case res of
     LengthChange  n   -> pure $ s { length = n }
-    -- CharSetToggle key -> do
-    --   let newArray = (toUnfoldable <<< update (\v -> Just (not v)) key <<< fromFoldable) s.characterSets
-    --   let (CharacterSet chars) = charactersFromSets newArray
-    --   pure $ s { characterSets = newArray, characters = chars }
     Chars         str -> pure $ s { characters = str }
-
-
--- checkCharSetsToggle :: Array (Tuple String Boolean) -> String -> Array (Tuple String Boolean)
--- checkCharSetsToggle charSets chars = do
---   (\(Tuple set _) -> (Tuple set (contains (Pattern (show $ fromMaybe (CharacterSet "") $ lookup set defaultCharacterSets)) chars))) <$> charSets

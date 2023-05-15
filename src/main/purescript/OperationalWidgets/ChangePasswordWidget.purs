@@ -77,11 +77,8 @@ changePasswordWidget state changeForm = go state changeForm
     , do
         signalResult <- demand $ do
           formValues :: ChangePasswordDataForm <- loopS changeForm $ \{username, oldPassword, password, verifyPassword, notRecoverable} -> do
-            -- username'       :: String   <- simpleUserSignal "username" username
-            -- oldPassword'    :: String   <- loopW oldPassword (simplePasswordInputWidget "old_password" (text "Old password"))
             username'       :: String   <-  loopW username       $ verySimpleInputWidget (InputType "text")      (ClassName "username")  (Label "Username")        (Enabled true)  (Placeholder "username")              (matchingValueClassName currentCredentials.username)
             oldPassword'    :: String   <-  loopW oldPassword    $ verySimpleInputWidget (InputType "password")  (ClassName "password")  (Label "Old passphrase")    (Enabled true)  (Placeholder "old passphrase")          (matchingValueClassName currentCredentials.password)
-            -- eitherPassword  :: Either PasswordForm String <- simpleVerifiedPasswordSignal standardPasswordStrengthFunction $ Left {password, verifyPassword}
             password'       :: String   <-  loopW password       (\p -> (
                                                                     verySimpleInputWidget (InputType "password")  (ClassName "password")  (Label "New passphrase")    (Enabled true)  (Placeholder "new passphrase")          (\_ -> Just $ ClassName "valid") p
                                                                     <>
@@ -89,9 +86,6 @@ changePasswordWidget state changeForm = go state changeForm
                                                                  ))
             verifyPassword' :: String   <-  loopW verifyPassword $ verySimpleInputWidget (InputType "password")  (ClassName "password")  (Label "Verify passphrase") (Enabled true)  (Placeholder "confirm new passphrase")  (matchingValueClassName $ Just password')
             checkbox'       :: Boolean  <-  simpleCheckboxSignal "no_recovery" (text "I understand Clipperz won't be able to recover a lost password") notRecoverable
-            -- case eitherPassword of
-            --   Left  passwords -> pure $ merge passwords { username: username', oldPassword: oldPassword', notRecoverable: checkbox'}
-            --   Right s         -> pure                   { username: username', oldPassword: oldPassword', password: s, verifyPassword: s, notRecoverable: checkbox' }
             pure { username: username', oldPassword: oldPassword', password: password', verifyPassword:verifyPassword', notRecoverable: checkbox' }
           result :: Maybe ChangePasswordDataForm <- fireOnce (submitWidget formValues)
           pure result

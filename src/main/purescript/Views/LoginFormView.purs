@@ -42,8 +42,6 @@ type LoginDataForm =  { username :: String
 
 emptyForm :: LoginDataForm
 emptyForm = { username: "", password: "" }
--- For testing purpose
--- emptyForm = {username: "joe", password: "clipperz"}
 
 isFormValid :: LoginDataForm -> Boolean
 isFormValid { username, password } = username /= "" && password /= ""
@@ -93,7 +91,6 @@ loginFormView state loginFormData = do
     formWidget formData = form [Props.className "form"] [ do
         signalResult <- demand $ do
           formValues <- loopS formData $ \{username: username, password: password} -> do
-            -- username' <- simpleUserSignal username
             username' <- loopW username (\v -> div [] [
               label [] [
                 span [Props.className "label"] [text "User[3]name"]
@@ -106,7 +103,6 @@ loginFormView state loginFormData = do
                 ]
               ]
             ])
-            -- password' <- simplePasswordSignal password
             password' <- loopW password (\v -> div [] [
               label [] [
                 span [Props.className "label"] [text "Passphrase"]
@@ -122,7 +118,6 @@ loginFormView state loginFormData = do
             pure { username: username', password: password' }
           result <- fireOnce (submitButton formValues)
           pure result
-        -- liftEffect $ log $ "signalResult " <> show signalResult
         pure signalResult
     ]
 
@@ -172,7 +167,6 @@ loginFormView' loginFormData = do
     formWidget formData = form [Props.className "form"] [ do
         signalResult <- demand $ do
           formValues <- loopS formData $ \{username: username, password: password} -> do
-            -- username' <- simpleUserSignal username
             username' <- loopW username (\v -> label [] [
                 span [Props.className "label"] [text "Username"]
               , (Props.unsafeTargetValue) <$> input [
@@ -184,7 +178,6 @@ loginFormView' loginFormData = do
                 , Props.onChange
                 ]
               ])
-            -- password' <- simplePasswordSignal password
             password' <- loopW password (\v -> div [] [
               label [] [
                 span [Props.className "label"] [text "Passphrase"]

@@ -24,9 +24,6 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.EncodeDecode (decryptWithAesCTR)
 
--- fromCardToCardEntry :: Index -> Card -> Aff CardEntry
--- fromCardToCardEntry (Index entries) card = do
-
 getIndexContent :: ArrayBuffer -> IndexReference -> ExceptT AppError Aff Index
 getIndexContent bytes (IndexReference ref) =
   case ref.indexVersion of 

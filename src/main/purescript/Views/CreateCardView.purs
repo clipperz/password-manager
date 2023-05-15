@@ -62,7 +62,6 @@ createCardView card allTags isNew state = do
       case getFieldType cardField of
         Passphrase  -> button [unit <$ Props.onClick, Props.disabled false, Props.className "action passwordGenerator" ] [span [] [text "password generator"]]
         Email       -> button [Props.disabled true, Props.className "action email"] [span [] [text "email"]]
-        -- Url         -> button [Props.className "action url"] [span [] [a [Props.href value, Props.target "_blank"] [text "url"]]]
         Url         -> button [Props.className "action url", Props.disabled true]  [span [] [text "url"]]
         None        -> button [Props.className "action none", Props.disabled true] [span [] [text "none"]]
 
@@ -108,7 +107,6 @@ createCardView card allTags isNew state = do
       let loopables = (\f -> Tuple f (cardFieldWidget settings)) <$> fields 
       fields' <- loopS loopables $ \ls -> do
                                             es <- loopW ls dragAndDropAndRemoveList
-                                            -- addField <- fireOnce $ simpleButton "Add field" false unit
                                             addField <- fireOnce $ div [Props.className "newCardField", Props.onClick] [
                                               div [Props.className "fieldGhostShadow"] [
                                                 div [Props.className "label"] []
@@ -133,7 +131,6 @@ createCardView card allTags isNew state = do
     inputTagSignal newTag = do
 
       loopW (Tuple newTag false) (\(Tuple value _) -> do
-        -- log value
         result <- form [(\_ -> Tuple value (value /= "")) <$> Props.onSubmit] [
           label [] [
             span [Props.className "label"] [text "New Tag"]
@@ -162,9 +159,7 @@ createCardView card allTags isNew state = do
               pure $ Tuple ""    $ snoc tags' newTag'
       
     notesSignal :: String -> Boolean -> Signal HTML (Tuple String Boolean)
-    -- notesSignal :: String -> Boolean -> Signal HTML String
     notesSignal notes preview = do
-      -- fst <$> loopW (Tuple notes preview) (\(Tuple _notes _preview) ->
       loopW (Tuple notes preview) (\(Tuple _notes _preview) ->
         button [(Tuple _notes (not _preview)) <$ Props.onClick, Props.className "preview"] [text if _preview then "Edit" else "Preview Markdown"]
         <>

@@ -83,7 +83,6 @@ cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) = div [Props
   h3  [Props.className "card_title"]  [text t]
 , if (null ts) then (text "") else div [Props.className "card_tags"] [ul  []   $ (\s -> li' [text s]) <$> ts]
 , if (null fs) then (text "") else div [Props.className "card_fields"] $ cardField <$> fs
--- , div [Props.className "card_notes"]  [text n]
 , div [Props.className "card_notes"] [
     if (null ts && null fs) then (text "") else h3 [] [text "Notes"]
   , div [Props.className "markdown-body", Props.dangerouslySetInnerHTML { __html: unsafePerformEffect $ renderString n}] []

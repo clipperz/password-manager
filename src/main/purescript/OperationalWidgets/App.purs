@@ -34,10 +34,8 @@ import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Signup (signupUser)
 import Functions.EnvironmentalVariables (currentCommit)
-import Functions.JSState (modifyAppState)
 import Functions.Login (doLogin)
 import Functions.Pin (decryptPassphraseWithRemoval)
-import Functions.State (computeInitialState)
 import OperationalWidgets.HomePageWidget (homePageWidget)
 import Record (merge)
 import Views.Components (footerComponent)
@@ -47,11 +45,11 @@ import Web.HTML (window)
 import Web.HTML.Window (localStorage)
 
 app :: forall a. Page -> Widget HTML a
-app nextPage = app' (InitState (ShowPage (Loading (Just nextPage)))) { credentials: emptyCredentials }
+app nextPage = app' (ShowPage (Loading (Just nextPage))) { credentials: emptyCredentials }
 
 doTestLogin :: forall a. Credentials -> Widget HTML a
 doTestLogin {username, password} = do
-  app' (InitState (DoLogin testCredentials)) { credentials: testCredentials }
+  app' (DoLogin testCredentials) { credentials: testCredentials }
   where
     testCredentials = { username: username, password: password}
 
@@ -67,7 +65,6 @@ data Action = DoLogout
             | ShowSharedCard SharedCardReference SharedCardPassword 
             | ShowError Page 
             | ShowSuccess Page 
-            | InitState Action
 
 app' :: forall a. Action -> { credentials :: Credentials } -> Widget HTML a
 app' action st@{ credentials } = do
@@ -95,7 +92,6 @@ app' action st@{ credentials } = do
     overlayFromAction action
     <|> 
     (liftAff $ doOp action)
-  -- log $ "page action " <> show nextAction
   case nextAction of
     DoLogin cred -> app' nextAction $ st { credentials = cred }
     ShowPage Main -> app' nextAction $ st { credentials = emptyCredentials }
@@ -112,7 +108,6 @@ overlayFromAction (DoLoginWithPin _) = overlay { status: Spinner, message: "load
 overlayFromAction (DoSignup _)       = overlay { status: Spinner, message: "loading" }
 overlayFromAction (ShowError _)      = overlay { status: Failed, message: "error" }
 overlayFromAction (ShowSuccess _)    = overlay { status: Done, message: "" }
-overlayFromAction (InitState _)      = overlay { status: Spinner, message: "loading "}
 overlayFromAction _ = overlay { status: Hidden, message: "loading" }
 -- ==================================================
 
@@ -121,9 +116,6 @@ instance showPagePosition :: Show PagePosition where
   show Left   = "left"
   show Center = "center"
   show Right  = "right"
-
--- pageOrder :: List Page
--- pageOrder = (Loading Nothing) : Login : Signup : (Share Nothing) : Main : Nil
 
 location :: Page -> Page -> PagePosition
 location referencePage currentPage = case referencePage, currentPage of
@@ -159,11 +151,9 @@ actionPage (DoLogin _)          = Login
 actionPage (DoLoginWithPin _)   = Login
 actionPage (DoSignup _)         = Signup
 actionPage (ShowSharedCard r _) = Share (Just r)
--- actionPage (ShowMain)           = Main
 actionPage (DoLogout)           = Login
 actionPage (ShowError page)     = page
 actionPage (ShowSuccess page)   = page
-actionPage (InitState action)   = Loading (Just (actionPage action))
 
 headerPage :: forall a. Page -> Page -> Array (Widget HTML a) -> Widget HTML a
 headerPage currentPage page innerContent = do
@@ -208,7 +198,7 @@ shortcutsDiv = div [Props._id "shortcutsHelp", Props.className "hidden"] [
 , p [] [span [] [text "lock"]], p [] [text "Lock"]
 ]
 
-data OverlayStatus = Hidden | Spinner | Done | Failed -- | ProgressBar | Custom
+data OverlayStatus = Hidden | Spinner | Done | Failed
 type OverlayInfo = { status :: OverlayStatus, message :: String }
 
 overlay :: forall a. OverlayInfo -> Widget HTML a
@@ -256,15 +246,6 @@ doOp (DoSignup cred) = do
     E.Left err -> do
       log $ "Signup error: " <> (show err)
       pure $ ShowPage Signup
-doOp (InitState action) = do
-  initialState <- liftEffect $ runExceptT $ computeInitialState
-  case initialState of
-    E.Right st -> do
-      modifyAppState st
-      pure action
-    E.Left err -> do
-      log $ show err
-      pure action
 doOp a = a <$ never
 
 instance showPage :: Show Page where
@@ -285,6 +266,5 @@ instance showAction :: Show Action where
   show (ShowError page)     = "Show Error " <> show page 
   show (ShowSuccess page)   = "Show Success " <> show page 
   show DoLogout = "DoLogout"
-  show (InitState action)   = "Show InitState " <> show action
 
 derive instance eqAction :: Eq Action

@@ -57,7 +57,6 @@ changeUserPassword :: String -> String -> ExceptT AppError Aff Unit
 changeUserPassword username password = do
   conf <- ExceptT $ liftEffect getSRPConf
   appState <- ExceptT $ liftEffect getAppState
-  -- oldC <- except $ note (InvalidStateError $ MissingValue $ "c not present") $ toArrayBuffer <$> appState.c
   oldP <- except $ note (InvalidStateError $ MissingValue $ "p not present") $ toArrayBuffer <$> appState.p
   newC <- ExceptT $ Right <$> (SRP.prepareC conf username password)
   newP <- ExceptT $ Right <$> (SRP.prepareP conf username password)
