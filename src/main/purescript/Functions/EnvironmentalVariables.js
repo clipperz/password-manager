@@ -12,4 +12,8 @@ function redeemURL() {
 	return process.env.REDEEM_URL
 }
 
-export { currentCommit, shareURL, redeemURL };
+function appURL() {
+	return process.env.APP_URL
+}
+
+export { currentCommit, shareURL, redeemURL, appURL };

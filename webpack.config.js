@@ -40,6 +40,7 @@ module.exports = (env) => {
 			// environmental variables definition
 			new webpack.EnvironmentPlugin({
 				CURRENT_COMMIT: git('rev-parse HEAD'),
+				APP_URL:	baseURL + "/" + (env.production ? 'app' : 'index.html'),
 				SHARE_URL:  baseURL + "/" + (env.production ? 'share#' : 'share_index.html#share='),
 				REDEEM_URL: baseURL + "/" + (env.production ? 'share/redeem#' : 'share_index.html#redeem='),
 			}),

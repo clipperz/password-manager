@@ -28,7 +28,7 @@ wrapper widget = do
   initialState <- liftEffect $ runExceptT $ computeInitialState
   case initialState of
     Right st -> liftAff $ do
-      modifyAppState st
+      liftEffect $ modifyAppState st
     Left err -> do
       liftEffect $ log $ show err
   widget

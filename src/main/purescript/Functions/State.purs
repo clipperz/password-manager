@@ -65,12 +65,13 @@ computeInitialState = do
                 , userCard: Nothing
                 , userInfoReferences: Nothing 
                 , userPreferences: Nothing
+                , fragmentData: Nothing
                 }
 
 resetState :: ExceptT AppError Aff Unit
 resetState = do
   is <- mapExceptT liftEffect computeInitialState
-  ExceptT $ Right <$> (modifyAppState is)
+  ExceptT $ Right <$> (liftEffect $ modifyAppState is)
 
 getKDFFromState :: KDFState -> KDF
 getKDFFromState kdfState =

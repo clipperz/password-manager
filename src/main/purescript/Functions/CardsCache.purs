@@ -24,4 +24,4 @@ getCardFromCache reference = do
 addCardToCache :: HexString -> Card -> ExceptT AppError Aff Unit
 addCardToCache refence card = do
   state@{ cardsCache } <- ExceptT $ liftEffect getAppState
-  ExceptT $ Right <$> modifyAppState (state { cardsCache = insert refence card cardsCache})
+  ExceptT $ Right <$> (liftEffect $ modifyAppState (state { cardsCache = insert refence card cardsCache}))

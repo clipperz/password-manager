@@ -16,7 +16,6 @@ import Data.Show (show)
 import Data.Unit (Unit, unit)
 import DataModel.AppState (AppState, AppError(..), InvalidStateError(..))
 import Effect (Effect)
-import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Record (merge)
 
@@ -33,9 +32,9 @@ getAppState = do
 
 foreign import updateJsonState :: String -> Effect Unit
 
-modifyAppState :: AppState -> Aff Unit
-modifyAppState = encodeJson >>> stringify >>> updateJsonState >>> liftEffect
+modifyAppState :: AppState -> Effect Unit
+modifyAppState = encodeJson >>> stringify >>> updateJsonState
 
 updateAppState partialState = runExceptT $ do
   stateToUpdate <- ExceptT $ liftEffect $ getAppState
-  ExceptT $ Right <$> (modifyAppState (merge partialState stateToUpdate))
+  ExceptT $ Right <$> (liftEffect $ modifyAppState (merge partialState stateToUpdate))

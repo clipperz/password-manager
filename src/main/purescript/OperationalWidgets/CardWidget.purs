@@ -31,7 +31,7 @@ import Functions.Communication.Cards (getCard, postCard, deleteCard)
 import Functions.JSState (getAppState)
 import Functions.State (isOfflineCopy)
 import Functions.Time (getCurrentTimestamp)
-import OperationalWidgets.CreateCardWidget (createCardWidget)
+import OperationalWidgets.CreateCardWidget (CardFormInput(..), createCardWidget)
 import Views.CardViews (cardView, CardAction(..))
 import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (loadingDiv, confirmationWidget)
@@ -63,7 +63,7 @@ cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ })
       case action of
         Exit cc -> pure $ IndexUpdateData NoUpdate (Just cc)
         Edit cc -> do
-          IndexUpdateData indexUpdateAction newCard <- createCardWidget (Just cc) tags Default -- here the modified card has already been saved
+          IndexUpdateData indexUpdateAction newCard <- createCardWidget (ModifyCard cc) tags Default -- here the modified card has already been saved
           case indexUpdateAction of
             AddReference newEntry -> pure $ IndexUpdateData (ChangeReferenceWithEdit entry newEntry) newCard
             _ -> cardWidget entry tags Default

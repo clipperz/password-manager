@@ -2,7 +2,8 @@ module OperationalWidgets.ShareWidget where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (text)
+import Concur.React.DOM (a, div, text)
+import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except (runExceptT)
@@ -28,8 +29,11 @@ shareWidget secret = do
   pure $ unsafePerformEffect (setHash "" (unsafePerformEffect (location (unsafePerformEffect window))))
   (Tuple secret_ password_) <- shareView secret
   result <- liftAff $ runExceptT $ share secret_ password_
-  redeemUrl <- liftEffect $ redeemURL
   case result of
     Left err -> text ("error:" <> show err)
-    Right id -> text ("copy: " <> redeemUrl <> id)
-    
+    Right id -> do
+      redeemURL <- liftEffect $ redeemURL
+      div [Props.className "redeemSecret"] [
+        text "Redeem Secret:"
+      , a [Props.href (redeemURL <> id), Props.target "_blank"] [text $ redeemURL <> id]
+      ]    

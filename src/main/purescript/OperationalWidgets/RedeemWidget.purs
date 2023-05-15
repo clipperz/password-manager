@@ -3,7 +3,7 @@ module OperationalWidgets.RedeemWidget where
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, loopW)
 import Concur.React (HTML)
-import Concur.React.DOM (button, div, text)
+import Concur.React.DOM (a, button, div, text)
 import Concur.React.Props as Props
 import Control.Bind (bind, (<$))
 import Control.Monad.Except (runExceptT)
@@ -18,8 +18,10 @@ import DataModel.AppState (AppError(..))
 import DataModel.Card (Card(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff.Class (liftAff)
+import Effect.Class (liftEffect)
 import Functions.Clipboard (copyToClipboard)
 import Functions.Communication.OneTimeShare (redeem)
+import Functions.EnvironmentalVariables (appURL)
 import Views.CardViews (cardContent)
 import Views.RedeemView (redeemView)
 
@@ -34,6 +36,13 @@ redeemWidget id = do
           text ("Here is your secret card:")
         , cardContent content
         , button [(copyToClipboard secret) <$ Props.onClick] [ text "Copy to clipboard"]
+        , do
+            appURL <- liftEffect $ appURL
+            button [Props.className "addCardToAccount"] [
+              a [Props.href (appURL <> "#addCard?" <> secret), Props.target "_blank"] [
+                text "add to account"
+              ]
+            ]
         ]
         Left _                 -> text ("Here is the secret: " <> secret)
     )

@@ -1,11 +1,12 @@
 module DataModel.User where
 
-import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
+import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Bifunctor (rmap)
 import Data.Either (Either)
 import Data.Eq (class Eq)
 import Data.HexString (HexString)
+import Data.Show (class Show, show)
 import DataModel.Password (PasswordGeneratorSettings)
 
 newtype UserCard =
@@ -17,6 +18,9 @@ newtype UserCard =
     , masterKeyEncodingVersion :: String
     , masterKeyContent :: HexString
     }
+
+instance showUserCard :: Show UserCard where
+  show (UserCard record) = show record
 
 instance encodeJsonUserCard :: EncodeJson UserCard where
   encodeJson (UserCard record) = encodeJson record
@@ -30,6 +34,9 @@ newtype IndexReference =
     , masterKey :: HexString
     , indexVersion :: String
     }
+  
+instance showIndexReference :: Show IndexReference where
+  show (IndexReference record) = show record
 
 instance encodeJsonIndexReference :: EncodeJson IndexReference where
   encodeJson (IndexReference record) = encodeJson record
@@ -42,6 +49,9 @@ newtype UserPreferences =
     { passwordGeneratorSettings :: PasswordGeneratorSettings
     , automaticLock :: Either Int Int
     }
+
+instance showUserPreferences :: Show UserPreferences where
+  show (UserPreferences record) = show record
 
 instance encodeJsonUserPreferences :: EncodeJson UserPreferences where
   encodeJson (UserPreferences record) = encodeJson record
@@ -57,6 +67,9 @@ newtype UserPreferencesReference =
     , key :: HexString
     }
 
+instance showUserPreferencesReference :: Show UserPreferencesReference where
+  show (UserPreferencesReference record) = show record
+
 instance encodeJsonUserPreferencesReference :: EncodeJson UserPreferencesReference where
   encodeJson (UserPreferencesReference record) = encodeJson record
 
@@ -68,6 +81,9 @@ newtype UserInfoReferences =
     { preferencesReference :: UserPreferencesReference
     , indexReference :: IndexReference
     }
+  
+instance showUserInfoReferences :: Show UserInfoReferences where
+  show (UserInfoReferences record) = show record
 
 instance encodeJsonUserInfoReferences :: EncodeJson UserInfoReferences where
   encodeJson (UserInfoReferences record) = encodeJson record

@@ -1,5 +1,6 @@
 module OperationalWidgets.CreateCardWidget
-  ( createCardWidget
+  ( CardFormInput(..)
+  , createCardWidget
   )
   where
 
@@ -34,11 +35,14 @@ import Views.CreateCardView (createCardView)
 
 data CreateCardActions = JustCard Card | NewEntry CardEntry | FailedCreation AppError Card | NoAction
 
-createCardWidget :: Maybe Card -> Array String -> WidgetState -> Widget HTML IndexUpdateData
-createCardWidget maybeCard tags state = do
-  Tuple startingCard isNew <- case maybeCard of
-    Just card -> pure (Tuple card false)
-    Nothing   -> do
+data CardFormInput = NewCard (Maybe Card) | ModifyCard Card
+
+createCardWidget :: CardFormInput -> Array String -> WidgetState -> Widget HTML IndexUpdateData
+createCardWidget cardInput tags state = do
+  Tuple startingCard isNew <- case cardInput of
+    ModifyCard card     -> pure (Tuple card false)
+    NewCard (Just card) -> pure (Tuple card true)
+    NewCard (Nothing)   -> do
       clipboard <- liftAff $ getClipboardContent
       case fromJsonString clipboard of
         Right card -> pure (Tuple card true)
@@ -52,8 +56,8 @@ createCardWidget maybeCard tags state = do
     NoAction -> pure $ IndexUpdateData NoUpdate (if isNew then Nothing else (Just startingCard))
     JustCard card -> do
       if ((isNew && card == emptyCard) || (not isNew && card == startingCard)) then pure $ IndexUpdateData NoUpdate (Just startingCard) 
-      else createCardWidget (Just card) tags Loading
+      else createCardWidget (ModifyCard card) tags Loading
     NewEntry e -> pure $ IndexUpdateData (AddReference e) (Just startingCard)
     FailedCreation err card -> do
       _ <- liftEffect $ log $ show err
-      createCardWidget (Just card) tags (Error (prettyShow err))
+      createCardWidget (ModifyCard card) tags (Error (prettyShow err))

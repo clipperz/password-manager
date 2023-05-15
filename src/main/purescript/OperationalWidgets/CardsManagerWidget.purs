@@ -20,12 +20,16 @@ import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..), InvalidStateError(..), ProxyConnectionStatus)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
+import DataModel.FragmentData (FragmentData(..))
 import DataModel.Index (Index(..), CardEntry(..))
 import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
+import Effect.Class (liftEffect)
 import Functions.Communication.Users (updateIndex)
+import Functions.JSState (getAppState, updateAppState)
+import OperationalWidgets.CreateCardWidget (CardFormInput(..))
 import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState, CardsViewInfo, FilterViewStatus(..))
 import Views.IndexView (IndexFilter(..), ComplexIndexFilter, addLastCardFilterInOr, removeAllLastCardFilter)
 
@@ -34,14 +38,21 @@ data CardsManagerAction = OpenUserArea
 data CardsViewResult = CardsViewResult (Tuple CardsViewInfo CardViewAction) | OpResult Index CardViewState (Maybe AppError) ComplexIndexFilter
 
 cardsManagerWidget :: ProxyConnectionStatus -> Index -> CardViewState -> Widget HTML CardsManagerAction
-cardsManagerWidget proxyConnectionStatus ind _ = 
+cardsManagerWidget proxyConnectionStatus ind _ = do
+  getStateResult <- liftEffect $ getAppState
+  _ <- updateAppState {fragmentData: Nothing}
+  cardView <- pure $ case getStateResult of
+    Left _  -> NoCard
+    Right {fragmentData}  -> case fragmentData of
+      Just (AddCard card) -> (CardForm (NewCard $ Just card))
+      _                   -> NoCard
   let info = { index: ind
              , indexFilter: { archived: false, indexFilter: NoFilter }
              , selectedIndexPosition: Nothing
-             , cardViewState: { cardView: NoCard, cardViewState: Default }
+             , cardViewState: { cardView: cardView, cardViewState: Default }
              , error: Nothing
              }
-  in go info (cardsManagerView proxyConnectionStatus FilterViewClosed) Nothing
+  go info (cardsManagerView proxyConnectionStatus FilterViewClosed) Nothing
 
   where
     go :: CardsViewInfo -> (CardsViewInfo -> Widget HTML (Tuple CardsViewInfo CardViewAction)) -> Maybe (Aff CardsViewResult) -> Widget HTML CardsManagerAction
@@ -53,7 +64,7 @@ cardsManagerWidget proxyConnectionStatus ind _ =
         CardsViewResult (Tuple f cva) -> case cva of 
           UpdateIndex updateData -> do
             go (getUpdateIndexInfo proxyConnectionStatus f updateData Nothing) view (Just (getUpdateIndexOp f updateData))
-          ShowAddCard   -> go (info { cardViewState = {cardView: (CardForm Nothing), cardViewState: Default} }) view Nothing
+          ShowAddCard   -> go (info { cardViewState = {cardView: (CardForm $ NewCard Nothing), cardViewState: Default} }) view Nothing
           ShowUserArea  -> pure $ OpenUserArea
           ShowCard ref  -> go (info { cardViewState = {cardView: (CardFromReference ref), cardViewState: Default} }) view Nothing
         OpResult i cv e f -> go (info { index = i, indexFilter = f, error = e, cardViewState = cv }) view Nothing
@@ -111,9 +122,9 @@ getUpdateIndexOp { index: index@(Index list), indexFilter } (IndexUpdateData act
 getUpdateIndexInfo :: ProxyConnectionStatus -> CardsViewInfo -> IndexUpdateData -> Maybe AppError -> CardsViewInfo
 getUpdateIndexInfo _ info (IndexUpdateData action card) err = 
   case action of 
-    AddReference                 _ -> info { error = err, indexFilter = { archived: false, indexFilter: NoFilter }, cardViewState = { cardView: (maybe NoCard CardForm (Just card)), cardViewState: Loading } }
+    AddReference                 _ -> info { error = err, indexFilter   = { archived: false, indexFilter: NoFilter }, cardViewState = { cardView: (CardForm $ NewCard card), cardViewState: Loading } }
     CloneReference               _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }
     DeleteReference              _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }
-    ChangeReferenceWithEdit    _ _ -> info { error = err, cardViewState = { cardView: (maybe NoCard CardForm (Just card)), cardViewState: Loading } }
+    ChangeReferenceWithEdit    _ _ -> info { error = err, cardViewState = { cardView: (CardForm $ NewCard card),    cardViewState: Loading } }
     ChangeReferenceWithoutEdit _ _ -> info { error = err, cardViewState = { cardView: (maybe NoCard JustCard card), cardViewState: Loading } }
     _                              -> info { error = err, cardViewState = { cardView: NoCard                      , cardViewState: Default } }
