@@ -55,13 +55,13 @@ deploy-dev:
   tags:
     - clipperz-build
   variables:
-    PORTAINER_WEBHOOK: http://192.168.5.177:9000/api/stacks/webhooks/a615cf80-1c16-4159-9a19-616ec7ea186f
+    PORTAINER_WEBHOOK: https://portainer.staging.imolinfo.it/api/stacks/webhooks/2df901e3-b148-494c-9d0a-9b574e95d8d7
   before_script:
     - *git-config
   script:
     - *before-checkout
     - git checkout staging
     - *after-checkout
-    #- curl -X POST ${PORTAINER_WEBHOOK}
+    - curl -X POST ${PORTAINER_WEBHOOK}
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
