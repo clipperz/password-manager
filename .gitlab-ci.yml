@@ -24,21 +24,18 @@ variables:
 .after-checkout: &after-checkout
   - sed -E -i "s/${VERSION_REGEX}/${SUBSTITUTE}/g" ${FILENAME}
   - git add ./${FILENAME}
-  - git commit -m "Modified docker-compose.yml to use new image of '$IMAGE_NAME' (triggered by commit '$CI_COMMIT_SHA')"
+  - git commit -m "Modified docker-compose.yml to use new image of '$CI_REGISTRY_IMAGE' (triggered by commit '$CI_COMMIT_SHA')"
   - git push
 
 build-image:
   stage: build
   tags: 
     - clipperz-build
-  variables:
-    IMAGE_FULL_NAME: clipperz/${IMAGE_NAME}:${CI_COMMIT_SHA}
-    IMAGE_FULL_URL: ${CI_REGISTRY}/${IMAGE_FULL_NAME}
   before_script:
     - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
   script:
-    - docker build -t ${IMAGE_FULL_URL} .
-    - docker push ${IMAGE_FULL_URL}
+    - docker build -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA} .
+    - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
 
 deploy-prod:
   stage: commit
@@ -58,7 +55,7 @@ deploy-dev:
   tags:
     - clipperz-build
   variables:
-    PORTAINER_WEBHOOK: http://192.168.5.177:9000/api/stacks/webhooks/a615cf80-1c16-4159-9a19-616ec7ea186f
+    PORTAINER_WEBHOOK: https://portainer.staging.imolinfo.it/api/stacks/webhooks/2df901e3-b148-494c-9d0a-9b574e95d8d7
   before_script:
     - *git-config
   script:
