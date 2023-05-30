@@ -17,36 +17,52 @@ variables:
   - git config --global user.email "dpicchiotti@imolainformatica.it"
   - git config --global user.name "Davide Picchiotti"
 
-.before-checkout: &before-checkout
+.build: &build
+  - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+  - docker build --build-arg BUILD_ENV=${ENV} -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA} .
+  - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
+
+.edit-compose: &edit-compose
   - git clone https://oauth2:${COMPOSE_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker.git
   - cd clipperz-docker
-
-.after-checkout: &after-checkout
+  - git checkout ${COMPOSE_BRANCH}
   - sed -E -i "s/${VERSION_REGEX}/${SUBSTITUTE}/g" ${FILENAME}
   - git add ./${FILENAME}
   - git commit -m "Modified docker-compose.yml to use new image of '$CI_REGISTRY_IMAGE' (triggered by commit '$CI_COMMIT_SHA')"
   - git push
 
-build-image:
+build-image-prod:
   stage: build
   tags: 
     - clipperz-build
-  before_script:
-    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+  variables:
+    ENV: PRODUCTION
   script:
-    - docker build -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA} .
-    - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
+    - *build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+build-image-dev:
+  stage: build
+  tags: 
+    - clipperz-build
+  variables:
+    ENV: STAGING
+  script:
+    - *build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
 
 deploy-prod:
   stage: commit
   tags:
     - clipperz-build
+  variables:
+    COMPOSE_BRANCH: production
   before_script:
     - *git-config
   script:
-    - *before-checkout
-    - git checkout production
-    - *after-checkout 
+    - *edit-compose
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
 
@@ -56,12 +72,11 @@ deploy-dev:
     - clipperz-build
   variables:
     PORTAINER_WEBHOOK: https://portainer.staging.imolinfo.it/api/stacks/webhooks/368a9b26-53c0-4c89-b83a-a6d12d25ccfd
+    COMPOSE_BRANCH: staging
   before_script:
     - *git-config
   script:
-    - *before-checkout
-    - git checkout staging
-    - *after-checkout
+    - *edit-compose
     - curl -X POST ${PORTAINER_WEBHOOK}
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
