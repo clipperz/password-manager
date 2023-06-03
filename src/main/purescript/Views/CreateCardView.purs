@@ -180,8 +180,11 @@ createCardView card allTags isNew state = do
     formSignal settings = do
       { card: formValues } <- loopS { newTag: "", preview: false, card: card } $ \{ newTag, preview, card: Card {content: (CardValues {title, tags, fields, notes}), archived, timestamp} } ->
         div_ [Props.className "cardFormFields"] do
-          title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title") "Card title")
-         
+          title' :: String <- loopW title (\_title -> label [Props.className "title"] [
+            span [Props.className "label"] [text "Title"]
+          , dynamicWrapper Nothing _title $ textarea [Props.rows 1, Props.placeholder "Card title", Props.value _title, Props.unsafeTargetValue <$> Props.onChange] []
+          ])
+
           Tuple newTag' tags' <- tagsSignal newTag tags
           
           fields' <- fieldsSignal settings fields

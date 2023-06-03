@@ -140,12 +140,12 @@ div#homePage {
 							display: block;
 						}
                         li {
-                            cursor: pointer;
+							cursor: pointer;
                             border-bottom: 1px solid #eee;
                             background-color: white;
                             transition: margin-left 0.1s ease-in-out, padding-right 0.1s ease-in-out;
+							overflow-wrap: anywhere;
                             white-space: pre-wrap;
-                            word-wrap: break-word;
                             display: flex;
                             flex-direction: row; 
                             justify-content: space-between;
@@ -256,6 +256,8 @@ div#homePage {
 								font-weight: 600;
 								line-height: 1.25;
 								padding: 20px 20px 10px 42px;
+
+								overflow-wrap: break-word;
 
 								// user-select: text;
 								// font-size: 24pt;
@@ -414,24 +416,43 @@ div#homePage {
                                 div {
                                     display: flex;
                                 }
-                                input {
-                                    border: 0px;
-
-                                    &#title {
-                                        font-size: 24pt;
-                                        width: 100%;
-                                        padding: 13px $side-margin 13px $side-margin;
-                                    }
-                                }
 
 								label.title {
 									@include fancyHidden;
 									width: 100%;
+									// display: flex;
 
-									input {
-										border: 0;
-										font-size: 24pt;
-										padding: 13px 20px 13px 42px;
+									.dynamicWrap {
+										display: grid;
+										// flex: 1;
+
+										&::after {
+											content: attr(replicatedvalue) " ";
+											white-space: pre-wrap;
+											visibility: hidden;
+										}
+
+										textarea {
+											resize: none;
+											overflow: hidden;
+										}
+
+										textarea, &::after {
+											@include dontBreakOut;
+											font-family: 'clipperz-font';
+											font-size: 24pt;
+											font-weight: bold;
+											border: 0px;
+											// width: 100%;
+											line-height: 1.5em;
+											white-space: pre-wrap;
+											word-wrap: break-word;
+											padding: 13px 20px 13px 42px;
+											
+											max-height: 4lh;
+
+											grid-area: 1 / 1 / 2 / 2;
+										}
 									}
 								}
 
