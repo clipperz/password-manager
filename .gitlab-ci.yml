@@ -58,7 +58,7 @@ deploy-prod:
   tags:
     - clipperz-build
   variables:
-    PORTAINER_WEBHOOK: https://portainer.production.imolinfo.it/api/stacks/webhooks/3779835d-e8c4-40af-a92c-15d1eaa2219c
+    PORTAINER_WEBHOOK: https://cluster.production.imolinfo.it/api/stacks/webhooks/3779835d-e8c4-40af-a92c-15d1eaa2219c
     COMPOSE_BRANCH: production
   before_script:
     - *git-config
