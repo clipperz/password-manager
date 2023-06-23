@@ -58,11 +58,13 @@ deploy-prod:
   tags:
     - clipperz-build
   variables:
+    PORTAINER_WEBHOOK: https://portainer.production.imolinfo.it/api/stacks/webhooks/3779835d-e8c4-40af-a92c-15d1eaa2219c
     COMPOSE_BRANCH: production
   before_script:
     - *git-config
   script:
     - *edit-compose
+    - curl -X POST ${PORTAINER_WEBHOOK}
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
 
