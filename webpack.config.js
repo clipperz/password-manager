@@ -11,7 +11,7 @@ function git(command) {
 }
 
 module.exports = (env) => {
-	const baseURL = env.production ? 'https://clipperz.is' : 'http://localhost:8090';
+	const baseURL = env.production ? 'https://clipperz.pre-production.imolinfo.it/versions/epsilon' : 'http://localhost:8090';
 
 	return {
 		mode: env.production ? 'production' : 'development',
@@ -40,6 +40,7 @@ module.exports = (env) => {
 			// environmental variables definition
 			new webpack.EnvironmentPlugin({
 				CURRENT_COMMIT: git('rev-parse HEAD'),
+				BASE_URL: 	baseURL,
 				APP_URL:	baseURL + "/" + (env.production ? 'app' : 'index.html'),
 				SHARE_URL:  baseURL + "/" + (env.production ? 'share#' : 'share_index.html#share='),
 				REDEEM_URL: baseURL + "/" + (env.production ? 'share/redeem#' : 'share_index.html#redeem='),

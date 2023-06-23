@@ -16,10 +16,11 @@ import Data.Unit (Unit)
 import DataModel.AppState (AppState, AppError(..), baseSRPInfo, HashState(..), KDFState(..), ProxyConnectionStatus(..))
 import DataModel.AsyncValue (AsyncValue(..))
 import DataModel.Proxy (Proxy(..), BackendSessionState(..))
-import DataModel.SRP(SRPConf, KDF, HashFunction, concatKDF, hashFuncSHA1, hashFuncSHA256)
+import DataModel.SRP (SRPConf, KDF, HashFunction, concatKDF, hashFuncSHA1, hashFuncSHA256)
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
+import Functions.EnvironmentalVariables (baseURL)
 import Functions.JSState (getAppState, modifyAppState)
 import Record (merge)
 import Web.DOM.Element (fromNode, id)
@@ -28,8 +29,7 @@ import Web.DOM.NodeList (toArray)
 import Web.HTML (window)
 import Web.HTML.HTMLDocument (body)
 import Web.HTML.HTMLElement (toNode)
-import Web.HTML.Location (origin)
-import Web.HTML.Window (location, document)
+import Web.HTML.Window (document)
 
 offlineDataId :: String
 offlineDataId = "offlineData"
@@ -43,9 +43,7 @@ computeInitialState = do
   let script = head ((\(Tuple e _) -> e) <$> (filter (\(Tuple _ i) -> i == offlineDataId) elementsWithId))
   case script of
     Just _ -> except $ Right $ withOfflineProxy
-    Nothing -> do
-      l <- ExceptT $ Right <$> ((location w) >>= origin)
-      except $ Right $ withOnlineProxy l
+    Nothing -> ExceptT $ Right <$> (withOnlineProxy <$> baseURL)
 
   where 
     mapIds e = (Tuple e) <$> (id e)
