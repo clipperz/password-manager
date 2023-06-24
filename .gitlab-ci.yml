@@ -17,51 +17,68 @@ variables:
   - git config --global user.email "dpicchiotti@imolainformatica.it"
   - git config --global user.name "Davide Picchiotti"
 
-.before-checkout: &before-checkout
+.build: &build
+  - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+  - docker build --build-arg BUILD_ENV=${ENV} -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA} .
+  - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
+
+.edit-compose: &edit-compose
   - git clone https://oauth2:${COMPOSE_TOKEN}@gitlab.imolab.it/clipperz/clipperz-docker.git
   - cd clipperz-docker
-
-.after-checkout: &after-checkout
+  - git checkout ${COMPOSE_BRANCH}
   - sed -E -i "s/${VERSION_REGEX}/${SUBSTITUTE}/g" ${FILENAME}
   - git add ./${FILENAME}
   - git commit -m "Modified docker-compose.yml to use new image of '$CI_REGISTRY_IMAGE' (triggered by commit '$CI_COMMIT_SHA')"
   - git push
 
-build-image:
+build-image-prod:
   stage: build
   tags: 
     - clipperz-build
-  before_script:
-    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+  variables:
+    ENV: PRODUCTION
   script:
-    - docker build -t ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA} .
-    - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
+    - *build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+
+build-image-dev:
+  stage: build
+  tags: 
+    - clipperz-build
+  variables:
+    ENV: STAGING
+  script:
+    - *build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
 
 deploy-prod:
   stage: commit
   tags:
     - clipperz-build
+  variables:
+    PORTAINER_WEBHOOK: https://cluster.production.imolinfo.it/api/stacks/webhooks/3779835d-e8c4-40af-a92c-15d1eaa2219c
+    COMPOSE_BRANCH: production
   before_script:
     - *git-config
   script:
-    - *before-checkout
-    - git checkout production
-    - *after-checkout 
+    - *edit-compose
+    - curl -X POST ${PORTAINER_WEBHOOK}
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "master"
 
 deploy-dev:
   stage: commit
   tags:
     - clipperz-build
   variables:
-    PORTAINER_WEBHOOK: https://portainer.staging.imolinfo.it/api/stacks/webhooks/2df901e3-b148-494c-9d0a-9b574e95d8d7
+    PORTAINER_WEBHOOK: https://cluster.production.imolinfo.it/api/stacks/webhooks/7f7c9998-2bc8-41aa-9cff-45b38ef9ba71
+    COMPOSE_BRANCH: staging
   before_script:
     - *git-config
   script:
-    - *before-checkout
-    - git checkout staging
-    - *after-checkout
+    - *edit-compose
     - curl -X POST ${PORTAINER_WEBHOOK}
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
