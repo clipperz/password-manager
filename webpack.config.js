@@ -11,8 +11,6 @@ function git(command) {
 }
 
 module.exports = (env) => {
-	const baseURL = env.production ? 'https://clipperz.pre-production.imolinfo.it/versions/epsilon' : 'http://localhost:8090';
-
 	return {
 		mode: env.production ? 'production' : 'development',
 		watchOptions: {
@@ -21,9 +19,9 @@ module.exports = (env) => {
 			ignored: /node_modules/
 		},
 		entry: {
-			app:   '/src/main/purescript/_app_main.js',
-			pg:    '/src/main/purescript/_pg_main.js',
-			share: '/src/main/purescript/_share_main.js',
+			app:   				'/src/main/purescript/_app_main.js',
+			passwordGenerator:  '/src/main/purescript/_passwordGenerator_main.js',
+			share: 				'/src/main/purescript/_share_main.js',
 		},
 		output: {
 			filename: '[name]-bundle.[fullhash].js',
@@ -40,10 +38,9 @@ module.exports = (env) => {
 			// environmental variables definition
 			new webpack.EnvironmentPlugin({
 				CURRENT_COMMIT: git('rev-parse HEAD'),
-				BASE_URL: 	baseURL,
-				APP_URL:	baseURL + "/" + (env.production ? 'app' : 'index.html'),
-				SHARE_URL:  baseURL + "/" + (env.production ? 'share#' : 'share_index.html#share='),
-				REDEEM_URL: baseURL + "/" + (env.production ? 'share/redeem#' : 'share_index.html#redeem='),
+				APP_URL:	"/" + (env.production ? 'app' : 'index.html'),
+				SHARE_URL:  "/" + (env.production ? 'share#' : 'share_index.html#share='),
+				REDEEM_URL: "/" + (env.production ? 'share/redeem#' : 'share_index.html#redeem='),
 			}),
 			// app html package configuration
 			new HtmlWebpackPlugin({
@@ -59,15 +56,15 @@ module.exports = (env) => {
 			}),
 			// password generator html package configuration
 			new HtmlWebpackPlugin({
-				template: '/src/main/html/pg_index.html',
-				filename: 'pg_index.html',
+				template: '/src/main/html/passwordGenerator_index.html',
+				filename: 'passwordGenerator_index.html',
 				scriptLoading: 'module',
-				chunks: ["pg"],
+				chunks: ["passwordGenerator"],
 				minify: true,
 			}),
 			new HtmlInlineScriptPlugin({
-				htmlMatchPattern: [/pg_index.html$/],
-				scriptMatchPattern: [/pg-bundle.[a-zA-Z0-9]+.js/],
+				htmlMatchPattern: [/passwordGenerator_index.html$/],
+				scriptMatchPattern: [/passwordGenerator-bundle.[a-zA-Z0-9]+.js/],
 			}),
 			// share html package configuration
 			new HtmlWebpackPlugin({

@@ -1,32 +1,25 @@
 package is.clipperz.backend.apis
 
-import zio.ZIO
-import zio.json.EncoderOps
-import zio.http.{ Http, Method, Path, PathSyntax, Response, Request, Status }
-import zio.http.* //TODO: fix How do you import `!!` and `/`?
+import java.util
+
 import is.clipperz.backend.data.HexString
+import is.clipperz.backend.exceptions.{ BadRequestException, FailedConversionException, ResourceNotFoundException, NonWritableArchiveException }
 import is.clipperz.backend.functions.fromStream
 import is.clipperz.backend.services.{ SessionManager, SrpManager, SRPStep1Data, SRPStep2Data }
-import is.clipperz.backend.Main.ClipperzHttpApp
-import is.clipperz.backend.exceptions.{ BadRequestException, FailedConversionException, ResourceNotFoundException }
-import java.util
-import zio.Cause
-import is.clipperz.backend.LogAspect
 import is.clipperz.backend.services.OneTimeShareArchive
-import zio.stream.ZStream
-import is.clipperz.backend.exceptions.NonWritableArchiveException
-import zio.json.JsonDecoder
-import zio.json.DeriveJsonDecoder
-import zio.json.JsonEncoder
-import zio.json.DeriveJsonEncoder
-import zio.stream.ZSink
-import zio.Chunk
-import zio.http.codec.HeaderCodec
+import is.clipperz.backend.Main.ClipperzHttpApp
+import is.clipperz.backend.LogAspect
+
+import zio.{ ZIO, Cause, Chunk }
+import zio.http.{ Http, Method, Path, PathSyntax, Response, Request, Status }
+import zio.http.* //TODO: fix How do you import `Root` and `/`?
+import zio.json.{ EncoderOps, JsonDecoder, DeriveJsonDecoder, JsonEncoder, DeriveJsonEncoder }
+import zio.stream.{ ZStream, ZSink }
 
 // ------------------------------------------------------------------------------------
 
 val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
-  case request @ Method.POST -> !! / "share" =>
+  case request @ Method.POST -> Root / "api" / "share" =>
     ZIO
       .service[OneTimeShareArchive]
       .zip(request.body.asMultipartFormStream)
@@ -54,7 +47,7 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
         case ex => ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).flatMap(_ => ZIO.fail(ex))
       } @@ LogAspect.logAnnotateRequestData(request)
 
-  case request @ Method.GET -> !! / "redeem" / id =>
+  case request @ Method.GET -> Root / "api" / "redeem" / id =>
     ZIO
       .service[OneTimeShareArchive]
       .flatMap(archive =>

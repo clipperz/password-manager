@@ -1,10 +1,6 @@
 package is.clipperz.backend.apis
 
 import java.io.FileNotFoundException
-import zio.ZIO
-import zio.stream.ZStream
-import zio.http.{ Headers, Http, Body, /*HeaderValues,*/ Method, Path, PathSyntax, Response, Status }
-import zio.http.* //TODO: fix How do you import `!!` and `/`?
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.exceptions.{
   NonWritableArchiveException,
@@ -12,20 +8,22 @@ import is.clipperz.backend.exceptions.{
   FailedConversionException,
   ResourceNotFoundException,
 }
+import is.clipperz.backend.exceptions.EmptyContentException
+import is.clipperz.backend.exceptions.BadRequestException
 import is.clipperz.backend.functions.fromStream
 import is.clipperz.backend.services.{ BlobArchive, SaveBlobData }
 import is.clipperz.backend.Main.ClipperzHttpApp
-import is.clipperz.backend.exceptions.EmptyContentException
-import is.clipperz.backend.exceptions.BadRequestException
-import zio.Cause
 import is.clipperz.backend.LogAspect
+
+import zio.{ ZIO, Cause }
+import zio.http.{ Headers, Http, Body, Method, Path, PathSyntax, Response, Request, Status }
+import zio.http.*
+import zio.http.Header.{ ContentType, ContentTransferEncoding }
 import zio.http.codec.HeaderCodec
-import zio.http.Header.ContentTransferEncoding
-import zio.stream.ZSink
-import zio.http.Header.ContentType
+import zio.stream.{ ZStream, ZSink }
 
 val blobsApi: ClipperzHttpApp = Http.collectZIO[Request] {
-  case request @ Method.POST -> !! / "blobs" =>
+  case request @ Method.POST -> Root / "api" / "blobs" =>
     ZIO
       .service[BlobArchive]
       .zip(request.body.asMultipartFormStream)
@@ -56,7 +54,7 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO[Request] {
         case ex => ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
       } @@ LogAspect.logAnnotateRequestData(request)
 
-  case request @ Method.DELETE -> !! / "blobs" / hash =>
+  case request @ Method.DELETE -> Root / "api" / "blobs" / hash =>
     ZIO
       .service[BlobArchive]
       .zip(request.body.asMultipartFormStream)
@@ -88,7 +86,7 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO[Request] {
         case ex => ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
       } @@ LogAspect.logAnnotateRequestData(request)
 
-  case request @ Method.GET -> !! / "blobs" / hash =>
+  case request @ Method.GET -> Root / "api" / "blobs" / hash =>
     ZIO
       .service[BlobArchive]
       .flatMap(archive => archive.getBlob(HexString(hash)))

@@ -20,7 +20,6 @@ import DataModel.SRP (SRPConf, KDF, HashFunction, concatKDF, hashFuncSHA1, hashF
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Functions.EnvironmentalVariables (baseURL)
 import Functions.JSState (getAppState, modifyAppState)
 import Record (merge)
 import Web.DOM.Element (fromNode, id)
@@ -42,8 +41,8 @@ computeInitialState = do
   elementsWithId <- ExceptT $ Right <$> (sequence $ mapIds <$> (catMaybes $ fromNode <$> childs))
   let script = head ((\(Tuple e _) -> e) <$> (filter (\(Tuple _ i) -> i == offlineDataId) elementsWithId))
   case script of
-    Just _ -> except $ Right $ withOfflineProxy
-    Nothing -> ExceptT $ Right <$> (withOnlineProxy <$> baseURL)
+    Just _  -> except $ Right $ withOfflineProxy
+    Nothing -> except $ Right (withOnlineProxy "/api")
 
   where 
     mapIds e = (Tuple e) <$> (id e)

@@ -1,10 +1,4 @@
 package is.clipperz.backend.apis
-
-import zio.ZIO
-import zio.json.EncoderOps
-import zio.stream.ZStream
-import zio.http.{ Http, Method, Response, Request, Status }
-import zio.http.* //TODO: fix How do you import `!!` and `/`?
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.exceptions.{
   NonWritableArchiveException,
@@ -16,14 +10,18 @@ import is.clipperz.backend.exceptions.{
   ConflictualRequestException,
 }
 import is.clipperz.backend.functions.fromStream
-import is.clipperz.backend.services.{ BlobArchive, SessionManager, SignupData, UserArchive, UserCard }
+import is.clipperz.backend.services.{ BlobArchive, ModifyUserCard, SessionManager, SignupData, UserArchive, UserCard }
 import is.clipperz.backend.Main.ClipperzHttpApp
-import zio.Cause
-import is.clipperz.backend.services.ModifyUserCard
 import is.clipperz.backend.LogAspect
 
+import zio.{ ZIO, Cause }
+import zio.http.{ Http, Method, Response, Request, Status }
+import zio.http.* //TODO: fix How do you import `Root` and `/`?
+import zio.json.EncoderOps
+import zio.stream.ZStream
+
 val usersApi: ClipperzHttpApp = Http.collectZIO[Request] {
-  case request @ Method.POST -> !! / "users" / c =>
+  case request @ Method.POST -> Root / "api" / "users" / c =>
     ZIO
       .service[UserArchive]
       .zip(ZIO.service[BlobArchive])
@@ -79,7 +77,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO[Request] {
         case ex => ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).flatMap(_ => ZIO.fail(ex))
       } @@ LogAspect.logAnnotateRequestData(request)
 
-  case request @ Method.PUT -> !! / "users" / c =>
+  case request @ Method.PUT -> Root / "api" / "users" / c =>
     ZIO
       .service[UserArchive]
       .zip(ZIO.service[BlobArchive])
@@ -126,7 +124,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO[Request] {
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
       } @@ LogAspect.logAnnotateRequestData(request)
 
-  case request @ Method.GET -> !! / "users" / c =>
+  case request @ Method.GET -> Root / "api" / "users" / c =>
     ZIO
       .service[UserArchive]
       .zip(ZIO.service[SessionManager])
@@ -147,7 +145,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO[Request] {
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
       } @@ LogAspect.logAnnotateRequestData(request)
 
-  case request @ Method.DELETE -> !! / "users" / c =>
+  case request @ Method.DELETE -> Root / "api" / "users" / c =>
     ZIO
       .service[UserArchive]
       .zip(ZIO.service[SessionManager])
