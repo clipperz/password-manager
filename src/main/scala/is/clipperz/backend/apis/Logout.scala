@@ -2,7 +2,7 @@ package is.clipperz.backend.apis
 
 import zio.ZIO
 import zio.http.{ Http, Method, Path, PathSyntax, Response, Request }
-import zio.http.* //TODO: fix How do you import `!!` and `/`?
+import zio.http.* //TODO: fix How do you import `Root` and `/`?
 import is.clipperz.backend.services.SessionManager
 import is.clipperz.backend.Main.ClipperzHttpApp
 import is.clipperz.backend.exceptions.BadRequestException
@@ -11,7 +11,7 @@ import zio.Cause
 import is.clipperz.backend.LogAspect
 
 val logoutApi: ClipperzHttpApp = Http.collectZIO[Request] {
-  case request @ Method.POST -> !! / "logout" =>
+  case request @ Method.POST -> Root / "api" / "logout" =>
     ZIO
       .service[SessionManager]
       .flatMap((sessionManager) =>

@@ -2,8 +2,8 @@ package is.clipperz.backend.apis
 
 import zio.ZIO
 import zio.json.EncoderOps
-import zio.http.{ Http, Method, Path, PathSyntax, Response, Status }
-import zio.http.* //TODO: fix How do you import `!!` and `/`?
+import zio.http.{ Http, Method, Path, PathSyntax, Response, Request, Status }
+import zio.http.*
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.functions.fromStream
 import is.clipperz.backend.services.{ SessionManager, SrpManager, SRPStep1Data, SRPStep2Data }
@@ -15,7 +15,7 @@ import is.clipperz.backend.LogAspect
 import zio.http.Header.HeaderType
 
 val loginApi: ClipperzHttpApp = Http.collectZIO[Request] {
-  case request @ Method.POST -> !! / "login" / "step1" / c =>
+  case request @ Method.POST -> Root / "api" / "login" / "step1" / c =>
     ZIO
       .service[SessionManager]
       .zip(ZIO.service[SrpManager])
@@ -44,7 +44,7 @@ val loginApi: ClipperzHttpApp = Http.collectZIO[Request] {
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
       } @@ LogAspect.logAnnotateRequestData(request)
 
-  case request @ Method.POST -> !! / "login" / "step2" / c =>
+  case request @ Method.POST -> Root / "api" / "login" / "step2" / c =>
     ZIO
       .service[SessionManager]
       .zip(ZIO.service[SrpManager])
