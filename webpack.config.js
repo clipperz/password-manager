@@ -24,7 +24,7 @@ module.exports = (env) => {
 			share: 				'/src/main/purescript/_share_main.js',
 		},
 		output: {
-			filename: '[name]-bundle.[fullhash].js',
+			filename: env.production ? '[name]-bundle.js' : '[name]-bundle.[fullhash].js',
 			path: path.resolve(__dirname, 'target', "output.webpack"),
 			clean: true,
 		},
@@ -52,32 +52,34 @@ module.exports = (env) => {
 			}),
 			new HtmlInlineScriptPlugin({
 				htmlMatchPattern: [/index.html$/],
-				scriptMatchPattern: [/app-bundle.[a-zA-Z0-9]+.js/],
+				scriptMatchPattern: [/app-bundle(.[a-zA-Z0-9]+)?.js/],
 			}),
-			// password generator html package configuration
-			new HtmlWebpackPlugin({
-				template: '/src/main/html/passwordGenerator_index.html',
-				filename: 'passwordGenerator_index.html',
-				scriptLoading: 'module',
-				chunks: ["passwordGenerator"],
-				minify: true,
-			}),
-			new HtmlInlineScriptPlugin({
-				htmlMatchPattern: [/passwordGenerator_index.html$/],
-				scriptMatchPattern: [/passwordGenerator-bundle.[a-zA-Z0-9]+.js/],
-			}),
-			// share html package configuration
-			new HtmlWebpackPlugin({
-				template: '/src/main/html/share_index.html',
-				filename: 'share_index.html',
-				scriptLoading: 'module',
-				chunks: ["share"],
-				minify: true,
-			}),
-			new HtmlInlineScriptPlugin({
-				htmlMatchPattern: [/share_index.html$/],
-				scriptMatchPattern: [/share-bundle.[a-zA-Z0-9]+.js/],
-			}),
+			...(env.production ? [] : [
+				// password generator html package configuration
+				new HtmlWebpackPlugin({
+					template: '/src/main/html/passwordGenerator_index.html',
+					filename: 'passwordGenerator_index.html',
+					scriptLoading: 'module',
+					chunks: ["passwordGenerator"],
+					minify: true,
+				}),
+				new HtmlInlineScriptPlugin({
+					htmlMatchPattern: [/passwordGenerator_index.html$/],
+					scriptMatchPattern: [/passwordGenerator-bundle(.[a-zA-Z0-9]+)?.js/],
+				}),
+				// share html package configuration
+				new HtmlWebpackPlugin({
+					template: '/src/main/html/share_index.html',
+					filename: 'share_index.html',
+					scriptLoading: 'module',
+					chunks: ["share"],
+					minify: true,
+				}),
+				new HtmlInlineScriptPlugin({
+					htmlMatchPattern: [/share_index.html$/],
+					scriptMatchPattern: [/share-bundle(.[a-zA-Z0-9]+)?.js/],
+				})
+			]),
 		],
 		module: {
 			rules: [{
