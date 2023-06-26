@@ -15,7 +15,7 @@ variables:
   - apk update && apk add git
   - apk add curl
   - git config --global user.email "dpicchiotti@imolainformatica.it"
-  - git config --global user.name "Davide Picchiotti"
+  - git config --global user.name "Clipperz build bot"
 
 .build: &build
   - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
