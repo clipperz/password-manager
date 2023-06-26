@@ -1,4 +1,4 @@
-module ShareMain where
+module RedeemMain where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
@@ -17,7 +17,7 @@ import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Functions.JSState (modifyAppState)
 import Functions.State (computeInitialState)
-import OperationalWidgets.ShareWidget (shareWidget)
+import OperationalWidgets.RedeemWidget (redeemWidget)
 import Web.HTML (window)
 import Web.HTML.Location (hash)
 import Web.HTML.Window (location)
@@ -35,5 +35,5 @@ wrapper widget = do
 main :: Effect Unit
 main = do
   l <- window >>= location
-  secret <- drop 1 <$> hash l
-  runWidgetInDom "share" ( wrapper $ shareWidget secret )
+  idPayload <- drop 1 <$> hash l
+  runWidgetInDom "redeem" ( wrapper $ redeemWidget idPayload )

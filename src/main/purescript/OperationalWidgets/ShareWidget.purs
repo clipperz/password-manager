@@ -9,7 +9,6 @@ import Control.Bind (bind, discard)
 import Control.Monad.Except (runExceptT)
 import Data.Either (Either(..))
 import Data.Function (($))
-import Data.Maybe (Maybe)
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Tuple (Tuple(..))
@@ -24,7 +23,7 @@ import Web.HTML (window)
 import Web.HTML.Location (setHash)
 import Web.HTML.Window (location)
 
-shareWidget :: Maybe String -> Widget HTML Unit
+shareWidget :: String -> Widget HTML Unit
 shareWidget secret = do
   pure $ unsafePerformEffect (setHash "" (unsafePerformEffect (location (unsafePerformEffect window))))
   (Tuple secret_ password_) <- shareView secret

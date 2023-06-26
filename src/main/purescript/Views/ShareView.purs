@@ -12,7 +12,7 @@ import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.HeytingAlgebra (not, (||))
-import Data.Maybe (Maybe(..), fromMaybe, isNothing)
+import Data.Maybe (fromMaybe)
 import Data.Semigroup ((<>))
 import Data.String (null)
 import Data.Tuple (Tuple(..), fst, snd)
@@ -21,13 +21,13 @@ import JSURI (decodeURI)
 import Views.CardViews (cardContent)
 import Views.SimpleWebComponents (simpleButton)
 
-shareView :: Maybe String -> Widget HTML (Tuple String String)
-shareView maybeSecret = form [Props.className "form"] [
+shareView :: String -> Widget HTML (Tuple String String)
+shareView secret = form [Props.className "form"] [
     demand $ do
-      result <- loopS (Tuple (fromMaybe "" maybeSecret) "") (\(Tuple secret_ password_) -> do
-        newSecret <-   case maybeSecret of
-          Nothing -> simpleSecretSignal secret_ (isNothing maybeSecret)
-          Just secret -> do
+      result <- loopS (Tuple secret "") (\(Tuple secret_ password_) -> do
+        newSecret <- case secret of
+          ""     -> simpleSecretSignal secret_ true
+          _      -> do
             let decodedSecret = fromMaybe secret (decodeURI secret)
             case fromJsonString decodedSecret of
               Right (Card {content}) -> (decodedSecret <$ loopW "" (\_ -> cardContent content))

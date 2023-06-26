@@ -22,6 +22,7 @@ module.exports = (env) => {
 			app:   				'/src/main/purescript/_app_main.js',
 			passwordGenerator:  '/src/main/purescript/_passwordGenerator_main.js',
 			share: 				'/src/main/purescript/_share_main.js',
+			redeem: 			'/src/main/purescript/_redeem_main.js',
 		},
 		output: {
 			filename: env.production ? '[name]-bundle.js' : '[name]-bundle.[fullhash].js',
@@ -39,8 +40,8 @@ module.exports = (env) => {
 			new webpack.EnvironmentPlugin({
 				CURRENT_COMMIT: git('rev-parse HEAD'),
 				APP_URL:	"/" + (env.production ? 'app' : 'index.html'),
-				SHARE_URL:  "/" + (env.production ? 'share#' : 'share_index.html#share='),
-				REDEEM_URL: "/" + (env.production ? 'share/redeem#' : 'share_index.html#redeem='),
+				SHARE_URL:  "/" + (env.production ? 'share#' : 'share_index.html#'),
+				REDEEM_URL: "/" + (env.production ? 'share/redeem#' : 'redeem_index.html#'),
 			}),
 			// app html package configuration
 			new HtmlWebpackPlugin({
@@ -78,6 +79,18 @@ module.exports = (env) => {
 				new HtmlInlineScriptPlugin({
 					htmlMatchPattern: [/share_index.html$/],
 					scriptMatchPattern: [/share-bundle(.[a-zA-Z0-9]+)?.js/],
+				}),
+				// redeem html package configuration
+				new HtmlWebpackPlugin({
+					template: '/src/main/html/redeem_index.html',
+					filename: 'redeem_index.html',
+					scriptLoading: 'module',
+					chunks: ["redeem"],
+					minify: true,
+				}),
+				new HtmlInlineScriptPlugin({
+					htmlMatchPattern: [/redeem_index.html$/],
+					scriptMatchPattern: [/redeem-bundle(.[a-zA-Z0-9]+)?.js/],
 				})
 			]),
 		],
