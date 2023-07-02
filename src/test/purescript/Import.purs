@@ -37,6 +37,7 @@ importSpec  =
       decodeResult <- liftEffect $ decodeImport joe_clipperzData
       let result = Card { timestamp: 0.0
                            , archived: false
+                           , secrets: []
                            , content: CardValues { title: "Amazon.com"
                                                      , tags: ["shopping"]
                                                      , fields: [ CardField { name: "email", value: "joe@clipperz.com", locked: false, settings: Nothing }
@@ -54,6 +55,7 @@ importSpec  =
       decodeResult <- liftEffect $ decodeImport joe_clipperzData
       let result = Card { timestamp: 0.0
                            , archived: true
+                           , secrets: []
                            , content: CardValues { title: "AOL "
                                                      , tags: ["", "social"]
                                                      , fields: [ CardField { name: "URL", value: "http://www.aol.com", locked: false, settings: Nothing }

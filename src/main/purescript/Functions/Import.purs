@@ -83,13 +83,14 @@ decodeDeltaCardObject timestamp obj = runExcept $ do
     except $ sequence (decodeCardField <$> a)
   notes  <- except $ note (ImportError "Cannot find card notes") $ (toString =<< (lookup "notes") =<< toObject =<< lookup "data" obj)
   pure $ Card { timestamp: timestamp
-                  , archived: archived
-                  , content: CardValues { title: title
-                                          , tags: tags
-                                          , fields: fields
-                                          , notes: notes
-                                          }
-                  }
+              , secrets: []
+              , archived: archived
+              , content: CardValues { title: title
+                                      , tags: tags
+                                      , fields: fields
+                                      , notes: notes
+                                      }
+              }
 
 decodeCardField :: Json -> Either AppError CardField
 decodeCardField json = runExcept $ do

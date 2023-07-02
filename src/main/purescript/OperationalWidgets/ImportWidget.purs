@@ -252,4 +252,4 @@ importWidget = do
 
     prepareSelectedCards :: String -> Array (Tuple Boolean Card) -> Array (Tuple Boolean Card)
     prepareSelectedCards newTag =
-      (<$>) (\(Tuple b (Card { content: CardValues r, archived, timestamp})) -> Tuple b (Card { archived, timestamp, content: (CardValues $ r { tags = (cons newTag r.tags) })}))
+      (<$>) (\(Tuple b (Card { content: CardValues r, secrets, archived, timestamp})) -> Tuple b (Card { archived, secrets, timestamp, content: (CardValues $ r { tags = (cons newTag r.tags) })}))

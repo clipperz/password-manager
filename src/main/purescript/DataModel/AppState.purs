@@ -11,19 +11,18 @@ module DataModel.AppState
   )
   where
 
+import Prelude
+
 import Data.Argonaut.Decode.Class (class DecodeJson)
 import Data.Argonaut.Decode.Generic (genericDecodeJson)
 import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
 import Data.BigInt (BigInt)
-import Data.Eq (class Eq)
 import Data.Generic.Rep (class Generic)
 import Data.HexString (HexString)
 import Data.Map.Internal (Map)
 import Data.Maybe (Maybe)
 import Data.PrettyShow (class PrettyShow, prettyShow)
-import Data.Semigroup ((<>))
-import Data.Show (class Show, show)
 import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
 import DataModel.Communication.ProtocolError (ProtocolError)
@@ -35,6 +34,8 @@ import Functions.HashCash (TollChallenge)
 
 data UserConnectionStatus = UserLoggedIn | UserAnonymous
 data ProxyConnectionStatus = ProxyOnline | ProxyOffline
+
+derive instance showProxyConnectionStatus :: Eq ProxyConnectionStatus
 
 type AppState =
   { proxy :: Proxy

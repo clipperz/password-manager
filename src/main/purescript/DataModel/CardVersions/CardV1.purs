@@ -7,15 +7,16 @@ import DataModel.Password (PasswordGeneratorSettings)
 
 type Card_V1 = 
   { content :: CardValues_V1
+  , secrets :: Array String
   , archived :: Boolean
   , timestamp :: Number
   }
 
 type CardValues_V1 = 
-  { title  :: String
-  , tags   :: Array String
-  , fields :: Array CardField_V1
-  , notes  :: String
+  { title   :: String
+  , tags    :: Array String
+  , fields  :: Array CardField_V1
+  , notes   :: String
   }
 
 type CardField_V1 =

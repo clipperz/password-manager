@@ -15,24 +15,34 @@ import java.io.FileNotFoundException
 import is.clipperz.backend.exceptions.NonWritableArchiveException
 import is.clipperz.backend.exceptions.BadRequestException
 import java.util.UUID
+import is.clipperz.backend.functions.fromStream
 
 // ----------------------------------------------------------------------------
 
 type SecretId = String
 
+case class OneTimeSecret(
+  secret:         HexString,
+  creationDate:   String,
+  expirationDate: String
+)
+
+object OneTimeSecret:
+  implicit val decoder: JsonDecoder[OneTimeSecret] = DeriveJsonDecoder.gen[OneTimeSecret]
+  implicit val encoder: JsonEncoder[OneTimeSecret] = DeriveJsonEncoder.gen[OneTimeSecret]
+
 // ----------------------------------------------------------------------------
 
 trait OneTimeShareArchive:
-  def getSecret(id: SecretId): Task[ZStream[Any, Throwable, Byte]]
+  def getSecret(id: SecretId): Task[OneTimeSecret]
   def saveSecret(content: ZStream[Any, Throwable, Byte]): Task[SecretId]
   def deleteSecret(id: SecretId): Task[Boolean]
 
 object OneTimeShareArchive:
-  val WAIT_TIME = 100
 
   case class FileSystemOneTimeShareArchive(keyBlobArchive: KeyBlobArchive) extends OneTimeShareArchive:
-    override def getSecret(id: SecretId): Task[ZStream[Any, Throwable, Byte]] =
-      keyBlobArchive.getBlob(id)
+    override def getSecret(id: SecretId): Task[OneTimeSecret] =
+      keyBlobArchive.getBlob(id).flatMap(fromStream[OneTimeSecret])
     
     override def deleteSecret(id: SecretId): Task[Boolean] = 
       keyBlobArchive.deleteBlob(id)

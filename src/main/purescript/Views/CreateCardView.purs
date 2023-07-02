@@ -35,7 +35,7 @@ import Functions.Time (getCurrentTimestamp)
 import MarkdownIt (renderString)
 import Views.Components (dynamicWrapper, entropyMeter)
 import Views.PasswordGenerator (passwordGenerator)
-import Views.SimpleWebComponents (confirmationWidget, dragAndDropAndRemoveList, loadingDiv, simpleButton, simpleTextInputWidget)
+import Views.SimpleWebComponents (confirmationWidget, dragAndDropAndRemoveList, loadingDiv, simpleButton)
 
 
 createCardView :: Card -> Array String -> Boolean -> WidgetState -> Widget HTML (Maybe Card)
@@ -49,9 +49,9 @@ createCardView card allTags isNew state = do
       Loading   -> [mask, loadingDiv, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
       Error err -> [mask, text err, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
   case mCard of
-    Just (Card { content, timestamp: _ }) -> do
+    Just (Card { content, secrets, timestamp: _ }) -> do
       timestamp' <- liftEffect $ getCurrentTimestamp
-      pure $ Just $ Card { content: content, archived: false, timestamp: timestamp' }
+      pure $ Just $ Card { content, secrets, archived: false, timestamp: timestamp' }
     Nothing -> pure Nothing
 
   where 
@@ -195,6 +195,7 @@ createCardView card allTags isNew state = do
             newTag: newTag'
           , preview: preview'
           , card: Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
+                       , secrets: []
                        , archived: archived
                        , timestamp
                        }
