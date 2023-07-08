@@ -27,7 +27,7 @@ import DataModel.SRP (hashFuncSHA256)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Card (getCardContent)
-import Functions.CardsCache (getCardFromCache, addCardToCache)
+import Functions.CardsCache (addCardToCache, getCardFromCache, removeCardFromCache)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
 import Functions.Communication.BlobFromArrayBuffer (blobFromArrayBuffer)
 import Functions.Communication.Blobs (postBlob, getBlob)
@@ -59,7 +59,9 @@ deleteCard cardReference@(CardReference { reference, key }) = do
   )
   response <- manageGenericRequest url DELETE (Just body) RF.string
   if isStatusCodeOk response.status
-    then except $ Right $ response.body
+    then do
+      removeCardFromCache reference
+      except $ Right $ response.body
     else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
 
 postCard :: Card -> ExceptT AppError Aff CardEntry
