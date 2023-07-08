@@ -10,8 +10,7 @@ import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (runExceptT)
-import Data.Argonaut.Decode (fromJsonString)
-import Data.Either (Either(..), either)
+import Data.Either (either)
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
@@ -29,7 +28,6 @@ import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
-import Functions.Clipboard (getClipboardContent)
 import Functions.Communication.Cards (postCard)
 import Views.CreateCardView (createCardView)
 
@@ -42,11 +40,7 @@ createCardWidget cardInput tags state = do
   Tuple startingCard isNew <- case cardInput of
     ModifyCard card     -> pure (Tuple card false)
     NewCard (Just card) -> pure (Tuple card true)
-    NewCard (Nothing)   -> do
-      clipboard <- liftAff $ getClipboardContent
-      case fromJsonString clipboard of
-        Right card -> pure (Tuple card true)
-        Left  _    -> pure (Tuple emptyCard true)
+    NewCard (Nothing)  -> pure (Tuple emptyCard true)
   res <- case state of
     Default -> (maybe NoAction JustCard) <$> (createCardView startingCard tags isNew Default)
     Loading -> ((maybe NoAction JustCard) <$> (createCardView startingCard tags isNew Loading)) 
