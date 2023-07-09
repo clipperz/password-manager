@@ -2,7 +2,7 @@ module Views.PasswordGenerator where
   
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, div', text, label, span, input, textarea, header, button)
+import Concur.React.DOM (button, div, div', header, input, label, span, text, textarea)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
@@ -20,12 +20,13 @@ import Data.Monoid (class Monoid, mempty)
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.CodePoints (fromCodePointArray, toCodePointArray)
-import Data.Tuple(Tuple(..))
+import Data.Tuple (Tuple(..))
 import DataModel.AsyncValue (AsyncValue(..))
 import DataModel.Password (PasswordGeneratorSettings, CharacterSet(..), defaultCharacterSets)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
+import Functions.Clipboard (copyToClipboard)
 import Functions.Password (randomPassword)
 import Views.Components (dynamicWrapper, entropyMeter)
 import Views.SimpleWebComponents (simpleButton, simpleTextInputWidget)
@@ -95,8 +96,10 @@ suggestionWidget av =
           ]
         , entropyMeter s
         ]))
-        <>
-        (InsertPassword <$> simpleButton "setPassword" "set password" b s)
+        <> div [Props.className "actions"] [
+          (InsertPassword <$> simpleButton "setPassword" "set password" b s)
+        , (PasswordChange s <$ button [Props.className "copy", copyToClipboard s <$ Props.onClick] [text "Copy"])
+        ]
       
       case res of
         PasswordChange p       -> suggestionWidget $ Done p
@@ -125,7 +128,7 @@ passwordWidget settings str =
         UpdatePassword         -> do
           newPassword <- liftAff $ randomPassword settings.length settings.characters
           passwordWidget settings (Just newPassword)
-        InsertPassword newPswd -> pure newPswd 
+        InsertPassword newPswd -> pure newPswd
 
 charsetSelector :: String -> (Tuple String CharacterSet) -> Widget HTML String
 charsetSelector currentSelection (Tuple charsetName (CharacterSet charsetString)) = do
