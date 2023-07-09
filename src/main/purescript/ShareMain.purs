@@ -19,7 +19,7 @@ import Functions.JSState (modifyAppState)
 import Functions.State (computeInitialState)
 import OperationalWidgets.ShareWidget (shareWidget)
 import Web.HTML (window)
-import Web.HTML.Location (hash)
+import Web.HTML.Location (hash, setHash)
 import Web.HTML.Window (location)
 
 wrapper :: forall a. Widget HTML a -> Widget HTML a
@@ -36,4 +36,5 @@ main :: Effect Unit
 main = do
   l <- window >>= location
   secret <- drop 1 <$> hash l
+  setHash "" l
   runWidgetInDom "share" ( wrapper $ shareWidget secret )

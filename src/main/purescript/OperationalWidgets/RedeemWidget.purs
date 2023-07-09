@@ -3,7 +3,7 @@ module OperationalWidgets.RedeemWidget where
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, loopW)
 import Concur.React (HTML)
-import Concur.React.DOM (a, button, div, text)
+import Concur.React.DOM (a, button, div, p, text)
 import Concur.React.Props as Props
 import Control.Bind (bind, (<$))
 import Control.Monad.Except (runExceptT)
@@ -21,31 +21,34 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Clipboard (copyToClipboard)
 import Functions.Communication.OneTimeShare (redeem)
-import Functions.EnvironmentalVariables (appURL)
+import Functions.EnvironmentalVariables (appURL, currentCommit)
 import Views.CardViews (cardContent)
 import Views.RedeemView (redeemView)
 
 redeemWidget :: String -> Widget HTML Unit
 redeemWidget id = do
-  password <- redeemView
-  eitherSecret :: Either AppError String <- liftAff $ runExceptT $ redeem id password
-  case eitherSecret of
-    Right secret -> demand $ Nothing <$ loopW unit (\_ ->
-      case fromJsonString secret of
-        Right (Card {content}) -> unit <$ div [] [
-          text ("Here is your secret card:")
-        , cardContent content
-        , button [(copyToClipboard secret) <$ Props.onClick] [ text "Copy to clipboard"]
-        , do
-            appURL <- liftEffect $ appURL
-            button [Props.className "addCardToAccount"] [
-              a [Props.href (appURL <> "#addCard?" <> secret), Props.target "_blank"] [
-                text "add to account"
+  version <- liftEffect currentCommit
+  do
+    password <- redeemView
+    eitherSecret :: Either AppError String <- liftAff $ runExceptT $ redeem id password
+    case eitherSecret of
+      Right secret -> demand $ Nothing <$ loopW unit (\_ ->
+        case fromJsonString secret of
+          Right (Card {content}) -> unit <$ div [] [
+            text ("Here is your secret card:")
+          , cardContent content
+          , button [(copyToClipboard secret) <$ Props.onClick] [ text "Copy to clipboard"]
+          , do
+              appURL <- liftEffect $ appURL
+              button [Props.className "addCardToAccount"] [
+                a [Props.href (appURL <> "#addCard?" <> secret), Props.target "_blank"] [
+                  text "add to account"
+                ]
               ]
-            ]
-        ]
-        Left _                 -> text ("Here is the secret: " <> secret)
-    )
-    Left err -> case err of
-      ProtocolError (ResponseError 404) -> text $ "Secret already redeemed"
-      _                                 -> text $ show err
+          ]
+          Left _                 -> text ("Here is the secret: " <> secret)
+      )
+      Left err -> case err of
+        ProtocolError (ResponseError 404) -> text $ "Secret already redeemed"
+        _                                 -> text $ show err
+    <> p [Props.className "version"] [text version]

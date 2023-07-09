@@ -127,23 +127,6 @@ passwordWidget settings str =
           passwordWidget settings (Just newPassword)
         InsertPassword newPswd -> pure newPswd 
 
-{-
-data SettingsWidgetAction = LengthChange Int | CharSetToggle String | Chars String
-settingsWidget :: PasswordGeneratorSettings -> Widget HTML PasswordGeneratorSettings
-settingsWidget s = do
-  let lengthWidget = (LengthChange <<< (fromMaybe 0) <<< fromString) <$> simpleNumberInputWidget "password_length" (text "Password Length") "" (show s.length)
-  let setsWidgets = (\(Tuple id v) -> (CharSetToggle id) <$ simpleCheckboxWidget ("char_set_" <> id) (text id) false v) <$> s.characterSets
-  let charsWidget = Chars <$> simpleTextInputWidget "password_characters" (text "Possible characters") "" s.characters
-  res <- div [Props.className "passwordGeneratorSettings"] $ concat [[lengthWidget], setsWidgets, [charsWidget]]
-  case res of
-    LengthChange  n   -> pure $ s { length = n }
-    CharSetToggle key -> do
-      let newArray = (toUnfoldable <<< update (\v -> Just (not v)) key <<< fromFoldable) s.characterSets
-      let (CharacterSet chars) = charactersFromSets newArray
-      pure $ s { characterSets = newArray, characters = chars }
-    Chars         str -> pure $ s { characterSets = (checkCharSetsToggle s.characterSets str), characters = str }
--}
-
 charsetSelector :: String -> (Tuple String CharacterSet) -> Widget HTML String
 charsetSelector currentSelection (Tuple charsetName (CharacterSet charsetString)) = do
   let currentSelectionChars = toCodePointArray currentSelection
