@@ -3,24 +3,24 @@ module Views.ShareView where
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, demand, fireOnce, loopS, loopW)
 import Concur.React (HTML)
-import Concur.React.DOM (div, form, input, label, option, select, span, text)
+import Concur.React.DOM (div, form, input, label, option, select, span, text, textarea)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Data.Array (filter, head)
-import Data.Eq ((==))
+import Data.Eq ((/=), (==))
 import Data.Function (($))
-import Data.Functor ((<$>), (<$))
+import Data.Functor ((<$>))
 import Data.HeytingAlgebra ((||))
-import Data.Maybe (Maybe, fromMaybe)
-import Data.Semigroup ((<>))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (null)
 import Data.Time.Duration (Days(..), Hours(..), Minutes(..), convertDuration)
 import Data.Tuple (Tuple(..), fst, snd)
 import Functions.Communication.OneTimeShare (SecretData)
+import Views.Components (dynamicWrapper)
 import Views.SimpleWebComponents (simpleButton)
 
-data Secret = SecretString String | SecretCard String | NoSecret
+data Secret = SecretString String | SecretCard String
 
 expirationPeriods :: Array (Tuple Days String)
 expirationPeriods = [ Tuple (convertDuration (Days    7.0)) ("1W")
@@ -46,8 +46,18 @@ shareSignal :: Secret -> Signal HTML (Maybe SecretData)
 shareSignal dataSecret = do
   result <- loopS {secret: "", password: "", duration: Days 0.0} (\{secret: secret_, password: password_, duration: duration_} -> do
     newSecret <- case dataSecret of
-      NoSecret            -> simpleSecretSignal secret_
-      SecretString secret -> secret <$ loopW "" (\_  -> text ("Secret: " <> secret))
+      SecretString secret -> (loopW secret_ (\value -> dynamicWrapper Nothing value $ 
+                                label [] [
+                                  span [Props.className "label"] [text "Secret"]
+                                , Props.unsafeTargetValue <$> textarea [
+                                    Props.value (if (secret /= "") then secret else value)
+                                  , Props.disabled (secret /= "")
+                                  , Props.onChange
+                                  , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
+                                  , Props.placeholder "secret"
+                                  ] []
+                                ])
+                              )
       SecretCard   secret -> pure secret
     newPassword <- loopW password_ (\v -> div [] [
       label [] [

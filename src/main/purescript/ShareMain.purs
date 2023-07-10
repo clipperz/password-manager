@@ -11,8 +11,8 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Maybe (fromMaybe)
 import Data.Show (show)
-import Data.String (Pattern(..), drop, split)
-import Data.Unit (Unit, unit)
+import Data.String (drop)
+import Data.Unit (Unit)
 import DataModel.Card (Card)
 import Effect (Effect)
 import Effect.Aff.Class (liftAff)
@@ -21,7 +21,6 @@ import Effect.Console (log)
 import Functions.JSState (modifyAppState)
 import Functions.State (computeInitialState)
 import JSURI (decodeURI)
-import OperationalWidgets.RedeemWidget (redeemWidget)
 import OperationalWidgets.ShareWidget (shareWidget)
 import Views.ShareView (Secret(..))
 import Web.HTML (window)
@@ -42,10 +41,9 @@ main :: Effect Unit
 main = do
   l <- window >>= location
   secret <- drop 1 <$> hash l
+  setHash "" l
   runWidgetInDom "share" ( wrapper $ shareWidget $ 
     case fromJsonString $ fromMaybe secret (decodeURI secret) of
-      Right (_ :: Card)  -> SecretCard secret
-      Left _             -> case secret of 
-        "" -> NoSecret
-        _  -> SecretString secret
+      Right (_ :: Card)  -> SecretCard   secret
+      Left _             -> SecretString secret
 )

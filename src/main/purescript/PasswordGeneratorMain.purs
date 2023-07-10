@@ -5,9 +5,11 @@ module PasswordGeneratorMain
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
+import Concur.React.DOM (p, text)
+import Concur.React.Props as Props
 import Concur.React.Run (runWidgetInDom)
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind, discard, (>>=))
 import Data.Function (($))
 import Data.Maybe (fromMaybe)
 import Data.Semigroup ((<>))
@@ -17,7 +19,7 @@ import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorS
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
-import Functions.EnvironmentalVariables (shareURL)
+import Functions.EnvironmentalVariables (currentCommit, shareURL)
 import Views.PasswordGenerator (passwordGenerator)
 import Web.HTML (window)
 import Web.HTML.Location (assign)
@@ -25,9 +27,10 @@ import Web.HTML.Window (location)
 
 wrapperWidget :: PasswordGeneratorSettings -> Widget HTML Unit
 wrapperWidget settings = do
-  Tuple secret newSettings <- passwordGenerator settings
+  version <- liftEffect currentCommit
+  Tuple secret newSettings <- passwordGenerator settings <> p [Props.className "version"] [text version]
   shareUrl <- liftEffect $ shareURL
-  pure $ unsafePerformEffect (assign (shareUrl <> secret) (unsafePerformEffect (location (unsafePerformEffect window))))
+  pure $ unsafePerformEffect (window >>= location >>= assign (shareUrl <> secret))
   wrapperWidget (fromMaybe standardPasswordGeneratorSettings newSettings)
 
 main :: Effect Unit

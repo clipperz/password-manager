@@ -28,6 +28,15 @@ function addEventBubblingBlockers() {
     });
 }
 
+window.addEventListener("dragover",function(e){
+	e = e || event;
+	e.preventDefault();
+  },false);
+  window.addEventListener("drop",function(e){
+	e = e || event;
+	e.preventDefault();
+  },false);
+
 // function addShortcutsManagement() {
 //     Mousetrap.bind("/", function(ev) {
 //         document.getElementById("generalFilter").focus();
