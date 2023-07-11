@@ -85,6 +85,11 @@ cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ })
           let newCard = Card $ rc { timestamp = timestamp', archived = false }
           doOp proxyConnectionStatus oldCard newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) (Just newCard))
         Delete cc -> doOp proxyConnectionStatus cc cc false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) (Just cc))
+        Share cc  -> do
+          eitherNewEntry <- liftAff $ runExceptT $ postCard cc
+          case eitherNewEntry of
+            Left err -> cardWidget entry tags (Error (prettyShow err))
+            Right newEntry -> pure $ IndexUpdateData (ChangeReferenceWithEdit entry newEntry) (Just cc)
 
     doOp :: forall a. ProxyConnectionStatus -> Card -> Card -> Boolean -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData
     doOp proxyConnectionStatus oldCard currentCard showForm op mapResult = do
@@ -114,4 +119,4 @@ cloneCardNow (Card { timestamp: _, content, archived}) =
   case content of
     CardValues values -> do
       timestamp <- liftEffect $ getCurrentTimestamp
-      pure $ Card { timestamp, archived, content: (CardValues (values { title = (values.title <> " - CLONE")}))}
+      pure $ Card { timestamp, archived, secrets: [], content: (CardValues (values { title = (values.title <> " - CLONE")}))}

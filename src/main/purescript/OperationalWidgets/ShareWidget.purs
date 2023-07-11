@@ -11,36 +11,36 @@ import Data.Function (($))
 import Data.Functor ((<$))
 import Data.Semigroup ((<>))
 import Data.Show (show)
-import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Clipboard (copyToClipboard)
 import Functions.Communication.OneTimeShare (share)
 import Functions.EnvironmentalVariables (currentCommit, redeemURL)
-import Views.ShareView (shareView)
+import Views.ShareView (Secret, shareView)
 import Web.HTML (window)
 import Web.HTML.Location (origin)
 import Web.HTML.Window (location)
 
-shareWidget :: String -> Widget HTML Unit
+shareWidget :: Secret -> Widget HTML Unit
 shareWidget secret = do
   version <- liftEffect currentCommit
   do
-    (Tuple secret_ password_) <- shareView secret
-    result <- liftAff $ runExceptT $ share secret_ password_
+    secretInfo <- shareView secret
+    result <- liftAff $ runExceptT $ share secretInfo
     case result of
       Left err -> text ("error:" <> show err)
-      Right id -> go id 
+      Right id -> do
+        redeemURL_ <- liftEffect $ redeemURL
+        origin_  <- liftEffect $ window >>= location >>= origin
+        go (redeemURL_ <> id) origin_
     <> p [Props.className "version"] [text version]
   
   where
-    go :: String -> Widget HTML Unit
-    go id = do
-      redeemURL <- liftEffect $ redeemURL
-      origin_ <- liftEffect $ window >>= location >>= origin
+    go :: String -> String -> Widget HTML Unit
+    go url origin_ = do    
       _ <- div [Props.className "redeemSecret"] [
-        a [Props.href (redeemURL <> id), Props.target "_blank"] [text "Share Link"]
-      , button [(copyToClipboard (origin_ <> redeemURL <> id)) <$ Props.onClick] [text "copy"]
+        a [Props.href url, Props.target "_blank"] [text "Share Link"]
+      , button [(copyToClipboard (origin_ <> url)) <$ Props.onClick] [text "copy"]
       ]
-      go id
+      go url origin_

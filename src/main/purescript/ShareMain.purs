@@ -5,19 +5,24 @@ import Concur.React (HTML)
 import Concur.React.Run (runWidgetInDom)
 import Control.Bind (bind, discard, (>>=))
 import Control.Monad.Except (runExceptT)
+import Data.Argonaut.Decode (fromJsonString)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
+import Data.Maybe (fromMaybe)
 import Data.Show (show)
 import Data.String (drop)
 import Data.Unit (Unit)
+import DataModel.Card (Card)
 import Effect (Effect)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Functions.JSState (modifyAppState)
 import Functions.State (computeInitialState)
+import JSURI (decodeURI)
 import OperationalWidgets.ShareWidget (shareWidget)
+import Views.ShareView (Secret(..))
 import Web.HTML (window)
 import Web.HTML.Location (hash, setHash)
 import Web.HTML.Window (location)
@@ -37,4 +42,8 @@ main = do
   l <- window >>= location
   secret <- drop 1 <$> hash l
   setHash "" l
-  runWidgetInDom "share" ( wrapper $ shareWidget secret )
+  runWidgetInDom "share" ( wrapper $ shareWidget $ 
+    case fromJsonString $ fromMaybe secret (decodeURI secret) of
+      Right (_ :: Card)  -> SecretCard   secret
+      Left _             -> SecretString secret
+)

@@ -37,11 +37,11 @@ instance decodeJsonCardField :: DecodeJson CardField where
 
 newtype CardValues = 
   CardValues
-    { title  :: String
-    , tags   :: Array String
-    , fields :: Array CardField
+    { title   :: String
+    , tags    :: Array String
+    , fields  :: Array CardField
     -- , attachments :: ?? --TODO
-    , notes  :: String
+    , notes   :: String
     }
 
 instance eqCardValues :: Eq CardValues where
@@ -61,6 +61,7 @@ instance decodeJsonCardValue :: DecodeJson CardValues where
 newtype Card = 
   Card 
     { content :: CardValues
+    , secrets :: Array String
     , archived :: Boolean
     , timestamp :: Number
     }
@@ -85,6 +86,7 @@ emptyCardField = CardField { name: "", value: "", locked: false, settings: Nothi
 emptyCard :: Card
 emptyCard = Card { timestamp: 0.0
                     , archived: false
+                    , secrets: []
                     , content: CardValues { title: ""
                                               , tags: []
                                               , fields: [ CardField { name: "username", value: "", locked: false, settings: Nothing }
