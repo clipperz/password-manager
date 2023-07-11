@@ -14,7 +14,7 @@ import Data.Functor ((<$>))
 import Data.HeytingAlgebra ((||))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (null)
-import Data.Time.Duration (Days(..), Hours(..), Minutes(..), convertDuration)
+import Data.Time.Duration (Days(..), Hours(..), Minutes(..), Seconds(..), convertDuration)
 import Data.Tuple (Tuple(..), fst, snd)
 import Functions.Communication.OneTimeShare (SecretData)
 import Views.Components (dynamicWrapper)
@@ -22,18 +22,18 @@ import Views.SimpleWebComponents (simpleButton)
 
 data Secret = SecretString String | SecretCard String
 
-expirationPeriods :: Array (Tuple Days String)
-expirationPeriods = [ Tuple (convertDuration (Days    7.0)) ("1W")
-                    , Tuple (convertDuration (Days    1.0)) ("1D")
-                    , Tuple (convertDuration (Hours   1.0)) ("1H")
-                    , Tuple (convertDuration (Minutes 1.0)) ("1M")
-                    , Tuple (convertDuration (Hours   0.0)) ("")
+expirationPeriods :: Array (Tuple Seconds String)
+expirationPeriods = [ Tuple (convertDuration (Days    7.0)) ("1 Week")
+                    , Tuple (convertDuration (Days    1.0)) ("1 Day")
+                    , Tuple (convertDuration (Hours   1.0)) ("1 Hour")
+                    , Tuple (convertDuration (Minutes 1.0)) ("1 Minute")
+                    , Tuple (convertDuration (Hours   0.0)) ("No Expiration")
                     ]
 
-getDurationFromLabel :: String -> Days
-getDurationFromLabel label = fromMaybe (Days 0.0) (fst <$> head (filter (\(Tuple _ label_) -> label_ == label) expirationPeriods))
+getDurationFromLabel :: String -> Seconds
+getDurationFromLabel label = fromMaybe (Seconds 0.0) (fst <$> head (filter (\(Tuple _ label_) -> label_ == label) expirationPeriods))
 
-getLabelFromDuration :: Days -> String
+getLabelFromDuration :: Seconds -> String
 getLabelFromDuration duration = fromMaybe ("duration") (snd <$> head (filter (\(Tuple duration_ _) -> duration_ == duration) expirationPeriods))
 
 shareView :: Secret -> Widget HTML SecretData
@@ -44,7 +44,7 @@ shareView dataSecret = do
 
 shareSignal :: Secret -> Signal HTML (Maybe SecretData)
 shareSignal dataSecret = do
-  result <- loopS {secret: "", password: "", duration: Days 0.0} (\{secret: secret_, password: password_, duration: duration_} -> do
+  result <- loopS {secret: "", password: "", duration: Seconds 0.0} (\{secret: secret_, password: password_, duration: duration_} -> do
     newSecret <- case dataSecret of
       SecretString secret -> (loopW secret_ (\value -> dynamicWrapper Nothing value $ 
                                 label [] [
@@ -84,18 +84,3 @@ shareSignal dataSecret = do
     pure {secret: newSecret, password: newPassword, duration: newDuration}
   )
   fireOnce (simpleButton "submit" "submit" ((null (result.secret)) || (null (result.password))) result)
-
-simpleSecretSignal :: String -> Signal HTML String
-simpleSecretSignal secret =
-  loopW secret (\v -> div [] [
-    label [] [
-        span [Props.className "label"] [text "Secret"]
-      , (Props.unsafeTargetValue) <$> input [
-          Props._type "text"
-        , Props.placeholder "secret"
-        , Props.value v
-        , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
-        , Props.onChange
-        ]
-      ]
-  ])

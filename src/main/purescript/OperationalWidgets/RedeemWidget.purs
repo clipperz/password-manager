@@ -50,5 +50,6 @@ redeemWidget id = do
       )
       Left err -> case err of
         ProtocolError (ResponseError 404) -> text $ "Secret already redeemed"
+        ProtocolError (ResponseError 410) -> text $ "Secret expired"
         _                                 -> text $ show err
     <> p [Props.className "version"] [text version]

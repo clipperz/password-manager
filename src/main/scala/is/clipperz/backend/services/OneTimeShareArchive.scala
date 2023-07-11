@@ -1,21 +1,22 @@
 package is.clipperz.backend.services
 
-import java.io.{ File, FileOutputStream, IOException }
+import com.github.nscala_time.time.Imports.*
+
+import java.io.{ File, FileOutputStream, FileNotFoundException, IOException }
 import java.nio.file.Path
 import java.security.MessageDigest
-import zio.{ ZIO, ZLayer, Task, Chunk }
-import zio.stream.{ ZStream, ZSink }
-import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder }
+import java.util.UUID
+
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.{ bytesToHex }
+import is.clipperz.backend.exceptions.{ EmptyContentException, NonWritableArchiveException, BadRequestException }
 import is.clipperz.backend.functions.crypto.HashFunction
-import is.clipperz.backend.exceptions.EmptyContentException
-import zio.Duration
-import java.io.FileNotFoundException
-import is.clipperz.backend.exceptions.NonWritableArchiveException
-import is.clipperz.backend.exceptions.BadRequestException
-import java.util.UUID
 import is.clipperz.backend.functions.fromStream
+
+import zio.{ Duration, ZIO, ZLayer, Task, Chunk }
+import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder }
+import zio.stream.{ ZStream, ZSink }
+import com.github.nscala_time.time.StaticDateTimeFormat
 
 // ----------------------------------------------------------------------------
 
@@ -23,13 +24,16 @@ type SecretId = String
 
 case class OneTimeSecret(
   secret:         HexString,
-  creationDate:   String,
-  expirationDate: String
+  creationDate:   DateTime,
+  expirationDate: DateTime
 )
 
 object OneTimeSecret:
   implicit val decoder: JsonDecoder[OneTimeSecret] = DeriveJsonDecoder.gen[OneTimeSecret]
   implicit val encoder: JsonEncoder[OneTimeSecret] = DeriveJsonEncoder.gen[OneTimeSecret]
+
+implicit val decoder: JsonDecoder[DateTime] = JsonDecoder[String].map(DateTime.parse(_))
+implicit val encoder: JsonEncoder[DateTime] = JsonEncoder[String].contramap(_.toString())
 
 // ----------------------------------------------------------------------------
 
