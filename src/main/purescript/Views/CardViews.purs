@@ -87,7 +87,7 @@ cardActions c@(Card r) enabled = div [Props.className "cardActions"] [
     else
       simpleButton "archive" (show (Archive c)) (not enabled) (Archive c)
   , simpleButton "delete"    (show (Delete c))  (not enabled) (Delete c)
-  , simpleButton "share"     (show (Share c))   (not enabled) (Share c)         
+  -- , simpleButton "share"     (show (Share c))   (not enabled) (Share c)         
 ]
 
 type SecretIdInfo = { creationDate   :: String
