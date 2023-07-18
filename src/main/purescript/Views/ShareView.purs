@@ -11,7 +11,7 @@ import Data.Array (filter, head)
 import Data.Eq ((/=), (==))
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.HeytingAlgebra ((||))
+import Data.HeytingAlgebra ((&&), (||))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (null)
 import Data.Time.Duration (Days(..), Hours(..), Minutes(..), Seconds(..), convertDuration)
@@ -19,6 +19,7 @@ import Data.Tuple (Tuple(..), fst, snd)
 import Functions.Communication.OneTimeShare (SecretData)
 import Views.Components (dynamicWrapper)
 import Views.SimpleWebComponents (simpleButton)
+import Web.HTML.Event.EventTypes (offline)
 
 data Secret = SecretString String | SecretCard String
 
@@ -85,4 +86,12 @@ shareSignal dataSecret = do
     )
     pure {secret: newSecret, password: newPassword, duration: newDuration}
   )
-  fireOnce (simpleButton "submit" "submit" ((null (result.secret)) || (null (result.password))) result)
+  fireOnce (simpleButton "submit" "submit" (disableSubmitButton dataSecret result) result)
+  -- fireOnce (simpleButton "submit" "submit" ((null (result.secret)) || (null (result.password))) result)
+
+  where
+    disableSubmitButton :: forall p. Secret -> { secret :: String, password :: String | p} -> Boolean
+    disableSubmitButton secret newSecretData =
+      case secret of
+        SecretString s -> (null s && null newSecretData.secret) || (null (newSecretData.password))
+        SecretCard s -> null newSecretData.password
