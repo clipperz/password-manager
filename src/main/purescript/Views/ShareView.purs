@@ -61,10 +61,10 @@ shareSignal dataSecret = do
       SecretCard   secret -> pure secret
     newPassword <- loopW password_ (\v -> div [Props.className "sharePassword"] [
       label [] [
-          span [Props.className "label"] [text "Password"]
+          span [Props.className "label"] [text "Message key"]
         , (Props.unsafeTargetValue) <$> input [
             Props._type "password"
-          , Props.placeholder "password"
+          , Props.placeholder "message key"
           , Props.value v
           , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
           , Props.disabled false
