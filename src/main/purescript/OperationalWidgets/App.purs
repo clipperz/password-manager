@@ -14,13 +14,10 @@ import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, (>>=), discard)
 import Control.Monad.Except.Trans (runExceptT)
-import Data.Array (range)
 import Data.Either as E
 import Data.Eq ((==), class Eq)
-import Data.Formatter.Number (Formatter(..), format)
 import Data.Function (($))
-import Data.Functor (map, (<$), (<$>))
-import Data.Int (toNumber)
+import Data.Functor ((<$), (<$>))
 import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
@@ -40,6 +37,7 @@ import OperationalWidgets.HomePageWidget (homePageWidget)
 import Record (merge)
 import Views.Components (footerComponent)
 import Views.LoginFormView (loginFormView', PinCredentials)
+import Views.OverlayView (OverlayStatus(..), overlay)
 import Views.SignupFormView (emptyDataForm, signupFormView)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
@@ -197,29 +195,6 @@ shortcutsDiv = div [Props._id "shortcutsHelp", Props.className "hidden"] [
 , p [] [span [] [text "w, UpArrow, s, DownArrow"]], p [] [text "Navigate between cards"]
 , p [] [span [] [text "lock"]], p [] [text "Lock"]
 ]
-
-data OverlayStatus = Hidden | Spinner | Done | Failed
-type OverlayInfo = { status :: OverlayStatus, message :: String }
-
-overlay :: forall a. OverlayInfo -> Widget HTML a
-overlay info =
-  div [Props.classList (Just <$> ["overlay", visibility])] [
-    case info.status of
-      Hidden  ->  div  [] []
-      Spinner ->  div  [Props.className "spinner"]     $ map (\i -> div [Props.className ("bar" <> (format dd (toNumber i)))] []) (range 1 12)
-      Done    ->  span [Props.className "icon done"]   [text "done"]
-      Failed  ->  span [Props.className "icon failed"] [text "failed"]
-    ,
-    span [Props.className "title"] [text info.message]
-  ]
-  where
-    dd :: Formatter
-    dd  = Formatter { comma: false, before: 2, after: 0, abbreviations: false, sign: false }
-
-    visibility :: String
-    visibility = case info.status of
-      Hidden  -> "hidden"
-      _       -> "visible"
 
 doOp :: Action -> Aff Action
 doOp (DoLogin cred) = do
