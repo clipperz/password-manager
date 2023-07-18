@@ -59,7 +59,7 @@ shareSignal dataSecret = do
                                 ])
                               )
       SecretCard   secret -> pure secret
-    newPassword <- loopW password_ (\v -> div [] [
+    newPassword <- loopW password_ (\v -> div [Props.className "sharePassword"] [
       label [] [
           span [Props.className "label"] [text "Password"]
         , (Props.unsafeTargetValue) <$> input [
@@ -73,12 +73,14 @@ shareSignal dataSecret = do
         ]
     ])
     newDuration <- loopW duration_ (\duration -> do
-      getDurationFromLabel <$> label [] [
+      getDurationFromLabel <$> div [Props.className "duration"] [
+        label [] [
           span [Props.className "label"] [text "Duration"]
         , select [
             Props.value (getLabelFromDuration duration) 
           , Props.unsafeTargetValue <$> Props.onChange
           ] ((\(Tuple _ label_) -> option [] [text label_]) <$> expirationPeriods)
+        ]
       ]
     )
     pure {secret: newSecret, password: newPassword, duration: newDuration}
