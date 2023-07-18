@@ -23,12 +23,15 @@ import Data.String.CodePoints (fromCodePointArray, toCodePointArray)
 import Data.Tuple (Tuple(..))
 import DataModel.AsyncValue (AsyncValue(..))
 import DataModel.Password (PasswordGeneratorSettings, CharacterSet(..), defaultCharacterSets)
+import Effect.Aff (Milliseconds(..), delay)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Clipboard (copyToClipboard)
 import Functions.Password (randomPassword)
 import Views.Components (dynamicWrapper, entropyMeter)
+import Views.OverlayView (overlay)
+import Views.OverlayView as OverlayStatus
 import Views.SimpleWebComponents (simpleButton, simpleTextInputWidget)
 
 
@@ -98,15 +101,16 @@ suggestionWidget av =
         ]))
         <> div [Props.className "actions"] [
           (InsertPassword <$> simpleButton "setPassword" "set password" b s)
-        , (PasswordChange s <$ button [Props.className "copy", copyToClipboard s <$ Props.onClick] [text "Copy"])
+        , (CopyPassword s <$ button [Props.className "copy", copyToClipboard s <$ Props.onClick] [text "Copy"])
         ]
       
       case res of
         PasswordChange p       -> suggestionWidget $ Done p
+        CopyPassword p         -> (suggestionWidget $ Done p) <|> (liftAff $ (Left p) <$ delay (Milliseconds 500.0)) <|> overlay { status: OverlayStatus.Copy, message: "copied" }
         UpdatePassword         -> suggestionWidget $ Done ""
         InsertPassword newPswd -> pure $ Right newPswd 
 
-data PasswordWidgetAction = PasswordChange String | UpdatePassword | InsertPassword String
+data PasswordWidgetAction = PasswordChange String | UpdatePassword | InsertPassword String | CopyPassword String
 passwordWidget :: PasswordGeneratorSettings -> Maybe String -> Widget HTML String
 passwordWidget settings str =
   case str of  
@@ -125,6 +129,7 @@ passwordWidget settings str =
       ]
       case res of
         PasswordChange p       -> passwordWidget settings (Just p)
+        CopyPassword p         -> passwordWidget settings (Just p)
         UpdatePassword         -> do
           newPassword <- liftAff $ randomPassword settings.length settings.characters
           passwordWidget settings (Just newPassword)
