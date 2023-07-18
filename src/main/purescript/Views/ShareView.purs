@@ -46,16 +46,16 @@ shareSignal :: Secret -> Signal HTML (Maybe SecretData)
 shareSignal dataSecret = do
   result <- loopS {secret: "", password: "", duration: Seconds 0.0} (\{secret: secret_, password: password_, duration: duration_} -> do
     newSecret <- case dataSecret of
-      SecretString secret -> (loopW secret_ (\value -> dynamicWrapper Nothing value $ 
-                                label [] [
+      SecretString secret -> (loopW secret_ (\value -> label [] [
                                   span [Props.className "label"] [text "Secret"]
-                                , Props.unsafeTargetValue <$> textarea [
-                                    Props.value (if (secret /= "") then secret else value)
-                                  , Props.disabled (secret /= "")
-                                  , Props.onChange
-                                  , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
-                                  , Props.placeholder "secret"
-                                  ] []
+                                , dynamicWrapper Nothing value $ 
+                                    Props.unsafeTargetValue <$> textarea [
+                                      Props.value (if (secret /= "") then secret else value)
+                                    , Props.disabled (secret /= "")
+                                    , Props.onChange
+                                    , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
+                                    , Props.placeholder "secret"
+                                    ] []
                                 ])
                               )
       SecretCard   secret -> pure secret
