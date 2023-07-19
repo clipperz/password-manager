@@ -101,7 +101,7 @@ suggestionWidget av =
         ]))
         <> div [Props.className "actions"] [
           (InsertPassword <$> simpleButton "setPassword" "set password" b s)
-        , (CopyPassword s <$ button [Props.className "copy", (\_ -> copyToClipboard s) <$> Props.onClick] [text "Copy"])
+        , (CopyPassword s <$  button [Props.className "copy", (\_ -> copyToClipboard s) <$> Props.onClick] [text "Copy"])
         ]
       
       case res of
