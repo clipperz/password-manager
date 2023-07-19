@@ -156,7 +156,7 @@ settingsWidget s = do
   res <- div [Props.className "passwordSettings"] [
     (LengthChange <<< (fromMaybe 0) <<< fromString <<< Props.unsafeTargetValue) <$> label [Props.className "passwordLength"] [
       span  [Props.className "label"] [text "length"]
-    , input [Props._type "number", Props.value $ show length, Props.onChange]
+    , input [Props._type "number", Props.value $ show length, Props.onChange, Props.min "1"]
     , span  [Props.className "unit"] [text "characters"]
     ]
   , Chars <$> label [Props.className "charList"] [
