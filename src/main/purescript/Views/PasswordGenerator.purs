@@ -106,7 +106,7 @@ suggestionWidget av =
       
       case res of
         PasswordChange p       -> suggestionWidget $ Done p
-        CopyPassword p         -> (suggestionWidget $ Done p) <|> (liftAff $ (Left p) <$ delay (Milliseconds 500.0)) <|> overlay { status: OverlayStatus.Copy, message: "copied" }
+        CopyPassword p         -> (suggestionWidget $ Done p) <|> (liftAff $ (Left p) <$ delay (Milliseconds 1000.0)) <|> overlay { status: OverlayStatus.Copy, message: "copied" }
         UpdatePassword         -> suggestionWidget $ Done ""
         InsertPassword newPswd -> pure $ Right newPswd 
 

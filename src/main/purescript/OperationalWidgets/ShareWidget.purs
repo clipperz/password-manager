@@ -49,7 +49,7 @@ shareWidget secret = do
                 , true  <$ button [(\_ -> copyToClipboard url) <$> Props.onClick] [text "copy"]
                 ] 
       _ <- if result then 
-                go url secretData <|> (liftAff $ delay (Milliseconds 500.0)) <|> overlay { status: Copy, message: "copied" }
+                go url secretData <|> (liftAff $ delay (Milliseconds 1000.0)) <|> overlay { status: Copy, message: "copied" }
            else
                 pure unit
       go url secretData
