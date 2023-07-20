@@ -35,10 +35,10 @@ redeemView = do
       result <- loopS "" (\password_ -> do
         newPassword <- loopW password_ (\v -> div [] [
           label [] [
-              span [Props.className "label"] [text "Password"]
+              span [Props.className "label"] [text "Message key"]
             , (Props.unsafeTargetValue) <$> input [
                 Props._type "password"
-              , Props.placeholder "password"
+              , Props.placeholder "message key"
               , Props.value v
               , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
               , Props.disabled false
@@ -48,7 +48,7 @@ redeemView = do
         ])
         pure newPassword
       )
-      fireOnce (simpleButton "submit" "submit" (null result) result)
+      fireOnce (simpleButton "redeem" "redeem" (null result) result)
   ]
 
 redeemedView :: String -> Widget HTML Unit
