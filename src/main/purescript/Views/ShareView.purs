@@ -11,7 +11,7 @@ import Data.Array (filter, head)
 import Data.Eq ((/=), (==))
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.HeytingAlgebra ((&&), (||))
+import Data.HeytingAlgebra (not, (&&), (||))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (null)
 import Data.Time.Duration (Days(..), Hours(..), Minutes(..), Seconds(..), convertDuration)
@@ -22,36 +22,39 @@ import Views.SimpleWebComponents (simpleButton)
 
 data Secret = SecretString String | SecretCard String
 
+emptySecretData :: SecretData
+emptySecretData = {secret: "", password: "", duration: Seconds 0.0}
+
 expirationPeriods :: Array (Tuple Seconds String)
 expirationPeriods = [ Tuple (convertDuration (Days    7.0)) ("1 Week")
                     , Tuple (convertDuration (Days    1.0)) ("1 Day")
                     , Tuple (convertDuration (Hours   1.0)) ("1 Hour")
                     , Tuple (convertDuration (Minutes 1.0)) ("1 Minute")
-                    , Tuple (convertDuration (Hours   0.0)) ("No Expiration")
+                    , Tuple (convertDuration (Hours   0.0)) ("Never")
                     ]
 
 getDurationFromLabel :: String -> Seconds
 getDurationFromLabel label = fromMaybe (Seconds 0.0) (fst <$> head (filter (\(Tuple _ label_) -> label_ == label) expirationPeriods))
 
 getLabelFromDuration :: Seconds -> String
-getLabelFromDuration duration = fromMaybe ("duration") (snd <$> head (filter (\(Tuple duration_ _) -> duration_ == duration) expirationPeriods))
+getLabelFromDuration duration = fromMaybe ("Never") (snd <$> head (filter (\(Tuple duration_ _) -> duration_ == duration) expirationPeriods))
 
-shareView :: Secret -> Widget HTML SecretData
-shareView dataSecret = do
+shareView :: Boolean -> SecretData -> Secret -> Widget HTML SecretData
+shareView enabled secret secretData = do
   form [Props.className "shareForm"] [
-    demand $ shareSignal dataSecret
+    demand $ shareSignal enabled secret secretData 
   ]
 
-shareSignal :: Secret -> Signal HTML (Maybe SecretData)
-shareSignal dataSecret = do
-  result <- loopS {secret: "", password: "", duration: Seconds 0.0} (\{secret: secret_, password: password_, duration: duration_} -> do
-    newSecret <- case dataSecret of
+shareSignal :: Boolean -> SecretData -> Secret -> Signal HTML (Maybe SecretData)
+shareSignal enabled secretData secret' = do
+  result <- loopS secretData (\{secret: secret_, password: password_, duration: duration_} -> do
+    newSecret <- case secret' of
       SecretString secret -> (loopW secret_ (\value -> label [] [
                                   span [Props.className "label"] [text "Secret"]
                                 , dynamicWrapper Nothing value $ 
                                     Props.unsafeTargetValue <$> textarea [
                                       Props.value (if (secret /= "") then secret else value)
-                                    , Props.disabled (secret /= "")
+                                    , Props.disabled (secret /= "" || not enabled)
                                     , Props.onChange
                                     , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
                                     , Props.placeholder "secret"
@@ -63,11 +66,11 @@ shareSignal dataSecret = do
       label [] [
           span [Props.className "label"] [text "Message key"]
         , (Props.unsafeTargetValue) <$> input [
-            Props._type "password"
+            Props._type "text"
           , Props.placeholder "message key"
           , Props.value v
           , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
-          , Props.disabled false
+          , Props.disabled (not enabled)
           , Props.onChange
           ]
         ]
@@ -75,17 +78,18 @@ shareSignal dataSecret = do
     newDuration <- loopW duration_ (\duration -> do
       getDurationFromLabel <$> div [Props.className "duration"] [
         label [] [
-          span [Props.className "label"] [text "Duration"]
+          span [Props.className "label"] [text "Expires in"]
         , select [
             Props.value (getLabelFromDuration duration) 
           , Props.unsafeTargetValue <$> Props.onChange
+          , Props.disabled (not enabled)
           ] ((\(Tuple _ label_) -> option [] [text label_]) <$> expirationPeriods)
         ]
       ]
     )
     pure {secret: newSecret, password: newPassword, duration: newDuration}
   )
-  fireOnce (simpleButton "submit" "submit" (disableSubmitButton dataSecret result) result)
+  fireOnce (simpleButton "submit" "submit" (disableSubmitButton secret' result || not enabled) result)
 
   where
     disableSubmitButton :: forall p. Secret -> { secret :: String, password :: String | p} -> Boolean

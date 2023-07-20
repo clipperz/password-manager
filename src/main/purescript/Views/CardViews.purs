@@ -31,7 +31,7 @@ import Functions.Communication.OneTimeShare (secretInfo, share)
 import MarkdownIt (renderString)
 import Record (merge)
 import Views.Components (dynamicWrapper, entropyMeter)
-import Views.ShareView (Secret(..), shareSignal)
+import Views.ShareView (Secret(..), emptySecretData, shareSignal)
 import Views.SimpleWebComponents (simpleButton, confirmationWidget)
 
 -- -----------------------------------
@@ -114,7 +114,7 @@ shareOverlay secrets secret = do
     h3 [] [text "One Time Share"]
   , demand $ div_ [Props.className "secrets"] do
       ul_ [] do
-        secretData <- li_ [Props.className "addTag"] (shareSignal secret)
+        secretData <- li_ [Props.className "addTag"] (shareSignal true emptySecretData secret)
         _ <- (\maybeSignal -> ((maybe [] singleton) =<< filter isJust maybeSignal)) <$> (sequence $ secretSignal <$> secretsInfo)
         pure secretData
   ]
