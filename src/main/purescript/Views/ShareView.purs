@@ -8,7 +8,7 @@ import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Data.Array (filter, head)
-import Data.Eq ((/=), (==))
+import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HeytingAlgebra (not, (&&), (||))
@@ -53,8 +53,8 @@ shareSignal enabled secretData secret' = do
                                   span [Props.className "label"] [text "Secret"]
                                 , dynamicWrapper Nothing value $ 
                                     Props.unsafeTargetValue <$> textarea [
-                                      Props.value (if (secret /= "") then secret else value)
-                                    , Props.disabled (secret /= "" || not enabled)
+                                      Props.value (if (not null secret) then secret else value)
+                                    , Props.disabled (not null secret || not enabled)
                                     , Props.onChange
                                     , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
                                     , Props.placeholder "secret"
@@ -87,7 +87,7 @@ shareSignal enabled secretData secret' = do
         ]
       ]
     )
-    pure {secret: newSecret, password: newPassword, duration: newDuration}
+    pure $ computeSecretData secret' newSecret newPassword newDuration
   )
   fireOnce (simpleButton "submit" "submit" (disableSubmitButton secret' result || not enabled) result)
 
@@ -97,3 +97,9 @@ shareSignal enabled secretData secret' = do
       case secret of
         SecretString s -> (null s && null newSecretData.secret) || (null (newSecretData.password))
         SecretCard _   -> null newSecretData.password
+    
+    computeSecretData :: Secret -> String -> String -> Seconds -> SecretData
+    computeSecretData secret newSecret newPassword newDuration =
+      case secret of
+        SecretString s -> {secret: if (not null s) then s else newSecret, password: newPassword, duration: newDuration}
+        SecretCard   _ -> {secret: newSecret, password: newPassword, duration: newDuration}
