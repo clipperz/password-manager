@@ -73,7 +73,7 @@ createCardView card allTags isNew state = do
               if locked then
                 button [Props.disabled true, Props.className "action passwordGenerator" ] [span [] [text "password generator"]]
                 <>
-                (div [Props.className "passwordGenerator"] [
+                (div [Props.className "passwordGeneratorOverlay"] [
                   div [(Tuple value settings) <$ Props.onClick, Props.className "passwordGeneratorMask"] []
                 , div [Props.className "passwordGeneratorPopup"] [passwordGenerator (fromMaybe defaultSettings settings)]
                 ])
