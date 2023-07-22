@@ -2,11 +2,11 @@ module Views.PasswordGenerator where
   
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (button, div, div', h4, header, input, label, span, text, textarea)
+import Concur.React.DOM (button, div, h4, header, input, label, span, text, textarea)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind)
 import Control.Semigroupoid ((<<<))
 import Data.Array (all, difference, elem, nub, sort)
 import Data.Either (Either(..), either)
@@ -25,15 +25,11 @@ import DataModel.AsyncValue (AsyncValue(..))
 import DataModel.Password (PasswordGeneratorSettings, CharacterSet(..), defaultCharacterSets)
 import Effect.Aff (Milliseconds(..), delay)
 import Effect.Aff.Class (liftAff)
-import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Functions.Clipboard (copyToClipboard)
 import Functions.Password (randomPassword)
 import Views.Components (dynamicWrapper, entropyMeter)
 import Views.OverlayView (overlay)
 import Views.OverlayView as OverlayStatus
-import Views.SimpleWebComponents (simpleButton, simpleTextInputWidget)
-
 
 extractValue :: forall a. Monoid a => AsyncValue a -> a
 extractValue v = 
@@ -80,15 +76,17 @@ composedWidget settings isOpen av = do
     , div [Props.className "passwordGenerator"] [
         h4 [Props.className "label"] [text "Generated value"]
       , div [Props.className "valueGeneration"] [
-          simpleButton "generatePassword" "generate password" false RequestedNewSuggestion
+          RequestedNewSuggestion <$ button [Props.className "generatePassword", Props.title "regenerate", Props.onClick] [span [] [text "generate password"]]
         , (either ObtainedNewSuggestion ApprovedSuggestion) <$> suggestionWidget v
         ]
       ]
       <> 
       case v of
-        Done p    -> (ApprovedSuggestion <$> simpleButton "sharePassword" "share" false p)
+        Done p    -> (ApprovedSuggestion <$> button [Props.className "sharePassword", p <$ Props.onClick] [span [] [text "share"]])
         Loading _ -> button [Props.className "sharePassword", Props.disabled true] [span [] [text "share"]]
     ]
+
+data PasswordWidgetAction = PasswordChange String | UpdatePassword | InsertPassword String | CopyPassword String
 
 suggestionWidget :: AsyncValue String -> Widget HTML (Either String String)
 suggestionWidget av =
@@ -107,40 +105,15 @@ suggestionWidget av =
           , entropyMeter s
         ]
         <>
-        (CopyPassword s <$  button [Props.className "copy", (\_ -> copyToClipboard s) <$> Props.onClick] [text "copy"])
+        (CopyPassword s <$  button [Props.className "copy", Props.title "copy", (\_ -> copyToClipboard s) <$> Props.onClick] [span [] [text "copy"]])
         <>
-        (InsertPassword <$> simpleButton "setPassword" "set password" b s)
+        (InsertPassword <$> button [Props.className "setPassword", Props.title "insert", Props.disabled b, s <$ Props.onClick] [span [] [text "set password"]])
       
       case res of
         PasswordChange p       -> suggestionWidget $ Done p
         CopyPassword p         -> (suggestionWidget $ Done p) <|> (liftAff $ (Left p) <$ delay (Milliseconds 1000.0)) <|> overlay { status: OverlayStatus.Copy, message: "copied" }
         UpdatePassword         -> suggestionWidget $ Done ""
         InsertPassword newPswd -> pure $ Right newPswd 
-
-data PasswordWidgetAction = PasswordChange String | UpdatePassword | InsertPassword String | CopyPassword String
-passwordWidget :: PasswordGeneratorSettings -> Maybe String -> Widget HTML String
-passwordWidget settings str =
-  case str of  
-    Just p  -> go p
-    Nothing -> do
-      pswd <- liftAff $ randomPassword settings.length settings.characters
-      go pswd
-  where
-    go :: String -> Widget HTML String
-    go s = do
-      liftEffect $ log s
-      res <- div' [
-        PasswordChange <$> simpleTextInputWidget "password" (text "GeneratedPassword") "" s
-      , simpleButton "regenerate" "Regenerate" false UpdatePassword
-      , InsertPassword <$> simpleButton "insert" "Insert" false s
-      ]
-      case res of
-        PasswordChange p       -> passwordWidget settings (Just p)
-        CopyPassword p         -> passwordWidget settings (Just p)
-        UpdatePassword         -> do
-          newPassword <- liftAff $ randomPassword settings.length settings.characters
-          passwordWidget settings (Just newPassword)
-        InsertPassword newPswd -> pure newPswd
 
 charsetSelector :: String -> (Tuple String CharacterSet) -> Widget HTML String
 charsetSelector currentSelection (Tuple charsetName (CharacterSet charsetString)) = do
