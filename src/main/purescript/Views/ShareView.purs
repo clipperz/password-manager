@@ -15,7 +15,7 @@ import Data.HeytingAlgebra (not, (&&), (||))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Semigroup ((<>))
 import Data.String (null)
-import Data.Time.Duration (Days(..), Hours(..), Minutes(..), Seconds(..), convertDuration)
+import Data.Time.Duration (Days(..), Hours(..), Minutes(..), Seconds, convertDuration)
 import Data.Tuple (Tuple(..), fst, snd)
 import Functions.Communication.OneTimeShare (SecretData)
 import Views.Components (dynamicWrapper)
@@ -24,18 +24,18 @@ import Views.SimpleWebComponents (simpleButton)
 data Secret = SecretString String | SecretCard String
 
 emptySecretData :: SecretData
-emptySecretData = {secret: "", password: "", duration: Seconds 0.0}
+emptySecretData = {secret: "", password: "", duration: convertDuration $ Minutes 10.0}
 
 expirationPeriods :: Array (Tuple Seconds String)
-expirationPeriods = [ Tuple (convertDuration (Days    7.0)) ("1 Week")
-                    , Tuple (convertDuration (Days    1.0)) ("1 Day")
-                    , Tuple (convertDuration (Hours   1.0)) ("1 Hour")
-                    , Tuple (convertDuration (Minutes 1.0)) ("1 Minute")
-                    , Tuple (convertDuration (Hours   0.0)) ("Never")
+expirationPeriods = [ Tuple (convertDuration (Days    7.0))  ("1 Week")
+                    , Tuple (convertDuration (Days    1.0))  ("1 Day")
+                    , Tuple (convertDuration (Hours   1.0))  ("1 Hour")
+                    , Tuple (convertDuration (Minutes 10.0)) ("10 Minutes")
+                    , Tuple (convertDuration (Minutes 1.0))  ("1 Minute")
                     ]
 
 getDurationFromLabel :: String -> Seconds
-getDurationFromLabel label = fromMaybe (Seconds 0.0) (fst <$> head (filter (\(Tuple _ label_) -> label_ == label) expirationPeriods))
+getDurationFromLabel label = fromMaybe (convertDuration $ Minutes 1.0) (fst <$> head (filter (\(Tuple _ label_) -> label_ == label) expirationPeriods))
 
 getLabelFromDuration :: Seconds -> String
 getLabelFromDuration duration = fromMaybe ("Never") (snd <$> head (filter (\(Tuple duration_ _) -> duration_ == duration) expirationPeriods))
