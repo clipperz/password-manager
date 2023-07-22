@@ -47,7 +47,7 @@ shareWidget secret = do
                 <>
                 div [Props.className "share"] [
                   div [Props.className "url"] [a [Props.href url, Props.target "_blank"] [text url]]
-                , true <$ button [(\_ -> copyToClipboard url) <$> Props.onClick] [text "copy"]
+                , true <$ button [(\_ -> copyToClipboard url) <$> Props.onClick] [text "copy share link"]
                 ]
       _ <- if result then 
                 go url secretData <|> (liftAff $ delay (Milliseconds 1000.0)) <|> overlay { status: Copy, message: "copied" }

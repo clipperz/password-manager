@@ -68,14 +68,14 @@ redeemedView secret = do
                                     ]
                                   ]
       Left _                 -> label [] [
-                                    span [Props.className "label"] [text "Secret"]
-                                  , dynamicWrapper Nothing secret $ 
-                                      textarea [
-                                        Props.value secret
-                                      , Props.readOnly true
-                                      ] []
-                                  ]
-  , true <$ button [(\_ -> copyToClipboard secret) <$> Props.onClick] [text "Copy"]
+                                  span [Props.className "label"] [text "Secret"]
+                                , dynamicWrapper Nothing secret $ 
+                                    textarea [
+                                      Props.value secret
+                                    , Props.readOnly true
+                                    ] []
+                                ]
+  , true <$ button [(\_ -> copyToClipboard secret) <$> Props.onClick] [text "copy"]
   ]
   _ <- if result then
     redeemedView secret <|> (liftAff $ delay (Milliseconds 1000.0)) <|> overlay { status: Copy, message: "copied" }
