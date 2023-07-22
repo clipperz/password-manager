@@ -78,8 +78,17 @@ composedWidget settings isOpen av = do
       , ModifiedSettingsAction <$> settingsWidget s
       ]
     , div [Props.className "passwordGenerator"] [
-        simpleButton "generatePassword" "generate password" false RequestedNewSuggestion
-      , (either ObtainedNewSuggestion ApprovedSuggestion) <$> suggestionWidget v
+       label [] [
+          span [Props.className "label"] [text "Generated value"]
+        , div [Props.className "valueGeneration"] [
+            simpleButton "generatePassword" "generate password" false RequestedNewSuggestion
+          , (either ObtainedNewSuggestion ApprovedSuggestion) <$> suggestionWidget v
+          ]
+        ]
+        <> 
+        case v of
+          Done p    -> (ApprovedSuggestion <$> simpleButton "sharePassword" "share" false p)
+          Loading _ -> button [Props.className "sharePassword", Props.disabled true] [span [] [text "share"]]
       ]
     ]
 
@@ -92,17 +101,14 @@ suggestionWidget av =
     go :: Boolean -> String -> Widget HTML (Either String String)
     go b s = do
       res <-
-        (PasswordChange <$> (div [Props.className "generatedValue"] [
-          label [] [
-            span [Props.className "label"] [text "Generated value"]
-          , dynamicWrapper Nothing s $ textarea [Props.rows 1, Props.spellCheck false, Props.disabled b, Props.value s, Props.unsafeTargetValue <$> Props.onChange] [] 
-          ]
-        , entropyMeter s
-        ]))
-        <> div [Props.className "actions"] [
-          (InsertPassword <$> simpleButton "setPassword" "set password" b s)
-        , (CopyPassword s <$  button [Props.className "copy", (\_ -> copyToClipboard s) <$> Props.onClick] [text "Copy"])
+        div [Props.className "generatedValue"] [
+           PasswordChange <$> (dynamicWrapper Nothing s $ textarea [Props.rows 1, Props.spellCheck false, Props.disabled b, Props.value s, Props.unsafeTargetValue <$> Props.onChange] [])
+          , entropyMeter s
         ]
+        <>
+        (CopyPassword s <$  button [Props.className "copy", (\_ -> copyToClipboard s) <$> Props.onClick] [text "Copy"])
+        <>
+        (InsertPassword <$> simpleButton "setPassword" "set password" b s)
       
       case res of
         PasswordChange p       -> suggestionWidget $ Done p
