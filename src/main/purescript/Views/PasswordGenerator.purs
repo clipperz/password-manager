@@ -167,7 +167,7 @@ settingsWidget s = do
     , span  [Props.className "unit"] [text "characters"]
     ]
   , Chars <$> div [Props.className "charList"] [
-      h4  [Props.className "label"] [text "characters"]
+      h4  [Props.className "label"] [text "character sets"]
     , div [Props.className "charset"] [
         div [Props.className "charsetSets"] ((charsetSelector characters) <$> defaultCharacterSets)
       , label [Props.className "charListLabel"] [
