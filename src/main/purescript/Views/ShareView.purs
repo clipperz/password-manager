@@ -13,6 +13,7 @@ import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HeytingAlgebra (not, (&&), (||))
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Semigroup ((<>))
 import Data.String (null)
 import Data.Time.Duration (Days(..), Hours(..), Minutes(..), Seconds(..), convertDuration)
 import Data.Tuple (Tuple(..), fst, snd)
@@ -41,7 +42,7 @@ getLabelFromDuration duration = fromMaybe ("Never") (snd <$> head (filter (\(Tup
 
 shareView :: Boolean -> SecretData -> Secret -> Widget HTML SecretData
 shareView enabled secret secretData = do
-  form [Props.className "shareForm"] [
+  form [Props.classList ([Just "shareForm"] <> [if enabled then Nothing else Just "disabled"])] [
     demand $ shareSignal enabled secret secretData 
   ]
 
