@@ -106,7 +106,7 @@ suggestionWidget av =
           , entropyMeter s
         ]
         <>
-        (CopyPassword s <$  button [Props.className "copy", (\_ -> copyToClipboard s) <$> Props.onClick] [text "Copy"])
+        (CopyPassword s <$  button [Props.className "copy", (\_ -> copyToClipboard s) <$> Props.onClick] [text "copy"])
         <>
         (InsertPassword <$> simpleButton "setPassword" "set password" b s)
       
