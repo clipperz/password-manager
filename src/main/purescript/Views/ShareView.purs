@@ -7,6 +7,7 @@ import Concur.React.DOM (div, form, input, label, option, select, span, text, te
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind)
+import Control.Semigroupoid ((>>>))
 import Data.Array (filter, head)
 import Data.Eq ((==))
 import Data.Function (($))
@@ -18,10 +19,22 @@ import Data.String (null)
 import Data.Time.Duration (Days(..), Hours(..), Minutes(..), Seconds, convertDuration)
 import Data.Tuple (Tuple(..), fst, snd)
 import Functions.Communication.OneTimeShare (SecretData)
+import React.DOM.Dynamic (s)
 import Views.Components (dynamicWrapper)
 import Views.SimpleWebComponents (simpleButton)
 
 data Secret = SecretString String | SecretCard String
+
+secretIsString :: Secret -> Boolean
+secretIsString (SecretString _) = true
+secretIsString (SecretCard   _) = false
+
+secretIsCard :: Secret -> Boolean
+secretIsCard = secretIsString >>> not
+
+secretIsEmpty :: Secret -> Boolean
+secretIsEmpty (SecretString s) = null s
+secretIsEmpty (SecretCard   c) = null c
 
 emptySecretData :: SecretData
 emptySecretData = {secret: "", password: "", duration: convertDuration $ Minutes 10.0}
@@ -69,6 +82,7 @@ shareSignal enabled secretData secret' = do
         , (Props.unsafeTargetValue) <$> input [
             Props._type "text"
           , Props.placeholder "message key"
+          , Props.autoFocus $ not secretIsEmpty secret'
           , Props.value v
           , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
           , Props.disabled (not enabled)
