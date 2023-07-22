@@ -43,11 +43,12 @@ shareWidget secret = do
   where
     go :: String -> SecretData -> Widget HTML Unit
     go url secretData = do  
-      result <- div [Props.className "redeemSecret"] [
-                  false <$ shareView false secretData secret
-                , div [Props.className "url"] [a [Props.href url, Props.target "_blank"] [text url]]
-                , true  <$ button [(\_ -> copyToClipboard url) <$> Props.onClick] [text "copy"]
-                ] 
+      result <- (false <$ shareView false secretData secret)
+                <>
+                div [Props.className "share"] [
+                  div [Props.className "url"] [a [Props.href url, Props.target "_blank"] [text url]]
+                , true <$ button [(\_ -> copyToClipboard url) <$> Props.onClick] [text "copy"]
+                ]
       _ <- if result then 
                 go url secretData <|> (liftAff $ delay (Milliseconds 1000.0)) <|> overlay { status: Copy, message: "copied" }
            else
