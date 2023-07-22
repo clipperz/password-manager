@@ -2,7 +2,7 @@ module Views.PasswordGenerator where
   
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (button, div, div', header, input, label, span, text, textarea)
+import Concur.React.DOM (button, div, div', h4, header, input, label, span, text, textarea)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
@@ -78,18 +78,16 @@ composedWidget settings isOpen av = do
       , ModifiedSettingsAction <$> settingsWidget s
       ]
     , div [Props.className "passwordGenerator"] [
-       label [] [
-          span [Props.className "label"] [text "Generated value"]
-        , div [Props.className "valueGeneration"] [
-            simpleButton "generatePassword" "generate password" false RequestedNewSuggestion
-          , (either ObtainedNewSuggestion ApprovedSuggestion) <$> suggestionWidget v
-          ]
+        h4 [Props.className "label"] [text "Generated value"]
+      , div [Props.className "valueGeneration"] [
+          simpleButton "generatePassword" "generate password" false RequestedNewSuggestion
+        , (either ObtainedNewSuggestion ApprovedSuggestion) <$> suggestionWidget v
         ]
-        <> 
-        case v of
-          Done p    -> (ApprovedSuggestion <$> simpleButton "sharePassword" "share" false p)
-          Loading _ -> button [Props.className "sharePassword", Props.disabled true] [span [] [text "share"]]
       ]
+      <> 
+      case v of
+        Done p    -> (ApprovedSuggestion <$> simpleButton "sharePassword" "share" false p)
+        Loading _ -> button [Props.className "sharePassword", Props.disabled true] [span [] [text "share"]]
     ]
 
 suggestionWidget :: AsyncValue String -> Widget HTML (Either String String)
@@ -102,7 +100,10 @@ suggestionWidget av =
     go b s = do
       res <-
         div [Props.className "generatedValue"] [
-           PasswordChange <$> (dynamicWrapper Nothing s $ textarea [Props.rows 1, Props.spellCheck false, Props.disabled b, Props.value s, Props.unsafeTargetValue <$> Props.onChange] [])
+           PasswordChange <$> label [] [
+              span [Props.className "label"] [text "generatedValue"]
+            , dynamicWrapper Nothing s $ textarea [Props.rows 1, Props.spellCheck false, Props.disabled b, Props.value s, Props.unsafeTargetValue <$> Props.onChange] []
+            ]
           , entropyMeter s
         ]
         <>
@@ -165,11 +166,14 @@ settingsWidget s = do
     , input [Props._type "number", Props.value $ show length, Props.onChange, Props.min "1"]
     , span  [Props.className "unit"] [text "characters"]
     ]
-  , Chars <$> label [Props.className "charList"] [
-      span  [Props.className "label"] [text "characters"]
-    , div   [Props.className "charset"] [
+  , Chars <$> div [Props.className "charList"] [
+      h4  [Props.className "label"] [text "characters"]
+    , div [Props.className "charset"] [
         div [Props.className "charsetSets"] ((charsetSelector characters) <$> defaultCharacterSets)
-      , dynamicWrapper Nothing characters $ textarea [Props.rows 1, Props.spellCheck false, Props.value characters, Props.unsafeTargetValue <$> Props.onChange] [] 
+      , label [Props.className "charListLabel"] [
+          span [Props.className "label"] [text "charList"]
+        , dynamicWrapper Nothing characters $ textarea [Props.rows 1, Props.spellCheck false, Props.value characters, Props.unsafeTargetValue <$> Props.onChange] [] 
+        ]
     ]
   ]
   ]
