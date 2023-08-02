@@ -15,12 +15,14 @@ import Effect (Effect)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
+import Foreign (unsafeToForeign)
 import Functions.JSState (modifyAppState)
 import Functions.State (computeInitialState)
 import OperationalWidgets.RedeemWidget (redeemWidget)
 import Web.HTML (window)
-import Web.HTML.Location (hash, setHash)
-import Web.HTML.Window (location)
+import Web.HTML.History (DocumentTitle(..), URL(..), replaceState)
+import Web.HTML.Location (hash, pathname)
+import Web.HTML.Window (history, location)
 
 wrapper :: forall a. Widget HTML a -> Widget HTML a
 wrapper widget = do
@@ -36,5 +38,6 @@ main :: Effect Unit
 main = do
   l <- window >>= location
   idPayload <- drop 1 <$> hash l
-  _ <- setHash "" l
+  pathName <- pathname l
+  _ <- window >>= history >>= replaceState (unsafeToForeign {}) (DocumentTitle "") (URL pathName)
   runWidgetInDom "redeem" ( wrapper $ redeemWidget idPayload )
