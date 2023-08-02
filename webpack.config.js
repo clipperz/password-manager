@@ -40,8 +40,8 @@ module.exports = (env) => {
 			new webpack.EnvironmentPlugin({
 				CURRENT_COMMIT: git('rev-parse HEAD'),
 				APP_URL:	"/" + (env.production ? 'app' : 'index.html'),
-				SHARE_URL:  "/" + (env.production ? 'share#' : 'share_index.html#'),
-				REDEEM_URL: "/" + (env.production ? 'share/redeem#' : 'redeem_index.html#'),
+				SHARE_URL:  "/" + (env.production ? 'share/#' : 'share_index.html#'),
+				REDEEM_URL: "/" + (env.production ? 'share/redeem/#' : 'redeem_index.html#'),
 			}),
 			// app html package configuration
 			new HtmlWebpackPlugin({
