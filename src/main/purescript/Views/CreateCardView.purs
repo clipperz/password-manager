@@ -18,9 +18,11 @@ import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not, (&&), (||))
 import Data.Maybe (Maybe(..), isJust, maybe, fromMaybe)
 import Data.Semigroup ((<>))
+import Data.String (null)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
 import Data.Unit (Unit, unit)
+import DataModel.AsyncValue as Async
 import DataModel.Card (Card(..), CardField(..), CardValues(..), emptyCard, emptyCardField)
 import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
 import DataModel.User (UserPreferences(..))
@@ -75,7 +77,7 @@ createCardView card allTags isNew state = do
                 <>
                 (div [Props.className "passwordGeneratorOverlay"] [
                   div [(Tuple value settings) <$ Props.onClick, Props.className "passwordGeneratorMask"] []
-                , div [Props.className "passwordGeneratorPopup"] [passwordGenerator (fromMaybe defaultSettings settings)]
+                , div [Props.className "passwordGeneratorPopup"] [passwordGenerator (fromMaybe defaultSettings settings) (if null value then (Async.Loading Nothing) else (Async.Done value))]
                 ])
               else div [] []
       ]

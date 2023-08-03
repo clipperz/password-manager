@@ -40,9 +40,9 @@ extractValue v =
 
 ---------------------------
 
-passwordGenerator :: PasswordGeneratorSettings -> Widget HTML (Tuple String (Maybe PasswordGeneratorSettings))
-passwordGenerator initialSettings = do
-  result@(Tuple newPassword newSettings) <- composedWidget initialSettings false (Loading Nothing) --check if settings have changed 
+passwordGenerator :: PasswordGeneratorSettings -> AsyncValue String -> Widget HTML (Tuple String (Maybe PasswordGeneratorSettings))
+passwordGenerator initialSettings initialPassword = do
+  result@(Tuple newPassword newSettings) <- composedWidget initialSettings false initialPassword --check if settings have changed 
   pure $ case newSettings of
     Just s -> if s == initialSettings then Tuple newPassword Nothing else result 
     Nothing -> result
