@@ -33,10 +33,9 @@ object KeyBlobArchive:
           else ZIO.fail(new ResourceNotFoundException("Blob not found"))
         )
         .getOrElse(ZIO.fail(new ResourceNotFoundException("Blob not found")))
-        .catchSome {
+        .catchSome:
           case ex: ResourceNotFoundException => ZIO.fail(ex)
           case ex => ZIO.fail(new NonReadableArchiveException(s"${ex}"))
-        }
 
     override def saveBlob(key: Key, content: ZStream[Any, Throwable, Byte]): Task[Unit] =
       ZIO
@@ -48,20 +47,18 @@ object KeyBlobArchive:
             .run(ZSink.fromPath(path))
             .map(_ => ())
         )
-        .catchSome {
+        .catchSome:
           case ex: EmptyContentException => ZIO.fail(ex)
           case ex: NonReadableArchiveException => ZIO.fail(ex)
           case ex => ZIO.fail(new NonWritableArchiveException(s"${ex}"))
-        }
 
     override def deleteBlob(key: Key): Task[Boolean] =
       ZIO
-        .attempt {
+        .attempt:
           getBlobPath(key, false)
             .map(path => Files.deleteIfExists(path))
             .get
           // TODO: delete empty folder?
-        }
         .foldZIO(err => ZIO.fail(new NonWritableArchiveException(err.toString())), data => ZIO.succeed(data))
 
     private def getBlobFile(key: Key): File =

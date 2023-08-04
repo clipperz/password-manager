@@ -22,7 +22,7 @@ import zio.http.Header.{ ContentType, ContentTransferEncoding }
 import zio.http.codec.HeaderCodec
 import zio.stream.{ ZStream, ZSink }
 
-val blobsApi: ClipperzHttpApp = Http.collectZIO[Request] {
+val blobsApi: ClipperzHttpApp = Http.collectZIO[Request]:
   case request @ Method.POST -> Root / "api" / "blobs" =>
     ZIO
       .service[BlobArchive]
@@ -72,10 +72,9 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO[Request] {
             }
           )
       )
-      .map {
+      .map:
         case true  => Response.ok
         case false => Response(status = Status.NotFound)
-      } 
       .catchSome {
         case ex: BadRequestException =>
           ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
@@ -106,4 +105,3 @@ val blobsApi: ClipperzHttpApp = Http.collectZIO[Request] {
         case ex: FailedConversionException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
       } @@ LogAspect.logAnnotateRequestData(request)
-}

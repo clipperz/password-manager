@@ -50,10 +50,9 @@ object UserArchive:
         .getBlob(username.toString)
         .flatMap(fromStream[UserCard])
         .map(cr => Some(cr))
-        .catchSome {
+        .catchSome:
           case ex: ResourceNotFoundException => ZIO.succeed(None)
           case ex => ZIO.fail(ex)
-        }
 
     override def saveUser(userCard: UserCard, overwrite: Boolean): Task[HexString] =
       def saveUserCard(userCard: UserCard): Task[HexString] =
