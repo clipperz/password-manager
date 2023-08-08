@@ -2,7 +2,7 @@ module OperationalWidgets.ShareWidget where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (a, button, div, p, text)
+import Concur.React.DOM (a, button, div, p, span, text)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Alternative (pure)
@@ -13,6 +13,7 @@ import Data.Function (($))
 import Data.Functor ((<$), (<$>))
 import Data.Semigroup ((<>))
 import Data.Show (show)
+import Data.Tuple (Tuple(..))
 import Data.Unit (Unit, unit)
 import Effect.Aff (Milliseconds(..), delay)
 import Effect.Aff.Class (liftAff)
@@ -20,6 +21,7 @@ import Effect.Class (liftEffect)
 import Functions.Clipboard (copyToClipboard)
 import Functions.Communication.OneTimeShare (SecretData, share)
 import Functions.EnvironmentalVariables (currentCommit, redeemURL)
+import Functions.Password (randomPIN)
 import Views.OverlayView (OverlayStatus(..), overlay)
 import Views.ShareView (Secret, emptySecretData, shareView)
 import Web.HTML (window)
@@ -31,26 +33,32 @@ shareWidget secret = do
   version <- liftEffect currentCommit
   do
     secretData <- shareView true emptySecretData secret
-    result <- liftAff $ runExceptT $ share secretData
+    pin <- liftAff $ randomPIN 5
+    result <- liftAff $ runExceptT $ share secretData pin
     case result of
       Left err -> text ("error:" <> show err)
-      Right id -> do
+      Right (Tuple key id) -> do
         redeemURL_ <- liftEffect $ redeemURL
         origin_  <- liftEffect $ window >>= location >>= origin
-        go (origin_ <> redeemURL_ <> id) secretData
+        go (origin_ <> redeemURL_ <> id <> "#" <> key) secretData pin
     <> p [Props.className "version"] [text version]
   
   where
-    go :: String -> SecretData -> Widget HTML Unit
-    go url secretData = do  
+    go :: String -> SecretData -> String -> Widget HTML Unit
+    go url secretData pin = do  
       result <- (false <$ shareView false secretData secret)
+                <>
+                div [Props.className "pin"] [
+                  span [] [text pin]
+                , true <$ button [(\_ -> copyToClipboard pin) <$> Props.onClick] [text "copy PIN"]
+                ]
                 <>
                 div [Props.className "share"] [
                   div [Props.className "url"] [a [Props.href url, Props.target "_blank"] [text url]]
                 , true <$ button [(\_ -> copyToClipboard url) <$> Props.onClick] [text "copy share link"]
                 ]
       _ <- if result then 
-                go url secretData <|> (liftAff $ delay (Milliseconds 1000.0)) <|> overlay { status: Copy, message: "copied" }
+                go url secretData pin <|> (liftAff $ delay (Milliseconds 1000.0)) <|> overlay { status: Copy, message: "copied" }
            else
                 pure unit
-      go url secretData
+      go url secretData pin

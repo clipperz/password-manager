@@ -1,16 +1,16 @@
 module RedeemMain where
 
+import Prelude
+
 import Concur.Core (Widget)
 import Concur.React (HTML)
+import Concur.React.DOM (text)
 import Concur.React.Run (runWidgetInDom)
-import Control.Bind (bind, discard, (>>=))
 import Control.Monad.Except (runExceptT)
+import Data.Array (last)
 import Data.Either (Either(..))
-import Data.Function (($))
-import Data.Functor ((<$>))
-import Data.Show (show)
-import Data.String (drop)
-import Data.Unit (Unit)
+import Data.Maybe (Maybe(..))
+import Data.String (Pattern(..), drop, split)
 import Effect (Effect)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -37,7 +37,11 @@ wrapper widget = do
 main :: Effect Unit
 main = do
   l <- window >>= location
-  idPayload <- drop 1 <$> hash l
   pathName <- pathname l
+  key <- drop 1 <$> hash l
+  _id <- pure $ last (split (Pattern "/") pathName)
+  _ <- log $ show key <> " " <> show _id
   _ <- window >>= history >>= replaceState (unsafeToForeign {}) (DocumentTitle "") (URL pathName)
-  runWidgetInDom "redeem" ( wrapper $ redeemWidget idPayload )
+  case _id of
+    Nothing -> runWidgetInDom "redeem" (text "Missing or wrong fragment")
+    Just id -> runWidgetInDom "redeem" (wrapper $ redeemWidget id key)  

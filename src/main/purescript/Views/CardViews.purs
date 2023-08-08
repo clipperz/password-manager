@@ -21,6 +21,7 @@ import Data.Maybe (Maybe(..), isJust, maybe)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.Traversable (sequence)
+import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
 import DataModel.AppState (ProxyConnectionStatus(..))
 import DataModel.Card (Card(..), CardField(..), CardValues(..))
@@ -118,10 +119,10 @@ shareOverlay secrets secret = do
         _ <- (\maybeSignal -> ((maybe [] singleton) =<< filter isJust maybeSignal)) <$> (sequence $ secretSignal <$> secretsInfo)
         pure secretData
   ]
-  exceptId <- liftAff $ runExceptT $ share secretData
+  exceptId <- liftAff $ runExceptT $ share secretData "00000" --TODO
   pure $ case exceptId of
     Left  _  -> Nothing
-    Right id -> Just (secrets <> [id])
+    Right (Tuple _ id) -> Just (secrets <> [id])
 
 cardContent :: forall a. CardValues -> Widget HTML a
 cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) = div [Props._id "cardContent"] [

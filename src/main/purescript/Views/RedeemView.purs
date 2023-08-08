@@ -1,7 +1,7 @@
 module Views.RedeemView where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (demand, fireOnce, loopS, loopW)
+import Concur.Core.FRP (demand, fireOnce, loopW)
 import Concur.React (HTML)
 import Concur.React.DOM (a, button, div, form, input, label, span, text, textarea)
 import Concur.React.Props as Props
@@ -14,7 +14,8 @@ import Data.Function (($))
 import Data.Functor ((<$), (<$>))
 import Data.Maybe (Maybe(..))
 import Data.Monoid ((<>))
-import Data.String (null)
+import Data.Ord ((>))
+import Data.String (length, null)
 import Data.Unit (Unit, unit)
 import DataModel.Card (Card(..))
 import Effect.Aff (Milliseconds(..), delay)
@@ -22,6 +23,7 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Clipboard (copyToClipboard)
 import Functions.EnvironmentalVariables (appURL)
+import Unsafe.Coerce (unsafeCoerce)
 import Views.CardViews (cardContent)
 import Views.Components (dynamicWrapper)
 import Views.OverlayView (OverlayStatus(..), overlay)
@@ -32,21 +34,27 @@ redeemView = do
   form [Props.className "form"] [
     div [Props.className "secret"] []
   , demand $ do
-      result <- loopS "" (\password_ -> do
-        newPassword <- loopW password_ (\v -> div [] [
-          label [] [
-              span [Props.className "label"] [text "Message key"]
-            , (Props.unsafeTargetValue) <$> input [
-                Props._type "password"
-              , Props.placeholder "message key"
-              , Props.value v
-              , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
-              , Props.disabled false
-              , Props.onChange
-              ]
+      result <- loopW "" (\v -> do
+        pin <- div [] [
+          label [Props.className "pin"] [
+            span [Props.className "label"] [text "Message key"]
+          , input [
+              Props._type "text"
+            , Props.inputMode "numeric"
+            , Props.placeholder "message key"
+            , Props.value v
+            , Props.pattern "^[0-9]+$"
+            , (\e -> 
+                if (unsafeCoerce e).target.validity.valid
+                then Props.unsafeTargetValue e
+                else v
+              ) <$> Props.onChange
             ]
-        ])
-        pure newPassword
+          ]
+        ]
+        pure $  if (length pin) > 5
+                then v
+                else pin
       )
       fireOnce (simpleButton "redeem" "redeem" (null result) result)
   ]

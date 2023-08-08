@@ -3,7 +3,7 @@ module Views.ShareView where
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, demand, fireOnce, loopS, loopW)
 import Concur.React (HTML)
-import Concur.React.DOM (div, form, input, label, option, select, span, text, textarea)
+import Concur.React.DOM (div, form, label, option, select, span, text, textarea)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind)
@@ -19,7 +19,6 @@ import Data.String (null)
 import Data.Time.Duration (Days(..), Hours(..), Minutes(..), Seconds, convertDuration)
 import Data.Tuple (Tuple(..), fst, snd)
 import Functions.Communication.OneTimeShare (SecretData)
-import React.DOM.Dynamic (s)
 import Views.Components (dynamicWrapper)
 import Views.SimpleWebComponents (simpleButton)
 
@@ -37,7 +36,7 @@ secretIsEmpty (SecretString s) = null s
 secretIsEmpty (SecretCard   c) = null c
 
 emptySecretData :: SecretData
-emptySecretData = {secret: "", password: "", duration: convertDuration $ Minutes 10.0}
+emptySecretData = {secret: "", duration: convertDuration $ Minutes 10.0}
 
 expirationPeriods :: Array (Tuple Seconds String)
 expirationPeriods = [ Tuple (convertDuration (Days    7.0))  ("1 Week")
@@ -61,7 +60,7 @@ shareView enabled secret secretData = do
 
 shareSignal :: Boolean -> SecretData -> Secret -> Signal HTML (Maybe SecretData)
 shareSignal enabled secretData secret' = do
-  result <- loopS secretData (\{secret: secret_, password: password_, duration: duration_} -> do
+  result <- loopS secretData (\{secret: secret_, duration: duration_} -> do
     newSecret <- case secret' of
       SecretString secret -> (loopW secret_ (\value -> label [] [
                                   span [Props.className "label"] [text "Secret"]
@@ -76,20 +75,6 @@ shareSignal enabled secretData secret' = do
                                 ])
                               )
       SecretCard   secret -> pure secret
-    newPassword <- loopW password_ (\v -> div [Props.className "sharePassword"] [
-      label [] [
-          span [Props.className "label"] [text "Message key"]
-        , (Props.unsafeTargetValue) <$> input [
-            Props._type "text"
-          , Props.placeholder "message key"
-          , Props.autoFocus $ not secretIsEmpty secret'
-          , Props.value v
-          , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
-          , Props.disabled (not enabled)
-          , Props.onChange
-          ]
-        ]
-    ])
     newDuration <- loopW duration_ (\duration -> do
       getDurationFromLabel <$> div [Props.className "duration"] [
         label [] [
@@ -102,19 +87,19 @@ shareSignal enabled secretData secret' = do
         ]
       ]
     )
-    pure $ computeSecretData secret' newSecret newPassword newDuration
+    pure $ computeSecretData secret' newSecret newDuration
   )
-  fireOnce (simpleButton "submit" "submit" (disableSubmitButton secret' result || not enabled) result)
+  fireOnce (simpleButton "submit" "submit" (disableSubmitButton secret' result.secret || not enabled) result)
 
   where
-    disableSubmitButton :: forall p. Secret -> { secret :: String, password :: String | p} -> Boolean
-    disableSubmitButton secret newSecretData =
+    disableSubmitButton :: Secret -> String -> Boolean
+    disableSubmitButton secret resultSecret =
       case secret of
-        SecretString s -> (null s && null newSecretData.secret) || (null (newSecretData.password))
-        SecretCard _   -> null newSecretData.password
+        SecretString s -> (null s && null resultSecret)
+        SecretCard _   -> false
     
-    computeSecretData :: Secret -> String -> String -> Seconds -> SecretData
-    computeSecretData secret newSecret newPassword newDuration =
+    computeSecretData :: Secret -> String -> Seconds -> SecretData
+    computeSecretData secret newSecret newDuration =
       case secret of
-        SecretString s -> {secret: if (not null s) then s else newSecret, password: newPassword, duration: newDuration}
-        SecretCard   _ -> {secret: newSecret, password: newPassword, duration: newDuration}
+        SecretString s -> {secret: if (not null s) then s else newSecret, duration: newDuration}
+        SecretCard   _ -> {secret: newSecret, duration: newDuration}

@@ -3,29 +3,20 @@ module Functions.Password
   , PasswordStrengthFunction
   , computePasswordEntropy
   , passwordStrengthClass
+  , randomPIN
   , randomPassword
   , standardPasswordStrengthFunction
   )
   where
 
+import Prelude
+
 import Bytes (foldMapBytesToString)
-import Control.Applicative (pure)
-import Control.Bind (bind)
-import Control.Semigroupoid ((<<<))
 import Data.Array (filter, nub)
-import Data.Boolean (otherwise)
-import Data.EuclideanRing ((/))
 import Data.Foldable (fold)
-import Data.Function (($))
-import Data.Functor ((<$>))
 import Data.Int (toNumber)
 import Data.Newtype (unwrap)
 import Data.Number (log)
-import Data.Ord ((<=), (<), (>=))
-import Data.Ring ((-))
-import Data.Semigroup ((<>))
-import Data.Semiring ((+), (*))
-import Data.Show (class Show)
 import Data.String.CodePoints (length, take, drop, fromCodePointArray, toCodePointArray, CodePoint)
 import Data.Tuple (snd)
 import DataModel.Password (CharacterSet, defaultCharacterSets, elemInCharacterSet)
@@ -96,3 +87,6 @@ randomPassword l characters = appendRandomChars (repeatStringUpToSize 256 charac
         repeatStringUpToSize' _  ""  _ = ""
         repeatStringUpToSize' n' s'  a | (length a) + (length s') <= n' = repeatStringUpToSize' n' s' (a <> s')
         repeatStringUpToSize' _  _   a = a
+
+randomPIN :: Int -> Aff String
+randomPIN = flip randomPassword "0123456789"
