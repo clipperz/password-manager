@@ -12,6 +12,7 @@ import Data.Argonaut.Decode (fromJsonString)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
+import Data.HeytingAlgebra (not)
 import Data.Maybe (Maybe(..))
 import Data.Monoid ((<>))
 import Data.Ord ((>))
@@ -25,12 +26,12 @@ import Functions.Clipboard (copyToClipboard)
 import Functions.EnvironmentalVariables (appURL)
 import Unsafe.Coerce (unsafeCoerce)
 import Views.CardViews (cardContent)
-import Views.Components (dynamicWrapper)
+import Views.Components (Enabled(..), dynamicWrapper)
 import Views.OverlayView (OverlayStatus(..), overlay)
 import Views.SimpleWebComponents (simpleButton)
 
-redeemView :: Widget HTML String
-redeemView = do
+redeemView :: Enabled -> Widget HTML String
+redeemView (Enabled enabled) = do
   form [Props.className "form"] [
     div [Props.className "secret"] []
   , demand $ do
@@ -40,6 +41,7 @@ redeemView = do
             span [Props.className "label"] [text "Message key"]
           , input [
               Props._type "text"
+            , Props.disabled (not enabled)
             , Props.inputMode "numeric"
             , Props.placeholder "message key"
             , Props.value v
