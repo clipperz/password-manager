@@ -111,15 +111,16 @@ secretSignal { creationDate, expirationDate, secretId } = li_ [] do
 shareOverlay :: Array String -> Secret -> Widget HTML (Maybe (Array String))
 shareOverlay secrets secret = do
   secretsInfo <- liftAff $ (zipWith (\s r -> merge {secretId: s} r) secrets) <$> (sequence $ (\secret' -> (fromRight {creationDate: "", expirationDate: "redeemed"}) <$> secret') <$> (runExceptT <<< secretInfo) <$> secrets)
+  initialSecretData <- liftAff emptySecretData
   secretData <- div [Props.className "dialog"] [
     h3 [] [text "One Time Share"]
   , demand $ div_ [Props.className "secrets"] do
       ul_ [] do
-        secretData <- li_ [Props.className "addTag"] (shareSignal true emptySecretData secret)
+        secretData <- li_ [Props.className "addTag"] (shareSignal true secret initialSecretData)
         _ <- (\maybeSignal -> ((maybe [] singleton) =<< filter isJust maybeSignal)) <$> (sequence $ secretSignal <$> secretsInfo)
         pure secretData
   ]
-  exceptId <- liftAff $ runExceptT $ share secretData "00000" --TODO
+  exceptId <- liftAff $ runExceptT $ share secretData --TODO
   pure $ case exceptId of
     Left  _  -> Nothing
     Right (Tuple _ id) -> Just (secrets <> [id])

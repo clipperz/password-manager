@@ -3,8 +3,9 @@ module Views.ShareView where
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, demand, fireOnce, loopS, loopW)
 import Concur.React (HTML)
-import Concur.React.DOM (div, form, label, option, select, span, text, textarea)
+import Concur.React.DOM (button, div, form, h4, label, option, select, span, text, textarea)
 import Concur.React.Props as Props
+import Control.Alt ((<$), (<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Semigroupoid ((>>>))
@@ -18,8 +19,11 @@ import Data.Semigroup ((<>))
 import Data.String (null)
 import Data.Time.Duration (Days(..), Hours(..), Minutes(..), Seconds, convertDuration)
 import Data.Tuple (Tuple(..), fst, snd)
+import Effect.Aff (Aff)
+import Effect.Aff.Class (liftAff)
 import Functions.Communication.OneTimeShare (SecretData)
-import Views.Components (dynamicWrapper)
+import Functions.Password (randomPIN)
+import Views.Components (Enabled(..), dynamicWrapper)
 import Views.SimpleWebComponents (simpleButton)
 
 data Secret = SecretString String | SecretCard String
@@ -35,8 +39,10 @@ secretIsEmpty :: Secret -> Boolean
 secretIsEmpty (SecretString s) = null s
 secretIsEmpty (SecretCard   c) = null c
 
-emptySecretData :: SecretData
-emptySecretData = {secret: "", duration: convertDuration $ Minutes 10.0}
+emptySecretData :: Aff SecretData
+emptySecretData = do
+  pin <- randomPIN 5
+  pure {secret: "", pin: pin, duration: convertDuration $ Minutes 10.0}
 
 expirationPeriods :: Array (Tuple Seconds String)
 expirationPeriods = [ Tuple (convertDuration (Days    7.0))  ("1 Week")
@@ -52,15 +58,15 @@ getDurationFromLabel label = fromMaybe (convertDuration $ Minutes 1.0) (fst <$> 
 getLabelFromDuration :: Seconds -> String
 getLabelFromDuration duration = fromMaybe ("Never") (snd <$> head (filter (\(Tuple duration_ _) -> duration_ == duration) expirationPeriods))
 
-shareView :: Boolean -> SecretData -> Secret -> Widget HTML SecretData
+shareView :: Boolean -> Secret -> SecretData -> Widget HTML SecretData
 shareView enabled secret secretData = do
   form [Props.classList ([Just "shareForm"] <> [if enabled then Nothing else Just "disabled"])] [
-    demand $ shareSignal enabled secret secretData 
+    demand $ shareSignal enabled secret secretData
   ]
 
-shareSignal :: Boolean -> SecretData -> Secret -> Signal HTML (Maybe SecretData)
-shareSignal enabled secretData secret' = do
-  result <- loopS secretData (\{secret: secret_, duration: duration_} -> do
+shareSignal :: Boolean -> Secret -> SecretData -> Signal HTML (Maybe SecretData)
+shareSignal enabled secret' secretData = do
+  result <- loopS secretData (\{secret: secret_, pin: pin_, duration: duration_} -> do
     newSecret <- case secret' of
       SecretString secret -> (loopW secret_ (\value -> label [] [
                                   span [Props.className "label"] [text "Secret"]
@@ -87,19 +93,33 @@ shareSignal enabled secretData secret' = do
         ]
       ]
     )
-    pure $ computeSecretData secret' newSecret newDuration
+    newPin <- loopW pin_ (\pin -> do
+      result <- pinSection pin (Enabled (enabled && true))
+      case result of
+        true  -> "" <$ pinSection pin (Enabled false) <|> (liftAff $ randomPIN 5)
+        false -> pure pin
+    )
+    pure $ computeSecretData secret' newSecret newPin newDuration
   )
   fireOnce (simpleButton "submit" "submit" (disableSubmitButton secret' result.secret || not enabled) result)
 
   where
+    pinSection :: String -> Enabled -> Widget HTML Boolean
+    pinSection pin (Enabled pinEnabled) =
+      div [Props.className "pin"] [
+        h4 [Props.className "label"] [text "PIN"]
+      , span [] [text pin]
+      , button ([Props.disabled (not pinEnabled), Props.className "regeneratePin", Props.title "regenerate"] <> (if pinEnabled then [true <$ Props.onClick] else [])) [span [] [text "generate password"]] 
+      ]
+
     disableSubmitButton :: Secret -> String -> Boolean
     disableSubmitButton secret resultSecret =
       case secret of
         SecretString s -> (null s && null resultSecret)
         SecretCard _   -> false
     
-    computeSecretData :: Secret -> String -> Seconds -> SecretData
-    computeSecretData secret newSecret newDuration =
+    computeSecretData :: Secret -> String -> String -> Seconds -> SecretData
+    computeSecretData secret newSecret newPin newDuration =
       case secret of
-        SecretString s -> {secret: if (not null s) then s else newSecret, duration: newDuration}
-        SecretCard   _ -> {secret: newSecret, duration: newDuration}
+        SecretString s -> {secret: if (not null s) then s else newSecret, pin: newPin, duration: newDuration}
+        SecretCard   _ -> {secret: newSecret, pin: newPin, duration: newDuration}

@@ -32,11 +32,12 @@ import Functions.EncodeDecode (decryptArrayBuffer, decryptJson, encryptArrayBuff
 import Functions.SRP (randomArrayBuffer)
 
 type SecretData = { secret   :: String
+                  , pin      :: String
                   , duration :: Seconds
                   }
 
-share :: SecretData -> String -> ExceptT AppError Aff (Tuple String String)
-share {secret, duration} pin = do
+share :: SecretData -> ExceptT AppError Aff (Tuple String String)
+share {secret, pin, duration} = do
   key <- ExceptT $ Right <$> randomArrayBuffer 32
   cryptoKey <- ExceptT $ Right <$> KI.importKey raw key (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   encryptedSecret <- ExceptT $ Right <$> encryptJson cryptoKey secret 
