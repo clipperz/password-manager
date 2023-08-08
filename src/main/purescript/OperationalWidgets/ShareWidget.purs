@@ -32,7 +32,7 @@ shareWidget secret = do
   version <- liftEffect currentCommit
   do
     secretData <- shareView true secret =<< liftAff emptySecretData
-    result <- liftAff $ runExceptT $ share secretData
+    result <- (Right (Tuple "" "") <$ shareView false secret secretData) <|> (liftAff $ runExceptT $ share secretData)
     case result of
       Left err -> text ("error:" <> show err)
       Right (Tuple key id) -> do
