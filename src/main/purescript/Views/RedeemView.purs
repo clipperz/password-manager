@@ -1,7 +1,5 @@
 module Views.RedeemView where
 
-import Prelude
-
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, fireOnce, loopW)
 import Concur.React (HTML)
@@ -18,7 +16,7 @@ import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not)
 import Data.Maybe (Maybe(..))
 import Data.Monoid ((<>))
-import Data.Ord ((<))
+import Data.Ord ((<), (>))
 import Data.String (length)
 import Data.Unit (Unit, unit)
 import DataModel.Card (Card(..))

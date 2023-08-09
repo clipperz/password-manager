@@ -81,6 +81,12 @@ shareSignal enabled secret' secretData = do
                                 ])
                               )
       SecretCard   secret -> pure secret
+    newPin <- loopW pin_ (\pin -> do
+      result <- pinSection pin (Enabled (enabled && true))
+      case result of
+        true  -> "" <$ pinSection pin (Enabled false) <|> (liftAff $ randomPIN 5)
+        false -> pure pin
+    )
     newDuration <- loopW duration_ (\duration -> do
       getDurationFromLabel <$> div [Props.className "duration"] [
         label [] [
@@ -92,12 +98,6 @@ shareSignal enabled secret' secretData = do
           ] ((\(Tuple _ label_) -> option [] [text label_]) <$> expirationPeriods)
         ]
       ]
-    )
-    newPin <- loopW pin_ (\pin -> do
-      result <- pinSection pin (Enabled (enabled && true))
-      case result of
-        true  -> "" <$ pinSection pin (Enabled false) <|> (liftAff $ randomPIN 5)
-        false -> pure pin
     )
     pure $ computeSecretData secret' newSecret newPin newDuration
   )
