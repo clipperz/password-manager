@@ -36,7 +36,7 @@ redeemView (Enabled enabled) = do
     div [Props.className "secret"] []
   , demand $ do
       result <- loopW "" (\v -> do
-        pin <- div [] [
+        div [] [
           label [Props.className "pin"] [
             span [Props.className "label"] [text "Message key"]
           , input [
@@ -45,6 +45,7 @@ redeemView (Enabled enabled) = do
             , Props.inputMode "numeric"
             , Props.placeholder "message key"
             , Props.value v
+            , Props.maxLength "5"
             , Props.pattern "^[0-9]+$"
             , (\e -> 
                 if (unsafeCoerce e).target.validity.valid
@@ -54,9 +55,6 @@ redeemView (Enabled enabled) = do
             ]
           ]
         ]
-        pure $  if (length pin) > 5
-                then v
-                else pin
       )
       fireOnce (simpleButton "redeem" "redeem" (null result) result)
   ]
