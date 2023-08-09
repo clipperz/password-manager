@@ -1,5 +1,7 @@
 module Views.RedeemView where
 
+import Prelude
+
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, fireOnce, loopW)
 import Concur.React (HTML)
@@ -9,6 +11,7 @@ import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Data.Argonaut.Decode (fromJsonString)
+import Data.Array (mapWithIndex, replicate)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
@@ -36,8 +39,9 @@ redeemView (Enabled enabled) = do
     div [Props.className "secret"] []
   , demand $ do
       result <- loopW "" (\v -> do
-        div [] [
-          label [Props.className "pin"] [
+        div [Props.className "redeemPin"] [
+          div [Props.className "pinBackground"] $ mapWithIndex (\index _ -> div [Props.classList [if ((length v) > index) then Just "inserted" else Nothing]] []) (replicate 5 unit)
+        , label [Props.className "pin"] [
             span [Props.className "label"] [text "Message key"]
           , input [
               Props._type "text"
