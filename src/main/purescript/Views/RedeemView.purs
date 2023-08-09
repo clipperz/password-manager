@@ -15,8 +15,8 @@ import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not)
 import Data.Maybe (Maybe(..))
 import Data.Monoid ((<>))
-import Data.Ord ((>))
-import Data.String (length, null)
+import Data.Ord ((<))
+import Data.String (length)
 import Data.Unit (Unit, unit)
 import DataModel.Card (Card(..))
 import Effect.Aff (Milliseconds(..), delay)
@@ -56,7 +56,7 @@ redeemView (Enabled enabled) = do
           ]
         ]
       )
-      fireOnce (simpleButton "redeem" "redeem" (null result) result)
+      fireOnce (simpleButton "redeem" "redeem" (length result < 5) result)
   ]
 
 redeemedView :: String -> Widget HTML Unit
