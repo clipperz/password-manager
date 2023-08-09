@@ -301,7 +301,7 @@ prepareUnencryptedContent l =
 
 getBasicHTML :: ExceptT AppError Aff Document
 getBasicHTML = do
-  let url = "index.html"
+  let url = "static/index.html"
   res <- manageGenericRequest url GET Nothing RF.document
   if isStatusCodeOk res.status then except $ Right res.body
   else except $ Left $ ProtocolError $ ResponseError $ unwrap res.status 
