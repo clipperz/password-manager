@@ -17,6 +17,7 @@ import Data.HeytingAlgebra (not, (&&), (||))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Semigroup ((<>))
 import Data.String (null)
+import Data.String.CodeUnits (singleton, toCharArray)
 import Data.Time.Duration (Days(..), Hours(..), Minutes(..), Seconds, convertDuration)
 import Data.Tuple (Tuple(..), fst, snd)
 import Effect.Aff (Aff)
@@ -108,8 +109,8 @@ shareSignal enabled secret' secretData = do
     pinSection pin (Enabled pinEnabled) =
       div [Props.className "pin"] [
         h4 [Props.className "label"] [text "PIN"]
-      , span [] [text pin]
-      , button ([Props.disabled (not pinEnabled), Props.className "regeneratePin", Props.title "regenerate"] <> (if pinEnabled then [true <$ Props.onClick] else [])) [span [] [text "generate password"]] 
+      , div [Props.className "pinText"] ((\c -> span [] [text $ singleton c]) <$> toCharArray pin)
+      , button ([Props._type "button", Props.disabled (not pinEnabled), Props.className "regeneratePin", Props.title "regenerate"] <> (if pinEnabled then [true <$ Props.onClick] else [])) [span [] [text "generate password"]] 
       ]
 
     disableSubmitButton :: Secret -> String -> Boolean
