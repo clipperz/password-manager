@@ -37,9 +37,9 @@ variables:
   - git clone https://oauth2:${COMPOSE_TOKEN}@gitlab.imolab.it/clipperz/charts/password-manager.git
   - cd password-manager
   - git checkout main
-  - sed -E -i "s/${TAG_REGEX}/${TAG_SUBSTITUTE}/g" values-${COMPOSE_BRANCH}.yml
-  - git add ./values-${COMPOSE_BRANCH}.yml
-  - git commit -m "Modified values-${COMPOSE_BRANCH}.yml to use new image of '$CI_REGISTRY_IMAGE' (triggered by commit '$CI_COMMIT_SHA')"
+  - sed -E -i "s/${TAG_REGEX}/${TAG_SUBSTITUTE}/g" values-${COMPOSE_BRANCH}.yaml
+  - git add ./values-${COMPOSE_BRANCH}.yaml
+  - git commit -m "Modified values-${COMPOSE_BRANCH}.yaml to use new image of '$CI_REGISTRY_IMAGE' (triggered by commit '$CI_COMMIT_SHA')"
   - git push
 
 build-image-prod:
