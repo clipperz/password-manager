@@ -1,7 +1,7 @@
 import Util.*
 
 addCommandAlias("buildAll", "installPurescript; buildPurescript; compile")
-addCommandAlias("runAll", "installPurescript; buildPurescript; packagePurescript; run \"target/archive/blobs\" \"target/archive/users\" \"target/archive/one_time_share\" \"8090\"")
+addCommandAlias("runAll", "installPurescript; buildPurescript; packagePurescript; run \"./target/archive/blobs\" \"./target/archive/users\" \"./target/archive/one_time_share\" \"8090\"")
 addCommandAlias("cleanAll", "clean; cleanDependenciesPurescript")
 addCommandAlias("cleanArchive", "cleanTargetSubdir archive")
 addCommandAlias(
