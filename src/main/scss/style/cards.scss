@@ -562,6 +562,11 @@ div#homePage {
                                                 }
                                             }
 
+											&.disabled {
+												visibility: hidden;
+												display: none;
+											}
+
                                             &.selected {
 
                                                 span {
