@@ -4,7 +4,7 @@ import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
 import Data.Bifunctor (rmap)
 import Data.Eq (class Eq, eq)
-import Data.List.Types (List(..), (:))
+import Data.List.Types (List(..))
 import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
@@ -37,11 +37,11 @@ instance decodeJsonCardField :: DecodeJson CardField where
 
 newtype CardValues = 
   CardValues
-    { title  :: String
-    , tags   :: Array String
-    , fields :: Array CardField
+    { title   :: String
+    , tags    :: Array String
+    , fields  :: Array CardField
     -- , attachments :: ?? --TODO
-    , notes  :: String
+    , notes   :: String
     }
 
 instance eqCardValues :: Eq CardValues where
@@ -61,6 +61,7 @@ instance decodeJsonCardValue :: DecodeJson CardValues where
 newtype Card = 
   Card 
     { content :: CardValues
+    , secrets :: Array String
     , archived :: Boolean
     , timestamp :: Number
     }
@@ -85,6 +86,7 @@ emptyCardField = CardField { name: "", value: "", locked: false, settings: Nothi
 emptyCard :: Card
 emptyCard = Card { timestamp: 0.0
                     , archived: false
+                    , secrets: []
                     , content: CardValues { title: ""
                                               , tags: []
                                               , fields: [ CardField { name: "username", value: "", locked: false, settings: Nothing }
@@ -114,5 +116,3 @@ card1 = CardValues { title: "Bank account (SAMPLE)"
 
 defaultCards :: List Card
 defaultCards = Nil
--- defaultCards = Card { content: card0, timestamp: 1661377622.0, archived: false} :
---                Card { content: card1, timestamp: 166137865.0 , archived: false} : Nil

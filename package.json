@@ -2,41 +2,41 @@
     "license": "AGPL-3.0-or-later",
     "scripts": {
         "build": "spago --jobs 10 build --purs-args '--codegen js,sourcemaps -o ./target/output.purescript'",
-        "clean": "rm -rf target/output.parcel; rm -rf target/output.purescript; rm -rf target/output.parcel.test",
-        "clean-parcel": "rm -rf target/output.parcel",
+        "clean-purescript": "rm -rf target/output.purescript",
+        "clean-spago": "rm -rf .spago",
+        "clean-node": "rm -rf node_modules",
+        "clean-webpack": "rm -rf target/output.webpack",
         "clean-test": "rm -rf target/output.purescript/test.js",
+        "nuke": "npm run clean-node; npm run clean-spago; npm run clean-purescript; npm run clean-webpack",
         "docs": "spago docs --open",
-        "go": "parcel --host 0.0.0.0 --https --no-cache --no-hmr --dist-dir ./target/output.parcel ./src/main/html/index.html target/output.purescript/*",
-        "nuke": "yarn clean; rm -rf node_modules; rm -rf .spago",
-        "package": "parcel build --cache-dir ./target/.parcel-cache --dist-dir ./target/output.parcel ./src/main/html/index.html /target/output.purescript/*",
-		
+        "package": "webpack build --config ./webpack.config.js --stats verbose",
         "keep-building": "spago --jobs 10 build --watch --purs-args '--codegen js,sourcemaps -o ./target/output.purescript'",
-        "keep-packaging": "parcel watch --cache-dir ./target/.parcel-cache --dist-dir ./target/output.parcel ./src/main/html/index.html /target/output.purescript/*",
-
-        "rebuild": "clear; yarn clean; yarn build",
-        "test-package": "parcel build --no-cache --cache-dir ./target/.parcel-cache --dist-dir ./target/output.parcel.test ./src/test/html/index.html /target/output.purescript/*",
-        "test-browser": "parcel --host 0.0.0.0 --https --no-cache --cache-dir ./target/.parcel-cache --no-hmr --dist-dir ./target/output.parcel.test ./src/test/html/index.html /target/output.purescript/*"
-    },
-    "engines": {
-        "yarn": "1.22.19"
+        "keep-packaging": "webpack watch --config ./webpack.config.js --stats verbose",
+        "rebuild": "clear; npm run clean; npm run build",
+        "test-browser": "webpack serve --config ./webpack.test.config.js --stats verbose"
     },
     "devDependencies": {
-        "@parcel/transformer-sass": "^2.2.1",
+        "css-loader": "^6.7.3",
+        "html-inline-script-webpack-plugin": "^3.1.0",
+        "html-webpack-plugin": "^5.5.0",
+        "process": "^0.11.10",
+        "purescript": "0.15.7",
+        "sass": "^1.49.0",
+        "sass-loader": "^13.2.2",
+        "spago": "0.20.9",
+        "style-loader": "^3.3.2",
+        "webpack": "^5.77.0",
+        "webpack-cli": "^5.0.1",
+        "webpack-dev-server": "^4.15.0"
+    },
+    "dependencies": {
         "big-integer": "^1.6.51",
         "buffer": "^6.0.3",
         "decimal.js": "^10.3.1",
-        "esbuild": "^0.14.48",
-        "parcel": "2.2.1",
-        "process": "^0.11.10",
-        "sass": "1.49.0",
-        "purescript": "0.15.7",
-        "spago": "0.20.9"
-    },
-    "dependencies": {
         "long": "4.0.0",
+        "markdown-it": "^13.0.1",
         "react": "17.0.2",
         "react-dom": "17.0.2",
         "xhr2": "0.2.1"
-    },
-    "packageManager": "yarn@1.22.19"
+    }
 }

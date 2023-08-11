@@ -1,8 +1,8 @@
 package is.clipperz.backend.apis
 
 import zio.ZIO
-import zhttp.http.{ Http, Method, Path, PathSyntax, Response }
-import zhttp.http.* //TODO: fix How do you import `!!` and `/`?
+import zio.http.{ Http, Method, Path, PathSyntax, Response, Request }
+import zio.http.* //TODO: fix How do you import `Root` and `/`?
 import is.clipperz.backend.services.SessionManager
 import is.clipperz.backend.Main.ClipperzHttpApp
 import is.clipperz.backend.exceptions.BadRequestException
@@ -10,14 +10,13 @@ import java.util
 import zio.Cause
 import is.clipperz.backend.LogAspect
 
-val logoutApi: ClipperzHttpApp = Http.collectZIO {
-  case request @ Method.POST -> !! / "logout" =>
+val logoutApi: ClipperzHttpApp = Http.collectZIO[Request]:
+  case request @ Method.POST -> Root / "api" / "logout" =>
     ZIO
       .service[SessionManager]
-      .zip(ZIO.attempt(request.headers.headerValue(SessionManager.sessionKeyHeaderName).get))
-      .flatMap((sessionManager, sessionKey) =>
+      .flatMap((sessionManager) =>
         sessionManager
-          .deleteSession(sessionKey)
+          .deleteSession(request)
           .map(_ => Response.text(""))
       )
       .catchSome {
@@ -26,4 +25,3 @@ val logoutApi: ClipperzHttpApp = Http.collectZIO {
         case ex: NoSuchElementException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
       } @@ LogAspect.logAnnotateRequestData(request)
-}

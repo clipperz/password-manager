@@ -11,7 +11,7 @@ import Control.Monad.Except.Trans (ExceptT(..), withExceptT, except)
 import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Types (encrypt, decrypt, raw, unwrapKey, CryptoKey)
-import Data.Argonaut.Core (Json) 
+import Data.Argonaut.Core (Json)
 import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.ArrayBuffer.Types (ArrayBuffer)
@@ -19,10 +19,9 @@ import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (fromArrayBuffer, toArrayBuffer, toString, Base(..))
-import Data.Maybe (Maybe(..))
-import Data.String.Regex (Regex, test, regex)
-import Data.String.Regex.Flags (noFlags) 
 import Data.Show (class Show, show)
+import Data.String.Regex (Regex, test, regex)
+import Data.String.Regex.Flags (noFlags)
 import DataModel.AppState (AppError(..))
 import DataModel.Card (Card, CardField(..))
 import DataModel.CardVersions.CardV1 (Card_V1, cardFromV1)
@@ -62,14 +61,13 @@ isValidEmail :: String -> Boolean
 isValidEmail email = testRegex emailRegex email
 
 urlRegex :: Either String Regex
--- urlRegex = regex "^(?:(ht|f)tp(s?)\\:\\/\\/)?[0-9a-zA-Z]([-\\.\\w]*[0-9a-zA-Z])*(:(0-9)*)*(\\/?)([a-zA-Z0-9\\-\\.\\?\\,'\\/\\\\\\+&amp;%\\$#_]*)?$" noFlags
 urlRegex = regex "^https?://[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*(:[0-9]+)?(/.*)?$" noFlags
 
 isValidUrl :: String -> Boolean
 isValidUrl url = testRegex urlRegex url
 
 getFieldType :: CardField -> FieldType
-getFieldType cf@(CardField { name, value, locked })
+getFieldType (CardField { value, locked })
   | locked              = Passphrase
   | isValidEmail value  = Email
   | isValidUrl value    = Url

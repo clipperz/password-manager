@@ -50,10 +50,9 @@ object UserArchive:
         .getBlob(username.toString)
         .flatMap(fromStream[UserCard])
         .map(cr => Some(cr))
-        .catchSome {
+        .catchSome:
           case ex: ResourceNotFoundException => ZIO.succeed(None)
           case ex => ZIO.fail(ex)
-        }
 
     override def saveUser(userCard: UserCard, overwrite: Boolean): Task[HexString] =
       def saveUserCard(userCard: UserCard): Task[HexString] =
@@ -63,7 +62,8 @@ object UserArchive:
             ZStream.fromChunks(Chunk.fromArray(userCard.toJson.getBytes(StandardCharsets.UTF_8).nn)),
           )
           .map(_ => userCard.c)
-      getUser(userCard.c).flatMap(optionalUser =>
+
+      this.getUser(userCard.c).flatMap(optionalUser =>
         optionalUser match
           case Some(user) =>
             if (overwrite) saveUserCard(userCard) else ZIO.fail(new ResourceConflictException("User already present"))

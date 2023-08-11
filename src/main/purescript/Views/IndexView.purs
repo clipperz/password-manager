@@ -84,9 +84,9 @@ removeAllLastCardFilter cf@{ archived, indexFilter } =
   case indexFilter of
     ComposedAndFilter (SpecificCardFilter _) filter -> { archived, indexFilter: filter }
     ComposedAndFilter filter (SpecificCardFilter _) -> { archived, indexFilter: filter }
-    ComposedOrFilter (SpecificCardFilter _) filter -> { archived, indexFilter: filter }
-    ComposedOrFilter filter (SpecificCardFilter _) -> { archived, indexFilter: filter }
-    SpecificCardFilter ce -> { archived, indexFilter: NoFilter }
+    ComposedOrFilter (SpecificCardFilter _) filter  -> { archived, indexFilter: filter }
+    ComposedOrFilter filter (SpecificCardFilter _)  -> { archived, indexFilter: filter }
+    SpecificCardFilter _                            -> { archived, indexFilter: NoFilter }
     _ -> cf
 
 addLastCardFilterInOr :: CardEntry -> ComplexIndexFilter -> ComplexIndexFilter

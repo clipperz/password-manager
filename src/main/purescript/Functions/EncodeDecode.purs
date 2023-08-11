@@ -1,14 +1,14 @@
 module Functions.EncodeDecode where
 
 import Control.Applicative (pure)
-import Control.Bind ((>>=), bind)
+import Control.Bind (bind, (>>=))
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT, except, withExceptT)
 import Control.Semigroupoid ((<<<))
 import Crypto.Subtle.Encrypt as Encrypt
 import Crypto.Subtle.Key.Types as Key.Types
 import Data.Argonaut.Core as A
-import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
+import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Parser as P
 import Data.ArrayBuffer.Typed as ABTyped
 import Data.ArrayBuffer.Types (ArrayBuffer, ArrayView, Uint8)
@@ -30,7 +30,6 @@ import Functions.ArrayBuffer (emptyByteArrayBuffer)
 defaultBlockSize = 16 :: Int
 
 getCounter :: Int -> Effect ArrayBuffer
--- getCounter = Fortuna.randomBytes blockSizeBytes
 getCounter = pure <<< emptyByteArrayBuffer
 
 setAES :: Int -> Effect Encrypt.EncryptAlgorithm

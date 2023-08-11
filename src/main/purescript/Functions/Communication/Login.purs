@@ -2,16 +2,15 @@
 module Functions.Communication.Login where
 
 import Affjax.RequestBody (RequestBody, json)
--- import Affjax.RequestHeader as RE
 import Affjax.ResponseFormat as RF
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT)
 import Control.Semigroupoid ((>>>))
-import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Argonaut.Decode.Class (decodeJson)
+import Data.Argonaut.Encode.Class (encodeJson)
 import Data.ArrayBuffer.Types (ArrayBuffer)
-import Data.BigInt (BigInt, fromInt)
 import Data.Bifunctor (lmap)
+import Data.BigInt (BigInt, fromInt)
 import Data.Either (Either(..), note)
 import Data.Eq ((==))
 import Data.Function (($))
@@ -27,14 +26,14 @@ import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.Login (LoginStep1Response, LoginStep2Response)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.User (IndexReference, UserInfoReferences)
+import DataModel.User (UserInfoReferences)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
+import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
 import Functions.JSState (modifyAppState, getAppState, updateAppState)
-import Functions.State (getSRPConf, getSRPConfFromState)
 import Functions.SRP as SRP
+import Functions.State (getSRPConf, getSRPConfFromState)
 import Functions.User (decryptUserInfoReferences)
     
 -- ----------------------------------------------------------------------------
@@ -47,10 +46,10 @@ login = do
   currentState <- ExceptT $ liftEffect $ getAppState
   let srpConf = getSRPConfFromState currentState
   if isJust currentState.sessionKey
-    then ExceptT $ Right <$> modifyAppState currentState
+    then ExceptT $ Right <$> (liftEffect $ modifyAppState currentState)
     else do
       sessionKey :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32
-      ExceptT $ Right <$> modifyAppState (currentState { sessionKey = Just sessionKey })
+      ExceptT $ Right <$> (liftEffect $ modifyAppState (currentState { sessionKey = Just sessionKey }))
   loginStep1Result <- loginStep1
   { m1, kk, m2, userInfoReferences } <- loginStep2 loginStep1Result
   ExceptT $ updateAppState { userInfoReferences: Just userInfoReferences }

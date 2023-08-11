@@ -24,6 +24,5 @@ instance showIndexUpdateAction :: Show IndexUpdateAction where
   show (DeleteReference c ) = "Delete reference to " <> show c
   show (ChangeReferenceWithEdit c c') = "Change reference with edit of " <> show c <> " to " <> show c'
   show (ChangeReferenceWithoutEdit c c') = "Change reference without edit of " <> show c <> " to " <> show c'
-  -- show (ChangeToReference c ) = "Change reference of " <> show c 
   show (NoUpdateNecessary c) = "No update from act on " <> show c
   show (NoUpdate) = "No update"

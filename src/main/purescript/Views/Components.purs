@@ -6,24 +6,24 @@ module Views.Components
   , Placeholder(..)
   , dynamicWrapper
   , entropyMeter
+  , footerComponent
   , verySimpleInputWidget
   )
   where
 
-import Data.Maybe (Maybe(..))
-import Data.Newtype (class Newtype, unwrap)
+import Concur.Core (Widget)
+import Concur.React (HTML)
+import Concur.React.DOM (a, div, footer, input, label, span, text)
+import Concur.React.Props as Props
 import Data.EuclideanRing ((/))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HeytingAlgebra (not)
+import Data.Maybe (Maybe(..))
+import Data.Newtype (class Newtype, unwrap)
 import Data.Semigroup ((<>))
 import Data.Semiring ((*))
 import Data.Show (show)
-import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, loopW, demand, debounce, loopS, display, step)
-import Concur.React (HTML)
-import Concur.React.DOM (text, textarea, input, label, div', div, button, ul, li, span)
-import Concur.React.Props as Props
 import Functions.Password (computePasswordEntropy, passwordStrengthClass, standardPasswordStrengthFunction)
 
 newtype ClassName = ClassName String
@@ -37,7 +37,6 @@ verySimpleInputWidget :: InputType -> ClassName -> Label -> Enabled -> Placehold
 verySimpleInputWidget (InputType t) (ClassName className) (Label lbl) (Enabled enabled) (Placeholder placeholder) dynamicClassName value = do
   let c = dynamicClassName value :: Maybe ClassName
   let c' = unwrap <$> c :: Maybe String
-  -- label [Props.classList [Just className, unwrap <$> (dynamicClassName value)]] [
   label [Props.classList [Just className, c']] [
     span [Props.className "label"] [text lbl]
   , (Props.unsafeTargetValue) <$> input [
@@ -60,4 +59,14 @@ entropyMeter password =
 
   in div [Props.classList [Just "entropyWrapper", Just $ passwordStrengthClass (standardPasswordStrengthFunction password)], Props.style {width: strength <> "%"}] []
 
-    
+
+footerComponent :: forall a. String -> Widget HTML a
+footerComponent commit =
+  footer [] [
+    div [Props.className "footerContent"] [
+      div [Props.className "applicationVersion"] [
+        span [] [text "application version"]
+      , a [Props.href ("https://github.com/clipperz/password-manager/commit/" <> commit), Props.target "_black"] [text commit]
+      ]
+    ]
+  ]

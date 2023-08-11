@@ -22,6 +22,7 @@ import is.clipperz.backend.services.SRPStep2Data
 import is.clipperz.backend.TestUtilities
 import zio.test.TestAspect
 import is.clipperz.backend.exceptions.ResourceNotFoundException
+import zio.http.*
 
 object SrpManangerSpec extends ZIOSpecDefault:
   val samples = 10
@@ -36,6 +37,15 @@ object SrpManangerSpec extends ZIOSpecDefault:
       PRNG.live ++
       SessionManager.live ++
       ((archive ++ PRNG.live) >>> SrpManager.v6a())
+
+  val testRequestEmpty = Request(
+    url = URL(!!),
+    method = Method.GET,
+    headers = Headers((SessionManager.sessionKeyHeaderName, "test")),
+    body = Body.empty,
+    version = Version.Http_1_1,
+    remoteAddress = None
+  )
 
   def spec = suite("SrpManager")(
     test("SRP step 1 - success") {
@@ -70,7 +80,7 @@ object SrpManangerSpec extends ZIOSpecDefault:
             username <- userAchive.saveUser(card, true)
 
             session <- ZIO.service[SessionManager]
-            sessionContext <- session.getSession("test")
+            sessionContext <- session.getSession(testRequestEmpty)
 
             srp <- ZIO.service[SrpManager]
             aa <- ZIO.succeed(srpFunctions.computeA(bytesToBigInt(a)))
@@ -103,7 +113,7 @@ object SrpManangerSpec extends ZIOSpecDefault:
           for {
             srp <- ZIO.service[SrpManager]
             session <- ZIO.service[SessionManager]
-            sessionContext <- session.getSession("test")
+            sessionContext <- session.getSession(testRequestEmpty)
             aa <- ZIO.succeed(srpFunctions.computeA(bytesToBigInt(a)))
             res <- assertZIO(srp.srpStep1(SRPStep1Data(cHex, bigIntToHex(aa)), sessionContext).exit)(
               fails(isSubtype[ResourceNotFoundException](anything))
@@ -148,7 +158,7 @@ object SrpManangerSpec extends ZIOSpecDefault:
             username <- userAchive.saveUser(card, true)
 
             session <- ZIO.service[SessionManager]
-            sessionContext <- session.getSession("test")
+            sessionContext <- session.getSession(testRequestEmpty)
             srp <- ZIO.service[SrpManager]
             aa <- ZIO.succeed(srpFunctions.computeA(bytesToBigInt(a)))
             (step1Response, context) <- srp.srpStep1(SRPStep1Data(cHex, bigIntToHex(aa)), sessionContext)

@@ -1,7 +1,7 @@
 package is.clipperz.backend
 
 import zio.*
-import zhttp.http.Request
+import zio.http.Request
 
 object LogAspect:
   def logAnnotateRequestData(req: Request): ZIOAspect[Nothing, Any, Nothing, Any, Nothing, Any] =

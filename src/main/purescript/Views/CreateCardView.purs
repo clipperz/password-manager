@@ -1,82 +1,69 @@
 module Views.CreateCardView where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, loopS, loopW, demand, display, justWait, hold, fireOnce)
-import Concur.Core.Props (filterProp)
+import Concur.Core.FRP (Signal, demand, fireOnce, loopS, loopW)
 import Concur.React (HTML)
-import Concur.React.DOM (a, div, div', text, div_, ul_, li_, form_, form, label, input, datalist, option, span, textarea, button)
+import Concur.React.DOM (button, datalist, div, div_, form, input, label, li_, option, span, text, textarea, ul_)
 import Concur.React.Props as Props
-import Control.Alt((<|>), class Alt)
+import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, (=<<), (>>=), discard)
+import Control.Bind (bind, discard, (=<<))
 import Control.Monad.Except.Trans (runExceptT)
 import Control.Semigroupoid ((<<<))
-import Data.Array (snoc, filter, catMaybes, singleton, sort, length, range, zipWith)
-import Data.Either (Either(..), fromRight, hush)
+import Data.Array (filter, singleton, snoc, sort)
+import Data.Either (fromRight, hush)
 import Data.Eq ((==), (/=))
 import Data.Function (($))
-import Data.Functor ((<$>), (<$), class Functor, void)
+import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not, (&&), (||))
 import Data.Maybe (Maybe(..), isJust, maybe, fromMaybe)
-import Data.Ring ((-))
 import Data.Semigroup ((<>))
-import Data.Show (show, class Show)
+import Data.String (null)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
 import Data.Unit (Unit, unit)
-import DataModel.Card (CardField(..), CardValues(..), Card(..), emptyCardField)
+import DataModel.AsyncValue as Async
+import DataModel.Card (Card(..), CardField(..), CardValues(..), emptyCard, emptyCardField)
 import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
 import DataModel.User (UserPreferences(..))
 import DataModel.WidgetState (WidgetState(..))
-import Effect (Effect)
-import Effect.Aff (never)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
+import Effect.Unsafe (unsafePerformEffect)
 import Functions.Card (getFieldType, FieldType(..))
+import Functions.Communication.Users (getUserPreferences)
 import Functions.JSState (getAppState)
 import Functions.Time (getCurrentTimestamp)
-import Functions.Communication.Users (getUserPreferences)
-import React.SyntheticEvent (SyntheticMouseEvent)
-import Views.PasswordGenerator (passwordGenerator)
-import Views.SimpleWebComponents (loadingDiv, simpleButton, dragAndDropAndRemoveList, confirmationWidget, simpleTextInputWidget, simpleCheckboxSignal, simpleCheckboxWidget, simpleTextAreaSignal)
+import MarkdownIt (renderString)
 import Views.Components (dynamicWrapper, entropyMeter)
+import Views.PasswordGenerator (passwordGenerator)
+import Views.SimpleWebComponents (confirmationWidget, dragAndDropAndRemoveList, loadingDiv, simpleButton)
 
-import Debug (traceM)
 
-import Unsafe.Coerce (unsafeCoerce)
-import Concur.Core.Props (handleProp)
-import React.SyntheticEvent (NativeEvent, SyntheticKeyboardEvent)
-
-createCardView :: Card -> Array String -> WidgetState -> Widget HTML (Maybe Card)
-createCardView card allTags state = do
+createCardView :: Card -> Array String -> Boolean -> WidgetState -> Widget HTML (Maybe Card)
+createCardView card allTags isNew state = do
   maybeUp <- hush <$> (liftAff $ runExceptT getUserPreferences)
-  let fromAppStateToPasswordSettings = \as -> fromMaybe standardPasswordGeneratorSettings $ (\(UserPreferences up) -> up.passwordGeneratorSettings) <$> maybeUp
+  let fromAppStateToPasswordSettings = \_ -> fromMaybe standardPasswordGeneratorSettings $ (\(UserPreferences up) -> up.passwordGeneratorSettings) <$> maybeUp
   passwordGeneratorSettings <- ((fromRight standardPasswordGeneratorSettings) <<< ((<$>) fromAppStateToPasswordSettings)) <$> (liftEffect getAppState)
   mCard <- div [Props._id "cardForm"] do
     case state of
       Default   -> [mask, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
       Loading   -> [mask, loadingDiv, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
       Error err -> [mask, text err, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
-      -- Default   -> [mask, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
-      -- Loading   -> [mask, loadingDiv, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
-      -- Error err -> [mask, text err, form [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
   case mCard of
-    Just (Card { content, timestamp: _ }) -> do
-      -- liftEffect $ log $ show content
+    Just (Card { content, secrets, timestamp: _ }) -> do
       timestamp' <- liftEffect $ getCurrentTimestamp
-      pure $ Just $ Card { content: content, archived: false, timestamp: timestamp' }
+      pure $ Just $ Card { content, secrets, archived: false, timestamp: timestamp' }
     Nothing -> pure Nothing
 
   where 
     mask = div [Props.className "mask"] []
 
     getActionButton :: CardField -> Widget HTML Unit
-    getActionButton cardField@(CardField { name, value, locked }) =
+    getActionButton cardField =
       case getFieldType cardField of
         Passphrase  -> button [unit <$ Props.onClick, Props.disabled false, Props.className "action passwordGenerator" ] [span [] [text "password generator"]]
         Email       -> button [Props.disabled true, Props.className "action email"] [span [] [text "email"]]
-        -- Url         -> button [Props.className "action url"] [span [] [a [Props.href value, Props.target "_blank"] [text "url"]]]
         Url         -> button [Props.className "action url", Props.disabled true]  [span [] [text "url"]]
         None        -> button [Props.className "action none", Props.disabled true] [span [] [text "none"]]
 
@@ -88,9 +75,9 @@ createCardView card allTags state = do
               if locked then
                 button [Props.disabled true, Props.className "action passwordGenerator" ] [span [] [text "password generator"]]
                 <>
-                (div [Props.className "passwordGenerator"] [
+                (div [Props.className "passwordGeneratorOverlay"] [
                   div [(Tuple value settings) <$ Props.onClick, Props.className "passwordGeneratorMask"] []
-                , div [Props.className "passwordGeneratorPopup"] [passwordGenerator (fromMaybe defaultSettings settings)]
+                , div [Props.className "passwordGeneratorPopup"] [passwordGenerator (fromMaybe defaultSettings settings) (if null value then (Async.Loading Nothing) else (Async.Done value))]
                 ])
               else div [] []
       ]
@@ -122,7 +109,6 @@ createCardView card allTags state = do
       let loopables = (\f -> Tuple f (cardFieldWidget settings)) <$> fields 
       fields' <- loopS loopables $ \ls -> do
                                             es <- loopW ls dragAndDropAndRemoveList
-                                            -- addField <- fireOnce $ simpleButton "Add field" false unit
                                             addField <- fireOnce $ div [Props.className "newCardField", Props.onClick] [
                                               div [Props.className "fieldGhostShadow"] [
                                                 div [Props.className "label"] []
@@ -147,8 +133,7 @@ createCardView card allTags state = do
     inputTagSignal newTag = do
 
       loopW (Tuple newTag false) (\(Tuple value _) -> do
-        -- log value
-        result@(Tuple value enter) <- form [(\e -> Tuple value (value /= "")) <$> Props.onSubmit] [
+        result <- form [(\_ -> Tuple value (value /= "")) <$> Props.onSubmit] [
           label [] [
             span [Props.className "label"] [text "New Tag"]
             , input [
@@ -173,34 +158,56 @@ createCardView card allTags state = do
           case addTag of
             false -> pure $ Tuple newTag' tags'
             true  -> do
-              traceM "newTag field exited"
               pure $ Tuple ""    $ snoc tags' newTag'
+      
+    notesSignal :: String -> Boolean -> Signal HTML (Tuple String Boolean)
+    notesSignal notes preview = do
+      loopW (Tuple notes preview) (\(Tuple _notes _preview) ->
+        button [(Tuple _notes (not _preview)) <$ Props.onClick, Props.className "preview"] [text if _preview then "Edit" else "Preview Markdown"]
+        <>
+        (if _preview 
+        then
+          (Tuple _notes _preview) <$ div [Props.className "card_notes"] [
+            div [Props.className "markdown-body", Props.dangerouslySetInnerHTML { __html: unsafePerformEffect $ renderString notes}] []
+          ]       
+        else
+          (\e -> (Tuple (Props.unsafeTargetValue e) _preview)) <$> label [Props.className "notes"] [
+            span [Props.className "label"] [text "Notes"]
+          , dynamicWrapper Nothing _notes $ textarea [Props.rows 1, Props.value _notes, Props.onChange, Props.placeholder "notes"] []
+          ]
+        )
+      )
 
     formSignal :: PasswordGeneratorSettings -> Signal HTML (Maybe (Maybe Card))
     formSignal settings = do
-      Tuple _ formValues <- loopS (Tuple "" card) $ \(Tuple newTag (Card {content: (CardValues {title, tags, fields, notes}), archived, timestamp})) ->
+      { card: formValues } <- loopS { newTag: "", preview: false, card: card } $ \{ newTag, preview, card: Card {content: (CardValues {title, tags, fields, notes}), archived, timestamp} } ->
         div_ [Props.className "cardFormFields"] do
-          title' :: String <- loopW title (simpleTextInputWidget "title" (text "Title") "Card title")
-         
+          title' :: String <- loopW title (\_title -> label [Props.className "title"] [
+            span [Props.className "label"] [text "Title"]
+          , dynamicWrapper Nothing _title $ textarea [Props.rows 1, Props.placeholder "Card title", Props.value _title, Props.unsafeTargetValue <$> Props.onChange] []
+          ])
+
           Tuple newTag' tags' <- tagsSignal newTag tags
           
           fields' <- fieldsSignal settings fields
 
-          notes' :: String <- loopW notes (\v -> Props.unsafeTargetValue <$> label [Props.className "notes"] [
-            span [Props.className "label"] [text "Notes"]
-          , dynamicWrapper Nothing v $ textarea [Props.rows 1, Props.value v, Props.onChange, Props.placeholder "notes"] []
-          ])
+          Tuple notes' preview' <- notesSignal notes preview
 
-          pure $ Tuple newTag' $ Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
-                                      , archived: archived
-                                      , timestamp
-                                      }
+          pure $ {
+            newTag: newTag'
+          , preview: preview'
+          , card: Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
+                       , secrets: []
+                       , archived: archived
+                       , timestamp
+                       }
+          }
       res <- fireOnce $ div [Props.className "submitButtons"] [(cancelButton formValues) <|> (saveButton formValues)]
       -- TODO: add check for form validity
       pure res
 
     cancelButton v = 
-      if card == v then 
+      if ((card == v && not isNew) || (v == emptyCard && isNew)) then 
         simpleButton "inactive cancel" "cancel" false Nothing 
       else do
         _ <- simpleButton "active cancel" "cancel" false Nothing 
@@ -208,4 +215,4 @@ createCardView card allTags state = do
         if confirmation then pure Nothing else (cancelButton v)
 
     saveButton v = 
-      simpleButton "save" "save" (card == v) (Just v)
+      simpleButton "save" "save" ((not isNew && card == v) || (isNew && v == emptyCard)) (Just v)

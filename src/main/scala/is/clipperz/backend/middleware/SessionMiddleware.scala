@@ -2,15 +2,14 @@ package is.clipperz.backend.middleware
 
 import zio.ZIO
 import zio.json.EncoderOps
-import zhttp.http.{ Headers, Http, Middleware, Request, Response, Status }
-import zhttp.http.* //TODO: fix How do you import `!!` and `/`?
-import zhttp.http.middleware.HttpMiddleware
+import zio.http.{ Headers, Http, Request, Response, Status }
+import zio.http.* //TODO: fix How do you import `!!` and `/`?
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.functions.{ fromString, extractPath }
 import is.clipperz.backend.services.{ ChallengeType, SessionManager, TollManager, TollChallenge }
 import is.clipperz.backend.Main.ClipperzHttpApp
 
-type SessionMiddleware = HttpMiddleware[SessionManager, Throwable]
+type SessionMiddleware = RequestHandlerMiddleware[Nothing, SessionManager, Throwable, Any]
 
 def verifySessionNecessity(req: Request): Boolean =
   List("users", "login", "blobs", "logout").contains(extractPath(req))
@@ -21,27 +20,24 @@ def verifyNonEmptySessionNecessity(req: Request): Boolean =
   && List("users").contains(extractPath(req)))
 
 val presentSessionHeaderMiddleware: SessionMiddleware =
-  Middleware
+  RequestHandlerMiddlewares
     .ifRequestThenElseZIO(req =>
       ZIO
         .service[SessionManager]
-        .zip(ZIO.attempt(req.headers.headerValue(SessionManager.sessionKeyHeaderName).get))
-        .flatMap((sessionManager, sessionKey) => sessionManager.getSession(sessionKey))
+        .flatMap((sessionManager) => sessionManager.getSession(req))
         .map(_.isEmpty)
     )(
-      Middleware.fromHttp(Http.response(Response(status = Status.Unauthorized))),
-      Middleware.patch(_ => Patch.empty),
+      RequestHandlerMiddlewares.updateResponse(res => res.withStatus(Status.Unauthorized)),
+      RequestHandlerMiddleware.identity,
     )
     .when(verifyNonEmptySessionNecessity)
 
-val missingSessionHeaderMiddleware: Request => SessionMiddleware = req =>
-  Middleware.fromHttp(
-    Http.responseZIO(ZIO.logInfo("Received request with no session header").as(Response(status = Status.BadRequest)))
-  )
+val missingSessionHeaderMiddleware: SessionMiddleware =
+  RequestHandlerMiddlewares.updateResponse(res => res.withStatus(Status.BadRequest))
 
-val sessionChecks: SessionMiddleware = Middleware
-  .ifThenElse[Request](req => req.headers.hasHeader(SessionManager.sessionKeyHeaderName))(
-    _ => presentSessionHeaderMiddleware,
+val sessionChecks: SessionMiddleware = RequestHandlerMiddlewares
+  .ifRequestThenElse[SessionManager, Throwable](req => req.headers.hasHeader(SessionManager.sessionKeyHeaderName))(
+    presentSessionHeaderMiddleware,
     missingSessionHeaderMiddleware,
   )
   .when(verifySessionNecessity)

@@ -19,7 +19,7 @@ import Data.Function (($))
 import Data.Functor ((<$>), void)
 import Data.HexString (HexString, fromArrayBuffer, toArrayBuffer)
 import Data.HTTP.Method (Method(..))
-import Data.List (List(..), length, zipWith, (..))
+import Data.List (List, length, zipWith, (..))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Operation (OperationStep(..))
@@ -57,7 +57,6 @@ changeUserPassword :: String -> String -> ExceptT AppError Aff Unit
 changeUserPassword username password = do
   conf <- ExceptT $ liftEffect getSRPConf
   appState <- ExceptT $ liftEffect getAppState
-  -- oldC <- except $ note (InvalidStateError $ MissingValue $ "c not present") $ toArrayBuffer <$> appState.c
   oldP <- except $ note (InvalidStateError $ MissingValue $ "p not present") $ toArrayBuffer <$> appState.p
   newC <- ExceptT $ Right <$> (SRP.prepareC conf username password)
   newP <- ExceptT $ Right <$> (SRP.prepareP conf username password)
@@ -98,7 +97,7 @@ deleteUserSteps :: forall m. MonadAff m
                     -> (Int -> m (Either AppError Unit))
                     -> (String -> m (Either AppError Unit))
                     -> List (OperationStep (Either AppError Unit) (Either AppError Unit) m)
-deleteUserSteps index@(Index entries) progressBarFunc stepPlaceholderFunc = do
+deleteUserSteps (Index entries) progressBarFunc stepPlaceholderFunc = do
   let total = length entries
   let deleteSteps = fromFoldable $ deleteCardStep <$> (zipWith (\i -> \c -> {index: i, entry: c}) (0 .. total) entries)
   toUnfoldable $ deleteSteps <> [ IntermediateStep (\psr ->

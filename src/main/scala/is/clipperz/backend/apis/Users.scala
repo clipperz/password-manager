@@ -1,10 +1,4 @@
 package is.clipperz.backend.apis
-
-import zio.ZIO
-import zio.json.EncoderOps
-import zio.stream.ZStream
-import zhttp.http.{ Http, Method, Response, Status }
-import zhttp.http.* //TODO: fix How do you import `!!` and `/`?
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.exceptions.{
   NonWritableArchiveException,
@@ -16,14 +10,18 @@ import is.clipperz.backend.exceptions.{
   ConflictualRequestException,
 }
 import is.clipperz.backend.functions.fromStream
-import is.clipperz.backend.services.{ BlobArchive, SessionManager, SignupData, UserArchive, UserCard }
+import is.clipperz.backend.services.{ BlobArchive, ModifyUserCard, SessionManager, SignupData, UserArchive, UserCard }
 import is.clipperz.backend.Main.ClipperzHttpApp
-import zio.Cause
-import is.clipperz.backend.services.ModifyUserCard
 import is.clipperz.backend.LogAspect
 
-val usersApi: ClipperzHttpApp = Http.collectZIO {
-  case request @ Method.POST -> !! / "users" / c =>
+import zio.{ ZIO, Cause }
+import zio.http.{ Http, Method, Response, Request, Status }
+import zio.http.* //TODO: fix How do you import `Root` and `/`?
+import zio.json.EncoderOps
+import zio.stream.ZStream
+
+val usersApi: ClipperzHttpApp = Http.collectZIO[Request]:
+  case request @ Method.POST -> Root / "api" / "users" / c =>
     ZIO
       .service[UserArchive]
       .zip(ZIO.service[BlobArchive])
@@ -35,7 +33,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
           .flatMap(optionalUser =>
             optionalUser match
               case Some(_) => ZIO.fail(new ConflictualRequestException("User already exists"))
-              case None => ZIO.succeed(())
+              case None    => ZIO.succeed(())
           )
           .flatMap(_ =>
             fromStream[SignupData](content)
@@ -67,19 +65,19 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
       .map(results => Response.text(results._1.toString))
       .catchSome {
         case ex: ResourceConflictException =>
-          ZIO.logDebugCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.Conflict))
+          ZIO.logDebugCause(s"RESOURCE CONFLICT: ${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.Conflict))
         case ex: ConflictualRequestException =>
-          ZIO.logDebugCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.Conflict))
+          ZIO.logDebugCause(s"CONFLICTUAL REQUEST: ${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.Conflict))
         case ex: BadRequestException =>
-          ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
+          ZIO.logFatalCause(s"BAD REQUEST: ${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
         case ex: NonWritableArchiveException =>
-          ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
+          ZIO.logFatalCause(s"NON WRITABLE ARCHIVE: ${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
         case ex: FailedConversionException =>
-          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
+          ZIO.logWarningCause(s"FAILED CONVERSION: ${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
         case ex => ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).flatMap(_ => ZIO.fail(ex))
       } @@ LogAspect.logAnnotateRequestData(request)
 
-  case request @ Method.PUT -> !! / "users" / c =>
+  case request @ Method.PUT -> Root / "api" / "users" / c =>
     ZIO
       .service[UserArchive]
       .zip(ZIO.service[BlobArchive])
@@ -126,7 +124,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
       } @@ LogAspect.logAnnotateRequestData(request)
 
-  case request @ Method.GET -> !! / "users" / c =>
+  case request @ Method.GET -> Root / "api" / "users" / c =>
     ZIO
       .service[UserArchive]
       .zip(ZIO.service[SessionManager])
@@ -147,7 +145,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
       } @@ LogAspect.logAnnotateRequestData(request)
 
-  case request @ Method.DELETE -> !! / "users" / c =>
+  case request @ Method.DELETE -> Root / "api" / "users" / c =>
     ZIO
       .service[UserArchive]
       .zip(ZIO.service[SessionManager])
@@ -160,10 +158,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
               .flatMap(userCard => userArchive.deleteUser(userCard))
               .flatMap(b =>
                 if b then
-                  request
-                    .headerValue(SessionManager.sessionKeyHeaderName)
-                    .map(sessionKey => sessionManager.deleteSession(sessionKey).map(_ => Response.text(c)))
-                    .getOrElse(ZIO.fail(new BadRequestException("No session header found")))
+                  sessionManager.deleteSession(request).map(_ => Response.text(c))
                 else ZIO.succeed(Response(status = Status.NotFound))
               )
           )
@@ -176,4 +171,3 @@ val usersApi: ClipperzHttpApp = Http.collectZIO {
         case ex: ResourceNotFoundException =>
           ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.NotFound))
       } @@ LogAspect.logAnnotateRequestData(request)
-}

@@ -1,4 +1,6 @@
-const Main = require ("../../../target/output.purescript/Main")
+const Main = require ("../../../target/output.purescript/AppMain")
+
+import "../scss/main.scss";
 
 function addEventBubblingBlockers() {
     const observer = new MutationObserver(mutations => {
@@ -25,6 +27,15 @@ function addEventBubblingBlockers() {
         subtree: true,
     });
 }
+
+window.addEventListener("dragover",function(e){
+	e = e || event;
+	e.preventDefault();
+  },false);
+  window.addEventListener("drop",function(e){
+	e = e || event;
+	e.preventDefault();
+  },false);
 
 // function addShortcutsManagement() {
 //     Mousetrap.bind("/", function(ev) {

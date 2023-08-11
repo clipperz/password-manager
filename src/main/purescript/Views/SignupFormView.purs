@@ -3,23 +3,22 @@ module Views.SignupFormView where
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (text, a, p, div, form, div', div_, fieldset)
+import Concur.React.DOM (a, div, div', div_, form, text)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind)
 import Data.Either (Either(..))
 import Data.Eq ((==), (/=))
 import Data.Foldable (all)
 import Data.Function (($))
 import Data.HeytingAlgebra ((&&), not)
 import Data.Map (Map, fromFoldable)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe)
 import Data.Tuple (Tuple(..))
-import Data.Unit (unit)
 import DataModel.Credentials (Credentials)
 import DataModel.WidgetState (WidgetState(..))
-import Functions.Password (randomPassword, standardPasswordStrengthFunction, passwordStrengthClass)
+import Functions.Password (standardPasswordStrengthFunction)
 import Record (merge)
 import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleUserSignal, simpleVerifiedPasswordSignal, checkboxesSignal, PasswordForm)
 
@@ -74,7 +73,6 @@ signupFormView state formData =
               Right s         -> pure { username: username', password: s, verifyPassword: s, checkboxes: checkboxMap' }
           result :: Maybe Credentials <- fireOnce (submitWidget formValues)
           pure result
-        -- liftEffect $ log $ "signalResult " <> show signalResult
         pure signalResult
     ]
 

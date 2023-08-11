@@ -1,23 +1,21 @@
 module Functions.Communication.Cards where
 
-import Affjax.RequestBody (RequestBody, json)
+import Affjax.RequestBody (formData)
 import Affjax.ResponseFormat as RF
 import Control.Applicative (pure)
 import Control.Bind (discard, bind)
 import Control.Monad.Except.Trans (ExceptT(..), except)
 import Crypto.Subtle.Constants.AES (aesCTR, l256)
-import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Generate as KG
+import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Types (encrypt, exportKey, decrypt, raw, unwrapKey)
-import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.HexString (toArrayBuffer, fromArrayBuffer)
 import Data.HTTP.Method (Method(..))
+import Data.HexString (Base(..), fromArrayBuffer, toArrayBuffer, toString)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
@@ -27,12 +25,14 @@ import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardReference(..), CardEntry(..), createCardEntry)
 import DataModel.SRP (hashFuncSHA256)
 import Effect.Aff (Aff)
-import Effect.Class.Console (log)
+import Effect.Class (liftEffect)
 import Functions.Card (getCardContent)
-import Functions.CardsCache (getCardFromCache, addCardToCache)
+import Functions.CardsCache (addCardToCache, getCardFromCache, removeCardFromCache)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
+import Functions.Communication.BlobFromArrayBuffer (blobFromArrayBuffer)
 import Functions.Communication.Blobs (postBlob, getBlob)
 import Functions.EncodeDecode (encryptJson)
+import Web.XHR.FormData (EntryName(..), FileName(..), appendBlob, new)
 
 getCard :: CardReference -> ExceptT AppError Aff Card
 getCard cardRef@(CardReference { reference }) = do
@@ -52,10 +52,16 @@ deleteCard cardReference@(CardReference { reference, key }) = do
   card <- getCard cardReference
   cryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   encryptedCard <- ExceptT $ Right <$> encryptJson cryptoKey card
-  let body = json $ encodeJson $ { data: fromArrayBuffer encryptedCard, hash: reference } :: RequestBody
+  body <- formData <$> (liftEffect $ do
+      formData <- new
+      appendBlob (EntryName "blob") (blobFromArrayBuffer encryptedCard) (Just $ FileName (toString Hex reference)) formData
+      pure $ formData
+  )
   response <- manageGenericRequest url DELETE (Just body) RF.string
   if isStatusCodeOk response.status
-    then except $ Right $ response.body
+    then do
+      removeCardFromCache reference
+      except $ Right $ response.body
     else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
 
 postCard :: Card -> ExceptT AppError Aff CardEntry
@@ -64,11 +70,11 @@ postCard card = do
   _ <- ExceptT $ Right <$> (fromArrayBuffer <$> exportKey raw key)
   Tuple encryptedCard cardEntry <- ExceptT $ Right <$> (createCardEntry card key hashFuncSHA256)
   case cardEntry of
-    CardEntry { title: cardTitle
-                 , cardReference: (CardReference { reference, key: _ })
-                 , archived: _
-                 , tags: _
-                 } -> do
+    CardEntry { title: _
+              , cardReference: (CardReference { reference, key: _ })
+              , archived: _
+              , tags: _
+              } -> do
     --   log $ "posting card " <> cardTitle
       _ <- postBlob encryptedCard (toArrayBuffer reference)
       addCardToCache reference card

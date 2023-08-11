@@ -7,53 +7,45 @@ import Concur.React.DOM (text, div, h1, div', form, p)
 import Concur.React.Props as Props
 import Control.Alternative ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard, (>>=))
-import Control.Monad.Except.Trans (runExceptT, except, mapExceptT, ExceptT(..))
-import Control.Semigroupoid ((<<<))
+import Control.Bind (bind)
+import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (either, Either(..))
 import Data.Eq ((==))
 import Data.EuclideanRing ((/))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$), void)
-import Data.HeytingAlgebra ((||), (&&), not)
+import Data.HeytingAlgebra (not, (&&))
 import Data.List (List(..), length)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Operation (runOperation)
 import Data.Semigroup ((<>))
 import Data.Semiring ((+), (*))
 import Data.Show (show)
 import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..))
+import DataModel.Credentials (Credentials, emptyCredentials)
 import DataModel.Index (Index(..))
 import DataModel.WidgetState (WidgetState(..))
-import Effect (Effect)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Functions.Communication.Users (getIndex)
 import Functions.JSState (getAppState)
-import Functions.Pin (deleteCredentials)
-import Functions.User (deleteUser, deleteUserSteps)
-import Record (merge)
+import Functions.User (deleteUserSteps)
 import Views.Components (ClassName(..), verySimpleInputWidget, InputType(..), Enabled(..), Placeholder(..), Label(..))
-import Views.LoginFormView (emptyForm)
-import Views.SimpleWebComponents (loadingDiv, loadingBar, simpleButton, confirmationWidget, simpleUserSignal, simpleCheckboxSignal, simplePasswordInputWidget)
-import Web.HTML (window)
-import Web.HTML.Window (localStorage)
+import Views.SimpleWebComponents (confirmationWidget, simpleButton, simpleCheckboxSignal)
 
 data DeleteUserWidgetAction = PleaseDelete DeleteFormValue | DoNothing | FailedDelete AppError | Done
 
-type Credentials = {username:: Maybe String, password:: Maybe String }
-
 type DeleteFormValue = {username :: String, password :: String, notRecoverable :: Boolean}
+emptyFormValues :: { notRecoverable :: Boolean
+                   , password :: String
+                   , username :: String
+                   }
 emptyFormValues = {username: "", password: "", notRecoverable: false}
-
-emptyCredentials :: Credentials
-emptyCredentials = {username: Nothing, password: Nothing}
 
 deleteUserWidget :: Widget HTML Unit
 deleteUserWidget = do
-  credentials :: Credentials <- liftEffect $ either (\_ -> {username: Nothing, password: Nothing}) (\s -> {username: s.username, password: s.password}) <$> getAppState
+  credentials :: Credentials <- liftEffect $ either (\_ -> emptyCredentials) (\s -> {username: fromMaybe "" s.username, password: fromMaybe "" s.password}) <$> getAppState
   newIndex <- ((Right (Index Nil)) <$ (deleteForm emptyCredentials emptyFormValues (Enabled false))) <|> (liftAff $ runExceptT $ getIndex)
   case newIndex of
     Right index -> go index credentials Default
@@ -96,8 +88,8 @@ deleteUserWidget = do
           password' :: String  <- loopW password $ verySimpleInputWidget (InputType "password") (ClassName "password") (Label "Passphrase") (Enabled true) (Placeholder "passphrase") (matchingValueClassName credentials.password)
           checkbox' :: Boolean <- simpleCheckboxSignal "warning" (text "All my data will be permanently deleted. I understand that this action cannot be undone or canceled.") notRecoverable
           pure { username: username', password: password', notRecoverable: checkbox' }
-        fireOnce (simpleButton "delete" "Delete account" (not ((Just formValues'.username) == credentials.username && (Just formValues'.password) == credentials.password && formValues'.notRecoverable)) (PleaseDelete formValues'))
+        fireOnce (simpleButton "delete" "Delete account" (not (formValues'.username == credentials.username && formValues'.password == credentials.password && formValues'.notRecoverable)) (PleaseDelete formValues'))
     ]]
 
-    matchingValueClassName :: Maybe String -> String -> Maybe ClassName
-    matchingValueClassName expectedValue value = expectedValue >>= (\expectedValue' -> if expectedValue' == value then (Just $ ClassName "valid") else Nothing)
+    matchingValueClassName :: String -> String -> Maybe ClassName
+    matchingValueClassName expectedValue value = if expectedValue == value then (Just $ ClassName "valid") else Nothing

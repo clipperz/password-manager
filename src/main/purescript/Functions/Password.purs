@@ -3,54 +3,25 @@ module Functions.Password
   , PasswordStrengthFunction
   , computePasswordEntropy
   , passwordStrengthClass
+  , randomPIN
   , randomPassword
   , standardPasswordStrengthFunction
   )
   where
 
+import Prelude
+
 import Bytes (foldMapBytesToString)
-import Control.Applicative (pure)
-import Control.Bind (bind)
-import Control.Semigroupoid ((<<<))
-import Data.Array (elem, nub, filter)
-import Data.Array as Array
-import Data.Boolean (otherwise)
-import Data.EuclideanRing ((/))
+import Data.Array (filter, nub)
 import Data.Foldable (fold)
-import Data.Function (($))
-import Data.Functor ((<$>))
 import Data.Int (toNumber)
-import Data.List (List)
-import Data.Map (values)
-import Data.Newtype (unwrap, wrap)
-import Data.Number (log, isNaN)
-import Data.Ord ((<=), (<), (>=))
-import Data.Ring ((-))
-import Data.Semigroup ((<>))
-import Data.Semiring ((+), (*))
-import Data.Show (class Show)
+import Data.Newtype (unwrap)
+import Data.Number (log)
 import Data.String.CodePoints (length, take, drop, fromCodePointArray, toCodePointArray, CodePoint)
--- import Data.String.CodeUnits ()
 import Data.Tuple (snd)
-import DataModel.Password (CharacterSet(..), defaultCharacterSets, elemInCharacterSet)
+import DataModel.Password (CharacterSet, defaultCharacterSets, elemInCharacterSet)
 import Effect.Aff (Aff)
 import Effect.Fortuna (randomBytes)
-
-
--- filter (elemInCharacterSet c) (snd <$> defaultCharacterSets)
-{-
-getSets :: Char -> List CharacterSet
-getSets c = 
-  let
-    allSets = values defaultCharacterSets   :: Array CharacterSet
-    allStrings = (unwrap <$> allSets)       :: Array String
-    allArrays = toCodePointArray <$> allStrings
-    relevantArrays = filter (elem c) (snd <$> defaultCharacterSets)
-  in (CharacterSet <<< fromCodePointArray) <$> relevantArrays
-
-compactSets :: List CharacterSet -> CharacterSet
-compactSets = wrap <<< fromCodePointArray <<< nub <<< toCodePointArray <<< unwrap <<< fold
--}
 
 data PasswordStrength = VeryWeak | Weak | Acceptable | Strong | VeryStrong
 instance showPasswordStrengh :: Show PasswordStrength where
@@ -89,9 +60,7 @@ computePasswordEntropy s =
 
 formatPasswordEntropy :: Number -> PasswordStrength
 formatPasswordEntropy n
-  -- | isNaN n   = VeryWeak
   | n >= 80.0 = VeryStrong
-  -- | n < 80.0  = Strong
   | n >= 65.0  = Strong
   | n >= 30.0  = Acceptable
   | n >= 15.0  = Weak
@@ -118,3 +87,6 @@ randomPassword l characters = appendRandomChars (repeatStringUpToSize 256 charac
         repeatStringUpToSize' _  ""  _ = ""
         repeatStringUpToSize' n' s'  a | (length a) + (length s') <= n' = repeatStringUpToSize' n' s' (a <> s')
         repeatStringUpToSize' _  _   a = a
+
+randomPIN :: Int -> Aff String
+randomPIN = flip randomPassword "0123456789"

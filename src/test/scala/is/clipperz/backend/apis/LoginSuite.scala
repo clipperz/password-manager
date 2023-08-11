@@ -10,8 +10,8 @@ import zio.stream.{ ZStream, ZSink }
 import zio.test.Assertion.{ nothing, isTrue }
 import zio.test.{ ZIOSpecDefault, assertZIO, assertNever, assertTrue, assert, TestAspect }
 import zio.json.EncoderOps
-import zhttp.http.{ Version, Headers, Method, URL, Request, Body }
-import zhttp.http.*
+import zio.http.{ Version, Headers, Method, URL, Request, Body }
+import zio.http.*
 import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.bytesToHex
@@ -39,6 +39,7 @@ import is.clipperz.backend.services.SRPStep2Data
 import is.clipperz.backend.functions.SrpFunctions.SrpFunctionsV6a
 import is.clipperz.backend.functions.SrpFunctions
 import is.clipperz.backend.services.SRPStep2Response
+import is.clipperz.backend.services.OneTimeShareArchive
 
 object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
   override def bootstrap: ZLayer[Any, Any, UserArchive & BlobArchive] =
@@ -47,12 +48,14 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
   val app = Main.clipperzBackend
   val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
   val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
+  val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "one_time_share").nn
 
   val environment =
     PRNG.live ++
     SessionManager.live ++
     UserArchive.fs(userBasePath, 2, false) ++
     BlobArchive.fs(blobBasePath, 2, false) ++
+    OneTimeShareArchive.fs(oneTimeShareBasePath, 2, false) ++
     ((UserArchive.fs(userBasePath, 2, false) ++ PRNG.live) >>> SrpManager.v6a()) ++
     (PRNG.live >>> TollManager.live)
 
@@ -102,6 +105,7 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
       headers = if (withSession) Headers((SessionManager.sessionKeyHeaderName, sessionKey)) else Headers.empty,
       body = Body.fromString(stepData, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
+      remoteAddress = None
     )
 
   def loginRequestStep2(
@@ -115,32 +119,33 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
       headers = if (withSession) Headers((SessionManager.sessionKeyHeaderName, sessionKey)) else Headers.empty,
       body = Body.fromString(stepData, StandardCharsets.UTF_8.nn),
       version = Version.Http_1_1,
+      remoteAddress = None
     )
 
   def spec = suite("LoginApis")(
     test("Login step 1 - fail - user not found") {
       val stepData = SRPStep1Data(HexString("aaa"), HexString("aaa"))
       val request = loginRequestStep1("aaa", stepData.toJson, true)
-      assertZIO(app(request).map(response => response.status.code == 404))(isTrue)
+      assertZIO(app.runZIO(request).map(response => response.status.code == 404))(isTrue)
     },
     test("Login step 1 - fail - wrong c") {
       val stepData = SRPStep1Data(HexString("aaa"), HexString("aaa"))
       val request = loginRequestStep1("ccc", stepData.toJson, true)
-      assertZIO(app(request).map(response => response.status.code == 400))(isTrue)
+      assertZIO(app.runZIO(request).map(response => response.status.code == 400))(isTrue)
     },
     test("Login step 1 - fail - invalid data") {
       val request = loginRequestStep1("ccc", "invalid", true)
-      assertZIO(app(request).map(response => response.status.code == 400))(isTrue)
+      assertZIO(app.runZIO(request).map(response => response.status.code == 400))(isTrue)
     },
     test("Login step 1 - fail - no sessionKey") {
       val request = loginRequestStep1("ccc", "invalid", false)
-      assertZIO(app(request).map(response => response.status.code == 400))(isTrue)
+      assertZIO(app.runZIO(request).map(response => response.status.code == 400))(isTrue)
     },
     test("Login step 1 - success") {
       val stepData = SRPStep1Data(c, HexString.bigIntToHex(RFCTestVector.aa))
       val request = loginRequestStep1(c.toString(), stepData.toJson, true)
       for {
-        response <- app(request)
+        response <- app.runZIO(request)
         stepResponse <- fromStream[SRPStep1Response](response.body.asStream)
       } yield assertTrue(response.status.code == 200, stepResponse.s == testUser.s)
     } @@ TestAspect.before(saveUser),
@@ -150,9 +155,9 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
       val request = loginRequestStep1(c.toString(), stepData.toJson, true)
       for {
         srpManager <- ZIO.service[SrpManager]
-        response <- app(request)
+        response <- app.runZIO(request)
         stepResponse <- fromStream[SRPStep1Response](response.body.asStream)
-        response2 <- app(loginRequestStep2(c.toString(), "invalid", true))
+        response2 <- app.runZIO(loginRequestStep2(c.toString(), "invalid", true))
       } yield assertTrue(response2.status.code == 400)
     },
     test("Login step 1, 2 - fail - wrong m1") {
@@ -162,10 +167,10 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
       val m1 = HexString("abcdef")
       for {
         srpManager <- ZIO.service[SrpManager]
-        response <- app(request)
+        response <- app.runZIO(request)
         stepResponse <- fromStream[SRPStep1Response](response.body.asStream)
-        response2 <- app(loginRequestStep2(c.toString(), SRPStep2Data(m1).toJson, true))
-      } yield assertTrue(response2.status.code == 403)
+        response2 <- app.runZIO(loginRequestStep2(c.toString(), SRPStep2Data(m1).toJson, true))
+      } yield assertTrue(response2.status.code == 400)
     },
     test("Login step 1, 2 - fail - no sessionKey") {
       val aa = RFCTestVector.aa
@@ -175,7 +180,7 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
       val srpFunctions = new SrpFunctionsV6a()
       for {
         srpManager <- ZIO.service[SrpManager]
-        response <- app(request)
+        response <- app.runZIO(request)
         stepResponse <- fromStream[SRPStep1Response](response.body.asStream)
 
         u <- srpFunctions.computeU(bigIntToBytes(aa), stepResponse.bb.toByteArray)
@@ -191,7 +196,7 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
           stepResponse.bb.toByteArray,
           kk,
         )
-        response2 <- app(loginRequestStep2(c.toString(), SRPStep2Data(HexString.bytesToHex(m1)).toJson, false))
+        response2 <- app.runZIO(loginRequestStep2(c.toString(), SRPStep2Data(HexString.bytesToHex(m1)).toJson, false))
       } yield assertTrue(response2.status.code == 400)
     },
     test("Login step 1, 2 - success") {
@@ -202,7 +207,7 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
       val srpFunctions = new SrpFunctionsV6a()
       for {
         srpManager <- ZIO.service[SrpManager]
-        response <- app(request)
+        response <- app.runZIO(request)
         stepResponse <- fromStream[SRPStep1Response](response.body.asStream)
 
         u <- srpFunctions.computeU(bigIntToBytes(aa), stepResponse.bb.toByteArray)
@@ -218,7 +223,7 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
           stepResponse.bb.toByteArray,
           kk,
         )
-        response2 <- app(loginRequestStep2(c.toString(), SRPStep2Data(HexString.bytesToHex(m1)).toJson, true))
+        response2 <- app.runZIO(loginRequestStep2(c.toString(), SRPStep2Data(HexString.bytesToHex(m1)).toJson, true))
         stepResponse <- fromStream[SRPStep2Response](response2.body.asStream)
       } yield assertTrue(response2.status.code == 200, stepResponse.encUserInfoReferences == testUser.masterKeyContent)
     },

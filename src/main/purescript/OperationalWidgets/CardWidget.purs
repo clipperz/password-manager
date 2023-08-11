@@ -31,7 +31,7 @@ import Functions.Communication.Cards (getCard, postCard, deleteCard)
 import Functions.JSState (getAppState)
 import Functions.State (isOfflineCopy)
 import Functions.Time (getCurrentTimestamp)
-import OperationalWidgets.CreateCardWidget (createCardWidget)
+import OperationalWidgets.CreateCardWidget (CardFormInput(..), createCardWidget)
 import Views.CardViews (cardView, CardAction(..))
 import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (loadingDiv, confirmationWidget)
@@ -63,7 +63,7 @@ cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ })
       case action of
         Exit cc -> pure $ IndexUpdateData NoUpdate (Just cc)
         Edit cc -> do
-          IndexUpdateData indexUpdateAction newCard <- createCardWidget cc tags Default -- here the modified card has already been saved
+          IndexUpdateData indexUpdateAction newCard <- createCardWidget (ModifyCard cc) tags Default -- here the modified card has already been saved
           case indexUpdateAction of
             AddReference newEntry -> pure $ IndexUpdateData (ChangeReferenceWithEdit entry newEntry) newCard
             _ -> cardWidget entry tags Default
@@ -85,6 +85,11 @@ cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ })
           let newCard = Card $ rc { timestamp = timestamp', archived = false }
           doOp proxyConnectionStatus oldCard newCard false (postCard newCard) (\newEntry -> IndexUpdateData (ChangeReferenceWithoutEdit entry newEntry) (Just newCard))
         Delete cc -> doOp proxyConnectionStatus cc cc false (deleteCard cardReference) (\_ -> IndexUpdateData (DeleteReference entry) (Just cc))
+        Share cc  -> do
+          eitherNewEntry <- liftAff $ runExceptT $ postCard cc
+          case eitherNewEntry of
+            Left err -> cardWidget entry tags (Error (prettyShow err))
+            Right newEntry -> pure $ IndexUpdateData (ChangeReferenceWithEdit entry newEntry) (Just cc)
 
     doOp :: forall a. ProxyConnectionStatus -> Card -> Card -> Boolean -> ExceptT AppError Aff a -> (a -> IndexUpdateData) -> Widget HTML IndexUpdateData
     doOp proxyConnectionStatus oldCard currentCard showForm op mapResult = do
@@ -106,7 +111,7 @@ cardWidget entry@(CardEntry r@{ title: _, cardReference, archived: _, tags: _ })
 
     inertCardFormView :: forall a. Card -> Widget HTML a
     inertCardFormView card = do
-      _ <- createCardView card tags Loading -- TODO: need to deactivate buttons to avoid returning some value here
+      _ <- createCardView card tags false Loading -- TODO: need to deactivate buttons to avoid returning some value here
       loadingDiv
 
 cloneCardNow :: Card -> Aff Card
@@ -114,4 +119,4 @@ cloneCardNow (Card { timestamp: _, content, archived}) =
   case content of
     CardValues values -> do
       timestamp <- liftEffect $ getCurrentTimestamp
-      pure $ Card { timestamp, archived, content: (CardValues (values { title = (values.title <> " - CLONE")}))}
+      pure $ Card { timestamp, archived, secrets: [], content: (CardValues (values { title = (values.title <> " - CLONE")}))}

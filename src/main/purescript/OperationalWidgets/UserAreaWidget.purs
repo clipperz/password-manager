@@ -2,35 +2,30 @@ module OperationalWidgets.UserAreaWidget where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text, header, footer, button, li)
+import Concur.React.DOM (button, div, header, li, text)
 import Concur.React.Props as Props
-import Control.Alternative ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
-import Control.Monad.Except.Trans (runExceptT)
-import Data.Either (Either(..))
+import Data.Either (Either)
 import Data.Eq (class Eq, (==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
-import Data.HeytingAlgebra (not)
-import Data.List (List(..), (:))
 import Data.Maybe (Maybe(..))
-import Data.Semigroup ((<>))
 import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
 import DataModel.AppState (AppError, ProxyConnectionStatus(..))
-import DataModel.Index (Index(..))
+import DataModel.Index (Index)
 import DataModel.WidgetState (WidgetState(..))
-import Effect.Aff.Class (liftAff)
-import Functions.Communication.Logout (doLogout)
-import Functions.Communication.Users (getIndex)
-import Views.SimpleWebComponents (simpleButton, submenu, complexMenu, SubmenuVoice)
-import OperationalWidgets.ImportWidget (importWidget)
-import OperationalWidgets.ExportWidget (exportWidget)
+import Effect.Class (liftEffect)
+import Functions.EnvironmentalVariables (currentCommit)
 import OperationalWidgets.ChangePasswordWidget (changePasswordWidget, emptyChangePasswordDataForm)
-import OperationalWidgets.UserPreferencesWidget (userPreferencesWidget)
 import OperationalWidgets.DeleteUserWidget (deleteUserWidget)
+import OperationalWidgets.ExportWidget (exportWidget)
+import OperationalWidgets.ImportWidget (importWidget)
 import OperationalWidgets.PinWidget (setPinWidget)
+import OperationalWidgets.UserPreferencesWidget (userPreferencesWidget)
+import Views.Components (footerComponent)
+import Views.SimpleWebComponents (simpleButton, submenu, complexMenu, SubmenuVoice)
 
 data UserAreaAction = Loaded (Either AppError Index) | Lock | Logout | DeleteAccount | NoAction | GetIndexError AppError
 
@@ -61,7 +56,7 @@ defaultMenu proxyConnectionStatus = [
       ProxyOnline   -> false
       ProxyOffline  -> true
   
-    submenuItem :: forall a. String -> String -> Boolean -> UserAreaListVoice -> UserAreaListVoice -> Widget HTML UserAreaListVoice
+    submenuItem :: String -> String -> Boolean -> UserAreaListVoice -> UserAreaListVoice -> Widget HTML UserAreaListVoice
     submenuItem className label disable area currentArea = 
       li [Props.classList [if area == currentArea then Just "selected" else Nothing]] [
         button [area <$ Props.onClick, Props.disabled disable, Props.className className] [text label]
@@ -79,12 +74,13 @@ userAreaWidget hidden proxyConnectionStatus = userAreaView hidden (defaultMenu p
     userAreaView :: Boolean -> Array (SubmenuVoice UserAreaListVoice) -> UserAreaListVoice -> Widget HTML UserAreaAction
     userAreaView hidden' arr area = do
       let userPageClassName = if hidden' then "closed" else "open"
+      commitHash <- liftEffect $ currentCommit
       res <- div [Props._id "userPage", Props.className userPageClassName] [
         CloseUserArea <$ div [Props.onClick, Props.className "mask"] [], --TODO - doesn't work
         div [Props.className "panel"] [
           CloseUserArea <$ header [] [div [] [button [Props.onClick] [text "menu"]]],
           div [] [MenuAction <$> (userAreaList arr area)],
-          footer [] [text "footer"]
+          footerComponent commitHash
         ],
         UserAction <$> (userAreaInternalView area)
       ]

@@ -13,23 +13,16 @@ import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.HexString (HexString, fromArrayBuffer, toArrayBuffer, toString, Base(..))
-import Data.Maybe (Maybe(..))
-import Data.Semigroup ((<>))
+import Data.HexString (Base(..), fromArrayBuffer, toArrayBuffer, toString)
 import Data.Show (class Show, show)
-import DataModel.AppState (AppError(..), InvalidStateError(..))
+import DataModel.AppState (AppError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index)
 import DataModel.IndexVersions.IndexV1 (Index_V1, indexFromV1)
 import DataModel.User (IndexReference(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Effect.Class (liftEffect)
-import Functions.EncodeDecode (decryptJson, decryptWithAesCTR)
-import Functions.JSState (getAppState)
-
--- fromCardToCardEntry :: Index -> Card -> Aff CardEntry
--- fromCardToCardEntry (Index entries) card = do
+import Functions.EncodeDecode (decryptWithAesCTR)
 
 getIndexContent :: ArrayBuffer -> IndexReference -> ExceptT AppError Aff Index
 getIndexContent bytes (IndexReference ref) =

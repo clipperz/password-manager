@@ -21,7 +21,6 @@ ALL the code included in this project, if not otherwise stated, is released with
 ## Developing
 Necessary tools:
 - `NodeJS`: if on a Unix like system, our advice is to use [`nvm`](http://nvm.sh), otherwise you can find [here](https://nodejs.org/en/) the official distribution
-- `yarn`: after installing node, use `npm install -g yarn@1.22.18`
 - [`Scala 3 + sbt`](https://www.scala-lang.org/download/)
 
 ### Building and running the application
@@ -31,6 +30,7 @@ On a console, in the base folder run `sbt` to open the sbt console, after that t
 ### Running tests
 Command to run inside of the sbt console to execute tests:
 - Scala
+	- `Test/compile`: compiles the tests
 	- `test`: runs all the Scala tests
 	- `Test/test {path of the test suit}` (ex: `Test/test is.clipperz.backend.SrpFunctionsConversionsSuite`): run a specific test suite
 	- `Test/run`: show a list of all the test suits from which you can choose one to run

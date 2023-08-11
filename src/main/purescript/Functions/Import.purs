@@ -83,19 +83,19 @@ decodeDeltaCardObject timestamp obj = runExcept $ do
     except $ sequence (decodeCardField <$> a)
   notes  <- except $ note (ImportError "Cannot find card notes") $ (toString =<< (lookup "notes") =<< toObject =<< lookup "data" obj)
   pure $ Card { timestamp: timestamp
-                  , archived: archived
-                  , content: CardValues { title: title
-                                          , tags: tags
-                                          , fields: fields
-                                          , notes: notes
-                                          }
-                  }
+              , secrets: []
+              , archived: archived
+              , content: CardValues { title: title
+                                      , tags: tags
+                                      , fields: fields
+                                      , notes: notes
+                                      }
+              }
 
 decodeCardField :: Json -> Either AppError CardField
 decodeCardField json = runExcept $ do
   obj    <- except $ note (ImportError "Cannot convert json to json object") $ (toObject json)
   label  <- except $ note (ImportError "Cannot find field label")  $ (toString  =<< lookup "label"  obj)
   value  <- except $ note (ImportError "Cannot find field value")  $ (toString  =<< lookup "value"  obj)
-  -- passwordGeneratorSettings <- except $ note (ImportError "Cannot find field value")  $ (toString  =<< lookup "value"  obj)
   let hidden = fromMaybe false $ (toBoolean =<< lookup "hidden" obj)
   pure $ CardField {name: label, value: value, locked: hidden, settings: Nothing}

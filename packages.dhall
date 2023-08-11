@@ -138,6 +138,21 @@ in  upstream
     , repo = "https://github.com/clipperz/purescript-float32"
     , version = "clipperz"
     }
+  with markdown-it =
+    { dependencies = 
+      [ "effect"
+      , "prelude"
+      , "psci-support"
+      , "foldable-traversable"
+      , "foreign"
+      , "tuples"
+      , "jest"
+      , "node-process"
+      , "options"
+      ]
+    , repo = "https://github.com/nonbili/purescript-markdown-it"
+    , version = "master"
+    }
   with promises =
     { dependencies =
       [ "console"

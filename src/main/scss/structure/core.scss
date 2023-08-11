@@ -142,7 +142,7 @@ html {
                                 // width: 100vw;
                                 flex: 1;
 
-								#cardForm div.cardForm .cardFormFields .dragAndDropList .draggableElem .fieldForm .fieldActions div.passwordGenerator div.passwordGeneratorPopup div.passwordGeneratorForm {
+								#cardForm div.cardForm .cardFormFields .dragAndDropList .draggableElem .fieldForm .fieldActions div.passwordGeneratorOverlay div.passwordGeneratorPopup div.passwordGeneratorForm {
 									transition: left 0.3s ease-in-out;
 									left: calc(-100vw + 90px);
 									width: 80vw
@@ -388,7 +388,7 @@ $extraWide-minSize: 1100px;
                                         }
                                     }
 
-									#cardForm div.cardForm .cardFormFields .dragAndDropList .draggableElem .fieldForm .fieldActions div.passwordGenerator div.passwordGeneratorPopup div.passwordGeneratorForm {
+									#cardForm div.cardForm .cardFormFields .dragAndDropList .draggableElem .fieldForm .fieldActions div.passwordGeneratorOverlay div.passwordGeneratorPopup div.passwordGeneratorForm {
 										left: calc(-100vw + 90px + 33vw);
 									}
                                 }
@@ -471,7 +471,7 @@ $extraWide-minSize: 1100px;
                                     }
                                 }
 
-								#card #cardForm div.cardForm .cardFormFields .dragAndDropList .draggableElem .fieldForm .fieldActions div.passwordGenerator div.passwordGeneratorPopup div.passwordGeneratorForm {
+								#card #cardForm div.cardForm .cardFormFields .dragAndDropList .draggableElem .fieldForm .fieldActions div.passwordGeneratorOverlay div.passwordGeneratorPopup div.passwordGeneratorForm {
 									left: calc(-100vw + 90px + 26.5vw + $filterPanel_width);
 								}
                             }

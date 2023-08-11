@@ -10,8 +10,8 @@ import zio.stream.{ ZStream, ZSink }
 import zio.test.Assertion.{ nothing, isTrue }
 import zio.test.{ ZIOSpecDefault, assertZIO, assertNever, assertTrue, assert, TestAspect }
 import zio.json.EncoderOps
-import zhttp.http.{ Version, Headers, Method, URL, Request, Body }
-import zhttp.http.*
+import zio.http.{ Version, Headers, Method, URL, Request, Body }
+import zio.http.*
 import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.bytesToHex
@@ -39,17 +39,20 @@ import is.clipperz.backend.services.SRPStep2Data
 import is.clipperz.backend.functions.SrpFunctions.SrpFunctionsV6a
 import is.clipperz.backend.functions.SrpFunctions
 import is.clipperz.backend.services.SRPStep2Response
+import is.clipperz.backend.services.OneTimeShareArchive
 
 object LogoutSpec extends ZIOSpecDefault:
   val app = Main.clipperzBackend
   val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
   val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
+  val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "one_time_share").nn
 
   val environment =
     PRNG.live ++
       SessionManager.live ++
       UserArchive.fs(userBasePath, 2, false) ++
       BlobArchive.fs(blobBasePath, 2, false) ++
+      OneTimeShareArchive .fs(oneTimeShareBasePath, 2, false) ++
       ((UserArchive.fs(userBasePath, 2, false) ++ PRNG.live) >>> SrpManager.v6a()) ++
       (PRNG.live >>> TollManager.live)
 
@@ -59,32 +62,38 @@ object LogoutSpec extends ZIOSpecDefault:
     url = URL(!! / "logout"),
     method = Method.POST,
     headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
+    body = Body.empty,
     version = Version.Http_1_1,
+    remoteAddress = None
   )
 
   val logoutNoSession = Request(
     url = URL(!! / "logout"),
     method = Method.POST,
     headers = Headers.empty,
+    body = Body.empty,
     version = Version.Http_1_1,
+    remoteAddress = None
   )
 
   def spec = suite("LogoutApis")(
     test("logout - fail - no session key in header") {
+      val request = logoutNoSession
       for {
-        responseCode <- app(logoutNoSession).map(response => response.status.code)
+        responseCode <- app.runZIO(request).map(response => response.status.code)
       } yield assertTrue(responseCode == 400)
     },
     test("logout - success") {
+      val request = logoutWithSession
       for {
         sessionManager <- ZIO.service[SessionManager]
-        _ <- sessionManager.getSession(sessionKey)
-        responseCode <- app(logoutWithSession).map(response => response.status.code)
+        _ <- sessionManager.getSession(request)
+        responseCode <- app.runZIO(request).map(response => response.status.code)
       } yield assertTrue(responseCode == 200)
     },
     test("logout - success - no session in store") {
       for {
-        responseCode <- app(logoutWithSession).map(response => response.status.code)
+        responseCode <- app.runZIO(logoutWithSession).map(response => response.status.code)
       } yield assertTrue(responseCode == 200)
     },
   ).provideLayerShared(environment) @@

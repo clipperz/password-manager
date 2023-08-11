@@ -13,7 +13,6 @@ module Views.SimpleWebComponents
   , confirmationWidget
   , disabledSimpleTextInputWidget
   , dragAndDropAndRemoveList
-  -- , dragAndDropFileInputWidget
   , loadingBar
   , loadingDiv
   , passwordStrengthShow
@@ -37,65 +36,44 @@ module Views.SimpleWebComponents
   where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, loopW, demand, debounce, loopS, display, step)
+import Concur.Core.FRP (Signal, display, loopS, loopW)
+import Concur.Core.Props (handleProp)
 import Concur.React (HTML)
-import Concur.React.DOM (text, textarea, input, label, div', div, button, ul, li, span, div_)
+import Concur.React.DOM (button, div, input, label, li, span, text, textarea, ul)
 import Concur.React.Props as Props
-import Control.Alt (class Alt, (<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (=<<), (>>=))
 import Control.Semigroupoid ((<<<))
-import Data.Array (length, zipWith, range, catMaybes, updateAt, deleteAt, insertAt, filter, intersperse, drop, take, sortWith, union, dropEnd, takeEnd, (!!), (:))
+import Data.Array (catMaybes, deleteAt, insertAt, intersperse, length, mapWithIndex, range, updateAt, zipWith, (:))
 import Data.Bifunctor (lmap, rmap)
-import Data.Boolean (otherwise)
 import Data.Either (Either(..), hush)
-import Data.Enum (enumFromThenTo)
-import Data.EuclideanRing ((/))
 import Data.Eq ((==))
+import Data.EuclideanRing ((/))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>), class Functor)
-import Data.HeytingAlgebra (not)
-import Data.Int (even, odd)
+import Data.HeytingAlgebra (not, (||))
 import Data.Map (Map, lookup)
-import Data.Maybe (fromMaybe, fromJust, Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Monoid (power)
-import Data.Newtype (class Newtype, unwrap)
-import Data.Ord ((>))
-import Data.Ring ((-))
+import Data.Ring ((+), (-))
 import Data.Semigroup ((<>))
-import Data.Semiring ((+), (*))
+import Data.Semiring ((*))
 import Data.Show (show, class Show)
 import Data.String (joinWith)
-import Data.Time.Duration (Milliseconds(..))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
-import Data.Unit (unit, Unit)
+import Data.Unit (Unit)
 import Effect (Effect)
-import Effect.Aff (delay)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
-import Functions.Events (readFile, readFileFromDrop, getClickCoordinates, printEvent)
+import Functions.Events (readFile)
 import Functions.Password (PasswordStrengthFunction, PasswordStrength, passwordStrengthClass)
-import Functions.Time (getCurrentTimestamp)
-import React.SyntheticEvent (currentTarget, preventDefault, SyntheticEvent_, NativeEventTarget, SyntheticMouseEvent)
-
+import React.SyntheticEvent (currentTarget, preventDefault, SyntheticEvent_, NativeEventTarget, NativeEvent, SyntheticMouseEvent)
 import Unsafe.Coerce (unsafeCoerce)
-import Web.DOM.Node (fromEventTarget, Node(..))
-import Web.DOM.Element (fromNode)
-import Web.DOM.Document (toNonElementParentNode)
-import Web.DOM.NonElementParentNode (getElementById)
-import Web.HTML (window)
-import Web.HTML.HTMLDocument (toDocument)
-import Web.HTML.Window (document)
-import Effect.Unsafe (unsafePerformEffect)
-import Concur.Core.Props (Props(..), handleProp, filterProp)
-import React.SyntheticEvent (NativeEvent)
-import Views.Components (entropyMeter)
+import Views.Components (Enabled(..), entropyMeter)
 
-import Debug (traceM)
 
--- foreign import handleDragEvent :: NativeEvent -> String -> Effect Unit 
 foreign import handleDragStartEvent_ :: String -> Int -> Int -> NativeEvent -> Effect Unit
 
 loadingBar :: Int -> Int -> Int -> String
@@ -146,27 +124,6 @@ simpleFileInputWidget className lbl = do
       nve <- liftEffect $ currentTarget se
       liftAff $ readFile nve
 
--- data DragFileEvents a = DragEnter a | DragLeave a | Drop a | FileContent String
-
--- dragAndDropFileInputWidget :: String -> String -> Widget HTML String
--- dragAndDropFileInputWidget id lbl = do
---   dropDiv false
-
---   where 
---     dropDiv highlight = do
---       res <- div  [ Props.classList (Just <$> (["dropFile"] <> if highlight then ["highlight"] else []))
---                   , Props._id id
---                   , DragEnter <$> Props.onDragEnter
---                   , DragLeave <$> Props.onDragLeave
---                   , Drop <$> Props.onDropCapture
---                   ]
---                   [ FileContent <$> (simpleFileInputWidget "importButton" (text lbl)) ]
---       case res of
---         DragEnter _ -> dropDiv true
---         DragLeave _ -> dropDiv false
---         Drop a -> liftAff $ readFileFromDrop a
---         FileContent s -> pure s
-
 simpleTextInputWidgetWithFocus :: String -> Widget HTML String -> String -> String -> Widget HTML String
 simpleTextInputWidgetWithFocus className lbl placeholder s = do
   label [Props.className className] [
@@ -206,12 +163,6 @@ simpleCheckboxWidget className lbl v =  label [Props.className className] [
 simpleButton :: forall a. String -> String -> Boolean -> a -> Widget HTML a
 simpleButton className label disable value = button [value <$ Props.onClick, Props.disabled disable, Props.className className ] [span [] [text label]]
 
--- simpleButtonWithId :: forall a. String -> String -> Boolean -> a -> Widget HTML a
--- simpleButtonWithId id label disable value = button [Props._id id, value <$ Props.onClick, Props.disabled disable] [text label]
-
--- simpleButtonWithClass :: forall a. String -> String -> Boolean -> a -> Widget HTML a
--- simpleButtonWithClass label classes disable value = button [value <$ Props.onClick, Props.disabled disable, Props.className classes] [text label]
-
 simpleTextAreaSignal :: String -> Widget HTML String -> String -> String -> Signal HTML String
 simpleTextAreaSignal className label placeholder content = loopW content (simpleTextAreaWidget className label placeholder)
 
@@ -235,7 +186,6 @@ simpleVerifiedPasswordSignal psf f = loopS f $ \ef ->
     where go p vp = do
                       pswd <- loopW p (simplePasswordInputWidget ("password" <> " " <> (passwordStrengthClass $ psf p)) (text "Password"))
                       _ <- loopW p entropyMeter
-                      -- display $ passwordStrengthShow $ psf pswd
                       pswd2 <- loopW vp (simplePasswordInputWidget ("verify_password" <> (if pswd == vp then "" else " different")) (text "Verify password"))
                       display $ text $ if pswd == pswd2 then "The passwords are the same" else "The passwords are not the same"
                       if pswd == pswd2 then
@@ -276,9 +226,6 @@ loadingDiv = div [ (Props.className "loading") ] [
   , div [] []
   ]
 ]  
-
--- disableOverlay :: forall a. Widget HTML a
--- disableOverlay = div [(Props.className "disableOverlay")] []
 
 confirmationWidget :: String -> Widget HTML Boolean
 confirmationWidget message = div [(Props.className "disableOverlay")] [
@@ -323,7 +270,6 @@ complexMenu' arr =
 
 submenu :: forall a b. Boolean -> Widget HTML b -> Array (Widget HTML a) -> Widget HTML (Either Boolean a)
 submenu showing b1 bs = do
-  -- res <- div [] $ [OpenCloseMenu <$ b1] <> (if showing then (((<$>) ClickOnVoice) <$> bs) else [])
   let showingProp = if showing then [Props.className "userSidebarSubitems"] else [Props.className "userSidebarSubitems hidden"]
   res <- li [] $ [OpenCloseMenu <$ b1] <> [(ul showingProp (((<$>) ClickOnVoice) <$> bs))]
   case res of
@@ -359,7 +305,6 @@ complexMenu mId mClass arr currentItemSelected = do
     redraw :: Array Boolean -> Array (SubmenuVoice a)
     redraw newBoolean = zipWith (\b -> \(Tuple _ f) -> Tuple b f) newBoolean arr
 
-    --  Ogni sezione della serie ordinata è quindi descritta da:
     --  Each section in the sorted serires is thus defined with:
     --  - position on the menu 
     --  - whether it is open or close
@@ -377,17 +322,17 @@ complexMenu mId mClass arr currentItemSelected = do
 
 data OnDraggableEvents a b = StartDrag a | EndDrag a | Dragging a | Value b
 instance showOnDraggableEvents :: Show (OnDraggableEvents a b) where
-  show (StartDrag a)  = "StartDrag"
-  show (EndDrag   a)  = "EndDrag"
-  show (Dragging  a)  = "Dragging"
-  show (Value     b)  = "Value"
+  show (StartDrag _)  = "StartDrag"
+  show (EndDrag   _)  = "EndDrag"
+  show (Dragging  _)  = "Dragging"
+  show (Value     _)  = "Value"
 
 data OnDropAreaEvents a = EvDrop a | EvDragEnter a | EvDragLeave a | EvDragOver a
 instance showOnDropAreaEvents :: Show (OnDropAreaEvents a) where
-  show (EvDrop      a)  = "EvDrop"
-  show (EvDragEnter a)  = "EvDragEnter"
-  show (EvDragLeave a)  = "EvDragLeave"
-  show (EvDragOver  a)  = "EvDragOver"    --  menu is redrawn [366?]
+  show (EvDrop      _)  = "EvDrop"
+  show (EvDragEnter _)  = "EvDragEnter"
+  show (EvDragLeave _)  = "EvDragLeave"
+  show (EvDragOver  _)  = "EvDragOver"    --  menu is redrawn [366?]
 
 newtype DraggableWidgetResult a = DraggableWidgetResult { isDragging :: Boolean, exitState :: a }
 instance showDraggableWidgetResult :: Show (DraggableWidgetResult a) where
@@ -400,7 +345,6 @@ handleDragStartEvent e = handleDragStartEvent_ "draggableElem" 20 50 (unsafeCoer
 
 removableDraggableWidget :: forall a. Boolean -> a -> (a -> Widget HTML a) -> Widget HTML (RemovableDraggableWidgetResult a)
 removableDraggableWidget isDragging initialState widgetFunc = do
-  -- log $ "start element " <> (show isDragging)
   res <- div [
     Props.classList [Just "draggableElem", (if isDragging then Just "draggingElem" else Nothing)]
   , (Result (DraggableWidgetResult { isDragging: true, exitState: initialState })) <$ Props.onDragStart
@@ -411,46 +355,35 @@ removableDraggableWidget isDragging initialState widgetFunc = do
     , div [
         Props.className "dragHandler"
       , Props.draggable true
-      -- , (Result (DraggableWidgetResult { isDragging: true, exitState: initialState })) <$ Props.onMouseOver
-      -- , (Result (DraggableWidgetResult { isDragging: false, exitState: initialState })) <$ Props.onMouseOut
       , handleProp handleDragStartEvent Props.onDragStart
       ] [span [] []]
     ]
   , (\a -> Result (DraggableWidgetResult { isDragging, exitState: a })) <$> (widgetFunc initialState)
   ]
   pure res
-  -- case res of
-  --   Result (DraggableWidgetResult { isDragging: isDr, exitState }) -> do
-  --     -- log $ show isDr
-  --     pure res
-  --   _ -> pure res
 
 type DroppableAreaResult = { isSelected :: Boolean, result :: (OnDropAreaEvents SyntheticMouseEvent) }
 type IndexedResult a = {index :: Int, result :: a}
 
-droppableArea :: Boolean -> Widget HTML DroppableAreaResult
-droppableArea isSelected = do
-  result <- div [ Props.classList [Just "dropzone", (if isSelected then Just "selected" else Nothing)]
-                -- , EvDrop <$> Props.onDrop
-                -- , EvDragLeave <$> Props.onDragLeave
-                -- , EvDragEnter <$> Props.onDragEnter
-                -- , EvDragOver <$> Props.onDragOver -- managed by js for performance
-                ] [
-                  span [
+droppableArea :: Int -> Enabled -> Boolean -> Widget HTML DroppableAreaResult
+droppableArea index (Enabled enabled) isSelected = do
+  result <- div [ Props.classList [Just ("dropzone " <> show index), (if isSelected then Just "selected" else Nothing), (if enabled then Nothing else Just "disabled")]] [
+                  span ([
                     Props.className "activationArea"
-                  , EvDrop      <$> Props.onDrop
+                  ] <> (if enabled then [ 
+                    EvDrop  <$> Props.onDrop
                   , EvDragLeave <$> Props.onDragLeave
                   , EvDragEnter <$> Props.onDragEnter
-                  ] []
+                  ] else [])) []
                 , span [Props.className "dropArea"] []
                 ]
   case result of
     EvDragOver ev -> do
       liftEffect $ preventDefault ev
-      droppableArea isSelected
-    EvDragEnter ev -> do
+      droppableArea index (Enabled enabled) isSelected
+    EvDragEnter _ -> do
       pure { isSelected: true, result }
-    EvDragLeave ev -> do
+    EvDragLeave _ -> do
       pure { isSelected: false, result }
     EvDrop ev -> do
       liftEffect $ preventDefault ev
@@ -479,17 +412,6 @@ dragAndDropAndRemoveList widgets = do
       let widget = removableDraggableWidget isDragging is widgetFunc
       in { widgetFunc, widget }
 
-    manageDroppableAreaResult :: DroppableAreaResult  -> Tuple (OnDropAreaEvents SyntheticMouseEvent) DroppableWidget
-    manageDroppableAreaResult { isSelected, result } = 
-      let droppableWidget = droppableArea isSelected
-      in Tuple result droppableWidget
-
-    -- manageDraggableWidgetResult :: RemovableDraggableWidgetResult a -> RemovableDraggableWidgetType a -> Maybe (Tuple a (RemovableDraggableWidgetType a))
-    -- manageDraggableWidgetResult Remove _ = Nothing
-    -- manageDraggableWidgetResult (Result (DraggableWidgetResult { isDragging, exitState })) { widgetFunc, widget } =
-    --   let newWidget = mapWidget isDragging (Tuple exitState widgetFunc)
-    --   in Just $ Tuple exitState newWidget
-
     includeEither :: forall m b c. Functor m => Either (m b) (m c) -> m (Either b c)
     includeEither (Left w) = Left <$> w
     includeEither (Right w) = Right <$> w
@@ -497,62 +419,23 @@ dragAndDropAndRemoveList widgets = do
     mapDraggableWidget :: RemovableDraggableWidgetType a -> Widget HTML (RemovableDraggableSupportType a)
     mapDraggableWidget { widgetFunc, widget } = (\result -> { widgetFunc, result }) <$> widget
 
-    prepareNewElements :: Array (Widget HTML (Either DroppableAreaResult (RemovableDraggableSupportType a))) 
-                       -> SelectedDraggableInfo a
-                       -> Int
-                       -> Array (Widget HTML (Either DroppableAreaResult (RemovableDraggableSupportType a)))
-    prepareNewElements elements { index: dragIndex, state, widgetFunc } dropIndex 
-      | dragIndex > dropIndex =
-          let untouchedFirstElems = take (dropIndex + 1) elements
-              untouchedLastElems = drop (dragIndex + 1) elements
-              elemsToBeShifted = takeEnd (dragIndex - dropIndex - 1) $ take (dragIndex - 1) elements
-          in case elements !! dragIndex of
-              Nothing -> elements
-              Just elem -> 
-                let newElem = Right <$> (mapDraggableWidget $ mapWidget false (Tuple state widgetFunc))
-                in untouchedFirstElems
-                  <> [newElem]
-                  <> elemsToBeShifted
-                  <> untouchedLastElems
-      | otherwise = 
-          let untouchedFirstElems = take (dragIndex - 1) elements
-              untouchedLastElems = drop dropIndex elements
-              elemsToBeShifted = takeEnd (dropIndex - dragIndex - 1) $ take dropIndex elements
-          in case elements !! dragIndex of
-              Nothing -> elements
-              Just elem -> 
-                let newElem = Right <$> (mapDraggableWidget $ mapWidget false (Tuple state widgetFunc))
-                in untouchedFirstElems
-                  <> elemsToBeShifted
-                  <> [includeEither $ Left $ droppableArea false]
-                  <> [newElem]
-                  <> untouchedLastElems
-
-    convertToLoopableWidget :: Either DroppableAreaResult (RemovableDraggableSupportType a) -> Maybe (LoopableWidget a)
-    convertToLoopableWidget (Left _) = Nothing
-    convertToLoopableWidget (Right { widgetFunc: _, result: Remove}) = Nothing
-    convertToLoopableWidget (Right { widgetFunc, result: (Result (DraggableWidgetResult { isDragging, exitState }))}) = Just (Tuple exitState widgetFunc)
-
-    convertToResult :: Array (Widget HTML (Either DroppableAreaResult (RemovableDraggableSupportType a))) -> Widget HTML (Array (LoopableWidget a))
-    convertToResult arr =
-      let sequencedWidgets = sequence arr
-      in (\eithers -> catMaybes (convertToLoopableWidget <$> eithers)) <$> sequencedWidgets
+    isDroppableAreaEnabled :: Int -> Maybe (SelectedDraggableInfo a) -> Enabled
+    isDroppableAreaEnabled index (Just {index: selectedIndex}) = Enabled $ not $ ((index == selectedIndex - 1) || (index == (selectedIndex + 1)))
+    isDroppableAreaEnabled _     Nothing = Enabled false
 
     go :: Array (Either Boolean (LoopableWidget a)) -> Maybe (SelectedDraggableInfo a) -> Widget HTML (Array (LoopableWidget a))
     go widgetsInfo selectedIndex = do
-      let widgetsInfo'  = ((lmap droppableArea) <$> widgetsInfo)        :: Array (Either DroppableWidget (LoopableWidget a))
+      let widgetsInfo'  = (mapWithIndex (\index selected -> lmap (droppableArea index (isDroppableAreaEnabled index selectedIndex)) selected) widgetsInfo)        :: Array (Either DroppableWidget (LoopableWidget a))
       let widgetsInfo'' = ((rmap (mapWidget false)) <$> widgetsInfo')   :: Array (Either DroppableWidget (RemovableDraggableWidgetType a))
       let widgets'      = ((rmap mapDraggableWidget) <$> widgetsInfo'') :: Array (Either DroppableWidget (Widget HTML (RemovableDraggableSupportType a)))
       let widgets''     = (includeEither <$> widgets')                  :: Array (Widget HTML (Either DroppableAreaResult (RemovableDraggableSupportType a)))
       let zipped        = zipWith (\i -> \w -> { index: i, wi: w}) (range 0 (length widgets'')) widgets''
       let newWidgets    = (\{index, wi} -> (\r -> {index, res: r}) <$> wi) <$> zipped
-    --   {index, res} <- div [Props.className "dragAndDropList"] newWidgets
       {index, res} <- div [Props.classList [Just "dragAndDropList", (\_ -> "dragging") <$> selectedIndex]] newWidgets
-      -- pure $ catMaybes $ hush <$> widgetsInfo
       case res of 
-        Left { isSelected, result } -> do
+        Left { result } -> do
           case result of
-            EvDrop a -> do
+            EvDrop _ -> do
               case selectedIndex of
                 Just { state, index: ix, widgetFunc } -> do
                   let withoutElem = (deleteAt ix widgetsInfo)
@@ -567,21 +450,21 @@ dragAndDropAndRemoveList widgets = do
                 Nothing -> do
                   log "error1"
                   go widgetsInfo selectedIndex
-            EvDragEnter a -> do
+            EvDragEnter _ -> do
               let newElements = updateAt index (Left true) widgetsInfo
               case newElements of
                 Nothing -> do
                   log "error2"
                   go widgetsInfo selectedIndex
                 Just elements' -> go elements' selectedIndex
-            EvDragLeave a -> do
+            EvDragLeave _ -> do
               let newElements = updateAt index (Left false) widgetsInfo
               case newElements of
                 Nothing -> do
                   log "error2"
                   go widgetsInfo selectedIndex
                 Just elements' -> go elements' selectedIndex
-            EvDragOver a -> do
+            EvDragOver _ -> do
               let newElements = updateAt index (Left true) widgetsInfo
               case newElements of
                 Nothing -> do

@@ -6,16 +6,16 @@ import Concur.React.DOM (div, text, ol, p', button, header, span)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
+import Control.Bind (bind)
 import Control.Semigroupoid ((<<<))
-import Control.Bind (bind, discard)
 import Data.Array (nub, sort)
-import Data.EuclideanRing (mod)
 import Data.Eq ((==), (/=))
+import Data.EuclideanRing (mod)
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.HeytingAlgebra ((||), (&&), not)
-import Data.List as List
 import Data.List (fold, filter, length, List(..), (!!), elemIndex)
+import Data.List as List
 import Data.Maybe (Maybe(..))
 import Data.PrettyShow (prettyShow)
 import Data.Ring ((-))
@@ -24,20 +24,19 @@ import Data.Semiring ((+))
 import Data.Show (class Show, show)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
-import DataModel.AppState (AppError, ProxyConnectionStatus(..))
-import DataModel.Card (Card)
+import DataModel.AppState (AppError, ProxyConnectionStatus)
+import DataModel.Card (Card, emptyCard)
 import DataModel.Index (Index(..), CardEntry(..))
 import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
+import OperationalWidgets.CardWidget (cardWidget)
+import OperationalWidgets.CreateCardWidget (CardFormInput(..), createCardWidget)
 import React.SyntheticEvent as Events
 import Views.CardViews (cardView)
 import Views.CreateCardView (createCardView)
 import Views.IndexView (indexView, ComplexIndexFilter, IndexFilter(..), removeLastCardFilter, toFilterFunc, complexToFilterFunc)
 import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleCheckboxWidget, simpleTextInputWidgetWithFocus, clickableListItemWidget)
-import OperationalWidgets.CardWidget (cardWidget)
-import OperationalWidgets.CreateCardWidget (createCardWidget)
 
 data CardViewAction = UpdateIndex IndexUpdateData | ShowCard CardEntry | ShowAddCard | ShowUserArea
 instance showCardViewAction :: Show CardViewAction where
@@ -48,12 +47,13 @@ instance showCardViewAction :: Show CardViewAction where
 
 type CardViewState = { cardView :: CardView, cardViewState :: WidgetState }
 
-data CardView = NoCard | CardFromReference CardEntry | JustCard Card | CardForm Card
+data CardView = NoCard | CardFromReference CardEntry | JustCard Card | CardForm CardFormInput
 instance showCardView :: Show CardView where
   show NoCard = "NoCard"
   show (CardFromReference cr) = "CardFromReference " <> show cr
   show (JustCard c) = "JustCard " <> show c
-  show (CardForm c) = "CardForm " <> show c
+  show (CardForm (NewCard c)) = "CardForm - NewCard " <> show c
+  show (CardForm (ModifyCard c)) = "CardForm - ModifyCard " <> show c
 
 data InternalAction = CardViewAction CardViewAction | ChangeFilter ComplexIndexFilter | KeyBoardAction Events.SyntheticKeyboardEvent | ShowFilters FilterViewStatus
 
@@ -75,7 +75,6 @@ getClassNameFromFilterStatus status = case status of
   FilterViewClosed  -> "closed"
   FilterViewOpen    -> "open"
 
--- cardsManagerView :: Boolean -> Index -> ComplexIndexFilter -> CardViewState -> Maybe AppError -> Widget HTML (Tuple ComplexIndexFilter CardViewAction)
 cardsManagerView :: ProxyConnectionStatus -> FilterViewStatus -> CardsViewInfo -> Widget HTML (Tuple CardsViewInfo CardViewAction)
 cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(Index entries)
                                                                     , indexFilter: cif@{archived, indexFilter}
@@ -118,12 +117,14 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
         ]
       , div [Props._id "card"] [
           case cvs of
-          { cardView: CardForm card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ createCardView card allSortedTags cardViewState
-          { cardView: CardForm card,         cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> createCardWidget card allSortedTags cardViewState
-          { cardView: CardFromReference ref, cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> cardWidget ref allSortedTags cardViewState
-          { cardView: JustCard card,         cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ (div [] [loadingDiv, cardView card proxyConnectionStatus])
-          { cardView: JustCard card,         cardViewState: _       } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ cardView card proxyConnectionStatus
-          { cardView: NoCard       ,         cardViewState: _       } -> div [] []
+          { cardView: CardForm (ModifyCard card),     cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ createCardView card      allSortedTags false cardViewState
+          { cardView: CardForm (NewCard (Just card)), cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ createCardView card      allSortedTags false cardViewState
+          { cardView: CardForm (NewCard Nothing),     cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate Nothing)     <$ createCardView emptyCard allSortedTags false cardViewState
+          { cardView: CardForm card,                  cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> createCardWidget card allSortedTags cardViewState
+          { cardView: CardFromReference ref,          cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> cardWidget ref allSortedTags cardViewState
+          { cardView: JustCard card,                  cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ (div [] [loadingDiv, cardView card proxyConnectionStatus])
+          { cardView: JustCard card,                  cardViewState: _       } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ cardView card proxyConnectionStatus
+          { cardView: NoCard       ,                  cardViewState: _       } -> div [] []
         ]
       ]
     ]
@@ -157,7 +158,6 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
         }
     KeyBoardAction ev -> do
       key <- liftEffect $ Events.key ev
-      -- log $ "Key pressed: " <> key
       case key of
         "a" ->          keyboardAction closeCardInfo
         "ArrowLeft" ->  keyboardAction closeCardInfo
@@ -173,8 +173,8 @@ cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(
       where keyboardAction = cardsManagerView proxyConnectionStatus filterViewStatus
 
   where
-    getMainViewClassFromCardState cvs =
-      case cvs of
+    getMainViewClassFromCardState cvs_ =
+      case cvs_ of
         { cardView: NoCard,               cardViewState: _ }        -> "NoCard"
         { cardView: _,                    cardViewState: Loading }  -> "Loading"
         { cardView: CardForm _,           cardViewState: _       }  -> "CardForm"

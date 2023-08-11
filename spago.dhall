@@ -2,6 +2,7 @@
 , sources = [ "src/**/*.purs" ]
 , dependencies =
   [ "aff"
+  , "aff-promise"
   , "affjax"
   , "affjax-web"
   , "argonaut-codecs"
@@ -35,9 +36,11 @@
   , "http-methods"
   , "identity"
   , "integers"
+  , "js-uri"
   , "lcg"
   , "lists"
   , "maybe"
+  , "markdown-it"
   , "media-types"
   , "newtype"
   , "now"
@@ -60,6 +63,7 @@
   , "web-file"
   , "web-html"
   , "web-storage"
+  ,	"web-xhr"
   ]
 , packages = ./packages.dhall
 }

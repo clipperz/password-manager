@@ -1,13 +1,13 @@
 module OperationalWidgets.ImportWidget where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, fireOnce, demand, loopW, loopS, step, dyn, hold)
+import Concur.Core.FRP (Signal, demand, fireOnce, loopS, loopW)
 import Concur.React (HTML)
 import Concur.React.DOM (text, div, h1, form, h3, h5, ul, li', p, span, br', a', a, div_, label, input, ul_, li_, dl, dt, dd)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard, (>>=))
+import Control.Bind (bind, (>>=))
 import Control.Monad.Except.Trans (runExceptT, ExceptT(..), except)
 import Control.Semigroupoid ((<<<))
 import Data.Argonaut.Core (stringify)
@@ -15,37 +15,31 @@ import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (filter, length, cons, concat)
-import Data.Bifunctor (lmap)
-import Data.Bitraversable (bisequence)
 import Data.Either (Either(..), isLeft)
 import Data.EuclideanRing ((/))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
-import Data.Maybe (maybe)
 import Data.HeytingAlgebra (not)
 import Data.List as List
-import Data.List (List(..), (:), fromFoldable, snoc, zipWith, (..))
-import Data.Maybe (Maybe(..), fromMaybe, isJust)
-import Data.Operation (OperationStep(..), extractResult, runOperation)
+import Data.List (List(..), fromFoldable, snoc, zipWith, (..))
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Operation (OperationStep(..), runOperation)
 import Data.Semigroup ((<>))
 import Data.Semiring ((+), (*))
 import Data.Show (show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), snd)
-import Data.Unit (unit)
 import DataModel.AppState (AppError(..))
 import DataModel.Card (Card(..), CardValues(..), CardField(..))
 import DataModel.Index (Index(..), CardEntry(..))
-import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Cards (postCard, deleteCard)
 import Functions.Communication.Users (updateIndex, getIndex)
-import Functions.Events (readFile, readFileFromDrop, getClickCoordinates, printEvent)
+import Functions.Events (readFileFromDrop)
 import Functions.Import (decodeImport, parseHTMLImport, decodeHTML)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate)
-import Views.CardViews (cardField)
-import Views.SimpleWebComponents (loadingDiv, loadingBar, simpleFileInputWidget, simpleTextInputWidget, simpleTextAreaSignal, simpleCheckboxSignal, simpleButton)
+import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleCheckboxSignal, simpleFileInputWidget, simpleTextAreaSignal, simpleTextInputWidget)
 
 data QuickSelection = All | None | Archived | NonArchived
 
@@ -85,29 +79,16 @@ importWidget :: Widget HTML (Either AppError Index)
 importWidget = do
   newIndex <- ((Right (Index Nil)) <$ (importView "" Nothing)) <|> (liftAff $ runExceptT $ getIndex)
   case newIndex of
-    Right index@(Index es) -> div [Props._id "importPage"] [importPage index Nothing (UploadContent "")]
+    Right index -> div [Props._id "importPage"] [importPage index Nothing (UploadContent "")]
     Left err -> pure $ Left err
 
   where 
-    saveImport' :: List Card -> Index -> Widget HTML (Either AppError Index)
-    saveImport' Nil ix = pure $ Right ix
-    saveImport' (Cons c@(Card {content: (CardValues r)}) cs) ix@(Index es) = (do
-        nix <- liftAff $ runExceptT $ do
-          newEntry <- postCard c
-          let newIndex = Index (Cons newEntry es)
-          _ <- updateIndex newIndex
-          pure newIndex
-        case nix of
-          Right ix' -> saveImport cs ix'
-          Left err -> pure nix
-      ) <|> p [] [text ("Saving " <> r.title)]
-
     saveImport :: List Card -> Index -> Widget HTML (Either AppError Index)
-    saveImport cards index@(Index entries) = do
-      let saveCardFunc = \c@(Card {content: (CardValues r)}) -> 
+    saveImport cards (Index entries) = do
+      let saveCardFunc = \c -> 
                          \(prevRes :: (Either (Tuple AppError (List CardEntry)) (List CardEntry))) -> do
                             case prevRes of
-                              Left err -> pure prevRes
+                              Left  _  -> pure prevRes
                               Right es -> do
                                 res :: Either AppError (List CardEntry) <- liftAff $ runExceptT $ do
                                   newEntry <- postCard c
@@ -186,8 +167,6 @@ importWidget = do
               simpleButton "back" "previous" false false
             , simpleButton "next hide" "next"     true false
             ]
-          -- , simpleButton "back" "previous" false false
-          -- , ((simpleButton "back" "<<" false false) <|> (simpleButton "import" "Import" false true))
           ]
           if res then loadingDiv <|> (div [Props.className "importList"] [div [] [saveImport (fromFoldable toImportCards) index]])
           else importPage index Nothing (ChooseCards cards) 
@@ -218,11 +197,10 @@ importWidget = do
           newTag <- loopS { sel: Nothing, tag: newTagWithDate, cb: true } $ \v -> do
                                                           newSel    <- loopW v.sel (\_ -> Just <$> selectWidget)
                                                           div_ [Props.className "tagButtons"] do
-                                                            -- newTagCB  <-  simpleCheckboxSignal "apply_tag" (text "Apply the following tag to imported cards:") v.cb
-                                                            newTagCB  <-  loopW v.cb (\v -> label [Props.className "apply_tag"] [
-                                                                            (not v) <$  input [
+                                                            newTagCB  <-  loopW v.cb (\v_ -> label [Props.className "apply_tag"] [
+                                                                            (not v_) <$  input [
                                                                               Props._type "checkbox"
-                                                                            , Props.checked v
+                                                                            , Props.checked v_
                                                                             , Props.onChange
                                                                             ]
                                                                           , span [Props.className "label"] [text "Apply the following tag to imported cards:"]
@@ -255,7 +233,7 @@ importWidget = do
     ]
 
     importCardProposalWidget :: Maybe String -> Tuple Boolean Card -> Signal HTML (Tuple Boolean Card)
-    importCardProposalWidget newTag (Tuple b c@(Card { content: cv@(CardValues content), archived, timestamp})) = li_ [] do
+    importCardProposalWidget newTag (Tuple b c@(Card { content: cv })) = li_ [] do
       cb <- simpleCheckboxSignal "select_card" (cardContent cv newTag) b
       pure $ Tuple cb c
 
@@ -263,7 +241,7 @@ importWidget = do
     cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) newTag = div [Props.className "cardContent"] [
       h3  [Props.className "card_title"]  [text t]
     , ul  [Props.className "card_tags"]   $ (\s -> li' [text s]) <$> (maybe ts (\nt -> ts <> [nt]) newTag)
-    , dl [Props.className "card_fields"] $ concat $ (\field@(CardField {name, value, locked}) -> [
+    , dl [Props.className "card_fields"] $ concat $ (\(CardField {name, value, locked}) -> [
           dt [] [text name]
         , dd [Props.classList [if locked then (Just "password") else Nothing]] [
             text value
@@ -274,4 +252,4 @@ importWidget = do
 
     prepareSelectedCards :: String -> Array (Tuple Boolean Card) -> Array (Tuple Boolean Card)
     prepareSelectedCards newTag =
-      (<$>) (\(Tuple b (Card { content: CardValues r, archived, timestamp})) -> Tuple b (Card { archived, timestamp, content: (CardValues $ r { tags = (cons newTag r.tags) })}))
+      (<$>) (\(Tuple b (Card { content: CardValues r, secrets, archived, timestamp})) -> Tuple b (Card { archived, secrets, timestamp, content: (CardValues $ r { tags = (cons newTag r.tags) })}))

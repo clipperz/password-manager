@@ -1,6 +1,6 @@
 package is.clipperz.backend.functions
 
-import zhttp.http.Request
+import zio.http.Request
 
 def extractPath(req: Request): String =
   if req.path.leadingSlash then req.path.dropTrailingSlash.drop(1).take(1).toString

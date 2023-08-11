@@ -30,7 +30,6 @@ import DataModel.Credentials (Credentials)
 import DataModel.SRP (HashFunction)
 import Effect (Effect)
 import Effect.Aff (Aff)
-import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Exception as EX
 import Effect.Fortuna (randomBytes)

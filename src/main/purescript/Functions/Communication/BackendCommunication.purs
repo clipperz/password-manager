@@ -33,7 +33,7 @@ import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), void)
 import Data.HexString (HexString, toBigInt, fromBigInt, hex, toArrayBuffer, fromArrayBuffer)
-import Data.HeytingAlgebra ((&&), (||))
+import Data.HeytingAlgebra ((&&))
 import Data.HTTP.Method (Method(..))
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..))
@@ -121,7 +121,7 @@ manageGenericRequest url method body responseFormat = do
                               OfflineProxy _ -> OfflineRequestInfo { url, method, body, responseFormat }
           response <- withExceptT (\e -> AS.ProtocolError e) (ExceptT $ doGenericRequest proxy requestInfo)
           -- change toll to loading state because it has been used
-          ExceptT $ Right <$> modifyAppState (currentState { toll = toLoading toll })
+          ExceptT $ Right <$> (liftEffect $ modifyAppState (currentState { toll = toLoading toll }))
           manageResponse response.status response
 
         manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AS.AppError Aff (AXW.Response a))

@@ -8,34 +8,26 @@ import Concur.React (HTML)
 import Concur.React.DOM (div, a, text, h1, h3, p, button)
 import Concur.React.Props as Props
 import Control.Alternative ((<|>))
-import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (runExceptT)
 import Control.Semigroupoid ((<<<))
 import Data.Bifunctor (lmap)
 import Data.Either (Either(..), fromRight)
-import Data.EuclideanRing ((/))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$), void)
-import Data.Int (floor)
 import Data.List (List(..), length)
 import Data.Map (fromFoldable)
 import Data.Maybe (fromMaybe, Maybe(..))
-import Data.Monoid (power)
 import Data.Operation (runOperation)
-import Data.Ring ((-))
 import Data.Semigroup ((<>))
-import Data.Semiring ((+), (*))
-import Data.Show (show)
+import Data.Semiring ((+))
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
-import DataModel.AppState (AppError)
-import DataModel.Index (Index(..), CardEntry(..))
-import Effect.Aff (Aff)
+import DataModel.Index (Index(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Users (getIndex)
-import Functions.Export (prepareOfflineCopy, prepareUnencryptedCopy, prepareUnencryptedCopySteps, prepareOfflineCopySteps, OfflineCopyStep(..), OfflineCopyStepResult(..), UnencryptedCopyStep(..), UnencryptedCopyStepResult(..))
+import Functions.Export (OfflineCopyStep(..), OfflineCopyStepResult(..), UnencryptedCopyStep(..), UnencryptedCopyStepResult(..), prepareOfflineCopySteps, prepareUnencryptedCopySteps)
 import Functions.JSState (getAppState)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate)
 import Views.SimpleWebComponents (loadingBar)
@@ -46,11 +38,6 @@ exportWidget = do
   exportView (lmap (\_ -> "Current index could not be loaded, please reload the application.") newIndex)
 
   where
-    -- go _ tuple@(Tuple (Right (Just _)) (Right (Just _))) = exportView tuple
-    -- go index tuple = do
-    --   res <- (Nothing <$ exportView tuple) <|> (Just <$> liftAff (prepareDownloads index))
-    --   go index $ fromMaybe tuple res
-
     exportView :: Either String Index -> Widget HTML Unit
     exportView (Left err) = div [Props._id "exportPage"] [
       h1 [] [text "Export"]
@@ -76,7 +63,6 @@ exportWidget = do
 
     offlineCopyWidget :: Index -> Widget HTML Unit
     offlineCopyWidget index@(Index entries) = do
-      -- res <- (p [] [text "Preparing download"]) <|> (liftAff $ prepareOfflineCopy index)
       let placeholders = fromFoldable [ (Tuple PrepareBlobList (text "Preparing blobs...")) 
                                       , (Tuple GetUserCard (text "Getting card list...")) 
                                       , (Tuple GetFileStructure (text "Preparing document template...")) 
@@ -85,7 +71,6 @@ exportWidget = do
                                       ]
       let total = (length entries) + 2
       let plFunc = \i -> p [] [text $ "Getting blobs: " <> (loadingBar (i + 1) total 30)]
-      -- let plFunc = \i -> text ("Getting blob " <> (show i) <> " of " <> (show total))
       steps <- liftAff $ prepareOfflineCopySteps placeholders plFunc index
       res <- runOperation (Right Start) steps
       case res of
@@ -93,18 +78,17 @@ exportWidget = do
           dt <- liftEffect $ formatDateTimeToDate <$> getCurrentDateTime
           a [Props.download (dt <> "_Clipperz_Offline"), Props.href url, void Props.onClick] [button [Props.disabled false] [text "Download"]] 
         Left (Left err) -> (text $ "Could not prepare offline copy: " <> err) <|> (a [] [button [Props.disabled true] [text "Download"]]) 
-        Right url -> (text "Preparation not completed, reload the application") <|> (a [] [button [Props.disabled true] [text "Download"]]) 
+        Right _ -> (text "Preparation not completed, reload the application") <|> (a [] [button [Props.disabled true] [text "Download"]]) 
 
     unencryptedCopyWidget :: Index -> Widget HTML Unit
     unencryptedCopyWidget index@(Index entries) = do
-      -- res <- (p [] [text "Preparing download"]) <|> (liftAff $ prepareUnencryptedCopy index)
       let placeholders = fromFoldable [ (Tuple PrepareCardList (text "Preparing cards...")) 
                                       , (Tuple PrepareContent (text "Preparing document content...")) 
                                       , (Tuple PrepareDoc (text "Preparing document...")) 
                                       , (Tuple PrepareDowloadUrl (text "Preparing file to download..."))
                                       ]
       let total = length entries
-      let plFunc = \{index, card: (CardEntry { title })} -> p [] [text $ "Getting cards: " <> (loadingBar (index + 1) total 30)]
+      let plFunc = \{index: index_} -> p [] [text $ "Getting cards: " <> (loadingBar (index_ + 1) total 30)]
       let steps = prepareUnencryptedCopySteps placeholders plFunc index
       res <- runOperation (Right StartStep) steps
       case res of
@@ -113,5 +97,5 @@ exportWidget = do
           username <- liftEffect $ ((fromMaybe "") <<< (fromRight Nothing) <<< ((<$>) (\as -> as.username))) <$> getAppState
           a [Props.download (dt <> "_Clipperz_Export_" <> username), Props.href url, void Props.onClick] [button [Props.disabled false] [text "Download"]]
         Left (Left err) -> (text $ "Could not prepare unencrypted copy: " <> err) <|> (a [] [button [Props.disabled true] [text "Download"]]) 
-        Right url -> (text "Preparation not completed, reload the application") <|> (a [] [button [Props.disabled true] [text "Download"]]) 
+        Right _ -> (text "Preparation not completed, reload the application") <|> (a [] [button [Props.disabled true] [text "Download"]]) 
           
