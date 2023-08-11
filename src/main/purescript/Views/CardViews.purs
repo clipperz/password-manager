@@ -21,6 +21,7 @@ import Data.Maybe (Maybe(..), isJust, maybe)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.Traversable (sequence)
+import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
 import DataModel.AppState (ProxyConnectionStatus(..))
 import DataModel.Card (Card(..), CardField(..), CardValues(..))
@@ -31,7 +32,7 @@ import Functions.Communication.OneTimeShare (secretInfo, share)
 import MarkdownIt (renderString)
 import Record (merge)
 import Views.Components (dynamicWrapper, entropyMeter)
-import Views.ShareView (Secret(..), shareSignal)
+import Views.ShareView (Secret(..), emptySecretData, shareSignal)
 import Views.SimpleWebComponents (simpleButton, confirmationWidget)
 
 -- -----------------------------------
@@ -87,7 +88,7 @@ cardActions c@(Card r) enabled = div [Props.className "cardActions"] [
     else
       simpleButton "archive" (show (Archive c)) (not enabled) (Archive c)
   , simpleButton "delete"    (show (Delete c))  (not enabled) (Delete c)
-  , simpleButton "share"     (show (Share c))   (not enabled) (Share c)         
+  -- , simpleButton "share"     (show (Share c))   (not enabled) (Share c)         
 ]
 
 type SecretIdInfo = { creationDate   :: String
@@ -110,18 +111,19 @@ secretSignal { creationDate, expirationDate, secretId } = li_ [] do
 shareOverlay :: Array String -> Secret -> Widget HTML (Maybe (Array String))
 shareOverlay secrets secret = do
   secretsInfo <- liftAff $ (zipWith (\s r -> merge {secretId: s} r) secrets) <$> (sequence $ (\secret' -> (fromRight {creationDate: "", expirationDate: "redeemed"}) <$> secret') <$> (runExceptT <<< secretInfo) <$> secrets)
+  initialSecretData <- liftAff emptySecretData
   secretData <- div [Props.className "dialog"] [
     h3 [] [text "One Time Share"]
   , demand $ div_ [Props.className "secrets"] do
       ul_ [] do
-        secretData <- li_ [Props.className "addTag"] (shareSignal secret)
+        secretData <- li_ [Props.className "addTag"] (shareSignal true secret initialSecretData)
         _ <- (\maybeSignal -> ((maybe [] singleton) =<< filter isJust maybeSignal)) <$> (sequence $ secretSignal <$> secretsInfo)
         pure secretData
   ]
-  exceptId <- liftAff $ runExceptT $ share secretData
+  exceptId <- liftAff $ runExceptT $ share secretData --TODO
   pure $ case exceptId of
     Left  _  -> Nothing
-    Right id -> Just (secrets <> [id])
+    Right (Tuple _ id) -> Just (secrets <> [id])
 
 cardContent :: forall a. CardValues -> Widget HTML a
 cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) = div [Props._id "cardContent"] [

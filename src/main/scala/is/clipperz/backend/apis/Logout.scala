@@ -10,7 +10,7 @@ import java.util
 import zio.Cause
 import is.clipperz.backend.LogAspect
 
-val logoutApi: ClipperzHttpApp = Http.collectZIO[Request] {
+val logoutApi: ClipperzHttpApp = Http.collectZIO[Request]:
   case request @ Method.POST -> Root / "api" / "logout" =>
     ZIO
       .service[SessionManager]
@@ -25,4 +25,3 @@ val logoutApi: ClipperzHttpApp = Http.collectZIO[Request] {
         case ex: NoSuchElementException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
       } @@ LogAspect.logAnnotateRequestData(request)
-}

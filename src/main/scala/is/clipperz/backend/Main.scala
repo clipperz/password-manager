@@ -56,9 +56,9 @@ object Main extends zio.ZIOAppDefault:
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
     if args.length == 4 then
-      val blobsArchivePath = args(0).split("/").nn
-      val usersArchivePath = args(1).split("/").nn
-      val oneTimeShareArchivePath = args(2).split("/").nn
+      val blobBasePath = FileSystems.getDefault().nn.getPath(args(0)).nn
+      val userBasePath = FileSystems.getDefault().nn.getPath(args(1)).nn
+      val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath(args(2)).nn
       val port = args(3).toInt
 
       val MB = 1024 * 1024
@@ -71,10 +71,6 @@ object Main extends zio.ZIOAppDefault:
       val nettyConfig      = NettyConfig.default
                               .leakDetection(LeakDetectionLevel.PARANOID)
                               .maxThreads(nThreads)
-
-      val blobBasePath = FileSystems.getDefault().nn.getPath(blobsArchivePath(0), blobsArchivePath.drop(1)*).nn
-      val userBasePath = FileSystems.getDefault().nn.getPath(usersArchivePath(0), usersArchivePath.drop(1)*).nn
-      val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath(oneTimeShareArchivePath(0), oneTimeShareArchivePath.drop(1)*).nn
 
       blobBasePath.toFile().nn.mkdirs()
       userBasePath.toFile().nn.mkdirs()

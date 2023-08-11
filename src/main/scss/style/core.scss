@@ -104,3 +104,10 @@ div.page {
 		background-color: rgb(37, 173, 0);
 	}
 }
+
+#shortcutsHelp {
+	&.hidden {
+		visibility: hidden;
+		display: none;
+	}
+}

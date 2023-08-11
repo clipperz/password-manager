@@ -562,6 +562,11 @@ div#homePage {
                                                 }
                                             }
 
+											&.disabled {
+												visibility: hidden;
+												display: none;
+											}
+
                                             &.selected {
 
                                                 span {
@@ -685,7 +690,7 @@ div#homePage {
                                                         }
                                                     }
 
-													div.passwordGenerator {
+													div.passwordGeneratorOverlay {
 														.passwordGeneratorMask {
 															position: fixed;
 															top: 0px;
@@ -869,6 +874,7 @@ div#homePage {
 										}
 
 										textarea {
+											box-sizing: border-box;
 											resize: none;
 											overflow: hidden;
 

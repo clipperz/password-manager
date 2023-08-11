@@ -56,7 +56,7 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
       .flatMap((archive, stream) =>
         fromStream[OneTimeSecretData](stream)
           .map ((secretData: OneTimeSecretData) => 
-            val start = DateTime.now()
+            val start = DateTime.now().withZone(DateTimeZone.UTC).nn
             OneTimeSecret(secretData.secret, start, start + secretData.duration.toLong)
           )
           .flatMap ((secret: OneTimeSecret) => 

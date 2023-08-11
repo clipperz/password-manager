@@ -20,7 +20,7 @@ import zio.http.* //TODO: fix How do you import `Root` and `/`?
 import zio.json.EncoderOps
 import zio.stream.ZStream
 
-val usersApi: ClipperzHttpApp = Http.collectZIO[Request] {
+val usersApi: ClipperzHttpApp = Http.collectZIO[Request]:
   case request @ Method.POST -> Root / "api" / "users" / c =>
     ZIO
       .service[UserArchive]
@@ -171,4 +171,3 @@ val usersApi: ClipperzHttpApp = Http.collectZIO[Request] {
         case ex: ResourceNotFoundException =>
           ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.NotFound))
       } @@ LogAspect.logAnnotateRequestData(request)
-}

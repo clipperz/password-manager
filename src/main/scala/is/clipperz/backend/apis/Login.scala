@@ -14,7 +14,7 @@ import zio.Cause
 import is.clipperz.backend.LogAspect
 import zio.http.Header.HeaderType
 
-val loginApi: ClipperzHttpApp = Http.collectZIO[Request] {
+val loginApi: ClipperzHttpApp = Http.collectZIO[Request]:
   case request @ Method.POST -> Root / "api" / "login" / "step1" / c =>
     ZIO
       .service[SessionManager]
@@ -70,4 +70,3 @@ val loginApi: ClipperzHttpApp = Http.collectZIO[Request] {
         case ex: NoSuchElementException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
       } @@ LogAspect.logAnnotateRequestData(request)
-}

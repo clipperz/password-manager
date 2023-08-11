@@ -37,24 +37,25 @@ module Views.SimpleWebComponents
 
 import Concur.Core (Widget)
 import Concur.Core.FRP (Signal, display, loopS, loopW)
+import Concur.Core.Props (handleProp)
 import Concur.React (HTML)
 import Concur.React.DOM (button, div, input, label, li, span, text, textarea, ul)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (=<<), (>>=))
 import Control.Semigroupoid ((<<<))
-import Data.Array (catMaybes, deleteAt, insertAt, intersperse, length, range, updateAt, zipWith, (:))
+import Data.Array (catMaybes, deleteAt, insertAt, intersperse, length, mapWithIndex, range, updateAt, zipWith, (:))
 import Data.Bifunctor (lmap, rmap)
 import Data.Either (Either(..), hush)
-import Data.EuclideanRing ((/))
 import Data.Eq ((==))
+import Data.EuclideanRing ((/))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>), class Functor)
-import Data.HeytingAlgebra (not)
+import Data.HeytingAlgebra (not, (||))
 import Data.Map (Map, lookup)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Monoid (power)
-import Data.Ring ((-))
+import Data.Ring ((+), (-))
 import Data.Semigroup ((<>))
 import Data.Semiring ((*))
 import Data.Show (show, class Show)
@@ -69,10 +70,8 @@ import Effect.Class.Console (log)
 import Functions.Events (readFile)
 import Functions.Password (PasswordStrengthFunction, PasswordStrength, passwordStrengthClass)
 import React.SyntheticEvent (currentTarget, preventDefault, SyntheticEvent_, NativeEventTarget, NativeEvent, SyntheticMouseEvent)
-
 import Unsafe.Coerce (unsafeCoerce)
-import Concur.Core.Props (handleProp)
-import Views.Components (entropyMeter)
+import Views.Components (Enabled(..), entropyMeter)
 
 
 foreign import handleDragStartEvent_ :: String -> Int -> Int -> NativeEvent -> Effect Unit
@@ -366,21 +365,22 @@ removableDraggableWidget isDragging initialState widgetFunc = do
 type DroppableAreaResult = { isSelected :: Boolean, result :: (OnDropAreaEvents SyntheticMouseEvent) }
 type IndexedResult a = {index :: Int, result :: a}
 
-droppableArea :: Boolean -> Widget HTML DroppableAreaResult
-droppableArea isSelected = do
-  result <- div [ Props.classList [Just "dropzone", (if isSelected then Just "selected" else Nothing)]] [
-                  span [
+droppableArea :: Int -> Enabled -> Boolean -> Widget HTML DroppableAreaResult
+droppableArea index (Enabled enabled) isSelected = do
+  result <- div [ Props.classList [Just ("dropzone " <> show index), (if isSelected then Just "selected" else Nothing), (if enabled then Nothing else Just "disabled")]] [
+                  span ([
                     Props.className "activationArea"
-                  , EvDrop      <$> Props.onDrop
+                  ] <> (if enabled then [ 
+                    EvDrop  <$> Props.onDrop
                   , EvDragLeave <$> Props.onDragLeave
                   , EvDragEnter <$> Props.onDragEnter
-                  ] []
+                  ] else [])) []
                 , span [Props.className "dropArea"] []
                 ]
   case result of
     EvDragOver ev -> do
       liftEffect $ preventDefault ev
-      droppableArea isSelected
+      droppableArea index (Enabled enabled) isSelected
     EvDragEnter _ -> do
       pure { isSelected: true, result }
     EvDragLeave _ -> do
@@ -419,9 +419,13 @@ dragAndDropAndRemoveList widgets = do
     mapDraggableWidget :: RemovableDraggableWidgetType a -> Widget HTML (RemovableDraggableSupportType a)
     mapDraggableWidget { widgetFunc, widget } = (\result -> { widgetFunc, result }) <$> widget
 
+    isDroppableAreaEnabled :: Int -> Maybe (SelectedDraggableInfo a) -> Enabled
+    isDroppableAreaEnabled index (Just {index: selectedIndex}) = Enabled $ not $ ((index == selectedIndex - 1) || (index == (selectedIndex + 1)))
+    isDroppableAreaEnabled _     Nothing = Enabled false
+
     go :: Array (Either Boolean (LoopableWidget a)) -> Maybe (SelectedDraggableInfo a) -> Widget HTML (Array (LoopableWidget a))
     go widgetsInfo selectedIndex = do
-      let widgetsInfo'  = ((lmap droppableArea) <$> widgetsInfo)        :: Array (Either DroppableWidget (LoopableWidget a))
+      let widgetsInfo'  = (mapWithIndex (\index selected -> lmap (droppableArea index (isDroppableAreaEnabled index selectedIndex)) selected) widgetsInfo)        :: Array (Either DroppableWidget (LoopableWidget a))
       let widgetsInfo'' = ((rmap (mapWidget false)) <$> widgetsInfo')   :: Array (Either DroppableWidget (RemovableDraggableWidgetType a))
       let widgets'      = ((rmap mapDraggableWidget) <$> widgetsInfo'') :: Array (Either DroppableWidget (Widget HTML (RemovableDraggableSupportType a)))
       let widgets''     = (includeEither <$> widgets')                  :: Array (Widget HTML (Either DroppableAreaResult (RemovableDraggableSupportType a)))

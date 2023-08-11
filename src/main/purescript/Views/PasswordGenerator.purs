@@ -2,11 +2,11 @@ module Views.PasswordGenerator where
   
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (button, div, div', header, input, label, span, text, textarea)
+import Concur.React.DOM (button, div, h4, header, input, label, span, text, textarea)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind)
 import Control.Semigroupoid ((<<<))
 import Data.Array (all, difference, elem, nub, sort)
 import Data.Either (Either(..), either)
@@ -23,14 +23,13 @@ import Data.String.CodePoints (fromCodePointArray, toCodePointArray)
 import Data.Tuple (Tuple(..))
 import DataModel.AsyncValue (AsyncValue(..))
 import DataModel.Password (PasswordGeneratorSettings, CharacterSet(..), defaultCharacterSets)
+import Effect.Aff (Milliseconds(..), delay)
 import Effect.Aff.Class (liftAff)
-import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Functions.Clipboard (copyToClipboard)
 import Functions.Password (randomPassword)
 import Views.Components (dynamicWrapper, entropyMeter)
-import Views.SimpleWebComponents (simpleButton, simpleTextInputWidget)
-
+import Views.OverlayView (overlay)
+import Views.OverlayView as OverlayStatus
 
 extractValue :: forall a. Monoid a => AsyncValue a -> a
 extractValue v = 
@@ -41,9 +40,9 @@ extractValue v =
 
 ---------------------------
 
-passwordGenerator :: PasswordGeneratorSettings -> Widget HTML (Tuple String (Maybe PasswordGeneratorSettings))
-passwordGenerator initialSettings = do
-  result@(Tuple newPassword newSettings) <- composedWidget initialSettings false (Loading Nothing) --check if settings have changed 
+passwordGenerator :: PasswordGeneratorSettings -> AsyncValue String -> Widget HTML (Tuple String (Maybe PasswordGeneratorSettings))
+passwordGenerator initialSettings initialPassword = do
+  result@(Tuple newPassword newSettings) <- composedWidget initialSettings false initialPassword --check if settings have changed 
   pure $ case newSettings of
     Just s -> if s == initialSettings then Tuple newPassword Nothing else result 
     Nothing -> result
@@ -75,10 +74,19 @@ composedWidget settings isOpen av = do
       , ModifiedSettingsAction <$> settingsWidget s
       ]
     , div [Props.className "passwordGenerator"] [
-        simpleButton "generatePassword" "generate password" false RequestedNewSuggestion
-      , (either ObtainedNewSuggestion ApprovedSuggestion) <$> suggestionWidget v
+        h4 [Props.className "label"] [text "Generated value"]
+      , div [Props.className "valueGeneration"] [
+          RequestedNewSuggestion <$ button [Props.className "generatePassword", Props.title "regenerate", Props.onClick] [span [] [text "generate password"]]
+        , (either ObtainedNewSuggestion ApprovedSuggestion) <$> suggestionWidget v
+        ]
       ]
+      <> 
+      case v of
+        Done p    -> (ApprovedSuggestion <$> button [Props.className "sharePassword", p <$ Props.onClick] [span [] [text "share"]])
+        Loading _ -> button [Props.className "sharePassword", Props.disabled true] [span [] [text "share"]]
     ]
+
+data PasswordWidgetAction = PasswordChange String | UpdatePassword | InsertPassword String | CopyPassword String
 
 suggestionWidget :: AsyncValue String -> Widget HTML (Either String String)
 suggestionWidget av =
@@ -89,46 +97,23 @@ suggestionWidget av =
     go :: Boolean -> String -> Widget HTML (Either String String)
     go b s = do
       res <-
-        (PasswordChange <$> (div [Props.className "generatedValue"] [
-          label [] [
-            span [Props.className "label"] [text "Generated value"]
-          , dynamicWrapper Nothing s $ textarea [Props.rows 1, Props.spellCheck false, Props.disabled b, Props.value s, Props.unsafeTargetValue <$> Props.onChange] [] 
-          ]
-        , entropyMeter s
-        ]))
-        <> div [Props.className "actions"] [
-          (InsertPassword <$> simpleButton "setPassword" "set password" b s)
-        , (PasswordChange s <$ button [Props.className "copy", copyToClipboard s <$ Props.onClick] [text "Copy"])
+        div [Props.className "generatedValue"] [
+           PasswordChange <$> label [] [
+              span [Props.className "label"] [text "generatedValue"]
+            , dynamicWrapper Nothing s $ textarea [Props.rows 1, Props.spellCheck false, Props.disabled b, Props.value s, Props.unsafeTargetValue <$> Props.onChange] []
+            ]
+          , entropyMeter s
         ]
+        <>
+        (CopyPassword s <$  button [Props.className "copy", Props.title "copy", (\_ -> copyToClipboard s) <$> Props.onClick] [span [] [text "copy"]])
+        <>
+        (InsertPassword <$> button [Props.className "setPassword", Props.title "insert", Props.disabled b, s <$ Props.onClick] [span [] [text "set password"]])
       
       case res of
         PasswordChange p       -> suggestionWidget $ Done p
+        CopyPassword p         -> (suggestionWidget $ Done p) <|> (liftAff $ (Left p) <$ delay (Milliseconds 1000.0)) <|> overlay { status: OverlayStatus.Copy, message: "copied" }
         UpdatePassword         -> suggestionWidget $ Done ""
         InsertPassword newPswd -> pure $ Right newPswd 
-
-data PasswordWidgetAction = PasswordChange String | UpdatePassword | InsertPassword String
-passwordWidget :: PasswordGeneratorSettings -> Maybe String -> Widget HTML String
-passwordWidget settings str =
-  case str of  
-    Just p  -> go p
-    Nothing -> do
-      pswd <- liftAff $ randomPassword settings.length settings.characters
-      go pswd
-  where
-    go :: String -> Widget HTML String
-    go s = do
-      liftEffect $ log s
-      res <- div' [
-        PasswordChange <$> simpleTextInputWidget "password" (text "GeneratedPassword") "" s
-      , simpleButton "regenerate" "Regenerate" false UpdatePassword
-      , InsertPassword <$> simpleButton "insert" "Insert" false s
-      ]
-      case res of
-        PasswordChange p       -> passwordWidget settings (Just p)
-        UpdatePassword         -> do
-          newPassword <- liftAff $ randomPassword settings.length settings.characters
-          passwordWidget settings (Just newPassword)
-        InsertPassword newPswd -> pure newPswd
 
 charsetSelector :: String -> (Tuple String CharacterSet) -> Widget HTML String
 charsetSelector currentSelection (Tuple charsetName (CharacterSet charsetString)) = do
@@ -151,14 +136,17 @@ settingsWidget s = do
   res <- div [Props.className "passwordSettings"] [
     (LengthChange <<< (fromMaybe 0) <<< fromString <<< Props.unsafeTargetValue) <$> label [Props.className "passwordLength"] [
       span  [Props.className "label"] [text "length"]
-    , input [Props._type "number", Props.value $ show length, Props.onChange]
+    , input [Props._type "number", Props.value $ show length, Props.onChange, Props.min "1"]
     , span  [Props.className "unit"] [text "characters"]
     ]
-  , Chars <$> label [Props.className "charList"] [
-      span  [Props.className "label"] [text "characters"]
-    , div   [Props.className "charset"] [
+  , Chars <$> div [Props.className "charList"] [
+      h4  [Props.className "label"] [text "character sets"]
+    , div [Props.className "charset"] [
         div [Props.className "charsetSets"] ((charsetSelector characters) <$> defaultCharacterSets)
-      , dynamicWrapper Nothing characters $ textarea [Props.rows 1, Props.spellCheck false, Props.value characters, Props.unsafeTargetValue <$> Props.onChange] [] 
+      , label [Props.className "charListLabel"] [
+          span [Props.className "label"] [text "charList"]
+        , dynamicWrapper Nothing characters $ textarea [Props.rows 1, Props.spellCheck false, Props.value characters, Props.unsafeTargetValue <$> Props.onChange] [] 
+        ]
     ]
   ]
   ]

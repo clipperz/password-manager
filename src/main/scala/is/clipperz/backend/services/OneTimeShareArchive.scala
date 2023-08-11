@@ -54,12 +54,11 @@ object OneTimeShareArchive:
     override def saveSecret(content: ZStream[Any, Throwable, Byte]): Task[SecretId] =
       val id = UUID.randomUUID().nn.toString();
       ZIO
-        .scoped {
+        .scoped:
           keyBlobArchive
             .saveBlob(id, content)
             .map(_ => id)
-        }
-        .catchSome {
+        .catchSome:
           case ex: FileNotFoundException =>
             val str: String =
               if ex.getMessage() == null then "The temporary file or the secret could not be saved" else ex.getMessage().nn
@@ -67,12 +66,11 @@ object OneTimeShareArchive:
           case ex: BadRequestException => ZIO.fail(ex)
           case ex: EmptyContentException => ZIO.fail(ex)
           case ex => ZIO.fail(new NonWritableArchiveException(s"${ex}"))
-        }
 
   // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
   def initializeOneTimeShareArchive(basePath: Path): Task[Unit] =
-    ZIO.attempt {
+    ZIO.attempt:
       val file = basePath.toFile()
       val tempFolderSuccessfullyCreated: Boolean =
         (file match
@@ -82,7 +80,6 @@ object OneTimeShareArchive:
           .getOrElse(false)
       if (tempFolderSuccessfullyCreated == false)
         throw new IOException("Failed initialization of temporary blob directory")
-    }
 
   def fs(
       basePath: Path,

@@ -45,25 +45,23 @@ object BlobArchive:
     override def saveBlob(key: BlobHash, content: ZStream[Any, Throwable, Byte]): Task[BlobHash] =
       val tmpFile = File.createTempFile("pre", "suff", tmpDir.toFile())
       ZIO
-        .scoped {
+        .scoped:
           content
             .timeoutFail(new EmptyContentException)(Duration.fromMillis(WAIT_TIME))
             .tapSink(ZSink.fromOutputStream(new FileOutputStream(tmpFile)))
             .run(ZSink.digest(MessageDigest.getInstance("SHA-256").nn))
             .map((chunk: Chunk[Byte]) => HexString.bytesToHex(chunk.toArray))
-        }
         .flatMap { hash =>
           if (hash == key)
-            ZIO.scoped {
+            ZIO.scoped:
               keyBlobArchive
                 .saveBlob(hash.toString, ZStream.fromPath(tmpFile.nn.toPath().nn))
                 .map(_ => tmpFile.nn.delete())
                 .map(_ => hash)
-            }
           else
             ZIO.fail(new BadRequestException(s"Hash of content does not match with hash in request"))
         }
-        .catchSome {
+        .catchSome:
           case ex: FileNotFoundException =>
             val str: String =
               if ex.getMessage() == null then "The temporary file or the blob could not be saved" else ex.getMessage().nn
@@ -71,10 +69,9 @@ object BlobArchive:
           case ex: BadRequestException => ZIO.fail(ex)
           case ex: EmptyContentException => ZIO.fail(ex)
           case ex => ZIO.fail(new NonWritableArchiveException(s"${ex}"))
-        }
 
     override def deleteBlob(key: BlobHash, content: ZStream[Any, Throwable, Byte]): Task[Boolean] =
-      ZIO.scoped {
+      ZIO.scoped:
         HashFunction
           .hashSHA256(content)
           .map(hash => bytesToHex(hash))
@@ -84,12 +81,11 @@ object BlobArchive:
             else
               ZIO.fail(new BadRequestException(s"Different hashes: computed = ${hash}, passed = ${key}"))
           )
-      }
 
   // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
   def initializeBlobArchive(basePath: Path): Task[Unit] =
-    ZIO.attempt {
+    ZIO.attempt:
       val file = basePath.toFile()
       val tempFolderSuccessfullyCreated: Boolean =
         (file match
@@ -99,7 +95,6 @@ object BlobArchive:
           .getOrElse(false)
       if (tempFolderSuccessfullyCreated == false)
         throw new IOException("Failed initialization of temporary blob directory")
-    }
 
   def fs(
       basePath: Path,

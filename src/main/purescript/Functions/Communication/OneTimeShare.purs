@@ -13,7 +13,8 @@ import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
-import Data.HexString (fromArrayBuffer, hex, toArrayBuffer)
+import Data.HexString (fromArrayBuffer, hex, toArrayBuffer, toString)
+import Data.HexString as Base
 import Data.List (List(..), (:))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
@@ -21,29 +22,36 @@ import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Time.Duration (Seconds, fromDuration)
+import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.SRP (hashFuncSHA256)
 import Effect.Aff (Aff)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
-import Functions.EncodeDecode (decryptJson, encryptJson)
+import Functions.EncodeDecode (decryptArrayBuffer, decryptJson, encryptArrayBuffer, encryptJson)
+import Functions.SRP (randomArrayBuffer)
 
-type SecretData = { secret :: String
-                  , password :: String
+type SecretData = { secret   :: String
+                  , pin      :: String
                   , duration :: Seconds
                   }
 
-share :: SecretData -> ExceptT AppError Aff String
-share {secret, password, duration} = do
-  key <- ExceptT $ Right <$> (hashFuncSHA256 ((toArrayBuffer $ hex password) : Nil))
+share :: SecretData -> ExceptT AppError Aff (Tuple String String)
+share {secret, pin, duration} = do
+  key <- ExceptT $ Right <$> randomArrayBuffer 32
   cryptoKey <- ExceptT $ Right <$> KI.importKey raw key (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   encryptedSecret <- ExceptT $ Right <$> encryptJson cryptoKey secret 
+  
   let url = joinWith "/" ["share"]
   let body = (json $ encodeJson { secret: fromArrayBuffer encryptedSecret, duration: unwrap $ fromDuration duration})
 
   response <- manageGenericRequest url POST (Just body) RF.string
   if isStatusCodeOk response.status
-    then except $ Right $ response.body
+    then do
+      pinKey <- ExceptT $ Right <$> (hashFuncSHA256 ((toArrayBuffer $ hex pin) : Nil))
+      cryptoPinKey <- ExceptT $ Right <$> KI.importKey raw pinKey (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+      encryptedKey <- ExceptT $ Right <$> (encryptArrayBuffer cryptoPinKey key)
+      except $ Right $ Tuple (toString Base.Hex (fromArrayBuffer encryptedKey)) response.body
     else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
 
 type SecretInfo = { creationDate   :: String
@@ -58,12 +66,15 @@ secretInfo id = do
     then withExceptT (\e -> ProtocolError (DecodeError (show e))) (except $ decodeJson response.body)
     else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
 
-redeem :: forall a. DecodeJson a => String -> String -> ExceptT AppError Aff a
-redeem id password = do
-  key <- ExceptT $ Right <$> (hashFuncSHA256 ((toArrayBuffer $ hex password) : Nil))
-  cryptoKey <- ExceptT $ Right <$> KI.importKey raw key (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+redeem :: forall a. DecodeJson a => String -> String -> String -> ExceptT AppError Aff a
+redeem id cryptedKey pin = do
   let url = joinWith "/" ["redeem", id]
   response <- manageGenericRequest url GET Nothing RF.arrayBuffer
   if isStatusCodeOk response.status
-    then withExceptT (\e -> ProtocolError $ CryptoError $ "Get decrypted blob: " <> show e) (ExceptT $ decryptJson cryptoKey response.body)
+    then do
+      pinKey       <- ExceptT $ Right <$> (hashFuncSHA256 ((toArrayBuffer $ hex pin) : Nil))
+      cryptoPinKey <- ExceptT $ Right <$> KI.importKey raw pinKey (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+      decryptedKey <- withExceptT (\e -> ProtocolError $ CryptoError $ "Get decrypted key: " <> show e) (ExceptT $ decryptArrayBuffer cryptoPinKey (toArrayBuffer $ hex cryptedKey))
+      cryptoKey <- ExceptT $ Right <$> KI.importKey raw decryptedKey (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+      withExceptT (\e -> ProtocolError $ CryptoError $ "Get decrypted blob: " <> show e) (ExceptT $ decryptJson cryptoKey response.body)
     else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status

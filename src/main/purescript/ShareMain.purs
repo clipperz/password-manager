@@ -18,14 +18,16 @@ import Effect (Effect)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
+import Foreign (unsafeToForeign)
 import Functions.JSState (modifyAppState)
 import Functions.State (computeInitialState)
 import JSURI (decodeURI)
 import OperationalWidgets.ShareWidget (shareWidget)
 import Views.ShareView (Secret(..))
 import Web.HTML (window)
-import Web.HTML.Location (hash, setHash)
-import Web.HTML.Window (location)
+import Web.HTML.History (DocumentTitle(..), URL(..), replaceState)
+import Web.HTML.Location (hash, pathname)
+import Web.HTML.Window (history, location)
 
 wrapper :: forall a. Widget HTML a -> Widget HTML a
 wrapper widget = do
@@ -41,7 +43,8 @@ main :: Effect Unit
 main = do
   l <- window >>= location
   secret <- drop 1 <$> hash l
-  setHash "" l
+  pathName <- pathname l
+  _ <- window >>= history >>= replaceState (unsafeToForeign {}) (DocumentTitle "") (URL pathName)
   runWidgetInDom "share" ( wrapper $ shareWidget $ 
     case fromJsonString $ fromMaybe secret (decodeURI secret) of
       Right (_ :: Card)  -> SecretCard   secret
