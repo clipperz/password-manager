@@ -874,6 +874,7 @@ div#homePage {
 										}
 
 										textarea {
+											box-sizing: border-box;
 											resize: none;
 											overflow: hidden;
 
