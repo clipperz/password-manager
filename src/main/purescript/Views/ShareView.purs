@@ -129,7 +129,7 @@ shareSignal enabled secret' secretData = do
                         , Props.className "copyPin"
                         , Props.title "copy"
                         , (\_ -> copyToClipboard pin) <$> Props.onClick
-                        ] [span [] [text "copy PIN"]]
+                        ] [span [] [text "copy"]]
       ]
 
     disableSubmitButton :: Secret -> String -> Boolean
