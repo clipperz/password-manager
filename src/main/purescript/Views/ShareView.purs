@@ -25,7 +25,6 @@ import Effect.Aff.Class (liftAff)
 import Functions.Communication.OneTimeShare (SecretData)
 import Functions.Password (randomPIN)
 import Views.Components (Enabled(..), dynamicWrapper)
-import Views.SimpleWebComponents (simpleButton)
 
 data Secret = SecretString String | SecretCard String
 
@@ -102,7 +101,11 @@ shareSignal enabled secret' secretData = do
     )
     pure $ computeSecretData secret' newSecret newPin newDuration
   )
-  fireOnce (simpleButton "submit" "submit" (disableSubmitButton secret' result.secret || not enabled) result)
+  fireOnce $ button [
+    Props._type "button"
+  , Props.disabled (disableSubmitButton secret' result.secret || not enabled)
+  , Props.className "submit", result <$ Props.onClick
+  ] [text "create share link"]
 
   where
     pinSection :: String -> Enabled -> Widget HTML Boolean

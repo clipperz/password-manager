@@ -45,7 +45,6 @@ redeemView (Enabled enabled) = do
               Props._type "text"
             , Props.disabled (not enabled)
             , Props.inputMode "numeric"
-            , Props.placeholder "message key"
             , Props.value v
             , Props.maxLength "5"
             , Props.pattern "^[0-9]+$"
