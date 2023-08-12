@@ -29,7 +29,6 @@ import Unsafe.Coerce (unsafeCoerce)
 import Views.CardViews (cardContent)
 import Views.Components (Enabled(..), dynamicWrapper)
 import Views.OverlayView (OverlayStatus(..), overlay)
-import Views.SimpleWebComponents (simpleButton)
 
 redeemView :: Enabled -> Widget HTML String
 redeemView (Enabled enabled) = do
@@ -57,7 +56,12 @@ redeemView (Enabled enabled) = do
           ]
         ]
       )
-      fireOnce (simpleButton "redeem" "redeem" (length result < 5) result)
+      fireOnce $ button [
+        Props._type "button"
+      , Props.disabled (length result < 5)
+      , Props.className "redeem"
+      , result <$ Props.onClick
+      ] [text "redeem"]
   ]
 
 redeemedView :: String -> Widget HTML Unit
