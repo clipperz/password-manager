@@ -20,11 +20,13 @@ import Data.String (null)
 import Data.String.CodeUnits (singleton, toCharArray)
 import Data.Time.Duration (Days(..), Hours(..), Minutes(..), Seconds, convertDuration)
 import Data.Tuple (Tuple(..), fst, snd)
-import Effect.Aff (Aff)
+import Effect.Aff (Aff, Milliseconds(..), delay)
 import Effect.Aff.Class (liftAff)
+import Functions.Clipboard (copyToClipboard)
 import Functions.Communication.OneTimeShare (SecretData)
 import Functions.Password (randomPIN)
 import Views.Components (Enabled(..), dynamicWrapper)
+import Views.OverlayView (OverlayStatus(..), overlay)
 
 data Secret = SecretString String | SecretCard String
 
@@ -64,6 +66,8 @@ shareView enabled secret secretData = do
     demand $ shareSignal enabled secret secretData
   ]
 
+data PinSectionAction = RegeneratePin | CopyPin
+
 shareSignal :: Boolean -> Secret -> SecretData -> Signal HTML (Maybe SecretData)
 shareSignal enabled secret' secretData = do
   result <- loopS secretData (\{secret: secret_, pin: pin_, duration: duration_} -> do
@@ -84,8 +88,8 @@ shareSignal enabled secret' secretData = do
     newPin <- loopW pin_ (\pin -> do
       result <- pinSection pin (Enabled (enabled && true))
       case result of
-        true  -> "" <$ pinSection pin (Enabled false) <|> (liftAff $ randomPIN 5)
-        false -> pure pin
+        RegeneratePin  -> "" <$ pinSection pin (Enabled false) <|> (liftAff $ randomPIN 5)
+        CopyPin        -> "" <$ pinSection pin (Enabled false) <|> (liftAff $ pin <$ delay (Milliseconds 1000.0)) <|> (overlay { status: Copy, message: "copied" })
     )
     newDuration <- loopW duration_ (\duration -> do
       getDurationFromLabel <$> div [Props.className "duration"] [
@@ -108,12 +112,24 @@ shareSignal enabled secret' secretData = do
   ] [text "create share link"]
 
   where
-    pinSection :: String -> Enabled -> Widget HTML Boolean
+    pinSection :: String -> Enabled -> Widget HTML PinSectionAction
     pinSection pin (Enabled pinEnabled) =
       div [Props.className "pin"] [
         h4 [Props.className "label"] [text "PIN"]
       , div [Props.className "pinText"] ((\c -> span [] [text $ singleton c]) <$> toCharArray pin)
-      , button ([Props._type "button", Props.disabled (not pinEnabled), Props.className "regeneratePin", Props.title "regenerate"] <> (if pinEnabled then [true <$ Props.onClick] else [])) [span [] [text "generate password"]] 
+      , RegeneratePin <$ button [
+                          Props._type "button"
+                        , Props.disabled (not pinEnabled)
+                        , Props.className "regeneratePin"
+                        , Props.title "regenerate"
+                        , Props.onClick
+                        ] [span [] [text "generate password"]] 
+      , CopyPin       <$ button [
+                          Props._type "button"
+                        , Props.className "copyPin"
+                        , Props.title "copy"
+                        , (\_ -> copyToClipboard pin) <$> Props.onClick
+                        ] [span [] [text "copy PIN"]]
       ]
 
     disableSubmitButton :: Secret -> String -> Boolean

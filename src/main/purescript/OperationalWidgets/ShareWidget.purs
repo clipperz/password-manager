@@ -46,8 +46,6 @@ shareWidget secret = do
     go url secretData = do  
       result <- (false <$ shareView false secret secretData)
                 <>
-                (true <$ button [(\_ -> copyToClipboard secretData.pin) <$> Props.onClick] [text "copy PIN"])
-                <>
                 div [Props.className "share"] [
                   div [Props.className "url"] [a [Props.href url, Props.target "_blank"] [text url]]
                 , true <$ button [(\_ -> copyToClipboard url) <$> Props.onClick] [text "copy share link"]
