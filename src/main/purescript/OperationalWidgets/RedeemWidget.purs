@@ -19,6 +19,7 @@ import Effect.Class (liftEffect)
 import Functions.Communication.OneTimeShare (redeem)
 import Functions.EnvironmentalVariables (currentCommit)
 import Views.Components (Enabled(..))
+import Views.OverlayView (OverlayStatus(..), overlay)
 import Views.RedeemView (redeemView, redeemedView)
 
 redeemWidget :: String -> String -> Widget HTML Unit
@@ -26,7 +27,7 @@ redeemWidget id key = do
   version <- liftEffect currentCommit
   do
     pin <- redeemView (Enabled true)
-    eitherSecret :: Either AppError String <- (Right "" <$ redeemView (Enabled false)) <|> (liftAff $ runExceptT $ redeem id key pin)
+    eitherSecret :: Either AppError String <- (Right "" <$ redeemView (Enabled false)) <|> (liftAff $ runExceptT $ redeem id key pin) <|> (overlay { status: Spinner, message: "loading" })
     case eitherSecret of
       Right secret -> redeemedView secret
       Left err -> case err of
