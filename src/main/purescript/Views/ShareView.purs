@@ -106,8 +106,7 @@ shareSignal enabled secret' secretData = do
     pure $ computeSecretData secret' newSecret newPin newDuration
   )
   fireOnce $ button [
-    Props._type "button"
-  , Props.disabled (disableSubmitButton secret' result.secret || not enabled)
+    Props.disabled (disableSubmitButton secret' result.secret || not enabled)
   , Props.className "submit", result <$ Props.onClick
   ] [text "create share link"]
 

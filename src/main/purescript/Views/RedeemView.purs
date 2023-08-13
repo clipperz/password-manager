@@ -57,8 +57,7 @@ redeemView (Enabled enabled) = do
         ]
       )
       fireOnce $ button [
-        Props._type "button"
-      , Props.disabled (length result < 5)
+        Props.disabled (length result < 5)
       , Props.className "redeem"
       , result <$ Props.onClick
       ] [text "redeem"]
