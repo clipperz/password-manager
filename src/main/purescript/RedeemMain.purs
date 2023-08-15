@@ -1,16 +1,22 @@
 module RedeemMain where
 
-import Prelude
-
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (text)
+import Concur.React.DOM (div, text)
+import Concur.React.Props as Props
 import Concur.React.Run (runWidgetInDom)
+import Control.Applicative (pure)
+import Control.Bind (bind, discard, (>>=))
 import Control.Monad.Except (runExceptT)
 import Data.Array (last)
 import Data.Either (Either(..))
+import Data.Function (($))
+import Data.Functor ((<$>))
 import Data.Maybe (Maybe(..))
+import Data.Semigroup ((<>))
+import Data.Show (show)
 import Data.String (Pattern(..), drop, split)
+import Data.Unit (Unit)
 import Effect (Effect)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -42,6 +48,8 @@ main = do
   _id <- pure $ last (split (Pattern "/") pathName)
   _ <- log $ show key <> " " <> show _id
   _ <- window >>= history >>= replaceState (unsafeToForeign {}) (DocumentTitle "") (URL pathName)
-  case _id of
-    Nothing -> runWidgetInDom "redeem" (text "Missing or wrong fragment")
-    Just id -> runWidgetInDom "redeem" (wrapper $ redeemWidget id key)  
+  runWidgetInDom "redeem" $ case _id of
+    Nothing -> (div [Props.className "error"] [text "Missing document id"])
+    Just id -> case key of
+      "" ->    (div [Props.className "error"] [text "Missing document encryption key"])  
+      _  ->    (wrapper $ redeemWidget id key)  

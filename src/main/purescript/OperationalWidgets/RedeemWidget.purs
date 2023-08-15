@@ -2,7 +2,7 @@ module OperationalWidgets.RedeemWidget where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (p, text)
+import Concur.React.DOM (div, p, text)
 import Concur.React.Props as Props
 import Control.Alt ((<$), (<|>))
 import Control.Bind (bind)
@@ -31,7 +31,10 @@ redeemWidget id key = do
     case eitherSecret of
       Right secret -> redeemedView secret
       Left err -> case err of
-        ProtocolError (ResponseError 404) -> text $ "Secret already redeemed"
-        ProtocolError (ResponseError 410) -> text $ "Secret expired"
-        _                                 -> text $ show err
+        ProtocolError (ResponseError   404) -> div [Props.className "warning"] [text $ "Secret already redeemed"]
+        ProtocolError (ResponseError   410) -> div [Props.className "warning"] [text $ "Secret expired"]
+        ProtocolError (ResponseError   _  ) -> div [Props.className "error"]   [text $ "Error retrieving document"]
+        ProtocolError (IllegalResponse _  ) -> div [Props.className "error"]   [text $ "Error retrieving document"]
+        ProtocolError (CryptoError     _  ) -> div [Props.className "error"]   [text $ "Error decrypting document"]
+        e                                   -> div [Props.className "error"]   [text $ "Unhandled error [" <> show e <> "]"]
     <> p [Props.className "version"] [text version]
