@@ -13,7 +13,6 @@ import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Maybe (Maybe(..))
-import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String (Pattern(..), drop, split)
 import Data.Unit (Unit)
@@ -21,14 +20,12 @@ import Effect (Effect)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
-import Foreign (unsafeToForeign)
 import Functions.JSState (modifyAppState)
 import Functions.State (computeInitialState)
 import OperationalWidgets.RedeemWidget (redeemWidget)
 import Web.HTML (window)
-import Web.HTML.History (DocumentTitle(..), URL(..), replaceState)
 import Web.HTML.Location (hash, pathname)
-import Web.HTML.Window (history, location)
+import Web.HTML.Window (location)
 
 wrapper :: forall a. Widget HTML a -> Widget HTML a
 wrapper widget = do
@@ -46,8 +43,6 @@ main = do
   pathName <- pathname l
   key <- drop 1 <$> hash l
   _id <- pure $ last (split (Pattern "/") pathName)
-  _ <- log $ show key <> " " <> show _id
-  _ <- window >>= history >>= replaceState (unsafeToForeign {}) (DocumentTitle "") (URL pathName)
   runWidgetInDom "redeem" $ case _id of
     Nothing -> (div [Props.className "error"] [text "Missing document id"])
     Just id -> case key of
