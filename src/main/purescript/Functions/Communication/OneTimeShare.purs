@@ -43,7 +43,7 @@ share {secret, pin, duration} = do
   encryptedSecret <- ExceptT $ Right <$> encryptJson cryptoKey secret 
   
   let url = joinWith "/" ["share"]
-  let body = (json $ encodeJson { secret: fromArrayBuffer encryptedSecret, duration: unwrap $ fromDuration duration})
+  let body = (json $ encodeJson { secret: fromArrayBuffer encryptedSecret, duration: unwrap $ fromDuration duration })
 
   response <- manageGenericRequest url POST (Just body) RF.string
   if isStatusCodeOk response.status
