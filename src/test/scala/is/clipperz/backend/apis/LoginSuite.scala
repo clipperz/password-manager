@@ -100,7 +100,7 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
       withSession: Boolean,
     ): Request =
     Request(
-      url = URL(!! / "login" / "step1" / c),
+      url = URL(Root / "login" / "step1" / c),
       method = Method.POST,
       headers = if (withSession) Headers((SessionManager.sessionKeyHeaderName, sessionKey)) else Headers.empty,
       body = Body.fromString(stepData, StandardCharsets.UTF_8.nn),
@@ -114,7 +114,7 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
       withSession: Boolean,
     ): Request =
     Request(
-      url = URL(!! / "login" / "step2" / c),
+      url = URL(Root / "login" / "step2" / c),
       method = Method.POST,
       headers = if (withSession) Headers((SessionManager.sessionKeyHeaderName, sessionKey)) else Headers.empty,
       body = Body.fromString(stepData, StandardCharsets.UTF_8.nn),
