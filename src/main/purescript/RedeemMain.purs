@@ -45,6 +45,7 @@ main = do
   _id <- pure $ last (split (Pattern "/") pathName)
   runWidgetInDom "redeem" $ case _id of
     Nothing -> (div [Props.className "error"] [text "Missing document id"])
+    Just "" -> (div [Props.className "error"] [text "Missing document id"])
     Just id -> case key of
-      "" ->    (div [Props.className "error"] [text "Missing document encryption key"])  
-      _  ->    (wrapper $ redeemWidget id key)  
+      "" ->    (div [Props.className "error"] [text "Missing document encryption key"])
+      _  ->    (wrapper $ redeemWidget id key)
