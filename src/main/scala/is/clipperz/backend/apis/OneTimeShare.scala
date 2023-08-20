@@ -23,6 +23,7 @@ import is.clipperz.backend.services.OneTimeSecret
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.time.format.DateTimeParseException
+import zio.metrics.Metric
 
 // ------------------------------------------------------------------------------------
 
@@ -42,7 +43,6 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
   case request @ Method.POST -> Root / "api" / "share" =>
     ZIO
       .service[OneTimeShareArchive]
-      // .zip(request.body.asMultipartForm)
       .zip(ZIO.succeed(request.body.asStream))
       .flatMap((archive, stream) =>
         fromStream[OneTimeSecretData](stream)
@@ -63,7 +63,9 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
         case ex: FailedConversionException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
         case e => ZIO.logFatalCause(s"${e.getMessage()}", Cause.fail(e)).flatMap(_ => ZIO.fail(e))
-      } @@ LogAspect.logAnnotateRequestData(request)
+      } @@ LogAspect.logAnnotateRequestData(request) 
+        @@ Metric.counter("shareSuccessfullCounter").contramap[Response](r => if r.status.isSuccess then 1L else 0L)
+        @@ Metric.counter("shareErrorCounter"      ).contramap[Response](r => if r.status.isError   then 1L else 0L)
 
   case request @ Method.GET -> Root / "api" / "redeem" / id =>
     ZIO
@@ -105,5 +107,7 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
           ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
         case e => ZIO.logFatalCause(s"${e.getMessage()}", Cause.fail(e)).flatMap(_ => ZIO.fail(e))
       } @@ LogAspect.logAnnotateRequestData(request)
-
+        @@ Metric.counter("redeemSuccessfullCounter").contramap[Response](r => if r.status.isSuccess      then 1L else 0L)
+        @@ Metric.counter("redeemExpiredCounter"    ).contramap[Response](r => if r.status == Status.Gone then 1L else 0L)
+        @@ Metric.counter("redeemErrorCounter"      ).contramap[Response](r => if r.status.isError        then 1L else 0L)
 }
