@@ -23,23 +23,14 @@ import is.clipperz.backend.services.OneTimeSecret
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.time.format.DateTimeParseException
-
-// ------------------------------------------------------------------------------------
-
-case class OneTimeSecretInfo (
-  creationDate:   String,
-  expirationDate: String
-)
-
-object OneTimeSecretInfo:
-  implicit val decoder: JsonDecoder[OneTimeSecretInfo] = DeriveJsonDecoder.gen[OneTimeSecretInfo]
-  implicit val encoder: JsonEncoder[OneTimeSecretInfo] = DeriveJsonEncoder.gen[OneTimeSecretInfo]
+import zio.metrics.Metric
 
 // ------------------------------------------------------------------------------------
 
 case class OneTimeSecretData (
   secret: HexString,
-  duration: Double
+  duration: Double,
+  version: String
 )
 
 object OneTimeSecretData:
@@ -57,9 +48,9 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
         fromStream[OneTimeSecretData](stream)
           .map ((secretData: OneTimeSecretData) => 
             val start = DateTime.now().withZone(DateTimeZone.UTC).nn
-            OneTimeSecret(secretData.secret, start, start + secretData.duration.toLong)
+            OneTimeSecret(secretData.secret, start + secretData.duration.toLong, Option(secretData.version))
           )
-          .flatMap ((secret: OneTimeSecret) => 
+          .flatMap ((secret: OneTimeSecret) =>
             archive.saveSecret(ZStream.fromChunks(Chunk.fromArray((secret).toJson.getBytes(StandardCharsets.UTF_8).nn)))
           )
       )
@@ -72,54 +63,34 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
         case ex: FailedConversionException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
         case e => ZIO.logFatalCause(s"${e.getMessage()}", Cause.fail(e)).flatMap(_ => ZIO.fail(e))
-      } @@ LogAspect.logAnnotateRequestData(request)
-
-  case request @ Method.GET -> Root / "api" / "oneTimeSecretInfo" / id =>
-    ZIO
-      .service[OneTimeShareArchive]
-      .flatMap(archive => {
-        archive.getSecret(id).flatMap((oneTimeSecret) => {
-          if (oneTimeSecret.expirationDate > oneTimeSecret.creationDate && oneTimeSecret.expirationDate < DateTime.now()){
-            archive.deleteSecret(id)
-            ZIO.fail(new ResourceExpiredException("Secret Expired"))
-          } else {
-            ZIO.succeed(OneTimeSecretInfo(oneTimeSecret.creationDate.toString(), oneTimeSecret.expirationDate.toString()))
-          }
-        })
-      }).map((secretData : OneTimeSecretInfo) => 
-        Response.json(secretData.toJson)
-      )
-      .catchAll {
-        case ex: ResourceExpiredException => 
-          ZIO.logInfo(s"${ex.getMessage()}").as(Response(status = Status.Gone))
-        case ex: ResourceNotFoundException =>
-          ZIO.logInfo(s"${ex.getMessage()}").as(Response(status = Status.NotFound))
-        case ex: NonWritableArchiveException =>
-          ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-        case ex: FailedConversionException =>
-          ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-        case e => ZIO.logFatalCause(s"${e.getMessage()}", Cause.fail(e)).flatMap(_ => ZIO.fail(e))
-      } @@ LogAspect.logAnnotateRequestData(request)
+      } @@ LogAspect.logAnnotateRequestData(request) 
+        @@ Metric.counter("shareSuccessfullCounter").contramap[Response](r => if r.status.isSuccess then 1L else 0L)
+        @@ Metric.counter("shareErrorCounter"      ).contramap[Response](r => if r.status.isError   then 1L else 0L)
 
   case request @ Method.GET -> Root / "api" / "redeem" / id =>
     ZIO
       .service[OneTimeShareArchive]
       .flatMap(archive =>
         archive.getSecret(id).flatMap(oneTimeSecret => 
-            if (oneTimeSecret.expirationDate > oneTimeSecret.creationDate && oneTimeSecret.expirationDate < DateTime.now()) {
+            if (oneTimeSecret.expirationDate < DateTime.now()) {
               archive.deleteSecret(id).flatMap(_ =>
                 ZIO.fail(new ResourceExpiredException("Secret Expired"))
               )
             } else {
-              ZIO.succeed(ZStream
-                .fromChunk(Chunk.fromArray(oneTimeSecret.secret.toByteArray))
-                .ensuring(archive.deleteSecret(id).isSuccess))
+              ZIO.succeed(
+                ( oneTimeSecret.version
+                , ZStream
+                    .fromChunk(Chunk.fromArray(oneTimeSecret.secret.toByteArray))
+                    .ensuring(archive.deleteSecret(id).isSuccess)
+                )
+              )
             }
         )
       )
-      .map((bytes: ZStream[Any, Throwable, Byte]) => 
+      .map((version: Option[String], bytes: ZStream[Any, Throwable, Byte]) => 
         Response(
           status = Status.Ok,
+          headers = version.map(v => Headers("clipperz-oneTimeSecret-version", v)).getOrElse(Headers.empty),
           body = Body.fromStream(bytes),
         )
       )
@@ -136,5 +107,7 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
           ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
         case e => ZIO.logFatalCause(s"${e.getMessage()}", Cause.fail(e)).flatMap(_ => ZIO.fail(e))
       } @@ LogAspect.logAnnotateRequestData(request)
-
+        @@ Metric.counter("redeemSuccessfullCounter").contramap[Response](r => if r.status.isSuccess      then 1L else 0L)
+        @@ Metric.counter("redeemExpiredCounter"    ).contramap[Response](r => if r.status == Status.Gone then 1L else 0L)
+        @@ Metric.counter("redeemErrorCounter"      ).contramap[Response](r => if r.status.isError        then 1L else 0L)
 }

@@ -1,38 +1,27 @@
 module Views.CardViews where
 
 import Concur.Core (Widget)
-import Concur.Core.FRP (Signal, demand, fireOnce, loopW)
+import Concur.Core.FRP (Signal, fireOnce, loopW)
 import Concur.React (HTML)
-import Concur.React.DOM (a_, div, div_, h3, li', li_, p_, text, textarea, ul, ul_)
+import Concur.React.DOM (a_, div, h3, li', li_, p_, text, textarea, ul)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
-import Control.Bind (bind, (=<<))
-import Control.Monad.Except (runExceptT)
-import Control.Semigroupoid ((<<<))
-import Data.Argonaut.Core (stringify)
-import Data.Argonaut.Encode (encodeJson)
-import Data.Array (filter, null, singleton, zipWith)
-import Data.Either (Either(..), fromRight)
+import Control.Bind (bind)
+import Data.Array (null)
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not, (&&))
-import Data.Maybe (Maybe(..), isJust, maybe)
+import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
-import Data.Traversable (sequence)
-import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
 import DataModel.AppState (ProxyConnectionStatus(..))
 import DataModel.Card (Card(..), CardField(..), CardValues(..))
-import Effect.Aff.Class (liftAff)
 import Effect.Unsafe (unsafePerformEffect)
 import Functions.Clipboard (copyToClipboard)
-import Functions.Communication.OneTimeShare (secretInfo, share)
 import MarkdownIt (renderString)
-import Record (merge)
 import Views.Components (dynamicWrapper, entropyMeter)
-import Views.ShareView (Secret(..), emptySecretData, shareSignal)
 import Views.SimpleWebComponents (simpleButton, confirmationWidget)
 
 -- -----------------------------------
@@ -68,10 +57,6 @@ cardView c@(Card r) proxyConnectionStatus = do
       maybeCardValues <- div [Props._id "cardView"] [
         Nothing <$ cardActions c false
       , cardContent r.content
-      , div [(Props.className "disableOverlay")] [
-          div [Props.className "mask", Nothing <$ Props.onClick] []
-        , shareOverlay r.secrets (SecretCard (stringify $ encodeJson c))
-        ]
       ]
       case maybeCardValues of
         Nothing         -> cardView c proxyConnectionStatus
@@ -107,23 +92,6 @@ secretSignal { creationDate, expirationDate, secretId } = li_ [] do
   case removeSecret of
     Nothing -> pure $ Just secretId
     Just _  -> pure $ Nothing
-
-shareOverlay :: Array String -> Secret -> Widget HTML (Maybe (Array String))
-shareOverlay secrets secret = do
-  secretsInfo <- liftAff $ (zipWith (\s r -> merge {secretId: s} r) secrets) <$> (sequence $ (\secret' -> (fromRight {creationDate: "", expirationDate: "redeemed"}) <$> secret') <$> (runExceptT <<< secretInfo) <$> secrets)
-  initialSecretData <- liftAff emptySecretData
-  secretData <- div [Props.className "dialog"] [
-    h3 [] [text "One Time Share"]
-  , demand $ div_ [Props.className "secrets"] do
-      ul_ [] do
-        secretData <- li_ [Props.className "addTag"] (shareSignal true secret initialSecretData)
-        _ <- (\maybeSignal -> ((maybe [] singleton) =<< filter isJust maybeSignal)) <$> (sequence $ secretSignal <$> secretsInfo)
-        pure secretData
-  ]
-  exceptId <- liftAff $ runExceptT $ share secretData --TODO
-  pure $ case exceptId of
-    Left  _  -> Nothing
-    Right (Tuple _ id) -> Just (secrets <> [id])
 
 cardContent :: forall a. CardValues -> Widget HTML a
 cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) = div [Props._id "cardContent"] [

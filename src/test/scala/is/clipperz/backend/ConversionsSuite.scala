@@ -10,6 +10,17 @@ import zio.test.Gen
 import zio.test.TestAspect
 import is.clipperz.backend.functions.ByteArrays
 import zio.test.TestResult
+import is.clipperz.backend.services.OneTimeSecret
+import zio.stream.ZStream
+import zio.Chunk
+import is.clipperz.backend.functions.fromStream
+import zio.json.DeriveJsonDecoder
+import zio.json.JsonEncoder
+import zio.json.DeriveJsonEncoder
+import zio.json.JsonDecoder
+
+import com.github.nscala_time.time.Imports.*
+import is.clipperz.backend.data.HexString
 
 object ConversionsSpec extends ZIOSpecDefault:
   val samples = 10
@@ -35,6 +46,12 @@ object ConversionsSpec extends ZIOSpecDefault:
         }
       } yield res
     } @@ TestAspect.samples(samples),
+    test("json to case class") {
+      for {
+        json <- ZIO.succeed(ZStream.fromChunks(Chunk.fromArray("""{"secret":"be031e72766940","creationDate":"2023-08-12T14:39:59.462Z","expirationDate":"2023-08-12T14:49:59.462Z"}""".getBytes().nn)))
+        parsed <- fromStream[OneTimeSecret](json)
+      } yield assertTrue(parsed == OneTimeSecret(HexString("be031e72766940"), DateTime.parse("2023-08-12T14:49:59.462Z"), Option.empty))
+    }
   ).provideSomeLayer(PRNG.live)
 
   def equalsUpToEmptyByte(bytes1: Array[Byte], bytes2: Array[Byte]): TestResult =

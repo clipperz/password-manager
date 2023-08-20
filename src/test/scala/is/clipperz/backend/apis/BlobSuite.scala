@@ -58,7 +58,7 @@ object BlobSpec extends ZIOSpecDefault:
   )
 
   val post = Request(
-    url = URL(!! / "blobs"),
+    url = URL(Root / "blobs"),
     method = Method.POST,
     headers = Headers.empty,
     body = Body.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
@@ -67,7 +67,7 @@ object BlobSpec extends ZIOSpecDefault:
   )
 
   val delete = Request(
-    url = URL(!! / "blobs" / blobData.hash.toString()),
+    url = URL(Root / "blobs" / blobData.hash.toString()),
     method = Method.DELETE,
     headers = Headers.empty,
     body = Body.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
@@ -76,7 +76,7 @@ object BlobSpec extends ZIOSpecDefault:
   )
 
   val deleteDifferentHashes = Request(
-    url = URL(!! / "blobs" / "aaaaaa" ),
+    url = URL(Root / "blobs" / "aaaaaa" ),
     method = Method.DELETE,
     headers = Headers.empty,
     body = Body.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
@@ -85,7 +85,7 @@ object BlobSpec extends ZIOSpecDefault:
   )
 
   val invalidDelete = Request(
-    url = URL(!! / "blobs" / blobData.hash.toString()),
+    url = URL(Root / "blobs" / blobData.hash.toString()),
     method = Method.DELETE,
     headers = Headers.empty,
     body = Body.fromString("invalidData", StandardCharsets.UTF_8.nn),
@@ -94,7 +94,7 @@ object BlobSpec extends ZIOSpecDefault:
   )
 
   val get = Request(
-    url = URL(!! / "blobs" / blobData.hash.toString()),
+    url = URL(Root / "blobs" / blobData.hash.toString()),
     method = Method.GET,
     headers = Headers.empty,
     body = Body.empty,
@@ -106,7 +106,7 @@ object BlobSpec extends ZIOSpecDefault:
   val invalidBlobContent = "invalid"
 
   val postInvalid = Request(
-    url = URL(!! / "blobs"),
+    url = URL(Root / "blobs"),
     method = Method.POST,
     headers = Headers.empty,
     body = Body.fromString(invalidBlobContent, StandardCharsets.UTF_8.nn),
@@ -115,7 +115,7 @@ object BlobSpec extends ZIOSpecDefault:
   )
 
   val postEmpty = Request(
-    url = URL(!! / "blobs"),
+    url = URL(Root / "blobs"),
     method = Method.POST,
     headers = Headers.empty,
     body = Body.fromString("", StandardCharsets.UTF_8.nn),

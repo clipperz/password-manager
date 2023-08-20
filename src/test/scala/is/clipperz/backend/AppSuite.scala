@@ -151,7 +151,7 @@ object AppSpec extends ZIOSpecDefault:
 
   private def doSignup(sessionKey: String) =
     val signupRequest = Request(
-      url = URL(!! / "users" / userCard.c.toString()),
+      url = URL(Root / "users" / userCard.c.toString()),
       method = Method.POST,
       headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
       body = Body.fromString(signupData.toJson, StandardCharsets.UTF_8.nn),
@@ -167,7 +167,7 @@ object AppSpec extends ZIOSpecDefault:
     val a = RFCTestVector.a
     val stepData = SRPStep1Data(userCard.c, HexString.bigIntToHex(aa))
     val step1Request = Request(
-      url = URL(!! / "login" / "step1" / userCard.c.toString()),
+      url = URL(Root / "login" / "step1" / userCard.c.toString()),
       method = Method.POST,
       headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
       body = Body.fromString(stepData.toJson, StandardCharsets.UTF_8.nn),
@@ -176,7 +176,7 @@ object AppSpec extends ZIOSpecDefault:
     )
     val step2Request: SRPStep2Data => Request = data =>
       Request(
-        url = URL(!! / "login" / "step2" / userCard.c.toString()),
+        url = URL(Root / "login" / "step2" / userCard.c.toString()),
         method = Method.POST,
         headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
         body = Body.fromString(data.toJson, StandardCharsets.UTF_8.nn),
@@ -203,7 +203,7 @@ object AppSpec extends ZIOSpecDefault:
 
   private def doBlobPost(sessionKey: String) =
     val request = Request(
-      url = URL(!! / "blobs"),
+      url = URL(Root / "blobs"),
       method = Method.POST,
       headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
       body = Body.fromString(blob.toJson, StandardCharsets.UTF_8.nn),
@@ -216,7 +216,7 @@ object AppSpec extends ZIOSpecDefault:
 
   private def doBlobGet(sessionKey: String) =
     val request = Request(
-      url = URL(!! / "blobs" / blob.hash.toString() ),
+      url = URL(Root / "blobs" / blob.hash.toString() ),
       method = Method.GET,
       headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
       body = Body.empty,
@@ -229,7 +229,7 @@ object AppSpec extends ZIOSpecDefault:
 
   private def doBlobDelete(sessionKey: String) =
     val request = Request(
-      url = URL(!! / "blobs" / blob.hash.toString() ),
+      url = URL(Root / "blobs" / blob.hash.toString() ),
       method = Method.DELETE,
       headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
       body = Body.fromString(blob.toJson, StandardCharsets.UTF_8.nn),
@@ -242,7 +242,7 @@ object AppSpec extends ZIOSpecDefault:
 
   private def doLogout(sessionKey: String) =
     val request = Request(
-      url = URL(!! / "logout"),
+      url = URL(Root / "logout"),
       method = Method.POST,
       headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
       body = Body.empty,

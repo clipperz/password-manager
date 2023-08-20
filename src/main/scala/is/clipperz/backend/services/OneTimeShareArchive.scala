@@ -24,8 +24,8 @@ type SecretId = String
 
 case class OneTimeSecret(
   secret:         HexString,
-  creationDate:   DateTime,
-  expirationDate: DateTime
+  expirationDate: DateTime,
+  version:        Option[String]
 )
 
 object OneTimeSecret:

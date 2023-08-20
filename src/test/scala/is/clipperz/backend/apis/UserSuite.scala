@@ -107,7 +107,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
       session: Boolean,
     ) =
     Request(
-      url = URL(!! / "users" / c),
+      url = URL(Root / "users" / c),
       method = Method.POST,
       headers = if (session) Headers((SessionManager.sessionKeyHeaderName, sessionKey)) else Headers.empty,
       body = Body.fromString(signupData, StandardCharsets.UTF_8.nn),
@@ -117,7 +117,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
 
   def prepareGet(c: String, session: Boolean): Request =
     Request(
-      url = URL(!! / "users" / c),
+      url = URL(Root / "users" / c),
       method = Method.GET,
       headers = if (session) Headers((SessionManager.sessionKeyHeaderName, sessionKey)) else Headers.empty,
       body = Body.empty,
@@ -127,7 +127,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
 
   def prepareDelete(c: String, userData: String, session: Boolean): Request =
     Request(
-      url = URL(!! / "users" / c),
+      url = URL(Root / "users" / c),
       method = Method.DELETE,
       headers = if (session) Headers((SessionManager.sessionKeyHeaderName, sessionKey)) else Headers.empty,
       body = Body.fromString(userData, StandardCharsets.UTF_8.nn),
@@ -137,7 +137,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
 
   def preparePut(c: String, putData: String, session: Boolean): Request =
     Request(
-      url = URL(!! / "users" / c),
+      url = URL(Root / "users" / c),
       method = Method.PUT,
       headers = if (session) Headers((SessionManager.sessionKeyHeaderName, sessionKey)) else Headers.empty,
       body = Body.fromString(putData, StandardCharsets.UTF_8.nn),

@@ -14,9 +14,21 @@ import zio.Cause
 import is.clipperz.backend.LogAspect
 import zio.http.Header.HeaderType
 
+import zio.metrics.Metric
+import zio.durationInt
+import zio.Chunk
+import zio.Task
+
+def metrics[R, E](block: => ZIO[E, Throwable, R]): ZIO[E, Throwable, R] =
+  val t0 = System.nanoTime()
+  val result = block    // call-by-name
+  val t1 = System.nanoTime()
+  // println("Elapsed time: " + (t1 - t0) + "ns")
+  result @@ Metric.summary("loginTest", 1.day, 100, 0.03d, Chunk(0.5, 0.75, 0.9, 0.99, 0.999)).contramap[Any](_ => (t1 -t0).toDouble)
+
 val loginApi: ClipperzHttpApp = Http.collectZIO[Request]:
   case request @ Method.POST -> Root / "api" / "login" / "step1" / c =>
-    ZIO
+    metrics(ZIO
       .service[SessionManager]
       .zip(ZIO.service[SrpManager])
       .zip(ZIO.succeed(request.body.asStream))
@@ -42,7 +54,7 @@ val loginApi: ClipperzHttpApp = Http.collectZIO[Request]:
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
         case ex: NoSuchElementException =>
           ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-      } @@ LogAspect.logAnnotateRequestData(request)
+      } @@ LogAspect.logAnnotateRequestData(request))
 
   case request @ Method.POST -> Root / "api" / "login" / "step2" / c =>
     ZIO

@@ -97,16 +97,19 @@ val zio_logging_version = "2.1.12"
 val zio_json_version = "0.5.0"
 val zio_cache_version = "0.2.0"
 val nscala_time_version = "2.32.0"
+val zio_metrics = "2.1.0"
 
 lazy val dependencies = Seq(
   libraryDependencies ++= Seq(
-    "dev.zio" %% "zio"               % zio_version,
-    "dev.zio" %% "zio-streams"       % zio_version,
-    "dev.zio" %% "zio-json"          % zio_json_version,
-    "dev.zio" %% "zio-cache"         % zio_cache_version,
-    "dev.zio" %% "zio-http"          % zio_http_version,
-    "dev.zio" %% "zio-logging"       % zio_logging_version,
-    "dev.zio" %% "zio-logging-slf4j" % zio_logging_version,
+    "dev.zio" %% "zio"                            % zio_version,
+    "dev.zio" %% "zio-streams"                    % zio_version,
+    "dev.zio" %% "zio-json"                       % zio_json_version,
+    "dev.zio" %% "zio-cache"                      % zio_cache_version,
+    "dev.zio" %% "zio-http"                       % zio_http_version,
+    "dev.zio" %% "zio-logging"                    % zio_logging_version,
+    "dev.zio" %% "zio-logging-slf4j"              % zio_logging_version,
+    "dev.zio" %% "zio-metrics-connectors"         % zio_metrics,
+    "dev.zio" %% "zio-metrics-connectors-datadog" % zio_metrics,
     "org.slf4j" % "slf4j-simple" % "1.7.36",
     "com.github.nscala-time" %% "nscala-time" % nscala_time_version,
   ),

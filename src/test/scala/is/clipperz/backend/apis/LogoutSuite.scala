@@ -59,7 +59,7 @@ object LogoutSpec extends ZIOSpecDefault:
   val sessionKey = "sessionKey"
 
   val logoutWithSession = Request(
-    url = URL(!! / "logout"),
+    url = URL(Root / "logout"),
     method = Method.POST,
     headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
     body = Body.empty,
@@ -68,7 +68,7 @@ object LogoutSpec extends ZIOSpecDefault:
   )
 
   val logoutNoSession = Request(
-    url = URL(!! / "logout"),
+    url = URL(Root / "logout"),
     method = Method.POST,
     headers = Headers.empty,
     body = Body.empty,
