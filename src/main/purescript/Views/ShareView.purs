@@ -28,18 +28,18 @@ import Functions.Password (randomPIN)
 import Views.Components (Enabled(..), dynamicWrapper)
 import Views.OverlayView (OverlayStatus(..), overlay)
 
-data Secret = SecretString String | SecretCard String
+data Secret = SecretString String --| SecretCard String
 
 secretIsString :: Secret -> Boolean
 secretIsString (SecretString _) = true
-secretIsString (SecretCard   _) = false
+-- secretIsString (SecretCard   _) = false
 
 secretIsCard :: Secret -> Boolean
 secretIsCard = secretIsString >>> not
 
 secretIsEmpty :: Secret -> Boolean
 secretIsEmpty (SecretString s) = null s
-secretIsEmpty (SecretCard   c) = null c
+-- secretIsEmpty (SecretCard   c) = null c
 
 emptySecretData :: Aff SecretData
 emptySecretData = do
@@ -84,7 +84,7 @@ shareSignal enabled secret' secretData = do
                                     ] []
                                 ])
                               )
-      SecretCard   secret -> pure secret
+      -- SecretCard   secret -> pure secret
     newPin <- loopW pin_ (\pin -> do
       result <- pinSection pin (Enabled (enabled && true))
       case result of
@@ -135,10 +135,10 @@ shareSignal enabled secret' secretData = do
     disableSubmitButton secret resultSecret =
       case secret of
         SecretString s -> (null s && null resultSecret)
-        SecretCard _   -> false
+        -- SecretCard _   -> false
     
     computeSecretData :: Secret -> String -> String -> Seconds -> SecretData
     computeSecretData secret newSecret newPin newDuration =
       case secret of
         SecretString s -> {secret: if (not null s) then s else newSecret, pin: newPin, duration: newDuration}
-        SecretCard   _ -> {secret: newSecret, pin: newPin, duration: newDuration}
+        -- SecretCard   _ -> {secret: newSecret, pin: newPin, duration: newDuration}

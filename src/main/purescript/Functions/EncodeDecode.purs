@@ -4,7 +4,10 @@ import Control.Applicative (pure)
 import Control.Bind (bind, (>>=))
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT, except, withExceptT)
 import Control.Semigroupoid ((<<<))
+import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Encrypt as Encrypt
+import Crypto.Subtle.Key.Import as KI
+import Crypto.Subtle.Key.Types (decrypt, encrypt)
 import Crypto.Subtle.Key.Types as Key.Types
 import Data.Argonaut.Core as A
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
@@ -34,6 +37,9 @@ getCounter = pure <<< emptyByteArrayBuffer
 
 setAES :: Int -> Effect Encrypt.EncryptAlgorithm
 setAES blockSizeBytes = (getCounter blockSizeBytes) >>= (\c -> pure $ Encrypt.aesCTR c (blockSizeBytes * 8))
+
+cryptoKeyAES :: ArrayBuffer -> Aff Key.Types.CryptoKey
+cryptoKeyAES key = KI.importKey Key.Types.raw key (KI.aes aesCTR) false [encrypt, decrypt, Key.Types.unwrapKey]
 
 encryptWithAesCTR :: ArrayBuffer -> Key.Types.CryptoKey -> Aff ArrayBuffer
 encryptWithAesCTR ab key = (liftEffect $ setAES defaultBlockSize) >>= (\alg -> Encrypt.encrypt alg key ab)
