@@ -49,9 +49,9 @@ object SrpFunctionsSpec extends ZIOSpecDefault:
       test(s"compute client secret - ${testVector}") {
         assertTrue(srpFunctions.computeSecretClient(testVector.bb, testVector.x, testVector.a, testVector.u) == testVector.secret)
       } +
-      test(s"compute v - ${testVector}") {
+      test(s"compute v - ${testVector}"):
         assertTrue(srpFunctions.computeV(testVector.x) == testVector.v)
-      } /* +
+      /* +
     test(s"compute u - ${testVector}") {
       srpFunctions
         .computeU(testVector.aa.toByteArray, testVector.bb.toByteArray)

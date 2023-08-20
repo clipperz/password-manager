@@ -8,12 +8,14 @@ import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
+import Control.Category ((>>>))
 import Data.Argonaut.Decode (fromJsonString)
 import Data.Array (mapWithIndex, replicate)
 import Data.Either (Either(..))
+import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
-import Data.HeytingAlgebra (not)
+import Data.HeytingAlgebra (not, (&&), (||))
 import Data.Maybe (Maybe(..))
 import Data.Monoid ((<>))
 import Data.Ord ((<), (>))
@@ -23,13 +25,14 @@ import DataModel.Card (Card(..))
 import Effect.Aff (Milliseconds(..), delay)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
+import Effect.Unsafe (unsafePerformEffect)
 import Functions.Clipboard (copyToClipboard)
 import Functions.EnvironmentalVariables (appURL)
+import Functions.Events (cursorToEnd)
 import Unsafe.Coerce (unsafeCoerce)
 import Views.CardViews (cardContent)
 import Views.Components (Enabled(..), dynamicWrapper)
 import Views.OverlayView (OverlayStatus(..), overlay)
-import Views.SimpleWebComponents (simpleButton)
 
 redeemView :: Enabled -> Widget HTML String
 redeemView (Enabled enabled) = do
@@ -38,27 +41,34 @@ redeemView (Enabled enabled) = do
   , demand $ do
       result <- loopW "" (\v -> do
         div [Props.className "redeemPin"] [
-          div [Props.className "pinBackground"] $ mapWithIndex (\index _ -> div [Props.classList [if ((length v) > index) then Just "inserted" else Nothing]] []) (replicate 5 unit)
+          div [Props.className "pinBackground"] $ mapWithIndex (\index _ -> div [Props.classList [if ((length v) > index) then Just "inserted" else Nothing, if ((length v) == index || ((length v) > index && index == 4)) then Just "current" else Nothing]] []) (replicate 5 unit)
         , label [Props.className "pin"] [
             span [Props.className "label"] [text "Message key"]
           , input [
               Props._type "text"
             , Props.disabled (not enabled)
             , Props.inputMode "numeric"
-            , Props.placeholder "message key"
+            , Props.autoFocus true
+            , v <$ cursorToEnd >>> unsafePerformEffect <$> Props.onFocus
+            , v <$ cursorToEnd >>> unsafePerformEffect <$> Props.onClick
+            , v <$ cursorToEnd >>> unsafePerformEffect <$> Props.onKeyUp
             , Props.value v
             , Props.maxLength "5"
             , Props.pattern "^[0-9]+$"
             , (\e -> 
                 if (unsafeCoerce e).target.validity.valid
-                then Props.unsafeTargetValue e
+                then (Props.unsafeTargetValue e)
                 else v
               ) <$> Props.onChange
             ]
           ]
         ]
       )
-      fireOnce (simpleButton "redeem" "redeem" (length result < 5) result)
+      fireOnce $ button [
+        Props.disabled (length result < 5)
+      , Props.className "redeem"
+      , result <$ Props.onClick
+      ] [text "redeem"]
   ]
 
 redeemedView :: String -> Widget HTML Unit

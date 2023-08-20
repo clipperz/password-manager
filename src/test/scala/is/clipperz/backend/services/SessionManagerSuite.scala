@@ -31,7 +31,7 @@ object SessionManagerSpec extends ZIOSpecDefault:
   val testSession = Session(sessionKey, sessionContent)
 
   val testRequestEmpty = Request(
-    url = URL(!!),
+    url = URL(Root),
     method = Method.GET,
     headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
     body = Body.empty,
@@ -39,7 +39,7 @@ object SessionManagerSpec extends ZIOSpecDefault:
     remoteAddress = None
   )
   val testRequestSuccess = Request(
-    url = URL(!! / "users" / c),
+    url = URL(Root / "users" / c),
     method = Method.GET,
     headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
     body = Body.empty,
@@ -47,7 +47,7 @@ object SessionManagerSpec extends ZIOSpecDefault:
     remoteAddress = None
   )
   val testRequestFail = Request(
-    url = URL(!! / "users" / cfail),
+    url = URL(Root / "users" / cfail),
     method = Method.GET,
     headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
     body = Body.empty,
@@ -55,7 +55,7 @@ object SessionManagerSpec extends ZIOSpecDefault:
     remoteAddress = None
   )
   val testRequestNoHeader = Request(
-    url = URL(!! / "users" / (c + "fail")),
+    url = URL(Root / "users" / (c + "fail")),
     method = Method.GET,
     headers = Headers.empty,
     body = Body.empty,

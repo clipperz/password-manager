@@ -2,7 +2,13 @@ package is.clipperz.backend
 
 import java.nio.file.FileSystems
 import scala.util.Try
-import zio.{ ZIO, Scope, ZIOAppArgs, ZIOAppDefault }
+import zio.{ ZIO, Scope, ZIOAppArgs, ZIOAppDefault, LogLevel, Runtime, ZLayer }
+import zio.durationInt
+import zio.logging.LogFormat
+import zio.logging.backend.SLF4J
+import zio.metrics.connectors.datadog
+import zio.metrics.connectors.MetricsConfig
+
 import zio.http.{
   Header,
   Headers,
@@ -16,27 +22,12 @@ import zio.http.{
   Status,
 }
 import zio.http.{ Server }
-import zio.http.netty.{ EventLoopGroups }
-// import zio.http.service.server.ServerChannelFactory
+import zio.http.netty.{ EventLoopGroups, NettyConfig }
+import zio.http.netty.NettyConfig.LeakDetectionLevel
+
 import is.clipperz.backend.apis.{ blobsApi, loginApi, logoutApi, staticApi, usersApi, oneTimeShareApi }
 import is.clipperz.backend.middleware.{ hashcash, sessionChecks }
-import is.clipperz.backend.services.{ BlobArchive, PRNG, SessionManager, SrpManager, TollManager, UserArchive }
-
-import zio.logging.LogFormat
-import zio.logging.backend.SLF4J
-import zio.{ LogLevel, Runtime }
-import zio.ZLogger
-import zio.Trace
-import zio.FiberId
-import zio.Cause
-import zio.FiberRefs
-import zio.LogSpan
-import zio.http.HttpError.Custom
-import is.clipperz.backend.services.OneTimeShareArchive
-import zio.ZLayer
-import zio.http.netty.NettyConfig
-import zio.http.netty.NettyConfig.LeakDetectionLevel
-import zio.http.Server.RequestStreaming
+import is.clipperz.backend.services.{ BlobArchive, PRNG, SessionManager, SrpManager, TollManager, UserArchive, OneTimeShareArchive }
 
 object Main extends zio.ZIOAppDefault:
   override val bootstrap =
@@ -90,7 +81,14 @@ object Main extends zio.ZIOAppDefault:
           BlobArchive.fs(blobBasePath, 2, true),
           OneTimeShareArchive.fs(oneTimeShareBasePath, 2, true),
           SrpManager.v6a(),
-          ZLayer.succeed(config), ZLayer.succeed(nettyConfig), Server.customized
+          
+          ZLayer.succeed(config),
+          ZLayer.succeed(nettyConfig),
+          Server.customized,
+          
+          datadog.datadogLayer,
+          ZLayer.succeed(datadog.DatadogConfig("dd-agent", 8125)),
+          ZLayer.succeed(MetricsConfig(100.millis)),
         )
 
     else ZIO.logFatal("Not enough arguments")

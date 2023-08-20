@@ -60,13 +60,21 @@ const printEvent = function(ev) {
     }
 }
 
+const cursorToEnd = function(ev) {
+	return function() {
+		ev.target.focus()
+		ev.target.setSelectionRange(-1, -1)
+	}
+}
+
 export {
     _readFile,
     _readFileFromDrop,
     renderElement,
     _getXClickCoordinates,
     _getYClickCoordinates,
-    printEvent
+    printEvent,
+	cursorToEnd
 }
 
 // function _randomBytes(n) { return (onError, onSuccess) => {

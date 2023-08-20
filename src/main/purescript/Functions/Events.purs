@@ -1,5 +1,7 @@
 module Functions.Events
-  ( getClickCoordinates
+  ( _getYClickCoordinates
+  , cursorToEnd
+  , getClickCoordinates
   , printEvent
   , readFile
   , readFileFromDrop
@@ -23,6 +25,8 @@ foreign import _getXClickCoordinates :: SyntheticMouseEvent -> Int
 foreign import _getYClickCoordinates :: SyntheticMouseEvent -> Int
 
 foreign import printEvent :: forall r. SyntheticEvent_ (currentTarget :: NativeEventTarget | r) -> Effect Unit
+
+foreign import cursorToEnd :: forall r. SyntheticEvent_ (currentTarget :: NativeEventTarget | r) -> Effect Unit
 
 readFile :: NativeEventTarget -> Aff String
 readFile ev = fromEffectFnAff (_readFile ev)
