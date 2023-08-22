@@ -31,12 +31,19 @@ object CustomLogger:
           annotations: Map[String, String],
         ): Unit =
         val annotationsString = annotations.map((key, value) => s"\n\t- ${key}: ${value}").reduceOption(_ + _).getOrElse("")
-        val throwableMsg = cause.dieOption.map(t => t.getMessage()).flatMap(s => if (s == null) then None else Some(s))
-        val msg = throwableMsg match
-          case None => cause.failureOption match
-                          case None => message()
-                          case Some(a) => a.toString()
-          case Some(s) => s
+        val throwableMsg = 
+          cause.defects
+            .map(t => {
+                  if (t.getMessage() != null)
+                    t.getMessage().nn 
+                  else t.getClass().toString() + "\n" + t.getStackTrace().nn.map(e => e.nn.toString()).reduce((s1, s2) => s1 + "\n" + s2)
+                })
+            .reduce((s1, s2) => s1 + " -- " + s2)
+        val msg = 
+          if throwableMsg == "" then 
+            message()
+          else
+            throwableMsg
         println(s"${java.time.Instant.now()} - ${logLevel.label} - ${msg} ${annotationsString}")
 
   def basicColoredLogger(minLevel: LogLevel): ZLogger[String, Unit] =
@@ -53,12 +60,19 @@ object CustomLogger:
         ): Unit =
         if (logLevel >= minLevel)
           val annotationsString = annotations.map((key, value) => s"\n\t- ${key}: ${value}").reduceOption(_ + _).getOrElse("")
-          val throwableMsg = cause.dieOption.map(t => t.getMessage()).flatMap(s => if (s == null) then None else Some(s))
-          val msg = throwableMsg match
-            case None => cause.failureOption match
-                            case None => message()
-                            case Some(a) => a.toString()
-            case Some(s) => s
+          val throwableMsg = 
+            cause.defects
+              .map(t => {
+                    if (t.getMessage() != null)
+                      t.getMessage().nn 
+                    else t.getClass().toString() + "\n" + t.getStackTrace().nn.map(e => e.nn.toString()).reduce((s1, s2) => s1 + "\n" + s2)
+                  })
+              .reduce((s1, s2) => s1 + " -- " + s2)
+          val msg = 
+            if throwableMsg == "" then 
+              message()
+            else
+              throwableMsg
           println(Console.BLUE + s"${java.time.Instant.now()}" + Console.CYAN + s" - ${logLevel.label} - " + Console.WHITE + s"${msg} ${annotationsString}")
 
   def coloredLogger(minLevel: LogLevel): ZLogger[String, Unit] =
