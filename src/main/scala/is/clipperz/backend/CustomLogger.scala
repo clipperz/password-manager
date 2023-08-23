@@ -38,12 +38,11 @@ object CustomLogger:
                     t.getMessage().nn 
                   else t.getClass().toString() + "\n" + t.getStackTrace().nn.map(e => e.nn.toString()).reduce((s1, s2) => s1 + "\n" + s2)
                 })
-            .reduce((s1, s2) => s1 + " -- " + s2)
+            .reduceOption((s1, s2) => s1 + " -- " + s2)
         val msg = 
-          if throwableMsg == "" then 
-            message()
-          else
-            throwableMsg
+          throwableMsg match
+            case None => message()
+            case Some(s) => s
         println(s"${java.time.Instant.now()} - ${logLevel.label} - ${msg} ${annotationsString}")
 
   def basicColoredLogger(minLevel: LogLevel): ZLogger[String, Unit] =
@@ -67,12 +66,11 @@ object CustomLogger:
                       t.getMessage().nn 
                     else t.getClass().toString() + "\n" + t.getStackTrace().nn.map(e => e.nn.toString()).reduce((s1, s2) => s1 + "\n" + s2)
                   })
-              .reduce((s1, s2) => s1 + " -- " + s2)
+              .reduceOption((s1, s2) => s1 + " -- " + s2)
           val msg = 
-            if throwableMsg == "" then 
-              message()
-            else
-              throwableMsg
+            throwableMsg match
+              case None => message()
+              case Some(s) => s
           println(Console.BLUE + s"${java.time.Instant.now()}" + Console.CYAN + s" - ${logLevel.label} - " + Console.WHITE + s"${msg} ${annotationsString}")
 
   def coloredLogger(minLevel: LogLevel): ZLogger[String, Unit] =
