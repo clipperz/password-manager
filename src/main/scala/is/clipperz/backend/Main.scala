@@ -32,7 +32,8 @@ import is.clipperz.backend.services.{ BlobArchive, PRNG, SessionManager, SrpMana
 object Main extends zio.ZIOAppDefault:
   override val bootstrap =
     val logFormat = LogFormat.colored |-| LogFormat.spans
-    Runtime.removeDefaultLoggers ++ Runtime.addLogger(CustomLogger.coloredLogger(LogLevel.Info)) // >>> SLF4J.slf4j(logFormat)
+    Runtime.removeDefaultLoggers ++ Runtime.addLogger(CustomLogger.basicColoredLogger(LogLevel.Info)) // >>> SLF4J.slf4j(logFormat)
+    // Runtime.removeDefaultLoggers ++ Runtime.addLogger(CustomLogger.basicLogger) // >>> SLF4J.slf4j(logFormat)
 
   type ClipperzEnvironment =
     PRNG & SessionManager & TollManager & UserArchive & BlobArchive & OneTimeShareArchive & SrpManager
