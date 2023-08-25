@@ -96,7 +96,7 @@ deploy-dev:
     - *git-config
   script:
     - *edit-compose
-    - *edit-helm-values
-    #- *deploy-portainer
+    #- *edit-helm-values
+    - *deploy-portainer
   rules:
     - if: $CI_COMMIT_BRANCH == "develop"
