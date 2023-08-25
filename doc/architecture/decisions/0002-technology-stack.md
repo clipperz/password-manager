@@ -23,4 +23,4 @@ We will use [Purescript](https://www.purescript.org); the [Concur](https://githu
 
 ## Consequences
 
-The functional approach that the languages and frameworks chosen use will be a hard entry level as it differs from the "standard" way of writing software. On the other hand this approach allows the compiler to catch a majority of the errors and reduces the run-time errors almost to zero.
+The functional approach that the chosen languages and frameworks use will be a hard entry level as it differs from the "standard" way of writing software. On the other hand this approach allows the compiler to catch a majority of the errors and reduces the run-time errors almost to zero.
