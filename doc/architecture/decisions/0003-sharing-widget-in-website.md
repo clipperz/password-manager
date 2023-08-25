@@ -24,7 +24,7 @@ To keep this feature open to everybody, even people without a Clipperz account, 
 The interface will be very simple: the users will be presented with an area where they can insert their secret, a pre-generated PIN that can be changed with a button and a selection where they can choose how much time the secret must be kept in the server before being deleted.
 Once these information are inserted, a button will be clickable to initiate the save of the encrypted secret on the server and create the link to share.
 
-The link will lead to the redeem page, that will just contain an input to insert the pin and a button to initiate the retrieving of the secret; the redeemed secret will then be showed.
+The link will lead to the redeem page that will just contain an input to insert the pin and a button to initiate the retrieving of the secret. Once the pin is inserted and the button pressed, the secret will be redeemed and shown to the user.
 
 #### Integration with password generator
 
@@ -34,13 +34,14 @@ In the password generator widget (also inserted as a standalone page in the webs
 
 #### Frontend
 
-Once the information (secret, pin and duration) are confirmed the secret will be encrypted; firstly a random 32 byte key will be created, that will then be used to encrypt the secret, while the pin will encrypt the random key.
+Once the information (secret, pin and duration) are confirmed the secret will be encrypted: firstly a random 32 byte key will be created and then used to encrypt the secret.
 A json record containing the encrypted secret, the duration (in milliseconds) and the version will then be sent to to the backend; the response will contain the id with which the secret can be redeemed.
-Lastly the share link will be created, with the format "`{redeem page url}`/`{id}`#`{encrypted key}`"; the key will be inserted as a fragment in the url so that it will never be sent to any backend and will always stay locally in the browser.
+The random key will then be encrypted with the pin and used, alongside the id, to create the link to share.
+The link will have the format "`{redeem page url}`/`{id}`#`{encrypted key}`"; the key will be inserted as a fragment in the url so that it will never be sent anywhere and just stay locally in the browser.
 
 On the redeem page, the id and encrypted key will be extracted from the url.
-Once the pin is inserted and the confirmation button is clicked, a request to retrieve the secret will be made to the backend using the id.
-This will return a blob containing the encrypted secret, that is decrypted using the key, obtained from decrypting the encrypted key with the pin.
+Once the pin is inserted and the confirmation button is clicked, a request to retrieve the secret will be made to the backend using the id, that will return a blob containing the encrypted secret.
+The pin will then be used to decrypt the encrypted key and the result will be used to decrypt the secret.
 The response will also contain the version, that will allow to decern how to execute the operation mentioned above.
 If the pin inserted is not correct an error will be shown.
 
@@ -52,7 +53,7 @@ The versioning will allow us to change how the secret is encoded and encrypted a
 
 #### Backend
 
-Once the json record arrives to be saved, the duration will be converted to a UTC formatted date/time that will server as the expiration date; a random UUID will be generated and the whole record will be saved under that id. A response will be finally returned containing the UUID.
+Once the request to save a secret arrives, the duration inside the json record will be converted to a UTC formatted date/time, representing the expiration date; a random UUID will be generated and the whole record will be saved under that id. Finally, a response will be returned containing the UUID.
 
 When a redeem requests arrives, the expiration will be checked and if it is before the current date the secret will be deleted and a Gone response (410) will be returned. If this does not happen, the secret will be returned and then deleted.
 In case the secret is not found with the id contained in the request, a Not Found response (404) will be returned.
