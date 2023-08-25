@@ -21,7 +21,7 @@ To keep this feature open to everybody, even people without a Clipperz account, 
 
 ### UI/UX
 
-The interface will be very simple: the users will be presented with an area where they can insert their secret, a pre-generated PIN that can be changed with a button and a selection where they can choose for how long the secret can be redeemable.
+The interface will be very simple: the users will be presented with an area where they can insert their secret, a pre-generated PIN that can be changed with a button and a selection where they can choose how long the secret can be redeemable.
 Once these information are inserted, a button will be clickable to start saving the encrypted secret on the server and create the link to share.
 
 The link will lead to the redeem page that will just contain an text field to insert the pin and a button to initiate the retrieving of the secret. Once the pin is inserted and the button clicked, the secret will be redeemed and shown to the user.
@@ -36,7 +36,7 @@ In the password generator widget (also inserted as a standalone page in the webs
 
 Once the information (secret, pin and duration) are confirmed the secret will be encrypted: firstly a random 32 byte key will be created and then used to encrypt the secret.
 A json record containing the encrypted secret, the duration (in milliseconds) and the version will then be sent to to the backend; the response will contain the id with which the secret can be redeemed.
-The random key will then be encrypted with the pin and used, alongside the id, to create the link to share.
+The random key will then be encrypted with the pin and used, alongside the id, to create the share link.
 The link will have the format "`{redeem page url}`/`{id}`#`{encrypted key}`"; the key will be inserted as a fragment in the url so that it will never be sent anywhere and just stay locally in the browser.
 
 On the redeem page, the id and encrypted key will be extracted from the url.
@@ -58,7 +58,7 @@ Once the request to save a secret arrives, the duration inside the json record w
 When a redeem requests arrives, the expiration will be checked and if it is before the current date the secret will be deleted and a Gone response (410) will be returned. If this does not happen, the secret will be returned and then deleted.
 In case no secret with the id contained in the request is found, a Not Found response (404) will be returned.
 
-The backend will not check periodically for the expiration dates of secrets as keeping them stored take a very small amount of resources.
+The backend will not check periodically for the expiration dates of secrets as keeping them stored takes a very small amount of resources.
 
 ## Consequences
 
