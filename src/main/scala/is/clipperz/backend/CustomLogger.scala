@@ -15,6 +15,7 @@ import zio.logging.LoggerNameExtractor
 import java.time.format.DateTimeFormatter
 import zio.logging.LogFilter
 import zio.logging.LogGroup
+import org.slf4j.LoggerFactory
 
 object CustomLogger:
   val basicLogger: ZLogger[String, Unit] =
@@ -30,7 +31,47 @@ object CustomLogger:
           annotations: Map[String, String],
         ): Unit =
         val annotationsString = annotations.map((key, value) => s"\n\t- ${key}: ${value}").reduceOption(_ + _).getOrElse("")
-        println(s"${java.time.Instant.now()} - ${logLevel.label} - ${message()} ${annotationsString}")
+        val throwableMsg = 
+          cause.defects
+            .map(t => {
+                  if (t.getMessage() != null)
+                    t.getMessage().nn 
+                  else t.getClass().toString() + "\n" + t.getStackTrace().nn.map(e => e.nn.toString()).reduce((s1, s2) => s1 + "\n" + s2)
+                })
+            .reduceOption((s1, s2) => s1 + " -- " + s2)
+        val msg = 
+          throwableMsg match
+            case None => message()
+            case Some(s) => s
+        println(s"${java.time.Instant.now()} - ${logLevel.label} - ${msg} ${annotationsString}")
+
+  def basicColoredLogger(minLevel: LogLevel): ZLogger[String, Unit] =
+    new ZLogger[String, Unit]:
+      override def apply(
+          trace: Trace,
+          fiberId: FiberId,
+          logLevel: LogLevel,
+          message: () => String,
+          cause: Cause[Any],
+          context: FiberRefs,
+          spans: List[LogSpan],
+          annotations: Map[String, String],
+        ): Unit =
+        if (logLevel >= minLevel)
+          val annotationsString = annotations.map((key, value) => s"\n\t- ${key}: ${value}").reduceOption(_ + _).getOrElse("")
+          val throwableMsg = 
+            cause.defects
+              .map(t => {
+                    if (t.getMessage() != null)
+                      t.getMessage().nn 
+                    else t.getClass().toString() + "\n" + t.getStackTrace().nn.map(e => e.nn.toString()).reduce((s1, s2) => s1 + "\n" + s2)
+                  })
+              .reduceOption((s1, s2) => s1 + " -- " + s2)
+          val msg = 
+            throwableMsg match
+              case None => message()
+              case Some(s) => s
+          println(Console.BLUE + s"${java.time.Instant.now()}" + Console.CYAN + s" - ${logLevel.label} - " + Console.WHITE + s"${msg} ${annotationsString}")
 
   def coloredLogger(minLevel: LogLevel): ZLogger[String, Unit] =
     (
