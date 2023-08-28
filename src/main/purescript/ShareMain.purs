@@ -5,9 +5,11 @@ import Concur.React (HTML)
 import Concur.React.Run (runWidgetInDom)
 import Control.Bind (bind, discard, (>>=))
 import Control.Monad.Except (runExceptT)
+import Control.Semigroupoid ((<<<))
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
+import Data.HexString (Base(..), hex, toString)
 import Data.Show (show)
 import Data.String (drop)
 import Data.Unit (Unit)
@@ -38,7 +40,7 @@ wrapper widget = do
 main :: Effect Unit
 main = do
   l <- window >>= location
-  secret <- drop 1 <$> hash l
+  secret <- (toString Dec <<< hex <<< drop 1) <$> hash l
   pathName <- pathname l
   _ <- window >>= history >>= replaceState (unsafeToForeign {}) (DocumentTitle "") (URL pathName)
   runWidgetInDom "share" ( wrapper $ shareWidget $ SecretString secret )
