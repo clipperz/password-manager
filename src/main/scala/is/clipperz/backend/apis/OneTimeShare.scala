@@ -40,7 +40,7 @@ object OneTimeSecretData:
 
 val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
   case request @ Method.POST -> Root / "api" / "share" =>
-    responseTimer("share")(
+    responseTimer("share", request.method)(
       ZIO
         .service[OneTimeShareArchive]
         .zip(ZIO.succeed(request.body.asStream))
@@ -67,7 +67,7 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
     ) @@ LogAspect.logAnnotateRequestData(request)
 
   case request @ Method.GET -> Root / "api" / "redeem" / id =>
-    responseTimer("redeem")(
+    responseTimer("redeem", request.method)(
       ZIO
         .service[OneTimeShareArchive]
         .flatMap(archive =>
