@@ -38,7 +38,7 @@ variables:
   - git push
 
 .deploy-portainer: &deploy-portainer
-  - curl -X POST ${PORTAINER_WEBHOOK}
+  - curl --fail-with-body -X POST ${PORTAINER_WEBHOOK}
 
 build-image-prod:
   stage: build
