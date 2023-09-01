@@ -36,7 +36,7 @@ variables:
 
 .edit-helm-values: &edit-helm-values
   - git clone https://oauth2:${COMPOSE_TOKEN}@gitlab.imolab.it/clipperz/charts/password-manager.git
-  - cd site
+  - cd password-manager
   - git checkout main
   - sed -E -i "s/${TAG_REGEX}/${TAG_SUBSTITUTE}/g" values-${TARGET_ENVIROMENT}.yaml
   - git add ./values-${TARGET_ENVIROMENT}.yaml
