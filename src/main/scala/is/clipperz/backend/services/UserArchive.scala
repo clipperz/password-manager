@@ -86,4 +86,12 @@ object UserArchive:
       requireExistingPath: Boolean = true,
     ): ZLayer[Any, Throwable, UserArchive] =
     val keyBlobArchive = KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels, requireExistingPath);
-    ZLayer.succeed[UserArchive](new FileSystemUserArchive(keyBlobArchive))
+    ZLayer.fromZIO[Any, Throwable, UserArchive](keyBlobArchive.map(new FileSystemUserArchive(_)))
+  
+  def test(
+      basePath: Path,
+      levels: Int,
+      requireExistingPath: Boolean = true,
+    ): ZLayer[Any, Throwable, UserArchive] =
+    val keyBlobArchive = KeyBlobArchive.FileSystemKeyBlobArchive.test(basePath, levels, requireExistingPath);
+    ZLayer.fromZIO[Any, Throwable, UserArchive](keyBlobArchive.map(new FileSystemUserArchive(_)))

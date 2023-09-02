@@ -103,8 +103,21 @@ object BlobArchive:
     ): ZLayer[Any, Throwable, BlobArchive] =
     val keyBlobArchive = KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels, requireExistingPath)
     val baseTmpPath = basePath.resolve("tmp").nn
-
     ZLayer.scoped(
       initializeBlobArchive(baseTmpPath)
-        .map(_ => FileSystemBlobArchive(keyBlobArchive, baseTmpPath))
+      *>
+      keyBlobArchive.map(FileSystemBlobArchive(_, baseTmpPath))
+    )
+  
+  def test(
+      basePath: Path,
+      levels: Int,
+      requireExistingPath: Boolean = true,
+    ): ZLayer[Any, Throwable, BlobArchive] =
+    val keyBlobArchive = KeyBlobArchive.FileSystemKeyBlobArchive.test(basePath, levels, requireExistingPath)
+    val baseTmpPath = basePath.resolve("tmp").nn
+    ZLayer.scoped(
+      initializeBlobArchive(baseTmpPath)
+      *>
+      keyBlobArchive.map(FileSystemBlobArchive(_, baseTmpPath))
     )

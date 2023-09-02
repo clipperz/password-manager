@@ -11,6 +11,7 @@ import is.clipperz.backend.exceptions.{
   ResourceNotFoundException,
   EmptyContentException,
 }
+import is.clipperz.backend.services.scheduledFileSystemMetricsCollection
 import zio.Duration
 
 // ============================================================================
@@ -88,7 +89,18 @@ object KeyBlobArchive:
         basePath: Path,
         levels: Int,
         requireExistingPath: Boolean = true,
-      ): FileSystemKeyBlobArchive =
+      ): Task[FileSystemKeyBlobArchive] =
       if (Files.exists(basePath) && Files.isDirectory(basePath)) || !requireExistingPath then
-        new FileSystemKeyBlobArchive(basePath, levels)
-      else throw new IllegalArgumentException("Base path does not exist")
+        scheduledFileSystemMetricsCollection(basePath)
+        *>
+        ZIO.succeed(new FileSystemKeyBlobArchive(basePath, levels))
+      else ZIO.fail(new IllegalArgumentException("Base path does not exist"))
+    
+    def test(
+      basePath: Path,
+        levels: Int,
+        requireExistingPath: Boolean = true,
+      ): Task[FileSystemKeyBlobArchive] =
+      if (Files.exists(basePath) && Files.isDirectory(basePath)) || !requireExistingPath then
+        ZIO.succeed(new FileSystemKeyBlobArchive(basePath, levels))
+      else ZIO.fail(new IllegalArgumentException("Base path does not exist"))

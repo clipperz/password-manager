@@ -87,4 +87,12 @@ object OneTimeShareArchive:
       requireExistingPath: Boolean = true,
     ): ZLayer[Any, Throwable, OneTimeShareArchive] =
     val keyBlobArchive = KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels, requireExistingPath)
-    ZLayer.succeed[OneTimeShareArchive](new FileSystemOneTimeShareArchive(keyBlobArchive))
+    ZLayer.fromZIO[Any, Throwable, OneTimeShareArchive](keyBlobArchive.map(new FileSystemOneTimeShareArchive(_)))
+  
+  def test(
+      basePath: Path,
+      levels: Int,
+      requireExistingPath: Boolean = true,
+    ): ZLayer[Any, Throwable, OneTimeShareArchive] =
+    val keyBlobArchive = KeyBlobArchive.FileSystemKeyBlobArchive.test(basePath, levels, requireExistingPath)
+    ZLayer.fromZIO[Any, Throwable, OneTimeShareArchive](keyBlobArchive.map(new FileSystemOneTimeShareArchive(_)))
