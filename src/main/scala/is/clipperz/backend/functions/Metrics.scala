@@ -1,12 +1,15 @@
 package is.clipperz.backend.functions
 
-import java.util.concurrent.TimeUnit.{ SECONDS, NANOSECONDS }
+import scala.jdk.CollectionConverters.*
 
-import zio.{ ZIO, Chunk }
+import java.util.concurrent.TimeUnit.{ SECONDS, NANOSECONDS }
+import java.nio.file.Path
+import java.nio.file.Files
+
+import zio.{ ZIO, Chunk, Task, Schedule }
 import zio.durationInt
 import zio.metrics.{ Metric, MetricLabel }
-import zio.http.Response
-import zio.http.Method
+import zio.http.{ Response, Method }
 
 private val nanoToSeconds = 1e-9
 
@@ -38,3 +41,21 @@ def elapsedTime[E, R](label: String, tags: Set[MetricLabel])(block: => ZIO[E, Th
                               @@ Metric.summary(s"${label}.elapsedTime", 1.day, 100, 0.03d, Chunk(0.50, 0.75, 0.90, 0.95, 0.98 /*, 0.99, 0.999*/)).tagged(tags)
                        )
   } yield result
+
+def collectFileSystemMetrics(path: Path): Task[(Long, Long, Array[Long])] =
+  elapsedTime("files", Set(MetricLabel("archive", path.getFileName().nn.toString())))(
+    ZIO.attempt(Files.walk(path).nn.iterator().nn.asScala
+       .map(_.toFile().nn)
+       .filter(file => file.isFile() && !file.isHidden())
+       .map(file => (1, file.length()))
+       .foldLeft((0L, 0L, Array.empty[Long]))((acc, tuple) => (acc._1 + tuple._1, acc._2 + tuple._2, acc._3 :+ (tuple._2))))
+      @@ Metric.counter("files.count")
+               .contramap[(Long, Long, Array[Long])](_._1)
+               .tagged("archive", path.getFileName().nn.toString())
+      @@ Metric.counter("files.size")
+               .contramap[(Long, Long, Array[Long])](_._2/1000)
+               .tagged("archive", path.getFileName().nn.toString())
+  )
+
+def scheduledFileSystemMetricsCollection(path: Path) =
+  collectFileSystemMetrics(path) `repeat` Schedule.fixed(30.minutes)
