@@ -29,7 +29,7 @@ import zio.ZLayer
 object BlobArchiveSpec extends ZIOSpecDefault:
   val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
 
-  val environment = BlobArchive.test(blobBasePath, 2, false)
+  val environment = BlobArchive.fs(blobBasePath, 2, false)
 
   val testContent = ZStream.fromIterable("testContent".getBytes().nn)
   val failingContent = ZStream.never

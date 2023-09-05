@@ -56,10 +56,10 @@ object AppSpec extends ZIOSpecDefault:
   val environment =
     PRNG.live ++
       SessionManager.live ++
-      UserArchive.test(userBasePath, 2, false) ++
-      BlobArchive.test(blobBasePath, 2, false) ++
-      OneTimeShareArchive.test(oneTimeShareBasePath, 2, false) ++
-      ((UserArchive.test(userBasePath, 2, false) ++ PRNG.live) >>> SrpManager.v6a()) ++
+      UserArchive.fs(userBasePath, 2, false) ++
+      BlobArchive.fs(blobBasePath, 2, false) ++
+      OneTimeShareArchive.fs(oneTimeShareBasePath, 2, false) ++
+      ((UserArchive.fs(userBasePath, 2, false) ++ PRNG.live) >>> SrpManager.v6a()) ++
       (PRNG.live >>> TollManager.live)
 
   val srpFunctions = new SrpFunctionsV6a()
