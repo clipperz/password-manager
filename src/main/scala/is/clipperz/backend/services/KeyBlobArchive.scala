@@ -91,7 +91,7 @@ object KeyBlobArchive:
         requireExistingPath: Boolean = true,
       ): Task[FileSystemKeyBlobArchive] =
       if (Files.exists(basePath) && Files.isDirectory(basePath)) || !requireExistingPath then
-        scheduledFileSystemMetricsCollection(basePath)
+        scheduledFileSystemMetricsCollection(basePath).forkDaemon
         *>
         ZIO.succeed(new FileSystemKeyBlobArchive(basePath, levels))
       else ZIO.fail(new IllegalArgumentException("Base path does not exist"))

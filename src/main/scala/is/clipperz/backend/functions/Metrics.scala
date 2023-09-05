@@ -49,6 +49,7 @@ def collectFileSystemMetrics(path: Path): Task[(Long, Long, Array[Long])] =
        .filter(file => file.isFile() && !file.isHidden())
        .map(file => (1, file.length()))
        .foldLeft((0L, 0L, Array.empty[Long]))((acc, tuple) => (acc._1 + tuple._1, acc._2 + tuple._2, acc._3 :+ (tuple._2))))
+       .tap(tuple => ZIO.log(s"${path.getFileName()}: [Count = ${tuple._1} files; Size = ${tuple._2}] KB"))
       @@ Metric.counter("files.count")
                .contramap[(Long, Long, Array[Long])](_._1)
                .tagged("archive", path.getFileName().nn.toString())
