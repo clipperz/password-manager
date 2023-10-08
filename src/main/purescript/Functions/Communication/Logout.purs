@@ -10,11 +10,12 @@ import Data.Maybe (Maybe(..))
 import Data.Unit (Unit)
 import DataModel.AppState (AppError)
 import Effect.Aff (Aff)
+import Effect.Aff.Class (liftAff)
 import Functions.Communication.BackendCommunication (manageGenericRequest)
 import Functions.State (resetState)
 
 doLogout :: Boolean -> Aff (Either AppError Unit)
 doLogout isLock = runExceptT $ do
   _ <- manageGenericRequest "logout" POST Nothing RF.string
-  resetState -- TODO: dependes on lock behaviour and on isLock value
+  liftAff $ resetState -- TODO: dependes on lock behaviour and on isLock value
 

@@ -84,13 +84,13 @@ homePageWidget status =
           pure $ maybe Clean ReadyForLogin maybeUser
         UserAreaAction Logout -> pure $ Clean
         UserAreaAction DeleteAccount -> do
-          _ <- liftAff $ runExceptT $ resetState
+          _ <- liftAff resetState
           pure $ Clean
         CardsManagerAction OpenUserArea -> case ix of
           Just ix'  -> homePage proxyConnectionStatus false ix' (fromMaybe NoCard cv)
           Nothing   -> go (Error "No index found") proxyConnectionStatus true
         LogoutAction -> do
-          _ <- liftAff $ runExceptT $ resetState
+          _ <- liftAff resetState
           pure $ Clean
 
     getUsername :: Effect (Maybe String)

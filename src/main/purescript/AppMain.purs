@@ -6,7 +6,6 @@ module AppMain
 import Concur.React.Run (runWidgetInDom)
 import Control.Alternative (pure)
 import Control.Bind (bind, discard, (>>=))
-import Control.Monad.Except (runExceptT)
 import Data.Argonaut.Decode (fromJsonString)
 import Data.Array (catMaybes)
 import Data.Either (Either(..))
@@ -17,34 +16,36 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (split)
 import Data.String.Pattern (Pattern(..))
 import Data.Tuple (Tuple(..))
-import Data.Unit (Unit, unit)
+import Data.Unit (Unit)
 import DataModel.AppState (AppState)
 import DataModel.FragmentData as Fragment
 import Effect (Effect)
+import Foreign (unsafeToForeign)
 import Functions.JSState (modifyAppState)
 import Functions.State (computeInitialState)
 import JSURI (decodeURI)
 import OperationalWidgets.App (Page(..), app, doTestLogin)
 import Record (merge)
-import Web.HTML (window)
-import Web.HTML.Location (hash, setHash)
-import Web.HTML.Window (location)
+import Web.HTML (Window, window)
+import Web.HTML.History (DocumentTitle(..), URL(..), replaceState)
+import Web.HTML.Location (hash, pathname)
+import Web.HTML.Window (history, location)
 
 main :: Effect Unit
 main = do
-  l <- window >>= location
-  h <- hash l
-  maybeState <- computeStateWithFragmentData h
-  case maybeState of
-    Nothing -> pure unit
-    Just state@{fragmentData} -> do
-      modifyAppState state
-      case fragmentData of
-        Just Fragment.Registration -> runWidgetInDom "app" (app Signup)
-        Just (Fragment.Login cred) -> runWidgetInDom "app" (doTestLogin cred)
-        _                          -> do
-                                      setHash "" l
-                                      runWidgetInDom "app" (app (Loading (Just Login)))
+  state@{fragmentData} <- window >>= location >>= hash >>= computeStateWithFragmentData
+  modifyAppState state
+  window >>= removeHash
+  runWidgetInDom "app" case fragmentData of
+    Just (Fragment.Login cred) -> doTestLogin cred --test shortcut
+    Just Fragment.Registration -> app Signup
+    _                          -> app (Loading (Just Login))
+
+  where
+    removeHash :: Window -> Effect Unit
+    removeHash w = do
+      pathName <- location w >>= pathname
+      history w >>= replaceState (unsafeToForeign {}) (DocumentTitle "") (URL pathName)
 
 parseQueryString :: String -> Array (Tuple String String)
 parseQueryString query = 
@@ -54,25 +55,20 @@ parseQueryString query =
                               _ -> Nothing
   in catMaybes $ splitKeyValue <$> keyValues 
 
-computeStateWithFragmentData :: String -> Effect (Maybe AppState)
+computeStateWithFragmentData :: String -> Effect AppState
 computeStateWithFragmentData fragment = do
-  initialState <- runExceptT $ computeInitialState
-
-  case initialState of
-    Right state -> do
-      fragmentData <- pure $ case fragment of
-        "#registration" -> Just Fragment.Registration
-        str -> do
-          case split (Pattern "?") str of
-            [ "#login", query ] -> do
-              let parameters = fromFoldable $ parseQueryString query
-              case (lookup "username" parameters), (lookup "password" parameters) of
-                Just username, Just password -> Just $ Fragment.Login {username, password}
-                _, _ -> Just $ Fragment.Unrecognized fragment
-            [ "#addCard", cardData ] -> case fromJsonString (fromMaybe cardData (decodeURI cardData)) of
-              Right card -> Just $ Fragment.AddCard card
-              Left  _    -> Just $ Fragment.Unrecognized fragment
-            _ -> Nothing
-      pure $ Just (merge {fragmentData: fragmentData} state )      
-    Left _ -> do
-      pure Nothing
+  initialState <- computeInitialState
+  fragmentData <- pure $ case fragment of
+    "#registration" -> Just Fragment.Registration
+    str -> do
+      case split (Pattern "?") str of
+        [ "#login", query ] -> do
+          let parameters = fromFoldable $ parseQueryString query
+          case (lookup "username" parameters), (lookup "password" parameters) of
+            Just username, Just password -> Just $ Fragment.Login {username, password}
+            _, _ -> Just $ Fragment.Unrecognized fragment
+        [ "#addCard", cardData ] -> case fromJsonString (fromMaybe cardData (decodeURI cardData)) of
+          Right card -> Just $ Fragment.AddCard card
+          Left  _    -> Just $ Fragment.Unrecognized fragment
+        _ -> Nothing
+  pure (merge {fragmentData: fragmentData} initialState )      

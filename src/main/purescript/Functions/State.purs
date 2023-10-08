@@ -2,18 +2,18 @@ module Functions.State where
 
 import Control.Applicative (pure)
 import Control.Bind (bind, (>>=))
-import Control.Monad.Except.Trans (ExceptT(..), mapExceptT, except)
+import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Data.Array (filter, catMaybes, head)
-import Data.Either (Either(..), note)
+import Data.Either (Either(..))
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Map.Internal (empty)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (sequence)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), fst, snd)
 import Data.Unit (Unit)
-import DataModel.AppState (AppState, AppError(..), baseSRPInfo, HashState(..), KDFState(..), ProxyConnectionStatus(..))
+import DataModel.AppState (AppError, AppState, HashState(..), KDFState(..), ProxyConnectionStatus(..), baseSRPInfo)
 import DataModel.AsyncValue (AsyncValue(..))
 import DataModel.Proxy (Proxy(..), BackendSessionState(..))
 import DataModel.SRP (SRPConf, KDF, HashFunction, concatKDF, hashFuncSHA1, hashFuncSHA256)
@@ -22,10 +22,11 @@ import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.JSState (getAppState, modifyAppState)
 import Record (merge)
+import Web.DOM (Element, Node)
 import Web.DOM.Element (fromNode, id)
 import Web.DOM.Node (childNodes)
 import Web.DOM.NodeList (toArray)
-import Web.HTML (window)
+import Web.HTML (HTMLElement, window)
 import Web.HTML.HTMLDocument (body)
 import Web.HTML.HTMLElement (toNode)
 import Web.HTML.Window (document)
@@ -33,18 +34,19 @@ import Web.HTML.Window (document)
 offlineDataId :: String
 offlineDataId = "offlineData"
 
-computeInitialState :: ExceptT AppError Effect AppState
+computeInitialState :: Effect AppState
 computeInitialState = do
-  w <- ExceptT $ Right <$> window
-  b <- ExceptT $ note (CannotInitState "incorrectly formatted HTML body") <$> (document w >>= body)
-  childs <- ExceptT $ Right <$> (childNodes (toNode b) >>= toArray)
-  elementsWithId <- ExceptT $ Right <$> (sequence $ mapIds <$> (catMaybes $ fromNode <$> childs))
-  let script = head ((\(Tuple e _) -> e) <$> (filter (\(Tuple _ i) -> i == offlineDataId) elementsWithId))
+  script <- runMaybeT do
+    body            :: HTMLElement                  <- MaybeT $ (window >>= document >>= body)
+    childs          :: Array Node                   <- liftEffect $ (childNodes (toNode body) >>= toArray)
+    elementsWithId  :: Array (Tuple Element String) <- liftEffect $ sequence $ mapIds <$> (catMaybes $ fromNode <$> childs)
+    MaybeT $ pure $ fst <$> head (filter (\element_id -> (snd element_id) == offlineDataId) elementsWithId)
   case script of
-    Just _  -> except $ Right $ withOfflineProxy
-    Nothing -> except $ Right (withOnlineProxy "/api")
+    Just _  -> pure $ withOfflineProxy
+    Nothing -> pure ( withOnlineProxy "/api")
 
   where 
+    mapIds :: Element -> Effect (Tuple Element String)
     mapIds e = (Tuple e) <$> (id e)
 
     withOfflineProxy = merge { proxy: OfflineProxy (BackendSessionState { b: Nothing, aa: Nothing, bb: Nothing }) } baseState
@@ -65,10 +67,10 @@ computeInitialState = do
                 , fragmentData: Nothing
                 }
 
-resetState :: ExceptT AppError Aff Unit
+resetState :: Aff Unit
 resetState = do
-  is <- mapExceptT liftEffect computeInitialState
-  ExceptT $ Right <$> (liftEffect $ modifyAppState is)
+  is <- liftEffect computeInitialState
+  liftEffect $ modifyAppState is
 
 getKDFFromState :: KDFState -> KDF
 getKDFFromState kdfState =

@@ -47,7 +47,8 @@ instance decodeJsonIndexReference :: DecodeJson IndexReference where
 newtype UserPreferences = 
   UserPreferences
     { passwordGeneratorSettings :: PasswordGeneratorSettings
-    , automaticLock :: Either Int Int
+    , automaticLock :: Either Int Int -- Left  -> automatic lock disabled while keeping the time
+                                      -- Right -> automatic lock enabled
     }
 
 instance showUserPreferences :: Show UserPreferences where
