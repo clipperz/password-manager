@@ -22,7 +22,6 @@ import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), AppState, HashState, InvalidStateError(..), KDFState)
 import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
-import DataModel.FragmentData (FragmentData)
 import DataModel.Proxy (Proxy)
 import DataModel.User (UserCard, UserInfoReferences, UserPreferences)
 import Effect (Effect)
@@ -43,8 +42,8 @@ getAppState = do
 
 foreign import updateJsonState :: String -> Effect Unit
 
-modifyAppState :: AppState -> Effect Unit
-modifyAppState = encodeJson >>> stringify >>> updateJsonState
+saveAppState :: AppState -> Effect Unit
+saveAppState = encodeJson >>> stringify >>> updateJsonState
 
 updateAppState :: forall m r1 r3.
   Monad m => MonadEffect m => Union r1
@@ -54,7 +53,6 @@ updateAppState :: forall m r1 r3.
                                                               { cost :: Int
                                                               , toll :: HexString
                                                               }
-                                      , fragmentData :: Maybe FragmentData
                                       , hash :: HashState
                                       , p :: Maybe HexString
                                       , password :: Maybe String
@@ -80,7 +78,6 @@ updateAppState :: forall m r1 r3.
                                                               { cost :: Int
                                                               , toll :: HexString
                                                               }
-                                      , fragmentData :: Maybe FragmentData
                                       , hash :: HashState
                                       , p :: Maybe HexString
                                       , password :: Maybe String
@@ -101,4 +98,4 @@ updateAppState :: forall m r1 r3.
                                       => Record r1 -> m (Either AppError Unit)
 updateAppState partialState = runExceptT $ do
   stateToUpdate <- ExceptT $ liftEffect $ getAppState
-  ExceptT $ Right <$> (liftEffect $ modifyAppState (merge partialState stateToUpdate))
+  ExceptT $ Right <$> (liftEffect $ saveAppState (merge partialState stateToUpdate))

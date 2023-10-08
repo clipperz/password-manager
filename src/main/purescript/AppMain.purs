@@ -4,7 +4,6 @@ module AppMain
   where
 
 import Concur.React.Run (runWidgetInDom)
-import Control.Alternative (pure)
 import Control.Bind (bind, discard, (>>=))
 import Data.Argonaut.Decode (fromJsonString)
 import Data.Array (catMaybes)
@@ -17,15 +16,14 @@ import Data.String (split)
 import Data.String.Pattern (Pattern(..))
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
-import DataModel.AppState (AppState)
+import DataModel.FragmentData (FragmentData)
 import DataModel.FragmentData as Fragment
 import Effect (Effect)
 import Foreign (unsafeToForeign)
-import Functions.JSState (modifyAppState)
+import Functions.JSState (saveAppState)
 import Functions.State (computeInitialState)
 import JSURI (decodeURI)
-import OperationalWidgets.App (Page(..), app, doTestLogin)
-import Record (merge)
+import OperationalWidgets.App (app)
 import Web.HTML (Window, window)
 import Web.HTML.History (DocumentTitle(..), URL(..), replaceState)
 import Web.HTML.Location (hash, pathname)
@@ -33,13 +31,10 @@ import Web.HTML.Window (history, location)
 
 main :: Effect Unit
 main = do
-  state@{fragmentData} <- window >>= location >>= hash >>= computeStateWithFragmentData
-  modifyAppState state
+  computeInitialState >>= saveAppState
+  fragmentData <- computeFragmentData <$> (window >>= location >>= hash)
   window >>= removeHash
-  runWidgetInDom "app" case fragmentData of
-    Just (Fragment.Login cred) -> doTestLogin cred --test shortcut
-    Just Fragment.Registration -> app Signup
-    _                          -> app (Loading (Just Login))
+  runWidgetInDom "app" $ app fragmentData
 
   where
     removeHash :: Window -> Effect Unit
@@ -55,20 +50,17 @@ parseQueryString query =
                               _ -> Nothing
   in catMaybes $ splitKeyValue <$> keyValues 
 
-computeStateWithFragmentData :: String -> Effect AppState
-computeStateWithFragmentData fragment = do
-  initialState <- computeInitialState
-  fragmentData <- pure $ case fragment of
-    "#registration" -> Just Fragment.Registration
-    str -> do
-      case split (Pattern "?") str of
-        [ "#login", query ] -> do
-          let parameters = fromFoldable $ parseQueryString query
-          case (lookup "username" parameters), (lookup "password" parameters) of
-            Just username, Just password -> Just $ Fragment.Login {username, password}
-            _, _ -> Just $ Fragment.Unrecognized fragment
-        [ "#addCard", cardData ] -> case fromJsonString (fromMaybe cardData (decodeURI cardData)) of
-          Right card -> Just $ Fragment.AddCard card
-          Left  _    -> Just $ Fragment.Unrecognized fragment
-        _ -> Nothing
-  pure (merge {fragmentData: fragmentData} initialState )      
+computeFragmentData :: String -> FragmentData
+computeFragmentData fragment = case fragment of
+  "#registration" -> Fragment.Registration
+  str -> do
+    case split (Pattern "?") str of
+      [ "#login", query ] -> do
+        let parameters = fromFoldable $ parseQueryString query
+        case (lookup "username" parameters), (lookup "password" parameters) of
+          Just username, Just password -> Fragment.Login {username, password}
+          _, _ -> Fragment.Unrecognized fragment
+      [ "#addCard", cardData ] -> case fromJsonString (fromMaybe cardData (decodeURI cardData)) of
+        Right card -> Fragment.AddCard card
+        Left  _    -> Fragment.Unrecognized fragment
+      _ -> Fragment.Empty

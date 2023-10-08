@@ -26,7 +26,6 @@ import Data.PrettyShow (class PrettyShow, prettyShow)
 import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
 import DataModel.Communication.ProtocolError (ProtocolError)
-import DataModel.FragmentData (FragmentData)
 import DataModel.Proxy (Proxy)
 import DataModel.SRP (SRPGroup, group1024, k)
 import DataModel.User (UserCard, UserInfoReferences, UserPreferences)
@@ -52,7 +51,6 @@ type AppState =
   , userCard :: Maybe UserCard
   , userInfoReferences :: Maybe UserInfoReferences
   , userPreferences :: Maybe UserPreferences
-  , fragmentData :: Maybe FragmentData
   }
 
 type SRPInfo = { group :: SRPGroup, k :: BigInt, kdf :: KDFState }

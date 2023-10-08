@@ -58,7 +58,7 @@ import Effect.Aff (Aff, forkAff, delay)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.HashCash (TollChallenge, computeReceipt)
-import Functions.JSState (getAppState, modifyAppState, updateAppState)
+import Functions.JSState (getAppState, saveAppState, updateAppState)
 import Functions.State (getSRPConf, getHashFunctionFromAppState)
 import Functions.SRP as SRP
 import Record (merge)
@@ -121,7 +121,7 @@ manageGenericRequest url method body responseFormat = do
                               OfflineProxy _ -> OfflineRequestInfo { url, method, body, responseFormat }
           response <- withExceptT (\e -> AS.ProtocolError e) (ExceptT $ doGenericRequest proxy requestInfo)
           -- change toll to loading state because it has been used
-          ExceptT $ Right <$> (liftEffect $ modifyAppState (currentState { toll = toLoading toll }))
+          ExceptT $ Right <$> (liftEffect $ saveAppState (currentState { toll = toLoading toll }))
           manageResponse response.status response
 
         manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AS.AppError Aff (AXW.Response a))

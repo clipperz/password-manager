@@ -24,7 +24,7 @@ import DataModel.User (UserCard(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
-import Functions.JSState (modifyAppState, getAppState)
+import Functions.JSState (saveAppState, getAppState)
 import Functions.Signup (prepareSignupParameters)
 import Functions.SRP as SRP
 
@@ -36,7 +36,7 @@ signupUser credentials = do
   let body = (json $ encodeJson request) :: RequestBody
   --- --------------------------- 
   sessionKey :: HexString <- ExceptT $ (lmap ProtocolError) <$> ((fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32) --- TODO: maybe to manage with session middleware
-  ExceptT $ Right <$> (liftEffect $ modifyAppState (currentState { sessionKey = Just sessionKey }))
+  ExceptT $ Right <$> (liftEffect $ saveAppState (currentState { sessionKey = Just sessionKey }))
   --- --------------------------- 
   response :: AXW.Response String <- manageGenericRequest url POST (Just body) RF.string
   except $ if isStatusCodeOk response.status

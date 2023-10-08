@@ -14,7 +14,7 @@ import DataModel.AppState (AppError)
 import DataModel.Card (Card)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Functions.JSState (getAppState, modifyAppState)
+import Functions.JSState (getAppState, saveAppState)
 
 getCardFromCache :: HexString -> ExceptT AppError Aff (Maybe Card)
 getCardFromCache reference = do
@@ -24,9 +24,9 @@ getCardFromCache reference = do
 addCardToCache :: HexString -> Card -> ExceptT AppError Aff Unit
 addCardToCache reference card = do
   state@{ cardsCache } <- ExceptT $ liftEffect getAppState
-  ExceptT $ Right <$> (liftEffect $ modifyAppState (state { cardsCache = insert reference card cardsCache}))
+  ExceptT $ Right <$> (liftEffect $ saveAppState (state { cardsCache = insert reference card cardsCache}))
 
 removeCardFromCache :: HexString -> ExceptT AppError Aff Unit
 removeCardFromCache reference = do
   state@{ cardsCache } <- ExceptT $ liftEffect getAppState
-  ExceptT $ Right <$> (liftEffect $ modifyAppState (state { cardsCache = delete reference cardsCache}))
+  ExceptT $ Right <$> (liftEffect $ saveAppState (state { cardsCache = delete reference cardsCache}))

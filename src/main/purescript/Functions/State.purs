@@ -20,7 +20,7 @@ import DataModel.SRP (SRPConf, KDF, HashFunction, concatKDF, hashFuncSHA1, hashF
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Functions.JSState (getAppState, modifyAppState)
+import Functions.JSState (getAppState, saveAppState)
 import Record (merge)
 import Web.DOM (Element, Node)
 import Web.DOM.Element (fromNode, id)
@@ -64,13 +64,12 @@ computeInitialState = do
                 , userCard: Nothing
                 , userInfoReferences: Nothing 
                 , userPreferences: Nothing
-                , fragmentData: Nothing
                 }
 
 resetState :: Aff Unit
 resetState = do
   is <- liftEffect computeInitialState
-  liftEffect $ modifyAppState is
+  liftEffect $ saveAppState is
 
 getKDFFromState :: KDFState -> KDF
 getKDFFromState kdfState =

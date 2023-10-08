@@ -19,16 +19,14 @@ import Data.List ((:), filter)
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..), InvalidStateError(..), ProxyConnectionStatus)
+import DataModel.Card (Card)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.FragmentData (FragmentData(..))
 import DataModel.Index (Index(..), CardEntry(..))
 import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Effect.Class (liftEffect)
 import Functions.Communication.Users (updateIndex)
-import Functions.JSState (getAppState, updateAppState)
 import OperationalWidgets.CreateCardWidget (CardFormInput(..))
 import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState, CardsViewInfo, FilterViewStatus(..))
 import Views.IndexView (IndexFilter(..), ComplexIndexFilter, addLastCardFilterInOr, removeAllLastCardFilter)
@@ -37,15 +35,11 @@ data CardsManagerAction = OpenUserArea
 
 data CardsViewResult = CardsViewResult (Tuple CardsViewInfo CardViewAction) | OpResult Index CardViewState (Maybe AppError) ComplexIndexFilter
 
-cardsManagerWidget :: ProxyConnectionStatus -> Index -> CardViewState -> Widget HTML CardsManagerAction
-cardsManagerWidget proxyConnectionStatus ind _ = do
-  getStateResult <- liftEffect $ getAppState
-  _ <- updateAppState {fragmentData: Nothing}
-  cardView <- pure $ case getStateResult of
-    Left _  -> NoCard
-    Right {fragmentData}  -> case fragmentData of
-      Just (AddCard card) -> (CardForm (NewCard $ Just card))
-      _                   -> NoCard
+cardsManagerWidget :: ProxyConnectionStatus -> Index -> Maybe Card -> CardViewState -> Widget HTML CardsManagerAction
+cardsManagerWidget proxyConnectionStatus ind card _ = do
+  cardView <- pure $ case card of
+      Just c  -> CardForm (NewCard $ Just c)
+      Nothing -> NoCard
   let info = { index: ind
              , indexFilter: { archived: false, indexFilter: NoFilter }
              , selectedIndexPosition: Nothing

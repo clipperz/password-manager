@@ -15,7 +15,7 @@ import Data.String (Pattern(..), drop, split)
 import Data.Unit (Unit)
 import Effect (Effect)
 import Effect.Class (liftEffect)
-import Functions.JSState (modifyAppState)
+import Functions.JSState (saveAppState)
 import Functions.State (computeInitialState)
 import OperationalWidgets.RedeemWidget (redeemWidget)
 import Web.HTML (window)
@@ -24,7 +24,7 @@ import Web.HTML.Window (location)
 
 wrapper :: forall a. Widget HTML a -> Widget HTML a
 wrapper widget = do
-  _ <- liftEffect $ computeInitialState >>= modifyAppState
+  _ <- liftEffect $ computeInitialState >>= saveAppState
   widget
 
 main :: Effect Unit

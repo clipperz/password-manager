@@ -2,7 +2,6 @@ module OperationalWidgets.App
   ( Page(..)
   , SharedCardReference
   , app
-  , doTestLogin
   )
   where
 
@@ -24,6 +23,7 @@ import Data.Show (class Show, show)
 import Data.Time.Duration (Milliseconds(..))
 import DataModel.AppState (UserConnectionStatus(..))
 import DataModel.Credentials (Credentials, emptyCredentials)
+import DataModel.FragmentData as Fragment
 import DataModel.WidgetState as WS
 import Effect.Aff (delay, never, Aff)
 import Effect.Aff.Class (liftAff)
@@ -42,15 +42,6 @@ import Views.SignupFormView (emptyDataForm, signupFormView)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
 
-app :: forall a. Page -> Widget HTML a
-app nextPage = app' (ShowPage (Loading (Just nextPage))) { credentials: emptyCredentials }
-
-doTestLogin :: forall a. Credentials -> Widget HTML a
-doTestLogin {username, password} = do
-  app' (DoLogin testCredentials) { credentials: testCredentials }
-  where
-    testCredentials = { username: username, password: password}
-
 type SharedCardReference = String
 type SharedCardPassword  = String
 
@@ -64,38 +55,45 @@ data Action = DoLogout
             | ShowError Page 
             | ShowSuccess Page 
 
-app' :: forall a. Action -> { credentials :: Credentials } -> Widget HTML a
-app' action st@{ credentials } = do
-  log $ show action
-  nextAction:: Action <- exitBooting action <|>
-    div [Props.className "mainDiv"] [
-        headerPage (actionPage action) (Loading Nothing) []
-      , headerPage (actionPage action) Login [
-          (getLoginActionType <$> (loginFormView' credentials)) <|> ((ShowPage Signup) <$ button [Props.onClick] [text "sign up"]) -- TODO: if login fails this is reset
-          {-
-            Even when using Signals, the moment the signal terminates because the user clicks "login" its value is lost, because the signal will be drawn anew
-          -}
-        ]
-      , headerPage (actionPage action) Signup [
-          (DoSignup <$> (signupFormView WS.Default $ merge credentials emptyDataForm)) <|> ((ShowPage Login) <$ button [Props.onClick] [text "login"])
-        ]
-      , div [Props.classList (Just <$> ["page", "share", show $ location (Share Nothing) (actionPage action)])] [
-          div [Props.className "content"] [text "share"]
-        ]
-      , div [Props.classList (Just <$> ["page", "main", show $ location Main (actionPage action)])] [
-        DoLogout <$ (homePageWidget $ (if (action == (ShowPage Main)) then UserLoggedIn else UserAnonymous))
-      ]
-    ]
-    <|>
-    overlayFromAction action
-    <|> 
-    (liftAff $ doOp action)
-  case nextAction of
-    DoLogin cred -> app' nextAction $ st { credentials = cred }
-    ShowPage Main -> app' nextAction $ st { credentials = emptyCredentials }
-    _ -> app' nextAction st
+app :: forall a. Fragment.FragmentData -> Widget HTML a
+app fragmentData = case fragmentData of
+    Fragment.Registration -> app' (ShowPage (Loading (Just Signup))) { credentials: emptyCredentials }
+    Fragment.Login cred   -> app' (DoLogin cred)                     { credentials: cred }
+    _                     -> app' (ShowPage (Loading (Just Login)))  { credentials: emptyCredentials }
 
-  where 
+  where
+
+    app' :: forall a'. Action -> { credentials :: Credentials } -> Widget HTML a'
+    app' action st@{ credentials } = do
+      log $ show action
+      nextAction:: Action <- exitBooting action <|>
+        div [Props.className "mainDiv"] [
+            headerPage (actionPage action) (Loading Nothing) []
+          , headerPage (actionPage action) Login [
+              (getLoginActionType <$> (loginFormView' credentials)) <|> ((ShowPage Signup) <$ button [Props.onClick] [text "sign up"]) -- TODO: if login fails this is reset
+              {-
+                Even when using Signals, the moment the signal terminates because the user clicks "login" its value is lost, because the signal will be drawn anew
+              -}
+            ]
+          , headerPage (actionPage action) Signup [
+              (DoSignup <$> (signupFormView WS.Default $ merge credentials emptyDataForm)) <|> ((ShowPage Login) <$ button [Props.onClick] [text "login"])
+            ]
+          , div [Props.classList (Just <$> ["page", "share", show $ location (Share Nothing) (actionPage action)])] [
+              div [Props.className "content"] [text "share"]
+            ]
+          , div [Props.classList (Just <$> ["page", "main", show $ location Main (actionPage action)])] [
+            DoLogout <$ (homePageWidget (if (action == (ShowPage Main)) then UserLoggedIn else UserAnonymous) fragmentData)
+          ]
+        ]
+        <|>
+        overlayFromAction action
+        <|> 
+        (liftAff $ doOp action)
+      case nextAction of
+        DoLogin cred -> app' nextAction $ st { credentials = cred }
+        ShowPage Main -> app' nextAction $ st { credentials = emptyCredentials }
+        _ -> app' nextAction st
+
     getLoginActionType :: E.Either PinCredentials Credentials -> Action
     getLoginActionType (E.Left pinCredentials) = DoLoginWithPin pinCredentials
     getLoginActionType (E.Right credentials_) = DoLogin credentials_
@@ -124,7 +122,7 @@ location referencePage currentPage = case referencePage, currentPage of
   Main,       Main      -> Center
 
   Loading _,  _         -> Left
-  Login,      Signup    -> Left
+  Signup,     Login     -> Left
   Login,      Share _   -> Left
   Signup,     Share _   -> Left
   _,          Main      -> Left

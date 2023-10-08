@@ -31,7 +31,7 @@ import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
 import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
-import Functions.JSState (modifyAppState, getAppState, updateAppState)
+import Functions.JSState (saveAppState, getAppState, updateAppState)
 import Functions.SRP as SRP
 import Functions.State (getSRPConf, getSRPConfFromState)
 import Functions.User (decryptUserInfoReferences)
@@ -46,10 +46,10 @@ login = do
   currentState <- ExceptT $ liftEffect $ getAppState
   let srpConf = getSRPConfFromState currentState
   if isJust currentState.sessionKey
-    then ExceptT $ Right <$> (liftEffect $ modifyAppState currentState)
+    then ExceptT $ Right <$> (liftEffect $ saveAppState currentState)
     else do
       sessionKey :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32
-      ExceptT $ Right <$> (liftEffect $ modifyAppState (currentState { sessionKey = Just sessionKey }))
+      ExceptT $ Right <$> (liftEffect $ saveAppState (currentState { sessionKey = Just sessionKey }))
   loginStep1Result <- loginStep1
   { m1, kk, m2, userInfoReferences } <- loginStep2 loginStep1Result
   ExceptT $ updateAppState { userInfoReferences: Just userInfoReferences }

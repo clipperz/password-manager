@@ -21,6 +21,7 @@ import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.PrettyShow (prettyShow)
 import Data.Show (show)
 import DataModel.AppState (UserConnectionStatus(..), ProxyConnectionStatus(..))
+import DataModel.FragmentData (FragmentData, getCardToAdd)
 import DataModel.Index (Index)
 import DataModel.WidgetState (WidgetState(..))
 import Effect (Effect)
@@ -30,17 +31,17 @@ import Effect.Class.Console (log)
 import Functions.Communication.Users (getIndex)
 import Functions.JSState (getAppState)
 import Functions.State (resetState, isOfflineCopy)
-import Views.CardsManagerView (CardView(..))
-import Views.SimpleWebComponents (simpleButton, loadingDiv)
 import OperationalWidgets.CardsManagerWidget (cardsManagerWidget, CardsManagerAction(..))
 import OperationalWidgets.UserAreaWidget (userAreaWidget, UserAreaAction(..))
+import Views.CardsManagerView (CardView(..))
+import Views.SimpleWebComponents (simpleButton, loadingDiv)
 
 data HomePageAction = CardsManagerAction CardsManagerAction | UserAreaAction UserAreaAction | LogoutAction
 
 data HomePageExitStatus = Clean | ReadyForLogin String
 
-homePageWidget :: UserConnectionStatus -> Widget HTML HomePageExitStatus
-homePageWidget status = 
+homePageWidget :: UserConnectionStatus -> FragmentData -> Widget HTML HomePageExitStatus
+homePageWidget status fragment = 
   case status of
     UserLoggedIn -> do
       eitherState <- liftEffect $ getAppState
@@ -62,7 +63,7 @@ homePageWidget status =
     homePage :: ProxyConnectionStatus -> Boolean -> Index -> CardView -> Widget HTML HomePageExitStatus
     homePage proxyConnectionStatus hideUserAreaWidget index cardView = do
       result :: HomePageAction <- div [Props._id "homePage"] [
-                  CardsManagerAction <$> cardsManagerWidget proxyConnectionStatus index { cardView: cardView, cardViewState: Default }
+                  CardsManagerAction <$> cardsManagerWidget proxyConnectionStatus index (getCardToAdd fragment) { cardView: cardView, cardViewState: Default }
                 , UserAreaAction <$> (userAreaWidget hideUserAreaWidget proxyConnectionStatus)
                 ]
       interpretHomePageActions proxyConnectionStatus hideUserAreaWidget (Just index) (Just cardView) result
