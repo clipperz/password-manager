@@ -4,11 +4,10 @@ import Affjax.RequestBody (formData)
 import Affjax.ResponseFormat as RF
 import Affjax.Web as AXW
 import Control.Bind (bind, discard, pure)
-import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT)
+import Control.Monad.Except.Trans (ExceptT(..), throwError, withExceptT)
 import Crypto.Subtle.Key.Types (CryptoKey)
 import Data.Argonaut.Decode.Class (class DecodeJson)
 import Data.ArrayBuffer.Types (ArrayBuffer)
-import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
@@ -34,15 +33,13 @@ getBlob hash = do
   let url = joinWith "/" ["blobs", show $ hash]
   response <- manageGenericRequest url GET Nothing RF.arrayBuffer
   if isStatusCodeOk response.status
-    then except $ Right $ response.body
-    else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
-
+    then pure response.body
+    else throwError $ ProtocolError (ResponseError $ unwrap response.status)
 
 getDecryptedBlob :: forall a. DecodeJson a => HexString -> CryptoKey -> ExceptT AppError Aff a 
 getDecryptedBlob reference key = do
   blob <- getBlob reference
   withExceptT (\e -> ProtocolError $ CryptoError $ "Get decrypted blob: " <> show e) (ExceptT $ decryptJson key blob)
-
   
 postBlob :: ArrayBuffer -> ArrayBuffer -> ExceptT AppError Aff (AXW.Response String)
 postBlob blob hash = do
@@ -65,5 +62,5 @@ deleteBlob reference = do
   )
   response <- manageGenericRequest url DELETE (Just body) RF.string
   if isStatusCodeOk response.status
-    then except $ Right $ response.body
-    else except $ Left $ ProtocolError $ ResponseError $ unwrap response.status
+    then pure response.body
+    else throwError $ ProtocolError (ResponseError $ unwrap response.status)

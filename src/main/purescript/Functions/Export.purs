@@ -139,7 +139,7 @@ prepareOfflineCopySteps placeholders mkPlaceholderGetBlob index = do
 
 prepareUnencryptedCopy :: Index -> Aff (Either String String)
 prepareUnencryptedCopy index = runExceptT $ do
-  dt <- ExceptT $ Right <$> (liftEffect $ getCurrentDateTime)
+  dt <- liftAff $ liftEffect getCurrentDateTime
   let date = formatDateTimeToDate dt
   let time = formatDateTimeToTime dt
   cardList <- mapExceptT (\m -> (lmap show) <$> m) $ prepareCardList index
@@ -148,18 +148,18 @@ prepareUnencryptedCopy index = runExceptT $ do
   let htmlDocString2 = "</div>"
   let htmlDocContent = prepareUnencryptedContent cardList
   let htmlDocString  = styleString <> htmlDocString1 <> htmlDocContent <> htmlDocString2
-  doc :: Document <- ExceptT $ Right <$> (liftEffect $ FS.fromString htmlDocString)
-  blob <- ExceptT $ Right <$> (liftEffect $ prepareHTMLBlob doc)
-  _ <- ExceptT $ Right <$> readFile blob
-  ExceptT $ Right <$> (liftEffect $ createObjectURL blob)
+  doc  :: Document <- liftAff $ liftEffect (FS.fromString htmlDocString)
+  blob :: Blob     <- liftAff $ liftEffect (prepareHTMLBlob doc)
+  _                <- liftAff $ readFile blob
+  liftAff $ liftEffect (createObjectURL blob)
 
 data UnencryptedCopyStep = PrepareCardList | PrepareContent | PrepareDoc | PrepareDowloadUrl
-derive instance ordUnencryptedCopyStep :: Ord UnencryptedCopyStep
-derive instance eqUnencryptedCopyStep :: Eq UnencryptedCopyStep
-instance showUnencryptedCopyStep :: Show UnencryptedCopyStep where
-  show PrepareCardList = "PrepareCardList" 
-  show PrepareContent = "PrepareContent" 
-  show PrepareDoc = "PrepareDocument" 
+derive instance ordUnencryptedCopyStep  :: Ord  UnencryptedCopyStep
+derive instance eqUnencryptedCopyStep   :: Eq   UnencryptedCopyStep
+instance        showUnencryptedCopyStep :: Show UnencryptedCopyStep where
+  show PrepareCardList   = "PrepareCardList" 
+  show PrepareContent    = "PrepareContent" 
+  show PrepareDoc        = "PrepareDocument" 
   show PrepareDowloadUrl = "Preparing download url..."
 
 data UnencryptedCopyStepResult = StartStep
@@ -168,11 +168,11 @@ data UnencryptedCopyStepResult = StartStep
                                | PreparedUnencryptedDoc Document
                                | Url String
 instance showUnencryptedCopyStepResult :: Show UnencryptedCopyStepResult where
-  show StartStep = "Start"
-  show (CardList _) = "Prepare list of cards"
-  show (DocumentContent _) = "Prepare content of document"
+  show StartStep                  = "Start"
+  show (CardList _)               = "Prepare list of cards"
+  show (DocumentContent _)        = "Prepare content of document"
   show (PreparedUnencryptedDoc _) = "Prepare offline copy"
-  show (Url _) = "Download url ready"
+  show (Url _)                    = "Download url ready"
 
 prepareUnencryptedCopySteps :: forall m. MonadAff m 
                             => MonadEffect m 
@@ -231,17 +231,17 @@ prepareBlobListSteps placeholderFunc (Index entries) = do
                       Right (BlobList blobs) -> do
                         newBlob <- liftAff $ runExceptT $ getBlob hexref
                         case newBlob of
-                          Left err -> pure $ Left $ show err
-                          Right b -> pure $ Right $ BlobList $ snoc blobs (Tuple hexref (fromArrayBuffer b))
+                          Left err -> pure $ Left  $ show err
+                          Right b  -> pure $ Right $ BlobList $ snoc blobs (Tuple hexref (fromArrayBuffer b))
                       Right Start -> do
                         newBlob <- liftAff $ runExceptT $ getBlob hexref
                         case newBlob of
                           Left err -> pure $ Left $ show err
-                          Right b -> pure $ Right $ BlobList $ Cons (Tuple hexref (fromArrayBuffer b)) Nil
+                          Right b ->  pure $ Right $ BlobList $ Cons (Tuple hexref (fromArrayBuffer b)) Nil
                       Right _ -> pure $ Left "illegal result of previous step"
-  let funcs = getBlobFunc <$> references
-  let total = length references
-  let pls = placeholderFunc <$> (0 .. total) 
+  let funcs  = getBlobFunc <$> references
+  let total  = length references
+  let pls    = placeholderFunc <$> (0 .. total) 
   let zipped = zipWith (\func -> \pl -> {func, pl}) funcs pls
   except $ Right ((\{func, pl} -> IntermediateStep func pl) <$> zipped)
 

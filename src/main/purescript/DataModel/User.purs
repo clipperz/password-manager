@@ -8,6 +8,7 @@ import Data.Either (Either(..))
 import Data.Eq (class Eq)
 import Data.HexString (HexString)
 import Data.Maybe (Maybe)
+import Data.Newtype (class Newtype)
 import Data.Show (class Show, show)
 import Data.Tuple (Tuple)
 import DataModel.Password (PasswordGeneratorSettings)
@@ -96,6 +97,7 @@ newtype UserPreferences =
     , automaticLock :: Either Int Int -- Left  -> automatic lock disabled while keeping the time
                                       -- Right -> automatic lock enabled
     }
+derive instance newTypeUserPreferences :: Newtype UserPreferences _
 
 instance showUserPreferences :: Show UserPreferences where
   show (UserPreferences record) = show record

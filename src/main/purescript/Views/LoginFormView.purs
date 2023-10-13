@@ -72,7 +72,7 @@ loginFormView state loginFormData = do
       case maybePin of
         NormalLogin -> formNoPassphrase state (emptyForm { username = user })
         Pin pin -> do
-          ei :: Either AppError Credentials <- (Left (CannotInitState "ciao") <$ div [] [pinView false (show pin)]) <|> (liftAff $ runExceptT $ decryptPassphrase pin user encryptedPassphrase)
+          ei :: Either AppError Credentials <- (Left (CannotInitState "TODO") <$ div [] [pinView false (show pin)]) <|> (liftAff $ runExceptT $ decryptPassphrase pin user encryptedPassphrase)
           case ei of
             Right f -> do
               (void $ div [] [pinView false (show pin)]) <|> (liftEffect $ setItem (makeKey "failures") (show 0) storage)

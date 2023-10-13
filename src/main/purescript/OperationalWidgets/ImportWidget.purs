@@ -134,26 +134,26 @@ importWidget = do
       case res of
         Left html -> do
           eitherCards <- runExceptT $ do
-            codedCardData <- except $ parseHTMLImport html
-            decodedCardData <- except $ Right $ decodeHTML codedCardData
+            codedCardData   <- except $ parseHTMLImport html
+            decodedCardData <- pure   $ decodeHTML codedCardData
             ExceptT $ liftEffect $ decodeImport decodedCardData
           case eitherCards of
-            Left err -> importPage index (Just $ show err) (UploadContent "")
+            Left  err   -> importPage index (Just $ show err) (UploadContent "")
             Right cards -> importPage index Nothing $ ChooseCards $ (\c@(Card r) -> Tuple (not r.archived) c) <$> cards
         Right jsonText ->
           let eitherJson = jsonParser jsonText
           in case eitherJson of
-              Left err -> importPage index (Just $ show err) (UploadContent jsonText)
+              Left  err  -> importPage index (Just $ show err) (UploadContent jsonText)
               Right json ->
                 let eitherCards = decodeJson json
                 in case eitherCards of
-                    Left err -> importPage index (Just $ show err) (UploadContent (stringify json))
+                    Left  err    -> importPage index (Just $ show err) (UploadContent (stringify json))
                     Right cards -> importPage index Nothing $ ChooseCards $ (\c@(Card r) -> Tuple (not r.archived) c) <$> cards
     importPage index _ (ChooseCards cards) = do
       (cardSelectionWidget (UploadContent (stringify $ encodeJson (snd <$> cards))) cards) >>= (importPage index Nothing)
     importPage index _ (Confirm { tag, selectedCards }) = 
       let cards = case tag of
-                    Just t -> prepareSelectedCards t selectedCards 
+                    Just t  -> prepareSelectedCards t selectedCards 
                     Nothing -> selectedCards
           total = length cards
           toImportCards = snd <$> (filter (\(Tuple b _) -> b) cards)
@@ -239,9 +239,9 @@ importWidget = do
 
     cardContent :: forall a. CardValues -> Maybe String -> Widget HTML a
     cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) newTag = div [Props.className "cardContent"] [
-      h3  [Props.className "card_title"]  [text t]
-    , ul  [Props.className "card_tags"]   $ (\s -> li' [text s]) <$> (maybe ts (\nt -> ts <> [nt]) newTag)
-    , dl [Props.className "card_fields"] $ concat $ (\(CardField {name, value, locked}) -> [
+      h3 [Props.className "card_title"]    [text t]
+    , ul [Props.className "card_tags"]   $ (\s -> li' [text s]) <$> (maybe ts (\nt -> ts <> [nt]) newTag)
+    , dl [Props.className "card_fields"] $  concat $ (\(CardField {name, value, locked}) -> [
           dt [] [text name]
         , dd [Props.classList [if locked then (Just "password") else Nothing]] [
             text value

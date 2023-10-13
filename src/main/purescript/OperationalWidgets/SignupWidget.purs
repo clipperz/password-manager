@@ -10,7 +10,7 @@ import Control.Monad.Except.Trans (runExceptT)
 import Control.Semigroupoid ((<<<))
 import Data.Either (either)
 import Data.Function (($))
-import Data.Functor ((<$>))
+import Data.Functor ((<$>), (<#>))
 import Data.HexString (HexString)
 import Data.Semigroup ((<>))
 import Data.Unit (Unit, unit)
@@ -35,8 +35,9 @@ instance showSignupWidgetResults :: Show SignupWidgetResults where
 signupWidgetWithLogin :: WidgetState -> SignupDataForm -> Widget HTML Unit
 signupWidgetWithLogin state form = do
   signupResult <- signupWidget state form
-  let login = liftAff $ (either LoginFailed (\_ -> LoginDone) <$> (runExceptT $ doLogin signupResult)) 
-  loginResult <- (Credentials <$> signupFormView Loading (merge signupResult form)) <|> login
+  loginResult <- (Credentials <$> signupFormView Loading (merge signupResult form))
+                 <|>
+                 (liftAff $ (runExceptT $ doLogin signupResult) <#> (either LoginFailed (\_ -> LoginDone)))
   case loginResult of
     Credentials credentials -> signupWidgetWithLogin Default (merge credentials form)
     LoginDone -> pure unit

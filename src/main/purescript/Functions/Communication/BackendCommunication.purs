@@ -20,7 +20,7 @@ import Affjax.StatusCode (StatusCode(..))
 import Affjax.Web as AXW
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
-import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT, runExceptT)
+import Control.Monad.Except.Trans (ExceptT(..), except, runExceptT, throwError, withExceptT)
 import Control.Semigroupoid ((<<<))
 import Data.Argonaut.Core (stringify)
 import Data.Argonaut.Decode.Class (decodeJson)
@@ -30,7 +30,7 @@ import Data.Bifunctor (lmap)
 import Data.Boolean (otherwise)
 import Data.Either (Either(..), note)
 import Data.Eq ((==))
-import Data.Function (($))
+import Data.Function ((#), ($))
 import Data.Functor ((<$>), void)
 import Data.HTTP.Method (Method(..))
 import Data.HexString (HexString, toBigInt, fromBigInt, hex, toArrayBuffer, fromArrayBuffer)
@@ -55,6 +55,7 @@ import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Proxy (Proxy(..), BackendSessionState(..), BackendSessionRecord)
 import DataModel.User (RequestUserCard(..))
 import Effect.Aff (Aff, forkAff, delay)
+import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.HashCash (TollChallenge, computeReceipt)
@@ -105,7 +106,7 @@ manageGenericRequest url method body responseFormat = do
     Loading Nothing  -> doRequest currentState
     Loading (Just _) -> do
       -- small delay to prevent js single thread to block in recourive calling and let the time to the computation of the toll receipt inside forkAff to finish
-      ExceptT $ Right <$> (delay $ Milliseconds 1.0) -- TODO: may be changed from busy waiting to waiting for a signal
+      liftAff $ delay $ Milliseconds 1.0 -- TODO: may be changed from busy waiting to waiting for a signal
       manageGenericRequest url method body responseFormat
 
   where
@@ -121,7 +122,7 @@ manageGenericRequest url method body responseFormat = do
                               OfflineProxy _ -> OfflineRequestInfo { url, method, body, responseFormat }
           response <- withExceptT (\e -> AS.ProtocolError e) (ExceptT $ doGenericRequest proxy requestInfo)
           -- change toll to loading state because it has been used
-          ExceptT $ Right <$> (liftEffect $ saveAppState (currentState { toll = toLoading toll }))
+          liftAff $ liftEffect $ saveAppState (currentState { toll = toLoading toll })
           manageResponse response.status response
 
         manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AS.AppError Aff (AXW.Response a))
@@ -130,7 +131,7 @@ manageGenericRequest url method body responseFormat = do
               case (extractChallenge response.headers) of
                 Just challenge -> do
                   hashFunc <- ExceptT $ liftEffect $ ((<$>) getHashFunctionFromAppState) <$> getAppState
-                  receipt <- ExceptT $ Right <$> computeReceipt hashFunc challenge --TODO change hash function with the one in state
+                  receipt <- liftAff $ computeReceipt hashFunc challenge --TODO change hash function with the one in state
                   ExceptT $ updateAppState { toll: Done receipt, currentChallenge: Just challenge }
                   manageGenericRequest url method body responseFormat
                 Nothing -> except $ Left $  AS.ProtocolError $ IllegalResponse "HashCash headers not present or wrong"
@@ -139,22 +140,21 @@ manageGenericRequest url method body responseFormat = do
               case (extractChallenge response.headers) of
                 Just challenge -> do
                   -- compute the new toll in forkAff to keep the program going
-                  ExceptT $ Right <$> (void $ forkAff $ runExceptT $ do 
+                  liftAff $ void $ forkAff $ runExceptT $ do 
                     hashFunc <- ExceptT $ liftEffect $ ((<$>) getHashFunctionFromAppState) <$> getAppState
-                    receipt <- ExceptT $ Right <$> computeReceipt hashFunc challenge --TODO change hash function with the one in state
+                    receipt  <- liftAff $ computeReceipt hashFunc challenge --TODO change hash function with the one in state
                     appState <- ExceptT $ liftEffect getAppState
                     if appState.c == Nothing then -- logout or delete done
-                      except $ Right unit
+                      pure unit
                     else
                       ExceptT $ updateAppState { toll: Done receipt, currentChallenge: Just challenge }
-                  )
                   pure response
                 Nothing -> do
                   ExceptT $ updateAppState { toll: Loading Nothing, currentChallenge: Nothing }
                   pure response
           | otherwise           = \_ -> do
               ExceptT $ updateAppState { toll: Loading Nothing }
-              except $ Left $ AS.ProtocolError $ ResponseError n
+              throwError $ AS.ProtocolError (ResponseError n)
         
         extractChallenge :: Array ResponseHeader -> Maybe TollChallenge
         extractChallenge headers =
@@ -162,7 +162,7 @@ manageGenericRequest url method body responseFormat = do
               costArray = filter (\a -> name a == tollCostHeaderName) headers
           in case tollArray, costArray of
               [tollHeader], [costHeader] -> (\cost -> { toll: hex $ value tollHeader, cost }) <$> fromString (value costHeader)
-              _, _                               -> Nothing
+              _,             _           -> Nothing
 
 doGenericRequest :: forall a. FromString a => Proxy -> RequestInfo a -> Aff (Either ProtocolError (AXW.Response a))
 doGenericRequest (OnlineProxy baseUrl) (OnlineRequestInfo { url, method, headers, body, responseFormat }) =
@@ -203,7 +203,7 @@ doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInf
             let newSession = BackendSessionState $ merge { b: Just b, aa: Just stepData.aa , bb: Just bb} session
             ExceptT $ updateAppState { proxy: OfflineProxy newSession }
             let jsonString = stringify $ encodeJson {s, bb}
-            ExceptT $ Right <$> (liftEffect $ BCFS.fromString jsonString)
+            liftAff $ liftEffect $ BCFS.fromString jsonString
           case res of
             Left err -> do
               log $ "login/step1" <> (show err)
@@ -217,7 +217,7 @@ doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInf
             let mJsonString = (stringify <<< encodeJson) <$> mResponse
             case mJsonString of
               Nothing -> except $ Right Nothing
-              Just jsonString -> ExceptT $ (Right <<< Just) <$> (liftEffect $ BCFS.fromString jsonString)
+              Just jsonString -> liftAff $ Just <$> (liftEffect $ BCFS.fromString jsonString)
           case res of
             Left err -> do
               log $ "login/step2" <> (show err)
@@ -230,9 +230,9 @@ doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInf
           res <- runExceptT $ do
             let newSession = BackendSessionState { b: Nothing, bb: Nothing, aa: Nothing }
             ExceptT $ updateAppState { proxy: OfflineProxy newSession }
-            ExceptT $ Right <$> (liftEffect $ BCFS.fromString "")
+            liftAff $ liftEffect $ BCFS.fromString ""
           case res of 
-            Left _ -> pure $ Left $ ResponseError 500
+            Left _ ->  pure $ Left  $ ResponseError 500
             Right a -> pure $ Right $ { body: a, headers: [], status: StatusCode 200, statusText: "OK" }
         _, _, _ -> pure $ Left $ ResponseError 501
     _   -> pure $ Left $ ResponseError 501
@@ -266,19 +266,19 @@ offlineLoginStep2 :: RequestUserCard -> HexString -> BackendSessionRecord -> Exc
 offlineLoginStep2 (RequestUserCard r) m1' { b: mb, bb: mbb, aa: maa } = do
   let m1 = toArrayBuffer m1'
   srpConf <- ExceptT $ liftEffect getSRPConf
-  v <- except $ note (AS.ProtocolError $ SRPError "Cannot covert v from HexString to BigInt") (toBigInt r.v)
-  b' <- except $ note (AS.InvalidStateError $ AS.MissingValue "b not in session") mb
-  bb' <- except $ note (AS.InvalidStateError $ AS.MissingValue "b not in session") mbb
-  aa' <- except $ note (AS.InvalidStateError $ AS.MissingValue "b not in session") maa
-  b <- except $ note (AS.ProtocolError $ SRPError "Cannot covert b from HexString to BigInt") (toBigInt b')
-  bb <- except $ note (AS.ProtocolError $ SRPError "Cannot covert b from HexString to BigInt") (toBigInt bb')
-  aa <- except $ note (AS.ProtocolError $ SRPError "Cannot covert b from HexString to BigInt") (toBigInt aa')
-  u <- ExceptT $ (lmap (\e -> AS.ProtocolError $ SRPError $ show e)) <$> SRP.prepareU srpConf aa bb 
-  secret <- except $ Right $ SRP.computeSServer srpConf aa v b u
-  kk <- ExceptT $ Right <$> (SRP.prepareK srpConf secret)
-  check <- ExceptT $ Right <$> (SRP.checkM1 srpConf r.c r.s aa bb kk m1)
+  b'      <- except  $  mb            # note (AS.InvalidStateError $ AS.MissingValue "b not in session") 
+  bb'     <- except  $  mbb           # note (AS.InvalidStateError $ AS.MissingValue "b not in session") 
+  aa'     <- except  $  maa           # note (AS.InvalidStateError $ AS.MissingValue "b not in session") 
+  b       <- except  $ (toBigInt b')  # note (AS.ProtocolError     $ SRPError "Cannot covert b from HexString to BigInt") 
+  bb      <- except  $ (toBigInt bb') # note (AS.ProtocolError     $ SRPError "Cannot covert b from HexString to BigInt") 
+  aa      <- except  $ (toBigInt aa') # note (AS.ProtocolError     $ SRPError "Cannot covert b from HexString to BigInt") 
+  v       <- except  $ (toBigInt r.v) # note (AS.ProtocolError     $ SRPError "Cannot covert v from HexString to BigInt") 
+  u       <- ExceptT $ (lmap (\e -> AS.ProtocolError $ SRPError $ show e)) <$> SRP.prepareU srpConf aa bb 
+  secret  <- pure    $ SRP.computeSServer srpConf aa v b u
+  kk      <- liftAff $ SRP.prepareK srpConf secret
+  check   <- liftAff $ SRP.checkM1 srpConf r.c r.s aa bb kk m1
   if check then do
-    m2 <- ExceptT $ (Right <<< fromArrayBuffer) <$> (SRP.prepareM2 srpConf aa m1 kk)
+    m2 <- liftAff $ fromArrayBuffer <$> (SRP.prepareM2 srpConf aa m1 kk)
     pure $ Just { m2, encUserInfoReferences: fst r.masterKey }
   else pure Nothing
   

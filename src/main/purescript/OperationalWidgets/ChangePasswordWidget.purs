@@ -12,7 +12,7 @@ import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, (>>=))
-import Control.Monad.Except.Trans (runExceptT, ExceptT(..), except)
+import Control.Monad.Except.Trans (ExceptT(..), runExceptT, throwError)
 import Data.Either (Either(..), either)
 import Data.Eq ((==))
 import Data.Function (($))
@@ -21,15 +21,16 @@ import Data.HeytingAlgebra ((&&), (||), not)
 import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Show (show)
-import DataModel.AppState (AppError)
+import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.WidgetState (WidgetState(..))
-import Effect.Aff.Class (liftAff)
 import Effect (Effect)
+import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.JSState (getAppState)
+import Functions.State (getSRPConfFromState)
 import Functions.User (changeUserPassword)
-import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleCheckboxSignal)
 import Views.Components (ClassName(..), verySimpleInputWidget, InputType(..), Enabled(..), Placeholder(..), Label(..), entropyMeter)
+import Views.SimpleWebComponents (loadingDiv, simpleButton, simpleCheckboxSignal)
 
 type ChangePasswordDataForm = { username       :: String
                               , oldPassword    :: String
@@ -57,11 +58,21 @@ changePasswordWidget state changeForm = go state changeForm
     go :: WidgetState -> ChangePasswordDataForm -> forall a. Widget HTML a
     go s cf@{ username, password } = do
       currentCredentials :: Credentials <- liftEffect $ either (\_ -> {username: Nothing, password: Nothing}) (\state_ -> {username: state_.username, password: state_.password}) <$> getAppState
+      
       res <- case s of
         Default   -> div [Props._id "changePasswordArea"] [Change <$> formWidget currentCredentials (Enabled true)]
         Loading   -> do
-          let changePasswordOp = liftAff $ (either ChangeFailed (\_ -> Done) <$> (runExceptT $ changeUserPassword username password))
-          div [Props._id "changePasswordArea"] [loadingDiv, DoNothing <$ formWidget currentCredentials (Enabled false)] <|> changePasswordOp
+          div [Props._id "changePasswordArea"] [loadingDiv, DoNothing <$ formWidget currentCredentials (Enabled false)]
+          <|>
+          (liftAff $ (either ChangeFailed (\_ -> Done) <$> (runExceptT $ do
+            appState <- ExceptT $ liftEffect getAppState
+            case appState of
+              { c: Just c
+              , p: Just p
+              }            -> changeUserPassword (getSRPConfFromState appState) c p username password
+              _            -> throwError $ InvalidStateError (MissingValue "c or p not present")
+            
+          )))
         Error err -> div [Props._id "changePasswordArea"] [errorDiv err, Change <$> formWidget currentCredentials (Enabled true)]
       case res of
         DoNothing -> go s cf
@@ -100,13 +111,13 @@ changePasswordWidget state changeForm = go state changeForm
       check     <- liftEffect $ if username == "" || oldPassword == "" then pure (Right false) else checkC f
       disabled  <- pure $ case check of
         Left  _ -> true
-        Right b   -> not (b && (isNewDataValid f))
+        Right b -> not (b && (isNewDataValid f))
       simpleButton "change_password" "Change passphrase" disabled f
     
     checkC :: ChangePasswordDataForm -> Effect (Either AppError Boolean)
     checkC { username, oldPassword } = runExceptT $ do
       { username: u, password } <- ExceptT $ liftEffect $ getAppState
-      except $ Right $ u == (Just username) && password == (Just oldPassword)
+      pure $ u == (Just username) && password == (Just oldPassword)
 
     isNewDataValid :: ChangePasswordDataForm -> Boolean
     isNewDataValid {password, verifyPassword, notRecoverable} = password == verifyPassword && notRecoverable

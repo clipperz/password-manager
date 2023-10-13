@@ -36,10 +36,10 @@ signupUser credentials = do
   let body = (json $ encodeJson request) :: RequestBody
   --- --------------------------- 
   sessionKey <- liftAff (fromArrayBuffer <$> SRP.randomArrayBuffer 32) --- TODO: maybe to manage with session middleware
-  liftAff (liftEffect $ saveAppState (currentState { sessionKey = Just sessionKey }))
+  liftAff $ liftEffect $ saveAppState (currentState { sessionKey = Just sessionKey })
   --- --------------------------- 
   response :: AXW.Response String <- manageGenericRequest url POST (Just body) RF.string
   if isStatusCodeOk response.status
-    then pure $ hex response.body
+    then pure       $ hex response.body
     else throwError $ ProtocolError (ResponseError (unwrap response.status))
 

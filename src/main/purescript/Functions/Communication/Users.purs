@@ -13,7 +13,6 @@ import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Bifunctor (lmap)
-import Data.Either (note)
 import Data.Function (flip, ($))
 import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
@@ -40,12 +39,12 @@ import Functions.JSState (getAppState, updateAppState)
 import Functions.SRP (prepareV)
 import Functions.State (getHashFromState, getSRPConf)
 
-getMasterKey :: ExceptT AppError Aff MasterKey
-getMasterKey = do
-  { c: maybec, masterKey: maybeMasterKey } <- ExceptT $ liftEffect $ getAppState
+getMasterKey :: HexString -> ExceptT AppError Aff MasterKey
+getMasterKey c = do
+  { masterKey: maybeMasterKey } <- ExceptT $ liftEffect $ getAppState
   case maybeMasterKey of
     Nothing -> do
-      c <- except $ note (InvalidStateError (MissingValue "c is Nothing")) maybec
+      -- c <- except $ note (InvalidStateError (MissingValue "c is Nothing")) maybec
       let url = joinWith "/" ["users", show c]
       response <- manageGenericRequest url GET Nothing RF.json
       if isStatusCodeOk response.status
@@ -109,8 +108,8 @@ updateIndex newIndex = do
   case currentState of
     { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) })  } -> do
       
-      cryptoKey            :: CryptoKey   <- liftAff $ KI.importKey raw (toArrayBuffer oldReference.masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      indexCardContent     :: ArrayBuffer <- liftAff $ encryptJson cryptoKey newIndex
+      cryptoKey            :: CryptoKey   <- liftAff $  KI.importKey raw (toArrayBuffer oldReference.masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+      indexCardContent     :: ArrayBuffer <- liftAff $  encryptJson cryptoKey newIndex
       indexCardContentHash :: ArrayBuffer <- liftAff $ (getHashFromState $ currentState.hash) (indexCardContent : Nil)
       _ <- postBlob indexCardContent indexCardContentHash
       -- -------------------
@@ -118,7 +117,7 @@ updateIndex newIndex = do
       let newInfoReference  = UserInfoReferences r { indexReference = newIndexReference }
       masterPassword       :: CryptoKey <- liftAff $ KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       masterKeyContent     :: HexString <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newInfoReference
-      originMasterKey      :: MasterKey <- getMasterKey
+      originMasterKey      :: MasterKey <- getMasterKey c
       let newUserCard       = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
       _ <- updateUserCard c newUserCard
       -- -------------------
@@ -143,7 +142,7 @@ updateUserPreferences newUP = do
       let newInfoReference = UserInfoReferences r { preferencesReference = newReference }
       masterPassword      :: CryptoKey <- liftAff $ KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       masterKeyContent    :: HexString <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newInfoReference
-      originMasterKey     :: MasterKey <- getMasterKey
+      originMasterKey     :: MasterKey <- getMasterKey c
       let newUserCard      = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
       _ <- updateUserCard c newUserCard
       -- -------------------

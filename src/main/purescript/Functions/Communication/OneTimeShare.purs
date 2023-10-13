@@ -61,10 +61,10 @@ share {secret, pin, duration} = do
   response <- manageGenericRequest url POST (Just body) RF.string
   if isStatusCodeOk response.status
     then liftAff $ do
-      pinKey       <- hashFuncSHA256 $ singleton (toArrayBuffer $ hex pin)
+      pinKey       <-  hashFuncSHA256 $ singleton (toArrayBuffer $ hex pin)
       encryptedKey <- (flip encryptArrayBuffer) key =<< cryptoKeyAES pinKey
-      pure          $ Tuple (toString Base.Hex (fromArrayBuffer encryptedKey)) response.body
-    else throwError $ ProtocolError $ ResponseError $ unwrap response.status
+      pure          $  Tuple (toString Base.Hex (fromArrayBuffer encryptedKey)) response.body
+    else throwError $  ProtocolError $ ResponseError $ unwrap response.status
 
 redeem :: forall a. DecodeJson a => String -> String -> String -> ExceptT AppError Aff a
 redeem id cryptedKey pin = do

@@ -2,7 +2,6 @@ module Functions.User where
 
 import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
-import Affjax.Web as AXW
 import Control.Alt (class Alt)
 import Control.Applicative (pure)
 import Control.Bind (bind, (>>=))
@@ -31,6 +30,7 @@ import Data.Unit (Unit, unit)
 import DataModel.AppState (AppState, AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index(..), CardEntry(..))
+import DataModel.SRP (SRPConf)
 import DataModel.User (IndexReference(..), MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard, UserInfoReferences(..), UserPreferencesReference(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff, class MonadAff)
@@ -44,7 +44,6 @@ import Functions.EncodeDecode (decryptJson, encryptJson)
 import Functions.JSState (getAppState, updateAppState)
 import Functions.Pin (deleteCredentials)
 import Functions.SRP as SRP
-import Functions.State (getSRPConf)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
 
@@ -53,27 +52,35 @@ type ModifyUserData = { c :: HexString
                       , newUserCard :: UserCard
                       }
 
-changeUserPassword :: String -> String -> ExceptT AppError Aff Unit
-changeUserPassword username password = do
-  conf     <- ExceptT $ liftEffect getSRPConf
-  appState <- ExceptT $ liftEffect getAppState
-  oldP <- except $ note (InvalidStateError $ MissingValue $ "p not present") $ toArrayBuffer <$> appState.p
-  oldC <- except $ note (InvalidStateError $ MissingValue $ "c not present") appState.c
-  s    <- liftAff $ SRP.randomArrayBuffer 32
-  newC <- liftAff $ SRP.prepareC conf username password
-  newP <- liftAff $ SRP.prepareP conf username password
-  (Tuple masterKeyContent _) <- getMasterKey
+changeUserPassword :: SRPConf -> HexString -> HexString -> String -> String -> ExceptT AppError Aff Unit
+changeUserPassword conf oldC oldP username password = do
+  s        <- liftAff $ SRP.randomArrayBuffer 32
+  newC     <- liftAff $ SRP.prepareC conf username password
+  newP     <- liftAff $ SRP.prepareP conf username password
+  (Tuple masterKeyContent _) <- getMasterKey oldC
   newV <- ExceptT $ (lmap (ProtocolError <<< SRPError <<< show)) <$> (SRP.prepareV conf s newP)
-  oldMasterPassword <- ExceptT $ Right <$> KI.importKey raw oldP (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-  newMasterPassword <- ExceptT $ Right <$> KI.importKey raw newP (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+  oldMasterPassword <- liftAff $ KI.importKey raw (toArrayBuffer oldP) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+  newMasterPassword <- liftAff $ KI.importKey raw newP (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   masterKeyDecryptedContent <- ExceptT $ (bimap (ProtocolError <<< CryptoError <<< show) UserInfoReferences) <$> decryptJson oldMasterPassword (toArrayBuffer $ masterKeyContent)
-  masterKeyEncryptedContent <- ExceptT $ (Right <<< fromArrayBuffer) <$> encryptJson newMasterPassword masterKeyDecryptedContent
-  let newUserCard = RequestUserCard $ { c: fromArrayBuffer newC, v: newV, s: fromArrayBuffer s, masterKey: Tuple masterKeyEncryptedContent V_1, srpVersion : V_6a, originMasterKey: Just $ masterKeyContent }
-  let url = joinWith "/" [ "users", toString Hex oldC ]
-  let body = (json $ encodeJson newUserCard) :: RequestBody
-  response :: AXW.Response Unit <- manageGenericRequest url PUT (Just body) RF.ignore
+  masterKeyEncryptedContent <- liftAff $ fromArrayBuffer <$> encryptJson newMasterPassword masterKeyDecryptedContent
+  let newUserCard = RequestUserCard { c: fromArrayBuffer newC
+                                    , v: newV
+                                    , s: fromArrayBuffer s
+                                    , masterKey: Tuple masterKeyEncryptedContent V_1
+                                    , srpVersion: V_6a
+                                    , originMasterKey: Just $ masterKeyContent
+                                    }
+  let url         = joinWith "/" [ "users", toString Hex oldC ]
+  let body        = (json $ encodeJson newUserCard) :: RequestBody
+  
+  response <- manageGenericRequest url PUT (Just body) RF.ignore
   if isStatusCodeOk response.status
-    then ExceptT $ updateAppState {c : Just $ fromArrayBuffer newC, p: Just $ fromArrayBuffer newP, s: Just $ fromArrayBuffer s, username: Just username, password: Just password}
+    then ExceptT $ updateAppState { c:        Just $ fromArrayBuffer newC
+                                  , p:        Just $ fromArrayBuffer newP
+                                  , s:        Just $ fromArrayBuffer s
+                                  , username: Just   username
+                                  , password: Just   password
+                                  }
     else throwError $ ProtocolError (ResponseError (unwrap response.status))
 
 deleteUserSteps :: forall m. MonadAff m 
@@ -148,14 +155,10 @@ deleteUserSteps (Index entries) progressBarFunc stepPlaceholderFunc = do
     extractC (Left err)    = Left err
     extractC (Right state) = note (InvalidStateError $ MissingValue $ "c not present") state.c
 
-decryptUserInfoReferences :: HexString -> ExceptT AppError Aff UserInfoReferences
-decryptUserInfoReferences encryptedRef = do
-  currentState <- ExceptT $ liftEffect getAppState
-  case currentState of
-    { c: _, p: Just p, proxy: _, sessionKey: _, toll: _ } -> do
-      masterPassword :: CryptoKey <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      mapCryptoError $ ExceptT $ decryptJson masterPassword (toArrayBuffer encryptedRef)
-    _ -> except $ Left $ InvalidStateError $ MissingValue "Missing p"
+decryptUserInfoReferences :: HexString -> HexString -> ExceptT AppError Aff UserInfoReferences
+decryptUserInfoReferences encryptedRef p = do
+  masterPassword :: CryptoKey <- liftAff $ KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+  mapCryptoError $ ExceptT $ decryptJson masterPassword (toArrayBuffer encryptedRef)
 
   where 
     mapCryptoError :: forall a. ExceptT EX.Error Aff a -> ExceptT AppError Aff a

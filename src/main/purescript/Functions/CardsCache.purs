@@ -3,9 +3,7 @@ module Functions.CardsCache where
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (ExceptT(..))
-import Data.Either (Either(..))
 import Data.Function (($))
-import Data.Functor ((<$>))
 import Data.HexString (HexString)
 import Data.Map.Internal (delete, insert, lookup)
 import Data.Maybe (Maybe)
@@ -13,6 +11,7 @@ import Data.Unit (Unit)
 import DataModel.AppState (AppError)
 import DataModel.Card (Card)
 import Effect.Aff (Aff)
+import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.JSState (getAppState, saveAppState)
 
@@ -24,9 +23,9 @@ getCardFromCache reference = do
 addCardToCache :: HexString -> Card -> ExceptT AppError Aff Unit
 addCardToCache reference card = do
   state@{ cardsCache } <- ExceptT $ liftEffect getAppState
-  ExceptT $ Right <$> (liftEffect $ saveAppState (state { cardsCache = insert reference card cardsCache}))
+  liftAff (liftEffect $ saveAppState (state { cardsCache = insert reference card cardsCache}))
 
 removeCardFromCache :: HexString -> ExceptT AppError Aff Unit
 removeCardFromCache reference = do
   state@{ cardsCache } <- ExceptT $ liftEffect getAppState
-  ExceptT $ Right <$> (liftEffect $ saveAppState (state { cardsCache = delete reference cardsCache}))
+  liftAff (liftEffect $ saveAppState (state { cardsCache = delete reference cardsCache}))
