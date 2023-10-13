@@ -40,6 +40,8 @@ import is.clipperz.backend.functions.SrpFunctions.SrpFunctionsV6a
 import is.clipperz.backend.functions.SrpFunctions
 import is.clipperz.backend.services.SRPStep2Response
 import is.clipperz.backend.services.OneTimeShareArchive
+import is.clipperz.backend.services.RequestUserCard
+import is.clipperz.backend.services.RemoteUserCard
 
 object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
   override def bootstrap: ZLayer[Any, Any, UserArchive & BlobArchive] =
@@ -61,16 +63,18 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
 
   val c = HexString("7815018e9d84b5b0f319c87dee46c8876e85806823500e03e72c5d66e5d40456")
   val p = HexString("597ed0c523f50c6db089a92845693a3f2454590026d71d6a9028a69967d33f6d")
-  val testUser = UserCard(
+  val testUser = RemoteUserCard(
     c,
     HexString("0bedc30aca36a67fcc8a7d5d81e72c0dcf10fd20cd8d03f0bbb788807304c3b6"),
     HexString(
       "83fd4a3fc7ec1a37a813a166403ef6b388c5f60e37902b40b4d826ef69f6d88372ba0b9ce777b74e921b9f63e3ddd9e90e0669811fcd8fb4281f8719ec98c244e6dd83ad561a905d908477911f674da4086fe7a9ceadd343f9a930eda9ae29a2ce5bdaca0d2992979f765782d12d0de8ade8745a60395d11ba584abbc08b59d5"
     ),
     "6a",
-    "1.0",
-    HexString(
+    (
+      HexString(
       "44457969993591d8c38610c6dec54a7cf66426d7cc5614917727d7d2a5e3a78d356055037b8463cc79a1fe122f55ff5709e5b5fcad8478d183f1b30c2e6acdbb"
+      ),
+      "1.0"
     ),
   )
   val indexCardContent =
@@ -225,7 +229,7 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
         )
         response2 <- app.runZIO(loginRequestStep2(c.toString(), SRPStep2Data(HexString.bytesToHex(m1)).toJson, true))
         stepResponse <- fromStream[SRPStep2Response](response2.body.asStream)
-      } yield assertTrue(response2.status.code == 200, stepResponse.encUserInfoReferences == testUser.masterKeyContent)
+      } yield assertTrue(response2.status.code == 200, stepResponse.encUserInfoReferences == testUser.masterKey._1)
     },
   ).provideLayerShared(environment) @@
     TestAspect.sequential @@

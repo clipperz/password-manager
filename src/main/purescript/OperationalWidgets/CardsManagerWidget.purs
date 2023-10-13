@@ -7,6 +7,7 @@ module OperationalWidgets.CardsManagerWidget
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Control.Alt ((<|>))
+import Control.Alternative ((*>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (runExceptT)
@@ -17,7 +18,10 @@ import Data.Function (($))
 import Data.Functor ((<$>), flap)
 import Data.List ((:), filter)
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
+import Data.Semigroup ((<>))
+import Data.Show (show)
 import Data.Tuple (Tuple(..))
+import Data.Unit (Unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..), ProxyConnectionStatus)
 import DataModel.Card (Card)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
@@ -26,6 +30,7 @@ import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
+import Effect.Class.Console (log)
 import Functions.Communication.Users (updateIndex)
 import OperationalWidgets.CreateCardWidget (CardFormInput(..))
 import Views.CardsManagerView (cardsManagerView, CardView(..), CardViewAction(..), CardViewState, CardsViewInfo, FilterViewStatus(..))
@@ -95,23 +100,32 @@ getUpdateIndexOp { index: index@(Index list), indexFilter } (IndexUpdateData act
         Right _   -> pure $ OpResult newIndex cardViewState Nothing
         Left  err -> 
           case err of 
-            CannotInitState       _                           -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
-            InvalidOperationError _                           -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a wrongly programmed operation
-            InvalidStateError    (CorruptedState           _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
-            InvalidStateError    (MissingValue             _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
-            InvalidStateError    (CorruptedSavedPassphrase _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- No solution to a corrupted state if not restarting the app
+            CannotInitState       _                           -> defaultErrorHandling "No solution to a corrupted state if not restarting the app" err
+            InvalidOperationError _                           -> defaultErrorHandling "No solution to a wrongly programmed operation"              err
+            InvalidStateError    (CorruptedState           _) -> defaultErrorHandling "No solution to a corrupted state if not restarting the app" err
+            InvalidStateError    (MissingValue             _) -> defaultErrorHandling "No solution to a corrupted state if not restarting the app" err
+            InvalidStateError    (CorruptedSavedPassphrase _) -> defaultErrorHandling "No solution to a corrupted state if not restarting the app" err
             ProtocolError        (RequestError             _) -> manageUpdateIndex newIndex cardViewState -- Retry at infinitum?
             ProtocolError        (ResponseError            i) -> -- Check values
               case i of
-                404 -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Something is really wrong with the server
+                404 -> defaultErrorHandling "Something is really wrong with the server" err
                 500 -> manageUpdateIndex newIndex cardViewState -- Retry at infinitum hoping the server gets better?
-                _   -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Well...
-            ProtocolError        (SRPError                 _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Shouldn't happen, restart
-            ProtocolError        (DecodeError              _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Wrong data has been saved on the server
-            ProtocolError        (CryptoError              _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- Corrupted data on server
-            ProtocolError        (IllegalRequest           _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- The app is not working well
-            ProtocolError        (IllegalResponse          _) -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err) -- The server did something wrong, but the operation should have worked
-            ImportError           _                           -> pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err)
+                _   -> defaultErrorHandling "Well..." err
+            ProtocolError        (SRPError                 _) -> defaultErrorHandling "Shouldn't happen, restart" err
+            ProtocolError        (DecodeError              _) -> defaultErrorHandling "Wrong data has been saved on the server" err
+            ProtocolError        (CryptoError              _) -> defaultErrorHandling "Corrupted data on server" err
+            ProtocolError        (IllegalRequest           _) -> defaultErrorHandling "The app is not working well" err
+            ProtocolError        (IllegalResponse          _) -> defaultErrorHandling "The server did something wrong, but the operation should have worked" err
+            ImportError           _                           -> defaultErrorHandling "TODO" err
+            UnhandledCondition    _                           -> defaultErrorHandling "TODO" err
+            InvalidVersioning     _ _                         -> defaultErrorHandling "TODO" err
+    
+     where
+        defaultErrorHandling :: String -> AppError -> Aff (ComplexIndexFilter -> CardsViewResult)
+        defaultErrorHandling msg err = (logMessage msg err) *> (pure $ OpResult index { cardView: NoCard, cardViewState: Default } (Just err))
+
+        logMessage :: String -> AppError -> Aff Unit
+        logMessage msg err = (log $ "[" <> (show err) <> "] - " <> msg)
 
 getUpdateIndexInfo :: ProxyConnectionStatus -> CardsViewInfo -> IndexUpdateData -> Maybe AppError -> CardsViewInfo
 getUpdateIndexInfo _ info (IndexUpdateData action card) err = 

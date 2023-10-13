@@ -13,10 +13,10 @@ import Data.Maybe (Maybe(..))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst, snd)
 import Data.Unit (Unit)
-import DataModel.AppState (AppError, AppState, HashState(..), KDFState(..), ProxyConnectionStatus(..), baseSRPInfo)
+import DataModel.AppState (AppError, AppState, HashState(..), KDFState(..), ProxyConnectionStatus(..), SRPInfo)
 import DataModel.AsyncValue (AsyncValue(..))
 import DataModel.Proxy (Proxy(..), BackendSessionState(..))
-import DataModel.SRP (SRPConf, KDF, HashFunction, concatKDF, hashFuncSHA1, hashFuncSHA256)
+import DataModel.SRP (HashFunction, KDF, SRPConf, concatKDF, group1024, hashFuncSHA1, hashFuncSHA256, k)
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
@@ -49,6 +49,14 @@ computeInitialState = do
     mapIds :: Element -> Effect (Tuple Element String)
     mapIds e = (Tuple e) <$> (id e)
 
+    baseSRPInfo :: SRPInfo
+    baseSRPInfo = {
+      group: group1024
+    , k: k
+    , hash: SHA256
+    , kdf: ConcatKDF
+    }
+
     withOfflineProxy = merge { proxy: OfflineProxy (BackendSessionState { b: Nothing, aa: Nothing, bb: Nothing }) } baseState
     withOnlineProxy url = merge { proxy: (OnlineProxy url) } baseState
     baseState = { currentChallenge: Nothing
@@ -57,11 +65,12 @@ computeInitialState = do
                 , username: Nothing
                 , password: Nothing
                 , c: Nothing
+                , s: Nothing
                 , p: Nothing
                 , srpInfo: baseSRPInfo
                 , hash: SHA256
                 , cardsCache: empty
-                , userCard: Nothing
+                , masterKey: Nothing
                 , userInfoReferences: Nothing 
                 , userPreferences: Nothing
                 }
@@ -93,7 +102,7 @@ getSRPConf = do
     Right state -> Right $ getSRPConfFromState state
 
 getSRPConfFromState :: AppState -> SRPConf
-getSRPConfFromState state = { group: state.srpInfo.group, k: state.srpInfo.k, hash: getHashFromState state.hash, kdf: getKDFFromState state.srpInfo.kdf }
+getSRPConfFromState state = { group: state.srpInfo.group, k: state.srpInfo.k, hash: getHashFromState state.srpInfo.hash, kdf: getKDFFromState state.srpInfo.kdf }
 
 isOfflineCopy :: AppState -> ProxyConnectionStatus
 isOfflineCopy { proxy } =

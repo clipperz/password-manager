@@ -18,7 +18,7 @@ import DataModel.User (UserPreferences(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Login (login)
-import Functions.Communication.Users (getUserCard, getUserPreferences)
+import Functions.Communication.Users (getMasterKey, getUserPreferences)
 import Functions.JSState (updateAppState)
 import Functions.State (getSRPConf)
 import Functions.SRP as SRP
@@ -31,13 +31,13 @@ doLogin { username, password } =
     c    <- ExceptT $ Right <$> fromArrayBuffer <$> SRP.prepareC conf username password
     p    <- ExceptT $ Right <$> fromArrayBuffer <$> SRP.prepareP conf username password
 
-    withExceptT (prettyShow) (ExceptT $ updateAppState { username: Just username, password: Just password, c: Just c, p: Just p })
+    withExceptT prettyShow (ExceptT $ updateAppState { username: Just username, password: Just password, c: Just c, p: Just p })
 
     _ <- withExceptT (\e -> show e{- "Login failed" -}) login
-    uc <- withExceptT (prettyShow)  getUserCard
+    masterKey <- withExceptT (prettyShow) getMasterKey
     up@(UserPreferences userPreferences) <- withExceptT (prettyShow) getUserPreferences
 
-    withExceptT (prettyShow) (ExceptT $ updateAppState { userPreferences: Just up, userCard: Just uc })
+    withExceptT (prettyShow) (ExceptT $ updateAppState { userPreferences: Just up, masterKey: Just masterKey })
     
     case userPreferences.automaticLock of
       Left  _ -> except  $ Right unit

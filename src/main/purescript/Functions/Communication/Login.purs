@@ -50,9 +50,9 @@ login = do
     else do
       sessionKey :: HexString   <- ExceptT $ (fromArrayBuffer >>> Right) <$> SRP.randomArrayBuffer 32
       ExceptT $ Right <$> (liftEffect $ saveAppState (currentState { sessionKey = Just sessionKey }))
-  loginStep1Result <- loginStep1
+  loginStep1Result@{ s } <- loginStep1
   { m1, kk, m2, userInfoReferences } <- loginStep2 loginStep1Result
-  ExceptT $ updateAppState { userInfoReferences: Just userInfoReferences }
+  ExceptT $ updateAppState { s: Just s, userInfoReferences: Just userInfoReferences }
   check :: Boolean <- ExceptT $ Right <$> SRP.checkM2 srpConf loginStep1Result.aa m1 kk (toArrayBuffer m2)
   case check of
     true  -> except $ Right unit

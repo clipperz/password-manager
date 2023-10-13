@@ -3,8 +3,8 @@ module Functions.Export where
 import Affjax.ResponseFormat as RF
 import Control.Alt (class Alt)
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
-import Control.Monad.Except (runExcept)
+import Control.Bind (bind, discard, (>>=))
+import Control.Monad.Except (runExcept, withExceptT)
 import Control.Monad.Except.Trans (runExceptT, ExceptT(..), mapExceptT, except)
 import Control.Semigroupoid ((<<<))
 import Data.Argonaut.Core as AC
@@ -16,8 +16,8 @@ import Data.Eq (class Eq)
 import Data.Foldable (fold)
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.HexString (HexString, fromArrayBuffer)
 import Data.HTTP.Method (Method(..))
+import Data.HexString (HexString, fromArrayBuffer)
 import Data.List (List(..), (:), sort, snoc, length, zipWith, (..))
 import Data.Map (Map, lookup)
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -33,21 +33,21 @@ import Data.String.Pattern (Pattern(..), Replacement(..))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..), InvalidStateError(..))
+import DataModel.Card (Card(..), CardValues(..), CardField(..))
 import DataModel.Communication.FromString as FS
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index(..), CardEntry(..), CardReference(..))
-import DataModel.Card (Card(..), CardValues(..), CardField(..))
-import DataModel.User (IndexReference(..), UserCard(..), UserInfoReferences(..), UserPreferencesReference(..))
+import DataModel.User (IndexReference(..), RequestUserCard(..), UserInfoReferences(..), UserPreferencesReference(..))
 import Effect (Effect)
-import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Aff (Aff, makeAff)
 import Effect.Aff.Class (liftAff, class MonadAff)
+import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Exception (error)
 import Foreign (readString)
 import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
 import Functions.Communication.Blobs (getBlob)
 import Functions.Communication.Cards (getCard)
-import Functions.Communication.Users (getUserCard)
+import Functions.Communication.Users (getRemoteUserCard)
 import Functions.Events (renderElement)
 import Functions.JSState (getAppState)
 import Functions.State (offlineDataId)
@@ -55,8 +55,8 @@ import Functions.Time (getCurrentDateTime, formatDateTimeToDate, formatDateTimeT
 import Web.DOM.Document (Document, documentElement, toNode, createElement)
 import Web.DOM.Element as EL
 import Web.DOM.Node (lastChild, firstChild, insertBefore, setTextContent)
-import Web.File.Blob (fromString, Blob)
 import Web.Event.EventTarget (eventListener, addEventListener)
+import Web.File.Blob (fromString, Blob)
 import Web.File.FileReader (fileReader, readAsText, toEventTarget, result)
 import Web.File.Url (createObjectURL)
 import Web.HTML.Event.EventTypes as EventTypes
@@ -65,19 +65,18 @@ unencryptedExportStyle :: String
 unencryptedExportStyle = "body {font-family: 'DejaVu Sans Mono', monospace;margin: 0px;}header {padding: 10px;border-bottom: 2px solid black;}header p span {font-weight: bold;}h1 {margin: 0px;}h2 {margin: 0px;padding-top: 10px;}h3 {margin: 0px;}h5 {margin: 0px;color: gray;}ul {margin: 0px;padding: 0px;}div > ul > li {border-bottom: 1px solid black;padding: 10px;}div > ul > li.archived {background-color: #ddd;}ul > li > ul > li {font-size: 9pt;display: inline-block;}ul > li > ul > li:after {content: \",\";padding-right: 5px;}ul > li > ul > li:last-child:after {content: \"\";padding-right: 0px;}dl {}dt {color: gray;font-size: 9pt;}dd {margin: 0px;margin-bottom: 5px;padding-left: 10px;font-size: 13pt;}div > div {background-color: black;color: white;padding: 10px;}li p, dd.hidden {white-space: pre-wrap;word-wrap: break-word;font-family: monospace;}textarea {display: none}a {color: white;}@media print {div > div, header > div {display: none !important;}div > ul > li.archived {color: #ddd;}ul > li {page-break-inside: avoid;} }"
 
 prepareOfflineCopy :: Index -> Aff (Either String String)
-prepareOfflineCopy index = runExceptT $ do
-  blobList <- mapExceptT (\m -> (lmap show) <$> m) $ prepareBlobList index
-  userCard <- mapExceptT (\m -> (lmap show) <$> m) $ getUserCard
-  doc <- mapExceptT (\m -> (lmap show) <$> m) getBasicHTML
-  preparedDoc <- appendCardsDataInPlace doc blobList userCard
-  blob <- ExceptT $ Right <$> (liftEffect $ prepareHTMLBlob preparedDoc)
-  _ <- ExceptT $ Right <$> readFile blob
-  ExceptT $ Right <$> (liftEffect $ createObjectURL blob)
+prepareOfflineCopy index = runExceptT do
+  blobList    <- withExceptT show (prepareBlobList index)
+  doc         <- withExceptT show getBasicHTML
+  preparedDoc <- (withExceptT show getRemoteUserCard) >>= appendCardsDataInPlace doc blobList
+  blob        <- liftAff (liftEffect $ prepareHTMLBlob preparedDoc)
+  _ <- liftAff $ readFile blob
+  liftAff (liftEffect $ createObjectURL blob)
 
 data OfflineCopyStep = PrepareBlobList | GetUserCard | GetFileStructure | PrepareDocument | PrepareDowload
-derive instance ordOfflineCopyStep :: Ord OfflineCopyStep
-derive instance eqOfflineCopyStep :: Eq OfflineCopyStep
-instance showOfflineCopyStep :: Show OfflineCopyStep where
+derive instance ordOfflineCopyStep  :: Ord  OfflineCopyStep
+derive instance eqOfflineCopyStep   :: Eq   OfflineCopyStep
+instance        showOfflineCopyStep :: Show OfflineCopyStep where
   show PrepareBlobList = "PrepareBlobList" 
   show GetUserCard = "GetUserCard" 
   show GetFileStructure = "GetFileStructure" 
@@ -88,15 +87,15 @@ type BlobsList = List (Tuple HexString HexString)
 
 data OfflineCopyStepResult = Start
                            | BlobList BlobsList
-                           | UCard { userCard :: UserCard, blobList :: BlobsList }
-                           | BasicDoc { userCard :: UserCard, blobList :: BlobsList, doc :: Document }
+                           | UCard    { userCard :: RequestUserCard, blobList :: BlobsList }
+                           | BasicDoc { userCard :: RequestUserCard, blobList :: BlobsList, doc :: Document }
                            | PreparedDoc Document
                            | DownloadUrl String
 instance showOfflineCopyStepResult :: Show OfflineCopyStepResult where
-  show Start = "Start"
-  show (BlobList _) = "Prepare list of blobs"
-  show (UCard _) = "Get user card"
-  show (BasicDoc _) = "Get template for offline copy"
+  show  Start          = "Start"
+  show (BlobList _)    = "Prepare list of blobs"
+  show (UCard _)       = "Get user card"
+  show (BasicDoc _)    = "Get template for offline copy"
   show (PreparedDoc _) = "Prepare offline copy"
   show (DownloadUrl _) = "Download url ready"
 
@@ -109,7 +108,7 @@ prepareOfflineCopySteps placeholders mkPlaceholderGetBlob index = do
       [ IntermediateStep (\ocsr -> 
                             case ocsr of
                               Left err -> pure $ Left err
-                              Right (BlobList blobList) -> ((<$>) (\userCard -> UCard {userCard, blobList})) <$> (liftAff $ runExceptT $ mapExceptT (\m -> (lmap show) <$> m) $ getUserCard)
+                              Right (BlobList blobList) -> ((<$>) (\userCard -> UCard {userCard, blobList})) <$> (liftAff $ runExceptT $ withExceptT show getRemoteUserCard)
                               Right _ -> pure $ Left "Wrong step before getting user card"
                         ) (fromMaybe (pure (Left "Please wait...")) (lookup GetUserCard placeholders))
       , IntermediateStep (\ocsr -> 
@@ -144,11 +143,11 @@ prepareUnencryptedCopy index = runExceptT $ do
   let date = formatDateTimeToDate dt
   let time = formatDateTimeToTime dt
   cardList <- mapExceptT (\m -> (lmap show) <$> m) $ prepareCardList index
-  let styleString = "<style type=\"text/css\">" <> unencryptedExportStyle <> "</style>"
+  let styleString    = "<style type=\"text/css\">" <> unencryptedExportStyle <> "</style>"
   let htmlDocString1 = "<div><header><h1>Your data on Clipperz</h1><h5>Export generated on " <> date <> " at " <> time <> "</h5></header>"
   let htmlDocString2 = "</div>"
   let htmlDocContent = prepareUnencryptedContent cardList
-  let htmlDocString = styleString <> htmlDocString1 <> htmlDocContent <> htmlDocString2
+  let htmlDocString  = styleString <> htmlDocString1 <> htmlDocContent <> htmlDocString2
   doc :: Document <- ExceptT $ Right <$> (liftEffect $ FS.fromString htmlDocString)
   blob <- ExceptT $ Right <$> (liftEffect $ prepareHTMLBlob doc)
   _ <- ExceptT $ Right <$> readFile blob
@@ -306,8 +305,8 @@ getBasicHTML = do
   if isStatusCodeOk res.status then except $ Right res.body
   else except $ Left $ ProtocolError $ ResponseError $ unwrap res.status 
 
-appendCardsDataInPlace :: Document -> List (Tuple HexString HexString) -> UserCard -> ExceptT String Aff Document
-appendCardsDataInPlace doc blobList (UserCard r) = do
+appendCardsDataInPlace :: Document -> List (Tuple HexString HexString) -> RequestUserCard -> ExceptT String Aff Document
+appendCardsDataInPlace doc blobList (RequestUserCard r) = do
   let blobsContent = "const blobs = { " <> (fold $ (\(Tuple k v) -> "\"" <> show k <> "\": \"" <> show v <> "\", " ) <$> blobList) <> "}"
   let userCardContent = "const userCard = " <> (AC.stringify $ encodeJson r)
   let prepareContent = "window.blobs = blobs; window.userCard = userCard;"
@@ -316,13 +315,13 @@ appendCardsDataInPlace doc blobList (UserCard r) = do
   let asNode = toNode doc
   html <- ExceptT $ (note "") <$> (liftEffect $ lastChild asNode)
   body <- ExceptT $ (note "") <$> (liftEffect $ lastChild html)
-  fst <- ExceptT $ (note "") <$> (liftEffect $ firstChild body)
+  fst <-  ExceptT $ (note "") <$> (liftEffect $ firstChild body)
 
-  scriptElement <- ExceptT $ Right <$> (liftEffect $ createElement "script" doc)
-  ExceptT $ Right <$> (liftEffect $ EL.setId offlineDataId scriptElement)
+  scriptElement <- liftEffect $ createElement "script" doc
+  liftEffect $ EL.setId offlineDataId scriptElement
   let newNode = EL.toNode scriptElement
-  ExceptT $ Right <$> (liftEffect $ setTextContent nodeContent newNode)
-  ExceptT $ Right <$> (liftEffect $ insertBefore newNode fst body)
+  liftEffect $ setTextContent nodeContent newNode
+  liftEffect $ insertBefore newNode fst body
 
   except $ Right doc
 

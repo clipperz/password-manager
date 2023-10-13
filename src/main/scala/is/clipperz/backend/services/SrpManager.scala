@@ -13,7 +13,7 @@ import is.clipperz.backend.exceptions.BadRequestException
 // ============================================================================
 
 case class SignupData(
-    user: UserCard,
+    user: RequestUserCard,
     preferencesReference: HexString,
     preferencesContent: HexString,
     indexCardReference: HexString,
@@ -53,7 +53,7 @@ trait SrpManager:
   def srpStep2(step2Data: SRPStep2Data, session: Session): Task[(SRPStep2Response, Session)]
 
 object SrpManager:
-  case class SrpmanagerV6a(
+  case class SrpManagerV6a(
       userArchive: UserArchive,
       prng: PRNG,
       srpFunctions: SrpFunctionsV6a,
@@ -88,15 +88,15 @@ object SrpManager:
       val c = HexString(session("c").get)
       val zioUser = userArchive.getUser(c).flatMap(u => ZIO.attempt(u.get))
       val zioK: Task[Array[Byte]] = for {
-        u: Array[Byte] <- srpFunctions.computeU(aa.toByteArray, bb.toByteArray)
-        user: UserCard <- zioUser
+        u : Array[Byte] <- srpFunctions.computeU(aa.toByteArray, bb.toByteArray)
+        user: RemoteUserCard <- zioUser
         v: BigInt <- ZIO.attempt(user.v.toBigInt)
         secret: BigInt <- ZIO.succeed(srpFunctions.computeSecretServer(aa.toBigInt, b.toBigInt, v, bytesToBigInt(u)))
         kk: Array[Byte] <- srpFunctions.computeK(secret)
         kk: Array[Byte] <- configuration.hash(ZStream.fromIterable(bigIntToBytes(secret)))
       } yield kk
       val zioM1: Task[Array[Byte]] = for {
-        user: UserCard <- zioUser
+        user: RemoteUserCard <- zioUser
         kk: Array[Byte] <- zioK
         m1: Array[Byte] <- srpFunctions.computeM1(user.c.toByteArray, user.s.toByteArray, aa.toByteArray, bb.toByteArray, kk)
       } yield m1
@@ -106,10 +106,10 @@ object SrpManager:
         val m1Client = step2Data.m1.toBigInt
         if m1Server == m1Client then
           for {
-            user: UserCard <- zioUser
+            user: RemoteUserCard <- zioUser
             kk: Array[Byte] <- zioK
             m2: Array[Byte] <- srpFunctions.computeM2(aa.toByteArray, step2Data.m1.toByteArray, kk)
-            result <- ZIO.succeed((SRPStep2Response(bytesToHex(m2), user.masterKeyContent), session)) // TODO: what to put in sessione context
+            result <- ZIO.succeed((SRPStep2Response(bytesToHex(m2), user.masterKey(0)), session)) // TODO: what to put in session context
           } yield result
         else ZIO.fail(new BadRequestException(s"M1 is not correct => M1 SERVER ${bytesToHex(m1)} != M1 CLIENT ${step2Data.m1}"))
       }
@@ -120,5 +120,5 @@ object SrpManager:
       for {
         userArchive <- ZIO.service[UserArchive]
         prng <- ZIO.service[PRNG]
-      } yield SrpmanagerV6a(userArchive, prng, srpFunctions)
+      } yield SrpManagerV6a(userArchive, prng, srpFunctions)
     )

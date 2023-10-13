@@ -23,7 +23,7 @@ import DataModel.AppState (AppError(..), AppState, HashState, InvalidStateError(
 import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
 import DataModel.Proxy (Proxy)
-import DataModel.User (UserCard, UserInfoReferences, UserPreferences)
+import DataModel.User (MasterKey, UserInfoReferences, UserPreferences)
 import Effect (Effect)
 import Effect.Class (class MonadEffect, liftEffect)
 import Prim.Row (class Nub, class Union)
@@ -55,6 +55,7 @@ updateAppState :: forall m r1 r3.
                                                               }
                                       , hash :: HashState
                                       , p :: Maybe HexString
+                                      , s :: Maybe HexString
                                       , password :: Maybe String
                                       , proxy :: Proxy
                                       , sessionKey :: Maybe HexString
@@ -62,10 +63,11 @@ updateAppState :: forall m r1 r3.
                                                               , nn :: BigInt
                                                               }
                                                    , k :: BigInt
+                                                   , hash :: HashState
                                                    , kdf :: KDFState
                                                    }
                                       , toll :: AsyncValue HexString
-                                      , userCard :: Maybe UserCard
+                                      , masterKey :: Maybe MasterKey
                                       , userInfoReferences :: Maybe UserInfoReferences
                                       , userPreferences :: Maybe UserPreferences
                                       , username :: Maybe String
@@ -80,6 +82,7 @@ updateAppState :: forall m r1 r3.
                                                               }
                                       , hash :: HashState
                                       , p :: Maybe HexString
+                                      , s :: Maybe HexString
                                       , password :: Maybe String
                                       , proxy :: Proxy
                                       , sessionKey :: Maybe HexString
@@ -87,10 +90,11 @@ updateAppState :: forall m r1 r3.
                                                               , nn :: BigInt
                                                               }
                                                     , k :: BigInt
+                                                    , hash :: HashState
                                                     , kdf :: KDFState
                                                     }
                                       , toll :: AsyncValue HexString
-                                      , userCard :: Maybe UserCard
+                                      , masterKey :: Maybe (MasterKey)
                                       , userInfoReferences :: Maybe UserInfoReferences
                                       , userPreferences :: Maybe UserPreferences
                                       , username :: Maybe String

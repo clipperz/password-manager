@@ -23,6 +23,7 @@ import is.clipperz.backend.TestUtilities
 import zio.test.TestAspect
 import is.clipperz.backend.exceptions.ResourceNotFoundException
 import zio.http.*
+import is.clipperz.backend.services.RemoteUserCard
 
 object SrpManangerSpec extends ZIOSpecDefault:
   val samples = 10
@@ -66,13 +67,14 @@ object SrpManangerSpec extends ZIOSpecDefault:
             x <- config.keyDerivationFunction(s, p).map(bytes => bytesToBigInt(bytes))
             v <- ZIO.succeed(srpFunctions.computeV(x))
             card <- ZIO.succeed(
-              UserCard(
+              RemoteUserCard(
                 c = cHex,
                 s = sHex,
                 v = bigIntToHex(v),
                 srpVersion = "srpVersion_testFullTrip",
-                masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
-                masterKeyContent = HexString("masterKeyContent_testFullTrip")
+                // originMasterKey = None,
+                // masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
+                masterKey = (HexString("masterKeyContent_testFullTrip"), "masterKeyEncodingVersion_testFullTrip")
               )
             )
 
@@ -144,13 +146,14 @@ object SrpManangerSpec extends ZIOSpecDefault:
             x <- config.keyDerivationFunction(s, p).map(bytes => bytesToBigInt(bytes))
             v <- ZIO.succeed(srpFunctions.computeV(x))
             card <- ZIO.succeed(
-              UserCard(
+              RemoteUserCard(
                 c = cHex,
                 s = sHex,
                 v = bigIntToHex(v),
                 srpVersion = "srpVersion_testFullTrip",
-                masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
-                masterKeyContent = HexString("masterKeyContent_testFullTrip")
+                // originMasterKey = None,
+                // masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
+                masterKey = (HexString("masterKeyContent_testFullTrip"), "masterKeyEncodingVersion_testFullTrip")
               )
             )
 

@@ -10,7 +10,7 @@ import is.clipperz.backend.exceptions.{
   ConflictualRequestException,
 }
 import is.clipperz.backend.functions.{ fromStream, responseTimer }
-import is.clipperz.backend.services.{ BlobArchive, ModifyUserCard, SessionManager, SignupData, UserArchive, UserCard }
+import is.clipperz.backend.services.*
 import is.clipperz.backend.Main.ClipperzHttpApp
 import is.clipperz.backend.LogAspect
 
@@ -40,11 +40,11 @@ val usersApi: ClipperzHttpApp = Http.collectZIO[Request]:
               fromStream[SignupData](content)
                 .flatMap { signupData =>
                   if HexString(c) == signupData.user.c then
-                    (userArchive.saveUser(signupData.user, false)
+                    (userArchive.saveUser(remoteFromRequest(signupData.user), false)
                       <&> // Returns an effect that executes both this effect and the specified effect, in parallel, combining their results into a tuple. If either side fails, then the other side will be interrupted.
                         blobArchive
                           .saveBlob(signupData.indexCardReference, ZStream.fromIterable(signupData.indexCardContent.toByteArray))
-                      <&> // Returns an effect that executes both this effect and the specified effect, in parallel, combining their results into a tuple. If either side fails, then the other side will be interrupted.
+                      <&>
                         blobArchive
                           .saveBlob(
                             signupData.preferencesReference,
@@ -80,7 +80,7 @@ val usersApi: ClipperzHttpApp = Http.collectZIO[Request]:
         }
     ) @@ LogAspect.logAnnotateRequestData(request)
 
-  case request @ Method.PUT -> Root / "api" / "users" / c =>
+  case request @ Method.PUT -> Root / "api"  / "users" / c =>
     responseTimer("users", request.method)(
       ZIO
         .service[UserArchive]
@@ -88,9 +88,9 @@ val usersApi: ClipperzHttpApp = Http.collectZIO[Request]:
         .zip(ZIO.service[SessionManager])
         .zip(ZIO.succeed(request.body.asStream))
         .flatMap((userArchive, blobArchive, sessionManager, content) =>
-          sessionManager
-            .verifySessionUser(c, request)
-            .flatMap(_ =>
+          sessionManager.getSession(request)
+            .flatMap(session =>
+              sessionManager.verifySessionUser(c, session) *>
               userArchive
                 .getUser(HexString(c))
                 .flatMap(optionalUser =>
@@ -99,24 +99,62 @@ val usersApi: ClipperzHttpApp = Http.collectZIO[Request]:
                     case None => ZIO.fail(new ResourceNotFoundException(s"user ${c} does not exist"))
                 )
             )
-            .flatMap(_ =>
-              fromStream[ModifyUserCard](content)
-                .flatMap { modifyData =>
-                  if HexString(c) == modifyData.c then
-                    userArchive
-                      .getUser(modifyData.c)
-                      .flatMap(currentUser =>
-                        if currentUser.isDefined && currentUser.get == modifyData.oldUserCard then
-                          userArchive.saveUser(modifyData.newUserCard, true)
-                        else
-                          ZIO.logDebug(s"${currentUser} is different than ${modifyData.oldUserCard}")
-                          ZIO.fail(new BadRequestException("old user card is not the current one saved"))
-                      )
-                  else ZIO.fail(new BadRequestException("c in request path differs from c in request body "))
+            .flatMap(currentUser =>
+              fromStream[RequestUserCard](content)
+                .flatMap { userCard =>
+                  if userCard.originMasterKey.contains(currentUser.masterKey(0)) 
+                  then
+                    (userArchive.saveUser(remoteFromRequest(userCard), true))
+                    <&>
+                    userArchive.deleteUser(HexString(c))
+                  else
+                    ZIO.fail(new BadRequestException("origin does not match"))
                 }
             )
         )
-        .map(results => Response.text(results.toString))
+        .map(_ => Response.ok)
+        .catchSome {
+          case ex: ResourceNotFoundException =>
+            ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.NotFound))
+          case ex: BadRequestException =>
+            ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
+          case ex: NonWritableArchiveException =>
+            ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
+          case ex: FailedConversionException =>
+            ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
+        }
+    ) @@ LogAspect.logAnnotateRequestData(request)
+  
+  case request @ Method.PATCH -> Root / "api" / "users" / c =>
+    responseTimer("users", request.method)(
+      ZIO
+        .service[UserArchive]
+        .zip(ZIO.service[BlobArchive])
+        .zip(ZIO.service[SessionManager])
+        .zip(ZIO.succeed(request.body.asStream))
+        .flatMap((userArchive, blobArchive, sessionManager, content) =>
+          sessionManager.getSession(request)
+            .flatMap(session =>
+              sessionManager.verifySessionUser(c, session) *>
+              userArchive
+                .getUser(HexString(c))
+                .flatMap(optionalUser =>
+                  optionalUser match
+                    case Some(u) => ZIO.succeed(u)
+                    case None => ZIO.fail(new ResourceNotFoundException(s"user ${c} does not exist"))
+                )
+            )
+            .flatMap(currentUser =>
+              fromStream[UserCard](content)
+                .flatMap { userCard =>
+                  if userCard.originMasterKey == currentUser.masterKey(0) then
+                    userArchive.saveUser(currentUser.copy(masterKey = userCard.masterKey), true)
+                  else
+                    ZIO.fail(new BadRequestException("origin does not match"))
+                }
+            )
+        )
+        .map(_ => Response.ok)
         .catchSome {
           case ex: ResourceNotFoundException =>
             ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.NotFound))
@@ -135,14 +173,16 @@ val usersApi: ClipperzHttpApp = Http.collectZIO[Request]:
         .service[UserArchive]
         .zip(ZIO.service[SessionManager])
         .flatMap((userArchive, sessionManager) =>
-          sessionManager
-            .verifySessionUser(c, request)
-            .flatMap(_ => userArchive.getUser(HexString(c)))
+          sessionManager.getSession(request)
+            .flatMap(session =>
+              sessionManager
+                .verifySessionUser(c, session)
+                .flatMap(_ => userArchive.getUser(HexString(c)))
+            )
         )
-        .map(maybeCard =>
-          maybeCard match
-            case None => Response(status = Status.NotFound)
-            case Some(card) => Response.json(card.toJson)
+        .map(maybeCard => maybeCard match
+          case None       => Response(status = Status.NotFound)
+          case Some(card) => Response.json(card.masterKey.toJson)
         )
         .catchSome {
           case ex: NonReadableArchiveException =>
@@ -157,17 +197,19 @@ val usersApi: ClipperzHttpApp = Http.collectZIO[Request]:
       ZIO
         .service[UserArchive]
         .zip(ZIO.service[SessionManager])
-        .zip(ZIO.succeed(request.body.asStream))
-        .flatMap((userArchive, sessionManager, content) =>
-          sessionManager
-            .verifySessionUser(c, request)
-            .flatMap(_ =>
-              fromStream[UserCard](content)
-                .flatMap(userCard => userArchive.deleteUser(userCard))
-                .flatMap(b =>
-                  if b then
-                    sessionManager.deleteSession(request).map(_ => Response.text(c))
-                  else ZIO.succeed(Response(status = Status.NotFound))
+        .flatMap((userArchive, sessionManager) =>
+          sessionManager.getSession(request)
+            .flatMap(session =>
+              sessionManager
+                .verifySessionUser(c, session)
+                .flatMap(_ =>
+                  userArchive.deleteUser(HexString(c))
+                    .flatMap(b =>
+                      if b 
+                        then sessionManager.deleteSession(request)
+                              .map(_ => Response.text(c))
+                        else ZIO.succeed(Response(status = Status.NotFound))
+                    )
                 )
             )
         )

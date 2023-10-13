@@ -1,32 +1,78 @@
 module DataModel.User where
 
+import Data.Argonaut.Decode (JsonDecodeError(..))
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
 import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Bifunctor (rmap)
-import Data.Either (Either)
+import Data.Either (Either(..))
 import Data.Eq (class Eq)
 import Data.HexString (HexString)
+import Data.Maybe (Maybe)
 import Data.Show (class Show, show)
+import Data.Tuple (Tuple)
 import DataModel.Password (PasswordGeneratorSettings)
+
+-- ========================================================================
+
+data MasterKeyEncodingVersion = V_1
+
+instance encodeMasterKeyEncodingVersion :: EncodeJson MasterKeyEncodingVersion where
+  encodeJson V_1 = encodeJson "1.0"
+
+instance decodeMasterKeyEncodingVersion :: DecodeJson MasterKeyEncodingVersion where
+  decodeJson json = case decodeJson json of
+    Right "1.0" -> Right V_1
+    Right _     -> Left (UnexpectedValue json)
+    Left  err   -> Left err
+
+-- --------------------------------------------------------------------------
+
+data SRPVersion = V_6a
+
+instance encodeSRPVersion :: EncodeJson SRPVersion where
+  encodeJson V_6a = encodeJson "6a"
+
+instance decodeSRPVersion :: DecodeJson SRPVersion where
+  decodeJson json = case decodeJson json of
+    Right "6a"  -> Right V_6a
+    Right _     -> Left (UnexpectedValue json)
+    Left  err   -> Left err
+
+-- ========================================================================
+
+type MasterKey = Tuple HexString MasterKeyEncodingVersion
 
 newtype UserCard =
   UserCard
-    { c :: HexString
-    , v :: HexString
-    , s :: HexString
-    , srpVersion :: String
-    , masterKeyEncodingVersion :: String
-    , masterKeyContent :: HexString
+    { originMasterKey :: HexString
+    , masterKey :: MasterKey
     }
-
-instance showUserCard :: Show UserCard where
-  show (UserCard record) = show record
 
 instance encodeJsonUserCard :: EncodeJson UserCard where
   encodeJson (UserCard record) = encodeJson record
 
 instance decodeJsonUserCard :: DecodeJson UserCard where
   decodeJson json = rmap (\record -> UserCard record) (decodeJson json)
+
+-- --------------------------------------------------------------------------
+
+newtype RequestUserCard =
+  RequestUserCard
+    { c :: HexString
+    , v :: HexString
+    , s :: HexString
+    , srpVersion :: SRPVersion
+    , originMasterKey :: Maybe HexString
+    , masterKey :: MasterKey
+    }
+
+instance encodeJsonRegisterUserCard :: EncodeJson RequestUserCard where
+  encodeJson (RequestUserCard record) = encodeJson record
+
+instance decodeJsonRegisterUserCard :: DecodeJson RequestUserCard where
+  decodeJson json = rmap (\record -> RequestUserCard record) (decodeJson json)
+
+-- --------------------------------------------------------------------------
 
 newtype IndexReference =
   IndexReference

@@ -29,35 +29,12 @@ object SessionManagerSpec extends ZIOSpecDefault:
   val cfail = "username2"
   val sessionContent = Map(("c", c))
   val testSession = Session(sessionKey, sessionContent)
+  val emptyTestSession = Session(sessionKey, Map.empty)
 
   val testRequestEmpty = Request(
     url = URL(Root),
     method = Method.GET,
     headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
-    body = Body.empty,
-    version = Version.Http_1_1,
-    remoteAddress = None
-  )
-  val testRequestSuccess = Request(
-    url = URL(Root / "users" / c),
-    method = Method.GET,
-    headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
-    body = Body.empty,
-    version = Version.Http_1_1,
-    remoteAddress = None
-  )
-  val testRequestFail = Request(
-    url = URL(Root / "users" / cfail),
-    method = Method.GET,
-    headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
-    body = Body.empty,
-    version = Version.Http_1_1,
-    remoteAddress = None
-  )
-  val testRequestNoHeader = Request(
-    url = URL(Root / "users" / (c + "fail")),
-    method = Method.GET,
-    headers = Headers.empty,
     body = Body.empty,
     version = Version.Http_1_1,
     remoteAddress = None
@@ -88,13 +65,13 @@ object SessionManagerSpec extends ZIOSpecDefault:
     test("verifySessionUser - success") {
       for {
         manager <- ZIO.service[SessionManager]
-        _ <- manager.verifySessionUser(c, testRequestSuccess)
+        _ <- manager.verifySessionUser(c, testSession)
       } yield assertCompletes
     } +
     test("verifySessionUser - fail - different C") {
       for {
         manager <- ZIO.service[SessionManager]
-        res <- assertZIO(manager.verifySessionUser(cfail, testRequestFail).exit)(
+        res <- assertZIO(manager.verifySessionUser(cfail, testSession).exit)(
           fails(isSubtype[BadRequestException](anything))
         )
       } yield res
@@ -109,15 +86,7 @@ object SessionManagerSpec extends ZIOSpecDefault:
     test("verifySessionUser - fail - no c") {
       for {
         manager <- ZIO.service[SessionManager]
-        res <- assertZIO(manager.verifySessionUser(c, testRequestSuccess).exit)(fails(isSubtype[BadRequestException](anything)))
-      } yield res
-    } +
-    test("verifySessionUser - fail - no header") {
-      for {
-        manager <- ZIO.service[SessionManager]
-        res <- assertZIO(manager.verifySessionUser(c, testRequestNoHeader).exit)(
-          fails(isSubtype[BadRequestException](anything))
-        )
+        res <- assertZIO(manager.verifySessionUser(c, emptyTestSession).exit)(fails(isSubtype[BadRequestException](anything)))
       } yield res
     }
   ).provideLayerShared(layers) @@ TestAspect.sequential

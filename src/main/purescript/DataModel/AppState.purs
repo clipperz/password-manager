@@ -7,7 +7,6 @@ module DataModel.AppState
   , ProxyConnectionStatus(..)
   , SRPInfo
   , UserConnectionStatus(..)
-  , baseSRPInfo
   )
   where
 
@@ -27,8 +26,8 @@ import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
 import DataModel.Communication.ProtocolError (ProtocolError)
 import DataModel.Proxy (Proxy)
-import DataModel.SRP (SRPGroup, group1024, k)
-import DataModel.User (UserCard, UserInfoReferences, UserPreferences)
+import DataModel.SRP (SRPGroup)
+import DataModel.User (MasterKey, UserInfoReferences, UserPreferences)
 import Functions.HashCash (TollChallenge)
 
 data UserConnectionStatus = UserLoggedIn | UserAnonymous
@@ -45,21 +44,16 @@ type AppState =
   , password :: Maybe String
   , c :: Maybe HexString
   , p :: Maybe HexString
+  , s :: Maybe HexString
   , srpInfo :: SRPInfo
   , hash :: HashState
   , cardsCache :: Map HexString Card
-  , userCard :: Maybe UserCard
+  , masterKey :: Maybe MasterKey
   , userInfoReferences :: Maybe UserInfoReferences
   , userPreferences :: Maybe UserPreferences
   }
 
-type SRPInfo = { group :: SRPGroup, k :: BigInt, kdf :: KDFState }
-baseSRPInfo :: SRPInfo
-baseSRPInfo = {
-  group: group1024
-, k: k
-, kdf: ConcatKDF
-}
+type SRPInfo = { group :: SRPGroup, k :: BigInt, hash:: HashState, kdf :: KDFState }
 
 data KDFState = ConcatKDF
 instance showKDFState :: Show KDFState where
@@ -93,19 +87,23 @@ instance prettyShowInvalidStateError :: PrettyShow InvalidStateError where
   prettyShow (MissingValue _) = "The application state is corrupted, please restart it."
   prettyShow (CorruptedSavedPassphrase _) = "Clipperz could not decrypt your credentials, please log in without using the device PIN."
 
-data AppError = InvalidStateError InvalidStateError | ProtocolError ProtocolError | ImportError String | CannotInitState String | InvalidOperationError String
+data AppError = InvalidStateError InvalidStateError | ProtocolError ProtocolError | ImportError String | CannotInitState String | InvalidOperationError String | InvalidVersioning String String | UnhandledCondition String
 instance showAppError :: Show AppError where
   show (InvalidStateError err)     = "Invalid state Error: "  <> show err
   show (ProtocolError err)         = "Protocol Error: " <> show err
   show (ImportError err)           = "Import Error: " <> err
   show (CannotInitState err)       = "Cannot init state: " <> err
   show (InvalidOperationError err) = "Invalid operation error: " <> err
+  show (InvalidVersioning elem v)  = "Invalid Versioning [" <> v <> "] of " <> elem 
+  show (UnhandledCondition err)    = "Unahandled Condition: " <> err
 
 instance prettyShowAppError :: PrettyShow AppError where
   prettyShow (InvalidStateError err)     = prettyShow err
   prettyShow (ProtocolError err)         = prettyShow err
   prettyShow (ImportError err)           = "Your imported values are not in the right format! (" <> err <> ")" 
   prettyShow (CannotInitState _)         = "Cannot init state, please try to reload"
-  prettyShow (InvalidOperationError _) = "Invalid operation error, something was not programmed correctly."
+  prettyShow (InvalidOperationError _)   = "Invalid operation error, something was not programmed correctly."
+  prettyShow (InvalidVersioning elem _)  = elem <> " is encoded in an unsupported version" 
+  prettyShow (UnhandledCondition     _)  = "" -- TODO?
 
 derive instance eqAppError :: Eq AppError

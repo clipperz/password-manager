@@ -12,19 +12,19 @@ module Functions.Communication.BackendCommunication
   )
   where
 
-import Affjax.Web as AXW
 import Affjax.RequestBody (RequestBody(..))
 import Affjax.RequestHeader (RequestHeader(..))
 import Affjax.ResponseFormat as RF
 import Affjax.ResponseHeader (ResponseHeader, name, value)
 import Affjax.StatusCode (StatusCode(..))
+import Affjax.Web as AXW
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT, runExceptT)
 import Control.Semigroupoid ((<<<))
 import Data.Argonaut.Core (stringify)
-import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Argonaut.Decode.Class (decodeJson)
+import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Array (filter, last, init)
 import Data.Bifunctor (lmap)
 import Data.Boolean (otherwise)
@@ -32,18 +32,18 @@ import Data.Either (Either(..), note)
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>), void)
+import Data.HTTP.Method (Method(..))
 import Data.HexString (HexString, toBigInt, fromBigInt, hex, toArrayBuffer, fromArrayBuffer)
 import Data.HeytingAlgebra ((&&))
-import Data.HTTP.Method (Method(..))
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..))
-import Data.Ord((<=), (>=))
+import Data.Ord ((<=), (>=))
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith, split)
 import Data.String.Pattern (Pattern(..))
 import Data.Time.Duration (Milliseconds(..))
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), fst)
 import Data.Unfoldable (fromMaybe)
 import Data.Unit (unit, Unit)
 import DataModel.AppState as AS
@@ -53,14 +53,14 @@ import DataModel.Communication.FromString as BCFS
 import DataModel.Communication.Login (LoginStep2Response)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Proxy (Proxy(..), BackendSessionState(..), BackendSessionRecord)
-import DataModel.User (UserCard(..))
+import DataModel.User (RequestUserCard(..))
 import Effect.Aff (Aff, forkAff, delay)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.JSState (getAppState, saveAppState, updateAppState)
-import Functions.State (getSRPConf, getHashFunctionFromAppState)
 import Functions.SRP as SRP
+import Functions.State (getSRPConf, getHashFunctionFromAppState)
 import Record (merge)
 
 
@@ -255,15 +255,15 @@ isStatusCodeOk :: StatusCode -> Boolean
 isStatusCodeOk code = (code >= (StatusCode 200)) && (code <= (StatusCode 299))
 
 
-offlineLoginStep1 :: UserCard -> ExceptT AS.AppError Aff { s :: HexString, bb :: HexString, b :: HexString }
-offlineLoginStep1 (UserCard r) = do
+offlineLoginStep1 :: RequestUserCard -> ExceptT AS.AppError Aff { s :: HexString, bb :: HexString, b :: HexString }
+offlineLoginStep1 (RequestUserCard r) = do
   srpConf <- ExceptT $ liftEffect getSRPConf
   v <- except $ note (AS.ProtocolError $ SRPError "Cannot covert v from HexString to BigInt") (toBigInt r.v)
   (Tuple b bb) <- ExceptT $ (lmap (\e -> AS.ProtocolError $ SRPError $ show e)) <$> (SRP.prepareB srpConf v)
   except $ Right $ { s: r.s, bb: fromBigInt bb, b: fromBigInt b }
 
-offlineLoginStep2 :: UserCard -> HexString -> BackendSessionRecord -> ExceptT AS.AppError Aff (Maybe LoginStep2Response)
-offlineLoginStep2 (UserCard r) m1' { b: mb, bb: mbb, aa: maa } = do
+offlineLoginStep2 :: RequestUserCard -> HexString -> BackendSessionRecord -> ExceptT AS.AppError Aff (Maybe LoginStep2Response)
+offlineLoginStep2 (RequestUserCard r) m1' { b: mb, bb: mbb, aa: maa } = do
   let m1 = toArrayBuffer m1'
   srpConf <- ExceptT $ liftEffect getSRPConf
   v <- except $ note (AS.ProtocolError $ SRPError "Cannot covert v from HexString to BigInt") (toBigInt r.v)
@@ -279,6 +279,6 @@ offlineLoginStep2 (UserCard r) m1' { b: mb, bb: mbb, aa: maa } = do
   check <- ExceptT $ Right <$> (SRP.checkM1 srpConf r.c r.s aa bb kk m1)
   if check then do
     m2 <- ExceptT $ (Right <<< fromArrayBuffer) <$> (SRP.prepareM2 srpConf aa m1 kk)
-    pure $ Just { m2, encUserInfoReferences: r.masterKeyContent }
+    pure $ Just { m2, encUserInfoReferences: fst r.masterKey }
   else pure Nothing
   

@@ -18,20 +18,15 @@ case class Session(val key: SessionKey, val content: SessionContent):
     content.isEmpty
 
 trait SessionManager:
-  // def getSession(key: SessionKey): Task[Session]
   def getSession(request: Request): Task[Session]
   def saveSession(content: Session): Task[SessionKey]
-  def verifySessionUser(c: String, request: Request): Task[Unit] =
-    this
-      .getSession(request)
-      .flatMap(session =>
-        session("c") match
-          case Some(session_c) =>
-            if (session_c == c) ZIO.succeed(())
-            else ZIO.fail(new BadRequestException("c in request path differs from c in session"))
-          case None => ZIO.fail(new BadRequestException("session does not contain c"))
-      )
-  // def deleteSession(key: SessionKey): Task[Unit]
+  def verifySessionUser(c: String, session: Session): Task[Unit] =
+    session("c") match
+      case Some(session_c) =>
+        if (session_c == c) 
+          then ZIO.succeed(())
+          else ZIO.fail(new BadRequestException("c in request path differs from c in session"))
+      case None => ZIO.fail(new BadRequestException("session does not contain c"))
   def deleteSession(request: Request): Task[Unit]
 
 object SessionManager:
