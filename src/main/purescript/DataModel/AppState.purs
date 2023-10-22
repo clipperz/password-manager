@@ -1,12 +1,14 @@
 module DataModel.AppState
   ( AppError(..)
   , AppState
+  , Element
   , HashState(..)
   , InvalidStateError(..)
   , KDFState(..)
   , ProxyConnectionStatus(..)
   , SRPInfo
   , UserConnectionStatus(..)
+  , WrongVersion
   )
   where
 
@@ -25,7 +27,7 @@ import Data.PrettyShow (class PrettyShow, prettyShow)
 import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
 import DataModel.Communication.ProtocolError (ProtocolError)
-import DataModel.Proxy (Proxy)
+import DataModel.ProxyType (ProxyType)
 import DataModel.SRP (SRPGroup)
 import DataModel.User (MasterKey, UserInfoReferences, UserPreferences)
 import Functions.HashCash (TollChallenge)
@@ -36,7 +38,7 @@ data ProxyConnectionStatus = ProxyOnline | ProxyOffline
 derive instance showProxyConnectionStatus :: Eq ProxyConnectionStatus
 
 type AppState =
-  { proxy :: Proxy
+  { proxy :: ProxyType
   , sessionKey :: Maybe HexString
   , toll :: AsyncValue HexString
   , currentChallenge :: Maybe TollChallenge
@@ -87,7 +89,10 @@ instance prettyShowInvalidStateError :: PrettyShow InvalidStateError where
   prettyShow (MissingValue _) = "The application state is corrupted, please restart it."
   prettyShow (CorruptedSavedPassphrase _) = "Clipperz could not decrypt your credentials, please log in without using the device PIN."
 
-data AppError = InvalidStateError InvalidStateError | ProtocolError ProtocolError | ImportError String | CannotInitState String | InvalidOperationError String | InvalidVersioning String String | UnhandledCondition String
+type Element = String
+type WrongVersion = String
+
+data AppError = InvalidStateError InvalidStateError | ProtocolError ProtocolError | ImportError String | CannotInitState String | InvalidOperationError String | InvalidVersioning Element WrongVersion | UnhandledCondition String
 instance showAppError :: Show AppError where
   show (InvalidStateError err)     = "Invalid state Error: "  <> show err
   show (ProtocolError err)         = "Protocol Error: " <> show err

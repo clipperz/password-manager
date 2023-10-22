@@ -54,7 +54,7 @@ share {secret, pin, duration} = do
   let body = (json $ encodeJson 
     { secret:   fromArrayBuffer encryptedSecret
     , duration: unwrap $ fromDuration duration
-    , version:  currentOneTimeSecretVersion 
+    , version:  currentOneTimeSecretVersion
     }
   )
 

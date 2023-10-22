@@ -22,7 +22,7 @@ import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), AppState, HashState, InvalidStateError(..), KDFState)
 import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
-import DataModel.Proxy (Proxy)
+import DataModel.ProxyType (ProxyType)
 import DataModel.User (MasterKey, UserInfoReferences, UserPreferences)
 import Effect (Effect)
 import Effect.Aff.Class (class MonadAff, liftAff)
@@ -58,7 +58,7 @@ updateAppState :: forall m r1 r3.
                                       , p :: Maybe HexString
                                       , s :: Maybe HexString
                                       , password :: Maybe String
-                                      , proxy :: Proxy
+                                      , proxy :: ProxyType
                                       , sessionKey :: Maybe HexString
                                       , srpInfo :: { group :: { g :: BigInt
                                                               , nn :: BigInt
@@ -85,7 +85,7 @@ updateAppState :: forall m r1 r3.
                                       , p :: Maybe HexString
                                       , s :: Maybe HexString
                                       , password :: Maybe String
-                                      , proxy :: Proxy
+                                      , proxy :: ProxyType
                                       , sessionKey :: Maybe HexString
                                       , srpInfo :: { group :: { g :: BigInt
                                                               , nn :: BigInt

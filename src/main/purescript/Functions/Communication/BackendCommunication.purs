@@ -2,7 +2,7 @@ module Functions.Communication.BackendCommunication
   ( RequestInfo(..)
   , Url
   , createHeaders
-  , doGenericRequest
+  -- , doGenericRequest
   , isStatusCodeOk
   , manageGenericRequest
   , sessionKeyHeaderName
@@ -52,7 +52,7 @@ import DataModel.Communication.FromString (class FromString)
 import DataModel.Communication.FromString as BCFS
 import DataModel.Communication.Login (LoginStep2Response)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.Proxy (Proxy(..), BackendSessionState(..), BackendSessionRecord)
+import DataModel.ProxyType (ProxyType(..), BackendSessionState(..), BackendSessionRecord)
 import DataModel.User (RequestUserCard(..))
 import Effect.Aff (Aff, forkAff, delay)
 import Effect.Aff.Class (liftAff)
@@ -110,134 +110,134 @@ manageGenericRequest url method body responseFormat = do
       manageGenericRequest url method body responseFormat
 
   where
-        doRequest :: AS.AppState -> ExceptT AS.AppError Aff (AXW.Response a)
-        doRequest currentState@{ proxy, toll } = do
-          let requestInfo = case proxy of
-                              OnlineProxy _  -> OnlineRequestInfo { url 
-                                                                  , method
-                                                                  , headers: createHeaders currentState
-                                                                  , body
-                                                                  , responseFormat
-                                                                  }
-                              OfflineProxy _ -> OfflineRequestInfo { url, method, body, responseFormat }
-          response <- withExceptT (\e -> AS.ProtocolError e) (ExceptT $ doGenericRequest proxy requestInfo)
-          -- change toll to loading state because it has been used
-          liftAff $ liftEffect $ saveAppState (currentState { toll = toLoading toll })
-          manageResponse response.status response
+    doRequest :: AS.AppState -> ExceptT AS.AppError Aff (AXW.Response a)
+    doRequest currentState@{ proxy, toll } = do
+      let requestInfo = case proxy of
+                          OnlineProxy _  -> OnlineRequestInfo { url 
+                                                              , method
+                                                              , headers: createHeaders currentState
+                                                              , body
+                                                              , responseFormat
+                                                              }
+                          OfflineProxy _ -> OfflineRequestInfo { url, method, body, responseFormat }
+      response <- withExceptT (\e -> AS.ProtocolError e) (ExceptT $ doGenericRequest proxy requestInfo)
+      -- change toll to loading state because it has been used
+      liftAff $ liftEffect $ saveAppState (currentState { toll = toLoading toll })
+      manageResponse response.status response
 
-        manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AS.AppError Aff (AXW.Response a))
-        manageResponse code@(StatusCode n)
-          | n == 402          = \response -> do -- TODO: improve
-              case (extractChallenge response.headers) of
-                Just challenge -> do
-                  hashFunc <- ExceptT $ liftEffect $ ((<$>) getHashFunctionFromAppState) <$> getAppState
-                  receipt <- liftAff $ computeReceipt hashFunc challenge --TODO change hash function with the one in state
+    manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AS.AppError Aff (AXW.Response a))
+    manageResponse code@(StatusCode n)
+      | n == 402          = \response -> do -- TODO: improve
+          case (extractChallenge response.headers) of
+            Just challenge -> do
+              hashFunc <- ExceptT $ liftEffect $ ((<$>) getHashFunctionFromAppState) <$> getAppState
+              receipt <- liftAff $ computeReceipt hashFunc challenge --TODO change hash function with the one in state
+              ExceptT $ updateAppState { toll: Done receipt, currentChallenge: Just challenge }
+              manageGenericRequest url method body responseFormat
+            Nothing -> except $ Left $  AS.ProtocolError $ IllegalResponse "HashCash headers not present or wrong"
+      | isStatusCodeOk code = \response -> do     
+          -- change the toll in state to Loading so to let know to the next request to wait for the result
+          case (extractChallenge response.headers) of
+            Just challenge -> do
+              -- compute the new toll in forkAff to keep the program going
+              liftAff $ void $ forkAff $ runExceptT $ do 
+                hashFunc <- ExceptT $ liftEffect $ ((<$>) getHashFunctionFromAppState) <$> getAppState
+                receipt  <- liftAff $ computeReceipt hashFunc challenge --TODO change hash function with the one in state
+                appState <- ExceptT $ liftEffect getAppState
+                if appState.c == Nothing then -- logout or delete done
+                  pure unit
+                else
                   ExceptT $ updateAppState { toll: Done receipt, currentChallenge: Just challenge }
-                  manageGenericRequest url method body responseFormat
-                Nothing -> except $ Left $  AS.ProtocolError $ IllegalResponse "HashCash headers not present or wrong"
-          | isStatusCodeOk code = \response -> do     
-              -- change the toll in state to Loading so to let know to the next request to wait for the result
-              case (extractChallenge response.headers) of
-                Just challenge -> do
-                  -- compute the new toll in forkAff to keep the program going
-                  liftAff $ void $ forkAff $ runExceptT $ do 
-                    hashFunc <- ExceptT $ liftEffect $ ((<$>) getHashFunctionFromAppState) <$> getAppState
-                    receipt  <- liftAff $ computeReceipt hashFunc challenge --TODO change hash function with the one in state
-                    appState <- ExceptT $ liftEffect getAppState
-                    if appState.c == Nothing then -- logout or delete done
-                      pure unit
-                    else
-                      ExceptT $ updateAppState { toll: Done receipt, currentChallenge: Just challenge }
-                  pure response
-                Nothing -> do
-                  ExceptT $ updateAppState { toll: Loading Nothing, currentChallenge: Nothing }
-                  pure response
-          | otherwise           = \_ -> do
-              ExceptT $ updateAppState { toll: Loading Nothing }
-              throwError $ AS.ProtocolError (ResponseError n)
-        
-        extractChallenge :: Array ResponseHeader -> Maybe TollChallenge
-        extractChallenge headers =
-          let tollArray = filter (\a -> name a == tollHeaderName) headers
-              costArray = filter (\a -> name a == tollCostHeaderName) headers
-          in case tollArray, costArray of
-              [tollHeader], [costHeader] -> (\cost -> { toll: hex $ value tollHeader, cost }) <$> fromString (value costHeader)
-              _,             _           -> Nothing
+              pure response
+            Nothing -> do
+              ExceptT $ updateAppState { toll: Loading Nothing, currentChallenge: Nothing }
+              pure response
+      | otherwise           = \_ -> do
+          ExceptT $ updateAppState { toll: Loading Nothing }
+          throwError $ AS.ProtocolError (ResponseError n)
+    
+    extractChallenge :: Array ResponseHeader -> Maybe TollChallenge
+    extractChallenge headers =
+      let tollArray = filter (\a -> name a == tollHeaderName) headers
+          costArray = filter (\a -> name a == tollCostHeaderName) headers
+      in case tollArray, costArray of
+          [tollHeader], [costHeader] -> (\cost -> { toll: hex $ value tollHeader, cost }) <$> fromString (value costHeader)
+          _,             _           -> Nothing
 
-doGenericRequest :: forall a. FromString a => Proxy -> RequestInfo a -> Aff (Either ProtocolError (AXW.Response a))
-doGenericRequest (OnlineProxy baseUrl) (OnlineRequestInfo { url, method, headers, body, responseFormat }) =
-  lmap (\e -> RequestError e) <$> AXW.request (
-    AXW.defaultRequest {
-        url            = joinWith "/" [baseUrl, url]
-      , method         = Left method
-      , headers        = headers
-      , content        = body 
-      , responseFormat = responseFormat
-    }
-  )
-doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInfo { url, method, body, responseFormat: _ }) =
-  let pieces = split (Pattern "/") url
-      type' = (joinWith "/") <$> (init pieces)
-      ref' = last pieces
-  in case method of
-    GET -> do
-      case type', ref' of
-        Nothing  , _           -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
-        _        , Nothing     -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
-        Just "blobs", Just ref -> do
-          result <- liftEffect $ BCFS.fromString $ _readBlob ref
-          pure $ Right $ { body: result, headers: [], status: StatusCode 200, statusText: "OK" }
-        Just "users", Just _   -> do
-          result <- liftEffect $ BCFS.fromString $ _readUserCard unit
-          pure $ Right $ { body: result, headers: [], status: StatusCode 200, statusText: "OK"}
-        _           , _        -> pure $ Left $ ResponseError 501
-    POST -> do
-      case type', ref', body of
-        Nothing  , _       , _       -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
-        _        , Nothing , _       -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
-        Just "login/step1", Just _, (Just (Json step)) -> do
-          res :: Either AS.AppError a <- runExceptT $ do
-            stepData :: { c :: HexString, aa :: HexString } <- except $ lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson step 
-            uc <- ExceptT $ (\v -> lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson v) <$> (liftEffect $ BCFS.fromString $ _readUserCard unit)
-            {s, bb, b} <- offlineLoginStep1 uc
-            let newSession = BackendSessionState $ merge { b: Just b, aa: Just stepData.aa , bb: Just bb} session
-            ExceptT $ updateAppState { proxy: OfflineProxy newSession }
-            let jsonString = stringify $ encodeJson {s, bb}
-            liftAff $ liftEffect $ BCFS.fromString jsonString
-          case res of
-            Left err -> do
-              log $ "login/step1" <> (show err)
-              pure $ Left $ ResponseError 400 -- TODO
-            Right a -> pure $ Right $ { body: a, headers: [], status: StatusCode 200, statusText: "OK" }
-        Just "login/step2", Just _, (Just (Json step)) -> do
-          res :: Either AS.AppError (Maybe a) <- runExceptT $ do
-            stepData :: { m1 :: HexString } <- except $ lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson step
-            uc <- ExceptT $ (\v -> lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson v) <$> (liftEffect $ BCFS.fromString $ _readUserCard unit)
-            mResponse <- offlineLoginStep2 uc stepData.m1 session
-            let mJsonString = (stringify <<< encodeJson) <$> mResponse
-            case mJsonString of
-              Nothing -> except $ Right Nothing
-              Just jsonString -> liftAff $ Just <$> (liftEffect $ BCFS.fromString jsonString)
-          case res of
-            Left err -> do
-              log $ "login/step2" <> (show err)
-              pure $ Left $ ResponseError 400 -- TODO
-            Right Nothing -> do
-              log $ "login/step2 error in mJsonString"
-              pure $ Left $ ResponseError 400 -- TODO
-            Right (Just a) -> pure $ Right $ { body: a, headers: [], status: StatusCode 200, statusText: "OK" }
-        Just "logout", _, _ -> do
-          res <- runExceptT $ do
-            let newSession = BackendSessionState { b: Nothing, bb: Nothing, aa: Nothing }
-            ExceptT $ updateAppState { proxy: OfflineProxy newSession }
-            liftAff $ liftEffect $ BCFS.fromString ""
-          case res of 
-            Left _ ->  pure $ Left  $ ResponseError 500
-            Right a -> pure $ Right $ { body: a, headers: [], status: StatusCode 200, statusText: "OK" }
-        _, _, _ -> pure $ Left $ ResponseError 501
-    _   -> pure $ Left $ ResponseError 501
-doGenericRequest (OnlineProxy  _) (OfflineRequestInfo _) = pure $ Left $ IllegalRequest "Cannot do an offline request with an online proxy"
-doGenericRequest (OfflineProxy _) (OnlineRequestInfo  _) = pure $ Left $ IllegalRequest "Cannot do an online request with an offline proxy"
+    doGenericRequest :: FromString a => ProxyType -> RequestInfo a -> Aff (Either ProtocolError (AXW.Response a))
+    doGenericRequest (OnlineProxy baseUrl) (OnlineRequestInfo { url, method, headers, body, responseFormat }) =
+      lmap (\e -> RequestError e) <$> AXW.request (
+        AXW.defaultRequest {
+            url            = joinWith "/" [baseUrl, url]
+          , method         = Left method
+          , headers        = headers
+          , content        = body 
+          , responseFormat = responseFormat
+        }
+      )
+    doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInfo { url, method, body, responseFormat: _ }) =
+      let pieces = split (Pattern "/") url
+          type' = (joinWith "/") <$> (init pieces)
+          ref' = last pieces
+      in case method of
+        GET -> do
+          case type', ref' of
+            Nothing  , _           -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
+            _        , Nothing     -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
+            Just "blobs", Just ref -> do
+              result <- liftEffect $ BCFS.fromString $ _readBlob ref
+              pure $ Right $ { body: result, headers: [], status: StatusCode 200, statusText: "OK" }
+            Just "users", Just _   -> do
+              result <- liftEffect $ BCFS.fromString $ _readUserCard unit
+              pure $ Right $ { body: result, headers: [], status: StatusCode 200, statusText: "OK"}
+            _           , _        -> pure $ Left $ ResponseError 501
+        POST -> do
+          case type', ref', body of
+            Nothing  , _       , _       -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
+            _        , Nothing , _       -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
+            Just "login/step1", Just _, (Just (Json step)) -> do
+              res :: Either AS.AppError a <- runExceptT $ do
+                stepData :: { c :: HexString, aa :: HexString } <- except $ lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson step 
+                uc <- ExceptT $ (\v -> lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson v) <$> (liftEffect $ BCFS.fromString $ _readUserCard unit)
+                {s, bb, b} <- offlineLoginStep1 uc
+                let newSession = BackendSessionState $ merge { b: Just b, aa: Just stepData.aa , bb: Just bb} session
+                ExceptT $ updateAppState { proxy: OfflineProxy newSession }
+                let jsonString = stringify $ encodeJson {s, bb}
+                liftAff $ liftEffect $ BCFS.fromString jsonString
+              case res of
+                Left err -> do
+                  log $ "login/step1" <> (show err)
+                  pure $ Left $ ResponseError 400 -- TODO
+                Right a -> pure $ Right $ { body: a, headers: [], status: StatusCode 200, statusText: "OK" }
+            Just "login/step2", Just _, (Just (Json step)) -> do
+              res :: Either AS.AppError (Maybe a) <- runExceptT $ do
+                stepData :: { m1 :: HexString } <- except $ lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson step
+                uc <- ExceptT $ (\v -> lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson v) <$> (liftEffect $ BCFS.fromString $ _readUserCard unit)
+                mResponse <- offlineLoginStep2 uc stepData.m1 session
+                let mJsonString = (stringify <<< encodeJson) <$> mResponse
+                case mJsonString of
+                  Nothing -> except $ Right Nothing
+                  Just jsonString -> liftAff $ Just <$> (liftEffect $ BCFS.fromString jsonString)
+              case res of
+                Left err -> do
+                  log $ "login/step2" <> (show err)
+                  pure $ Left $ ResponseError 400 -- TODO
+                Right Nothing -> do
+                  log $ "login/step2 error in mJsonString"
+                  pure $ Left $ ResponseError 400 -- TODO
+                Right (Just a) -> pure $ Right $ { body: a, headers: [], status: StatusCode 200, statusText: "OK" }
+            Just "logout", _, _ -> do
+              res <- runExceptT $ do
+                let newSession = BackendSessionState { b: Nothing, bb: Nothing, aa: Nothing }
+                ExceptT $ updateAppState { proxy: OfflineProxy newSession }
+                liftAff $ liftEffect $ BCFS.fromString ""
+              case res of 
+                Left _ ->  pure $ Left  $ ResponseError 500
+                Right a -> pure $ Right $ { body: a, headers: [], status: StatusCode 200, statusText: "OK" }
+            _, _, _ -> pure $ Left $ ResponseError 501
+        _   -> pure $ Left $ ResponseError 501
+    doGenericRequest (OnlineProxy  _) (OfflineRequestInfo _) = pure $ Left $ IllegalRequest "Cannot do an offline request with an online proxy"
+    doGenericRequest (OfflineProxy _) (OnlineRequestInfo  _) = pure $ Left $ IllegalRequest "Cannot do an online request with an offline proxy"
 
 data RequestInfo a = OnlineRequestInfo  { url :: Url 
                                         , method :: Method
