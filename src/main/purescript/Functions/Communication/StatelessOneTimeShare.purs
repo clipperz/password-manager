@@ -35,9 +35,6 @@ import Functions.Communication.StatelessBackend (ConnectionState, isStatusCodeOk
 import Functions.EncodeDecode (cryptoKeyAES, decryptArrayBuffer, decryptJson, encryptArrayBuffer, encryptJson)
 import Functions.SRP (randomArrayBuffer)
 
--- currentOneTimeSecretVersion :: String
--- currentOneTimeSecretVersion = "V1"
-
 data SecretVersion = V_1
 
 secretVersionFromString :: String -> ExceptT AppError Aff SecretVersion
@@ -45,7 +42,7 @@ secretVersionFromString "V_1" = pure V_1
 secretVersionFromString s     = throwError $ InvalidVersioning "SecretVersion" s
 
 oneTimeSecretVersionHeaderName :: String
-oneTimeSecretVersionHeaderName = "clipperz-oneTimeSecret-version"
+oneTimeSecretVersionHeaderName = "clipperz-onetimesecret-version"
 
 type SecretData = { secret   :: String
                   , pin      :: String
@@ -80,15 +77,16 @@ redeem connectionState id = do
   Tuple _ response <- manageGenericRequest connectionState url GET Nothing RF.arrayBuffer
   if isStatusCodeOk response.status
     then do
-      version <- secretVersionFromString $ fromMaybe "V1" (value <$> find (\header -> (name header) == oneTimeSecretVersionHeaderName) (response.headers))
+      version <- secretVersionFromString $ fromMaybe "V_1" (value <$> find (\header -> (name header) == oneTimeSecretVersionHeaderName) (response.headers))
       pure $ Tuple version response.body
     else throwError $ ProtocolError $ ResponseError $ unwrap response.status
 
 -- ====================================================================================
 
-type EncryptedContent = ArrayBuffer
 type PIN = String
+type EncryptedContent = ArrayBuffer
 type EncryptionKey = ArrayBuffer
+
 encryptSecret :: forall a. EncodeJson a => a -> Aff (Tuple EncryptionKey EncryptedContent)
 encryptSecret secret =  do
   key             <- liftAff $ randomArrayBuffer 32

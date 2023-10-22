@@ -90,7 +90,7 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
         .map((version: Option[String], bytes: ZStream[Any, Throwable, Byte]) => 
           Response(
             status = Status.Ok,
-            headers = version.map(v => Headers("clipperz-oneTimeSecret-version", v)).getOrElse(Headers.empty),
+            headers = version.map(v => Headers("clipperz-onetimesecret-version", v)).getOrElse(Headers.empty),
             body = Body.fromStream(bytes),
           )
         )
