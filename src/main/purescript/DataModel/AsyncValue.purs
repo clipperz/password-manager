@@ -8,8 +8,6 @@ import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
-import Data.Semigroup ((<>))
-import Data.Show (class Show, show)
 
 data AsyncValue a = Loading (Maybe a) | Done a
 instance showAsyncValue :: (Show a) => Show (AsyncValue a) where

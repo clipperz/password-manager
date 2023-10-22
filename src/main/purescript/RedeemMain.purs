@@ -1,7 +1,5 @@
 module RedeemMain where
 
-import Concur.Core (Widget)
-import Concur.React (HTML)
 import Concur.React.DOM (div, text)
 import Concur.React.Props as Props
 import Concur.React.Run (runWidgetInDom)
@@ -13,19 +11,20 @@ import Data.Functor ((<$>))
 import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), drop, split)
 import Data.Unit (Unit)
+import DataModel.AsyncValue (AsyncValue(..))
+import DataModel.SRP (hashFuncSHA256)
 import Effect (Effect)
-import Effect.Class (liftEffect)
-import Functions.JSState (saveAppState)
-import Functions.State (computeInitialState)
+import Functions.Communication.StatelessBackend (ConnectionState, Proxy(..))
 import OperationalWidgets.RedeemWidget (redeemWidget)
 import Web.HTML (window)
 import Web.HTML.Location (hash, pathname)
 import Web.HTML.Window (location)
 
-wrapper :: forall a. Widget HTML a -> Widget HTML a
-wrapper widget = do
-  _ <- liftEffect $ computeInitialState >>= saveAppState
-  widget
+initialConnectionState :: ConnectionState
+initialConnectionState = {
+  proxy: OnlineProxy "/api" { toll: Loading Nothing, currentChallenge: Nothing } Nothing
+, hashFunc: hashFuncSHA256
+}
 
 main :: Effect Unit
 main = do
@@ -38,4 +37,4 @@ main = do
     Just "" -> (div [Props.className "error"] [text "Missing document id"])
     Just id -> case key of
       "" ->    (div [Props.className "error"] [text "Missing document encryption key"])
-      _  ->    (wrapper $ redeemWidget id key)
+      _  ->    (redeemWidget initialConnectionState id key)

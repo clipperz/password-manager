@@ -105,11 +105,6 @@ instance encodeJsonProxy :: EncodeJson Proxy where
 instance decodeJsonProxy :: DecodeJson Proxy where
   decodeJson a = genericDecodeJson a
 
--- instance showProxy :: Show Proxy where
---   show (OnlineProxy  s)  = "Online Proxy: " <> s
---   show (OfflineProxy c)  = "Offline Proxy: " <> (show c)
-
-
 -- ----------------------------------------------------------------------------
 
 sessionKeyHeaderName :: String

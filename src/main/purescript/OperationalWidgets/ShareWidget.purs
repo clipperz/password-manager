@@ -37,9 +37,11 @@ shareWidget connectionState secret = do
     secretData <- shareView true secret =<< liftAff emptySecretData
     -- result <- (Right (Tuple "" "") <$ shareView false secret secretData) <|> (liftAff $ runExceptT $ share secretData)
     Tuple encryptionKey encryptedSecret <- liftAff $ encryptSecret secretData.secret
-    result <- (liftAff $ runExceptT $ share connectionState encryptedSecret secretData.duration)
+    result <- ( liftAff $ runExceptT $ share connectionState encryptedSecret secretData.duration )
+              <|>
+              ( overlay { status: Spinner, message: "loading" } )
               <|> 
-              (Right "" <$ shareView false secret secretData)
+              ( Right "" <$ shareView false secret secretData )
     case result of
       Left  err -> text ("error:" <> show err)
       Right uuid -> do

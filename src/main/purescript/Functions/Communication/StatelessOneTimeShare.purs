@@ -25,14 +25,13 @@ import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Time.Duration (Seconds, fromDuration)
 import Data.Tuple (Tuple(..))
-import Data.Tuple.Nested (Tuple3, tuple3)
 import DataModel.AppState (AppError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.SRP (hashFuncSHA256)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Exception as EX
-import Functions.Communication.StatelessBackend (Proxy, ConnectionState, isStatusCodeOk, manageGenericRequest)
+import Functions.Communication.StatelessBackend (ConnectionState, isStatusCodeOk, manageGenericRequest)
 import Functions.EncodeDecode (cryptoKeyAES, decryptArrayBuffer, decryptJson, encryptArrayBuffer, encryptJson)
 import Functions.SRP (randomArrayBuffer)
 
@@ -74,15 +73,15 @@ share connectionState encryptedSecret duration = do
     then pure $ response.body
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
 
-redeem :: ConnectionState -> UUID -> ExceptT AppError Aff (Tuple3 Proxy SecretVersion ArrayBuffer)
+redeem :: ConnectionState -> UUID -> ExceptT AppError Aff (Tuple SecretVersion ArrayBuffer)
 redeem connectionState id = do
   let url = joinWith "/" ["redeem", id]
 
-  Tuple proxy response <- manageGenericRequest connectionState url GET Nothing RF.arrayBuffer
+  Tuple _ response <- manageGenericRequest connectionState url GET Nothing RF.arrayBuffer
   if isStatusCodeOk response.status
     then do
       version <- secretVersionFromString $ fromMaybe "V1" (value <$> find (\header -> (name header) == oneTimeSecretVersionHeaderName) (response.headers))
-      pure $ tuple3 proxy version response.body
+      pure $ Tuple version response.body
     else throwError $ ProtocolError $ ResponseError $ unwrap response.status
 
 -- ====================================================================================
