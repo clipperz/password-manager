@@ -34,9 +34,6 @@ object KeyBlobArchive:
           else ZIO.fail(new ResourceNotFoundException("Blob not found"))
         )
         .getOrElse(ZIO.fail(new ResourceNotFoundException("Blob not found")))
-        .catchSome:
-          case ex: ResourceNotFoundException => ZIO.fail(ex)
-          case ex => ZIO.fail(new NonReadableArchiveException(s"${ex}"))
 
     override def saveBlob(key: Key, content: ZStream[Any, Throwable, Byte]): Task[Unit] =
       ZIO
