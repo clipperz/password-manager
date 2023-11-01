@@ -10,9 +10,11 @@ import Concur.React (HTML)
 import Concur.React.DOM (a, button, div, h1, h3, header, li, p, span, text, ul)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
+import Control.Alternative ((<*))
 import Control.Applicative (pure)
-import Control.Bind (bind, (>>=), discard)
+import Control.Bind (bind, discard, (>>=))
 import Control.Monad.Except.Trans (runExceptT)
+import Data.Either (either)
 import Data.Either as E
 import Data.Eq ((==), class Eq)
 import Data.Function (($))
@@ -21,9 +23,11 @@ import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.Time.Duration (Milliseconds(..))
-import DataModel.AppState (UserConnectionStatus(..))
+import Data.Tuple (Tuple(..))
+import DataModel.AppState (AppError, UserConnectionStatus(..))
 import DataModel.Credentials (Credentials, emptyCredentials)
 import DataModel.FragmentData as Fragment
+import DataModel.StatelessAppState (StatelessAppState)
 import DataModel.WidgetState as WS
 import Effect.Aff (delay, never, Aff)
 import Effect.Aff.Class (liftAff)
@@ -46,28 +50,28 @@ type SharedCardReference = String
 type SharedCardPassword  = String
 
 data Page = Loading (Maybe Page) | Login | Signup | Share (Maybe SharedCardReference) | Main
-data Action = DoLogout 
-            | ShowPage Page 
-            | DoLogin Credentials 
-            | DoLoginWithPin PinCredentials 
-            | DoSignup Credentials 
-            | ShowSharedCard SharedCardReference SharedCardPassword 
-            | ShowError Page 
-            | ShowSuccess Page 
+data Action = DoLogout
+            | ShowPage Page
+            | DoLogin Credentials
+            | DoLoginWithPin PinCredentials
+            | DoSignup Credentials
+            | ShowSharedCard SharedCardReference SharedCardPassword
+            | ShowError Page AppError
+            | ShowSuccess Page
 
-app :: forall a. Fragment.FragmentData -> Widget HTML a
-app fragmentData = case fragmentData of
-    Fragment.Registration -> app' (ShowPage (Loading (Just Signup))) { credentials: emptyCredentials }
-    Fragment.Login cred   -> app' (DoLogin cred)                     { credentials: cred }
-    _                     -> app' (ShowPage (Loading (Just Login)))  { credentials: emptyCredentials }
+app :: forall a. StatelessAppState -> Fragment.FragmentData -> Widget HTML a
+app appState fragmentData = case fragmentData of
+    Fragment.Registration -> app' appState (ShowPage (Loading (Just Signup))) { credentials: emptyCredentials }
+    Fragment.Login cred   -> app' appState (DoLogin cred)                     { credentials: cred }
+    _                     -> app' appState (ShowPage (Loading (Just Login)))  { credentials: emptyCredentials }
 
   where
 
-    app' :: forall a'. Action -> { credentials :: Credentials } -> Widget HTML a'
-    app' action st@{ credentials } = do
+    app' :: forall a'. StatelessAppState -> Action -> { credentials :: Credentials } -> Widget HTML a'
+    app' state action st@{ credentials } = do
       log $ show action
-      nextAction:: Action <- exitBooting action <|>
-        div [Props.className "mainDiv"] [
+      Tuple newState nextAction <- (Tuple state <$> exitBooting action) <|>
+        (Tuple state <$> div [Props.className "mainDiv"] [
             headerPage (actionPage action) (Loading Nothing) []
           , headerPage (actionPage action) Login [
               (getLoginActionType <$> (loginFormView' credentials)) <|> ((ShowPage Signup) <$ button [Props.onClick] [text "sign up"]) -- TODO: if login fails this is reset
@@ -84,15 +88,15 @@ app fragmentData = case fragmentData of
           , div [Props.classList (Just <$> ["page", "main", show $ location Main (actionPage action)])] [
             DoLogout <$ (homePageWidget (if (action == (ShowPage Main)) then UserLoggedIn else UserAnonymous) fragmentData)
           ]
-        ]
+        ])
         <|>
         overlayFromAction action
-        <|> 
-        (liftAff $ doOp action)
-      case nextAction of
-        DoLogin cred -> app' nextAction $ st { credentials = cred }
-        ShowPage Main -> app' nextAction $ st { credentials = emptyCredentials }
-        _ -> app' nextAction st
+        <|>
+        (liftAff $ doOp state action)
+      app' newState nextAction $ case nextAction of
+        DoLogin cred  -> st { credentials = cred }
+        ShowPage Main -> st { credentials = emptyCredentials }
+        _             -> st
 
     getLoginActionType :: E.Either PinCredentials Credentials -> Action
     getLoginActionType (E.Left pinCredentials) = DoLoginWithPin pinCredentials
@@ -102,9 +106,25 @@ overlayFromAction :: forall a. Action -> Widget HTML a
 overlayFromAction (DoLogin _)        = overlay { status: Spinner, message: "loading" }
 overlayFromAction (DoLoginWithPin _) = overlay { status: Spinner, message: "loading" }
 overlayFromAction (DoSignup _)       = overlay { status: Spinner, message: "loading" }
-overlayFromAction (ShowError _)      = overlay { status: Failed, message: "error" }
-overlayFromAction (ShowSuccess _)    = overlay { status: Done, message: "" }
-overlayFromAction _ = overlay { status: Hidden, message: "loading" }
+overlayFromAction (ShowError _ err)  = overlay { status: Failed,  message: "error"   } <* (log $ show err)
+overlayFromAction (ShowSuccess _)    = overlay { status: Done,    message: ""        }
+overlayFromAction _                  = overlay { status: Hidden,  message: "loading" }
+
+doOp :: StatelessAppState -> Action -> Aff (Tuple StatelessAppState Action)
+doOp state@{proxy, hash, srpConf} (DoSignup cred) = do
+  let res = signupUser proxy hash srpConf cred
+  (either (\err -> Tuple state (ShowError Signup err)) (\newProxy -> Tuple (state {proxy = newProxy}) (DoLogin cred))) <$> (runExceptT res)
+doOp state@{proxy, hash, srpConf} (DoLogin cred) = do
+  res <- runExceptT $ doLogin proxy hash srpConf cred
+  pure $ (either (\err ->  Tuple state (ShowError Login err)) (\stateUpdate -> Tuple (merge stateUpdate state) (ShowSuccess Main)) res)
+doOp state (DoLoginWithPin {pin, user, passphrase}) = do
+  _   <- liftEffect $ window >>= localStorage
+  res <- runExceptT $ decryptPassphraseWithRemoval pin user passphrase
+  pure $ Tuple state (either (ShowError Login) DoLogin res)
+doOp state (ShowSuccess nextPage)   = (Tuple state $ ShowPage nextPage) <$ delay (Milliseconds 500.0)
+doOp state (ShowError   nextPage _) = (Tuple state $ ShowPage nextPage) <$ delay (Milliseconds 500.0)
+doOp state a = Tuple state a <$ never
+
 -- ==================================================
 
 data PagePosition = Left | Center | Right
@@ -148,7 +168,7 @@ actionPage (DoLoginWithPin _)   = Login
 actionPage (DoSignup _)         = Signup
 actionPage (ShowSharedCard r _) = Share (Just r)
 actionPage (DoLogout)           = Login
-actionPage (ShowError page)     = page
+actionPage (ShowError page _)     = page
 actionPage (ShowSuccess page)   = page
 
 headerPage :: forall a. Page -> Page -> Array (Widget HTML a) -> Widget HTML a
@@ -194,33 +214,6 @@ shortcutsDiv = div [Props._id "shortcutsHelp", Props.className "hidden"] [
 , p [] [span [] [text "lock"]], p [] [text "Lock"]
 ]
 
-doOp :: Action -> Aff Action
-doOp (DoLogin cred) = do
-  res <- runExceptT $ doLogin cred
-  case res of
-    E.Right _ -> pure $ ShowSuccess Main
-    E.Left err -> do
-      log $ "Login error: " <> (show err)
-      pure $ ShowError Login
-doOp (DoLoginWithPin {pin, user, passphrase}) = do
-  _  <- liftEffect $ window >>= localStorage
-  ei <- runExceptT $ decryptPassphraseWithRemoval pin user passphrase
-  case ei of
-    E.Right cred -> pure (DoLogin cred)
-    E.Left e -> do
-      log $ show e
-      pure $ ShowError Login
-doOp (ShowSuccess nextPage) = (ShowPage nextPage) <$ delay (Milliseconds 500.0)
-doOp (ShowError nextPage)   = (ShowPage nextPage) <$ delay (Milliseconds 500.0)
-doOp (DoSignup cred) = do
-  res <- liftAff $ runExceptT $ signupUser cred
-  case res of
-    E.Right _ -> pure $ DoLogin cred
-    E.Left err -> do
-      log $ "Signup error: " <> (show err)
-      pure $ ShowPage Signup
-doOp a = a <$ never
-
 instance showPage :: Show Page where
   show (Loading _)  = "Loading"
   show (Login)      = "Login"
@@ -236,7 +229,7 @@ instance showAction :: Show Action where
   show (DoLoginWithPin _)   = "Do LoginWithPint"
   show (DoSignup _)         = "Do Signup"
   show (ShowSharedCard _ _) = "Show Shared Card"
-  show (ShowError page)     = "Show Error " <> show page 
+  show (ShowError page _)   = "Show Error " <> show page 
   show (ShowSuccess page)   = "Show Success " <> show page 
   show DoLogout = "DoLogout"
 

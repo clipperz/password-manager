@@ -1,6 +1,6 @@
 module Functions.Communication.StatelessBackend where
 
-import Affjax.RequestBody (RequestBody(..))
+import Affjax.RequestBody (RequestBody)
 import Affjax.RequestHeader (RequestHeader(..))
 import Affjax.ResponseFormat as RF
 import Affjax.ResponseHeader (ResponseHeader, name, value)
@@ -8,51 +8,36 @@ import Affjax.StatusCode (StatusCode(..))
 import Affjax.Web as AXW
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
-import Control.Monad.Except.Trans (ExceptT(..), except, runExceptT, throwError, withExceptT)
-import Control.Semigroupoid ((>>>))
-import Data.Argonaut.Core (stringify)
-import Data.Argonaut.Decode (class DecodeJson)
-import Data.Argonaut.Decode.Class (decodeJson)
-import Data.Argonaut.Decode.Generic (genericDecodeJson)
-import Data.Argonaut.Encode (class EncodeJson)
-import Data.Argonaut.Encode.Class (encodeJson)
-import Data.Argonaut.Encode.Generic (genericEncodeJson)
-import Data.Array (filter, last, init)
+import Control.Monad.Except.Trans (ExceptT(..), throwError, withExceptT)
+import Data.Array (filter)
 import Data.Bifunctor (lmap)
 import Data.Boolean (otherwise)
-import Data.Either (Either(..), note)
-import Data.Eq (class Eq, (==))
-import Data.Function ((#), ($))
+import Data.Either (Either(..))
+import Data.Eq ((==))
+import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.Generic.Rep (class Generic)
-import Data.HTTP.Method (Method(..))
-import Data.HexString (HexString, toBigInt, fromBigInt, hex, toArrayBuffer, fromArrayBuffer)
+import Data.HTTP.Method (Method)
+import Data.HexString (HexString, hex)
 import Data.HeytingAlgebra ((&&))
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..))
 import Data.Ord ((<=), (>=))
 import Data.Semigroup ((<>))
-import Data.Show (class Show, show)
-import Data.String.Common (joinWith, split)
-import Data.String.Pattern (Pattern(..))
+import Data.Show (show)
+import Data.String.Common (joinWith)
 import Data.Time.Duration (Milliseconds(..))
-import Data.Tuple (Tuple(..), fst)
+import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
-import Data.Unit (unit, Unit)
+import Data.Unit (Unit)
 import DataModel.AppState as AS
 import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue)
 import DataModel.Communication.FromString (class FromString)
-import DataModel.Communication.FromString as BCFS
-import DataModel.Communication.Login (LoginStep2Response)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.SRP (SRPConf, HashFunction)
-import DataModel.User (RequestUserCard(..))
+import DataModel.SRP (HashFunction)
+import DataModel.StatelessAppState (Proxy(..))
 import Effect.Aff (Aff, delay)
 import Effect.Aff.Class (liftAff)
-import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
 import Functions.HashCash (TollChallenge, computeReceipt)
-import Functions.SRP as SRP
 import Record (merge)
 
 -- ==================================================
@@ -65,45 +50,6 @@ type ConnectionState = {
   proxy    :: Proxy
 , hashFunc :: HashFunction
 }
-
--- ----------------------------------------------------------------------------
-
-type TollManager = {
-  toll :: AsyncValue HexString
-, currentChallenge :: Maybe TollChallenge
-}
-
--- ----------------------------------------------------------------------------
-
-type BackendSessionRecord = {
-  b  :: HexString
-, aa :: HexString
-, bb :: HexString
-}
-data BackendSessionState = BackendSessionState BackendSessionRecord
-
-derive instance eqBackendSessionState :: Eq BackendSessionState
-derive instance genericBackendSessionState :: Generic BackendSessionState _
-
-instance encodeJsonBackendSessionState :: EncodeJson BackendSessionState where
-  encodeJson a = genericEncodeJson a
-
-instance decodeJsonBackendSessionState :: DecodeJson BackendSessionState where
-  decodeJson a = genericDecodeJson a
-
-instance showBackendSessionState :: Show BackendSessionState where
-  show (BackendSessionState r) = show r
-
-data Proxy = OnlineProxy Url TollManager (Maybe SessionKey) | OfflineProxy (Maybe BackendSessionState)
-
--- derive instance eqProxy :: Eq Proxy
-derive instance genericProxy :: Generic Proxy _
-
-instance encodeJsonProxy :: EncodeJson Proxy where
-  encodeJson a = genericEncodeJson a
-
-instance decodeJsonProxy :: DecodeJson Proxy where
-  decodeJson a = genericDecodeJson a
 
 -- ----------------------------------------------------------------------------
 

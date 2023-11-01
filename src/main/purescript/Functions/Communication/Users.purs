@@ -27,18 +27,32 @@ import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index)
+import DataModel.StatelessAppState (Proxy)
 import DataModel.User (IndexReference(..), MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard(..), UserInfoReferences(..), UserPreferences, UserPreferencesReference(..), MasterKey)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
-import Functions.Communication.Blobs (postBlob, getBlob, deleteBlob, getDecryptedBlob)
+import Functions.Communication.Blobs (deleteBlob, getBlob, getDecryptedBlob, getStatelessDecryptedBlob, postBlob)
+import Functions.Communication.StatelessBackend (ConnectionState)
+import Functions.Communication.StatelessBackend as Stateless
 import Functions.EncodeDecode (encryptJson)
 import Functions.Index (getIndexContent)
 import Functions.JSState (getAppState, updateAppState)
 import Functions.SRP (prepareV)
 import Functions.State (getHashFromState, getSRPConf)
 
+getStatelessMasterKey :: ConnectionState -> HexString -> ExceptT AppError Aff (Tuple Proxy MasterKey)
+getStatelessMasterKey connectionState c = do
+  let url = joinWith "/" ["users", show c]
+  Tuple newProxy response <- Stateless.manageGenericRequest connectionState url GET Nothing RF.json
+  if isStatusCodeOk response.status
+    then do
+      newMasterKey <- except $ flip lmap (decodeJson response.body) (show >>> DecodeError >>> ProtocolError)
+      pure $ Tuple newProxy newMasterKey
+    else throwError $ ProtocolError (ResponseError $ unwrap response.status)
+
+-- TODO REMOVE
 getMasterKey :: HexString -> ExceptT AppError Aff MasterKey
 getMasterKey c = do
   { masterKey: maybeMasterKey } <- ExceptT $ liftEffect $ getAppState
@@ -54,6 +68,7 @@ getMasterKey c = do
           pure newMasterKey
         else throwError $ ProtocolError (ResponseError $ unwrap response.status)
     Just masterKey -> pure masterKey
+-- ------------
 
 getRemoteUserCard :: ExceptT AppError Aff RequestUserCard
 getRemoteUserCard = do
@@ -93,6 +108,7 @@ getIndex = do
       getIndexContent blob indexRef
     _ -> throwError (InvalidStateError $ MissingValue "Missing index reference")
 
+-- TODO REMOVE
 getUserPreferences :: ExceptT AppError Aff UserPreferences
 getUserPreferences = do 
   currentState <- ExceptT $ liftEffect getAppState
@@ -101,6 +117,12 @@ getUserPreferences = do
       cryptoKey :: CryptoKey <- liftAff $ KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       getDecryptedBlob reference cryptoKey
     _ -> throwError (InvalidStateError $ MissingValue "Missing user preferences reference")
+-- -----------
+
+getStatelessUserPreferences :: ConnectionState -> UserPreferencesReference -> ExceptT AppError Aff (Tuple Proxy UserPreferences)
+getStatelessUserPreferences connectionState (UserPreferencesReference { reference, key }) = do
+  cryptoKey :: CryptoKey <- liftAff $ KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+  getStatelessDecryptedBlob connectionState reference cryptoKey
 
 updateIndex :: Index -> ExceptT AppError Aff Unit
 updateIndex newIndex = do

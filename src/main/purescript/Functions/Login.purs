@@ -2,53 +2,84 @@ module Functions.Login where
 
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
-import Control.Monad.Except.Trans (ExceptT(..), throwError, withExceptT)
+import Control.Monad.Except.Trans (ExceptT(..), throwError)
 import Data.Either (Either(..))
 import Data.Eq ((/=))
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.HexString (fromArrayBuffer)
+import Data.HexString (HexString, fromArrayBuffer)
 import Data.HeytingAlgebra ((&&))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.PrettyShow (prettyShow)
-import Data.Show (show)
-import Data.Unit (Unit, unit)
+import Data.Tuple (Tuple(..))
+import Data.Unit (unit)
+import DataModel.AppState (AppError(..))
 import DataModel.Credentials (Credentials)
+import DataModel.SRP (HashFunction, SRPConf)
+import DataModel.StatelessAppState (Proxy(..))
+import DataModel.User (MasterKey, UserInfoReferences, UserPreferences)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Login (login)
-import Functions.Communication.Users (getMasterKey, getUserPreferences)
+import Functions.Communication.Users (getStatelessMasterKey, getStatelessUserPreferences)
 import Functions.JSState (updateAppState)
 import Functions.SRP as SRP
-import Functions.State (getSRPConf)
 import Functions.Timer (activateTimer)
 
-doLogin :: Credentials -> ExceptT String Aff Unit
-doLogin { username, password } =
+type LoginStateUpdate = {
+  proxy              :: Proxy
+, userInfoReferences :: Maybe UserInfoReferences
+, userPreferences    :: Maybe UserPreferences
+, masterKey          :: Maybe MasterKey
+, username           :: Maybe String
+, password           :: Maybe String
+, s                  :: Maybe HexString
+, c                  :: Maybe HexString
+, p                  :: Maybe HexString
+}
+
+doLogin :: Proxy -> HashFunction -> SRPConf -> Credentials -> ExceptT AppError Aff LoginStateUpdate
+doLogin proxy hashFunc srpConf { username, password } =
   if username /= "" && password /= "" then do
  
-    conf      <- withExceptT prettyShow (ExceptT $ liftEffect getSRPConf)
-    c         <- liftAff $ fromArrayBuffer <$> SRP.prepareC conf username password
-    p         <- liftAff $ fromArrayBuffer <$> SRP.prepareP conf username password
+    c         <- liftAff $ fromArrayBuffer <$> SRP.prepareC srpConf username password
+    p         <- liftAff $ fromArrayBuffer <$> SRP.prepareP srpConf username password
     
-    _ <- withExceptT show $ login conf c p
+    {proxy: newProxy, userInfoReferences, s} <- login proxy hashFunc srpConf c p
     
-    masterKey <- withExceptT prettyShow $ getMasterKey c
-    up        <- withExceptT prettyShow   getUserPreferences
+    Tuple newProxy'  masterKey       <- getStatelessMasterKey { proxy: newProxy, hashFunc } c
+    Tuple newProxy'' userPreferences <- getStatelessUserPreferences { proxy: newProxy', hashFunc } (unwrap userInfoReferences).preferencesReference
     
-    withExceptT prettyShow (ExceptT $ updateAppState { 
-      userPreferences: Just up
-    , masterKey:       Just masterKey 
-    , username:        Just username
-    , password:        Just password
-    , c:               Just c
-    , p:               Just p
-    })
-
-    case (unwrap up).automaticLock of
-      Right n -> liftAff $ liftEffect (activateTimer n)
+    case (unwrap userPreferences).automaticLock of
+      Right n -> liftEffect (activateTimer n)
       Left  _ -> pure unit
 
-  else throwError "Empty credentials"
+    -- TODO REMOVE
+    ExceptT $ updateAppState { 
+      sessionKey:         case newProxy'' of
+                            OfflineProxy _             -> Nothing
+                            OnlineProxy _ _ sessionKey -> sessionKey
+    , userInfoReferences: Just userInfoReferences 
+    , userPreferences:    Just userPreferences
+    , masterKey:          Just masterKey 
+    , username:           Just username
+    , password:           Just password
+    , s:                  Just s
+    , c:                  Just c
+    , p:                  Just p
+    }
+    -- -----------
+
+    pure { proxy:              newProxy''
+         , userInfoReferences: Just userInfoReferences 
+         , userPreferences:    Just userPreferences
+         , masterKey:          Just masterKey 
+         , username:           Just username
+         , password:           Just password
+         , s:                  Just s
+         , c:                  Just c
+         , p:                  Just p
+         }
+
+  else throwError $ InvalidOperationError "Empty credentials"

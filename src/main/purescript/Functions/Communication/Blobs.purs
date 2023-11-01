@@ -17,17 +17,22 @@ import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith)
+import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
+import DataModel.StatelessAppState (Proxy)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
 import Functions.Communication.BlobFromArrayBuffer (blobFromArrayBuffer)
+import Functions.Communication.StatelessBackend (ConnectionState)
+import Functions.Communication.StatelessBackend as Stateless
 import Functions.EncodeDecode (decryptJson)
 import Web.XHR.FormData (EntryName(..), FileName(..), appendBlob, new)
 
 -- ----------------------------------------------------------------------------
 
+-- TODO REMOVE
 getBlob :: HexString -> ExceptT AppError Aff ArrayBuffer
 getBlob hash = do
   let url = joinWith "/" ["blobs", show $ hash]
@@ -35,12 +40,29 @@ getBlob hash = do
   if isStatusCodeOk response.status
     then pure response.body
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
+-- ------------
 
+getStatelessBlob :: ConnectionState -> HexString -> ExceptT AppError Aff (Tuple Proxy ArrayBuffer)
+getStatelessBlob connectionState hash = do
+  let url = joinWith "/" ["blobs", show $ hash]
+  Tuple proxy response <- Stateless.manageGenericRequest connectionState url GET Nothing RF.arrayBuffer
+  if isStatusCodeOk response.status
+    then pure $ Tuple proxy response.body
+    else throwError $ ProtocolError (ResponseError $ unwrap response.status)
+
+-- TODO REMOVE
 getDecryptedBlob :: forall a. DecodeJson a => HexString -> CryptoKey -> ExceptT AppError Aff a 
 getDecryptedBlob reference key = do
   blob <- getBlob reference
   withExceptT (\e -> ProtocolError $ CryptoError $ "Get decrypted blob: " <> show e) (ExceptT $ decryptJson key blob)
-  
+-- ------------
+
+getStatelessDecryptedBlob :: forall a. DecodeJson a => ConnectionState -> HexString -> CryptoKey -> ExceptT AppError Aff (Tuple Proxy a) 
+getStatelessDecryptedBlob connectionState reference key = do
+  Tuple proxy blob <- getStatelessBlob connectionState reference
+  decryptedBlob <- withExceptT (\e -> ProtocolError $ CryptoError $ "Get decrypted blob: " <> show e) (ExceptT $ decryptJson key blob)
+  pure $ Tuple proxy decryptedBlob
+
 postBlob :: ArrayBuffer -> ArrayBuffer -> ExceptT AppError Aff (AXW.Response String)
 postBlob blob hash = do
   let url = joinWith "/" ["blobs"]

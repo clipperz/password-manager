@@ -21,7 +21,7 @@ import DataModel.FragmentData as Fragment
 import Effect (Effect)
 import Foreign (unsafeToForeign)
 import Functions.JSState (saveAppState)
-import Functions.State (computeInitialState)
+import Functions.State (computeInitialState, computeInitialStatelessState)
 import JSURI (decodeURI)
 import OperationalWidgets.App (app)
 import Web.HTML (Window, window)
@@ -31,10 +31,12 @@ import Web.HTML.Window (history, location)
 
 main :: Effect Unit
 main = do
-  computeInitialState >>= saveAppState
+  computeInitialState >>= saveAppState -- TODO REMOVE AT THE VERY END
+  
+  state <- computeInitialStatelessState
   fragmentData <- computeFragmentData <$> (window >>= location >>= hash)
   window >>= removeHash
-  runWidgetInDom "app" $ app fragmentData
+  runWidgetInDom "app" $ app state fragmentData
 
   where
     removeHash :: Window -> Effect Unit

@@ -116,6 +116,8 @@ newtype UserPreferencesReference =
     , key :: HexString
     }
 
+derive instance newTypeUserPreferencesReference :: Newtype UserPreferencesReference _
+
 instance showUserPreferencesReference :: Show UserPreferencesReference where
   show (UserPreferencesReference record) = show record
 
@@ -130,6 +132,8 @@ newtype UserInfoReferences =
     { preferencesReference :: UserPreferencesReference
     , indexReference :: IndexReference
     }
+
+derive instance newTypeUserInfoReferences :: Newtype UserInfoReferences _
   
 instance showUserInfoReferences :: Show UserInfoReferences where
   show (UserInfoReferences record) = show record

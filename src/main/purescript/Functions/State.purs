@@ -17,6 +17,8 @@ import DataModel.AppState (AppError, AppState, HashState(..), KDFState(..), Prox
 import DataModel.AsyncValue (AsyncValue(..))
 import DataModel.ProxyType (ProxyType(..), BackendSessionState(..))
 import DataModel.SRP (HashFunction, KDF, SRPConf, concatKDF, group1024, hashFuncSHA1, hashFuncSHA256, k)
+import DataModel.StatelessAppState (StatelessAppState)
+import DataModel.StatelessAppState as Stateless
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
@@ -75,6 +77,43 @@ computeInitialState = do
                 , userPreferences: Nothing
                 }
 
+computeInitialStatelessState :: Effect StatelessAppState
+computeInitialStatelessState = do
+  script <- runMaybeT do
+    body            :: HTMLElement                  <- MaybeT $ (window >>= document >>= body)
+    childs          :: Array Node                   <- liftEffect $ (childNodes (toNode body) >>= toArray)
+    elementsWithId  :: Array (Tuple Element String) <- liftEffect $ sequence $ mapIds <$> (catMaybes $ fromNode <$> childs)
+    MaybeT $ pure $ fst <$> head (filter (\element_id -> (snd element_id) == offlineDataId) elementsWithId)
+  case script of
+    Just _  -> pure $ withOfflineProxy
+    Nothing -> pure ( withOnlineProxy "/api")
+
+  where 
+    mapIds :: Element -> Effect (Tuple Element String)
+    mapIds e = (Tuple e) <$> (id e)
+
+    baseSRPConf :: SRPConf
+    baseSRPConf = {
+      group: group1024
+    , k: k
+    , hash: hashFuncSHA256
+    , kdf: concatKDF
+    }
+
+    withOfflineProxy = merge { proxy: Stateless.OfflineProxy Nothing } baseState
+    withOnlineProxy url = merge { proxy: (Stateless.OnlineProxy url {toll: Loading Nothing, currentChallenge: Nothing} Nothing) } baseState
+    baseState = { username: Nothing
+                , password: Nothing
+                , c: Nothing
+                , s: Nothing
+                , p: Nothing
+                , srpConf: baseSRPConf
+                , hash: hashFuncSHA256
+                , cardsCache: empty
+                , masterKey: Nothing
+                , userInfoReferences: Nothing 
+                , userPreferences: Nothing
+                }
 resetState :: Aff Unit
 resetState = do
   is <- liftEffect computeInitialState
