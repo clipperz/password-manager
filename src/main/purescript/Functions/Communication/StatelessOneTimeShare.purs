@@ -28,6 +28,7 @@ import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.SRP (hashFuncSHA256)
+import DataModel.StatelessAppState (ProxyResponse(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Exception as EX
@@ -65,7 +66,7 @@ share connectionState encryptedSecret duration = do
       }
     )
 
-  Tuple _ response <- manageGenericRequest connectionState url POST (Just body) RF.string
+  ProxyResponse _ response <- manageGenericRequest connectionState url POST (Just body) RF.string
   if isStatusCodeOk response.status
     then pure $ response.body
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
@@ -74,7 +75,7 @@ redeem :: ConnectionState -> UUID -> ExceptT AppError Aff (Tuple SecretVersion A
 redeem connectionState id = do
   let url = joinWith "/" ["redeem", id]
 
-  Tuple _ response <- manageGenericRequest connectionState url GET Nothing RF.arrayBuffer
+  ProxyResponse _ response <- manageGenericRequest connectionState url GET Nothing RF.arrayBuffer
   if isStatusCodeOk response.status
     then do
       version <- secretVersionFromString $ fromMaybe "V_1" (value <$> find (\header -> (name header) == oneTimeSecretVersionHeaderName) (response.headers))

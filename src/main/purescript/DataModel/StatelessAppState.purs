@@ -6,17 +6,13 @@ import Data.Argonaut.Decode.Class (class DecodeJson)
 import Data.Argonaut.Decode.Generic (genericDecodeJson)
 import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
-import Data.BigInt (BigInt)
 import Data.Generic.Rep (class Generic)
 import Data.HexString (HexString)
 import Data.Map.Internal (Map)
 import Data.Maybe (Maybe)
-import Data.PrettyShow (class PrettyShow, prettyShow)
 import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
-import DataModel.Communication.ProtocolError (ProtocolError)
-import DataModel.ProxyType (ProxyType)
-import DataModel.SRP (HashFunction, KDF, SRPGroup, SRPConf)
+import DataModel.SRP (HashFunction, SRPConf)
 import DataModel.User (MasterKey, UserInfoReferences, UserPreferences)
 import Functions.HashCash (TollChallenge)
 
@@ -55,7 +51,8 @@ type TollManager = {
 , currentChallenge :: Maybe TollChallenge
 }
 
-data Proxy = OnlineProxy Url TollManager (Maybe SessionKey) | OfflineProxy (Maybe BackendSessionState)
+data Proxy = OnlineProxy Url TollManager (Maybe SessionKey)
+           | StaticProxy (Maybe BackendSessionState)
 
 -- derive instance eqProxy :: Eq Proxy
 derive instance genericProxy :: Generic Proxy _
@@ -66,9 +63,7 @@ instance encodeJsonProxy :: EncodeJson Proxy where
 instance decodeJsonProxy :: DecodeJson Proxy where
   decodeJson a = genericDecodeJson a
 
-updateSessionKey :: Proxy -> Maybe SessionKey -> Proxy
-updateSessionKey (OnlineProxy url tollManager _) sessionKey = OnlineProxy url tollManager sessionKey 
-updateSessionKey offline _ = offline
+data ProxyResponse a = ProxyResponse Proxy a
 
 -- ==================
 

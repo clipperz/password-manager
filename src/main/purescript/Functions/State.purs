@@ -100,7 +100,7 @@ computeInitialStatelessState = do
     , kdf: concatKDF
     }
 
-    withOfflineProxy = merge { proxy: Stateless.OfflineProxy Nothing } baseState
+    withOfflineProxy = merge { proxy: Stateless.StaticProxy Nothing } baseState
     withOnlineProxy url = merge { proxy: (Stateless.OnlineProxy url {toll: Loading Nothing, currentChallenge: Nothing} Nothing) } baseState
     baseState = { username: Nothing
                 , password: Nothing

@@ -17,10 +17,9 @@ import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith)
-import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.StatelessAppState (Proxy)
+import DataModel.StatelessAppState (ProxyResponse(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
@@ -42,12 +41,12 @@ getBlob hash = do
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
 -- ------------
 
-getStatelessBlob :: ConnectionState -> HexString -> ExceptT AppError Aff (Tuple Proxy ArrayBuffer)
+getStatelessBlob :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse ArrayBuffer)
 getStatelessBlob connectionState hash = do
   let url = joinWith "/" ["blobs", show $ hash]
-  Tuple proxy response <- Stateless.manageGenericRequest connectionState url GET Nothing RF.arrayBuffer
+  ProxyResponse proxy response <- Stateless.manageGenericRequest connectionState url GET Nothing RF.arrayBuffer
   if isStatusCodeOk response.status
-    then pure $ Tuple proxy response.body
+    then pure $ ProxyResponse proxy response.body
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
 
 -- TODO REMOVE
@@ -57,11 +56,11 @@ getDecryptedBlob reference key = do
   withExceptT (\e -> ProtocolError $ CryptoError $ "Get decrypted blob: " <> show e) (ExceptT $ decryptJson key blob)
 -- ------------
 
-getStatelessDecryptedBlob :: forall a. DecodeJson a => ConnectionState -> HexString -> CryptoKey -> ExceptT AppError Aff (Tuple Proxy a) 
+getStatelessDecryptedBlob :: forall a. DecodeJson a => ConnectionState -> HexString -> CryptoKey -> ExceptT AppError Aff (ProxyResponse a) 
 getStatelessDecryptedBlob connectionState reference key = do
-  Tuple proxy blob <- getStatelessBlob connectionState reference
+  ProxyResponse proxy blob <- getStatelessBlob connectionState reference
   decryptedBlob <- withExceptT (\e -> ProtocolError $ CryptoError $ "Get decrypted blob: " <> show e) (ExceptT $ decryptJson key blob)
-  pure $ Tuple proxy decryptedBlob
+  pure $ ProxyResponse proxy decryptedBlob
 
 postBlob :: ArrayBuffer -> ArrayBuffer -> ExceptT AppError Aff (AXW.Response String)
 postBlob blob hash = do

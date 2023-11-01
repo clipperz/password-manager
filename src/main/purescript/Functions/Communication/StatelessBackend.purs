@@ -26,7 +26,6 @@ import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Time.Duration (Milliseconds(..))
-import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
 import Data.Unit (Unit)
 import DataModel.AppState as AS
@@ -34,7 +33,7 @@ import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue)
 import DataModel.Communication.FromString (class FromString)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.SRP (HashFunction)
-import DataModel.StatelessAppState (Proxy(..))
+import DataModel.StatelessAppState (Proxy(..), ProxyResponse(..))
 import Effect.Aff (Aff, delay)
 import Effect.Aff.Class (liftAff)
 import Functions.HashCash (TollChallenge, computeReceipt)
@@ -73,7 +72,7 @@ createHeaders (OnlineProxy _ { toll, currentChallenge } sessionKey) =
     tollReceiptHeader   = (\t ->   RequestHeader tollReceiptHeaderName (show t))      <$> arrayFromAsyncValue toll
     sessionHeader       = (\key -> RequestHeader sessionKeyHeaderName  (show key))    <$> fromMaybe sessionKey
   in tollChallengeHeader <> tollCostHeader <> tollReceiptHeader <> sessionHeader
-createHeaders (OfflineProxy _) = []
+createHeaders (StaticProxy _) = []
 
 -- ----------------------------------------------------------------------------
 
@@ -81,7 +80,7 @@ foreign import _readBlob :: String -> String
 
 foreign import _readUserCard :: Unit -> String
 
-manageGenericRequest :: forall a. FromString a => ConnectionState -> Path -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AS.AppError Aff (Tuple Proxy (AXW.Response a))
+manageGenericRequest :: forall a. FromString a => ConnectionState -> Path -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AS.AppError Aff (ProxyResponse (AXW.Response a))
 manageGenericRequest connectionState@{ proxy, hashFunc } path method body responseFormat = do
   case proxy of
     (OnlineProxy baseUrl tollManager _) -> do
@@ -95,12 +94,12 @@ manageGenericRequest connectionState@{ proxy, hashFunc } path method body respon
           manageResponse response.status response
           
 
-    (OfflineProxy _) -> do
+    (StaticProxy _) -> do
       -- withExceptT AS.ProtocolError $ doOfflineRequest session
       throwError $ AS.ProtocolError (ResponseError 500)
   
   where
-    manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AS.AppError Aff (Tuple Proxy (AXW.Response a)))
+    manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AS.AppError Aff (ProxyResponse (AXW.Response a)))
     manageResponse code@(StatusCode n)
       | n == 402          = \response -> -- TODO: improve
           case (extractChallenge response.headers) of
@@ -111,15 +110,15 @@ manageGenericRequest connectionState@{ proxy, hashFunc } path method body respon
       | isStatusCodeOk code = \(response :: AXW.Response a) ->
           case (extractChallenge response.headers) of
             Nothing -> 
-                  pure $ Tuple (updateToll proxy { toll: Loading Nothing, currentChallenge: Nothing }) response
+                  pure $ ProxyResponse (updateToll proxy { toll: Loading Nothing, currentChallenge: Nothing }) response
             Just challenge -> do
                   receipt  <- liftAff $ computeReceipt hashFunc challenge --TODO this is not async anymore
-                  pure $ Tuple (updateToll proxy { toll: Done receipt, currentChallenge: Just challenge }) response
+                  pure $ ProxyResponse (updateToll proxy { toll: Done receipt, currentChallenge: Just challenge }) response
       | otherwise           = \_ ->
           throwError $ AS.ProtocolError (ResponseError n)
 
     updateToll (OnlineProxy baseUrl oldTollManager sessionKey) tollManager = OnlineProxy baseUrl (merge oldTollManager tollManager) sessionKey
-    updateToll offline@(OfflineProxy _)                        _           = offline
+    updateToll offline@(StaticProxy _)                        _           = offline
     
     extractChallenge :: Array ResponseHeader -> Maybe TollChallenge
     extractChallenge headers =

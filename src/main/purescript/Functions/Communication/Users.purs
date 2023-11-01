@@ -27,7 +27,7 @@ import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index)
-import DataModel.StatelessAppState (Proxy)
+import DataModel.StatelessAppState (ProxyResponse(..))
 import DataModel.User (IndexReference(..), MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard(..), UserInfoReferences(..), UserPreferences, UserPreferencesReference(..), MasterKey)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
@@ -42,14 +42,14 @@ import Functions.JSState (getAppState, updateAppState)
 import Functions.SRP (prepareV)
 import Functions.State (getHashFromState, getSRPConf)
 
-getStatelessMasterKey :: ConnectionState -> HexString -> ExceptT AppError Aff (Tuple Proxy MasterKey)
+getStatelessMasterKey :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse MasterKey)
 getStatelessMasterKey connectionState c = do
   let url = joinWith "/" ["users", show c]
-  Tuple newProxy response <- Stateless.manageGenericRequest connectionState url GET Nothing RF.json
+  ProxyResponse newProxy response <- Stateless.manageGenericRequest connectionState url GET Nothing RF.json
   if isStatusCodeOk response.status
     then do
       newMasterKey <- except $ flip lmap (decodeJson response.body) (show >>> DecodeError >>> ProtocolError)
-      pure $ Tuple newProxy newMasterKey
+      pure $ ProxyResponse newProxy newMasterKey
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
 
 -- TODO REMOVE
@@ -119,7 +119,7 @@ getUserPreferences = do
     _ -> throwError (InvalidStateError $ MissingValue "Missing user preferences reference")
 -- -----------
 
-getStatelessUserPreferences :: ConnectionState -> UserPreferencesReference -> ExceptT AppError Aff (Tuple Proxy UserPreferences)
+getStatelessUserPreferences :: ConnectionState -> UserPreferencesReference -> ExceptT AppError Aff (ProxyResponse UserPreferences)
 getStatelessUserPreferences connectionState (UserPreferencesReference { reference, key }) = do
   cryptoKey :: CryptoKey <- liftAff $ KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   getStatelessDecryptedBlob connectionState reference cryptoKey

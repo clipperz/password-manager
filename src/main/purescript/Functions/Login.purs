@@ -11,12 +11,11 @@ import Data.HexString (HexString, fromArrayBuffer)
 import Data.HeytingAlgebra ((&&))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
 import DataModel.AppState (AppError(..))
 import DataModel.Credentials (Credentials)
 import DataModel.SRP (HashFunction, SRPConf)
-import DataModel.StatelessAppState (Proxy(..))
+import DataModel.StatelessAppState (Proxy(..), ProxyResponse(..))
 import DataModel.User (MasterKey, UserInfoReferences, UserPreferences)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
@@ -48,8 +47,8 @@ doLogin proxy hashFunc srpConf { username, password } =
     
     {proxy: newProxy, userInfoReferences, s} <- login proxy hashFunc srpConf c p
     
-    Tuple newProxy'  masterKey       <- getStatelessMasterKey { proxy: newProxy, hashFunc } c
-    Tuple newProxy'' userPreferences <- getStatelessUserPreferences { proxy: newProxy', hashFunc } (unwrap userInfoReferences).preferencesReference
+    ProxyResponse newProxy'  masterKey       <- getStatelessMasterKey { proxy: newProxy, hashFunc } c
+    ProxyResponse newProxy'' userPreferences <- getStatelessUserPreferences { proxy: newProxy', hashFunc } (unwrap userInfoReferences).preferencesReference
     
     case (unwrap userPreferences).automaticLock of
       Right n -> liftEffect (activateTimer n)
@@ -58,7 +57,7 @@ doLogin proxy hashFunc srpConf { username, password } =
     -- TODO REMOVE
     ExceptT $ updateAppState { 
       sessionKey:         case newProxy'' of
-                            OfflineProxy _             -> Nothing
+                            StaticProxy _              -> Nothing
                             OnlineProxy _ _ sessionKey -> sessionKey
     , userInfoReferences: Just userInfoReferences 
     , userPreferences:    Just userPreferences
