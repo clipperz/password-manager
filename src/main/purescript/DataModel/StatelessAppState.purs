@@ -1,15 +1,16 @@
 module DataModel.StatelessAppState where
 
-import Prelude
-
 import Data.Argonaut.Decode.Class (class DecodeJson)
 import Data.Argonaut.Decode.Generic (genericDecodeJson)
 import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
+import Data.Eq (class Eq)
 import Data.Generic.Rep (class Generic)
 import Data.HexString (HexString)
 import Data.Map.Internal (Map)
 import Data.Maybe (Maybe)
+import Data.Show (class Show, show)
+import Data.Unit (Unit, unit)
 import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
 import DataModel.SRP (HashFunction, SRPConf)
@@ -65,6 +66,12 @@ instance decodeJsonProxy :: DecodeJson Proxy where
 
 data ProxyResponse a = ProxyResponse Proxy a
 
+discardResult :: forall a. ProxyResponse a -> ProxyResponse Unit
+discardResult (ProxyResponse proxy _) = ProxyResponse proxy unit
+
+responseValue :: forall a. ProxyResponse a -> a
+responseValue (ProxyResponse _ a) = a
+
 -- ==================
 
 type StatelessAppState =
@@ -81,3 +88,5 @@ type StatelessAppState =
   , userInfoReferences :: Maybe UserInfoReferences
   , userPreferences :: Maybe UserPreferences
   }
+
+data AppStateResponse a = AppStateResponse StatelessAppState a

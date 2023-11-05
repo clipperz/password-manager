@@ -15,11 +15,12 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
+import Data.Unit (Unit)
 import DataModel.AppState (AppError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials)
 import DataModel.SRP (SRPConf, HashFunction)
-import DataModel.StatelessAppState (Proxy(..), ProxyResponse(..))
+import DataModel.StatelessAppState (Proxy(..), ProxyResponse, discardResult, responseValue)
 import DataModel.User (RequestUserCard(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
@@ -29,7 +30,7 @@ import Functions.Signup (prepareSignupParameters)
 
 type SessionKey = HexString
 
-signupUser :: Proxy -> HashFunction -> SRPConf -> Credentials -> ExceptT AppError Aff Proxy
+signupUser :: Proxy -> HashFunction -> SRPConf -> Credentials -> ExceptT AppError Aff (ProxyResponse Unit)
 signupUser (StaticProxy _)                 _        _       _           = throwError $ InvalidOperationError "Cannot register new user in static usage"
 signupUser (OnlineProxy url tollManager _) hashFunc srpConf credentials = do
   request@{user: RequestUserCard u} <- flip withExceptT (ExceptT (prepareSignupParameters srpConf credentials)) (show >>> SRPError >>> ProtocolError)
@@ -39,8 +40,8 @@ signupUser (OnlineProxy url tollManager _) hashFunc srpConf credentials = do
   sessionKey <- liftAff (fromArrayBuffer <$> SRP.randomArrayBuffer 32) --- NOTE: maybe to manage with session middleware
   let connectionState = {proxy: OnlineProxy url tollManager (Just sessionKey), hashFunc}
   --- ---------------------------
-  ProxyResponse updatedProxy response <- manageGenericRequest connectionState path POST (Just body) RF.string
-  if isStatusCodeOk response.status
-    then pure $ updatedProxy
-    else throwError $ ProtocolError (ResponseError (unwrap response.status))
+  response <- manageGenericRequest connectionState path POST (Just body) RF.string
+  if isStatusCodeOk (responseValue response).status
+    then pure $ discardResult response
+    else throwError $ ProtocolError (ResponseError (unwrap (responseValue response).status))
 

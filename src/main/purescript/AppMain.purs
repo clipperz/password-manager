@@ -16,8 +16,8 @@ import Data.String (split)
 import Data.String.Pattern (Pattern(..))
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
-import DataModel.FragmentData (FragmentData)
-import DataModel.FragmentData as Fragment
+import DataModel.FragmentState (FragmentState)
+import DataModel.FragmentState as Fragment
 import Effect (Effect)
 import Foreign (unsafeToForeign)
 import Functions.JSState (saveAppState)
@@ -29,31 +29,30 @@ import Web.HTML.History (DocumentTitle(..), URL(..), replaceState)
 import Web.HTML.Location (hash, pathname)
 import Web.HTML.Window (history, location)
 
+-- ============================================
+--  parse external state that is never updated
+-- ============================================
+
 main :: Effect Unit
 main = do
-  computeInitialState >>= saveAppState -- TODO REMOVE AT THE VERY END
+  computeInitialState >>= saveAppState -- TODO REMOVE
   
-  state <- computeInitialStatelessState
-  fragmentData <- computeFragmentData <$> (window >>= location >>= hash)
-  window >>= removeHash
-  runWidgetInDom "app" $ app state fragmentData
+  appState      <- computeInitialStatelessState
+  fragmentState <- parseFragment <$> (window >>= location >>= hash)
+  
+  window >>= removeFragment
+  
+  runWidgetInDom "app" $ app appState fragmentState
 
-  where
-    removeHash :: Window -> Effect Unit
-    removeHash w = do
-      pathName <- location w >>= pathname
-      history w >>= replaceState (unsafeToForeign {}) (DocumentTitle "") (URL pathName)
+-- ---------------------------------------------
 
-parseQueryString :: String -> Array (Tuple String String)
-parseQueryString query = 
-  let keyValues = split (Pattern "&") query
-      splitKeyValue = \s -> case split (Pattern "=") s of
-                              [key, value] -> Just $ Tuple key value
-                              _ -> Nothing
-  in catMaybes $ splitKeyValue <$> keyValues 
+removeFragment :: Window -> Effect Unit
+removeFragment w = do
+  pathName <- location w >>= pathname
+  history w >>= replaceState (unsafeToForeign {}) (DocumentTitle "") (URL pathName)
 
-computeFragmentData :: String -> FragmentData
-computeFragmentData fragment = case fragment of
+parseFragment :: String -> FragmentState
+parseFragment fragment = case fragment of
   "#registration" -> Fragment.Registration
   str -> do
     case split (Pattern "?") str of
@@ -66,3 +65,13 @@ computeFragmentData fragment = case fragment of
         Right card -> Fragment.AddCard card
         Left  _    -> Fragment.Unrecognized fragment
       _ -> Fragment.Empty
+
+  where
+
+    parseQueryString :: String -> Array (Tuple String String)
+    parseQueryString query = 
+      let keyValues = split (Pattern "&") query
+          splitKeyValue = \s -> case split (Pattern "=") s of
+                                  [key, value] -> Just $ Tuple key value
+                                  _ -> Nothing
+      in catMaybes $ splitKeyValue <$> keyValues 

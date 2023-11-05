@@ -21,7 +21,7 @@ import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.PrettyShow (prettyShow)
 import Data.Show (show)
 import DataModel.AppState (UserConnectionStatus(..), ProxyConnectionStatus(..))
-import DataModel.FragmentData (FragmentData, getCardToAdd)
+import DataModel.Card (Card)
 import DataModel.Index (Index)
 import DataModel.WidgetState (WidgetState(..))
 import Effect (Effect)
@@ -40,8 +40,8 @@ data HomePageAction = CardsManagerAction CardsManagerAction | UserAreaAction Use
 
 data HomePageExitStatus = Clean | ReadyForLogin String
 
-homePageWidget :: UserConnectionStatus -> FragmentData -> Widget HTML HomePageExitStatus
-homePageWidget status fragment = 
+homePageWidget :: UserConnectionStatus -> Maybe Card -> Widget HTML HomePageExitStatus
+homePageWidget status cardToAdd = 
   case status of
     UserLoggedIn -> do
       eitherState <- liftEffect $ getAppState
@@ -63,7 +63,7 @@ homePageWidget status fragment =
     homePage :: ProxyConnectionStatus -> Boolean -> Index -> CardView -> Widget HTML HomePageExitStatus
     homePage proxyConnectionStatus hideUserAreaWidget index cardView = do
       result :: HomePageAction <- div [Props._id "homePage"] [
-                  CardsManagerAction <$> cardsManagerWidget proxyConnectionStatus index (getCardToAdd fragment) { cardView: cardView, cardViewState: Default }
+                  CardsManagerAction <$> cardsManagerWidget proxyConnectionStatus index cardToAdd { cardView: cardView, cardViewState: Default }
                 , UserAreaAction <$> (userAreaWidget hideUserAreaWidget proxyConnectionStatus)
                 ]
       interpretHomePageActions proxyConnectionStatus hideUserAreaWidget (Just index) (Just cardView) result
