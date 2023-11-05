@@ -1,28 +1,23 @@
 module Views.LoginFormView where
 
-import Control.Applicative (pure)
-import Control.Bind (bind, (>>=))
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, loopW, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (a, div, form, input, label, span, text)
+import Concur.React.DOM (div, form, input, label, span, text)
 import Concur.React.Props as Props
-import Data.Either (Either(..))
-import Data.Eq ((/=))
+import Control.Applicative (pure)
+import Control.Bind (bind)
+import Data.Eq ((/=), (==))
 import Data.Function (($))
-import Data.Functor ((<$), (<$>))
+import Data.Functor ((<$>))
 import Data.HeytingAlgebra ((&&), not)
-import Data.Int (fromString)
 import Data.Maybe (Maybe(..))
+import Data.String (length)
 import DataModel.Credentials (Credentials)
-import Effect.Class (liftEffect)
-import Functions.Pin (isPinValid, makeKey)
+import Functions.Communication.StatelessOneTimeShare (PIN)
 import Views.SimpleWebComponents (simpleButton)
-import Web.HTML (window)
-import Web.HTML.Window (localStorage)
-import Web.Storage.Storage (Storage, getItem)
 
-data PinViewResult = Pin Int | NormalLogin
+-- data PinViewResult = Pin Int | NormalLogin
 
 type PinCredentials = { pin :: Int, user :: String, passphrase :: String }
 
@@ -37,81 +32,56 @@ emptyForm = { username: "", password: "" }
 isFormValid :: LoginDataForm -> Boolean
 isFormValid { username, password } = username /= "" && password /= ""
 
-data LoginType = PinLogin | CredentialsLogin
+credentialLoginWidget :: LoginDataForm -> Widget HTML Credentials
+credentialLoginWidget formData = form [Props.className "form"] [ do
+    signalResult <- demand $ do
+      formValues <- loopS formData $ \{username: username, password: password} -> do
+        username' <- loopW username (\v -> label [] [
+            span [Props.className "label"] [text "Username"]
+          , (Props.unsafeTargetValue) <$> input [
+              Props._type "text"
+            , Props.placeholder "username"
+            , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
+            , Props.value v
+            , Props.disabled false
+            , Props.onChange
+            ]
+          ])
+        password' <- loopW password (\v -> div [] [
+          label [] [
+            span [Props.className "label"] [text "Passphrase"]
+          , (Props.unsafeTargetValue) <$> input [
+              Props._type "password"
+            , Props.placeholder "passphrase"
+            , Props.value v
+            , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
+            , Props.disabled false
+            , Props.onChange
+            ]
+          ]
+        ])
+        pure { username: username', password: password' }
+      result <- fireOnce (simpleButton "login" "login" (not (isFormValid formValues)) formValues)
+      pure result
+    -- liftEffect $ log $ "signalResult " <> show signalResult
+    pure signalResult
+]
 
-loginFormView :: LoginDataForm -> Widget HTML (Either PinCredentials Credentials)
-loginFormView loginFormData = do
-  storage <- liftEffect $ window >>= localStorage
-  maybeSavedUser <- liftEffect $ getItem (makeKey "user") storage
-  maybeSavedPassphrase <- liftEffect $ getItem (makeKey "passphrase") storage
-  case maybeSavedUser, maybeSavedPassphrase of
-    (Just user), (Just passphrase) -> formPin user passphrase storage
-    _, _ -> Right <$> (formWidget loginFormData)
-  
-  where
-    formPin :: String -> String -> Storage -> Widget HTML (Either PinCredentials Credentials)
-    formPin user encryptedPassphrase _ = do
-      maybePin <- pinView true ""
-      case maybePin of
-        NormalLogin -> Right <$> (formWidget (emptyForm { username = user }))
-        Pin pin -> pure $ Left {pin, user, passphrase: encryptedPassphrase}
-
-    formWidget :: LoginDataForm -> Widget HTML Credentials
-    formWidget formData = form [Props.className "form"] [ do
-        signalResult <- demand $ do
-          formValues <- loopS formData $ \{username: username, password: password} -> do
-            username' <- loopW username (\v -> label [] [
-                span [Props.className "label"] [text "Username"]
-              , (Props.unsafeTargetValue) <$> input [
-                  Props._type "text"
-                , Props.placeholder "username"
-                , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
-                , Props.value v
-                , Props.disabled false
-                , Props.onChange
-                ]
-              ])
-            password' <- loopW password (\v -> div [] [
-              label [] [
-                span [Props.className "label"] [text "Passphrase"]
-              , (Props.unsafeTargetValue) <$> input [
-                  Props._type "password"
-                , Props.placeholder "passphrase"
-                , Props.value v
-                , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
-                , Props.disabled false
-                , Props.onChange
-                ]
-              ]
-            ])
-            pure { username: username', password: password' }
-          result <- fireOnce (submitButton formValues)
-          pure result
-        -- liftEffect $ log $ "signalResult " <> show signalResult
-        pure signalResult
-    ]
-
-    pinView :: Boolean -> String -> Widget HTML PinViewResult
-    pinView active pl = form [Props.className "form"] [
-        Pin <$> do
-          signalResult <- demand $ do
-            pin <- loopW (if active then pl else "00000") (\v -> div [] [ -- TODO: don't really understand why changing the placeholder here works
-              label [] [
-                span [Props.className "label"] [text "Login"]
-              , (Props.unsafeTargetValue) <$> input [
-                  Props._type "password"
-                , Props.placeholder "PIN"
-                , Props.value v
-                , Props.disabled false
-                , Props.onChange
-                , Props.pattern "[0-9]{5}"
-                ]
-              ]
-            ])
-            pure $ (fromString pin) >>= (\p -> if (isPinValid p) && active then Just p else Nothing) 
-          pure signalResult
-      , NormalLogin <$ a [Props.onClick] [text "Use credentials to login"]
-      ] 
-
-    submitButton :: LoginDataForm -> Widget HTML LoginDataForm
-    submitButton f = simpleButton "login" "login" (not (isFormValid f)) f
+pinLoginWidget :: Boolean -> String -> Widget HTML PIN
+pinLoginWidget active pin = do
+  signalResult <- demand $ do
+    pin' <- loopW pin (\v -> div [] [
+      label [] [
+        span [Props.className "label"] [text "Login"]
+      , (Props.unsafeTargetValue) <$> input [
+          Props._type "password"
+        , Props.placeholder "PIN"
+        , Props.value v
+        , Props.disabled (not active)
+        , Props.onChange
+        , Props.pattern "[0-9]{5}"
+        ]
+      ]
+    ])
+    pure $ if (length pin' == 5) && active then Just pin' else Nothing
+  pure signalResult

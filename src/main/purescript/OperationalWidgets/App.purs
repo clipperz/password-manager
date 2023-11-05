@@ -1,5 +1,6 @@
 module OperationalWidgets.App
   ( Page(..)
+  , SharedCardPassword
   , SharedCardReference
   , app
   )
@@ -7,21 +8,22 @@ module OperationalWidgets.App
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (a, button, div, h1, h3, header, li, p, span, text, ul)
+import Concur.React.DOM (a, button, div, form, h1, h3, header, li, p, span, text, ul)
 import Concur.React.Props as Props
-import Control.Alt ((<|>))
+import Control.Alt ((<#>), (<|>))
 import Control.Alternative ((<*))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))
 import Control.Monad.Except.Trans (runExceptT)
 import Data.Either (either)
-import Data.Either as E
 import Data.Eq ((==), class Eq)
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
 import Data.Maybe (Maybe(..))
+import Data.Ord ((<))
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
+import Data.String (length)
 import Data.Time.Duration (Milliseconds(..))
 import DataModel.AppState (AppError, UserConnectionStatus(..))
 import DataModel.Card (Card)
@@ -29,18 +31,20 @@ import DataModel.Credentials (Credentials, emptyCredentials)
 import DataModel.FragmentState as Fragment
 import DataModel.StatelessAppState (AppStateResponse(..), ProxyResponse(..), StatelessAppState)
 import DataModel.WidgetState as WS
+import Effect (Effect)
 import Effect.Aff (delay, never, Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Functions.Communication.Signup (signupUser)
+import Functions.Communication.StatelessOneTimeShare (PIN)
 import Functions.EnvironmentalVariables (currentCommit)
 import Functions.Login (doLogin)
 import Functions.Pin (decryptPassphraseWithRemoval)
 import OperationalWidgets.HomePageWidget (homePageWidget)
 import Record (merge)
 import Views.Components (footerComponent)
-import Views.LoginFormView (loginFormView, PinCredentials)
+import Views.LoginFormView (credentialLoginWidget, pinLoginWidget)
 import Views.OverlayView (OverlayStatus(..), overlay)
 import Views.SignupFormView (emptyDataForm, signupFormView)
 import Web.HTML (window)
@@ -52,27 +56,36 @@ import Web.HTML.Window (localStorage)
 
 app :: forall a. StatelessAppState -> Fragment.FragmentState -> Widget HTML a
 app appState fragmentState = case fragmentState of
-    Fragment.Registration -> app' appState (ShowPage (Loading (Just Signup))) emptyCredentials
-    Fragment.Login cred   -> app' appState (DoLogin cred)                     cred
-    _                     -> app' appState (ShowPage (Loading (Just Login)))  emptyCredentials
+    Fragment.Login cred   -> appLoop appState (DoLogin cred)                     emptyCredentialFormData {credentials = cred}
+    Fragment.Registration -> appLoop appState (ShowPage (Loading (Just Signup))) emptyCredentialFormData
+    _                     -> appLoop appState (ShowPage (Loading (Just Login)))  emptyCredentialFormData
 
   where
 
-    app' :: forall a'. StatelessAppState -> Action -> Credentials -> Widget HTML a'
-    app' state action credentials = do
+    appLoop :: forall a'. StatelessAppState -> Action -> CredentialFormData -> Widget HTML a'
+    appLoop state action credentialsFormData = do
       log $ show action
-      AppStateResponse newState nextAction <- 
-        AppStateResponse state <$> appView action credentials (extractCardFromFragment fragmentState)
+      loginType <- liftEffect getLoginType
+      AppStateResponse newState nextAction <- do
+        appView action loginType credentialsFormData (extractCardFromFragment fragmentState) <#> AppStateResponse state
         <|>
         (liftAff $ doOp state action)
-      app' newState nextAction $ case nextAction of
-        DoLogin cred  -> cred
-        ShowPage Main -> emptyCredentials
-        _             -> credentials
+      appLoop newState nextAction $ case nextAction of
+        ShowPage Main        -> emptyCredentialFormData
+        DoLogin credentials' -> credentialsFormData { credentials = credentials' }
+        DoLoginWithPin pin'  -> credentialsFormData { pin         = pin'         }
+        ShowError      _   _ -> credentialsFormData { pin         = ""           }
+        _                    -> credentialsFormData
 
     extractCardFromFragment :: Fragment.FragmentState -> Maybe Card
     extractCardFromFragment (Fragment.AddCard card) = Just card
     extractCardFromFragment _                       = Nothing
+
+    getLoginType :: Effect LoginType
+    getLoginType = do
+      -- get data from local storage
+      -- ....
+      pure PinLogin
 
 doOp :: StatelessAppState -> Action -> Aff (AppStateResponse Action)
 doOp state@{proxy, hash, srpConf} (DoSignup cred) = do
@@ -81,9 +94,9 @@ doOp state@{proxy, hash, srpConf} (DoSignup cred) = do
 doOp state@{proxy, hash, srpConf} (DoLogin cred) = do
   res <- runExceptT $ doLogin proxy hash srpConf cred
   pure $ (either (\err -> AppStateResponse state (ShowError Login err)) (\stateUpdate -> AppStateResponse (merge stateUpdate state) (ShowSuccess Main)) res)
-doOp state (DoLoginWithPin {pin, user, passphrase}) = do
+doOp state@{hash} (DoLoginWithPin pin) = do
   _   <- liftEffect $ window >>= localStorage
-  res <- runExceptT $ decryptPassphraseWithRemoval pin user passphrase
+  res <- runExceptT $ decryptPassphraseWithRemoval hash pin "user" "passphrase"
   pure $ AppStateResponse state (either (ShowError Login) DoLogin res)
 doOp state (ShowSuccess nextPage)   = (AppStateResponse state $ ShowPage nextPage) <$ delay (Milliseconds 500.0)
 doOp state (ShowError   nextPage _) = (AppStateResponse state $ ShowPage nextPage) <$ delay (Milliseconds 500.0)
@@ -97,23 +110,54 @@ doOp state a = AppStateResponse state a <$ never
 type SharedCardReference = String
 type SharedCardPassword  = String
 
+type CredentialFormData = 
+  { credentials :: Credentials
+  , pin :: PIN
+  }
+
+emptyCredentialFormData :: CredentialFormData
+emptyCredentialFormData = { credentials: emptyCredentials, pin: ""}
+
+data LoginType = CredentialLogin | PinLogin
+
 data Page = Loading (Maybe Page) | Login | Signup | Share (Maybe SharedCardReference) | Main
 
 data Action = DoLogout
             | ShowPage Page
             | DoLogin Credentials
-            | DoLoginWithPin PinCredentials
+            | DoLoginWithPin PIN
             | DoSignup Credentials
             | ShowSharedCard SharedCardReference SharedCardPassword
             | ShowError Page AppError
             | ShowSuccess Page
 
-appView :: Action -> Credentials -> Maybe Card -> Widget HTML Action
-appView action credentials cardToAdd =
-  (div [Props.className "mainDiv"] [
+appView :: Action -> LoginType -> CredentialFormData -> Maybe Card -> Widget HTML Action
+appView action loginType {credentials, pin} cardToAdd =
+  appPages loginType
+  <|>
+  exitBooting action
+  <|>
+  overlayFromAction action
+
+  where 
+    appPages :: LoginType -> Widget HTML Action
+    appPages loginType' = div [Props.className "mainDiv"] [
       headerPage (actionPage action) (Loading Nothing) []
     , headerPage (actionPage action) Login [
-        (getLoginActionType <$> (loginFormView credentials)) <|> ((ShowPage Signup) <$ button [Props.onClick] [text "sign up"]) -- TODO: if login fails this is reset
+        case loginType' of
+          CredentialLogin -> DoLogin <$> credentialLoginWidget credentials
+          PinLogin        -> do
+            res <- form [Props.className "form"] [
+                    Just <$> pinLoginWidget (length pin < 5) pin --TODO not always true
+                  , Nothing <$ a [Props.onClick] [text "Use credentials to login"]
+                  ]
+                  
+            case res of
+              Just res' -> pure $ DoLoginWithPin res'
+              Nothing -> (appPages CredentialLogin)
+
+        <|>
+        ((ShowPage Signup) <$ button [Props.onClick] [text "sign up"]) -- TODO: if login fails this is reset
       ]
     , headerPage (actionPage action) Signup [
         (DoSignup <$> (signupFormView WS.Default $ merge credentials emptyDataForm)) <|> ((ShowPage Login) <$ button [Props.onClick] [text "login"])
@@ -122,18 +166,9 @@ appView action credentials cardToAdd =
         div [Props.className "content"] [text "share"]
       ]
     , div [Props.classList (Just <$> ["page", "main", show $ location Main (actionPage action)])] [
-      DoLogout <$ (homePageWidget (if (action == (ShowPage Main)) then UserLoggedIn else UserAnonymous) cardToAdd)
+        DoLogout <$ (homePageWidget (if (action == (ShowPage Main)) then UserLoggedIn else UserAnonymous) cardToAdd)
+      ]
     ]
-  ])
-  <|>
-  exitBooting action
-  <|>
-  overlayFromAction action
-
-  where 
-    getLoginActionType :: E.Either PinCredentials Credentials -> Action
-    getLoginActionType (E.Left pinCredentials) = DoLoginWithPin pinCredentials
-    getLoginActionType (E.Right credentials_)  = DoLogin credentials_
 
     exitBooting :: Action -> Widget HTML Action
     exitBooting (ShowPage (Loading (Just nextPage))) = liftAff $ (ShowPage nextPage) <$ delay (Milliseconds 1.0)
@@ -170,12 +205,10 @@ location referencePage currentPage = case referencePage, currentPage of
 
 pageClassName :: Page -> String
 pageClassName (Loading _) = "loading"
-pageClassName Login       = "login"
+pageClassName (Login)     = "login"
 pageClassName Signup      = "signup"
 pageClassName (Share _)   = "share"
 pageClassName Main        = "main"
-
--- ==================================================
 
 actionPage :: Action -> Page
 actionPage (ShowPage page)      = page
@@ -184,7 +217,7 @@ actionPage (DoLoginWithPin _)   = Login
 actionPage (DoSignup _)         = Signup
 actionPage (ShowSharedCard r _) = Share (Just r)
 actionPage (DoLogout)           = Login
-actionPage (ShowError page _)     = page
+actionPage (ShowError page _)   = page
 actionPage (ShowSuccess page)   = page
 
 headerPage :: forall a. Page -> Page -> Array (Widget HTML a) -> Widget HTML a
@@ -246,6 +279,6 @@ instance showAction :: Show Action where
   show (ShowSharedCard _ _) = "Show Shared Card"
   show (ShowError page _)   = "Show Error " <> show page 
   show (ShowSuccess page)   = "Show Success " <> show page 
-  show DoLogout = "DoLogout"
+  show (DoLogout)           = "DoLogout"
 
 derive instance eqAction :: Eq Action
