@@ -29,12 +29,13 @@ import Functions.SRP as SRP
 
 
 type RegisterUserRequest = {
-    user                 :: RequestUserCard
-  , preferencesReference :: HexString
-  , preferencesContent   :: HexString
-  , indexCardReference   :: HexString
-  , indexCardContent     :: HexString
-  , cards                :: Array (Tuple HexString HexString)
+  user                 :: RequestUserCard
+, p                    :: HexString
+, preferencesReference :: HexString
+, preferencesContent   :: HexString
+, indexCardReference   :: HexString
+, indexCardContent     :: HexString
+, cards                :: Array (Tuple HexString HexString)
 }
 
 prepareCards :: SRPConf -> List Card -> Aff (List (Tuple ArrayBuffer CardEntry))
@@ -88,6 +89,7 @@ prepareSignupParameters srpConf form = runExceptT $ do
               , masterKey: Tuple masterKeyContent V_1
               , originMasterKey: Nothing
               }
+        , p : fromArrayBuffer pAb
         , preferencesReference: preferencesContentHash
         , preferencesContent:   fromArrayBuffer preferencesContent
         , indexCardReference:   indexCardContentHash

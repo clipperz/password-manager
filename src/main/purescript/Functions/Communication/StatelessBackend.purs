@@ -118,7 +118,7 @@ manageGenericRequest connectionState@{ proxy, hashFunc } path method body respon
           throwError $ AS.ProtocolError (ResponseError n)
 
     updateToll (OnlineProxy baseUrl oldTollManager sessionKey) tollManager = OnlineProxy baseUrl (merge oldTollManager tollManager) sessionKey
-    updateToll offline@(StaticProxy _)                        _           = offline
+    updateToll offline@(StaticProxy _)                         _           = offline
     
     extractChallenge :: Array ResponseHeader -> Maybe TollChallenge
     extractChallenge headers =
