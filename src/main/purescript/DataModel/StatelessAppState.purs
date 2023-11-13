@@ -78,6 +78,7 @@ type StatelessAppState =
   { proxy :: Proxy
   , username :: Maybe String
   , password :: Maybe String
+  , pinEncryptedPassword :: Maybe HexString
   , c :: Maybe HexString
   , p :: Maybe HexString
   , s :: Maybe HexString

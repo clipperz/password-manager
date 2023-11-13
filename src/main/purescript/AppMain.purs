@@ -4,12 +4,14 @@ module AppMain
   where
 
 import Concur.React.Run (runWidgetInDom)
+import Control.Alternative (pure)
 import Control.Bind (bind, discard, (>>=))
 import Data.Argonaut.Decode (fromJsonString)
 import Data.Array (catMaybes)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
+import Data.HexString (HexString, hex)
 import Data.Map (fromFoldable, lookup)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (split)
@@ -21,13 +23,16 @@ import DataModel.FragmentState as Fragment
 import Effect (Effect)
 import Foreign (unsafeToForeign)
 import Functions.JSState (saveAppState)
+import Functions.Pin (makeKey)
 import Functions.State (computeInitialState, computeInitialStatelessState)
 import JSURI (decodeURI)
 import OperationalWidgets.App (app)
+import Record (merge)
 import Web.HTML (Window, window)
 import Web.HTML.History (DocumentTitle(..), URL(..), replaceState)
 import Web.HTML.Location (hash, pathname)
-import Web.HTML.Window (history, location)
+import Web.HTML.Window (history, localStorage, location)
+import Web.Storage.Storage (getItem)
 
 -- ============================================
 --  parse external state that is never updated
@@ -40,11 +45,20 @@ main = do
   appState      <- computeInitialStatelessState
   fragmentState <- parseFragment <$> (window >>= location >>= hash)
   
+  credentials   <- getCredentialsFromLocalStorage
+
   window >>= removeFragment
   
-  runWidgetInDom "app" $ app appState fragmentState
+  runWidgetInDom "app" $ app (merge credentials appState) fragmentState
 
 -- ---------------------------------------------
+
+getCredentialsFromLocalStorage :: Effect { username :: Maybe String, pinEncryptedPassword :: Maybe HexString }
+getCredentialsFromLocalStorage = do
+  storage    <- window >>= localStorage
+  user       <- getItem (makeKey "user")       storage
+  passphrase <- getItem (makeKey "passphrase") storage
+  pure $ {username: user, pinEncryptedPassword: hex <$> passphrase}
 
 removeFragment :: Window -> Effect Unit
 removeFragment w = do

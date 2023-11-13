@@ -43,7 +43,7 @@ setPinWidget ws = do
     Loading -> pinPage Nothing  pinForm
     Error e -> pinPage (Just e) pinForm
   eitherRes <- case pinAction of
-    Reset -> (Right <$> (void $ pinPage Nothing (formWidget true))) <|> (liftEffect $ runExceptT (deleteCredentials storage))
+    Reset -> (Right <$> (void $ pinPage Nothing (formWidget true))) <|> (liftAff $ liftEffect $ Right <$> deleteCredentials storage)
     SetPin pin -> (Right <$> (void $ pinPage Nothing (formWidget true))) <|> (liftAff $ runExceptT (saveCredentials pin storage)) 
   case eitherRes of
     Left err -> setPinWidget (Error (show err))

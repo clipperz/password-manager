@@ -5,7 +5,7 @@ import Affjax.ResponseFormat as RF
 import Control.Alt (class Alt)
 import Control.Applicative (pure)
 import Control.Bind (bind, (>>=))
-import Control.Monad.Except.Trans (ExceptT(..), except, mapExceptT, runExceptT, throwError, withExceptT)
+import Control.Monad.Except.Trans (ExceptT(..), except, runExceptT, throwError, withExceptT)
 import Control.Semigroupoid ((<<<))
 import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Key.Import as KI
@@ -123,7 +123,7 @@ deleteUserSteps (Index entries) progressBarFunc stepPlaceholderFunc = do
   (singleton $ LastStep (\psr ->
                 case psr of
                   Left err -> pure $ Left err
-                  Right _ -> liftAff $ runExceptT $ (ExceptT $ Right <$> (liftEffect (window >>= localStorage))) >>= (\v -> mapExceptT liftEffect (deleteCredentials v))
+                  Right _ -> liftAff $ runExceptT $ (ExceptT $ Right <$> (liftEffect (window >>= localStorage))) >>= (\v -> liftAff $ liftEffect $ (deleteCredentials v))
               ) (stepPlaceholderFunc "Deleting pin")) 
 
   where 

@@ -32,6 +32,7 @@ import Functions.Communication.Login (PrepareLoginResult, computeLoginResult, lo
 import Functions.Communication.Signup (signupUser)
 import Functions.Communication.StatelessOneTimeShare (PIN)
 import Functions.EnvironmentalVariables (currentCommit)
+import Functions.Pin (decryptPassphraseWithPin)
 import OperationalWidgets.HomePageWidget (homePageWidget)
 import Record (merge)
 import Unsafe.Coerce (unsafeCoerce)
@@ -48,7 +49,7 @@ app :: forall a. StatelessAppState -> Fragment.FragmentState -> Widget HTML a
 app appState fragmentState = case fragmentState of
     Fragment.Login cred   -> appWithInitialOperation appState (WidgetState { status: Spinner, message: "logging in" } (Login  emptyLoginFormData {credentials = cred})) (LoginOperation cred)
     Fragment.Registration -> appLoop          (Tuple appState (WidgetState { status: Hidden,  message: ""           } (Signup emptyDataForm)))
-    _                     -> appLoop          (Tuple appState (WidgetState { status: Hidden,  message: ""           } (Login  emptyLoginFormData)))
+    _                     -> appLoop          (Tuple appState (WidgetState { status: Hidden,  message: ""           } (Login  $ getLoginFormData appState)))
   
   where
     appWithInitialOperation :: StatelessAppState -> WidgetState -> Operation -> Widget HTML a
@@ -81,7 +82,7 @@ updateWidgetState widgetState (SignupPageEvent (SignupEvent     cred))          
 updateWidgetState widgetState (SignupPageEvent (GoToLoginEvent  cred))              = WidgetState { status: Hidden , message: ""            } (Login  emptyLoginFormData {credentials = cred}) -- TODO
 -- LoginPageEvent
 updateWidgetState widgetState (LoginPageEvent  (LoginEvent      cred))              = WidgetState { status: Spinner, message: "logging in"  } (Login  emptyLoginFormData {credentials = cred})
-updateWidgetState widgetState (LoginPageEvent  (LoginPinEvent   pin ))              = WidgetState { status: Hidden , message: ""            } (Login  emptyLoginFormData {pin = pin})
+updateWidgetState widgetState (LoginPageEvent  (LoginPinEvent   pin ))              = WidgetState { status: Hidden , message: ""            } (Login  emptyLoginFormData {pin = pin, loginType = PinLogin})
 updateWidgetState widgetState (LoginPageEvent  (GoToCredentialLoginEvent username)) = WidgetState { status: Hidden , message: ""            } (Login  emptyLoginFormData {credentials = {username, password: ""}})
 updateWidgetState widgetState (LoginPageEvent  (GoToSignupEvent cred))              = WidgetState { status: Hidden , message: ""            } (Signup emptyDataForm {username = cred.username, password = cred.password})
 -- MainPageEvent
@@ -123,9 +124,12 @@ executeOperation (LoginOperation cred) operationState@(Tuple state@{proxy, srpCo
     loginSteps cred (Tuple (state {proxy = proxy'}) widgetState) prepareLoginResult
   # handleOperationResult operationState
 
-executeOperation (LoginWithPinOperation pin) (Tuple state@{proxy, hash, srpConf} widgetState) = do
-
-  pure $ Tuple state (WidgetState { status: Failed,  message: "error" } (Login emptyLoginFormData)) --TODO
+executeOperation (LoginWithPinOperation pin) (Tuple state@{proxy, hash, srpConf, username, pinEncryptedPassword} widgetState@(WidgetState _ page)) = do
+  do
+    cred <- runStep (decryptPassphraseWithPin hash pin username pinEncryptedPassword)    (WidgetState {status: Spinner, message: "Decrypt with PIN"} page)
+    ProxyResponse proxy' prepareLoginResult <- runStep (prepareLogin proxy srpConf cred) (WidgetState {status: Spinner, message: "Prepare login"}    page)
+    loginSteps cred (Tuple (state {proxy = proxy'}) widgetState) prepareLoginResult
+  # handleOperationResult (Tuple state widgetState)
 
 executeOperation DoNothing (Tuple state widgetState) = (pure $ Tuple state widgetState) <|> (unsafeCoerce unit <$ appView widgetState)
 
@@ -145,18 +149,17 @@ runStep step widgetState = ExceptT $ (step # runExceptT # liftAff) <|> (unsafeCo
 
 handleOperationResult :: OperationState -> ExceptT AppError (Widget HTML) OperationState -> Widget HTML OperationState
 handleOperationResult operationState result = (result # runExceptT) >>= either (manageError operationState) pure
+  where
+    manageError :: OperationState -> AppError -> Widget HTML OperationState
+    manageError (Tuple state (WidgetState _ page)) error = 
+      case error of
+        -- _ -> ErrorPage
+        _ -> do
+          delayOperation 500 (WidgetState { status: Failed,  message: "error" } page)
+          pure $ Tuple state (WidgetState { status: Hidden,  message: ""      } page)
 
 delayOperation :: Int -> WidgetState -> Widget HTML Unit
 delayOperation time widgetState = ((liftAff $ delay (Milliseconds $ toNumber time)) <|> (unit <$ appView widgetState))
-
-manageError :: OperationState -> AppError -> Widget HTML OperationState
-manageError (Tuple state (WidgetState _ page)) error = 
-  case error of
-    -- _ -> ErrorPage
-    _ -> do
-      let errorState = WidgetState { status: Failed,  message: "error" } page
-      delayOperation 500 errorState
-      pure $ Tuple state (WidgetState { status: Hidden,  message: "" } page)
 
 
 -- ==================================================
@@ -167,25 +170,22 @@ type SharedCardReference = String
 type SharedCardPassword  = String
 type Username = String
 
-type CredentialFormData = 
-  { credentials :: Credentials
-  , pin :: PIN
-  }
-
-emptyCredentialFormData :: CredentialFormData
-emptyCredentialFormData = { credentials: emptyCredentials, pin: ""}
-
 type LoginFormData = 
   { credentials :: Credentials
   , pin :: PIN
   , loginType :: LoginType
   }
 
+data LoginType = CredentialLogin | PinLogin
+
+getLoginFormData :: StatelessAppState -> LoginFormData
+getLoginFormData {username: Just username, pinEncryptedPassword: Just _} = emptyLoginFormData { credentials = {username, password: ""}, loginType = PinLogin }
+getLoginFormData _ = emptyLoginFormData
+
 emptyLoginFormData :: LoginFormData
 emptyLoginFormData = { credentials: emptyCredentials, pin: "", loginType: CredentialLogin }
 
 
-data LoginType = CredentialLogin | PinLogin
 
 data Page = Loading (Maybe Page) | Login LoginFormData | Signup SignupDataForm | Share (Maybe SharedCardReference) | Main --Maybe Card
 
@@ -227,7 +227,7 @@ appView (WidgetState overlayInfo page) =
         PinLogin        -> do
           form [Props.className "form"] [
             LoginPinEvent <$> pinLoginWidget (length pin < 5) pin --TODO not always true
-          , GoToCredentialLoginEvent "username" <$ a [Props.onClick] [text "Use credentials to login"]
+          , GoToCredentialLoginEvent credentials.username <$ a [Props.onClick] [text "Use credentials to login"]
           ]
       <|>
       ((GoToSignupEvent credentials) <$ button [Props.onClick] [text "sign up"]) -- TODO: if login fails this is reset
