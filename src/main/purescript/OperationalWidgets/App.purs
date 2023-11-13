@@ -1,18 +1,55 @@
-module OperationalWidgets.App where
+module OperationalWidgets.App
+  ( LoginFormData
+  , LoginPageEvent(..)
+  , LoginType(..)
+  , MainPageEvent(..)
+  , MaxPinAttemptsReached
+  , Operation(..)
+  , OperationState
+  , Page(..)
+  , PageEvent(..)
+  , PagePosition(..)
+  , SharedCardPassword
+  , SharedCardReference
+  , SignupPageEvent(..)
+  , Username
+  , WidgetState(..)
+  , app
+  , appView
+  , delayOperation
+  , emptyLoginFormData
+  , executeOperation
+  , getLoginFormData
+  , handlePinOperationResult
+  , headerComponent
+  , headerPage
+  , location
+  , loginSteps
+  , mapPageEventToOperation
+  , otherComponent
+  , pageClassName
+  , runStep
+  , shortcutsDiv
+  , updateWidgetState
+  )
+  where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.React.DOM (a, button, div, form, h1, h3, header, li, p, span, text, ul)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
+import Control.Alternative ((<*))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (=<<), (>>=))
+import Control.Category ((<<<))
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
+import Data.CommutativeRing ((+))
 import Data.Either (Either(..), either)
-import Data.Function ((#), ($))
+import Data.Function (flip, (#), ($))
 import Data.Functor ((<$), (<$>))
-import Data.Int (toNumber)
-import Data.Maybe (Maybe(..))
+import Data.Int (fromString, toNumber)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Ord ((<))
 import Data.Show (class Show, show)
 import Data.String (length)
@@ -32,7 +69,7 @@ import Functions.Communication.Login (PrepareLoginResult, computeLoginResult, lo
 import Functions.Communication.Signup (signupUser)
 import Functions.Communication.StatelessOneTimeShare (PIN)
 import Functions.EnvironmentalVariables (currentCommit)
-import Functions.Pin (decryptPassphraseWithPin)
+import Functions.Pin (decryptPassphraseWithPin, deleteCredentials, makeKey)
 import OperationalWidgets.HomePageWidget (homePageWidget)
 import Record (merge)
 import Unsafe.Coerce (unsafeCoerce)
@@ -40,6 +77,9 @@ import Views.Components (footerComponent)
 import Views.LoginFormView (credentialLoginWidget, pinLoginWidget)
 import Views.OverlayView (OverlayInfo, OverlayStatus(..), overlay)
 import Views.SignupFormView (SignupDataForm, emptyDataForm, signupFormView)
+import Web.HTML (window)
+import Web.HTML.Window (localStorage)
+import Web.Storage.Storage (getItem, setItem)
 
 -- ========================================================
 --  manage application effects (state, local storage, api)
@@ -114,22 +154,30 @@ executeOperation (SignupOperation cred) operationState@(Tuple state@{proxy, hash
   do
     ProxyResponse newProxy signupResult <- runStep (signupUser proxy hash srpConf cred) widgetState
     let newOperationState = Tuple (state {proxy = newProxy}) (WidgetState { status: Spinner, message: "loggin in" } (Login  emptyLoginFormData {credentials = cred}))
-    loginSteps cred newOperationState signupResult
+    res                                 <- loginSteps cred newOperationState signupResult
+    _                                   <- ExceptT $ Right <$> delayOperation 500 (WidgetState { status: Done, message: "" } (Main))
+    pure res
 
   # handleOperationResult operationState
 
 executeOperation (LoginOperation cred) operationState@(Tuple state@{proxy, srpConf} widgetState) = 
   do
     ProxyResponse proxy' prepareLoginResult <- runStep (prepareLogin proxy srpConf cred) widgetState
-    loginSteps cred (Tuple (state {proxy = proxy'}) widgetState) prepareLoginResult
+    res                                     <- loginSteps cred (Tuple (state {proxy = proxy'}) widgetState) prepareLoginResult
+    _                                       <- ExceptT $ Right <$> delayOperation 500 (WidgetState { status: Done, message: "" } (Main))
+    pure res
+
   # handleOperationResult operationState
 
 executeOperation (LoginWithPinOperation pin) (Tuple state@{proxy, hash, srpConf, username, pinEncryptedPassword} widgetState@(WidgetState _ page)) = do
   do
-    cred <- runStep (decryptPassphraseWithPin hash pin username pinEncryptedPassword)    (WidgetState {status: Spinner, message: "Decrypt with PIN"} page)
+    cred                                    <- runStep (decryptPassphraseWithPin hash pin username pinEncryptedPassword)    (WidgetState {status: Spinner, message: "Decrypt with PIN"} page)
     ProxyResponse proxy' prepareLoginResult <- runStep (prepareLogin proxy srpConf cred) (WidgetState {status: Spinner, message: "Prepare login"}    page)
-    loginSteps cred (Tuple (state {proxy = proxy'}) widgetState) prepareLoginResult
-  # handleOperationResult (Tuple state widgetState)
+    res                                     <- loginSteps cred (Tuple (state {proxy = proxy'}) widgetState) prepareLoginResult
+    _                                       <- ExceptT $ Right <$> delayOperation 500 (WidgetState { status: Done, message: "" } (Main))
+    pure res
+
+  # handlePinOperationResult (Tuple state widgetState)
 
 executeOperation DoNothing (Tuple state widgetState) = (pure $ Tuple state widgetState) <|> (unsafeCoerce unit <$ appView widgetState)
 
@@ -140,23 +188,54 @@ loginSteps cred (Tuple state@{proxy, hash: hashFunc, srpConf} (WidgetState _ pag
   ProxyResponse proxy'   loginStep1Result   <- runStep (loginStep1         proxy   hashFunc srpConf prepareLoginResult.c)                                       (WidgetState {status: Spinner, message: "SRP step 1"   } page)
   ProxyResponse proxy''  loginStep2Result   <- runStep (loginStep2         proxy'  hashFunc srpConf prepareLoginResult.c prepareLoginResult.p loginStep1Result) (WidgetState {status: Spinner, message: "SRP step 2"   } page)
   ProxyResponse proxy''' stateUpdate        <- runStep (computeLoginResult proxy'' hashFunc srpConf cred prepareLoginResult loginStep1Result loginStep2Result)  (WidgetState {status: Spinner, message: "Validate user"} page)
-  _                                         <- ExceptT $ Right <$> delayOperation 500 (WidgetState { status: Done, message: "" } (Main))
 
   pure $ Tuple (merge stateUpdate (state {proxy = proxy'''})) (WidgetState {status: Hidden, message: ""} (Main))
 
 runStep :: forall a. ExceptT AppError Aff a -> WidgetState -> ExceptT AppError (Widget HTML) a
-runStep step widgetState = ExceptT $ (step # runExceptT # liftAff) <|> (unsafeCoerce unit <$ appView widgetState)
+-- runStep step widgetState = ExceptT $ ((step # runExceptT # liftAff) <* (liftAff $ delay (Milliseconds 1000.0))) <|> (defaultView widgetState)
+runStep step widgetState = ExceptT $ (step # runExceptT # liftAff) <|> (defaultView widgetState)
+
+defaultView :: forall a. WidgetState -> Widget HTML a
+defaultView widgetState = (unsafeCoerce unit <$ appView widgetState)
+
+type MaxPinAttemptsReached = Boolean
+
+handlePinOperationResult :: OperationState -> ExceptT AppError (Widget HTML) OperationState -> Widget HTML OperationState
+handlePinOperationResult (Tuple state (WidgetState _ page)) result = do
+  either  <- runExceptT result
+  storage <- liftEffect $ window >>= localStorage
+  case either of
+    Right operationState@(Tuple _ (WidgetState _ page')) ->
+      ( do
+          liftEffect $ setItem (makeKey "failures") (show 0) storage
+          pure $ operationState
+      )
+      <|>
+      (defaultView (WidgetState {status: Spinner, message: "Reset PIN attempts"} page'))
+    Left  err            -> do
+      operationState <- (do
+        failures <- liftEffect $ getItem (makeKey "failures") storage
+        let count = (((fromMaybe 0) <<< fromString <<< (fromMaybe "")) failures) + 1
+        if count < 3 then do
+          liftEffect $ setItem (makeKey "failures") (show count) storage
+          pure $ Tuple state (WidgetState {status: Failed, message: "error"} (Login $ emptyLoginFormData {credentials = emptyCredentials {username = fromMaybe "" state.username}, loginType = PinLogin}))
+        else do
+          liftEffect $ deleteCredentials storage
+          pure $ Tuple state (WidgetState {status: Failed, message: "error"} (Login $ emptyLoginFormData {credentials = emptyCredentials {username = fromMaybe "" state.username}, loginType = CredentialLogin}))
+      ) <|> (defaultView (WidgetState {status: Spinner, message: "Compute PIN attempts"} page))
+
+      manageError operationState err
 
 handleOperationResult :: OperationState -> ExceptT AppError (Widget HTML) OperationState -> Widget HTML OperationState
 handleOperationResult operationState result = (result # runExceptT) >>= either (manageError operationState) pure
-  where
-    manageError :: OperationState -> AppError -> Widget HTML OperationState
-    manageError (Tuple state (WidgetState _ page)) error = 
-      case error of
-        -- _ -> ErrorPage
-        _ -> do
-          delayOperation 500 (WidgetState { status: Failed,  message: "error" } page)
-          pure $ Tuple state (WidgetState { status: Hidden,  message: ""      } page)
+
+manageError :: OperationState -> AppError -> Widget HTML OperationState
+manageError (Tuple state (WidgetState _ page)) error = 
+  case error of
+    -- _ -> ErrorPage
+    _ -> do
+      delayOperation 500 (WidgetState { status: Failed,  message: "error" } page)
+      pure $ Tuple state (WidgetState { status: Hidden,  message: ""      } page)
 
 delayOperation :: Int -> WidgetState -> Widget HTML Unit
 delayOperation time widgetState = ((liftAff $ delay (Milliseconds $ toNumber time)) <|> (unit <$ appView widgetState))

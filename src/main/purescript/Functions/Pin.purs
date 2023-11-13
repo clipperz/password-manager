@@ -54,30 +54,30 @@ generateKeyFromPin hashf pin = do
   KI.importKey raw pinBuffer (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
 
 decryptPassphraseWithPin :: HashFunction -> PIN -> Maybe String -> Maybe HexString -> ExceptT AppError Aff Credentials
-decryptPassphraseWithPin hashFunc pin username' pinEncryptedPassword' = do
-  
-  username             <- except $ username'             # note (InvalidStateError (CorruptedSavedPassphrase "user not found in local storage"))
-  pinEncryptedPassword <- except $ pinEncryptedPassword' # note (InvalidStateError (CorruptedSavedPassphrase "passphrase not found in local storage"))
-  key <- liftAff $ generateKeyFromPin hashFunc pin
-  { padding, passphrase } :: { padding :: Int, passphrase :: String } <- decryptJson key (toArrayBuffer pinEncryptedPassword) # ExceptT # withExceptT (ProtocolError <<< CryptoError <<< show)
-  let split = toString Dec $ hex $ (splitAt ((length passphrase) - (padding * 2)) passphrase).before
-  
-  (pure $ { username, password: split }) # mapExceptT (\eitherCred' -> do
-    eitherCred <- eitherCred'
-    storage    <- liftEffect $ window >>= localStorage
-    case eitherCred of
-      Right cred -> do
-        liftEffect $ setItem (makeKey "failures") (show 0) storage
-        pure $ Right cred
-      Left  err  -> do
-        failures <- liftEffect $ getItem (makeKey "failures") storage
-        let count = (((fromMaybe 0) <<< fromString <<< (fromMaybe "")) failures) + 1
-        if count < 3 then do
-          liftEffect $ setItem (makeKey "failures") (show count) storage
-        else do
-          liftEffect $ deleteCredentials storage
-        pure $ Left err
-  )
+decryptPassphraseWithPin hashFunc pin username' pinEncryptedPassword' = do  
+  -- (do
+    username             <- except $ username'             # note (InvalidStateError (CorruptedSavedPassphrase "user not found in local storage"))
+    pinEncryptedPassword <- except $ pinEncryptedPassword' # note (InvalidStateError (CorruptedSavedPassphrase "passphrase not found in local storage"))
+    key <- liftAff $ generateKeyFromPin hashFunc pin
+    { padding, passphrase } :: { padding :: Int, passphrase :: String } <- decryptJson key (toArrayBuffer pinEncryptedPassword) # ExceptT # withExceptT (ProtocolError <<< CryptoError <<< show)
+    let split = toString Dec $ hex $ (splitAt ((length passphrase) - (padding * 2)) passphrase).before
+    pure $ { username, password: split }
+  -- ) # mapExceptT (\eitherCred' -> do
+  --   eitherCred <- eitherCred'
+  --   storage    <- liftEffect $ window >>= localStorage
+  --   case eitherCred of
+  --     Right cred -> do
+  --       liftEffect $ setItem (makeKey "failures") (show 0) storage
+  --       pure $ Right cred
+  --     Left  err  -> do
+  --       failures <- liftEffect $ getItem (makeKey "failures") storage
+  --       let count = (((fromMaybe 0) <<< fromString <<< (fromMaybe "")) failures) + 1
+  --       if count < 3 then do
+  --         liftEffect $ setItem (makeKey "failures") (show count) storage
+  --       else do
+  --         liftEffect $ deleteCredentials storage
+  --       pure $ Left err
+  -- )
 
 deleteCredentials :: Storage -> Effect Unit
 deleteCredentials storage = do
