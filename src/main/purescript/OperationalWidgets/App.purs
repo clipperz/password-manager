@@ -1,45 +1,11 @@
-module OperationalWidgets.App
-  ( LoginFormData
-  , LoginPageEvent(..)
-  , LoginType(..)
-  , MainPageEvent(..)
-  , MaxPinAttemptsReached
-  , Operation(..)
-  , OperationState
-  , Page(..)
-  , PageEvent(..)
-  , PagePosition(..)
-  , SharedCardPassword
-  , SharedCardReference
-  , SignupPageEvent(..)
-  , Username
-  , WidgetState(..)
-  , app
-  , appView
-  , delayOperation
-  , emptyLoginFormData
-  , executeOperation
-  , getLoginFormData
-  , handlePinOperationResult
-  , headerComponent
-  , headerPage
-  , location
-  , loginSteps
-  , mapPageEventToOperation
-  , otherComponent
-  , pageClassName
-  , runStep
-  , shortcutsDiv
-  , updateWidgetState
-  )
-  where
+module OperationalWidgets.App where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.React.DOM (a, button, div, form, h1, h3, header, li, p, span, text, ul)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
-import Control.Alternative ((<*))
+import Control.Alternative ((*>), (<*))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (=<<), (>>=))
 import Control.Category ((<<<))
@@ -155,29 +121,33 @@ executeOperation (SignupOperation cred) operationState@(Tuple state@{proxy, hash
     ProxyResponse newProxy signupResult <- runStep (signupUser proxy hash srpConf cred) widgetState
     let newOperationState = Tuple (state {proxy = newProxy}) (WidgetState { status: Spinner, message: "loggin in" } (Login  emptyLoginFormData {credentials = cred}))
     res                                 <- loginSteps cred newOperationState signupResult
-    _                                   <- ExceptT $ Right <$> delayOperation 500 (WidgetState { status: Done, message: "" } (Main))
+    -- _                                   <- ExceptT $ Right <$> delayOperation 500 (WidgetState { status: Done, message: "" } (Main))
     pure res
-
-  # handleOperationResult operationState
+  
+  # runExceptT 
+  >>= handleOperationResult operationState
 
 executeOperation (LoginOperation cred) operationState@(Tuple state@{proxy, srpConf} widgetState) = 
   do
     ProxyResponse proxy' prepareLoginResult <- runStep (prepareLogin proxy srpConf cred) widgetState
     res                                     <- loginSteps cred (Tuple (state {proxy = proxy'}) widgetState) prepareLoginResult
-    _                                       <- ExceptT $ Right <$> delayOperation 500 (WidgetState { status: Done, message: "" } (Main))
+    -- _                                       <- ExceptT $ Right <$> delayOperation 500 (WidgetState { status: Done, message: "" } (Main))
     pure res
-
-  # handleOperationResult operationState
+  
+  # runExceptT 
+  >>= handleOperationResult operationState
 
 executeOperation (LoginWithPinOperation pin) (Tuple state@{proxy, hash, srpConf, username, pinEncryptedPassword} widgetState@(WidgetState _ page)) = do
   do
     cred                                    <- runStep (decryptPassphraseWithPin hash pin username pinEncryptedPassword)    (WidgetState {status: Spinner, message: "Decrypt with PIN"} page)
     ProxyResponse proxy' prepareLoginResult <- runStep (prepareLogin proxy srpConf cred) (WidgetState {status: Spinner, message: "Prepare login"}    page)
     res                                     <- loginSteps cred (Tuple (state {proxy = proxy'}) widgetState) prepareLoginResult
-    _                                       <- ExceptT $ Right <$> delayOperation 500 (WidgetState { status: Done, message: "" } (Main))
+    -- _                                       <- ExceptT $ Right <$> delayOperation 500 (WidgetState { status: Done, message: "" } (Main))
     pure res
-
-  # handlePinOperationResult (Tuple state widgetState)
+  
+  # runExceptT 
+  >>= handlePinResult (Tuple state widgetState)
+  >>= (\(Tuple operationState either) -> handleOperationResult operationState either)
 
 executeOperation DoNothing (Tuple state widgetState) = (pure $ Tuple state widgetState) <|> (unsafeCoerce unit <$ appView widgetState)
 
@@ -200,42 +170,43 @@ defaultView widgetState = (unsafeCoerce unit <$ appView widgetState)
 
 type MaxPinAttemptsReached = Boolean
 
-handlePinOperationResult :: OperationState -> ExceptT AppError (Widget HTML) OperationState -> Widget HTML OperationState
-handlePinOperationResult (Tuple state (WidgetState _ page)) result = do
-  either  <- runExceptT result
+handlePinResult :: OperationState -> Either AppError OperationState -> Widget HTML (Tuple OperationState (Either AppError OperationState))
+handlePinResult opState@(Tuple state (WidgetState _ page)) either = do
   storage <- liftEffect $ window >>= localStorage
-  case either of
-    Right operationState@(Tuple _ (WidgetState _ page')) ->
+  operationState <- case either of
+    Right _ ->
       ( do
           liftEffect $ setItem (makeKey "failures") (show 0) storage
-          pure $ operationState
+          pure opState
       )
       <|>
-      (defaultView (WidgetState {status: Spinner, message: "Reset PIN attempts"} page'))
-    Left  err            -> do
-      operationState <- (do
-        failures <- liftEffect $ getItem (makeKey "failures") storage
-        let count = (((fromMaybe 0) <<< fromString <<< (fromMaybe "")) failures) + 1
-        if count < 3 then do
-          liftEffect $ setItem (makeKey "failures") (show count) storage
-          pure $ Tuple state (WidgetState {status: Failed, message: "error"} (Login $ emptyLoginFormData {credentials = emptyCredentials {username = fromMaybe "" state.username}, loginType = PinLogin}))
-        else do
-          liftEffect $ deleteCredentials storage
-          pure $ Tuple state (WidgetState {status: Failed, message: "error"} (Login $ emptyLoginFormData {credentials = emptyCredentials {username = fromMaybe "" state.username}, loginType = CredentialLogin}))
-      ) <|> (defaultView (WidgetState {status: Spinner, message: "Compute PIN attempts"} page))
+      (defaultView (WidgetState {status: Spinner, message: "Reset PIN attempts"} page))
+    Left  _ -> (do
+      failures <- liftEffect $ getItem (makeKey "failures") storage
+      let count = (((fromMaybe 0) <<< fromString <<< (fromMaybe "")) failures) + 1
+      if count < 3 then do
+        liftEffect $ setItem (makeKey "failures") (show count) storage
+        pure $ Tuple state (WidgetState {status: Failed, message: "error"} (Login $ emptyLoginFormData {credentials = emptyCredentials {username = fromMaybe "" state.username}, loginType = PinLogin}))
+      else do
+        liftEffect $ deleteCredentials storage
+        pure $ Tuple state (WidgetState {status: Failed, message: "error"} (Login $ emptyLoginFormData {credentials = emptyCredentials {username = fromMaybe "" state.username}, loginType = CredentialLogin}))
+    ) <|> (defaultView (WidgetState {status: Spinner, message: "Compute PIN attempts"} page))
 
-      manageError operationState err
+  pure $ Tuple operationState either
 
-handleOperationResult :: OperationState -> ExceptT AppError (Widget HTML) OperationState -> Widget HTML OperationState
-handleOperationResult operationState result = (result # runExceptT) >>= either (manageError operationState) pure
-
-manageError :: OperationState -> AppError -> Widget HTML OperationState
-manageError (Tuple state (WidgetState _ page)) error = 
-  case error of
-    -- _ -> ErrorPage
-    _ -> do
-      delayOperation 500 (WidgetState { status: Failed,  message: "error" } page)
-      pure $ Tuple state (WidgetState { status: Hidden,  message: ""      } page)
+handleOperationResult :: OperationState -> Either AppError OperationState -> Widget HTML OperationState
+handleOperationResult operationState = either
+                                        (manageError operationState)
+                                        (\res@(Tuple _ (WidgetState _ page)) -> delayOperation 500 (WidgetState { status: Done, message: "" } page) *> pure res)
+                                                
+  where
+    manageError :: OperationState -> AppError -> Widget HTML OperationState
+    manageError (Tuple state (WidgetState _ page)) error = 
+      case error of
+        -- _ -> ErrorPage
+        _ -> do
+          delayOperation 500 (WidgetState { status: Failed,  message: "error" } page)
+          pure $ Tuple state (WidgetState { status: Hidden,  message: ""      } page)
 
 delayOperation :: Int -> WidgetState -> Widget HTML Unit
 delayOperation time widgetState = ((liftAff $ delay (Milliseconds $ toNumber time)) <|> (unit <$ appView widgetState))
