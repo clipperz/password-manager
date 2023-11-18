@@ -3,10 +3,12 @@ module Views.LoginFormView where
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, loopW, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (div, form, input, label, span, text)
+import Concur.React.DOM (button, div, div_, form_, input, label, span, text)
 import Concur.React.Props as Props
+import Control.Alt ((<$), (<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
+import Data.Either (Either(..))
 import Data.Eq ((/=), (==))
 import Data.Function (($))
 import Data.Functor ((<$>))
@@ -15,7 +17,6 @@ import Data.Maybe (Maybe(..))
 import Data.String (length)
 import DataModel.Credentials (Credentials)
 import Functions.Communication.StatelessOneTimeShare (PIN)
-import Views.SimpleWebComponents (simpleButton)
 
 -- data PinViewResult = Pin Int | NormalLogin
 
@@ -32,10 +33,10 @@ emptyForm = { username: "", password: "" }
 isFormValid :: LoginDataForm -> Boolean
 isFormValid { username, password } = username /= "" && password /= ""
 
-credentialLoginWidget :: LoginDataForm -> Widget HTML Credentials
-credentialLoginWidget formData = form [Props.className "form"] [ do
-    signalResult <- demand $ do
-      formValues <- loopS formData $ \{username: username, password: password} -> do
+credentialLoginWidget :: LoginDataForm -> Widget HTML (Either Credentials Credentials)
+credentialLoginWidget formData = do
+    signalResult <- demand $ form_ [Props.className "loginForm"] do
+      formValues <- loopS formData $ \{username: username, password: password} -> div_ [Props.className "loginInputs"] do
         username' <- loopW username (\v -> label [] [
             span [Props.className "label"] [text "Username"]
           , (Props.unsafeTargetValue) <$> input [
@@ -61,11 +62,15 @@ credentialLoginWidget formData = form [Props.className "form"] [ do
           ]
         ])
         pure { username: username', password: password' }
-      result <- fireOnce (simpleButton "login" "login" (not (isFormValid formValues)) formValues)
+      result <- do
+                  fireOnce ( div [Props.className "loginButton"] [
+                              button [(Right formValues) <$ Props.onClick, Props.className "login", Props.disabled (not (isFormValid formValues))] [span [] [text "login"]]
+                             ] <|> 
+                              button [(Left  formValues) <$ Props.onClick]                                                                         [text "sign up"]
+                           )
       pure result
     -- liftEffect $ log $ "signalResult " <> show signalResult
     pure signalResult
-]
 
 pinLoginWidget :: Boolean -> String -> Widget HTML PIN
 pinLoginWidget active pin = do

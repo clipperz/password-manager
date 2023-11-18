@@ -2,22 +2,20 @@ module Functions.Pin where
 
 import Bytes (asArrayBuffer)
 import Control.Alternative (pure)
-import Control.Bind (bind, discard, (>>=))
-import Control.Monad.Except.Trans (ExceptT(..), except, mapExceptT, withExceptT)
+import Control.Bind (bind, discard)
+import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT)
 import Control.Semigroupoid ((<<<))
 import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Types (encrypt, decrypt, raw, unwrapKey, CryptoKey)
-import Data.Either (Either(..), note)
+import Data.Either (note)
 import Data.Eq ((==))
-import Data.EuclideanRing ((+), (/))
+import Data.EuclideanRing ((/))
 import Data.Function ((#), ($))
 import Data.Functor ((<$>))
 import Data.HexString (Base(..), HexString, fromArrayBuffer, hex, toArrayBuffer, toString)
-import Data.Int (fromString)
 import Data.List (List(..), (:))
-import Data.Maybe (Maybe, fromMaybe)
-import Data.Ord ((<))
+import Data.Maybe (Maybe)
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
 import Data.Semiring ((*))
@@ -38,9 +36,7 @@ import Functions.Communication.StatelessOneTimeShare (PIN)
 import Functions.EncodeDecode (decryptJson, encryptJson)
 import Functions.JSState (getAppState)
 import Functions.State (getHashFunctionFromAppState)
-import Web.HTML (window)
-import Web.HTML.Window (localStorage)
-import Web.Storage.Storage (Storage, getItem, removeItem, setItem)
+import Web.Storage.Storage (Storage, removeItem, setItem)
 
 makeKey :: String -> String
 makeKey = (<>) "clipperz.is."
@@ -55,29 +51,12 @@ generateKeyFromPin hashf pin = do
 
 decryptPassphraseWithPin :: HashFunction -> PIN -> Maybe String -> Maybe HexString -> ExceptT AppError Aff Credentials
 decryptPassphraseWithPin hashFunc pin username' pinEncryptedPassword' = do  
-  -- (do
-    username             <- except $ username'             # note (InvalidStateError (CorruptedSavedPassphrase "user not found in local storage"))
-    pinEncryptedPassword <- except $ pinEncryptedPassword' # note (InvalidStateError (CorruptedSavedPassphrase "passphrase not found in local storage"))
-    key <- liftAff $ generateKeyFromPin hashFunc pin
-    { padding, passphrase } :: { padding :: Int, passphrase :: String } <- decryptJson key (toArrayBuffer pinEncryptedPassword) # ExceptT # withExceptT (ProtocolError <<< CryptoError <<< show)
-    let split = toString Dec $ hex $ (splitAt ((length passphrase) - (padding * 2)) passphrase).before
-    pure $ { username, password: split }
-  -- ) # mapExceptT (\eitherCred' -> do
-  --   eitherCred <- eitherCred'
-  --   storage    <- liftEffect $ window >>= localStorage
-  --   case eitherCred of
-  --     Right cred -> do
-  --       liftEffect $ setItem (makeKey "failures") (show 0) storage
-  --       pure $ Right cred
-  --     Left  err  -> do
-  --       failures <- liftEffect $ getItem (makeKey "failures") storage
-  --       let count = (((fromMaybe 0) <<< fromString <<< (fromMaybe "")) failures) + 1
-  --       if count < 3 then do
-  --         liftEffect $ setItem (makeKey "failures") (show count) storage
-  --       else do
-  --         liftEffect $ deleteCredentials storage
-  --       pure $ Left err
-  -- )
+  username             <- except $ username'             # note (InvalidStateError (CorruptedSavedPassphrase "user not found in local storage"))
+  pinEncryptedPassword <- except $ pinEncryptedPassword' # note (InvalidStateError (CorruptedSavedPassphrase "passphrase not found in local storage"))
+  key <- liftAff $ generateKeyFromPin hashFunc pin
+  { padding, passphrase } :: { padding :: Int, passphrase :: String } <- decryptJson key (toArrayBuffer pinEncryptedPassword) # ExceptT # withExceptT (ProtocolError <<< CryptoError <<< show)
+  let split = toString Dec $ hex $ (splitAt ((length passphrase) - (padding * 2)) passphrase).before
+  pure $ { username, password: split }
 
 deleteCredentials :: Storage -> Effect Unit
 deleteCredentials storage = do

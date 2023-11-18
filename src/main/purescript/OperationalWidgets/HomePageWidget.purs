@@ -46,8 +46,8 @@ homePageWidget status cardToAdd =
     UserLoggedIn -> do
       eitherState <- liftEffect $ getAppState
       case eitherState of
-        Left err -> go (Error (show err)) ProxyOffline        true
-        Right st -> go Loading            (isOfflineCopy st)  true
+        Left err -> go (Error (show err))   ProxyOffline       true
+        Right st -> go  Loading            (isOfflineCopy st)  true
     UserAnonymous ->
       go Default ProxyOffline true
 
