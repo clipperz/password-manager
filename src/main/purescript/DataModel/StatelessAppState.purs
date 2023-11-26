@@ -13,6 +13,7 @@ import Data.Show (class Show, show)
 import Data.Unit (Unit, unit)
 import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
+import DataModel.Index (Index)
 import DataModel.SRP (HashFunction, SRPConf)
 import DataModel.User (MasterKey, UserInfoReferences, UserPreferences)
 import Functions.HashCash (TollChallenge)
@@ -88,6 +89,7 @@ type StatelessAppState =
   , masterKey :: Maybe MasterKey
   , userInfoReferences :: Maybe UserInfoReferences
   , userPreferences :: Maybe UserPreferences
+  , index :: Maybe Index
   }
 
 data AppStateResponse a = AppStateResponse StatelessAppState a

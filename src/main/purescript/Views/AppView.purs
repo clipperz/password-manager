@@ -9,18 +9,22 @@ import Control.Bind (bind)
 import Data.Either (either)
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
+import Data.HeytingAlgebra (not)
 import Data.Maybe (Maybe(..))
 import Data.Ord ((<))
 import Data.Show (class Show, show)
 import Data.String (length)
-import DataModel.AppState (UserConnectionStatus(..))
+import DataModel.AppState (ProxyConnectionStatus(..))
 import DataModel.Card (Card)
 import DataModel.Credentials (Credentials, emptyCredentials)
+import DataModel.Index (Index, emptyIndex)
 import DataModel.WidgetState as WS
 import Effect.Class (liftEffect)
 import Functions.Communication.StatelessOneTimeShare (PIN)
 import Functions.EnvironmentalVariables (currentCommit)
-import OperationalWidgets.HomePageWidget (homePageWidget)
+import OperationalWidgets.CardsManagerWidget (cardsManagerWidget)
+import OperationalWidgets.UserAreaWidget (userAreaWidget)
+import Views.CardsManagerView (CardView(..))
 import Views.Components (footerComponent)
 import Views.LoginFormView (credentialLoginWidget, pinLoginWidget)
 import Views.OverlayView (OverlayInfo, overlay)
@@ -49,8 +53,11 @@ data LoginPageEvent   = LoginEvent Credentials
 data SignupPageEvent  = SignupEvent Credentials
                       | GoToLoginEvent Credentials
 
-data MainPageEvent    = CardManagerEvent CardManagerEvent
+data PageEvent        = LoginPageEvent  LoginPageEvent
+                      | SignupPageEvent SignupPageEvent
+                      | CardManagerEvent CardManagerEvent
                       | UserAreaEvent UserAreaEvent
+
 data CardManagerEvent = AddCardEvent Card
                       | DeleteCardEvent -- ??
                       | EditCardEvent -- ??
@@ -64,11 +71,16 @@ data UserAreaEvent    = UpdateUserPreferencesEvent -- ??
                       | LockEvent
                       | LogoutEvent
 
-data PageEvent        = LoginPageEvent  LoginPageEvent
-                      | SignupPageEvent SignupPageEvent
-                      | MainPageEvent   MainPageEvent
+data Page = Loading (Maybe Page) | Login LoginFormData | Signup SignupDataForm | Share (Maybe SharedCardReference) | Main MainPageWidgetState
 
-data Page = Loading (Maybe Page) | Login LoginFormData | Signup SignupDataForm | Share (Maybe SharedCardReference) | Main --Maybe Card
+type MainPageWidgetState = {
+  index        :: Index
+, cardToAdd    :: Maybe Card
+, showUserArea :: Boolean
+}
+
+emptyMainPageWidgetState :: MainPageWidgetState
+emptyMainPageWidgetState = { index: emptyIndex, cardToAdd: Nothing, showUserArea: false }
 
 data WidgetState = WidgetState OverlayInfo Page
 
@@ -92,10 +104,18 @@ appView (WidgetState overlayInfo page) =
                             Signup credentials' -> credentials'
                             _                   -> emptyDataForm
         
-        (either GoToLoginEvent SignupEvent <$> (signupFormView WS.Default credentials)) 
+        (either GoToLoginEvent SignupEvent <$> (signupFormView credentials)) 
       ]
-    , MainPageEvent <$> div [Props.classList (Just <$> ["page", "main", show $ location Main page])] [
-        (UserAreaEvent LogoutEvent) <$ (homePageWidget UserLoggedIn Nothing) --cardToAdd) -TODO
+    , div [Props.classList (Just <$> ["page", "main", show $ location (Main emptyMainPageWidgetState) page])] [ do
+        let {index, cardToAdd, showUserArea} = case page of
+                                        Main homePageWidgetState' -> homePageWidgetState'
+                                        _                         -> emptyMainPageWidgetState
+        
+        div [Props._id "homePage"] [
+          CardManagerEvent EditCardEvent <$ cardsManagerWidget ProxyOnline index cardToAdd { cardView: NoCard, cardViewState: WS.Default }
+        , UserAreaEvent    LogoutEvent   <$ userAreaWidget (not showUserArea) ProxyOnline
+        ]
+         
       ]
     ]
 
@@ -124,13 +144,13 @@ location referencePage currentPage = case referencePage, currentPage of
   Login _,    Login _   -> CenterPosition
   Signup _,   Signup _  -> CenterPosition
   Share _,    Share _   -> CenterPosition
-  Main,       Main      -> CenterPosition
+  Main _ ,    Main _    -> CenterPosition
 
   Loading _,  _         -> LeftPosition
   Signup _,   Login _   -> LeftPosition
   Login _,    Share _   -> LeftPosition
   Signup _,   Share _   -> LeftPosition
-  _,          Main      -> LeftPosition
+  _,          Main  _   -> LeftPosition
   _,          _         -> RightPosition
 
 pageClassName :: Page -> String
@@ -138,7 +158,7 @@ pageClassName (Loading _) = "loading"
 pageClassName (Login _)   = "login"
 pageClassName (Signup _)  = "signup"
 pageClassName (Share _)   = "share"
-pageClassName Main        = "main"
+pageClassName (Main _)  = "main"
 
 headerPage :: forall a. Page -> Page -> Array (Widget HTML a) -> Widget HTML a
 headerPage currentPage page innerContent = do
@@ -187,4 +207,4 @@ instance showPage :: Show Page where
   show (Login _)    = "Login"
   show (Signup _)   = "Signup"
   show (Share _)    = "Share"
-  show (Main)       = "Main"
+  show (Main _)   = "Main"

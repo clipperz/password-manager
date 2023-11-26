@@ -2,6 +2,7 @@ module Functions.Communication.Users where
 
 import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
+import Control.Alt ((<#>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (ExceptT(..), except, throwError, withExceptT)
@@ -28,12 +29,12 @@ import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index)
 import DataModel.StatelessAppState (ProxyResponse(..))
-import DataModel.User (IndexReference(..), MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard(..), UserInfoReferences(..), UserPreferences, UserPreferencesReference(..), MasterKey)
+import DataModel.User (IndexReference(..), MasterKey, MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard(..), UserInfoReferences(..), UserPreferences, UserPreferencesReference(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
-import Functions.Communication.Blobs (deleteBlob, getBlob, getDecryptedBlob, getStatelessDecryptedBlob, postBlob)
+import Functions.Communication.Blobs (deleteBlob, getBlob, getDecryptedBlob, getStatelessBlob, getStatelessDecryptedBlob, postBlob)
 import Functions.Communication.StatelessBackend (ConnectionState)
 import Functions.Communication.StatelessBackend as Stateless
 import Functions.EncodeDecode (encryptJson)
@@ -99,6 +100,7 @@ deleteUserCard c = do
     then pure unit
     else throwError (ProtocolError $ ResponseError $ unwrap response.status)
 
+-- TODO REMOVE
 getIndex :: ExceptT AppError Aff Index
 getIndex = do 
   currentState <- ExceptT $ liftEffect getAppState
@@ -107,6 +109,12 @@ getIndex = do
       blob <- getBlob reference
       getIndexContent blob indexRef
     _ -> throwError (InvalidStateError $ MissingValue "Missing index reference")
+-- -------------
+
+getStatelessIndex :: ConnectionState -> IndexReference -> ExceptT AppError Aff (ProxyResponse Index)
+getStatelessIndex connectionState indexRef@(IndexReference { reference }) = do
+  ProxyResponse newProxy blob <- getStatelessBlob connectionState reference
+  getIndexContent blob indexRef <#> ProxyResponse newProxy
 
 -- TODO REMOVE
 getUserPreferences :: ExceptT AppError Aff UserPreferences

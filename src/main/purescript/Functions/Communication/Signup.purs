@@ -44,6 +44,6 @@ signupUser (OnlineProxy url tollManager _) hashFunc srpConf credentials = do
   --- ---------------------------
   ProxyResponse newProxy response <- manageGenericRequest connectionState path POST (Just body) RF.string
   if isStatusCodeOk response.status
-    then pure $ ProxyResponse newProxy {c: u.c, p: p, sessionKey}
+    then pure $ ProxyResponse newProxy {c: u.c, p: p}
     else throwError $ ProtocolError (ResponseError (unwrap response.status))
 

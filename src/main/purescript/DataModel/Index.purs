@@ -83,6 +83,9 @@ instance decodeJsonCardEntry :: DecodeJson CardEntry where
 
 -- --------------------------------------------
 
+emptyIndex :: Index
+emptyIndex = Index Nil
+
 newtype Index = 
   Index (List CardEntry)
 

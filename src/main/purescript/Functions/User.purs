@@ -31,7 +31,7 @@ import DataModel.AppState (AppState, AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index(..), CardEntry(..))
 import DataModel.SRP (SRPConf)
-import DataModel.User (IndexReference(..), MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard, UserInfoReferences(..), UserPreferencesReference(..))
+import DataModel.User (IndexReference(..), MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard, UserInfoReferences(..), UserPreferencesReference(..), MasterKey)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff, class MonadAff)
 import Effect.Class (liftEffect, class MonadEffect)
@@ -155,8 +155,8 @@ deleteUserSteps (Index entries) progressBarFunc stepPlaceholderFunc = do
     extractC (Left err)    = Left err
     extractC (Right state) = note (InvalidStateError $ MissingValue $ "c not present") state.c
 
-decryptUserInfoReferences :: HexString -> HexString -> ExceptT AppError Aff UserInfoReferences
-decryptUserInfoReferences encryptedRef p = do
+decryptUserInfoReferences :: MasterKey -> HexString -> ExceptT AppError Aff UserInfoReferences
+decryptUserInfoReferences (Tuple encryptedRef _) p = do -- TODO: handle version
   masterPassword :: CryptoKey <- liftAff $ KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   mapCryptoError $ ExceptT $ decryptJson masterPassword (toArrayBuffer encryptedRef)
 

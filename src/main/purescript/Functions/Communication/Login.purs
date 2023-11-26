@@ -5,14 +5,14 @@ import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
 import Control.Alt ((<#>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind)
 import Control.Monad.Except.Trans (ExceptT(..), except, throwError, withExceptT)
 import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Bifunctor (lmap)
 import Data.BigInt (BigInt, fromInt)
-import Data.Either (Either(..), note)
+import Data.Either (note)
 import Data.Eq ((==))
 import Data.Function (flip, (#), ($))
 import Data.Functor ((<$>))
@@ -23,23 +23,18 @@ import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
-import Data.Unit (unit)
 import DataModel.AppState (AppError(..))
 import DataModel.Communication.Login (LoginStep1Response, LoginStep2Response)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials)
 import DataModel.SRP (SRPConf, HashFunction)
-import DataModel.StatelessAppState (Proxy(..), ProxyResponse(..), SessionKey)
-import DataModel.User (MasterKey, UserInfoReferences, UserPreferences)
+import DataModel.StatelessAppState (Proxy(..), ProxyResponse(..))
+import DataModel.User (MasterKey, UserInfoReferences)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Effect.Class (liftEffect)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
 import Functions.Communication.StatelessBackend (isStatusCodeOk, manageGenericRequest)
-import Functions.Communication.Users (getStatelessMasterKey, getStatelessUserPreferences)
-import Functions.JSState (updateAppState)
 import Functions.SRP as SRP
-import Functions.Timer (activateTimer)
 import Functions.User (decryptUserInfoReferences)
     
 -- ----------------------------------------------------------------------------
@@ -50,8 +45,7 @@ sessionKeyHeaderName = "clipperz-UserSession-ID"
 -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 type PrepareLoginResult = {
-  sessionKey :: SessionKey
-, c :: HexString
+  c :: HexString
 , p :: HexString
 }
 
@@ -65,7 +59,7 @@ prepareLogin (OnlineProxy url tollManager maybeSessionKey) srpConf { username, p
   
   let newProxy = OnlineProxy url tollManager (Just sessionKey)
 
-  pure $ ProxyResponse newProxy {sessionKey, c, p}
+  pure $ ProxyResponse newProxy {c, p}
   
 -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -101,6 +95,7 @@ type LoginStep2Result = { m1 :: ArrayBuffer
                         , kk :: ArrayBuffer
                         , m2 :: HexString
                         , userInfoReferences :: UserInfoReferences
+                        , masterKey :: MasterKey
                         }
 
 loginStep2 :: Proxy -> HashFunction -> SRPConf -> HexString -> HexString -> LogintStep2Data -> ExceptT AppError Aff (ProxyResponse LoginStep2Result)
@@ -115,14 +110,13 @@ loginStep2 proxy hashFunc srpConf c p { aa, bb, a, s } = do
   responseBody :: LoginStep2Response <- if isStatusCodeOk step2Response.status
                                           then except $     (decodeJson step2Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err)
                                           else throwError $  ProtocolError $ ResponseError (unwrap step2Response.status)
-  userInfoReferences <- decryptUserInfoReferences responseBody.encUserInfoReferences p
-  pure $ ProxyResponse newProxy { m1, kk, m2: responseBody.m2, userInfoReferences }
+  userInfoReferences <- decryptUserInfoReferences responseBody.masterKey p
+  pure $ ProxyResponse newProxy { m1, kk, m2: responseBody.m2, userInfoReferences, masterKey: responseBody.masterKey }
 
 -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 type LoginStateUpdate = {
   userInfoReferences :: Maybe UserInfoReferences
-, userPreferences    :: Maybe UserPreferences
 , masterKey          :: Maybe MasterKey
 , username           :: Maybe String
 , password           :: Maybe String
@@ -130,43 +124,3 @@ type LoginStateUpdate = {
 , c                  :: Maybe HexString
 , p                  :: Maybe HexString
 }
-
-computeLoginResult :: Proxy -> HashFunction -> SRPConf -> Credentials -> PrepareLoginResult -> LoginStep1Result -> LoginStep2Result -> ExceptT AppError Aff (ProxyResponse LoginStateUpdate)
-computeLoginResult proxy hashFunc srpConf { username, password } {c, p, sessionKey} {s, aa} { m1, kk, m2, userInfoReferences } = do
-  check :: Boolean <- liftAff $ SRP.checkM2 srpConf aa m1 kk (toArrayBuffer m2)
-  
-  case check of
-    true  -> pure unit
-    false -> throwError $ ProtocolError (SRPError "Client M2 doesn't match with server M2")
-
-  
-  ProxyResponse newProxy'  masterKey       <- getStatelessMasterKey       { proxy, hashFunc } c
-  ProxyResponse newProxy'' userPreferences <- getStatelessUserPreferences { proxy: newProxy', hashFunc } (unwrap userInfoReferences).preferencesReference
-  
-  case (unwrap userPreferences).automaticLock of
-    Right n -> liftEffect (activateTimer n)
-    Left  _ -> pure unit
-
-  -- TODO REMOVE
-  ExceptT $ updateAppState { 
-    sessionKey:         Just sessionKey
-  , userInfoReferences: Just userInfoReferences 
-  , userPreferences:    Just userPreferences
-  , masterKey:          Just masterKey 
-  , username:           Just username
-  , password:           Just password
-  , s:                  Just s
-  , c:                  Just c
-  , p:                  Just p
-  }
-  -- -----------
-
-  pure $ ProxyResponse newProxy'' { userInfoReferences: Just userInfoReferences 
-                                  , userPreferences:    Just userPreferences
-                                  , masterKey:          Just masterKey 
-                                  , username:           Just username
-                                  , password:           Just password
-                                  , s:                  Just s
-                                  , c:                  Just c
-                                  , p:                  Just p
-                                  }

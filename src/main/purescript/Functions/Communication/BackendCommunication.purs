@@ -43,7 +43,7 @@ import Data.Show (show)
 import Data.String.Common (joinWith, split)
 import Data.String.Pattern (Pattern(..))
 import Data.Time.Duration (Milliseconds(..))
-import Data.Tuple (Tuple(..), fst)
+import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
 import Data.Unit (unit, Unit)
 import DataModel.AppState as AS
@@ -279,6 +279,6 @@ offlineLoginStep2 (RequestUserCard r) m1' { b: mb, bb: mbb, aa: maa } = do
   check   <- liftAff $ SRP.checkM1 srpConf r.c r.s aa bb kk m1
   if check then do
     m2 <- liftAff $ fromArrayBuffer <$> (SRP.prepareM2 srpConf aa m1 kk)
-    pure $ Just { m2, encUserInfoReferences: fst r.masterKey }
+    pure $ Just { m2, masterKey: r.masterKey }
   else pure Nothing
   

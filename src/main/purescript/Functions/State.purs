@@ -114,6 +114,7 @@ computeInitialStatelessState = do
                 , masterKey: Nothing
                 , userInfoReferences: Nothing 
                 , userPreferences: Nothing
+                , index: Nothing
                 }
 resetState :: Aff Unit
 resetState = do

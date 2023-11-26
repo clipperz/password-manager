@@ -41,7 +41,7 @@ object SRPStep2Data:
   implicit val decoder: JsonDecoder[SRPStep2Data] = DeriveJsonDecoder.gen[SRPStep2Data]
   implicit val encoder: JsonEncoder[SRPStep2Data] = DeriveJsonEncoder.gen[SRPStep2Data]
 
-case class SRPStep2Response(m2: HexString, encUserInfoReferences: HexString)
+case class SRPStep2Response(m2: HexString, masterKey: (HexString, String))
 object SRPStep2Response:
   implicit val decoder: JsonDecoder[SRPStep2Response] = DeriveJsonDecoder.gen[SRPStep2Response]
   implicit val encoder: JsonEncoder[SRPStep2Response] = DeriveJsonEncoder.gen[SRPStep2Response]
@@ -109,7 +109,7 @@ object SrpManager:
             user: RemoteUserCard <- zioUser
             kk: Array[Byte] <- zioK
             m2: Array[Byte] <- srpFunctions.computeM2(aa.toByteArray, step2Data.m1.toByteArray, kk)
-            result <- ZIO.succeed((SRPStep2Response(bytesToHex(m2), user.masterKey(0)), session)) // TODO: what to put in session context
+            result <- ZIO.succeed((SRPStep2Response(bytesToHex(m2), user.masterKey), session)) // TODO: what to put in session context
           } yield result
         else ZIO.fail(new BadRequestException(s"M1 is not correct => M1 SERVER ${bytesToHex(m1)} != M1 CLIENT ${step2Data.m1}"))
       }
