@@ -15,16 +15,13 @@ import Data.Ord ((<))
 import Data.Show (class Show, show)
 import Data.String (length)
 import DataModel.AppState (ProxyConnectionStatus(..))
-import DataModel.Card (Card)
 import DataModel.Credentials (Credentials, emptyCredentials)
 import DataModel.Index (Index, emptyIndex)
-import DataModel.WidgetState as WS
 import Effect.Class (liftEffect)
 import Functions.Communication.StatelessOneTimeShare (PIN)
 import Functions.EnvironmentalVariables (currentCommit)
-import OperationalWidgets.CardsManagerWidget (cardsManagerWidget)
 import OperationalWidgets.UserAreaWidget (userAreaWidget)
-import Views.CardsManagerView (CardView(..))
+import Views.CardsManagerView (CardManagerEvent, CardsManagerState, cardsManagerInitialState, cardsManagerView)
 import Views.Components (footerComponent)
 import Views.LoginFormView (credentialLoginWidget, pinLoginWidget)
 import Views.OverlayView (OverlayInfo, overlay)
@@ -58,9 +55,6 @@ data PageEvent        = LoginPageEvent  LoginPageEvent
                       | CardManagerEvent CardManagerEvent
                       | UserAreaEvent UserAreaEvent
 
-data CardManagerEvent = AddCardEvent Card
-                      | DeleteCardEvent -- ??
-                      | EditCardEvent -- ??
 data UserAreaEvent    = UpdateUserPreferencesEvent -- ??
                       | ChangePasswordEvent -- ??
                       | SetPinEvent -- ??
@@ -68,19 +62,20 @@ data UserAreaEvent    = UpdateUserPreferencesEvent -- ??
                       | ImportCardsEvent -- List Card ??
                       | ExportJsonEvent -- ??
                       | ExportOfflineCopyEvent -- ??
+                      | CloseUserArea CardsManagerState
                       | LockEvent
                       | LogoutEvent
 
 data Page = Loading (Maybe Page) | Login LoginFormData | Signup SignupDataForm | Share (Maybe SharedCardReference) | Main MainPageWidgetState
 
 type MainPageWidgetState = {
-  index        :: Index
-, cardToAdd    :: Maybe Card
-, showUserArea :: Boolean
+  index             :: Index
+, showUserArea      :: Boolean
+, cardsManagerState :: CardsManagerState
 }
 
 emptyMainPageWidgetState :: MainPageWidgetState
-emptyMainPageWidgetState = { index: emptyIndex, cardToAdd: Nothing, showUserArea: false }
+emptyMainPageWidgetState = { index: emptyIndex, showUserArea: false, cardsManagerState: cardsManagerInitialState }
 
 data WidgetState = WidgetState OverlayInfo Page
 
@@ -107,13 +102,13 @@ appView (WidgetState overlayInfo page) =
         (either GoToLoginEvent SignupEvent <$> (signupFormView credentials)) 
       ]
     , div [Props.classList (Just <$> ["page", "main", show $ location (Main emptyMainPageWidgetState) page])] [ do
-        let {index, cardToAdd, showUserArea} = case page of
+        let {index, showUserArea, cardsManagerState} = case page of
                                         Main homePageWidgetState' -> homePageWidgetState'
                                         _                         -> emptyMainPageWidgetState
         
         div [Props._id "homePage"] [
-          CardManagerEvent EditCardEvent <$ cardsManagerWidget ProxyOnline index cardToAdd { cardView: NoCard, cardViewState: WS.Default }
-        , UserAreaEvent    LogoutEvent   <$ userAreaWidget (not showUserArea) ProxyOnline
+          CardManagerEvent <$> cardsManagerView cardsManagerState index
+        , (UserAreaEvent $ CloseUserArea cardsManagerState) <$ userAreaWidget (not showUserArea) ProxyOnline
         ]
          
       ]
