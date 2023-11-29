@@ -7,7 +7,8 @@ import Concur.React.Props as Props
 import Control.Alt (($>), (<#>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
-import Data.Array (any, elem, nub, null, sort, (:))
+import Control.Category (identity, (<<<), (>>>))
+import Data.Array (any, elem, fromFoldable, nub, null, sort, (:))
 import Data.Eq (class Eq, (==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
@@ -16,35 +17,37 @@ import Data.Int (toNumber)
 import Data.List (List, fold, length)
 import Data.List as List
 import Data.Maybe (Maybe(..))
-import Data.Ord ((<))
+import Data.Ord (compare, (<))
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String (Pattern(..), contains, toLower)
-import DataModel.Card (Card)
+import DataModel.AppState (ProxyConnectionStatus(..))
+import DataModel.Card (Card, emptyCard)
 import DataModel.Index (CardEntry(..), Index(..))
 import Effect.Console (debug)
 import OperationalWidgets.CreateCardWidget (CardFormInput(..))
+import Views.CardViews (cardView)
 import Views.SimpleWebComponents (simpleButton, simpleTextInputWidgetWithFocus)
 
 
 data CardManagerEvent = AddCardEvent Card
                       | DeleteCardEvent -- ??
                       | EditCardEvent -- ??
-                      | OpenCardView CardEntry
-                      | OpenUserArea CardsManagerState
+                      | OpenCardViewEvent CardEntry
+                      | OpenUserAreaEvent CardsManagerState
 
 data CardView = NoCard | CardFromReference CardEntry | JustCard Card | CardForm CardFormInput
 
 type CardsManagerState = { 
-  filterData            :: FilterData
-, selectedIndexPosition :: Maybe Int
-, cardView              :: CardView
+  filterData    :: FilterData
+, selectedEntry :: Maybe CardEntry
+, cardView      :: CardView
 }
 
 cardsManagerInitialState :: CardsManagerState
 cardsManagerInitialState = {
   filterData: initialFilterData
-, selectedIndexPosition: Nothing
+, selectedEntry: Nothing
 , cardView: NoCard
 }
 
@@ -57,7 +60,7 @@ getClassNameFromFilterStatus status = case status of
 
 
 cardsManagerView :: CardsManagerState -> Index -> Widget HTML CardManagerEvent
-cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}} index = do
+cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selectedEntry} index = do
   res <- div [Props._id "cardsManager", Props.className $ "filterView_" <> getClassNameFromFilterStatus filterViewStatus] [
     indexFilterView filterData index <#> updateFilterData
   , div [Props.className "cardToolbarFrame"] [
@@ -66,19 +69,11 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}} index
         div [Props._id "indexView"] [
           toolbarHeader "cardList"
         , div [Props.className "addCard"] [simpleButton "addCard" "add card" false (updateCardView (CardForm $ NewCard Nothing))]
-        -- , (CardViewAction <<< ShowCard) <$> indexView index cEntry cif -- TODO:
+        , indexView index selectedEntry filter <#> (CardManagerEvent <<< OpenCardViewEvent)
         ]
-    --   , div [Props._id "card"] [
-    --       case cvs of
-    --       { cardView: CardForm (ModifyCard card),     cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ createCardView card      allSortedTags false cardViewState
-    --       { cardView: CardForm (NewCard (Just card)), cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ createCardView card      allSortedTags false cardViewState
-    --       { cardView: CardForm (NewCard Nothing),     cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate Nothing)     <$ createCardView emptyCard allSortedTags false cardViewState
-    --       { cardView: CardForm card,                  cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> createCardWidget card allSortedTags cardViewState
-    --       { cardView: CardFromReference ref,          cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> cardWidget ref allSortedTags cardViewState
-    --       { cardView: JustCard card,                  cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ (div [] [loadingDiv, cardView card proxyConnectionStatus])
-    --       { cardView: JustCard card,                  cardViewState: _       } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ cardView card proxyConnectionStatus
-    --       { cardView: NoCard       ,                  cardViewState: _       } -> div [] []
-    --     ]
+      , div [Props._id "card"] [
+          StateUpdate state <$ cardView emptyCard ProxyOnline
+        ]
       ]
     ]
   ]
@@ -107,7 +102,7 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}} index
     toolbarHeader className = header [Props.className className] [
       div [Props.className "tags"] [button [Props.onClick] [text "tags"]] $> updateFilterData (filterData {filterViewStatus = FilterViewOpen})
     , div [Props.className "selection"] [getFilterHeader filter]
-    , (CardManagerEvent $ OpenUserArea state) <$ div [Props.className "menu"] [button [Props.onClick] [text "menu"]]
+    , (CardManagerEvent $ OpenUserAreaEvent state) <$ div [Props.className "menu"] [button [Props.onClick] [text "menu"]]
     ]
 
 numberOfRecent :: Int
@@ -190,33 +185,43 @@ indexFilterView filterData@{archived, filter, searchString} (Index entries) = di
     filterCardsNumber :: Filter -> Number
     filterCardsNumber filter' = toNumber $
       case filter' of
-        Search searchString'  -> length if searchString' == ""
-                                        then shownEntries
-                                        else List.filter (\(CardEntry entry) -> any (contains (Pattern (toLower searchString'))) (toLower <$> (entry.title : entry.tags))) shownEntries -- TODO: may be improved with a proper information retrieval system [fsolaroli - 27/11/2023]
-        Tag    tag'           -> length $    List.filter (\(CardEntry entry) -> elem tag' entry.tags)                                                                      shownEntries
-        Untagged              -> length $    List.filter (\(CardEntry entry) -> null      entry.tags)                                                                      shownEntries
-        All                   -> length                                                                                                                                    shownEntries
         Recent                -> min numberOfRecent (length shownEntries)
-    
+        filter_               -> length (filteredEntries filter_ shownEntries)
+
     min :: Int -> Int -> Int
     min n n' = if n < n' then n else n'
 
--- ================================================================== --TODO: implement [fsolaroli - 28/11/2023]
+-- ==================================================================
 
--- indexView' :: Index -> Maybe CardEntry -> ComplexIndexFilter -> Widget HTML CardEntry
--- indexView' (Index cards) mCe complexIndexFilter = do
---   let info = { allLastUses: (\(CardEntry r) -> r.lastUsed) <$> cards } 
---   let sortedCards = fromFoldable $ filter (complexToFilterFunc info complexIndexFilter) $ sort cards :: Array CardEntry
---   ol []
---     ((\entry@(CardEntry { title, archived }) -> 
---       case mCe of
---         Nothing -> clickableListItemWidget false (text title) (if archived then ["archived"] else []) entry
---         Just ce -> let selectedClass = if ce == entry then ["selected"] else [] 
---                     in clickableListItemWidget false (text title) (selectedClass <> (if archived then ["archived"] else [])) entry
---      ) <$> sortedCards)
+filteredEntries :: Filter -> List CardEntry -> List CardEntry
+filteredEntries filter = case filter of
+  Search searchString'  -> if searchString' == ""
+                                  then identity
+                                  else List.filter (\(CardEntry entry) -> any (contains (Pattern (toLower searchString'))) (toLower <$> (entry.title : entry.tags))) -- TODO: may be improved with a proper information retrieval system [fsolaroli - 27/11/2023]
+  Tag    tag'           ->             List.filter (\(CardEntry entry) -> elem tag' entry.tags)                                                                     
+  Untagged              ->             List.filter (\(CardEntry entry) -> null      entry.tags)                                                                     
+  Recent                ->             List.sortBy (\(CardEntry e1) (CardEntry e2) -> compare e1.lastUsed e2.lastUsed) >>> List.takeEnd numberOfRecent
+  All                   ->             identity                                                                                                                                   
+
+indexView :: Index -> Maybe CardEntry -> Filter -> Widget HTML CardEntry
+indexView (Index entries) selectedEntry filter = ol [] (
+  (fromFoldable sortedCards) <#> (\cardEntry@(CardEntry { title, archived }) -> 
+    li [Props.classList [archivedClass archived, selectedClass cardEntry], cardEntry <$ Props.onClick] [
+      text title
+    ]
+  )
+) 
+
+  where
+    sortedCards = List.sort $ filteredEntries filter entries
+    archivedClass archived = if archived                    then Just "archived" else Nothing
+    selectedClass entry    = if selectedEntry == Just entry then Just "selected" else Nothing
+
 
 -- ================================================================== --TODO: implement [fsolaroli - 28/11/2023]
 
 -- mainStageView
+
+-- createCardView emptyCard [] false WidgetState.Default <#> (maybe (updateCardView NoCard) (CardManagerEvent <<< AddCardEvent))
 
 -- ==================================================================

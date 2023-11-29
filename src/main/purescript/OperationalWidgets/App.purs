@@ -3,7 +3,7 @@ module OperationalWidgets.App ( app ) where
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Control.Alt ((<|>))
-import Control.Alternative ((*>))
+import Control.Alternative ((*>), (<*))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (=<<), (>>=))
 import Control.Category ((<<<))
@@ -31,6 +31,7 @@ import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState)
 import Effect.Aff (Aff, delay)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
+import Effect.Class.Console (debug)
 import Functions.Communication.Login (PrepareLoginResult, loginStep1, loginStep2, prepareLogin)
 import Functions.Communication.Signup (signupUser)
 import Functions.Communication.Users (getStatelessIndex, getStatelessUserPreferences)
@@ -148,14 +149,25 @@ handleLoginPageEvent (GoToCredentialLoginEvent username) state _ = doNothing (Tu
 -- ============ HANDLE CARD MANAGER EVENTS ============
 
 handleCardManagerEvent :: CardManagerEvent -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState
-handleCardManagerEvent (OpenUserArea cardsManagerState) state@{index} _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main { index: fromMaybe emptyIndex index, showUserArea: true, cardsManagerState })))
-handleCardManagerEvent _ state _ = doNothing (Tuple state (WidgetState { status: Hidden , message: "" } (Login emptyLoginFormData))) --TODO
+handleCardManagerEvent (OpenUserAreaEvent cardsManagerState) state@{index} _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main { index: fromMaybe emptyIndex index, showUserArea: true, cardsManagerState })))
+handleCardManagerEvent (AddCardEvent _)                      state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "AddCardEvent")      --TODO: implement [fsolaroli - 29/11/2023]
+handleCardManagerEvent (DeleteCardEvent)                     state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "DeleteCardEvent")   --TODO: implement [fsolaroli - 29/11/2023]
+handleCardManagerEvent (EditCardEvent)                       state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "EditCardEvent")     --TODO: implement [fsolaroli - 29/11/2023]
+handleCardManagerEvent (OpenCardViewEvent _)                 state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "OpenCardViewEvent") --TODO: implement [fsolaroli - 29/11/2023]
 
 -- ============ HANDLE USER AREA EVENTS ============
 
 handleUserAreaEvent :: UserAreaEvent -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState
 handleUserAreaEvent (CloseUserArea cardsManagerState) state@{index} _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main { index: fromMaybe emptyIndex index, showUserArea: false, cardsManagerState })))
-handleUserAreaEvent _ state _ = doNothing (Tuple state (WidgetState { status: Hidden , message: "" } (Login emptyLoginFormData))) --TODO
+handleUserAreaEvent (UpdateUserPreferencesEvent)      state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "UpdateUserPreferencesEvent") --TODO: implement [fsolaroli - 29/11/2023]
+handleUserAreaEvent (ChangePasswordEvent)             state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "ChangePasswordEvent")        --TODO: implement [fsolaroli - 29/11/2023]
+handleUserAreaEvent (SetPinEvent)                     state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "SetPinEvent")                --TODO: implement [fsolaroli - 29/11/2023]
+handleUserAreaEvent (DeleteAccountEvent)              state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "DeleteAccountEvent")         --TODO: implement [fsolaroli - 29/11/2023]
+handleUserAreaEvent (ImportCardsEvent)                state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "ImportCardsEvent")           --TODO: implement [fsolaroli - 29/11/2023]
+handleUserAreaEvent (ExportJsonEvent)                 state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "ExportJsonEvent")            --TODO: implement [fsolaroli - 29/11/2023]
+handleUserAreaEvent (ExportOfflineCopyEvent)          state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "ExportOfflineCopyEvent")     --TODO: implement [fsolaroli - 29/11/2023]
+handleUserAreaEvent (LockEvent)                       state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "LockEvent")                  --TODO: implement [fsolaroli - 29/11/2023]
+handleUserAreaEvent (LogoutEvent)                     state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "LogoutEvent")                --TODO: implement [fsolaroli - 29/11/2023]
 
 -- ============
 
