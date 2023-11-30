@@ -44,6 +44,7 @@ credentialLoginWidget formData = do
             , Props.placeholder "username"
             , Props.autoComplete "off", Props.autoCorrect "off", Props.autoCapitalize "off", Props.spellCheck false
             , Props.value v
+            , Props.autoFocus true
             , Props.disabled false
             , Props.onChange
             ]
