@@ -23,6 +23,7 @@ import DataModel.Card (Card)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardReference(..), CardEntry(..), createCardEntry)
 import DataModel.SRP (hashFuncSHA256)
+import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -30,7 +31,7 @@ import Functions.Card (getCardContent)
 import Functions.CardsCache (addCardToCache, getCardFromCache, removeCardFromCache)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
 import Functions.Communication.BlobFromArrayBuffer (blobFromArrayBuffer)
-import Functions.Communication.Blobs (postBlob, getBlob)
+import Functions.Communication.Blobs (getBlob, postBlob, postStatelessBlob)
 import Functions.EncodeDecode (encryptJson)
 import Web.XHR.FormData (EntryName(..), FileName(..), appendBlob, new)
 
@@ -63,16 +64,21 @@ deleteCard cardReference@(CardReference { reference, key }) = do
       pure response.body
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
 
-postCard :: Card -> ExceptT AppError Aff CardEntry
-postCard card = do
+postCardWithState :: Card -> ExceptT AppError Aff CardEntry
+postCardWithState card = do
   key <- liftAff $ KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
-  Tuple encryptedCard cardEntry <- liftAff $ createCardEntry card key hashFuncSHA256
-  case cardEntry of
-    CardEntry { title: _
-              , cardReference: (CardReference { reference, key: _ })
-              , archived: _
-              , tags: _
-              } -> do
-      _ <- postBlob encryptedCard (toArrayBuffer reference)
-      addCardToCache reference card
-      pure cardEntry
+  Tuple encryptedCard cardEntry@(CardEntry {cardReference: CardReference {reference}}) <- liftAff $ createCardEntry card key hashFuncSHA256
+  _ <- postBlob encryptedCard (toArrayBuffer reference)
+  addCardToCache reference card
+  pure cardEntry
+
+postCard :: StatelessAppState -> Card -> ExceptT AppError Aff (ProxyResponse CardEntry)
+postCard {proxy, hash} card = do
+  key <- liftAff $ KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
+  Tuple encryptedCard cardEntry@(CardEntry {cardReference: CardReference {reference}}) <- liftAff $ createCardEntry card key hashFuncSHA256
+  ProxyResponse proxy' _ <- postStatelessBlob {proxy, hashFunc: hash} encryptedCard (toArrayBuffer reference)
+  addCardToCache reference card
+  pure $ ProxyResponse proxy' cardEntry
+
+
+

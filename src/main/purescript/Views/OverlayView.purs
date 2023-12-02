@@ -18,6 +18,9 @@ type OverlayInfo = { status :: OverlayStatus, message :: String }
 hiddenOverlayInfo :: OverlayInfo
 hiddenOverlayInfo = { status: Hidden, message: "" }
 
+spinnerOverlay :: String -> OverlayInfo
+spinnerOverlay message = { status: Spinner, message }
+
 overlay :: forall a. OverlayInfo -> Widget HTML a
 overlay info =
   div [Props.classList (Just <$> ["overlay", visibility])] [

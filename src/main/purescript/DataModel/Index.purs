@@ -3,15 +3,17 @@ module DataModel.Index where
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Crypto.Subtle.Key.Types (exportKey, raw, CryptoKey)
-import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
+import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Bifunctor (rmap)
-import Data.Eq (class Eq, eq)
+import Data.Eq (class Eq, eq, (/=))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
+import Data.List (filter)
 import Data.List.Types (List(..), (:))
+import Data.Newtype (class Newtype, unwrap)
 import Data.Ord (class Ord, compare)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
@@ -35,6 +37,8 @@ newtype CardReference =
     , key :: HexString
     , cardVersion :: String
     }
+
+derive instance newtypeCardReference :: Newtype CardReference _
 
 instance showCardReference :: Show CardReference where
   show (CardReference record) = show record
@@ -81,6 +85,8 @@ instance encodeJsonCardEntry :: EncodeJson CardEntry where
 instance decodeJsonCardEntry :: DecodeJson CardEntry where
   decodeJson json = rmap (\record -> CardEntry record) (decodeJson json)
 
+derive instance newtypeCardEntry :: Newtype CardEntry _
+
 -- --------------------------------------------
 
 emptyIndex :: Index
@@ -94,6 +100,12 @@ instance encodeJsonIndex :: EncodeJson Index where
 
 instance decodeJsonIndex :: DecodeJson Index where
   decodeJson json = rmap (\list -> Index list) (decodeJson json)
+
+addToIndex :: Index -> CardEntry -> Index
+addToIndex (Index list) cardEntry = Index (cardEntry : list) 
+
+updateInIndex :: Index -> CardEntry -> CardEntry -> Index
+updateInIndex (Index list) oldEntry newEntry = Index (newEntry : filter (\(CardEntry { cardReference }) -> cardReference /= (unwrap oldEntry).cardReference) list)
 
 -- --------------------------------------------
 

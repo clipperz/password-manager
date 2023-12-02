@@ -34,8 +34,8 @@ import DataModel.Card (Card(..), CardValues(..), CardField(..))
 import DataModel.Index (Index(..), CardEntry(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Functions.Communication.Cards (postCard, deleteCard)
-import Functions.Communication.Users (updateIndex, getIndex)
+import Functions.Communication.Cards (postCardWithState, deleteCard)
+import Functions.Communication.Users (updateIndexWithState, getIndex)
 import Functions.Events (readFileFromDrop)
 import Functions.Import (decodeImport, parseHTMLImport, decodeHTML)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate)
@@ -91,7 +91,7 @@ importWidget = do
                               Left  _  -> pure prevRes
                               Right es -> do
                                 res :: Either AppError (List CardEntry) <- liftAff $ runExceptT $ do
-                                  newEntry <- postCard c
+                                  newEntry <- postCardWithState c
                                   pure $ Cons newEntry es
                                 case res of
                                   Right newEs -> pure $ Right newEs
@@ -103,7 +103,7 @@ importWidget = do
                                                 pure $ Left err
                                               Right es -> liftAff $ runExceptT $ do
                                                 let newIndex = Index (entries <> es)
-                                                _ <- updateIndex newIndex
+                                                _ <- updateIndexWithState newIndex
                                                 pure newIndex
                               ) (form [] [h1 [] [text "Import"], text "Saving index"])
       let funcs = saveCardFunc <$> cards

@@ -1,7 +1,7 @@
 module DataModel.Card where
 
-import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
+import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Bifunctor (rmap)
 import Data.Eq (class Eq, eq)
 import Data.List.Types (List(..))
@@ -95,16 +95,21 @@ emptyCard = Card { timestamp: 0.0
                                               , notes: ""
                                               }
                     }
-    
-card0 :: CardValues
-card0 = CardValues { title: "Mail account (SAMPLE)"
+
+card0 :: Card
+card0 = Card { timestamp: 0.0 , archived: false, secrets: [], content: cardValues0 }
+card1 :: Card
+card1 = Card { timestamp: 0.0 , archived: false, secrets: [], content: cardValues1 }
+
+cardValues0 :: CardValues
+cardValues0 = CardValues { title: "Mail account (SAMPLE)"
                       , tags: ["mail", "sample"]
                       , fields: [ (CardField {name: "username", value: "sample@mail.com", locked: false, settings: Nothing})
                                 , (CardField {name: "password", value: "i3k^{flhadhse93na[{%oq[;6-", locked: true, settings: Nothing})]
                       , notes: "Mail account notes"}
 
-card1 :: CardValues
-card1 = CardValues { title: "Bank account (SAMPLE)"
+cardValues1 :: CardValues
+cardValues1 = CardValues { title: "Bank account (SAMPLE)"
                       , tags: ["finance", "sample"]
                       , fields: [ (CardField {name: "IBAN", value: "DE89370400440532015007", locked: false, settings: Nothing})
                                 , (CardField {name: "password", value: "?)E%[9=GcgzaAftgP[LSEK7JJv", locked: true, settings: Nothing})

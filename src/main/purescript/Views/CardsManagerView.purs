@@ -4,7 +4,7 @@ import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.React.DOM (button, div, header, input, label, li, number, ol, span, text)
 import Concur.React.Props as Props
-import Control.Alt (($>), (<#>))
+import Control.Alt (class Functor, map, ($>), (<#>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Category (identity, (<<<), (>>>))
@@ -16,42 +16,45 @@ import Data.HeytingAlgebra ((||), (&&), not)
 import Data.Int (toNumber)
 import Data.List (List, fold, length)
 import Data.List as List
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), maybe)
 import Data.Ord (compare, (<))
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String (Pattern(..), contains, toLower)
-import DataModel.AppState (ProxyConnectionStatus(..))
+import DataModel.AppState as AppState
 import DataModel.Card (Card, emptyCard)
 import DataModel.Index (CardEntry(..), Index(..))
+import DataModel.WidgetState as WidgetState
 import Effect.Console (debug)
-import OperationalWidgets.CreateCardWidget (CardFormInput(..))
 import Views.CardViews (cardView)
+import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (simpleButton, simpleTextInputWidgetWithFocus)
 
+data CardFormInput = NewCard (Maybe Card) | ModifyCard Card
 
 data CardManagerEvent = AddCardEvent Card
                       | DeleteCardEvent -- ??
                       | EditCardEvent -- ??
-                      | OpenCardViewEvent CardEntry
+                      | OpenCardViewEvent CardsManagerState CardEntry
                       | OpenUserAreaEvent CardsManagerState
 
-data CardView = NoCard | CardFromReference CardEntry | JustCard Card | CardForm CardFormInput
+data CardViewState = NoCard | Card Card | CardForm CardFormInput
 
 type CardsManagerState = { 
   filterData    :: FilterData
 , selectedEntry :: Maybe CardEntry
-, cardView      :: CardView
+, cardViewState :: CardViewState
 }
 
 cardsManagerInitialState :: CardsManagerState
 cardsManagerInitialState = {
   filterData: initialFilterData
 , selectedEntry: Nothing
-, cardView: NoCard
+, cardViewState: NoCard
 }
 
-data CardsManagerInternalEvent = CardManagerEvent CardManagerEvent | StateUpdate CardsManagerState
+data CardsManagerInternalEvent a = StateUpdate a | CardManagerEvent CardManagerEvent
+derive instance functorCardsManagerInternalEvent :: Functor CardsManagerInternalEvent
 
 getClassNameFromFilterStatus :: FilterViewStatus -> String
 getClassNameFromFilterStatus status = case status of
@@ -60,19 +63,19 @@ getClassNameFromFilterStatus status = case status of
 
 
 cardsManagerView :: CardsManagerState -> Index -> Widget HTML CardManagerEvent
-cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selectedEntry} index = do
+cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selectedEntry, cardViewState} index@(Index list) = do
   res <- div [Props._id "cardsManager", Props.className $ "filterView_" <> getClassNameFromFilterStatus filterViewStatus] [
     indexFilterView filterData index <#> updateFilterData
   , div [Props.className "cardToolbarFrame"] [
       toolbarHeader "frame"
-    , div [Props._id "mainView"{-, Props.className $ getMainViewClassFromCardState cvs-}] [
+    , div [Props._id "mainView"] [
         div [Props._id "indexView"] [
           toolbarHeader "cardList"
-        , div [Props.className "addCard"] [simpleButton "addCard" "add card" false (updateCardView (CardForm $ NewCard Nothing))]
-        , indexView index selectedEntry filter <#> (CardManagerEvent <<< OpenCardViewEvent)
+        , div [Props.className "addCard"] [simpleButton "addCard" "add card" false (updateCardView <$> (StateUpdate $ CardForm $ NewCard Nothing))]
+        , indexView index selectedEntry filter <#> (CardManagerEvent <<< OpenCardViewEvent state)
         ]
       , div [Props._id "card"] [
-          StateUpdate state <$ cardView emptyCard ProxyOnline
+          map updateCardView <$> mainStageView cardViewState
         ]
       ]
     ]
@@ -83,11 +86,11 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selec
     StateUpdate      newState -> cardsManagerView newState index
 
   where
-    updateFilterData :: FilterData -> CardsManagerInternalEvent --TODO: are these `update` functions useless with lents? [fsolaroli - 28/11/2023]
+    updateFilterData :: FilterData -> (CardsManagerInternalEvent CardsManagerState) --TODO: are these `update` functions useless with lenses? [fsolaroli - 28/11/2023]
     updateFilterData filterData' = StateUpdate (state { filterData = filterData' })
 
-    updateCardView :: CardView -> CardsManagerInternalEvent
-    updateCardView cardView' = StateUpdate (state { cardView = cardView' })
+    updateCardView :: CardViewState -> CardsManagerState
+    updateCardView cardViewState' = (state { cardViewState = cardViewState' })
 
     getFilterHeader :: forall a. Filter -> Widget HTML a
     getFilterHeader f =
@@ -98,12 +101,29 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selec
         Untagged            -> text "untagged"
         All                 -> text "clipperz"
 
-    toolbarHeader :: String -> Widget HTML CardsManagerInternalEvent
+    toolbarHeader :: String -> Widget HTML (CardsManagerInternalEvent CardsManagerState)
     toolbarHeader className = header [Props.className className] [
       div [Props.className "tags"] [button [Props.onClick] [text "tags"]] $> updateFilterData (filterData {filterViewStatus = FilterViewOpen})
     , div [Props.className "selection"] [getFilterHeader filter]
     , (CardManagerEvent $ OpenUserAreaEvent state) <$ div [Props.className "menu"] [button [Props.onClick] [text "menu"]]
     ]
+
+    allTags :: Array String
+    allTags = nub $ fold $ (\(CardEntry entry) -> entry.tags) <$> fromFoldable list
+
+    mainStageView :: CardViewState -> Widget HTML (CardsManagerInternalEvent CardViewState)
+    mainStageView NoCard                   = div [] []
+    mainStageView (Card card)              = StateUpdate (CardForm $ ModifyCard card) <$ cardView card AppState.ProxyOnline
+    mainStageView (CardForm cardFormInput) = createCardView inputCard allTags WidgetState.Default <#> (maybe (StateUpdate viewCardStateUpdate) (CardManagerEvent <<< AddCardEvent))
+      where
+        inputCard = case cardFormInput of
+          NewCard   (Just card) -> card
+          NewCard    Nothing    -> emptyCard
+          ModifyCard card       -> card
+        
+        viewCardStateUpdate = case cardFormInput of
+          NewCard    _    -> NoCard
+          ModifyCard card -> Card card
 
 numberOfRecent :: Int
 numberOfRecent =  10
@@ -135,9 +155,9 @@ indexFilterView filterData@{archived, filter, searchString} (Index entries) = di
   , div [Props.className "content"] [
       div [Props.className "filter"] [
         ol [Props.className "defaultSets"] [
-          getFilterListElement All      "All"           ["allCards"]      (filter == All && searchString == "")
-        , getFilterListElement Recent   "Recent (TODO)" ["recentCards"]   (filter == Recent)
-        , getFilterListElement Untagged "Untagged"      ["untaggedCards"] (filter == Untagged)
+          getFilterListElement All      "All"      ["allCards"]      (filter == All && searchString == "")
+        , getFilterListElement Recent   "Recent"   ["recentCards"]   (filter == Recent)
+        , getFilterListElement Untagged "Untagged" ["untaggedCards"] (filter == Untagged)
         ] <#> updateFilter
       , div [Props._id "searchForm", Props.classList [searchFormClassName]] [
           simpleTextInputWidgetWithFocus "search" (text "search") "search" searchString
@@ -220,8 +240,5 @@ indexView (Index entries) selectedEntry filter = ol [] (
 
 -- ================================================================== --TODO: implement [fsolaroli - 28/11/2023]
 
--- mainStageView
-
--- createCardView emptyCard [] false WidgetState.Default <#> (maybe (updateCardView NoCard) (CardManagerEvent <<< AddCardEvent))
 
 -- ==================================================================

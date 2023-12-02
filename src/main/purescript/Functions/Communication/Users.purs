@@ -28,16 +28,16 @@ import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index)
-import DataModel.StatelessAppState (ProxyResponse(..))
+import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState)
 import DataModel.User (IndexReference(..), MasterKey, MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard(..), UserInfoReferences(..), UserPreferences, UserPreferencesReference(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
-import Functions.Communication.Blobs (deleteBlob, getBlob, getDecryptedBlob, getStatelessBlob, getStatelessDecryptedBlob, postBlob)
+import Functions.Communication.Blobs (deleteBlob, deletePostlessBlob, getBlob, getDecryptedBlob, getStatelessBlob, getStatelessDecryptedBlob, postBlob, postStatelessBlob)
 import Functions.Communication.StatelessBackend (ConnectionState)
 import Functions.Communication.StatelessBackend as Stateless
-import Functions.EncodeDecode (encryptJson)
+import Functions.EncodeDecode (cryptoKeyAES, encryptJson)
 import Functions.Index (getIndexContent)
 import Functions.JSState (getAppState, updateAppState)
 import Functions.SRP (prepareV)
@@ -81,8 +81,9 @@ getRemoteUserCard = do
       pure $ RequestUserCard { c, v, s, srpVersion: V_6a, originMasterKey: Nothing, masterKey }
     _ -> throwError $ InvalidStateError (MissingValue "c, s or masterKey are Nothing")
   
-updateUserCard :: HexString -> UserCard -> ExceptT AppError Aff Unit
-updateUserCard c newUserCard@(UserCard userCardRecord) = do
+-- TODO REMOVE
+updateUserCardWithState :: HexString -> UserCard -> ExceptT AppError Aff Unit
+updateUserCardWithState c newUserCard@(UserCard userCardRecord) = do
   let url = joinWith "/" ["users", toString Hex c]
   let body = (json $ encodeJson newUserCard) :: RequestBody
   response <- manageGenericRequest url PATCH (Just body) RF.string
@@ -90,6 +91,16 @@ updateUserCard c newUserCard@(UserCard userCardRecord) = do
     then do
       ExceptT $ updateAppState { masterKey: Just userCardRecord.masterKey }
       pure unit
+    else throwError (ProtocolError $ ResponseError $ unwrap response.status)
+-- ------------
+
+updateUserCard :: ConnectionState -> HexString -> UserCard -> ExceptT AppError Aff (ProxyResponse Unit)
+updateUserCard connectionState c newUserCard = do
+  let url = joinWith "/" ["users", toString Hex c]
+  let body = (json $ encodeJson newUserCard) :: RequestBody
+  ProxyResponse proxy' response <- Stateless.manageGenericRequest connectionState url PATCH (Just body) RF.string
+  if isStatusCodeOk response.status
+    then pure $ ProxyResponse proxy' unit
     else throwError (ProtocolError $ ResponseError $ unwrap response.status)
 
 deleteUserCard :: HexString -> ExceptT AppError Aff Unit
@@ -132,8 +143,9 @@ getStatelessUserPreferences connectionState (UserPreferencesReference { referenc
   cryptoKey :: CryptoKey <- liftAff $ KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   getStatelessDecryptedBlob connectionState reference cryptoKey
 
-updateIndex :: Index -> ExceptT AppError Aff Unit
-updateIndex newIndex = do
+-- TODO REMOVE
+updateIndexWithState :: Index -> ExceptT AppError Aff Unit
+updateIndexWithState newIndex = do
   currentState <- ExceptT $ liftEffect getAppState
   case currentState of
     { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) })  } -> do
@@ -149,13 +161,37 @@ updateIndex newIndex = do
       masterKeyContent     :: HexString <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newInfoReference
       originMasterKey      :: MasterKey <- getMasterKey c
       let newUserCard       = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
-      _ <- updateUserCard c newUserCard
+      _ <- updateUserCardWithState c newUserCard
       -- -------------------
       _ <- deleteBlob oldReference.reference -- TODO: manage errors
       
       ExceptT $ updateAppState { userInfoReferences: Just newInfoReference}
     
     _ -> throwError $ InvalidStateError (MissingValue "Missing p, c or indexReference")
+-- ------------
+
+updateIndex :: StatelessAppState -> Index -> ExceptT AppError Aff (ProxyResponse Unit)
+
+updateIndex { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) }), masterKey: Just originMasterKey, proxy, hash: hashFunc } newIndex = do
+  cryptoKey            :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer oldReference.masterKey)
+  indexCardContent     :: ArrayBuffer <- liftAff $ encryptJson cryptoKey newIndex
+  indexCardContentHash :: ArrayBuffer <- liftAff $ hashFunc (indexCardContent : Nil)
+  ProxyResponse proxy'   _            <- postStatelessBlob {proxy, hashFunc} indexCardContent indexCardContentHash
+  -- -------------------
+  let newIndexReference                = IndexReference $ oldReference { reference = fromArrayBuffer indexCardContentHash }
+  let newInfoReference                 = UserInfoReferences r { indexReference = newIndexReference }
+  masterPassword       :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer p)
+  masterKeyContent     :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newInfoReference
+  let newUserCard                      = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
+  ProxyResponse proxy''  _            <- updateUserCard {proxy: proxy', hashFunc} c newUserCard
+  -- -------------------
+  ProxyResponse proxy''' _            <- deletePostlessBlob {proxy: proxy'', hashFunc} oldReference.reference
+  
+  pure $ ProxyResponse proxy''' unit
+
+updateIndex _ _ = 
+  throwError $ InvalidStateError (MissingValue "Missing p, c or indexReference")
+
 
 updateUserPreferences :: UserPreferences -> ExceptT AppError Aff Unit
 updateUserPreferences newUP = do
@@ -174,7 +210,7 @@ updateUserPreferences newUP = do
       masterKeyContent    :: HexString <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newInfoReference
       originMasterKey     :: MasterKey <- getMasterKey c
       let newUserCard      = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
-      _ <- updateUserCard c newUserCard
+      _ <- updateUserCardWithState c newUserCard
       -- -------------------
       _ <- deleteBlob reference
 

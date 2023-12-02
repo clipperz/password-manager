@@ -15,6 +15,7 @@ import Data.Function ((#), ($))
 import Data.Functor ((<$))
 import Data.HexString (toArrayBuffer)
 import Data.Int (fromString, toNumber)
+import Data.Map (insert, lookup)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Data.Ord ((<))
@@ -26,24 +27,26 @@ import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials, emptyCredentials)
 import DataModel.FragmentState as Fragment
-import DataModel.Index (emptyIndex)
+import DataModel.Index (CardEntry(..), addToIndex, emptyIndex)
 import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState)
 import Effect.Aff (Aff, delay)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Effect.Class.Console (debug)
+import Effect.Console (log)
+import Functions.Card (getCardContent)
+import Functions.Communication.Blobs (getStatelessBlob)
+import Functions.Communication.Cards (postCard)
 import Functions.Communication.Login (PrepareLoginResult, loginStep1, loginStep2, prepareLogin)
 import Functions.Communication.Signup (signupUser)
-import Functions.Communication.Users (getStatelessIndex, getStatelessUserPreferences)
+import Functions.Communication.Users (getStatelessIndex, getStatelessUserPreferences, updateIndex)
 import Functions.Pin (decryptPassphraseWithPin, deleteCredentials, makeKey)
 import Functions.SRP (checkM2)
 import Functions.Timer (activateTimer)
-import OperationalWidgets.CreateCardWidget (CardFormInput(..))
 import Record (merge)
 import Unsafe.Coerce (unsafeCoerce)
 import Views.AppView (LoginFormData, LoginPageEvent(..), LoginType(..), Page(..), PageEvent(..), SignupPageEvent(..), UserAreaEvent(..), WidgetState(..), appView, emptyLoginFormData, emptyMainPageWidgetState)
-import Views.CardsManagerView (CardManagerEvent(..), CardView(..), cardsManagerInitialState)
-import Views.OverlayView (OverlayStatus(..), hiddenOverlayInfo)
+import Views.CardsManagerView (CardFormInput(..), CardManagerEvent(..), CardViewState(..), cardsManagerInitialState)
+import Views.OverlayView (OverlayStatus(..), hiddenOverlayInfo, spinnerOverlay)
 import Views.SignupFormView (SignupDataForm, emptyDataForm)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
@@ -90,7 +93,7 @@ handleSignupPageEvent :: SignupPageEvent -> StatelessAppState -> Fragment.Fragme
 
 handleSignupPageEvent (SignupEvent cred) state@{proxy, hash, srpConf} fragmentState = 
   do
-    ProxyResponse newProxy signupResult <- runStep (signupUser proxy hash srpConf cred) (WidgetState { status: Spinner, message: "registering" } initialPage)
+    ProxyResponse newProxy signupResult <- runStep (signupUser proxy hash srpConf cred) (WidgetState (spinnerOverlay "registering") initialPage)
     res                                 <- loginSteps cred (state {proxy = newProxy}) fragmentState initialPage signupResult
     pure res
   
@@ -118,7 +121,7 @@ handleLoginPageEvent :: LoginPageEvent -> StatelessAppState -> Fragment.Fragment
 
 handleLoginPageEvent (LoginEvent cred) state@{proxy, srpConf} fragmentState =
   do
-    ProxyResponse proxy' prepareLoginResult <- runStep (prepareLogin proxy srpConf cred) (WidgetState { status: Spinner, message: "Prepare login" } initialPage)
+    ProxyResponse proxy' prepareLoginResult <- runStep (prepareLogin proxy srpConf cred) (WidgetState (spinnerOverlay "Prepare login") initialPage)
     res                                     <- loginSteps cred (state {proxy = proxy'}) fragmentState initialPage prepareLoginResult
     pure res
   
@@ -130,8 +133,8 @@ handleLoginPageEvent (LoginEvent cred) state@{proxy, srpConf} fragmentState =
 
 handleLoginPageEvent (LoginPinEvent pin) state@{proxy, hash, srpConf, username, pinEncryptedPassword} fragmentState = do
   do
-    cred                                    <- runStep (decryptPassphraseWithPin hash pin username pinEncryptedPassword) (WidgetState {status: Spinner, message: "Decrypt with PIN"} initialPage)
-    ProxyResponse proxy' prepareLoginResult <- runStep (prepareLogin proxy srpConf cred)                                 (WidgetState {status: Spinner, message: "Prepare login"   } initialPage)
+    cred                                    <- runStep (decryptPassphraseWithPin hash pin username pinEncryptedPassword) (WidgetState (spinnerOverlay "Decrypt with PIN") initialPage)
+    ProxyResponse proxy' prepareLoginResult <- runStep (prepareLogin proxy srpConf cred)                                 (WidgetState (spinnerOverlay "Prepare login"   ) initialPage)
     res                                     <- loginSteps cred (state {proxy = proxy'}) fragmentState initialPage prepareLoginResult
     pure res
   
@@ -149,25 +152,77 @@ handleLoginPageEvent (GoToCredentialLoginEvent username) state _ = doNothing (Tu
 -- ============ HANDLE CARD MANAGER EVENTS ============
 
 handleCardManagerEvent :: CardManagerEvent -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState
+
 handleCardManagerEvent (OpenUserAreaEvent cardsManagerState) state@{index} _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main { index: fromMaybe emptyIndex index, showUserArea: true, cardsManagerState })))
-handleCardManagerEvent (AddCardEvent _)                      state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "AddCardEvent")      --TODO: implement [fsolaroli - 29/11/2023]
-handleCardManagerEvent (DeleteCardEvent)                     state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "DeleteCardEvent")   --TODO: implement [fsolaroli - 29/11/2023]
-handleCardManagerEvent (EditCardEvent)                       state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "EditCardEvent")     --TODO: implement [fsolaroli - 29/11/2023]
-handleCardManagerEvent (OpenCardViewEvent _)                 state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "OpenCardViewEvent") --TODO: implement [fsolaroli - 29/11/2023]
+
+handleCardManagerEvent (OpenCardViewEvent cardsManagerState cardEntry@(CardEntry entry)) state@{proxy, hash, cardsCache, index} _ = 
+  do
+    index' <- except $ note (InvalidStateError $ CorruptedState "index not found") index
+    let cardFromCache = lookup reference cardsCache
+    case cardFromCache of
+      Just card -> pure (Tuple state (WidgetState hiddenOverlayInfo (Main {index: index', showUserArea: false, cardsManagerState: cardsManagerState {selectedEntry = (Just cardEntry), cardViewState = Card card}})))
+      Nothing   -> do
+        ProxyResponse proxy' blob <- runStep (getStatelessBlob {proxy, hashFunc: hash} reference) (WidgetState (spinnerOverlay "Get card")     (initialPage index'))  
+        card                      <- runStep (getCardContent blob (entry.cardReference))          (WidgetState (spinnerOverlay "Decrypt card") (initialPage index'))
+        pure (Tuple 
+                (state {proxy = proxy', cardsCache = insert reference card cardsCache})
+                (WidgetState hiddenOverlayInfo (Main {index: index', showUserArea: false, cardsManagerState: cardsManagerState {selectedEntry = (Just cardEntry), cardViewState = Card card}}))
+             )
+
+  # runExceptT
+  >>= handleOperationResult state errorPage
+
+  where
+    errorPage          = Login emptyLoginFormData
+    initialPage index' = Main { index: index', showUserArea: false, cardsManagerState}
+    
+    reference   = (unwrap entry.cardReference).reference
+
+
+handleCardManagerEvent (AddCardEvent card) state@{index} _ = 
+  do
+    index' <- except $ note (InvalidStateError $ CorruptedState "index not found") index
+    ProxyResponse proxy'  cardEntry <- runStep (postCard state card)                               (WidgetState (spinnerOverlay "Post card")    (initialPage index'))
+    let updatedIndex = addToIndex index' cardEntry
+    ProxyResponse proxy'' _         <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index") (initialPage index'))
+
+    pure $ Tuple (state {proxy = proxy'', index = Just updatedIndex}) (WidgetState hiddenOverlayInfo (finalPage updatedIndex cardEntry))
+
+  # runExceptT
+  >>= handleOperationResult state errorPage
+    
+    where
+      errorPage                    = Login emptyLoginFormData
+      initialPage index'           = Main { index: index', showUserArea: false, cardsManagerState: cardsManagerInitialState {cardViewState = CardForm $ NewCard $ Just card                                } }
+      finalPage   index' cardEntry = Main { index: index', showUserArea: false, cardsManagerState: cardsManagerInitialState {cardViewState = Card card                     , selectedEntry = Just cardEntry} }
+
+handleCardManagerEvent (DeleteCardEvent)                     state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "DeleteCardEvent")   --TODO: implement [fsolaroli - 29/11/2023]
+
+handleCardManagerEvent (EditCardEvent)                       state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "EditCardEvent")     --TODO: implement [fsolaroli - 29/11/2023]
 
 -- ============ HANDLE USER AREA EVENTS ============
 
 handleUserAreaEvent :: UserAreaEvent -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState
+
 handleUserAreaEvent (CloseUserArea cardsManagerState) state@{index} _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main { index: fromMaybe emptyIndex index, showUserArea: false, cardsManagerState })))
-handleUserAreaEvent (UpdateUserPreferencesEvent)      state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "UpdateUserPreferencesEvent") --TODO: implement [fsolaroli - 29/11/2023]
-handleUserAreaEvent (ChangePasswordEvent)             state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "ChangePasswordEvent")        --TODO: implement [fsolaroli - 29/11/2023]
-handleUserAreaEvent (SetPinEvent)                     state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "SetPinEvent")                --TODO: implement [fsolaroli - 29/11/2023]
-handleUserAreaEvent (DeleteAccountEvent)              state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "DeleteAccountEvent")         --TODO: implement [fsolaroli - 29/11/2023]
-handleUserAreaEvent (ImportCardsEvent)                state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "ImportCardsEvent")           --TODO: implement [fsolaroli - 29/11/2023]
-handleUserAreaEvent (ExportJsonEvent)                 state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "ExportJsonEvent")            --TODO: implement [fsolaroli - 29/11/2023]
-handleUserAreaEvent (ExportOfflineCopyEvent)          state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "ExportOfflineCopyEvent")     --TODO: implement [fsolaroli - 29/11/2023]
-handleUserAreaEvent (LockEvent)                       state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "LockEvent")                  --TODO: implement [fsolaroli - 29/11/2023]
-handleUserAreaEvent (LogoutEvent)                     state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (debug "LogoutEvent")                --TODO: implement [fsolaroli - 29/11/2023]
+
+handleUserAreaEvent (UpdateUserPreferencesEvent)      state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "UpdateUserPreferencesEvent") --TODO: implement [fsolaroli - 29/11/2023]
+
+handleUserAreaEvent (ChangePasswordEvent)             state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ChangePasswordEvent")        --TODO: implement [fsolaroli - 29/11/2023]
+
+handleUserAreaEvent (SetPinEvent)                     state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "SetPinEvent")                --TODO: implement [fsolaroli - 29/11/2023]
+
+handleUserAreaEvent (DeleteAccountEvent)              state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "DeleteAccountEvent")         --TODO: implement [fsolaroli - 29/11/2023]
+
+handleUserAreaEvent (ImportCardsEvent)                state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ImportCardsEvent")           --TODO: implement [fsolaroli - 29/11/2023]
+
+handleUserAreaEvent (ExportJsonEvent)                 state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ExportJsonEvent")            --TODO: implement [fsolaroli - 29/11/2023]
+
+handleUserAreaEvent (ExportOfflineCopyEvent)          state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ExportOfflineCopyEvent")     --TODO: implement [fsolaroli - 29/11/2023]
+
+handleUserAreaEvent (LockEvent)                       state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "LockEvent")                  --TODO: implement [fsolaroli - 29/11/2023]
+
+handleUserAreaEvent (LogoutEvent)                     state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "LogoutEvent")                --TODO: implement [fsolaroli - 29/11/2023]
 
 -- ============
 
@@ -209,11 +264,11 @@ loadHomePageSteps state@{hash: hashFunc, proxy, userInfoReferences: maybeUserInf
     Right n -> liftEffect (activateTimer n)
     Left  _ -> pure unit
 
-  let cardView = case fragmentState of
-                  Fragment.AddCard card -> CardForm (NewCard $ Just card)
-                  _                     -> NoCard
+  let cardViewState = case fragmentState of
+                        Fragment.AddCard card -> CardForm (NewCard $ Just card)
+                        _                     -> NoCard
 
-  pure $ Tuple (state {proxy = proxy'', index = Just index}) (WidgetState {status: Hidden, message: ""} (Main emptyMainPageWidgetState { index = index, cardsManagerState = cardsManagerInitialState { cardView = cardView } }))
+  pure $ Tuple (state {proxy = proxy'', index = Just index}) (WidgetState {status: Hidden, message: ""} (Main emptyMainPageWidgetState { index = index, cardsManagerState = cardsManagerInitialState { cardViewState = cardViewState } }))
 
 runStep :: forall a. ExceptT AppError Aff a -> WidgetState -> ExceptT AppError (Widget HTML) a
 -- runStep step widgetState = ExceptT $ ((step # runExceptT # liftAff) <* (liftAff $ delay (Milliseconds 1000.0))) <|> (defaultView widgetState)

@@ -62,6 +62,7 @@ getStatelessDecryptedBlob connectionState reference key = do
   decryptedBlob <- withExceptT (\e -> ProtocolError $ CryptoError $ "Get decrypted blob: " <> show e) (ExceptT $ decryptJson key blob)
   pure $ ProxyResponse proxy decryptedBlob
 
+-- TODO REMOVE
 postBlob :: ArrayBuffer -> ArrayBuffer -> ExceptT AppError Aff (AXW.Response String)
 postBlob blob hash = do
   let url = joinWith "/" ["blobs"]
@@ -71,7 +72,19 @@ postBlob blob hash = do
       pure $ formData
   )
   manageGenericRequest url POST (Just body) RF.string
+-- ------------
 
+postStatelessBlob :: ConnectionState -> ArrayBuffer -> ArrayBuffer -> ExceptT AppError Aff (ProxyResponse (AXW.Response String))
+postStatelessBlob connectionState blob hash = do
+  let url = joinWith "/" ["blobs"]
+  body <- formData <$> (liftEffect $ do
+      formData <- new
+      appendBlob (EntryName "blob") (blobFromArrayBuffer blob) (Just $ FileName (toString Hex (fromArrayBuffer hash))) formData
+      pure $ formData
+  )
+  Stateless.manageGenericRequest connectionState url POST (Just body) RF.string
+
+-- TODO REMOVE
 deleteBlob :: HexString -> ExceptT AppError Aff String
 deleteBlob reference = do
   let url = joinWith "/" ["blobs", toString Hex reference]
@@ -84,4 +97,19 @@ deleteBlob reference = do
   response <- manageGenericRequest url DELETE (Just body) RF.string
   if isStatusCodeOk response.status
     then pure response.body
+    else throwError $ ProtocolError (ResponseError $ unwrap response.status)
+-- -------------
+
+deletePostlessBlob :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse String)
+deletePostlessBlob connectionState reference = do
+  let url = joinWith "/" ["blobs", toString Hex reference]
+  encryptedCard <- getBlob reference
+  body <- formData <$> (liftEffect $ do
+      formData <- new
+      appendBlob (EntryName "blob") (blobFromArrayBuffer encryptedCard) (Just $ FileName (toString Hex reference)) formData
+      pure $ formData
+  )
+  ProxyResponse proxy response <- Stateless.manageGenericRequest connectionState url DELETE (Just body) RF.string
+  if isStatusCodeOk response.status
+    then pure       $ ProxyResponse proxy response.body
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
