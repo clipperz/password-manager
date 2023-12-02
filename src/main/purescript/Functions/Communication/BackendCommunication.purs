@@ -165,25 +165,25 @@ manageGenericRequest url method body responseFormat = do
           _,             _           -> Nothing
 
     doGenericRequest :: FromString a => ProxyType -> RequestInfo a -> Aff (Either ProtocolError (AXW.Response a))
-    doGenericRequest (OnlineProxy baseUrl) (OnlineRequestInfo { url, method, headers, body, responseFormat }) =
+    doGenericRequest (OnlineProxy baseUrl) (OnlineRequestInfo { url: url', method: method', headers, body: body', responseFormat: responseFormat' }) =
       lmap (\e -> RequestError e) <$> AXW.request (
         AXW.defaultRequest {
-            url            = joinWith "/" [baseUrl, url]
-          , method         = Left method
+            url            = joinWith "/" [baseUrl, url']
+          , method         = Left method'
           , headers        = headers
-          , content        = body 
-          , responseFormat = responseFormat
+          , content        = body' 
+          , responseFormat = responseFormat'
         }
       )
-    doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInfo { url, method, body, responseFormat: _ }) =
-      let pieces = split (Pattern "/") url
+    doGenericRequest (OfflineProxy (BackendSessionState session)) (OfflineRequestInfo { url: url', method: method', body: body', responseFormat: _ }) =
+      let pieces = split (Pattern "/") url'
           type' = (joinWith "/") <$> (init pieces)
           ref' = last pieces
-      in case method of
+      in case method' of
         GET -> do
           case type', ref' of
-            Nothing  , _           -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
-            _        , Nothing     -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
+            Nothing  , _           -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url'
+            _        , Nothing     -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url'
             Just "blobs", Just ref -> do
               result <- liftEffect $ BCFS.fromString $ _readBlob ref
               pure $ Right $ { body: result, headers: [], status: StatusCode 200, statusText: "OK" }
@@ -192,9 +192,9 @@ manageGenericRequest url method body responseFormat = do
               pure $ Right $ { body: result, headers: [], status: StatusCode 200, statusText: "OK"}
             _           , _        -> pure $ Left $ ResponseError 501
         POST -> do
-          case type', ref', body of
-            Nothing  , _       , _       -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
-            _        , Nothing , _       -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url
+          case type', ref', body' of
+            Nothing  , _       , _       -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url'
+            _        , Nothing , _       -> pure $ Left $ IllegalRequest $ "Malformed url: " <> url'
             Just "login/step1", Just _, (Just (Json step)) -> do
               res :: Either AS.AppError a <- runExceptT $ do
                 stepData :: { c :: HexString, aa :: HexString } <- except $ lmap (\e -> AS.ProtocolError $ DecodeError $ show e) $ decodeJson step 
