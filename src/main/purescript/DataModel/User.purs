@@ -55,6 +55,8 @@ instance encodeJsonUserCard :: EncodeJson UserCard where
 instance decodeJsonUserCard :: DecodeJson UserCard where
   decodeJson json = rmap (\record -> UserCard record) (decodeJson json)
 
+derive instance newtypeUserCard :: Newtype UserCard _
+
 -- --------------------------------------------------------------------------
 
 newtype RequestUserCard =

@@ -188,11 +188,14 @@ handleCardManagerEvent (AddCardEvent card) state@{index, userPreferences} _ =
     index'                        <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
     userPasswordGeneratorSettings <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") (userPreferences <#> (\up -> (unwrap up).passwordGeneratorSettings))
 
-    ProxyResponse proxy'  cardEntry <- runStep (postCard state card)                               (WidgetState (spinnerOverlay "Post card")    (initialPage index'))
+    ProxyResponse proxy'  cardEntry       <- runStep (postCard state card)                               (WidgetState (spinnerOverlay "Post card")    (initialPage index'))
     let updatedIndex = addToIndex index' cardEntry
-    ProxyResponse proxy'' _         <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index") (initialPage index'))
+    ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index") (initialPage index'))
 
-    pure $ Tuple (state {proxy = proxy'', index = Just updatedIndex}) (WidgetState hiddenOverlayInfo (finalPage updatedIndex userPasswordGeneratorSettings cardEntry))
+    pure (Tuple 
+            (state {proxy = proxy'', index = Just updatedIndex, userInfoReferences = Just stateUpdateInfo.newUserInfoReferences, masterKey = Just stateUpdateInfo.newMasterKey})
+            (WidgetState hiddenOverlayInfo (finalPage updatedIndex userPasswordGeneratorSettings cardEntry))
+         )
 
   # runExceptT
   >>= handleOperationResult state errorPage

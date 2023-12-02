@@ -1,4 +1,19 @@
-module Functions.Communication.Users where
+module Functions.Communication.Users
+  ( deleteUserCard
+  , getIndex
+  , getMasterKey
+  , getRemoteUserCard
+  , getStatelessIndex
+  , getStatelessMasterKey
+  , getStatelessUserPreferences
+  , getUserPreferences
+  , updateIndex
+  , updateIndexWithState
+  , updateUserCard
+  , updateUserCardWithState
+  , updateUserPreferences
+  )
+  where
 
 import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
@@ -29,7 +44,7 @@ import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index)
 import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState)
-import DataModel.User (IndexReference(..), MasterKey, MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard(..), UserInfoReferences(..), UserPreferences, UserPreferencesReference(..))
+import DataModel.User (IndexReference(..), MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard(..), UserInfoReferences(..), UserPreferences, UserPreferencesReference(..), MasterKey)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -94,13 +109,13 @@ updateUserCardWithState c newUserCard@(UserCard userCardRecord) = do
     else throwError (ProtocolError $ ResponseError $ unwrap response.status)
 -- ------------
 
-updateUserCard :: ConnectionState -> HexString -> UserCard -> ExceptT AppError Aff (ProxyResponse Unit)
+updateUserCard :: ConnectionState -> HexString -> UserCard -> ExceptT AppError Aff (ProxyResponse MasterKey)
 updateUserCard connectionState c newUserCard = do
   let url = joinWith "/" ["users", toString Hex c]
   let body = (json $ encodeJson newUserCard) :: RequestBody
   ProxyResponse proxy' response <- Stateless.manageGenericRequest connectionState url PATCH (Just body) RF.string
   if isStatusCodeOk response.status
-    then pure $ ProxyResponse proxy' unit
+    then pure $ ProxyResponse proxy' (unwrap newUserCard).masterKey
     else throwError (ProtocolError $ ResponseError $ unwrap response.status)
 
 deleteUserCard :: HexString -> ExceptT AppError Aff Unit
@@ -170,7 +185,9 @@ updateIndexWithState newIndex = do
     _ -> throwError $ InvalidStateError (MissingValue "Missing p, c or indexReference")
 -- ------------
 
-updateIndex :: StatelessAppState -> Index -> ExceptT AppError Aff (ProxyResponse Unit)
+type UpdateIndexStateUpdateInfo = {newUserInfoReferences :: UserInfoReferences, newMasterKey :: MasterKey }
+
+updateIndex :: StatelessAppState -> Index -> ExceptT AppError Aff (ProxyResponse UpdateIndexStateUpdateInfo)
 
 updateIndex { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) }), masterKey: Just originMasterKey, proxy, hash: hashFunc } newIndex = do
   cryptoKey            :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer oldReference.masterKey)
@@ -179,15 +196,15 @@ updateIndex { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences
   ProxyResponse proxy'   _            <- postStatelessBlob {proxy, hashFunc} indexCardContent indexCardContentHash
   -- -------------------
   let newIndexReference                = IndexReference $ oldReference { reference = fromArrayBuffer indexCardContentHash }
-  let newInfoReference                 = UserInfoReferences r { indexReference = newIndexReference }
+  let newUserInfoReferences            = UserInfoReferences r { indexReference = newIndexReference }
   masterPassword       :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer p)
-  masterKeyContent     :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newInfoReference
+  masterKeyContent     :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newUserInfoReferences
   let newUserCard                      = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
-  ProxyResponse proxy''  _            <- updateUserCard {proxy: proxy', hashFunc} c newUserCard
+  ProxyResponse proxy'' newMasterKey  <- updateUserCard {proxy: proxy', hashFunc} c newUserCard
   -- -------------------
   ProxyResponse proxy''' _            <- deletePostlessBlob {proxy: proxy'', hashFunc} oldReference.reference
   
-  pure $ ProxyResponse proxy''' unit
+  pure $ ProxyResponse proxy''' { newUserInfoReferences, newMasterKey }
 
 updateIndex _ _ = 
   throwError $ InvalidStateError (MissingValue "Missing p, c or indexReference")
