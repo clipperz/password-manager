@@ -27,7 +27,7 @@ import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials, emptyCredentials)
 import DataModel.FragmentState as Fragment
-import DataModel.Index (CardEntry(..), addToIndex, emptyIndex)
+import DataModel.Index (CardEntry(..), addToIndex, emptyIndex, removeFromIndex)
 import DataModel.Password (standardPasswordGeneratorSettings)
 import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState)
 import Effect.Aff (Aff, delay)
@@ -36,7 +36,7 @@ import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Functions.Card (appendToTitle, getCardContent)
 import Functions.Communication.Blobs (getStatelessBlob)
-import Functions.Communication.Cards (postCard)
+import Functions.Communication.Cards (deleteCard, postCard)
 import Functions.Communication.Login (PrepareLoginResult, loginStep1, loginStep2, prepareLogin)
 import Functions.Communication.Signup (signupUser)
 import Functions.Communication.Users (getStatelessIndex, getStatelessUserPreferences, updateIndex)
@@ -92,6 +92,7 @@ executeOperation (UserAreaEvent    event) = handleUserAreaEvent    event
 
 handleSignupPageEvent :: SignupPageEvent -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState 
 
+
 handleSignupPageEvent (SignupEvent cred) state@{proxy, hash, srpConf} fragmentState = 
   do
     ProxyResponse newProxy signupResult <- runStep (signupUser proxy hash srpConf cred) (WidgetState (spinnerOverlay "registering") initialPage)
@@ -103,6 +104,7 @@ handleSignupPageEvent (SignupEvent cred) state@{proxy, hash, srpConf} fragmentSt
 
   where
     initialPage        = Signup $ getSignupDataFromCredentials cred
+
 
 handleSignupPageEvent (GoToLoginEvent cred) state _ = doNothing $ Tuple state (WidgetState hiddenOverlayInfo (Login (getLoginFormData state) {credentials = cred}))
 
@@ -120,6 +122,7 @@ getSignupDataFromCredentials {username, password} = { username
 
 handleLoginPageEvent :: LoginPageEvent -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState 
 
+
 handleLoginPageEvent (LoginEvent cred) state@{proxy, srpConf} fragmentState =
   do
     ProxyResponse proxy' prepareLoginResult <- runStep (prepareLogin proxy srpConf cred) (WidgetState (spinnerOverlay "Prepare login") initialPage)
@@ -131,6 +134,7 @@ handleLoginPageEvent (LoginEvent cred) state@{proxy, srpConf} fragmentState =
 
   where 
     initialPage        = (Login  emptyLoginFormData {credentials = cred})
+
 
 handleLoginPageEvent (LoginPinEvent pin) state@{proxy, hash, srpConf, username, pinEncryptedPassword} fragmentState = do
   do
@@ -146,7 +150,9 @@ handleLoginPageEvent (LoginPinEvent pin) state@{proxy, hash, srpConf, username, 
   where
     initialPage = Login emptyLoginFormData {pin = pin, loginType = PinLogin}
 
+
 handleLoginPageEvent (GoToSignupEvent cred) state _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Signup emptyDataForm {username = cred.username, password = cred.password})))
+
 
 handleLoginPageEvent (GoToCredentialLoginEvent username) state _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Login emptyLoginFormData {credentials = {username, password: ""}})))
 
@@ -154,7 +160,9 @@ handleLoginPageEvent (GoToCredentialLoginEvent username) state _ = doNothing (Tu
 
 handleCardManagerEvent :: CardManagerEvent -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState
 
+
 handleCardManagerEvent (OpenUserAreaEvent cardsManagerState) state@{index, userPreferences} _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main { index: fromMaybe emptyIndex index, showUserArea: true, cardsManagerState, userPasswordGeneratorSettings: maybe standardPasswordGeneratorSettings ((\up -> (unwrap up).passwordGeneratorSettings)) userPreferences })))
+
 
 handleCardManagerEvent (OpenCardViewEvent cardsManagerState cardEntry@(CardEntry entry)) state@{proxy, hash, cardsCache, index, userPreferences} _ = 
   do
@@ -182,13 +190,14 @@ handleCardManagerEvent (OpenCardViewEvent cardsManagerState cardEntry@(CardEntry
     
     reference   = (unwrap entry.cardReference).reference
 
+
 handleCardManagerEvent (AddCardEvent card) state@{index, userPreferences} _ = 
   do
-    index'                        <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
-    userPasswordGeneratorSettings <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") (userPreferences <#> (\up -> (unwrap up).passwordGeneratorSettings))
+    index'                                <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
+    userPasswordGeneratorSettings         <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") (userPreferences <#> (\up -> (unwrap up).passwordGeneratorSettings))
 
     ProxyResponse proxy'  cardEntry       <- runStep (postCard state card)                               (WidgetState (spinnerOverlay "Post card")    (initialPage index'))
-    let updatedIndex = addToIndex index' cardEntry
+    let updatedIndex                       = addToIndex index' cardEntry
     ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index") (initialPage index'))
 
     pure (Tuple 
@@ -204,10 +213,11 @@ handleCardManagerEvent (AddCardEvent card) state@{index, userPreferences} _ =
       initialPage index'                                         = Main { index: index', showUserArea: false, cardsManagerState: cardsManagerInitialState {cardViewState = CardForm $ NewCard $ Just card                                }, userPasswordGeneratorSettings: standardPasswordGeneratorSettings }
       finalPage   index' userPasswordGeneratorSettings cardEntry = Main { index: index', showUserArea: false, cardsManagerState: cardsManagerInitialState {cardViewState = Card card                     , selectedEntry = Just cardEntry}, userPasswordGeneratorSettings }
 
+
 handleCardManagerEvent (CloneCardEvent card) state@{index, userPreferences} _ = 
   do
-    index'                        <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
-    userPasswordGeneratorSettings <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") (userPreferences <#> (\up -> (unwrap up).passwordGeneratorSettings))
+    index'                                <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
+    userPasswordGeneratorSettings         <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") (userPreferences <#> (\up -> (unwrap up).passwordGeneratorSettings))
 
     let cloneCard                          = appendToTitle card " - copy"
     ProxyResponse proxy'  cardEntry       <- runStep (postCard state cloneCard)                          (WidgetState (spinnerOverlay "Clone card")   (initialPage index'))
@@ -227,7 +237,28 @@ handleCardManagerEvent (CloneCardEvent card) state@{index, userPreferences} _ =
       initialPage index'                                               = Main { index: index', showUserArea: false, cardsManagerState: cardsManagerInitialState {cardViewState = Card card                                 }, userPasswordGeneratorSettings: standardPasswordGeneratorSettings }
       finalPage   index' card' userPasswordGeneratorSettings cardEntry = Main { index: index', showUserArea: false, cardsManagerState: cardsManagerInitialState {cardViewState = Card card', selectedEntry = Just cardEntry}, userPasswordGeneratorSettings }
 
-handleCardManagerEvent (DeleteCardEvent)                     state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "DeleteCardEvent")   --TODO: implement [fsolaroli - 29/11/2023]
+
+handleCardManagerEvent (DeleteCardEvent card maybeEntry) state@{proxy, hash: hashFunc, index, userPreferences} _ = 
+  do
+    index'                                <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
+    userPasswordGeneratorSettings         <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") (userPreferences <#> (\up -> (unwrap up).passwordGeneratorSettings))
+    cardEntry                             <- except $ note (InvalidStateError $ CorruptedState "card entry is nothing")       maybeEntry
+
+    ProxyResponse proxy' _                <- runStep (deleteCard {proxy, hashFunc} (unwrap cardEntry).cardReference card) (WidgetState (spinnerOverlay "Delete card")   (initialPage index'))
+    let updatedIndex                       = removeFromIndex index' cardEntry
+    ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index") (initialPage index'))
+
+    pure (Tuple 
+            (state {proxy = proxy'', index = Just updatedIndex, userInfoReferences = Just stateUpdateInfo.newUserInfoReferences, masterKey = Just stateUpdateInfo.newMasterKey})
+            (WidgetState hiddenOverlayInfo (finalPage updatedIndex userPasswordGeneratorSettings))
+         )
+  # runExceptT
+  >>= handleOperationResult state errorPage
+
+    where
+      errorPage = Login emptyLoginFormData
+      initialPage index'                               = Main { index: index', showUserArea: false, cardsManagerState: cardsManagerInitialState {cardViewState = Card card                         }, userPasswordGeneratorSettings: standardPasswordGeneratorSettings }
+      finalPage   index' userPasswordGeneratorSettings = Main { index: index', showUserArea: false, cardsManagerState: cardsManagerInitialState {cardViewState = NoCard   , selectedEntry = Nothing}, userPasswordGeneratorSettings }
 
 handleCardManagerEvent (EditCardEvent)                       state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "EditCardEvent")     --TODO: implement [fsolaroli - 29/11/2023]
 

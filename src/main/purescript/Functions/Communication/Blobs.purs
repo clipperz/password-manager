@@ -100,13 +100,12 @@ deleteBlob reference = do
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
 -- -------------
 
-deletePostlessBlob :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse String)
-deletePostlessBlob connectionState reference = do
+deleteStatelessBlob :: ConnectionState -> ArrayBuffer -> HexString -> ExceptT AppError Aff (ProxyResponse String)
+deleteStatelessBlob connectionState encryptedBlob reference = do
   let url = joinWith "/" ["blobs", toString Hex reference]
-  encryptedCard <- getBlob reference
   body <- formData <$> (liftEffect $ do
       formData <- new
-      appendBlob (EntryName "blob") (blobFromArrayBuffer encryptedCard) (Just $ FileName (toString Hex reference)) formData
+      appendBlob (EntryName "blob") (blobFromArrayBuffer encryptedBlob) (Just $ FileName (toString Hex reference)) formData
       pure $ formData
   )
   ProxyResponse proxy response <- Stateless.manageGenericRequest connectionState url DELETE (Just body) RF.string

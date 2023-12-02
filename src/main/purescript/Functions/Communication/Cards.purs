@@ -31,8 +31,9 @@ import Functions.Card (getCardContent)
 import Functions.CardsCache (addCardToCache, getCardFromCache, removeCardFromCache)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
 import Functions.Communication.BlobFromArrayBuffer (blobFromArrayBuffer)
-import Functions.Communication.Blobs (getBlob, postBlob, postStatelessBlob)
-import Functions.EncodeDecode (encryptJson)
+import Functions.Communication.Blobs (deleteStatelessBlob, getBlob, postBlob, postStatelessBlob)
+import Functions.Communication.StatelessBackend (ConnectionState)
+import Functions.EncodeDecode (cryptoKeyAES, encryptJson)
 import Web.XHR.FormData (EntryName(..), FileName(..), appendBlob, new)
 
 getCard :: CardReference -> ExceptT AppError Aff Card
@@ -46,8 +47,9 @@ getCard cardRef@(CardReference { reference }) = do
       addCardToCache reference card
       pure $ card
 
-deleteCard :: CardReference -> ExceptT AppError Aff String
-deleteCard cardReference@(CardReference { reference, key }) = do
+-- TODO REMOVE
+deleteCardWithState :: CardReference -> ExceptT AppError Aff String
+deleteCardWithState cardReference@(CardReference { reference, key }) = do
   let url = joinWith "/" ["blobs", show reference]
   card          <- getCard cardReference
   cryptoKey     <- liftAff $ KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
@@ -63,7 +65,15 @@ deleteCard cardReference@(CardReference { reference, key }) = do
       removeCardFromCache reference
       pure response.body
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
+-- ------------
 
+deleteCard :: ConnectionState -> CardReference -> Card -> ExceptT AppError Aff (ProxyResponse String)
+deleteCard connectionState (CardReference { reference, key }) card = do
+  cryptoKey     <- liftAff $ cryptoKeyAES (toArrayBuffer key)
+  encryptedCard <- liftAff $ encryptJson cryptoKey card
+  deleteStatelessBlob connectionState encryptedCard reference
+
+-- TODO REMOVE
 postCardWithState :: Card -> ExceptT AppError Aff CardEntry
 postCardWithState card = do
   key <- liftAff $ KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
@@ -71,6 +81,7 @@ postCardWithState card = do
   _ <- postBlob encryptedCard (toArrayBuffer reference)
   addCardToCache reference card
   pure cardEntry
+-- -----------
 
 postCard :: StatelessAppState -> Card -> ExceptT AppError Aff (ProxyResponse CardEntry)
 postCard {proxy, hash} card = do

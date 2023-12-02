@@ -34,7 +34,7 @@ import DataModel.Card (Card(..), CardValues(..), CardField(..))
 import DataModel.Index (Index(..), CardEntry(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Functions.Communication.Cards (postCardWithState, deleteCard)
+import Functions.Communication.Cards (postCardWithState, deleteCardWithState)
 import Functions.Communication.Users (updateIndexWithState, getIndex)
 import Functions.Events (readFileFromDrop)
 import Functions.Import (decodeImport, parseHTMLImport, decodeHTML)
@@ -99,7 +99,7 @@ importWidget = do
       let lastStep = LastStep (\prevRes -> do
                                             case prevRes of
                                               Left (Tuple err es) -> do
-                                                _ <- liftAff $ runExceptT $ sequence $ (\(CardEntry r) -> deleteCard r.cardReference) <$> es
+                                                _ <- liftAff $ runExceptT $ sequence $ (\(CardEntry r) -> deleteCardWithState r.cardReference) <$> es
                                                 pure $ Left err
                                               Right es -> liftAff $ runExceptT $ do
                                                 let newIndex = Index (entries <> es)

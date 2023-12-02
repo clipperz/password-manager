@@ -49,7 +49,7 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
-import Functions.Communication.Blobs (deleteBlob, deletePostlessBlob, getBlob, getDecryptedBlob, getStatelessBlob, getStatelessDecryptedBlob, postBlob, postStatelessBlob)
+import Functions.Communication.Blobs (deleteBlob, deleteStatelessBlob, getBlob, getDecryptedBlob, getStatelessBlob, getStatelessDecryptedBlob, postBlob, postStatelessBlob)
 import Functions.Communication.StatelessBackend (ConnectionState)
 import Functions.Communication.StatelessBackend as Stateless
 import Functions.EncodeDecode (cryptoKeyAES, encryptJson)
@@ -189,7 +189,7 @@ type UpdateIndexStateUpdateInfo = {newUserInfoReferences :: UserInfoReferences, 
 
 updateIndex :: StatelessAppState -> Index -> ExceptT AppError Aff (ProxyResponse UpdateIndexStateUpdateInfo)
 
-updateIndex { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) }), masterKey: Just originMasterKey, proxy, hash: hashFunc } newIndex = do
+updateIndex { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, index: Just index } newIndex = do
   cryptoKey            :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer oldReference.masterKey)
   indexCardContent     :: ArrayBuffer <- liftAff $ encryptJson cryptoKey newIndex
   indexCardContentHash :: ArrayBuffer <- liftAff $ hashFunc (indexCardContent : Nil)
@@ -202,7 +202,9 @@ updateIndex { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences
   let newUserCard                      = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
   ProxyResponse proxy'' newMasterKey  <- updateUserCard {proxy: proxy', hashFunc} c newUserCard
   -- -------------------
-  ProxyResponse proxy''' _            <- deletePostlessBlob {proxy: proxy'', hashFunc} oldReference.reference
+  oldIndexCartContent  :: ArrayBuffer <- liftAff $ encryptJson cryptoKey index
+
+  ProxyResponse proxy''' _            <- deleteStatelessBlob {proxy: proxy'', hashFunc} oldIndexCartContent oldReference.reference
   
   pure $ ProxyResponse proxy''' { newUserInfoReferences, newMasterKey }
 

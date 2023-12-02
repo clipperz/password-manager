@@ -28,7 +28,7 @@ data CardFormInput = NewCard (Maybe Card) | ModifyCard Card
 
 data CardManagerEvent = AddCardEvent      Card
                       | CloneCardEvent    Card
-                      | DeleteCardEvent   -- ??
+                      | DeleteCardEvent   Card (Maybe CardEntry)
                       | EditCardEvent     -- ??
                       | OpenCardViewEvent CardsManagerState CardEntry
                       | OpenUserAreaEvent CardsManagerState
@@ -102,10 +102,10 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selec
 
     handleCardEvents :: CardEvent -> (CardsManagerInternalEvent CardViewState)
     handleCardEvents (Edit    card) = StateUpdate      (CardForm       $ ModifyCard card)
-    handleCardEvents (Clone   card) = CardManagerEvent (CloneCardEvent card)
+    handleCardEvents (Clone   card) = CardManagerEvent (CloneCardEvent  card)
     handleCardEvents (Archive card) = StateUpdate (CardForm $ ModifyCard card)
     handleCardEvents (Restore card) = StateUpdate (CardForm $ ModifyCard card)
-    handleCardEvents (Delete  card) = StateUpdate (CardForm $ ModifyCard card)
+    handleCardEvents (Delete  card) = CardManagerEvent (DeleteCardEvent card selectedEntry)
     handleCardEvents (Used    card) = StateUpdate (CardForm $ ModifyCard card)
     handleCardEvents (Exit    card) = StateUpdate (CardForm $ ModifyCard card)
     handleCardEvents (Share   card) = StateUpdate (CardForm $ ModifyCard card)

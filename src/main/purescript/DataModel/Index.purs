@@ -11,7 +11,7 @@ import Data.Eq (class Eq, eq, (/=))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
-import Data.List (filter)
+import Data.List (delete, filter)
 import Data.List.Types (List(..), (:))
 import Data.Newtype (class Newtype, unwrap)
 import Data.Ord (class Ord, compare)
@@ -103,6 +103,9 @@ instance decodeJsonIndex :: DecodeJson Index where
 
 addToIndex :: Index -> CardEntry -> Index
 addToIndex (Index list) cardEntry = Index (cardEntry : list) 
+
+removeFromIndex :: Index -> CardEntry -> Index
+removeFromIndex (Index index) cardEntry = Index (delete cardEntry index)
 
 updateInIndex :: Index -> CardEntry -> CardEntry -> Index
 updateInIndex (Index list) oldEntry newEntry = Index (newEntry : filter (\(CardEntry { cardReference }) -> cardReference /= (unwrap oldEntry).cardReference) list)

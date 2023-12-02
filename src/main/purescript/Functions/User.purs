@@ -38,7 +38,7 @@ import Effect.Class (liftEffect, class MonadEffect)
 import Effect.Exception as EX
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
 import Functions.Communication.Blobs (deleteBlob)
-import Functions.Communication.Cards (deleteCard)
+import Functions.Communication.Cards (deleteCardWithState)
 import Functions.Communication.Users (getMasterKey, deleteUserCard)
 import Functions.EncodeDecode (decryptJson, encryptJson)
 import Functions.JSState (getAppState, updateAppState)
@@ -131,7 +131,7 @@ deleteUserSteps (Index entries) progressBarFunc stepPlaceholderFunc = do
       IntermediateStep (\psr ->
                           case psr of
                             Left err -> pure $ Left err
-                            Right _ -> liftAff $ ((<$>) (\_ -> unit)) <$> (runExceptT $ deleteCard $ r.cardReference)
+                            Right _ -> liftAff $ ((<$>) (\_ -> unit)) <$> (runExceptT $ deleteCardWithState $ r.cardReference)
                        ) (progressBarFunc index)
 
     createIntermediateSteps :: Array (Tuple String (ExceptT AppError Aff Unit)) -> Array (OperationStep (Either AppError Unit) (Either AppError Unit) m)
