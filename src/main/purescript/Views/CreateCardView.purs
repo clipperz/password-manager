@@ -8,10 +8,8 @@ import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (=<<))
-import Control.Monad.Except.Trans (runExceptT)
 import Control.Semigroupoid ((<<<))
 import Data.Array (difference, elem, filter, singleton, snoc, sort)
-import Data.Either (fromRight, hush)
 import Data.Eq ((==), (/=))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
@@ -24,35 +22,28 @@ import Data.Tuple (Tuple(..), fst)
 import Data.Unit (Unit, unit)
 import DataModel.AsyncValue as Async
 import DataModel.Card (Card(..), CardField(..), CardValues(..), emptyCardField)
-import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
-import DataModel.User (UserPreferences(..))
-import DataModel.WidgetState (WidgetState(..))
-import Effect.Aff.Class (liftAff)
+import DataModel.Password (PasswordGeneratorSettings)
 import Effect.Class (liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
 import Functions.Card (getFieldType, FieldType(..))
-import Functions.Communication.Users (getUserPreferences)
-import Functions.JSState (getAppState)
 import Functions.Time (getCurrentTimestamp)
 import MarkdownIt (renderString)
 import Views.Components (dynamicWrapper, entropyMeter)
 import Views.PasswordGenerator (passwordGenerator)
-import Views.SimpleWebComponents (confirmationWidget, dragAndDropAndRemoveList, loadingDiv, simpleButton)
+import Views.SimpleWebComponents (confirmationWidget, dragAndDropAndRemoveList, simpleButton)
 
-createCardView :: Card -> Array String -> WidgetState -> Widget HTML (Maybe Card)
-createCardView card allTags state = do
-  maybeUp <- hush <$> (liftAff $ runExceptT getUserPreferences)
-  let fromAppStateToPasswordSettings = \_ -> fromMaybe standardPasswordGeneratorSettings $ (\(UserPreferences up) -> up.passwordGeneratorSettings) <$> maybeUp
-  passwordGeneratorSettings <- ((fromRight standardPasswordGeneratorSettings) <<< ((<$>) fromAppStateToPasswordSettings)) <$> (liftEffect getAppState)
-  mCard <- div [Props._id "cardForm"] do
-    case state of
-      Default   -> [mask, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
-      Loading   -> [mask, loadingDiv, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
-      Error err -> [mask, text err, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
+createCardView :: Card -> Array String -> PasswordGeneratorSettings -> Widget HTML (Maybe Card)
+createCardView card allTags passwordGeneratorSettings = do
+  mCard <- div [Props._id "cardForm"] [
+    mask
+  , div [Props.className "cardForm"] [
+      demand (formSignal passwordGeneratorSettings)
+    ]
+  ]
   case mCard of
     Just (Card { content, secrets }) -> do
       timestamp' <- liftEffect $ getCurrentTimestamp
-      pure $ Just $ Card { content, secrets, archived: false, timestamp: timestamp' }
+      pure $ Just (Card { content, secrets, archived: false, timestamp: timestamp' })
     Nothing -> pure Nothing
 
   where 
@@ -202,6 +193,7 @@ createCardView card allTags state = do
                        }
           }
       res <- fireOnce $ div [Props.className "submitButtons"] [(cancelButton formValues) <|> (saveButton formValues)]
+
       pure res
 
     cancelButton v = 

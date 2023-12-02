@@ -17,6 +17,7 @@ import Data.String (length)
 import DataModel.AppState (ProxyConnectionStatus(..))
 import DataModel.Credentials (Credentials, emptyCredentials)
 import DataModel.Index (Index, emptyIndex)
+import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
 import Effect.Class (liftEffect)
 import Functions.Communication.StatelessOneTimeShare (PIN)
 import Functions.EnvironmentalVariables (currentCommit)
@@ -69,13 +70,14 @@ data UserAreaEvent    = UpdateUserPreferencesEvent -- ??
 data Page = Loading (Maybe Page) | Login LoginFormData | Signup SignupDataForm | Share (Maybe SharedCardReference) | Main MainPageWidgetState
 
 type MainPageWidgetState = {
-  index             :: Index
-, showUserArea      :: Boolean
-, cardsManagerState :: CardsManagerState
+  index                         :: Index
+, showUserArea                  :: Boolean
+, cardsManagerState             :: CardsManagerState
+, userPasswordGeneratorSettings :: PasswordGeneratorSettings
 }
 
 emptyMainPageWidgetState :: MainPageWidgetState
-emptyMainPageWidgetState = { index: emptyIndex, showUserArea: false, cardsManagerState: cardsManagerInitialState }
+emptyMainPageWidgetState = { index: emptyIndex, showUserArea: false, cardsManagerState: cardsManagerInitialState, userPasswordGeneratorSettings: standardPasswordGeneratorSettings }
 
 data WidgetState = WidgetState OverlayInfo Page
 
@@ -102,12 +104,12 @@ appView (WidgetState overlayInfo page) =
         (either GoToLoginEvent SignupEvent <$> (signupFormView credentials)) 
       ]
     , div [Props.classList (Just <$> ["page", "main", show $ location (Main emptyMainPageWidgetState) page])] [ do
-        let {index, showUserArea, cardsManagerState} = case page of
+        let {index, showUserArea, cardsManagerState, userPasswordGeneratorSettings} = case page of
                                         Main homePageWidgetState' -> homePageWidgetState'
                                         _                         -> emptyMainPageWidgetState
         
         div [Props._id "homePage"] [
-          CardManagerEvent <$> cardsManagerView cardsManagerState index
+          CardManagerEvent <$> cardsManagerView cardsManagerState index userPasswordGeneratorSettings
         , (UserAreaEvent $ CloseUserArea cardsManagerState) <$ userAreaWidget (not showUserArea) ProxyOnline
         ]
          
