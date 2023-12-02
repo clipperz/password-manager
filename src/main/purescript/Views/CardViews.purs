@@ -8,15 +8,12 @@ import Concur.React.Props as Props
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Data.Array (null)
-import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not, (&&))
 import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
-import Data.Show (class Show, show)
 import Data.Unit (unit)
-import DataModel.AppState (ProxyConnectionStatus(..))
 import DataModel.Card (Card(..), CardField(..), CardValues(..))
 import Effect.Unsafe (unsafePerformEffect)
 import Functions.Clipboard (copyToClipboard)
@@ -26,54 +23,52 @@ import Views.SimpleWebComponents (simpleButton, confirmationWidget)
 
 -- -----------------------------------
 
-data CardAction = Edit Card | Clone Card | Archive Card | Restore Card | Delete Card | Used Card | Exit Card | Share Card
-instance showCardAction :: Show CardAction where
-  show (Edit _)     = "edit"
-  show (Used _)     = "used"
-  show (Clone _)    = "clone"
-  show (Archive _)  = "archive"
-  show (Restore _)  = "restore"
-  show (Delete _)   = "delete"
-  show (Exit _ )    = "exit"
-  show (Share _ )   = "share"
+data CardEvent = Edit    Card
+               | Clone   Card
+               | Archive Card
+               | Restore Card
+               | Delete  Card
+               | Used    Card
+               | Exit    Card
+               | Share   Card
 
 -- -----------------------------------
 
-cardView :: Card -> ProxyConnectionStatus -> Widget HTML CardAction
-cardView c@(Card r) proxyConnectionStatus = do
+cardView :: Card -> Widget HTML CardEvent
+cardView card@(Card r) = do
   res <- div [Props._id "cardView"] [
-    cardActions c (proxyConnectionStatus == ProxyOnline)
-  , (Used c) <$ cardContent r.content
+    cardActions card true
+  , (Used card) <$ cardContent r.content
   ]
   case res of
     Delete _ -> do
       confirmation <- div [Props._id "cardView"] [
-        false <$ cardActions c false
+        false <$ cardActions card false
       , cardContent r.content
       , confirmationWidget "Are you sure you want to delete this card?"
       ]
-      if confirmation then pure res else cardView c proxyConnectionStatus
+      if confirmation then pure res else cardView card
     Share _ -> do
       maybeCardValues <- div [Props._id "cardView"] [
-        Nothing <$ cardActions c false
+        Nothing <$ cardActions card false
       , cardContent r.content
       ]
       case maybeCardValues of
-        Nothing         -> cardView c proxyConnectionStatus
+        Nothing         -> cardView card
         Just secrets -> pure $ Share (Card r {secrets = secrets})
     _ -> pure res
 
-cardActions :: Card -> Boolean -> Widget HTML CardAction
-cardActions c@(Card r) enabled = div [Props.className "cardActions"] [
-    simpleButton "exit"      (show (Exit c))    false         (Exit c)
-  , simpleButton "edit"      (show (Edit c))    (not enabled) (Edit c)
-  , simpleButton "clone"     (show (Clone c))   (not enabled) (Clone c)
+cardActions :: Card -> Boolean -> Widget HTML CardEvent
+cardActions card@(Card r) enabled = div [Props.className "cardActions"] [
+    simpleButton   "exit"    "exit"     false        (Exit card)
+  , simpleButton   "edit"    "edit"    (not enabled) (Edit card)
+  , simpleButton   "clone"   "clone"   (not enabled) (Clone card)
   , if r.archived then
-      simpleButton "restore" (show (Restore c)) (not enabled) (Restore c)
+      simpleButton "restore" "restore" (not enabled) (Restore card)
     else
-      simpleButton "archive" (show (Archive c)) (not enabled) (Archive c)
-  , simpleButton "delete"    (show (Delete c))  (not enabled) (Delete c)
-  -- , simpleButton "share"     (show (Share c))   (not enabled) (Share c)         
+      simpleButton "archive" "archive" (not enabled) (Archive card)
+  , simpleButton   "delete"  "delete"  (not enabled) (Delete card)
+  -- , simpleButton   "share"   "share"   (not enabled) (Share card)         
 ]
 
 type SecretIdInfo = { creationDate   :: String
@@ -83,9 +78,7 @@ type SecretIdInfo = { creationDate   :: String
 
 secretSignal :: SecretIdInfo -> Signal HTML (Maybe String)
 secretSignal { creationDate, expirationDate, secretId } = li_ [] do
-  -- redeemURLOrigin <- liftEffect redeemURL
-  -- let redeemURL = redeemURLOrigin <> secretId
-  let redeemURL = "/redeem_index.html#" <> secretId --TODO FIXX
+  let redeemURL = "/redeem_index.html#" <> secretId
   _ <- a_ [Props.href redeemURL, Props.target "_blank"] (loopW creationDate text)
   _ <- p_ [] (loopW expirationDate text)
   removeSecret <- fireOnce $ simpleButton "remove" "remove secret" false unit

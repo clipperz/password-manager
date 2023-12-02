@@ -1,5 +1,6 @@
 module Functions.Card
   ( FieldType(..)
+  , appendToTitle
   , getCardContent
   , getFieldType
   )
@@ -19,11 +20,12 @@ import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.HexString (fromArrayBuffer, toArrayBuffer, toString, Base(..))
+import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.String.Regex (Regex, test, regex)
 import Data.String.Regex.Flags (noFlags)
 import DataModel.AppState (AppError(..))
-import DataModel.Card (Card, CardField(..))
+import DataModel.Card (Card(..), CardField(..), CardValues(..))
 import DataModel.CardVersions.CardV1 (Card_V1, cardFromV1)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardReference(..))
@@ -47,6 +49,9 @@ getCardContent bytes (CardReference ref) =
     mapError = withExceptT (show >>> CryptoError >>> ProtocolError)
 
 data FieldType = Email | Url | Passphrase | None
+
+appendToTitle :: Card -> String -> Card
+appendToTitle (Card card@{content: CardValues cardValues@{title}}) titleAppend = Card (card {content = CardValues cardValues {title = title <> titleAppend} })
 
 testRegex :: Either String Regex -> String -> Boolean
 testRegex eitherRegex value =

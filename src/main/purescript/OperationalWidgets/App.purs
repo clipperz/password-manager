@@ -34,7 +34,7 @@ import Effect.Aff (Aff, delay)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
-import Functions.Card (getCardContent)
+import Functions.Card (appendToTitle, getCardContent)
 import Functions.Communication.Blobs (getStatelessBlob)
 import Functions.Communication.Cards (postCard)
 import Functions.Communication.Login (PrepareLoginResult, loginStep1, loginStep2, prepareLogin)
@@ -182,7 +182,6 @@ handleCardManagerEvent (OpenCardViewEvent cardsManagerState cardEntry@(CardEntry
     
     reference   = (unwrap entry.cardReference).reference
 
-
 handleCardManagerEvent (AddCardEvent card) state@{index, userPreferences} _ = 
   do
     index'                        <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
@@ -204,6 +203,29 @@ handleCardManagerEvent (AddCardEvent card) state@{index, userPreferences} _ =
       errorPage                                                  = Login emptyLoginFormData
       initialPage index'                                         = Main { index: index', showUserArea: false, cardsManagerState: cardsManagerInitialState {cardViewState = CardForm $ NewCard $ Just card                                }, userPasswordGeneratorSettings: standardPasswordGeneratorSettings }
       finalPage   index' userPasswordGeneratorSettings cardEntry = Main { index: index', showUserArea: false, cardsManagerState: cardsManagerInitialState {cardViewState = Card card                     , selectedEntry = Just cardEntry}, userPasswordGeneratorSettings }
+
+handleCardManagerEvent (CloneCardEvent card) state@{index, userPreferences} _ = 
+  do
+    index'                        <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
+    userPasswordGeneratorSettings <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") (userPreferences <#> (\up -> (unwrap up).passwordGeneratorSettings))
+
+    let cloneCard                          = appendToTitle card " - copy"
+    ProxyResponse proxy'  cardEntry       <- runStep (postCard state cloneCard)                          (WidgetState (spinnerOverlay "Clone card")   (initialPage index'))
+    let updatedIndex                       = addToIndex index' cardEntry
+    ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index") (initialPage index'))
+
+    pure (Tuple 
+            (state {proxy = proxy'', index = Just updatedIndex, userInfoReferences = Just stateUpdateInfo.newUserInfoReferences, masterKey = Just stateUpdateInfo.newMasterKey})
+            (WidgetState hiddenOverlayInfo (finalPage updatedIndex cloneCard userPasswordGeneratorSettings cardEntry))
+         )
+
+  # runExceptT
+  >>= handleOperationResult state errorPage
+    
+    where
+      errorPage                                                        = Login emptyLoginFormData
+      initialPage index'                                               = Main { index: index', showUserArea: false, cardsManagerState: cardsManagerInitialState {cardViewState = Card card                                 }, userPasswordGeneratorSettings: standardPasswordGeneratorSettings }
+      finalPage   index' card' userPasswordGeneratorSettings cardEntry = Main { index: index', showUserArea: false, cardsManagerState: cardsManagerInitialState {cardViewState = Card card', selectedEntry = Just cardEntry}, userPasswordGeneratorSettings }
 
 handleCardManagerEvent (DeleteCardEvent)                     state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "DeleteCardEvent")   --TODO: implement [fsolaroli - 29/11/2023]
 

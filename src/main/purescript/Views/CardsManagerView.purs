@@ -16,20 +16,20 @@ import Data.List (fold)
 import Data.List as List
 import Data.Maybe (Maybe(..), maybe)
 import Data.Semigroup ((<>))
-import DataModel.AppState as AppState
 import DataModel.Card (Card, emptyCard)
 import DataModel.Index (CardEntry(..), Index(..))
 import DataModel.Password (PasswordGeneratorSettings)
 import IndexFilterView (Filter(..), FilterData, FilterViewStatus(..), filteredEntries, getClassNameFromFilterStatus, indexFilterView, initialFilterData)
-import Views.CardViews (cardView)
+import Views.CardViews (CardEvent(..), cardView)
 import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (simpleButton)
 
 data CardFormInput = NewCard (Maybe Card) | ModifyCard Card
 
-data CardManagerEvent = AddCardEvent Card
-                      | DeleteCardEvent -- ??
-                      | EditCardEvent -- ??
+data CardManagerEvent = AddCardEvent      Card
+                      | CloneCardEvent    Card
+                      | DeleteCardEvent   -- ??
+                      | EditCardEvent     -- ??
                       | OpenCardViewEvent CardsManagerState CardEntry
                       | OpenUserAreaEvent CardsManagerState
 
@@ -100,11 +100,22 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selec
     allTags :: Array String
     allTags = nub $ fold $ (\(CardEntry entry) -> entry.tags) <$> fromFoldable list
 
+    handleCardEvents :: CardEvent -> (CardsManagerInternalEvent CardViewState)
+    handleCardEvents (Edit    card) = StateUpdate      (CardForm       $ ModifyCard card)
+    handleCardEvents (Clone   card) = CardManagerEvent (CloneCardEvent card)
+    handleCardEvents (Archive card) = StateUpdate (CardForm $ ModifyCard card)
+    handleCardEvents (Restore card) = StateUpdate (CardForm $ ModifyCard card)
+    handleCardEvents (Delete  card) = StateUpdate (CardForm $ ModifyCard card)
+    handleCardEvents (Used    card) = StateUpdate (CardForm $ ModifyCard card)
+    handleCardEvents (Exit    card) = StateUpdate (CardForm $ ModifyCard card)
+    handleCardEvents (Share   card) = StateUpdate (CardForm $ ModifyCard card)
+
     mainStageView :: CardViewState -> Widget HTML (CardsManagerInternalEvent CardViewState)
     mainStageView NoCard                   = div [] []
-    mainStageView (Card card)              = StateUpdate (CardForm $ ModifyCard card) <$ cardView card AppState.ProxyOnline
+    mainStageView (Card card)              = cardView card <#> handleCardEvents
     mainStageView (CardForm cardFormInput) = createCardView inputCard allTags userPasswordGeneratorSettings <#> (maybe (StateUpdate viewCardStateUpdate) (CardManagerEvent <<< AddCardEvent))
       where
+
         inputCard = case cardFormInput of
           NewCard   (Just card) -> card
           NewCard    Nothing    -> emptyCard
@@ -113,6 +124,8 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selec
         viewCardStateUpdate = case cardFormInput of
           NewCard    _    -> NoCard
           ModifyCard card -> Card card
+
+
 -- ==================================================================                                                                                                                             
 
 indexView :: Index -> Maybe CardEntry -> Filter -> Widget HTML CardEntry
@@ -128,9 +141,3 @@ indexView (Index entries) selectedEntry filter = ol [] (
     sortedCards = List.sort $ filteredEntries filter entries
     archivedClass archived = if archived                    then Just "archived" else Nothing
     selectedClass entry    = if selectedEntry == Just entry then Just "selected" else Nothing
-
-
--- ================================================================== --TODO: implement [fsolaroli - 28/11/2023]
-
-
--- ==================================================================
