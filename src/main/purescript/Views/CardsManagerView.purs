@@ -29,7 +29,7 @@ data CardFormInput = NewCard (Maybe Card) | ModifyCard Card
 data CardManagerEvent = AddCardEvent      Card
                       | CloneCardEvent    Card
                       | DeleteCardEvent   Card (Maybe CardEntry)
-                      | EditCardEvent     -- ??
+                      | EditCardEvent     Card (Maybe CardEntry) Card
                       | OpenCardViewEvent CardsManagerState CardEntry
                       | OpenUserAreaEvent CardsManagerState
 
@@ -101,19 +101,18 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selec
     allTags = nub $ fold $ (\(CardEntry entry) -> entry.tags) <$> fromFoldable list
 
     handleCardEvents :: CardEvent -> (CardsManagerInternalEvent CardViewState)
-    handleCardEvents (Edit    card) = StateUpdate      (CardForm       $ ModifyCard card)
-    handleCardEvents (Clone   card) = CardManagerEvent (CloneCardEvent  card)
+    handleCardEvents (Edit    card) = StateUpdate      (CardForm     $ ModifyCard card)
+    handleCardEvents (Clone   card) = CardManagerEvent (CloneCardEvent card)
     handleCardEvents (Archive card) = StateUpdate (CardForm $ ModifyCard card)
     handleCardEvents (Restore card) = StateUpdate (CardForm $ ModifyCard card)
     handleCardEvents (Delete  card) = CardManagerEvent (DeleteCardEvent card selectedEntry)
-    handleCardEvents (Used    card) = StateUpdate (CardForm $ ModifyCard card)
-    handleCardEvents (Exit    card) = StateUpdate (CardForm $ ModifyCard card)
-    handleCardEvents (Share   card) = StateUpdate (CardForm $ ModifyCard card)
+    handleCardEvents (Used    card) = StateUpdate (Card card)
+    handleCardEvents (Exit    _   ) = StateUpdate (NoCard)
 
     mainStageView :: CardViewState -> Widget HTML (CardsManagerInternalEvent CardViewState)
     mainStageView NoCard                   = div [] []
     mainStageView (Card card)              = cardView card <#> handleCardEvents
-    mainStageView (CardForm cardFormInput) = createCardView inputCard allTags userPasswordGeneratorSettings <#> (maybe (StateUpdate viewCardStateUpdate) (CardManagerEvent <<< AddCardEvent))
+    mainStageView (CardForm cardFormInput) = createCardView inputCard allTags userPasswordGeneratorSettings <#> (maybe (StateUpdate viewCardStateUpdate) (CardManagerEvent <<< outputEvent))
       where
 
         inputCard = case cardFormInput of
@@ -124,6 +123,10 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selec
         viewCardStateUpdate = case cardFormInput of
           NewCard    _    -> NoCard
           ModifyCard card -> Card card
+
+        outputEvent = case cardFormInput of
+          NewCard _       -> AddCardEvent
+          ModifyCard card -> EditCardEvent card selectedEntry
 
 
 -- ==================================================================                                                                                                                             

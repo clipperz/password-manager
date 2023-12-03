@@ -22,7 +22,7 @@ import Effect.Class (liftEffect)
 import Functions.Communication.StatelessOneTimeShare (PIN)
 import Functions.EnvironmentalVariables (currentCommit)
 import OperationalWidgets.UserAreaWidget (userAreaWidget)
-import Views.CardsManagerView (CardManagerEvent, CardsManagerState, cardsManagerInitialState, cardsManagerView)
+import Views.CardsManagerView (CardManagerEvent, CardViewState, CardsManagerState, cardsManagerInitialState, cardsManagerView)
 import Views.Components (footerComponent)
 import Views.LoginFormView (credentialLoginWidget, pinLoginWidget)
 import Views.OverlayView (OverlayInfo, overlay)
@@ -75,6 +75,9 @@ type MainPageWidgetState = {
 , cardsManagerState             :: CardsManagerState
 , userPasswordGeneratorSettings :: PasswordGeneratorSettings
 }
+
+loadingMainPage :: Index -> CardViewState -> Page
+loadingMainPage index cardViewState = Main { index, showUserArea: false, cardsManagerState: cardsManagerInitialState {cardViewState = cardViewState }, userPasswordGeneratorSettings: standardPasswordGeneratorSettings }
 
 emptyMainPageWidgetState :: MainPageWidgetState
 emptyMainPageWidgetState = { index: emptyIndex, showUserArea: false, cardsManagerState: cardsManagerInitialState, userPasswordGeneratorSettings: standardPasswordGeneratorSettings }

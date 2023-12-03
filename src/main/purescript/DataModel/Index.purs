@@ -101,14 +101,14 @@ instance encodeJsonIndex :: EncodeJson Index where
 instance decodeJsonIndex :: DecodeJson Index where
   decodeJson json = rmap (\list -> Index list) (decodeJson json)
 
-addToIndex :: Index -> CardEntry -> Index
-addToIndex (Index list) cardEntry = Index (cardEntry : list) 
+addToIndex :: CardEntry -> Index -> Index
+addToIndex cardEntry (Index list) = Index (cardEntry : list) 
 
-removeFromIndex :: Index -> CardEntry -> Index
-removeFromIndex (Index index) cardEntry = Index (delete cardEntry index)
+removeFromIndex :: CardEntry -> Index -> Index
+removeFromIndex cardEntry (Index index) = Index (delete cardEntry index)
 
-updateInIndex :: Index -> CardEntry -> CardEntry -> Index
-updateInIndex (Index list) oldEntry newEntry = Index (newEntry : filter (\(CardEntry { cardReference }) -> cardReference /= (unwrap oldEntry).cardReference) list)
+updateInIndex :: CardEntry -> CardEntry -> Index -> Index
+updateInIndex oldEntry newEntry (Index list) = Index (newEntry : filter (\(CardEntry { cardReference }) -> cardReference /= (unwrap oldEntry).cardReference) list)
 
 -- --------------------------------------------
 

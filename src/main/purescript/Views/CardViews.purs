@@ -30,7 +30,6 @@ data CardEvent = Edit    Card
                | Delete  Card
                | Used    Card
                | Exit    Card
-               | Share   Card
 
 -- -----------------------------------
 
@@ -48,14 +47,6 @@ cardView card@(Card r) = do
       , confirmationWidget "Are you sure you want to delete this card?"
       ]
       if confirmation then pure res else cardView card
-    Share _ -> do
-      maybeCardValues <- div [Props._id "cardView"] [
-        Nothing <$ cardActions card false
-      , cardContent r.content
-      ]
-      case maybeCardValues of
-        Nothing         -> cardView card
-        Just secrets -> pure $ Share (Card r {secrets = secrets})
     _ -> pure res
 
 cardActions :: Card -> Boolean -> Widget HTML CardEvent
@@ -68,7 +59,6 @@ cardActions card@(Card r) enabled = div [Props.className "cardActions"] [
     else
       simpleButton "archive" "archive" (not enabled) (Archive card)
   , simpleButton   "delete"  "delete"  (not enabled) (Delete card)
-  -- , simpleButton   "share"   "share"   (not enabled) (Share card)         
 ]
 
 type SecretIdInfo = { creationDate   :: String
