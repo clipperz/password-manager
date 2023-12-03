@@ -4,12 +4,12 @@ import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.React.DOM (button, div, header, li, ol, span, text)
 import Concur.React.Props as Props
-import Control.Alt (class Functor, map, ($>), (<#>))
+import Control.Alt (($>), (<#>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Category ((<<<))
 import Data.Array (fromFoldable, nub)
-import Data.Eq ((==))
+import Data.Eq (class Eq, (/=), (==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.List (fold)
@@ -25,6 +25,7 @@ import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (simpleButton)
 
 data CardFormInput = NewCard (Maybe Card) | ModifyCard Card
+derive instance eqCardFormInput :: Eq CardFormInput
 
 data CardManagerEvent = AddCardEvent      Card
                       | CloneCardEvent    Card
@@ -34,6 +35,7 @@ data CardManagerEvent = AddCardEvent      Card
                       | OpenUserAreaEvent CardsManagerState
 
 data CardViewState = NoCard | Card Card | CardForm CardFormInput
+derive instance eqCardViewState :: Eq CardViewState
 
 type CardsManagerState = { 
   filterData    :: FilterData
@@ -48,8 +50,7 @@ cardsManagerInitialState = {
 , cardViewState: NoCard
 }
 
-data CardsManagerInternalEvent a = StateUpdate a | CardManagerEvent CardManagerEvent
-derive instance functorCardsManagerInternalEvent :: Functor CardsManagerInternalEvent
+data CardsManagerInternalEvent = StateUpdate CardsManagerState | CardManagerEvent CardManagerEvent
 
 cardsManagerView :: CardsManagerState -> Index -> PasswordGeneratorSettings -> Widget HTML CardManagerEvent
 cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selectedEntry, cardViewState} index@(Index list) userPasswordGeneratorSettings = do
@@ -57,14 +58,14 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selec
     indexFilterView filterData index <#> updateFilterData
   , div [Props.className "cardToolbarFrame"] [
       toolbarHeader "frame"
-    , div [Props._id "mainView"] [
+    , div [Props._id "mainView", Props.className (if cardViewState /= NoCard then "CardViewOpen" else "CardViewClose")] [
         div [Props._id "indexView"] [
           toolbarHeader "cardList"
         , div [Props.className "addCard"] [simpleButton "addCard" "add card" false (StateUpdate state { cardViewState = CardForm $ NewCard Nothing, selectedEntry = Nothing})]
         , indexView index selectedEntry filter <#> (CardManagerEvent <<< OpenCardViewEvent state)
         ]
       , div [Props._id "card"] [
-          map updateCardView <$> mainStageView cardViewState
+          mainStageView cardViewState
         ]
       ]
     ]
@@ -75,7 +76,7 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selec
     StateUpdate      newState -> cardsManagerView newState index userPasswordGeneratorSettings
 
   where
-    updateFilterData :: FilterData -> (CardsManagerInternalEvent CardsManagerState) --TODO: are these `update` functions useless with lenses? [fsolaroli - 28/11/2023]
+    updateFilterData :: FilterData -> CardsManagerInternalEvent --TODO: are these `update` functions useless with lenses? [fsolaroli - 28/11/2023]
     updateFilterData filterData' = StateUpdate (state { filterData = filterData' })
 
     updateCardView :: CardViewState -> CardsManagerState
@@ -90,7 +91,7 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selec
         Untagged            -> text "untagged"
         All                 -> text "clipperz"
 
-    toolbarHeader :: String -> Widget HTML (CardsManagerInternalEvent CardsManagerState)
+    toolbarHeader :: String -> Widget HTML CardsManagerInternalEvent
     toolbarHeader className = header [Props.className className] [
       div [Props.className "tags"] [button [Props.onClick] [text "tags"]] $> updateFilterData (filterData {filterViewStatus = FilterViewOpen})
     , div [Props.className "selection"] [getFilterHeader filter]
@@ -100,19 +101,19 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selec
     allTags :: Array String
     allTags = nub $ fold $ (\(CardEntry entry) -> entry.tags) <$> fromFoldable list
 
-    handleCardEvents :: CardEvent -> (CardsManagerInternalEvent CardViewState)
-    handleCardEvents (Edit    card) = StateUpdate      (CardForm     $ ModifyCard card)
+    handleCardEvents :: CardEvent -> CardsManagerInternalEvent
+    handleCardEvents (Edit    card) = StateUpdate      $ updateCardView (CardForm $ ModifyCard card)
     handleCardEvents (Clone   card) = CardManagerEvent (CloneCardEvent card)
-    handleCardEvents (Archive card) = StateUpdate (CardForm $ ModifyCard card)
-    handleCardEvents (Restore card) = StateUpdate (CardForm $ ModifyCard card)
+    handleCardEvents (Archive card) = StateUpdate $ updateCardView (CardForm $ ModifyCard card)
+    handleCardEvents (Restore card) = StateUpdate $ updateCardView (CardForm $ ModifyCard card)
     handleCardEvents (Delete  card) = CardManagerEvent (DeleteCardEvent card selectedEntry)
-    handleCardEvents (Used    card) = StateUpdate (Card card)
-    handleCardEvents (Exit    _   ) = StateUpdate (NoCard)
+    handleCardEvents (Used    card) = StateUpdate $ updateCardView (Card card)
+    handleCardEvents (Exit    _   ) = StateUpdate $ state { cardViewState = NoCard, selectedEntry = Nothing}
 
-    mainStageView :: CardViewState -> Widget HTML (CardsManagerInternalEvent CardViewState)
+    mainStageView :: CardViewState -> Widget HTML CardsManagerInternalEvent
     mainStageView NoCard                   = div [] []
     mainStageView (Card card)              = cardView card <#> handleCardEvents
-    mainStageView (CardForm cardFormInput) = createCardView inputCard allTags userPasswordGeneratorSettings <#> (maybe (StateUpdate viewCardStateUpdate) (CardManagerEvent <<< outputEvent))
+    mainStageView (CardForm cardFormInput) = createCardView inputCard allTags userPasswordGeneratorSettings <#> (maybe (StateUpdate $ updateCardView viewCardStateUpdate) (CardManagerEvent <<< outputEvent))
       where
 
         inputCard = case cardFormInput of

@@ -149,7 +149,7 @@ html {
 								}
                             }
 
-                            &.CardFromReference, &.CardForm {
+                            &.CardViewOpen {
                                 left: -100vw;
 
                                 #indexView {
@@ -351,7 +351,7 @@ $extraWide-minSize: 1100px;
                                 position: static;
                                 width: auto;
 
-                                &.CardFromReference, &.CardForm {
+                                &.CardViewOpen {
                                     div#indexView {
                                         .addCard {
                                             display: block;
