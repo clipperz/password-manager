@@ -194,7 +194,7 @@ handleCardManagerEvent (CloneCardEvent cardEntry) state@{index} _ =
     index'            <- except $ note (InvalidStateError $ CorruptedState "index not found") index
 
     Tuple state' card <- getCardSteps state cardEntry (loadingMainPage index' NoCard)
-    let cloneCard      = appendToTitle card " - copy"
+    let cloneCard      = appendToTitle " - copy" <<< (\(DataModel.Card.Card card') -> DataModel.Card.Card card' {archived = false}) $ card
     res              <- addCardSteps state' cloneCard (loadingMainPage index' (CardForm $ NewCard $ Just card)) "Clone card"
     pure res
 

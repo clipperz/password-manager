@@ -52,8 +52,8 @@ getCardContent bytes (CardReference ref) =
 
 data FieldType = Email | Url | Passphrase | None
 
-appendToTitle :: Card -> String -> Card
-appendToTitle (Card card@{content: CardValues cardValues@{title}}) titleAppend = Card (card {content = CardValues cardValues {title = title <> titleAppend} })
+appendToTitle :: String -> Card -> Card
+appendToTitle titleAppend (Card card@{content: CardValues cardValues@{title}}) = Card (card {content = CardValues cardValues {title = title <> titleAppend} })
 
 archiveCard :: Card -> Card
 archiveCard (Card card) = Card card {archived = true}
