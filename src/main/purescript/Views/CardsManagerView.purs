@@ -19,7 +19,7 @@ import Data.Semigroup ((<>))
 import DataModel.Card (Card, emptyCard)
 import DataModel.Index (CardEntry(..), Index(..))
 import DataModel.Password (PasswordGeneratorSettings)
-import IndexFilterView (Filter(..), FilterData, FilterViewStatus(..), filteredEntries, getClassNameFromFilterStatus, indexFilterView, initialFilterData)
+import IndexFilterView (Filter(..), FilterData, FilterViewStatus(..), filteredEntries, getClassNameFromFilterStatus, indexFilterView, initialFilterData, shownEntries)
 import Views.CardViews (CardEvent(..), cardView)
 import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (simpleButton)
@@ -55,7 +55,7 @@ cardsManagerInitialState = {
 data CardsManagerInternalEvent = StateUpdate CardsManagerState | CardManagerEvent CardManagerEvent
 
 cardsManagerView :: CardsManagerState -> Index -> PasswordGeneratorSettings -> Widget HTML CardManagerEvent
-cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selectedEntry, cardViewState} index@(Index list) userPasswordGeneratorSettings = do
+cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archived}, selectedEntry, cardViewState} index@(Index list) userPasswordGeneratorSettings = do
   res <- div [Props._id "cardsManager", Props.className $ "filterView_" <> getClassNameFromFilterStatus filterViewStatus] [
     indexFilterView filterData index <#> updateFilterData
   , div [Props.className "cardToolbarFrame"] [
@@ -64,7 +64,7 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selec
         div [Props._id "indexView"] [
           toolbarHeader "cardList"
         , div [Props.className "addCard"] [simpleButton "addCard" "add card" false (StateUpdate state { cardViewState = CardForm $ NewCard Nothing, selectedEntry = Nothing})]
-        , indexView index selectedEntry filter <#> (CardManagerEvent <<< OpenCardViewEvent state)
+        , indexView index selectedEntry filter archived <#> (CardManagerEvent <<< OpenCardViewEvent state)
         ]
       , div [Props._id "card"] [
           mainStageView cardViewState
@@ -133,16 +133,16 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selec
 
 -- ==================================================================                                                                                                                             
 
-indexView :: Index -> Maybe CardEntry -> Filter -> Widget HTML CardEntry
-indexView (Index entries) selectedEntry filter = ol [] (
-  (fromFoldable sortedCards) <#> (\cardEntry@(CardEntry { title, archived }) -> 
-    li [Props.classList [archivedClass archived, selectedClass cardEntry], cardEntry <$ Props.onClick] [
+indexView :: Index -> Maybe CardEntry -> Filter -> Boolean -> Widget HTML CardEntry
+indexView (Index entries) selectedEntry filter archived = ol [] (
+  (fromFoldable sortedCards) <#> (\cardEntry@(CardEntry { title, archived: archived' }) -> 
+    li [Props.classList [archivedClass archived', selectedClass cardEntry], cardEntry <$ Props.onClick] [
       text title
     ]
   )
 ) 
 
   where
-    sortedCards = List.sort $ filteredEntries filter entries
-    archivedClass archived = if archived                    then Just "archived" else Nothing
-    selectedClass entry    = if selectedEntry == Just entry then Just "selected" else Nothing
+    sortedCards = List.sort $ filteredEntries filter (shownEntries entries selectedEntry archived)
+    archivedClass archived' = if archived'                   then Just "archived" else Nothing
+    selectedClass entry     = if selectedEntry == Just entry then Just "selected" else Nothing

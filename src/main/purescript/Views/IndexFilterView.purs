@@ -2,7 +2,7 @@ module IndexFilterView where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, input, int, label, li, number, ol, span, text)
+import Concur.React.DOM (div, input, int, label, li, ol, span, text)
 import Concur.React.Props as Props
 import Control.Alt (($>), (<#>))
 import Control.Category (identity, (>>>))
@@ -10,8 +10,7 @@ import Data.Array (any, elem, nub, null, sort, (:))
 import Data.Eq (class Eq, (==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
-import Data.HeytingAlgebra ((||), (&&), not)
-import Data.Int (toNumber)
+import Data.HeytingAlgebra (not, (&&), (||))
 import Data.List (List, fold, length)
 import Data.List as List
 import Data.Maybe (Maybe(..))
@@ -62,11 +61,11 @@ indexFilterView filterData@{archived, filter, searchString} (Index entries) = di
         ] <#> updateFilter
       , div [Props._id "searchForm", Props.classList [searchFormClassName]] [
           simpleTextInputWidgetWithFocus "search" (text "search") "search" searchString
-        , span [Props.className "count"] [number $ filterCardsNumber (Search searchString)]
+        , span [Props.className "count"] [int $ filterCardsNumber (Search searchString)]
         ] <#> (\search -> filterData {filter = Search search, searchString = search})
       , div [Props.className "tags"] [
           span [Props.className "tags"] [text "Tags"]
-        , ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (Tag tag) tag [] (filter == Tag tag)) <$> (sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) <$> shownEntries))
+        , ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (Tag tag) tag [] (filter == Tag tag)) <$> (sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) <$> (shownEntries entries Nothing archived)))
         ] <#> updateFilter
       ]
     , div [Props._id "archivedFilterArea"] [
@@ -91,26 +90,26 @@ indexFilterView filterData@{archived, filter, searchString} (Index entries) = di
 
     archivedCardsNumber = length $ List.filter (\(CardEntry r) -> r.archived) entries
 
-    shownEntries :: List CardEntry
-    shownEntries = List.filter (\(CardEntry r) -> archived || (not r.archived)) entries
-
     updateFilter :: Filter -> FilterData
     updateFilter newFilter = filterData { filter = newFilter }
 
     getFilterListElement :: Filter -> String -> Array String -> Boolean -> Widget HTML Filter
     getFilterListElement filter' label classes isSelected = li [Props.classList $ [if isSelected then Just "selected" else Nothing] <> (Just <$> classes), filter' <$ Props.onClick] [
       span [Props.className "label"] [ text label ]
-    , span [Props.className "count"] [ number $ filterCardsNumber filter' ]
+    , span [Props.className "count"] [ int $ filterCardsNumber filter' ]
     ]
 
-    filterCardsNumber :: Filter -> Number
-    filterCardsNumber filter' = toNumber $
+    filterCardsNumber :: Filter -> Int
+    filterCardsNumber filter' =
       case filter' of
-        Recent                -> min numberOfRecent (length shownEntries)
-        filter_               -> length (filteredEntries filter_ shownEntries)
+        Recent                -> min numberOfRecent (length $ shownEntries entries Nothing archived)
+        filter_               -> length (filteredEntries filter_ $ shownEntries entries Nothing archived)
 
     min :: Int -> Int -> Int
     min n n' = if n < n' then n else n'
+
+shownEntries :: List CardEntry -> Maybe CardEntry -> Boolean -> List CardEntry
+shownEntries entries selectedEntry archived = List.filter (\(CardEntry r) -> archived || (not r.archived) || (Just (CardEntry r) == selectedEntry)) entries
 
 filteredEntries :: Filter -> List CardEntry -> List CardEntry
 filteredEntries filter = case filter of
