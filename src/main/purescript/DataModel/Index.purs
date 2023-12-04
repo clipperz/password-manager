@@ -87,6 +87,9 @@ instance decodeJsonCardEntry :: DecodeJson CardEntry where
 
 derive instance newtypeCardEntry :: Newtype CardEntry _
 
+reference :: CardEntry -> HexString
+reference (CardEntry entry) = (unwrap entry.cardReference).reference
+
 -- --------------------------------------------
 
 emptyIndex :: Index

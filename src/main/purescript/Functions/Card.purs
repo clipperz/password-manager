@@ -1,8 +1,10 @@
 module Functions.Card
   ( FieldType(..)
   , appendToTitle
+  , archiveCard
   , getCardContent
   , getFieldType
+  , restoreCard
   )
   where
 
@@ -53,6 +55,12 @@ data FieldType = Email | Url | Passphrase | None
 appendToTitle :: Card -> String -> Card
 appendToTitle (Card card@{content: CardValues cardValues@{title}}) titleAppend = Card (card {content = CardValues cardValues {title = title <> titleAppend} })
 
+archiveCard :: Card -> Card
+archiveCard (Card card) = Card card {archived = true}
+
+restoreCard :: Card -> Card
+restoreCard (Card card) = Card card {archived = false}
+ 
 testRegex :: Either String Regex -> String -> Boolean
 testRegex eitherRegex value =
   case eitherRegex of

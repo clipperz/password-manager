@@ -26,6 +26,15 @@ type SignupDataForm = { username       :: String
                       , checkboxes     :: Array (Tuple String Boolean)
                       }
 
+getSignupDataFromCredentials :: Credentials -> SignupDataForm
+getSignupDataFromCredentials {username, password} = { username
+                                                    , password
+                                                    , verifyPassword: password
+                                                    , checkboxes: [ Tuple "terms_of_service" true
+                                                                  , Tuple "not_recoverable" true
+                                                                  ]
+                                                    }
+
 emptyDataForm :: SignupDataForm
 emptyDataForm = { username: ""
                 , password: ""

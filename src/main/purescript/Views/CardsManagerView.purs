@@ -24,17 +24,19 @@ import Views.CardViews (CardEvent(..), cardView)
 import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (simpleButton)
 
-data CardFormInput = NewCard (Maybe Card) | ModifyCard Card
+data CardFormInput = NewCard (Maybe Card) | ModifyCard Card CardEntry -- TODO NewCard | NewCardFromFragment Card | ModifyCard Card CardEntry [fsolaroli - 03/12/2023]
 derive instance eqCardFormInput :: Eq CardFormInput
 
-data CardManagerEvent = AddCardEvent      Card
-                      | CloneCardEvent    Card
-                      | DeleteCardEvent   Card (Maybe CardEntry)
-                      | EditCardEvent     Card (Maybe CardEntry) Card
+data CardManagerEvent = AddCardEvent                Card
+                      | CloneCardEvent    CardEntry
+                      | DeleteCardEvent   CardEntry
+                      | EditCardEvent     CardEntry Card
+                      | ArchiveCardEvent  CardEntry
+                      | RestoreCardEvent  CardEntry
                       | OpenCardViewEvent CardsManagerState CardEntry
                       | OpenUserAreaEvent CardsManagerState
 
-data CardViewState = NoCard | Card Card | CardForm CardFormInput
+data CardViewState = NoCard | Card Card CardEntry | CardForm CardFormInput
 derive instance eqCardViewState :: Eq CardViewState
 
 type CardsManagerState = { 
@@ -102,32 +104,31 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter}, selec
     allTags = nub $ fold $ (\(CardEntry entry) -> entry.tags) <$> fromFoldable list
 
     handleCardEvents :: CardEvent -> CardsManagerInternalEvent
-    handleCardEvents (Edit    card) = StateUpdate      $ updateCardView (CardForm $ ModifyCard card)
-    handleCardEvents (Clone   card) = CardManagerEvent (CloneCardEvent card)
-    handleCardEvents (Archive card) = StateUpdate $ updateCardView (CardForm $ ModifyCard card)
-    handleCardEvents (Restore card) = StateUpdate $ updateCardView (CardForm $ ModifyCard card)
-    handleCardEvents (Delete  card) = CardManagerEvent (DeleteCardEvent card selectedEntry)
-    handleCardEvents (Used    card) = StateUpdate $ updateCardView (Card card)
-    handleCardEvents (Exit    _   ) = StateUpdate $ state { cardViewState = NoCard, selectedEntry = Nothing}
+    handleCardEvents (Edit    cardEntry card) = StateUpdate      $ updateCardView (CardForm $ ModifyCard card cardEntry)
+    handleCardEvents (Clone   cardEntry     ) = CardManagerEvent (CloneCardEvent   cardEntry)
+    handleCardEvents (Archive cardEntry     ) = CardManagerEvent (ArchiveCardEvent cardEntry)
+    handleCardEvents (Restore cardEntry     ) = CardManagerEvent (RestoreCardEvent cardEntry)
+    handleCardEvents (Delete  cardEntry     ) = CardManagerEvent (DeleteCardEvent  cardEntry)
+    handleCardEvents (Exit                  ) = StateUpdate $ state { cardViewState = NoCard, selectedEntry = Nothing}
 
     mainStageView :: CardViewState -> Widget HTML CardsManagerInternalEvent
     mainStageView NoCard                   = div [] []
-    mainStageView (Card card)              = cardView card <#> handleCardEvents
+    mainStageView (Card card cardEntry)    = cardView card cardEntry <#> handleCardEvents
     mainStageView (CardForm cardFormInput) = createCardView inputCard allTags userPasswordGeneratorSettings <#> (maybe (StateUpdate $ updateCardView viewCardStateUpdate) (CardManagerEvent <<< outputEvent))
       where
 
         inputCard = case cardFormInput of
           NewCard   (Just card) -> card
           NewCard    Nothing    -> emptyCard
-          ModifyCard card       -> card
+          ModifyCard card _     -> card
         
         viewCardStateUpdate = case cardFormInput of
           NewCard    _    -> NoCard
-          ModifyCard card -> Card card
+          ModifyCard card cardEntry -> Card card cardEntry
 
         outputEvent = case cardFormInput of
-          NewCard _       -> AddCardEvent
-          ModifyCard card -> EditCardEvent card selectedEntry
+          NewCard    _           -> AddCardEvent
+          ModifyCard _ cardEntry -> EditCardEvent cardEntry
 
 
 -- ==================================================================                                                                                                                             

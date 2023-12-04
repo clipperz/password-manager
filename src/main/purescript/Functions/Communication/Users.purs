@@ -1,5 +1,6 @@
 module Functions.Communication.Users
-  ( deleteUserCard
+  ( UpdateIndexStateUpdateInfo
+  , deleteUserCard
   , getIndex
   , getMasterKey
   , getRemoteUserCard

@@ -15,6 +15,7 @@ import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Unit (unit)
 import DataModel.Card (Card(..), CardField(..), CardValues(..))
+import DataModel.Index (CardEntry)
 import Effect.Unsafe (unsafePerformEffect)
 import Functions.Clipboard (copyToClipboard)
 import MarkdownIt (renderString)
@@ -23,43 +24,43 @@ import Views.SimpleWebComponents (simpleButton, confirmationWidget)
 
 -- -----------------------------------
 
-data CardEvent = Edit    Card
-               | Clone   Card
-               | Archive Card
-               | Restore Card
-               | Delete  Card
-               | Used    Card
-               | Exit    Card
+data CardEvent = Edit    CardEntry Card
+               | Clone   CardEntry
+               | Archive CardEntry
+               | Restore CardEntry
+               | Delete  CardEntry 
+               | Exit
 
 -- -----------------------------------
 
-cardView :: Card -> Widget HTML CardEvent
-cardView card@(Card r) = do
+cardView :: Card -> CardEntry -> Widget HTML CardEvent
+cardView card@(Card r) cardEntry = do
   res <- div [Props._id "cardView"] [
-    cardActions card true
-  , (Used card) <$ cardContent r.content
+    cardActions true
+  , cardContent r.content
   ]
   case res of
     Delete _ -> do
       confirmation <- div [Props._id "cardView"] [
-        false <$ cardActions card false
+        false <$ cardActions false
       , cardContent r.content
       , confirmationWidget "Are you sure you want to delete this card?"
       ]
-      if confirmation then pure res else cardView card
+      if confirmation then pure res else cardView card cardEntry
     _ -> pure res
 
-cardActions :: Card -> Boolean -> Widget HTML CardEvent
-cardActions card@(Card r) enabled = div [Props.className "cardActions"] [
-    simpleButton   "exit"    "exit"     false        (Exit card)
-  , simpleButton   "edit"    "edit"    (not enabled) (Edit card)
-  , simpleButton   "clone"   "clone"   (not enabled) (Clone card)
-  , if r.archived then
-      simpleButton "restore" "restore" (not enabled) (Restore card)
-    else
-      simpleButton "archive" "archive" (not enabled) (Archive card)
-  , simpleButton   "delete"  "delete"  (not enabled) (Delete card)
-]
+  where
+    cardActions ::Boolean -> Widget HTML CardEvent
+    cardActions enabled = div [Props.className "cardActions"] [
+        simpleButton   "exit"    "exit"     false        (Exit                  )
+      , simpleButton   "edit"    "edit"    (not enabled) (Edit    cardEntry card)
+      , simpleButton   "clone"   "clone"   (not enabled) (Clone   cardEntry     )
+      , if r.archived then
+          simpleButton "restore" "restore" (not enabled) (Restore cardEntry     )
+        else
+          simpleButton "archive" "archive" (not enabled) (Archive cardEntry     )
+      , simpleButton   "delete"  "delete"  (not enabled) (Delete  cardEntry     )
+    ]
 
 type SecretIdInfo = { creationDate   :: String
                     , expirationDate :: String
