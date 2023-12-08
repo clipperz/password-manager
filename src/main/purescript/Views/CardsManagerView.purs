@@ -16,6 +16,7 @@ import Data.List (fold)
 import Data.List as List
 import Data.Maybe (Maybe(..), maybe)
 import Data.Semigroup ((<>))
+import Data.Tuple (Tuple(..))
 import DataModel.Card (Card, emptyCard)
 import DataModel.Index (CardEntry(..), Index(..))
 import DataModel.Password (PasswordGeneratorSettings)
@@ -33,28 +34,28 @@ data CardManagerEvent = AddCardEvent                Card
                       | EditCardEvent     CardEntry Card
                       | ArchiveCardEvent  CardEntry
                       | RestoreCardEvent  CardEntry
-                      | OpenCardViewEvent CardsManagerState CardEntry
-                      | OpenUserAreaEvent CardsManagerState
+                      | OpenCardViewEvent CardEntry
+                      | OpenUserAreaEvent
 
 data CardViewState = NoCard | Card Card CardEntry | CardForm CardFormInput
 derive instance eqCardViewState :: Eq CardViewState
 
-type CardsManagerState = { 
+type CardManagerState = { 
   filterData    :: FilterData
 , selectedEntry :: Maybe CardEntry
 , cardViewState :: CardViewState
 }
 
-cardsManagerInitialState :: CardsManagerState
-cardsManagerInitialState = {
+cardManagerInitialState :: CardManagerState
+cardManagerInitialState = {
   filterData: initialFilterData
 , selectedEntry: Nothing
 , cardViewState: NoCard
 }
 
-data CardsManagerInternalEvent = StateUpdate CardsManagerState | CardManagerEvent CardManagerEvent
+data CardsManagerInternalEvent = StateUpdate CardManagerState | CardManagerEvent CardManagerEvent
 
-cardsManagerView :: CardsManagerState -> Index -> PasswordGeneratorSettings -> Widget HTML CardManagerEvent
+cardsManagerView :: CardManagerState -> Index -> PasswordGeneratorSettings -> Widget HTML (Tuple CardManagerEvent CardManagerState)
 cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archived}, selectedEntry, cardViewState} index@(Index list) userPasswordGeneratorSettings = do
   res <- div [Props._id "cardsManager", Props.className $ "filterView_" <> getClassNameFromFilterStatus filterViewStatus] [
     indexFilterView filterData index <#> updateFilterData
@@ -64,7 +65,7 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archiv
         div [Props._id "indexView"] [
           toolbarHeader "cardList"
         , div [Props.className "addCard"] [simpleButton "addCard" "add card" false (StateUpdate state { cardViewState = CardForm $ NewCard Nothing, selectedEntry = Nothing})]
-        , indexView index selectedEntry filter archived <#> (CardManagerEvent <<< OpenCardViewEvent state)
+        , indexView index selectedEntry filter archived <#> (CardManagerEvent <<< OpenCardViewEvent)
         ]
       , div [Props._id "card"] [
           mainStageView cardViewState
@@ -74,14 +75,14 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archiv
   ]
 
   case res of
-    CardManagerEvent event    -> pure event
+    CardManagerEvent event    -> pure $ Tuple event state
     StateUpdate      newState -> cardsManagerView newState index userPasswordGeneratorSettings
 
   where
     updateFilterData :: FilterData -> CardsManagerInternalEvent --TODO: are these `update` functions useless with lenses? [fsolaroli - 28/11/2023]
     updateFilterData filterData' = StateUpdate (state { filterData = filterData' })
 
-    updateCardView :: CardViewState -> CardsManagerState
+    updateCardView :: CardViewState -> CardManagerState
     updateCardView cardViewState' = (state { cardViewState = cardViewState' })
 
     getFilterHeader :: forall a. Filter -> Widget HTML a
@@ -97,7 +98,7 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archiv
     toolbarHeader className = header [Props.className className] [
       div [Props.className "tags"] [button [Props.onClick] [text "tags"]] $> updateFilterData (filterData {filterViewStatus = FilterViewOpen})
     , div [Props.className "selection"] [getFilterHeader filter]
-    , (CardManagerEvent $ OpenUserAreaEvent state) <$ div [Props.className "menu"] [button [Props.onClick] [text "menu"]]
+    , (CardManagerEvent OpenUserAreaEvent) <$ div [Props.className "menu"] [button [Props.onClick] [text "menu"]]
     ]
 
     allTags :: Array String
