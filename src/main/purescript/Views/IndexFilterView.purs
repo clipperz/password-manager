@@ -10,7 +10,7 @@ import Data.Array (any, elem, nub, null, sort, (:))
 import Data.Eq (class Eq, (==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
-import Data.HeytingAlgebra (not, (&&), (||))
+import Data.HeytingAlgebra (not, (||))
 import Data.List (List, fold, length)
 import Data.List as List
 import Data.Maybe (Maybe(..))
@@ -55,7 +55,7 @@ indexFilterView filterData@{archived, filter, searchString} (Index entries) = di
   , div [Props.className "content"] [
       div [Props.className "filter"] [
         ol [Props.className "defaultSets"] [
-          getFilterListElement All      "All"      ["allCards"]      (filter == All && searchString == "")
+          getFilterListElement All      "All"      ["allCards"]      (filter == All || filter == (Search ""))
         , getFilterListElement Recent   "Recent"   ["recentCards"]   (filter == Recent)
         , getFilterListElement Untagged "Untagged" ["untaggedCards"] (filter == Untagged)
         ] <#> updateFilter
