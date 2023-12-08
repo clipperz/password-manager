@@ -5,10 +5,10 @@ import Concur.Core.FRP (loopS, fireOnce, demand)
 import Concur.React (HTML)
 import Concur.React.DOM (a, button, div, div_, form, span, text)
 import Concur.React.Props as Props
-import Control.Alt ((<$), (<|>))
+import Control.Alt ((<$), (<$>), (<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
-import Data.Either (Either(..))
+import Data.Either (Either(..), either)
 import Data.Eq ((==), (/=))
 import Data.Foldable (all)
 import Data.Function (($))
@@ -25,6 +25,9 @@ type SignupDataForm = { username       :: String
                       , verifyPassword :: String
                       , checkboxes     :: Array (Tuple String Boolean)
                       }
+
+data SignupPageEvent  = SignupEvent Credentials
+                      | GoToLoginEvent Credentials
 
 getSignupDataFromCredentials :: Credentials -> SignupDataForm
 getSignupDataFromCredentials {username, password} = { username
@@ -59,8 +62,8 @@ checkboxesLabels = fromFoldable [
 
 --------------------------------
 
-signupFormView :: SignupDataForm -> Widget HTML (Either Credentials Credentials) -- TODO: return SignupDataForm to show the compiled formWidget in loading
-signupFormView formData =
+signupFormView :: SignupDataForm -> Widget HTML SignupPageEvent -- TODO: return SignupDataForm to show the compiled formWidget in loading
+signupFormView formData = either GoToLoginEvent SignupEvent <$> 
   form [Props.className "signupForm"] [
     do
       signalResult <- demand $ do

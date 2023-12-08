@@ -3,35 +3,68 @@ module Views.LoginFormView where
 import Concur.Core (Widget)
 import Concur.Core.FRP (loopS, loopW, fireOnce, demand)
 import Concur.React (HTML)
-import Concur.React.DOM (button, div, div_, form_, input, label, span, text)
+import Concur.React.DOM (a, button, div, div_, form, form_, input, label, span, text)
 import Concur.React.Props as Props
 import Control.Alt ((<$), (<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
-import Data.Either (Either(..))
+import Data.Either (Either(..), either)
 import Data.Eq ((/=), (==))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HeytingAlgebra ((&&), not)
 import Data.Maybe (Maybe(..))
+import Data.Ord ((<))
 import Data.String (length)
-import DataModel.Credentials (Credentials)
+import DataModel.Credentials (Credentials, emptyCredentials)
 import Functions.Communication.StatelessOneTimeShare (PIN)
 
 -- data PinViewResult = Pin Int | NormalLogin
 
-type PinCredentials = { pin :: Int, user :: String, passphrase :: String }
+data LoginType = CredentialLogin | PinLogin
+
+type Username = String
+
+type PinCredentials = { pin :: Int, user :: Username, passphrase :: String }
 
 -- | The data of the login form
 type LoginDataForm =  { username :: String
                       , password :: String
                       }
 
+data LoginPageEvent   = LoginEvent Credentials
+                      | LoginPinEvent PIN
+                      | GoToCredentialLoginEvent Username
+                      | GoToSignupEvent Credentials
+
+type LoginFormData = 
+  { credentials :: Credentials
+  , pin :: PIN
+  , loginType :: LoginType
+  }
+
+emptyLoginFormData :: LoginFormData
+emptyLoginFormData = { credentials: emptyCredentials, pin: "", loginType: CredentialLogin }
+
 emptyForm :: LoginDataForm
 emptyForm = { username: "", password: "" }
 
 isFormValid :: LoginDataForm -> Boolean
 isFormValid { username, password } = username /= "" && password /= ""
+
+
+loginPage :: LoginFormData -> Widget HTML LoginPageEvent
+loginPage {credentials, pin, loginType} =
+  case loginType of
+    CredentialLogin -> either GoToSignupEvent LoginEvent <$> credentialLoginWidget credentials
+    PinLogin        -> do
+      form [Props.className "loginForm"] [
+        div [Props.className "loginInputs"] [
+          span [] [text "Enter your PIN"]
+        , LoginPinEvent <$> pinLoginWidget (length pin < 5) pin
+        , GoToCredentialLoginEvent credentials.username <$ a [Props.onClick] [text "Login with passphrase"]
+        ] <|> ((GoToSignupEvent credentials) <$ button [Props.onClick] [text "sign up"])
+          ]
 
 credentialLoginWidget :: LoginDataForm -> Widget HTML (Either Credentials Credentials)
 credentialLoginWidget formData = do

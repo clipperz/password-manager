@@ -36,6 +36,7 @@ import Functions.Communication.StatelessBackend (ConnectionState)
 import Functions.EncodeDecode (cryptoKeyAES, encryptJson)
 import Web.XHR.FormData (EntryName(..), FileName(..), appendBlob, new)
 
+-- TODO REMOVE
 getCard :: CardReference -> ExceptT AppError Aff Card
 getCard cardRef@(CardReference { reference }) = do
   maybeCard <- getCardFromCache reference
@@ -46,6 +47,7 @@ getCard cardRef@(CardReference { reference }) = do
       card <- getCardContent blob cardRef
       addCardToCache reference card
       pure $ card
+-- -------------
 
 -- TODO REMOVE
 deleteCardWithState :: CardReference -> ExceptT AppError Aff String
@@ -88,7 +90,6 @@ postCard {proxy, hash} card = do
   key <- liftAff $ KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
   Tuple encryptedCard cardEntry@(CardEntry {cardReference: CardReference {reference}}) <- liftAff $ createCardEntry card key hashFuncSHA256
   ProxyResponse proxy' _ <- postStatelessBlob {proxy, hashFunc: hash} encryptedCard (toArrayBuffer reference)
-  addCardToCache reference card
   pure $ ProxyResponse proxy' cardEntry
 
 

@@ -2,59 +2,31 @@ module Views.AppView where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (a, button, div, form, h1, h3, header, li, p, span, text, ul)
+import Concur.React.DOM (a, div, h1, h3, header, li, p, span, text, ul)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Bind (bind)
-import Data.Either (either)
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not)
 import Data.Maybe (Maybe(..))
-import Data.Ord ((<))
 import Data.Show (class Show, show)
-import Data.String (length)
 import DataModel.AppState (ProxyConnectionStatus(..))
-import DataModel.Credentials (Credentials, emptyCredentials)
 import DataModel.Index (Index, emptyIndex)
 import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
 import Effect.Class (liftEffect)
-import Functions.Communication.StatelessOneTimeShare (PIN)
 import Functions.EnvironmentalVariables (currentCommit)
 import OperationalWidgets.UserAreaWidget (userAreaWidget)
 import Views.CardsManagerView (CardManagerEvent, CardViewState, CardsManagerState, cardsManagerInitialState, cardsManagerView)
 import Views.Components (footerComponent)
-import Views.LoginFormView (credentialLoginWidget, pinLoginWidget)
+import Views.LoginFormView (LoginFormData, LoginPageEvent, emptyLoginFormData, loginPage)
 import Views.OverlayView (OverlayInfo, overlay)
-import Views.SignupFormView (SignupDataForm, emptyDataForm, signupFormView)
+import Views.SignupFormView (SignupDataForm, SignupPageEvent, emptyDataForm, signupFormView)
 
-type SharedCardReference = String
-type SharedCardPassword  = String
-type Username = String
-
-type LoginFormData = 
-  { credentials :: Credentials
-  , pin :: PIN
-  , loginType :: LoginType
-  }
-
-data LoginType = CredentialLogin | PinLogin
-
-emptyLoginFormData :: LoginFormData
-emptyLoginFormData = { credentials: emptyCredentials, pin: "", loginType: CredentialLogin }
-
-
-data LoginPageEvent   = LoginEvent Credentials
-                      | LoginPinEvent PIN
-                      | GoToCredentialLoginEvent Username
-                      | GoToSignupEvent Credentials
-data SignupPageEvent  = SignupEvent Credentials
-                      | GoToLoginEvent Credentials
-
-data PageEvent        = LoginPageEvent  LoginPageEvent
-                      | SignupPageEvent SignupPageEvent
+data PageEvent        = LoginPageEvent   LoginPageEvent
+                      | SignupPageEvent  SignupPageEvent
                       | CardManagerEvent CardManagerEvent
-                      | UserAreaEvent UserAreaEvent
+                      | UserAreaEvent    UserAreaEvent
 
 data UserAreaEvent    = UpdateUserPreferencesEvent -- ??
                       | ChangePasswordEvent -- ??
@@ -67,7 +39,7 @@ data UserAreaEvent    = UpdateUserPreferencesEvent -- ??
                       | LockEvent
                       | LogoutEvent
 
-data Page = Loading (Maybe Page) | Login LoginFormData | Signup SignupDataForm | Share (Maybe SharedCardReference) | Main MainPageWidgetState
+data Page = Loading (Maybe Page) | Login LoginFormData | Signup SignupDataForm | Main MainPageWidgetState
 
 type MainPageWidgetState = {
   index                         :: Index
@@ -104,7 +76,7 @@ appView (WidgetState overlayInfo page) =
                             Signup credentials' -> credentials'
                             _                   -> emptyDataForm
         
-        (either GoToLoginEvent SignupEvent <$> (signupFormView credentials)) 
+        (signupFormView credentials)
       ]
     , div [Props.classList (Just <$> ["page", "main", show $ location (Main emptyMainPageWidgetState) page])] [ do
         let {index, showUserArea, cardsManagerState, userPasswordGeneratorSettings} = case page of
@@ -119,18 +91,6 @@ appView (WidgetState overlayInfo page) =
       ]
     ]
 
-    loginPage :: LoginFormData -> Widget HTML LoginPageEvent
-    loginPage {credentials, pin, loginType} =
-      case loginType of
-        CredentialLogin -> either GoToSignupEvent LoginEvent <$> credentialLoginWidget credentials
-        PinLogin        -> do
-          form [Props.className "loginForm"] [
-            div [Props.className "loginInputs"] [
-              span [] [text "Enter your PIN"]
-            , LoginPinEvent <$> pinLoginWidget (length pin < 5) pin
-            , GoToCredentialLoginEvent credentials.username <$ a [Props.onClick] [text "Login with passphrase"]
-            ] <|> ((GoToSignupEvent credentials) <$ button [Props.onClick] [text "sign up"])
-          ]
 
 data PagePosition = LeftPosition | CenterPosition | RightPosition
 instance showPagePosition :: Show PagePosition where
@@ -140,25 +100,21 @@ instance showPagePosition :: Show PagePosition where
 
 location :: Page -> Page -> PagePosition
 location referencePage currentPage = case referencePage, currentPage of
-  Loading _,  Loading _ -> CenterPosition
-  Login _,    Login _   -> CenterPosition
-  Signup _,   Signup _  -> CenterPosition
-  Share _,    Share _   -> CenterPosition
-  Main _ ,    Main _    -> CenterPosition
+  Loading _, Loading _ -> CenterPosition
+  Login   _, Login   _ -> CenterPosition
+  Signup  _, Signup  _ -> CenterPosition
+  Main    _, Main    _ -> CenterPosition
 
-  Loading _,  _         -> LeftPosition
-  Signup _,   Login _   -> LeftPosition
-  Login _,    Share _   -> LeftPosition
-  Signup _,   Share _   -> LeftPosition
-  _,          Main  _   -> LeftPosition
-  _,          _         -> RightPosition
+  Loading _, _         -> LeftPosition
+  Signup  _, Login   _ -> LeftPosition
+  _,         Main    _ -> LeftPosition
+  _,         _         -> RightPosition
 
 pageClassName :: Page -> String
 pageClassName (Loading _) = "loading"
 pageClassName (Login _)   = "login"
 pageClassName (Signup _)  = "signup"
-pageClassName (Share _)   = "share"
-pageClassName (Main _)  = "main"
+pageClassName (Main _)    = "main"
 
 headerPage :: forall a. Page -> Page -> Array (Widget HTML a) -> Widget HTML a
 headerPage currentPage page innerContent = do
@@ -203,8 +159,7 @@ shortcutsDiv = div [Props._id "shortcutsHelp", Props.className "hidden"] [
 ]
 
 instance showPage :: Show Page where
-  show (Loading _)  = "Loading"
-  show (Login _)    = "Login"
-  show (Signup _)   = "Signup"
-  show (Share _)    = "Share"
-  show (Main _)   = "Main"
+  show (Loading _) = "Loading"
+  show (Login _)   = "Login"
+  show (Signup _)  = "Signup"
+  show (Main _)    = "Main"

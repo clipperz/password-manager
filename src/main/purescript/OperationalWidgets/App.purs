@@ -46,10 +46,11 @@ import Functions.SRP (checkM2)
 import Functions.Timer (activateTimer)
 import Record (merge)
 import Unsafe.Coerce (unsafeCoerce)
-import Views.AppView (LoginFormData, LoginPageEvent(..), LoginType(..), Page(..), PageEvent(..), SignupPageEvent(..), UserAreaEvent(..), WidgetState(..), appView, emptyLoginFormData, emptyMainPageWidgetState, loadingMainPage)
+import Views.AppView (Page(..), PageEvent(..), UserAreaEvent(..), WidgetState(..), appView, emptyMainPageWidgetState, loadingMainPage)
 import Views.CardsManagerView (CardFormInput(..), CardManagerEvent(..), CardViewState(..), cardsManagerInitialState)
+import Views.LoginFormView (LoginPageEvent(..), LoginType(..), LoginFormData, emptyLoginFormData)
 import Views.OverlayView (OverlayStatus(..), hiddenOverlayInfo, spinnerOverlay)
-import Views.SignupFormView (emptyDataForm, getSignupDataFromCredentials)
+import Views.SignupFormView (SignupPageEvent(..), emptyDataForm, getSignupDataFromCredentials)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
 import Web.Storage.Storage (getItem, setItem)
@@ -124,7 +125,7 @@ handleLoginPageEvent (LoginEvent cred) state@{proxy, srpConf} fragmentState =
   >>= handleOperationResult state initialPage
 
   where 
-    initialPage        = (Login  emptyLoginFormData {credentials = cred})
+    initialPage = (Login emptyLoginFormData {credentials = cred})
 
 
 handleLoginPageEvent (LoginPinEvent pin) state@{proxy, hash, srpConf, username, pinEncryptedPassword} fragmentState = do
@@ -180,6 +181,7 @@ handleCardManagerEvent (OpenCardViewEvent cardsManagerState cardEntry) state@{in
 
 handleCardManagerEvent (AddCardEvent card) state@{index} _ = 
   do
+  do
     index' <- except $ note (InvalidStateError $ CorruptedState "index not found") index
 
     res    <- addCardSteps state card (loadingMainPage index' (CardForm $ NewCard $ Just card)) "Add card"
@@ -187,6 +189,14 @@ handleCardManagerEvent (AddCardEvent card) state@{index} _ =
 
   # runExceptT
   >>= handleOperationResult state defaultErrorPage
+  --   index' <- except $ note (InvalidStateError $ CorruptedState "index not found") index
+    
+  --   res    <- addCardStepsWithStateT card (loadingMainPage index' (CardForm $ NewCard $ Just card)) "Add card"
+  --   pure res
+
+  -- # runExceptT
+  -- # flip runStateT state
+  -- >>= handleOperationResultWithStateT defaultErrorPage
 
 
 handleCardManagerEvent (CloneCardEvent cardEntry) state@{index} _ = 
@@ -445,3 +455,86 @@ handleOperationResult state page = either
 
 delayOperation :: Int -> WidgetState -> Widget HTML Unit
 delayOperation time widgetState = ((liftAff $ delay (Milliseconds $ toNumber time)) <|> (unit <$ appView widgetState))
+
+-- ========================================================================================================================
+
+-- runStepWithStateT :: forall a. ExceptT AppError (StateT StatelessAppState Aff) a -> WidgetState -> ExceptT AppError (StateT StatelessAppState (Widget HTML)) a
+-- runStepWithStateT step widgetState = step # mapExceptT (mapStateT (\res -> liftAff res <|> (defaultView widgetState)))
+
+-- handleOperationResultWithStateT :: Page -> Tuple (Either AppError WidgetState) StatelessAppState -> Widget HTML OperationState
+-- handleOperationResultWithStateT page res = swap res <#> either
+--                                             manageError
+--                                             (\widgetState@(WidgetState _ page') -> delayOperation 500 (WidgetState { status: Done, message: "" } page') *> pure widgetState)
+--                                          # sequence
+                                                
+--   where
+--     manageError :: AppError -> Widget HTML WidgetState
+--     manageError error = 
+--       case error of
+--         -- _ -> ErrorPage --TODO
+--         err -> do
+--           liftEffect $ log $ show err
+--           delayOperation 500 (WidgetState { status: Failed,  message: "error" } page)
+--           pure               (WidgetState { status: Hidden,  message: ""      } page)
+
+-- addCardStepsWithStateT :: DataModel.Card.Card -> Page -> String -> ExceptT AppError (StateT StatelessAppState (Widget HTML)) WidgetState
+-- addCardStepsWithStateT newCard page message = do
+--   {index, userPreferences, cardsCache} <- get
+--   index'                               <-  except $ note (InvalidStateError $ CorruptedState "index not found")             index
+--   userPasswordGeneratorSettings        <-  except $ note (InvalidStateError $ CorruptedState "user preferences not found") (userPreferences <#> (\up -> (unwrap up).passwordGeneratorSettings))
+
+--   newCardEntry                          <- runStepWithStateT (postCardWithStateT newCard)         (WidgetState (spinnerOverlay message)        page)
+--   let updatedIndex                       = addToIndex newCardEntry index'
+--   _                                     <- runStepWithStateT (updateIndexWithStateT updatedIndex) (WidgetState (spinnerOverlay "Update index") page)
+--   let updatedCardCache                   = insert (reference newCardEntry) newCard cardsCache
+  
+--   modify_ (\state -> state {cardsCache = updatedCardCache})
+
+--   pure  (WidgetState
+--           hiddenOverlayInfo
+--           (Main { index: updatedIndex
+--                 , showUserArea: false
+--                 , cardsManagerState: cardsManagerInitialState {cardViewState = Card newCard newCardEntry, selectedEntry = Just newCardEntry}
+--                 , userPasswordGeneratorSettings 
+--                 }
+--           )
+--         )
+
+-- postCardWithStateT :: DataModel.Card.Card -> ExceptT AppError (StateT StatelessAppState Aff) CardEntry
+-- postCardWithStateT card = do
+--   {proxy, hash} <- get
+--   key <- liftAff $ KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
+--   Tuple encryptedCard cardEntry@(CardEntry {cardReference: CardReference {reference}}) <- liftAff $ createCardEntry card key hashFuncSHA256
+--   ProxyResponse proxy' _ <- mapExceptT lift $ postStatelessBlob {proxy, hashFunc: hash} encryptedCard (toArrayBuffer reference)
+--   modify_ (\state -> state {proxy = proxy'})
+--   pure cardEntry
+
+-- updateIndexWithStateT :: Index -> ExceptT AppError (StateT StatelessAppState Aff) Unit
+-- updateIndexWithStateT newIndex = do
+--   state <- get
+--   case state of
+--     { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, index: Just index } -> do
+--       cryptoKey            :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer oldReference.masterKey)
+--       indexCardContent     :: ArrayBuffer <- liftAff $ encryptJson cryptoKey newIndex
+--       indexCardContentHash :: ArrayBuffer <- liftAff $ hashFunc (indexCardContent : Nil)
+--       ProxyResponse proxy'   _            <- mapExceptT lift $ postStatelessBlob {proxy, hashFunc} indexCardContent indexCardContentHash
+--       modify_ (\state_ -> state_ {proxy = proxy'})
+--       -- -------------------
+--       let newIndexReference                = IndexReference $ oldReference { reference = fromArrayBuffer indexCardContentHash }
+--       let newUserInfoReferences            = UserInfoReferences r { indexReference = newIndexReference }
+--       masterPassword       :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer p)
+--       masterKeyContent     :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newUserInfoReferences
+--       let newUserCard                      = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
+--       ProxyResponse proxy'' newMasterKey  <- mapExceptT lift $ updateUserCard {proxy: proxy', hashFunc} c newUserCard
+--       modify_ (\state_ -> state_ {proxy = proxy''})
+--       -- -------------------
+--       oldIndexCartContent  :: ArrayBuffer <- liftAff $ encryptJson cryptoKey index
+
+--       ProxyResponse proxy''' _            <- mapExceptT lift $ deleteStatelessBlob {proxy: proxy'', hashFunc} oldIndexCartContent oldReference.reference
+--       modify_ (\state_ -> state_ { proxy = proxy'''
+--                                , index = Just newIndex
+--                                , userInfoReferences = Just newUserInfoReferences
+--                                , masterKey = Just newMasterKey
+--                                })
+
+--     _ -> throwError $ InvalidStateError (MissingValue "Missing p, c or indexReference")
