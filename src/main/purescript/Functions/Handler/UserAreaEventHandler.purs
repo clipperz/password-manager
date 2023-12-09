@@ -33,7 +33,6 @@ handleUserAreaEvent (CloseUserAreaEvent) cardManagerState userAreaState state@{i
 
 handleUserAreaEvent (UpdateUserPreferencesEvent newUserPreferences) cardManagerState userAreaState state@{index} _ = 
   do
-    liftEffect $ log "UPDATE USER PREFERENCES EVENT"
     index'                                <- except $ note (InvalidStateError $ CorruptedState "index not found") index
 
     ProxyResponse proxy'' stateUpdateInfo <- runStep (updateUserPreferences state newUserPreferences) (WidgetState (spinnerOverlay "Update user preferences" White)  (Main { index: index', cardManagerState, userAreaState, userPreferences: newUserPreferences }))

@@ -2,7 +2,7 @@ module Views.UserAreaView where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (button, div, header, li, li', span, text, ul)
+import Concur.React.DOM (a, button, div, header, li, li', span, text, ul)
 import Concur.React.Props as Props
 import Control.Alt (($>), (<#>))
 import Control.Applicative (pure)
@@ -81,14 +81,14 @@ userAreaView state@{showUserArea, userAreaOpenPage, userAreaSubmenus} userPrefer
       , subMenuElement ChangePassword "Passphrase"
       , subMenuElement Pin            "Device PIN"
       , subMenuElement Delete         "Delete account"
-      ]                                                                             <#> StateUpdate
+      ] <#> StateUpdate
     , subMenu Data    "Data"    [
         subMenuElement Import         "Import"
       , subMenuElement Export         "Export"
-      ]                                                                             <#> StateUpdate
-    , subMenuElement   About          "About"                                       <#> StateUpdate
-    , li' [button [Props.onClick, Props._id "lockButton"] [span [] [text "Lock"]]]   $> UserAreaEvent LockEvent
-    , li' [button [Props.onClick]                         [span [] [text "Logout"]]] $> UserAreaEvent LogoutEvent
+      ] <#> StateUpdate
+    , li' [a      [Props.className "link", Props.href "/about/app", Props.target "_blank"] [span [] [text "About"]]]
+    , li' [button [Props.onClick, Props._id "lockButton"]                                  [span [] [text "Lock"]]]   $> UserAreaEvent LockEvent
+    , li' [button [Props.onClick]                                                          [span [] [text "Logout"]]] $> UserAreaEvent LogoutEvent
     ]
 
       where

@@ -43,7 +43,8 @@ div#userPage {
 				border-bottom: 1px solid white;
 				// padding: 10px;
 
-				button {
+				button, a {
+					display: block;
 					width: 100%;
 					text-align: left;
 					border: 0px;
