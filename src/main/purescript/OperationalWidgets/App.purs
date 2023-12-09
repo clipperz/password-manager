@@ -36,7 +36,7 @@ app appState fragmentState = case fragmentState of
       appLoop =<< executeOperation resultEvent state fragmentState
 
 executeOperation :: PageEvent -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState
-executeOperation (SignupPageEvent          event)       = handleSignupPageEvent  event
-executeOperation (LoginPageEvent           event)       = handleLoginPageEvent   event
-executeOperation (MainPageCardManagerEvent event state) = handleCardManagerEvent event state
-executeOperation (MainPageUserAreaEvent    event)       = handleUserAreaEvent    event
+executeOperation (SignupPageEvent          event)      = handleSignupPageEvent  event
+executeOperation (LoginPageEvent           event)      = handleLoginPageEvent   event
+executeOperation (MainPageCardManagerEvent event s)    = handleCardManagerEvent event s
+executeOperation (MainPageUserAreaEvent    event s s') = handleUserAreaEvent    event s s'

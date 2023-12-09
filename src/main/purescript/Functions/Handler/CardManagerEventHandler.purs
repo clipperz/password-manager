@@ -28,11 +28,12 @@ import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPa
 import Views.AppView (Page(..), WidgetState(..), loadingMainPage)
 import Views.CardsManagerView (CardManagerEvent(..), CardManagerState, CardViewState(..))
 import Views.OverlayView (hiddenOverlayInfo, spinnerOverlay)
+import Views.UserAreaView (userAreaInitialState)
 
 handleCardManagerEvent :: CardManagerEvent -> CardManagerState -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState
 
 
-handleCardManagerEvent OpenUserAreaEvent cardManagerState state@{index, userPreferences} _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main { index: fromMaybe emptyIndex index, showUserArea: true, cardManagerState, userPasswordGeneratorSettings: maybe standardPasswordGeneratorSettings ((\up -> (unwrap up).passwordGeneratorSettings)) userPreferences })))
+handleCardManagerEvent OpenUserAreaEvent cardManagerState state@{index, userPreferences} _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main { index: fromMaybe emptyIndex index, userAreaState: userAreaInitialState {showUserArea = true}, cardManagerState, userPasswordGeneratorSettings: maybe standardPasswordGeneratorSettings ((\up -> (unwrap up).passwordGeneratorSettings)) userPreferences })))
 
 
 handleCardManagerEvent (OpenCardViewEvent cardEntry) cardManagerState state@{index, userPreferences} _ = 
@@ -40,13 +41,13 @@ handleCardManagerEvent (OpenCardViewEvent cardEntry) cardManagerState state@{ind
     index'                        <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
     userPasswordGeneratorSettings <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") (userPreferences <#> (\up -> (unwrap up).passwordGeneratorSettings))
 
-    Tuple state' card <- getCardSteps state cardEntry (Main { index: index', showUserArea: false, cardManagerState, userPasswordGeneratorSettings: standardPasswordGeneratorSettings})
+    Tuple state' card <- getCardSteps state cardEntry (Main { index: index', userAreaState: userAreaInitialState, cardManagerState, userPasswordGeneratorSettings: standardPasswordGeneratorSettings})
     pure (Tuple
             state'
             (WidgetState
               hiddenOverlayInfo
               (Main { index: index'
-                    , showUserArea: false
+                    , userAreaState: userAreaInitialState
                     , cardManagerState: cardManagerState {selectedEntry = (Just cardEntry), cardViewState = Card card cardEntry}
                     , userPasswordGeneratorSettings
                     }
@@ -105,7 +106,7 @@ handleCardManagerEvent (DeleteCardEvent cardEntry) cardManagerState state@{hash:
             (state' {proxy = proxy'', index = Just updatedIndex, userInfoReferences = Just stateUpdateInfo.newUserInfoReferences, masterKey = Just stateUpdateInfo.newMasterKey})
             (WidgetState
               hiddenOverlayInfo
-              (Main { index: updatedIndex, showUserArea: false, cardManagerState: cardManagerState {cardViewState = NoCard, selectedEntry = Nothing}, userPasswordGeneratorSettings })
+              (Main { index: updatedIndex, userAreaState: userAreaInitialState, cardManagerState: cardManagerState {cardViewState = NoCard, selectedEntry = Nothing}, userPasswordGeneratorSettings })
             )
          )
 
@@ -187,7 +188,7 @@ addCardSteps cardManagerState state@{index, userPreferences, cardsCache} newCard
           (WidgetState
             hiddenOverlayInfo
             (Main { index: updatedIndex
-                  , showUserArea: false
+                  , userAreaState: userAreaInitialState
                   , cardManagerState: cardManagerState {cardViewState = Card newCard newCardEntry, selectedEntry = Just newCardEntry}
                   , userPasswordGeneratorSettings 
                   }
@@ -210,7 +211,7 @@ editCardSteps cardManagerState state@{index, hash: hashFunc, userPreferences, ca
     (state {proxy = proxy''', index = Just updatedIndex, userInfoReferences = Just stateUpdateInfo.newUserInfoReferences, masterKey = Just stateUpdateInfo.newMasterKey, cardsCache = updatedCardCache})
     (WidgetState
       hiddenOverlayInfo
-      (Main { index: updatedIndex, showUserArea: false, cardManagerState: cardManagerState {cardViewState = (Card updatedCard cardEntry), selectedEntry = Just cardEntry}, userPasswordGeneratorSettings })
+      (Main { index: updatedIndex, userAreaState: userAreaInitialState, cardManagerState: cardManagerState {cardViewState = (Card updatedCard cardEntry), selectedEntry = Just cardEntry}, userPasswordGeneratorSettings })
     )
   )
 

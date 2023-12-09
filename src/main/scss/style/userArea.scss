@@ -33,52 +33,50 @@ div#userPage {
                 }
             }
         }
+		
+		& > ul#userSidebar {
+			border-top: 1px solid white;
+			flex: 1;
+			overflow: auto;
 
-        & > div {
-            border-top: 1px solid white;
-            flex: 1;
-            overflow: auto;
+			& > li {
+				border-bottom: 1px solid white;
+				// padding: 10px;
 
-            ul#userSidebar {
-                & > li {
-                    border-bottom: 1px solid white;
-                    // padding: 10px;
+				button {
+					width: 100%;
+					text-align: left;
+					border: 0px;
+					padding: 10px;
+					cursor: pointer;
+					font-size: 16pt;
+					line-height: 1em;
+					color: white;
+					background-color: inherit;
+				}
 
-                    button {
-                        width: 100%;
-                        text-align: left;
-                        border: 0px;
-                        padding: 10px;
-                        cursor: pointer;
-                        font-size: 16pt;
-                        line-height: 1em;
-                        color: white;
-                        background-color: inherit;
-                    }
+				ul.userSidebarSubitems {
+					&.hidden {
+						display: none;
+						visibility: hidden;
+					}
 
-                    ul.userSidebarSubitems {
-                        &.hidden {
-                            display: none;
-                            visibility: hidden;
-                        }
+					li {
 
-                        li {
+						&.selected {
+							background-color: #333;
+						}
 
-							&.selected {
-								background-color: #333;
-							}
-
-                            button {
-                                padding: 10px;
-                                padding-left: 20px;
-                                font-weight: 300;
-                                font-size: 14pt;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+						button {
+							padding: 10px;
+							padding-left: 20px;
+							font-weight: 300;
+							font-size: 14pt;
+						}
+					}
+				}
+			}
+		}
 
         footer {
             background-color: $core-alternate-color;
