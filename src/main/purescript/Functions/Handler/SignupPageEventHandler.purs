@@ -15,7 +15,7 @@ import Functions.Handler.GenericHandlerFunctions (OperationState, doNothing, han
 import Functions.Handler.LoginPageEventHandler (loginSteps)
 import Views.AppView (Page(..), WidgetState(..))
 import Views.LoginFormView (LoginFormData, LoginType(..), emptyLoginFormData)
-import Views.OverlayView (hiddenOverlayInfo, spinnerOverlay)
+import Views.OverlayView (OverlayColor(..), hiddenOverlayInfo, spinnerOverlay)
 import Views.SignupFormView (SignupPageEvent(..), getSignupDataFromCredentials)
 
 getLoginFormData :: StatelessAppState -> LoginFormData
@@ -26,12 +26,12 @@ handleSignupPageEvent :: SignupPageEvent -> StatelessAppState -> Fragment.Fragme
 
 handleSignupPageEvent (SignupEvent cred) state@{proxy, hash, srpConf} fragmentState = 
   do
-    ProxyResponse newProxy signupResult <- runStep (signupUser proxy hash srpConf cred) (WidgetState (spinnerOverlay "registering") initialPage)
+    ProxyResponse newProxy signupResult <- runStep (signupUser proxy hash srpConf cred) (WidgetState (spinnerOverlay "registering" Black) initialPage)
     res                                 <- loginSteps cred (state {proxy = newProxy}) fragmentState initialPage signupResult
     pure res
   
   # runExceptT 
-  >>= handleOperationResult state initialPage
+  >>= handleOperationResult state initialPage Black
 
   where
     initialPage = Signup $ getSignupDataFromCredentials cred

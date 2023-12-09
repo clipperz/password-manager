@@ -9,10 +9,11 @@ import Control.Bind (bind)
 import Data.Function (flip, (#), ($))
 import Data.Functor ((<$>))
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
 import Data.Show (class Show, show)
 import Data.Tuple (uncurry)
 import DataModel.Index (Index, emptyIndex)
-import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
+import DataModel.User (UserPreferences, defaultUserPreferences)
 import Effect.Class (liftEffect)
 import Functions.EnvironmentalVariables (currentCommit)
 import Views.CardsManagerView (CardManagerEvent, CardManagerState, cardManagerInitialState, cardsManagerView)
@@ -33,14 +34,11 @@ type MainPageWidgetState = {
   index                         :: Index
 , userAreaState                 :: UserAreaState
 , cardManagerState              :: CardManagerState
-, userPasswordGeneratorSettings :: PasswordGeneratorSettings
+, userPreferences               :: UserPreferences
 }
 
-loadingMainPage :: Index -> CardManagerState -> Page
-loadingMainPage index cardManagerState = Main { index, userAreaState: userAreaInitialState, cardManagerState, userPasswordGeneratorSettings: standardPasswordGeneratorSettings }
-
 emptyMainPageWidgetState :: MainPageWidgetState
-emptyMainPageWidgetState = { index: emptyIndex, userAreaState: userAreaInitialState, cardManagerState: cardManagerInitialState, userPasswordGeneratorSettings: standardPasswordGeneratorSettings }
+emptyMainPageWidgetState = { index: emptyIndex, userAreaState: userAreaInitialState, cardManagerState: cardManagerInitialState, userPreferences: defaultUserPreferences }
 
 data WidgetState = WidgetState OverlayInfo Page
 
@@ -67,13 +65,13 @@ appView (WidgetState overlayInfo page) =
         (signupFormView credentials)
       ]
     , div [Props.classList (Just <$> ["page", "main", show $ location (Main emptyMainPageWidgetState) page])] [ do
-        let {index, userAreaState, cardManagerState, userPasswordGeneratorSettings} = case page of
+        let {index, userAreaState, cardManagerState, userPreferences} = case page of
                                         Main homePageWidgetState' -> homePageWidgetState'
                                         _                         -> emptyMainPageWidgetState
         
         div [Props._id "homePage"] [
-          ( MainPageCardManagerEvent                         # uncurry) <$> cardsManagerView cardManagerState index userPasswordGeneratorSettings
-        , ((MainPageUserAreaEvent # flip $ cardManagerState) # uncurry) <$> userAreaView     userAreaState
+          ( MainPageCardManagerEvent                         # uncurry) <$> cardsManagerView cardManagerState index (unwrap userPreferences).passwordGeneratorSettings
+        , ((MainPageUserAreaEvent # flip $ cardManagerState) # uncurry) <$> userAreaView     userAreaState    userPreferences
         ] 
       ]
     ]

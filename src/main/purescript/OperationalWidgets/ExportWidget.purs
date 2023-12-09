@@ -26,7 +26,7 @@ import Data.Unit (Unit)
 import DataModel.Index (Index(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Functions.Communication.Users (getIndex)
+import Functions.Communication.Users (getIndexWithState)
 import Functions.Export (OfflineCopyStep(..), OfflineCopyStepResult(..), UnencryptedCopyStep(..), UnencryptedCopyStepResult(..), prepareOfflineCopySteps, prepareUnencryptedCopySteps)
 import Functions.JSState (getAppState)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate)
@@ -34,7 +34,7 @@ import Views.SimpleWebComponents (loadingBar)
 
 exportWidget :: Widget HTML Unit
 exportWidget = do
-  newIndex <- ((Right (Index Nil)) <$ exportView (Left "Loading index, please wait")) <|> (liftAff $ runExceptT $ getIndex)
+  newIndex <- ((Right (Index Nil)) <$ exportView (Left "Loading index, please wait")) <|> (liftAff $ runExceptT $ getIndexWithState)
   exportView (lmap (\_ -> "Current index could not be loaded, please reload the application.") newIndex)
 
   where

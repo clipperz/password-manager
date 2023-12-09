@@ -1,8 +1,10 @@
-module Functions.Handler.CardManagerEventHandler where
+module Functions.Handler.CardManagerEventHandler
+  ( handleCardManagerEvent
+  )
+  where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Control.Alt ((<#>))
 import Control.Applicative (pure)
 import Control.Bind (bind, (>>=))
 import Control.Category ((<<<), (>>>))
@@ -11,52 +13,63 @@ import Control.Monad.Except.Trans (ExceptT, runExceptT)
 import Data.Either (note)
 import Data.Function ((#), ($))
 import Data.Map (delete, insert, lookup)
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Card as DataModel.Card
 import DataModel.FragmentState as Fragment
-import DataModel.Index (CardEntry(..), addToIndex, emptyIndex, reference, removeFromIndex)
-import DataModel.Password (standardPasswordGeneratorSettings)
+import DataModel.Index (CardEntry(..), Index, addToIndex, emptyIndex, reference, removeFromIndex)
 import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState)
+import DataModel.User (defaultUserPreferences)
 import Functions.Card (appendToTitle, archiveCard, getCardContent, restoreCard)
 import Functions.Communication.Blobs (getStatelessBlob)
 import Functions.Communication.Cards (deleteCard, postCard)
 import Functions.Communication.Users (updateIndex)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
-import Views.AppView (Page(..), WidgetState(..), loadingMainPage)
+import Views.AppView (Page(..), WidgetState(..), emptyMainPageWidgetState)
 import Views.CardsManagerView (CardManagerEvent(..), CardManagerState, CardViewState(..))
-import Views.OverlayView (hiddenOverlayInfo, spinnerOverlay)
+import Views.OverlayView (OverlayColor(..), hiddenOverlayInfo, spinnerOverlay)
 import Views.UserAreaView (userAreaInitialState)
+
+loadingMainPage :: Index -> CardManagerState -> Page
+loadingMainPage index cardManagerState = Main emptyMainPageWidgetState { index = index, cardManagerState = cardManagerState }
 
 handleCardManagerEvent :: CardManagerEvent -> CardManagerState -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState
 
 
-handleCardManagerEvent OpenUserAreaEvent cardManagerState state@{index, userPreferences} _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main { index: fromMaybe emptyIndex index, userAreaState: userAreaInitialState {showUserArea = true}, cardManagerState, userPasswordGeneratorSettings: maybe standardPasswordGeneratorSettings ((\up -> (unwrap up).passwordGeneratorSettings)) userPreferences })))
+handleCardManagerEvent OpenUserAreaEvent cardManagerState state@{index, userPreferences} _ = 
+  doNothing (Tuple 
+              state
+              (WidgetState
+                 hiddenOverlayInfo
+                (Main { index: fromMaybe emptyIndex index
+                      , userAreaState: userAreaInitialState {showUserArea = true}
+                      , cardManagerState
+                      , userPreferences: fromMaybe defaultUserPreferences userPreferences })))
 
 
 handleCardManagerEvent (OpenCardViewEvent cardEntry) cardManagerState state@{index, userPreferences} _ = 
   do
-    index'                        <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
-    userPasswordGeneratorSettings <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") (userPreferences <#> (\up -> (unwrap up).passwordGeneratorSettings))
+    index'            <- except $ note (InvalidStateError $ CorruptedState "index not found")            index
+    userPreferences'  <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") userPreferences
 
-    Tuple state' card <- getCardSteps state cardEntry (Main { index: index', userAreaState: userAreaInitialState, cardManagerState, userPasswordGeneratorSettings: standardPasswordGeneratorSettings})
+    Tuple state' card <- getCardSteps state cardEntry (Main { index: index', userAreaState: userAreaInitialState, cardManagerState, userPreferences: userPreferences'})
     pure (Tuple
             state'
             (WidgetState
               hiddenOverlayInfo
-              (Main { index: index'
-                    , userAreaState: userAreaInitialState
+              (Main { index:            index'
+                    , userPreferences:  userPreferences'
+                    , userAreaState:    userAreaInitialState
                     , cardManagerState: cardManagerState {selectedEntry = (Just cardEntry), cardViewState = Card card cardEntry}
-                    , userPasswordGeneratorSettings
                     }
               )
             )
          ) 
 
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage
+  >>= handleOperationResult state defaultErrorPage Black
 
 
 handleCardManagerEvent (AddCardEvent card) cardManagerState state@{index} _ = 
@@ -68,7 +81,7 @@ handleCardManagerEvent (AddCardEvent card) cardManagerState state@{index} _ =
     pure res
 
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage
+  >>= handleOperationResult state defaultErrorPage Black
   --   index' <- except $ note (InvalidStateError $ CorruptedState "index not found") index
     
   --   res    <- addCardStepsWithStateT card (loadingMainPage index' (CardForm $ NewCard $ Just card)) "Add card"
@@ -89,29 +102,34 @@ handleCardManagerEvent (CloneCardEvent cardEntry) cardManagerState state@{index}
     pure res
 
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage
+  >>= handleOperationResult state defaultErrorPage Black
 
 
 handleCardManagerEvent (DeleteCardEvent cardEntry) cardManagerState state@{hash: hashFunc, index, userPreferences} _ =
   do
     index'                                <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
-    userPasswordGeneratorSettings         <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") (userPreferences <#> (\up -> (unwrap up).passwordGeneratorSettings))
+    userPreferences'                      <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") userPreferences
 
     Tuple state'@{proxy} card             <- getCardSteps state cardEntry (loadingMainPage index' cardManagerState)
-    ProxyResponse proxy' _                <- runStep (deleteCard {proxy, hashFunc} (unwrap cardEntry).cardReference card) (WidgetState (spinnerOverlay "Delete card")  (loadingMainPage index' cardManagerState))
+    ProxyResponse proxy' _                <- runStep (deleteCard {proxy, hashFunc} (unwrap cardEntry).cardReference card) (WidgetState (spinnerOverlay "Delete card"  Black) (loadingMainPage index' cardManagerState))
     let updatedIndex                       = removeFromIndex cardEntry index'
-    ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state' {proxy = proxy'}) updatedIndex)                 (WidgetState (spinnerOverlay "Update index") (loadingMainPage index' cardManagerState))
+    ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state' {proxy = proxy'}) updatedIndex)                 (WidgetState (spinnerOverlay "Update index" Black) (loadingMainPage index' cardManagerState))
 
     pure (Tuple 
             (state' {proxy = proxy'', index = Just updatedIndex, userInfoReferences = Just stateUpdateInfo.newUserInfoReferences, masterKey = Just stateUpdateInfo.newMasterKey})
             (WidgetState
               hiddenOverlayInfo
-              (Main { index: updatedIndex, userAreaState: userAreaInitialState, cardManagerState: cardManagerState {cardViewState = NoCard, selectedEntry = Nothing}, userPasswordGeneratorSettings })
+              (Main { index:            updatedIndex
+                    , userPreferences:  userPreferences'
+                    , userAreaState:    userAreaInitialState
+                    , cardManagerState: cardManagerState {cardViewState = NoCard, selectedEntry = Nothing}
+                    }
+              )
             )
          )
 
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage
+  >>= handleOperationResult state defaultErrorPage Black
 
 
 handleCardManagerEvent (EditCardEvent oldCardEntry updatedCard) cardManagerState state@{index} _ =
@@ -123,7 +141,7 @@ handleCardManagerEvent (EditCardEvent oldCardEntry updatedCard) cardManagerState
     pure res
   
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage
+  >>= handleOperationResult state defaultErrorPage Black
 
 
 handleCardManagerEvent (ArchiveCardEvent cardEntry) cardManagerState state@{index} _ =
@@ -136,7 +154,7 @@ handleCardManagerEvent (ArchiveCardEvent cardEntry) cardManagerState state@{inde
     pure res
 
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage
+  >>= handleOperationResult state defaultErrorPage Black
 
 
 handleCardManagerEvent (RestoreCardEvent cardEntry) cardManagerState state@{index} _ =
@@ -149,7 +167,7 @@ handleCardManagerEvent (RestoreCardEvent cardEntry) cardManagerState state@{inde
     pure res
 
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage
+  >>= handleOperationResult state defaultErrorPage Black
 
 -- ===================================================================================================
 
@@ -159,8 +177,8 @@ getCardSteps state@{proxy, hash, cardsCache} cardEntry@(CardEntry entry) page = 
   case cardFromCache of
     Just card -> pure $ Tuple state card
     Nothing   -> do
-      ProxyResponse proxy' blob <- runStep (getStatelessBlob {proxy, hashFunc: hash} (reference cardEntry)) (WidgetState (spinnerOverlay "Get card")     page)  
-      card                      <- runStep (getCardContent blob (entry.cardReference))                      (WidgetState (spinnerOverlay "Decrypt card") page)
+      ProxyResponse proxy' blob <- runStep (getStatelessBlob {proxy, hashFunc: hash} (reference cardEntry)) (WidgetState (spinnerOverlay "Get card"     Black) page)  
+      card                      <- runStep (getCardContent blob (entry.cardReference))                      (WidgetState (spinnerOverlay "Decrypt card" Black) page)
       let updatedCardsCache = insert (reference cardEntry) card cardsCache
       pure $ Tuple
         (state { proxy      = proxy'
@@ -170,11 +188,11 @@ getCardSteps state@{proxy, hash, cardsCache} cardEntry@(CardEntry entry) page = 
 addCardSteps :: CardManagerState -> StatelessAppState -> DataModel.Card.Card -> Page -> String -> ExceptT AppError (Widget HTML) OperationState
 addCardSteps cardManagerState state@{index, userPreferences, cardsCache} newCard page message = do
   index'                                <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
-  userPasswordGeneratorSettings         <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") (userPreferences <#> (\up -> (unwrap up).passwordGeneratorSettings))
+  userPreferences'                      <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") userPreferences
 
-  ProxyResponse proxy'  newCardEntry    <- runStep (postCard state newCard)                            (WidgetState (spinnerOverlay message)        page)
+  ProxyResponse proxy'  newCardEntry    <- runStep (postCard state newCard)                            (WidgetState (spinnerOverlay message        Black) page)
   let updatedIndex                       = addToIndex newCardEntry index'
-  ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index") page)
+  ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index" Black) page)
   let updatedCardCache                   = insert (reference newCardEntry) newCard cardsCache
 
   pure (Tuple 
@@ -187,10 +205,10 @@ addCardSteps cardManagerState state@{index, userPreferences, cardsCache} newCard
           )
           (WidgetState
             hiddenOverlayInfo
-            (Main { index: updatedIndex
-                  , userAreaState: userAreaInitialState
+            (Main { index:            updatedIndex
+                  , userPreferences:  userPreferences'
+                  , userAreaState:    userAreaInitialState
                   , cardManagerState: cardManagerState {cardViewState = Card newCard newCardEntry, selectedEntry = Just newCardEntry}
-                  , userPasswordGeneratorSettings 
                   }
             )
           )
@@ -198,20 +216,25 @@ addCardSteps cardManagerState state@{index, userPreferences, cardsCache} newCard
 
 editCardSteps :: CardManagerState -> StatelessAppState -> CardEntry -> DataModel.Card.Card -> DataModel.Card.Card -> Page -> ExceptT AppError (Widget HTML) OperationState
 editCardSteps cardManagerState state@{index, hash: hashFunc, userPreferences, cardsCache} oldCardEntry oldCard updatedCard page = do
-  index'                                 <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
-  userPasswordGeneratorSettings          <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") (userPreferences <#> (\up -> (unwrap up).passwordGeneratorSettings))
+  index'                                 <- except $ note (InvalidStateError $ CorruptedState "index not found")            index
+  userPreferences'                       <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") userPreferences
 
-  ProxyResponse proxy'   cardEntry       <- runStep (postCard state updatedCard)                                                         (WidgetState (spinnerOverlay "Post updated card") page)
+  ProxyResponse proxy'   cardEntry       <- runStep (postCard state updatedCard)                                                         (WidgetState (spinnerOverlay "Post updated card" Black) page)
   let updatedIndex                        = addToIndex cardEntry >>> removeFromIndex oldCardEntry $ index'
-  ProxyResponse proxy''  stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex)                                  (WidgetState (spinnerOverlay "Update index")      page)
-  ProxyResponse proxy''' _               <- runStep (deleteCard  {proxy: proxy'', hashFunc} (unwrap oldCardEntry).cardReference oldCard) (WidgetState (spinnerOverlay "Delete old card")   page)
+  ProxyResponse proxy''  stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex)                                  (WidgetState (spinnerOverlay "Update index"      Black) page)
+  ProxyResponse proxy''' _               <- runStep (deleteCard  {proxy: proxy'', hashFunc} (unwrap oldCardEntry).cardReference oldCard) (WidgetState (spinnerOverlay "Delete old card"   Black) page)
   let updatedCardCache                    = insert (reference cardEntry) updatedCard >>> delete (reference oldCardEntry) $ cardsCache
 
   pure (Tuple 
     (state {proxy = proxy''', index = Just updatedIndex, userInfoReferences = Just stateUpdateInfo.newUserInfoReferences, masterKey = Just stateUpdateInfo.newMasterKey, cardsCache = updatedCardCache})
     (WidgetState
       hiddenOverlayInfo
-      (Main { index: updatedIndex, userAreaState: userAreaInitialState, cardManagerState: cardManagerState {cardViewState = (Card updatedCard cardEntry), selectedEntry = Just cardEntry}, userPasswordGeneratorSettings })
+      (Main { index:            updatedIndex
+            , userPreferences:  userPreferences'
+            , userAreaState:    userAreaInitialState
+            , cardManagerState: cardManagerState {cardViewState = (Card updatedCard cardEntry), selectedEntry = Just cardEntry}
+            }
+      )
     )
   )
 

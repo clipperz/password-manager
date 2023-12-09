@@ -38,7 +38,19 @@ div.overlay {
         height: 200px;
         margin-left: -100px;
         margin-top: -100px;
-        background: rgba(0,0,0,0.8);
+        
+		&.black {
+			background: rgba(0,0,0,0.8);
+			color: #FFF;
+		}
+		
+		&.white {
+			background: rgba(255, 255, 255, 0.8);
+			color: black
+		}
+
+		
+
         @include border-radius(20px);
     }
 
@@ -57,7 +69,7 @@ div.overlay {
 	}
 
 	.title {
-		color: #FFF;
+		// color: #FFF;
 		font-weight: bold;
 		text-align: center;
 		display: block;
@@ -83,7 +95,7 @@ div.overlay {
 
 		@include icon-font();
 		font-size: 96pt;
-		color: white;
+		// color: white;
 		text-shadow: none;
 		
 		&.custom {
@@ -148,14 +160,20 @@ div.spinner {
 	div {
 		width: 12%;
 		height: 26%;
-		background: #ffffff;
 		position: absolute;
 		left: 44.5%;
 		top: 37%;
 		opacity: 0;
 		@include animation(overlay-spin, 1s, linear, infinite);
 		@include border-radius(50px);
-		@include box-shadow(0, 0, 3px, rgba(0,0,0,0.2));
+		&.black {
+			background: #ffffff;
+			@include box-shadow(0, 0, 3px, rgba(0,0,0,0.2));
+		}
+		&.white {
+			background: black;
+			@include box-shadow(0, 0, 3px, rgba(255, 255, 255, 0.2));
+		}
 	}
 
 	div.bar01 {@include transform(  0deg, 0, -142%); @include animation-delay(-0.00000s);}    

@@ -1,17 +1,15 @@
 module Functions.Communication.Users
-  ( UpdateIndexStateUpdateInfo
+  ( UpdateUserStateUpdateInfo
   , deleteUserCard
-  , getIndex
+  , getIndexWithState
   , getMasterKey
   , getRemoteUserCard
-  , getStatelessIndex
+  , getIndex
   , getStatelessMasterKey
   , getStatelessUserPreferences
   , getUserPreferences
   , updateIndex
-  , updateIndexWithState
   , updateUserCard
-  , updateUserCardWithState
   , updateUserPreferences
   )
   where
@@ -50,14 +48,14 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
-import Functions.Communication.Blobs (deleteBlob, deleteStatelessBlob, getBlob, getDecryptedBlob, getStatelessBlob, getStatelessDecryptedBlob, postBlob, postStatelessBlob)
+import Functions.Communication.Blobs (deleteStatelessBlob, getBlob, getDecryptedBlob, getStatelessBlob, getStatelessDecryptedBlob, postStatelessBlob)
 import Functions.Communication.StatelessBackend (ConnectionState)
 import Functions.Communication.StatelessBackend as Stateless
 import Functions.EncodeDecode (cryptoKeyAES, encryptJson)
 import Functions.Index (getIndexContent)
 import Functions.JSState (getAppState, updateAppState)
 import Functions.SRP (prepareV)
-import Functions.State (getHashFromState, getSRPConf)
+import Functions.State (getSRPConf)
 
 getStatelessMasterKey :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse MasterKey)
 getStatelessMasterKey connectionState c = do
@@ -96,19 +94,6 @@ getRemoteUserCard = do
       v       <- withExceptT (show >>> SRPError >>> ProtocolError) $ ExceptT (prepareV srpConf (toArrayBuffer s) (toArrayBuffer p))
       pure $ RequestUserCard { c, v, s, srpVersion: V_6a, originMasterKey: Nothing, masterKey }
     _ -> throwError $ InvalidStateError (MissingValue "c, s or masterKey are Nothing")
-  
--- TODO REMOVE
-updateUserCardWithState :: HexString -> UserCard -> ExceptT AppError Aff Unit
-updateUserCardWithState c newUserCard@(UserCard userCardRecord) = do
-  let url = joinWith "/" ["users", toString Hex c]
-  let body = (json $ encodeJson newUserCard) :: RequestBody
-  response <- manageGenericRequest url PATCH (Just body) RF.string
-  if isStatusCodeOk response.status
-    then do
-      ExceptT $ updateAppState { masterKey: Just userCardRecord.masterKey }
-      pure unit
-    else throwError (ProtocolError $ ResponseError $ unwrap response.status)
--- ------------
 
 updateUserCard :: ConnectionState -> HexString -> UserCard -> ExceptT AppError Aff (ProxyResponse MasterKey)
 updateUserCard connectionState c newUserCard = do
@@ -128,8 +113,8 @@ deleteUserCard c = do
     else throwError (ProtocolError $ ResponseError $ unwrap response.status)
 
 -- TODO REMOVE
-getIndex :: ExceptT AppError Aff Index
-getIndex = do 
+getIndexWithState :: ExceptT AppError Aff Index
+getIndexWithState = do 
   currentState <- ExceptT $ liftEffect getAppState
   case currentState of
     { userInfoReferences: Just (UserInfoReferences { indexReference: indexRef@(IndexReference { reference }) }) } -> do
@@ -138,8 +123,8 @@ getIndex = do
     _ -> throwError (InvalidStateError $ MissingValue "Missing index reference")
 -- -------------
 
-getStatelessIndex :: ConnectionState -> IndexReference -> ExceptT AppError Aff (ProxyResponse Index)
-getStatelessIndex connectionState indexRef@(IndexReference { reference }) = do
+getIndex :: ConnectionState -> IndexReference -> ExceptT AppError Aff (ProxyResponse Index)
+getIndex connectionState indexRef@(IndexReference { reference }) = do
   ProxyResponse newProxy blob <- getStatelessBlob connectionState reference
   getIndexContent blob indexRef <#> ProxyResponse newProxy
 
@@ -159,36 +144,11 @@ getStatelessUserPreferences connectionState (UserPreferencesReference { referenc
   cryptoKey :: CryptoKey <- liftAff $ KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   getStatelessDecryptedBlob connectionState reference cryptoKey
 
--- TODO REMOVE
-updateIndexWithState :: Index -> ExceptT AppError Aff Unit
-updateIndexWithState newIndex = do
-  currentState <- ExceptT $ liftEffect getAppState
-  case currentState of
-    { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) })  } -> do
-      
-      cryptoKey            :: CryptoKey   <- liftAff $  KI.importKey raw (toArrayBuffer oldReference.masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      indexCardContent     :: ArrayBuffer <- liftAff $  encryptJson cryptoKey newIndex
-      indexCardContentHash :: ArrayBuffer <- liftAff $ (getHashFromState $ currentState.hash) (indexCardContent : Nil)
-      _ <- postBlob indexCardContent indexCardContentHash
-      -- -------------------
-      let newIndexReference = IndexReference $ oldReference { reference = fromArrayBuffer indexCardContentHash }
-      let newInfoReference  = UserInfoReferences r { indexReference = newIndexReference }
-      masterPassword       :: CryptoKey <- liftAff $ KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      masterKeyContent     :: HexString <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newInfoReference
-      originMasterKey      :: MasterKey <- getMasterKey c
-      let newUserCard       = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
-      _ <- updateUserCardWithState c newUserCard
-      -- -------------------
-      _ <- deleteBlob oldReference.reference -- TODO: manage errors
-      
-      ExceptT $ updateAppState { userInfoReferences: Just newInfoReference}
-    
-    _ -> throwError $ InvalidStateError (MissingValue "Missing p, c or indexReference")
 -- ------------
 
-type UpdateIndexStateUpdateInfo = {newUserInfoReferences :: UserInfoReferences, newMasterKey :: MasterKey }
+type UpdateUserStateUpdateInfo = {newUserInfoReferences :: UserInfoReferences, newMasterKey :: MasterKey }
 
-updateIndex :: StatelessAppState -> Index -> ExceptT AppError Aff (ProxyResponse UpdateIndexStateUpdateInfo)
+updateIndex :: StatelessAppState -> Index -> ExceptT AppError Aff (ProxyResponse UpdateUserStateUpdateInfo)
 
 updateIndex { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, index: Just index } newIndex = do
   cryptoKey            :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer oldReference.masterKey)
@@ -212,28 +172,25 @@ updateIndex { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences
 updateIndex _ _ = 
   throwError $ InvalidStateError (MissingValue "Missing p, c or indexReference")
 
+updateUserPreferences :: StatelessAppState -> UserPreferences -> ExceptT AppError Aff (ProxyResponse UpdateUserStateUpdateInfo)
 
-updateUserPreferences :: UserPreferences -> ExceptT AppError Aff Unit
-updateUserPreferences newUP = do
-  currentState <- ExceptT $ liftEffect getAppState
-  case currentState of
-    { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ preferencesReference: (UserPreferencesReference { reference, key }) }) } -> do
-      
-      cryptoKey              :: CryptoKey   <- liftAff $ KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      preferencesContent     :: ArrayBuffer <- liftAff $ encryptJson cryptoKey newUP
-      preferencesContentHash :: ArrayBuffer <- liftAff $ (getHashFromState currentState.hash) (preferencesContent : Nil)
-      _ <- postBlob preferencesContent preferencesContentHash
-      -- -------------------
-      let newReference     = UserPreferencesReference { reference: fromArrayBuffer preferencesContentHash, key}
-      let newInfoReference = UserInfoReferences r { preferencesReference = newReference }
-      masterPassword      :: CryptoKey <- liftAff $ KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      masterKeyContent    :: HexString <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newInfoReference
-      originMasterKey     :: MasterKey <- getMasterKey c
-      let newUserCard      = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
-      _ <- updateUserCardWithState c newUserCard
-      -- -------------------
-      _ <- deleteBlob reference
+updateUserPreferences { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ preferencesReference: (UserPreferencesReference { reference, key }) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, userPreferences: Just userPreferences } newUserPreferences = do
+  cryptoKey              :: CryptoKey   <- liftAff $ KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+  preferencesContent     :: ArrayBuffer <- liftAff $ encryptJson cryptoKey newUserPreferences
+  preferencesContentHash :: ArrayBuffer <- liftAff $ hashFunc (preferencesContent : Nil)
+  ProxyResponse proxy'   _              <- postStatelessBlob {proxy, hashFunc} preferencesContent preferencesContentHash
+  -- -------------------
+  let newUserPreferencesReference        = UserPreferencesReference { reference: fromArrayBuffer preferencesContentHash, key}
+  let newUserInfoReferences              = UserInfoReferences r { preferencesReference = newUserPreferencesReference }
+  masterPassword         :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer p)
+  masterKeyContent       :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newUserInfoReferences
+  let newUserCard                        = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
+  ProxyResponse proxy'' newMasterKey    <- updateUserCard {proxy: proxy', hashFunc} c newUserCard
+  -- -------------------
+  oldUserPreferencesCartContent         <- liftAff $ encryptJson cryptoKey userPreferences
+  ProxyResponse proxy''' _              <- deleteStatelessBlob {proxy: proxy'', hashFunc} oldUserPreferencesCartContent reference
 
-      ExceptT $ updateAppState { userInfoReferences: Just newInfoReference }
-    
-    _ -> throwError $ InvalidStateError (MissingValue "Missing user preferences reference")
+  pure $ ProxyResponse proxy''' { newUserInfoReferences, newMasterKey }
+
+updateUserPreferences _ _ =
+  throwError $ InvalidStateError (MissingValue "Missing user preferences reference")

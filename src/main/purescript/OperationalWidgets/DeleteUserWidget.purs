@@ -28,7 +28,7 @@ import DataModel.Index (Index(..))
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Functions.Communication.Users (getIndex)
+import Functions.Communication.Users (getIndexWithState)
 import Functions.JSState (getAppState)
 import Functions.User (deleteUserSteps)
 import Views.Components (ClassName(..), verySimpleInputWidget, InputType(..), Enabled(..), Placeholder(..), Label(..))
@@ -46,7 +46,7 @@ emptyFormValues = {username: "", password: "", notRecoverable: false}
 deleteUserWidget :: Widget HTML Unit
 deleteUserWidget = do
   credentials :: Credentials <- liftEffect $ either (\_ -> emptyCredentials) (\s -> {username: fromMaybe "" s.username, password: fromMaybe "" s.password}) <$> getAppState
-  newIndex <- ((Right (Index Nil)) <$ (deleteForm emptyCredentials emptyFormValues (Enabled false))) <|> (liftAff $ runExceptT $ getIndex)
+  newIndex <- ((Right (Index Nil)) <$ (deleteForm emptyCredentials emptyFormValues (Enabled false))) <|> (liftAff $ runExceptT $ getIndexWithState)
   case newIndex of
     Right index -> go index credentials Default
     Left err -> div' [text (show err), void (deleteForm emptyCredentials emptyFormValues (Enabled false))] 

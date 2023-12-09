@@ -35,7 +35,7 @@ import DataModel.Index (Index(..), CardEntry(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Cards (postCardWithState, deleteCardWithState)
-import Functions.Communication.Users (updateIndexWithState, getIndex)
+import Functions.Communication.Users (getIndexWithState)
 import Functions.Events (readFileFromDrop)
 import Functions.Import (decodeImport, parseHTMLImport, decodeHTML)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate)
@@ -77,7 +77,7 @@ dragAndDropFileInputWidget = do
 
 importWidget :: Widget HTML (Either AppError Index)
 importWidget = do
-  newIndex <- ((Right (Index Nil)) <$ (importView "" Nothing)) <|> (liftAff $ runExceptT $ getIndex)
+  newIndex <- ((Right (Index Nil)) <$ (importView "" Nothing)) <|> (liftAff $ runExceptT $ getIndexWithState)
   case newIndex of
     Right index -> div [Props._id "importPage"] [importPage index Nothing (UploadContent "")]
     Left err -> pure $ Left err
@@ -103,7 +103,7 @@ importWidget = do
                                                 pure $ Left err
                                               Right es -> liftAff $ runExceptT $ do
                                                 let newIndex = Index (entries <> es)
-                                                _ <- updateIndexWithState newIndex
+                                                -- _ <- updateIndexWithState newIndex
                                                 pure newIndex
                               ) (form [] [h1 [] [text "Import"], text "Saving index"])
       let funcs = saveCardFunc <$> cards

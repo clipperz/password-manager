@@ -24,7 +24,7 @@ import Functions.Clipboard (copyToClipboard)
 import Functions.Communication.StatelessBackend (ConnectionState)
 import Functions.Communication.StatelessOneTimeShare (SecretData, encryptKeyWithPin, encryptSecret, share)
 import Functions.EnvironmentalVariables (currentCommit, redeemURL)
-import Views.OverlayView (OverlayStatus(..), overlay)
+import Views.OverlayView (OverlayColor(..), OverlayStatus(..), overlay)
 import Views.ShareView (Secret, emptySecretData, shareView)
 import Web.HTML (window)
 import Web.HTML.Location (origin)
@@ -39,7 +39,7 @@ shareWidget connectionState secret = do
     Tuple encryptionKey encryptedSecret <- liftAff $ encryptSecret secretData.secret
     result <- ( liftAff $ runExceptT $ share connectionState encryptedSecret secretData.duration )
               <|>
-              ( overlay { status: Spinner, message: "loading" } )
+              ( overlay { status: Spinner, color: Black, message: "loading" } )
               <|> 
               ( Right "" <$ shareView false secret secretData )
     case result of
@@ -61,7 +61,7 @@ shareWidget connectionState secret = do
                 , true <$ button [(\_ -> copyToClipboard url) <$> Props.onClick] [text "copy share link"]
                 ]
       _ <- if result then 
-                go url secretData <|> (liftAff $ delay (Milliseconds 1000.0)) <|> overlay { status: Copy, message: "copied" }
+                go url secretData <|> (liftAff $ delay (Milliseconds 1000.0)) <|> overlay { status: Copy, color: Black, message: "copied" }
            else
                 pure unit
       go url secretData

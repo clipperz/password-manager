@@ -9,7 +9,7 @@ import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Types (encrypt, exportKey, decrypt, raw, unwrapKey, CryptoKey)
 import Data.Array (fromFoldable)
 import Data.ArrayBuffer.Types (ArrayBuffer)
-import Data.Either (Either(..))
+import Data.Either (Either)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString, fromArrayBuffer)
@@ -19,9 +19,8 @@ import Data.Tuple (Tuple(..), snd)
 import DataModel.Card (Card, defaultCards)
 import DataModel.Credentials (Credentials)
 import DataModel.Index (Index(..), CardEntry(..), CardReference(..), createCardEntry, currentIndexVersion)
-import DataModel.Password (standardPasswordGeneratorSettings)
 import DataModel.SRP (SRPConf, SRPError)
-import DataModel.User (IndexReference(..), MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserInfoReferences(..), UserPreferences(..), UserPreferencesReference(..))
+import DataModel.User (IndexReference(..), MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserInfoReferences(..), UserPreferencesReference(..), defaultUserPreferences)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.EncodeDecode (encryptJson)
@@ -69,11 +68,7 @@ prepareSignupParameters srpConf form = runExceptT $ do
   masterKeyHex           :: HexString   <- liftAff $ fromArrayBuffer <$> exportKey raw masterKey
   masterKeyHex2          :: HexString   <- liftAff $ fromArrayBuffer <$> exportKey raw masterKey2
   let indexReference     =  IndexReference { reference: indexCardContentHash, masterKey: masterKeyHex, indexVersion: currentIndexVersion }
-
-  let userPreferences    = UserPreferences { passwordGeneratorSettings: standardPasswordGeneratorSettings
-                                           , automaticLock: Right 10
-                                           }
-  preferencesContent     :: ArrayBuffer <- liftAff $ encryptJson masterKey2 userPreferences
+  preferencesContent     :: ArrayBuffer <- liftAff $ encryptJson masterKey2 defaultUserPreferences
   preferencesContentHash :: HexString   <- liftAff $ fromArrayBuffer <$> srpConf.hash (preferencesContent : Nil)
   let preferencesReference = UserPreferencesReference { reference: preferencesContentHash, key: masterKeyHex2 }
 

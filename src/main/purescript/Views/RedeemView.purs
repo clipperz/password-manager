@@ -32,7 +32,7 @@ import Functions.Events (cursorToEnd)
 import Unsafe.Coerce (unsafeCoerce)
 import Views.CardViews (cardContent)
 import Views.Components (Enabled(..), dynamicWrapper)
-import Views.OverlayView (OverlayStatus(..), overlay)
+import Views.OverlayView (OverlayColor(..), OverlayStatus(..), overlay)
 
 redeemView :: Enabled -> Widget HTML String
 redeemView (Enabled enabled) = do
@@ -98,7 +98,7 @@ redeemedView secret = do
   , true <$ button [(\_ -> copyToClipboard secret) <$> Props.onClick] [text "copy"]
   ]
   _ <- if result then
-    redeemedView secret <|> (liftAff $ delay (Milliseconds 1000.0)) <|> overlay { status: Copy, message: "copied" }
+    redeemedView secret <|> (liftAff $ delay (Milliseconds 1000.0)) <|> overlay { status: Copy, color: Black, message: "copied" }
   else
     pure unit
   redeemedView secret

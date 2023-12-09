@@ -7,6 +7,7 @@ import Concur.React.Props as Props
 import Control.Alt (($>), (<#>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
+import Control.Category ((<<<))
 import Data.Eq (class Eq, (==))
 import Data.Function (($))
 import Data.Functor ((<$>))
@@ -15,6 +16,7 @@ import Data.Map (Map, fromFoldable, insert, lookup)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Ord (class Ord)
 import Data.Tuple (Tuple(..))
+import DataModel.User (UserPreferences)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Class (liftEffect)
 import Functions.EnvironmentalVariables (currentCommit)
@@ -23,10 +25,10 @@ import OperationalWidgets.DeleteUserWidget (deleteUserWidget)
 import OperationalWidgets.ExportWidget (exportWidget)
 import OperationalWidgets.ImportWidget (importWidget)
 import OperationalWidgets.PinWidget (setPinWidget)
-import OperationalWidgets.UserPreferencesWidget (userPreferencesWidget)
 import Views.Components (footerComponent)
+import Views.UserPreferencesView (userPreferencesView)
 
-data UserAreaEvent    = UpdateUserPreferencesEvent -- ??
+data UserAreaEvent    = UpdateUserPreferencesEvent UserPreferences
                       | ChangePasswordEvent -- ??
                       | SetPinEvent -- ??
                       | DeleteAccountEvent -- ??
@@ -55,8 +57,8 @@ derive instance ordUserAreaSubmenus :: Ord UserAreaSubmenu
 
 data UserAreaInternalEvent = StateUpdate UserAreaState | UserAreaEvent UserAreaEvent
 
-userAreaView :: UserAreaState -> Widget HTML (Tuple UserAreaEvent UserAreaState)
-userAreaView state@{showUserArea, userAreaOpenPage, userAreaSubmenus} = do
+userAreaView :: UserAreaState -> UserPreferences -> Widget HTML (Tuple UserAreaEvent UserAreaState)
+userAreaView state@{showUserArea, userAreaOpenPage, userAreaSubmenus} userPreferences = do
   commitHash <- liftEffect $ currentCommit
   res <- div [Props._id "userPage", Props.className (if showUserArea then "open" else "closed")] [
     div [Props.onClick, Props.className "mask"] [] $> UserAreaEvent CloseUserAreaEvent
@@ -68,8 +70,8 @@ userAreaView state@{showUserArea, userAreaOpenPage, userAreaSubmenus} = do
   , userAreaInternalView
   ]
   case res of
-    StateUpdate updatedState -> userAreaView updatedState
-    UserAreaEvent event     -> pure $ (Tuple event state)
+    StateUpdate updatedState -> userAreaView updatedState userPreferences
+    UserAreaEvent event      -> pure $ (Tuple event state)
 
   where
     userAreaMenu :: Widget HTML UserAreaInternalEvent
@@ -79,14 +81,14 @@ userAreaView state@{showUserArea, userAreaOpenPage, userAreaSubmenus} = do
       , subMenuElement ChangePassword "Passphrase"
       , subMenuElement Pin            "Device PIN"
       , subMenuElement Delete         "Delete account"
-      ]                                                     <#> StateUpdate
+      ]                                                                             <#> StateUpdate
     , subMenu Data    "Data"    [
         subMenuElement Import         "Import"
       , subMenuElement Export         "Export"
-      ]                                                     <#> StateUpdate
-    , subMenuElement   About          "About"               <#> StateUpdate
-    , li' [button [Props.onClick] [span [] [text "Lock"]]]   $> UserAreaEvent LockEvent
-    , li' [button [Props.onClick] [span [] [text "Logout"]]] $> UserAreaEvent LogoutEvent
+      ]                                                                             <#> StateUpdate
+    , subMenuElement   About          "About"                                       <#> StateUpdate
+    , li' [button [Props.onClick, Props._id "lockButton"] [span [] [text "Lock"]]]   $> UserAreaEvent LockEvent
+    , li' [button [Props.onClick]                         [span [] [text "Logout"]]] $> UserAreaEvent LogoutEvent
     ]
 
       where
@@ -111,12 +113,12 @@ userAreaView state@{showUserArea, userAreaOpenPage, userAreaSubmenus} = do
     userAreaInternalView :: Widget HTML UserAreaInternalEvent
     userAreaInternalView = 
       case userAreaOpenPage of
-        Export          -> frame (exportWidget $> UserAreaEvent ExportJsonEvent)
-        Import          -> frame (importWidget $> UserAreaEvent ImportCardsEvent)
+        Preferences     -> frame (userPreferencesView userPreferences <#> (UserAreaEvent <<< UpdateUserPreferencesEvent))
+        ChangePassword  -> frame (changePasswordWidget Default emptyChangePasswordDataForm)
         Pin             -> frame (setPinWidget Default $> UserAreaEvent SetPinEvent)
         Delete          -> frame (deleteUserWidget $> UserAreaEvent DeleteAccountEvent)
-        Preferences     -> frame (userPreferencesWidget Default $> UserAreaEvent UpdateUserPreferencesEvent)
-        ChangePassword  -> frame (changePasswordWidget Default emptyChangePasswordDataForm)
+        Import          -> frame (importWidget $> UserAreaEvent ImportCardsEvent)
+        Export          -> frame (exportWidget $> UserAreaEvent ExportJsonEvent)
         About           -> frame (text "This is Clipperz")
         None            -> emptyUserComponent
 
@@ -124,7 +126,7 @@ userAreaView state@{showUserArea, userAreaOpenPage, userAreaSubmenus} = do
         frame :: Widget HTML UserAreaInternalEvent -> Widget HTML UserAreaInternalEvent
         frame c = div [Props.classList $ Just <$> ["extraFeatureContent", "open"]] [
           header [] [div [] [button [Props.onClick] [text "close"]]] $> (StateUpdate $ state {userAreaOpenPage = None})
-        , c                                                          $>  StateUpdate   state --TODO: change implementation of userArea pages view [fsolaroli - 9/12/2023]
+        , c
         ]
 
         emptyUserComponent :: forall a. Widget HTML a

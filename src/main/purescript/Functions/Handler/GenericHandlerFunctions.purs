@@ -24,7 +24,7 @@ import Effect.Console (log)
 import Unsafe.Coerce (unsafeCoerce)
 import Views.AppView (Page(..), WidgetState(..), appView)
 import Views.LoginFormView (emptyLoginFormData)
-import Views.OverlayView (OverlayStatus(..))
+import Views.OverlayView (OverlayColor, OverlayStatus(..))
 
 type OperationState = Tuple StatelessAppState WidgetState
 
@@ -38,10 +38,10 @@ defaultView widgetState = (unsafeCoerce unit <$ appView widgetState)
 defaultErrorPage :: Page
 defaultErrorPage = Login emptyLoginFormData
 
-handleOperationResult :: StatelessAppState -> Page -> Either AppError OperationState -> Widget HTML OperationState
-handleOperationResult state page = either
+handleOperationResult :: StatelessAppState -> Page -> OverlayColor -> Either AppError OperationState -> Widget HTML OperationState
+handleOperationResult state page color = either
                                         manageError
-                                        (\res@(Tuple _ (WidgetState _ page')) -> delayOperation 500 (WidgetState { status: Done, message: "" } page') *> pure res)
+                                        (\res@(Tuple _ (WidgetState _ page')) -> delayOperation 500 (WidgetState { status: Done, color, message: "" } page') *> pure res)
                                                 
   where
     manageError :: AppError -> Widget HTML OperationState
@@ -50,8 +50,8 @@ handleOperationResult state page = either
         -- _ -> ErrorPage --TODO
         err -> do
           liftEffect $ log $ show err
-          delayOperation 500 (WidgetState { status: Failed,  message: "error" } page)
-          pure $ Tuple state (WidgetState { status: Hidden,  message: ""      } page)
+          delayOperation 500 (WidgetState { status: Failed, color, message: "error" } page)
+          pure $ Tuple state (WidgetState { status: Hidden, color, message: ""      } page)
 
 delayOperation :: Int -> WidgetState -> Widget HTML Unit
 delayOperation time widgetState = ((liftAff $ delay (Milliseconds $ toNumber time)) <|> (unit <$ appView widgetState))

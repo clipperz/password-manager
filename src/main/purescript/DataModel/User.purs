@@ -11,7 +11,7 @@ import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Data.Show (class Show, show)
 import Data.Tuple (Tuple)
-import DataModel.Password (PasswordGeneratorSettings)
+import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
 
 -- ========================================================================
 
@@ -111,6 +111,9 @@ instance decodeJsonUserPreferences :: DecodeJson UserPreferences where
   decodeJson json = rmap (\record -> UserPreferences record) (decodeJson json)
 
 derive instance eqUserPreferences :: Eq UserPreferences
+
+defaultUserPreferences :: UserPreferences
+defaultUserPreferences = UserPreferences {passwordGeneratorSettings: standardPasswordGeneratorSettings, automaticLock: Right 10}
 
 newtype UserPreferencesReference =
   UserPreferencesReference

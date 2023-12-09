@@ -23,7 +23,7 @@ import Functions.Communication.StatelessBackend (ConnectionState)
 import Functions.Communication.StatelessOneTimeShare (decryptSecret, redeem)
 import Functions.EnvironmentalVariables (currentCommit)
 import Views.Components (Enabled(..))
-import Views.OverlayView (OverlayStatus(..), overlay)
+import Views.OverlayView (OverlayColor(..), OverlayStatus(..), overlay)
 import Views.RedeemView (redeemView, redeemedView)
 import Web.HTML (window)
 import Web.HTML.History (DocumentTitle(..), URL(..), replaceState)
@@ -40,7 +40,7 @@ redeemWidget connectionState id cryptedKey = do
                         decryptSecret secretVersion pin (toArrayBuffer $ hex cryptedKey) enryptedSecret
                     )
                     <|>
-                    ( overlay { status: Spinner, message: "loading" } )
+                    ( overlay { status: Spinner, color: Black, message: "loading" } )
                     <|>
                     ( Right "" <$ redeemView (Enabled false) ) 
     pathName <- liftEffect $ window >>= location >>= pathname
