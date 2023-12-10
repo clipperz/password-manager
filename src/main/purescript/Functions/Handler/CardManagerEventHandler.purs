@@ -11,7 +11,7 @@ import Control.Category ((<<<), (>>>))
 import Control.Monad.Except.Trans (ExceptT, runExceptT, throwError)
 import Data.Function ((#), ($))
 import Data.Map (delete, insert, lookup)
-import Data.Maybe (Maybe(..), isJust)
+import Data.Maybe (Maybe(..), isJust, isNothing)
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..), InvalidStateError(..))
@@ -51,7 +51,7 @@ handleCardManagerEvent OpenUserAreaEvent cardManagerState state@{index: Just ind
             )
 
 
-handleCardManagerEvent (OpenCardViewEvent cardEntry) cardManagerState state@{index: Just index, userPreferences: Just userPreferences, username: Just username, password: Just password, pinEncryptedPassword} _ = 
+handleCardManagerEvent (OpenCardViewEvent cardEntry) cardManagerState state@{index: Just index, userPreferences: Just userPreferences, username: Just username, password: Just password, pinEncryptedPassword, cardsCache} _ = 
   do
     Tuple state' card <- getCardSteps state cardEntry (Main { index, credentials: {username, password}, pinExists: isJust pinEncryptedPassword, userAreaState: userAreaInitialState, cardManagerState, userPreferences})
     pure (Tuple
@@ -70,7 +70,7 @@ handleCardManagerEvent (OpenCardViewEvent cardEntry) cardManagerState state@{ind
           )
 
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage Black
+  >>= handleOperationResult state defaultErrorPage (isNothing $ lookup (reference cardEntry) cardsCache) Black
 
 
 handleCardManagerEvent (AddCardEvent card) cardManagerState state@{index: Just index} _ = 
@@ -79,7 +79,7 @@ handleCardManagerEvent (AddCardEvent card) cardManagerState state@{index: Just i
     pure res
 
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage Black
+  >>= handleOperationResult state defaultErrorPage true Black
     
   --   res    <- addCardStepsWithStateT card (loadingMainPage index' (CardForm $ NewCard $ Just card)) "Add card"
   --   pure res
@@ -97,7 +97,7 @@ handleCardManagerEvent (CloneCardEvent cardEntry) cardManagerState state@{index:
     pure res
 
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage Black
+  >>= handleOperationResult state defaultErrorPage true Black
 
 
 handleCardManagerEvent (DeleteCardEvent cardEntry) cardManagerState state@{hash: hashFunc, index: Just index, userPreferences: Just userPreferences, username: Just username, password: Just password, pinEncryptedPassword} _ =
@@ -123,7 +123,7 @@ handleCardManagerEvent (DeleteCardEvent cardEntry) cardManagerState state@{hash:
          )
 
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage Black
+  >>= handleOperationResult state defaultErrorPage true Black
 
 
 handleCardManagerEvent (EditCardEvent oldCardEntry updatedCard) cardManagerState state@{index: Just index} _ =
@@ -133,7 +133,7 @@ handleCardManagerEvent (EditCardEvent oldCardEntry updatedCard) cardManagerState
     pure res
   
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage Black
+  >>= handleOperationResult state defaultErrorPage true Black
 
 
 handleCardManagerEvent (ArchiveCardEvent cardEntry) cardManagerState state@{index: Just index} _ =
@@ -144,7 +144,7 @@ handleCardManagerEvent (ArchiveCardEvent cardEntry) cardManagerState state@{inde
     pure res
 
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage Black
+  >>= handleOperationResult state defaultErrorPage true Black
 
 
 handleCardManagerEvent (RestoreCardEvent cardEntry) cardManagerState state@{index: Just index} _ =
@@ -155,12 +155,12 @@ handleCardManagerEvent (RestoreCardEvent cardEntry) cardManagerState state@{inde
     pure res
 
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage Black
+  >>= handleOperationResult state defaultErrorPage true Black
 
 handleCardManagerEvent _ _ state _ = do
   throwError $ InvalidStateError (CorruptedState "State is corrupted")
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage Black
+  >>= handleOperationResult state defaultErrorPage true Black
 
 -- ===================================================================================================
 

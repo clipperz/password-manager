@@ -31,7 +31,7 @@ handleSignupPageEvent (SignupEvent cred) state@{proxy, hash, srpConf} fragmentSt
     pure res
   
   # runExceptT 
-  >>= handleOperationResult state initialPage Black
+  >>= handleOperationResult state initialPage true Black
 
   where
     initialPage = Signup $ getSignupDataFromCredentials cred

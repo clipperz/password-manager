@@ -59,7 +59,7 @@ handleUserAreaEvent (CloseUserAreaEvent) cardManagerState userAreaState state@{i
 
 handleUserAreaEvent (UpdateUserPreferencesEvent newUserPreferences) cardManagerState userAreaState state@{index: Just index, username: Just username, password: Just password, pinEncryptedPassword} _ = 
   do
-    ProxyResponse proxy stateUpdateInfo <- runStep (updateUserPreferences state newUserPreferences) (WidgetState (spinnerOverlay "Update user preferences" White)  (Main { index, credentials: {username, password}, pinExists: isJust pinEncryptedPassword, cardManagerState, userAreaState, userPreferences: newUserPreferences }))
+    ProxyResponse proxy stateUpdateInfo <- runStep (updateUserPreferences state newUserPreferences) (WidgetState (spinnerOverlay "Update user preferences" White) page)
     
     liftEffect $ stopTimer
     case (unwrap newUserPreferences).automaticLock of
@@ -68,43 +68,41 @@ handleUserAreaEvent (UpdateUserPreferencesEvent newUserPreferences) cardManagerS
 
     pure (Tuple 
       (state {proxy = proxy, userInfoReferences = Just stateUpdateInfo.newUserInfoReferences, masterKey = Just stateUpdateInfo.newMasterKey, userPreferences = Just newUserPreferences})
-      (WidgetState
-        hiddenOverlayInfo
-        (Main { index
-              , credentials:      {username, password}
-              , pinExists:        isJust pinEncryptedPassword
-              , userPreferences:  newUserPreferences
-              , userAreaState
-              , cardManagerState
-              }
-        )
-      )
+      (WidgetState hiddenOverlayInfo page)
     )
          
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage White
+  >>= handleOperationResult state defaultErrorPage true White
+
+  where
+    page = Main { index
+                , credentials:      {username, password}
+                , pinExists:        isJust pinEncryptedPassword
+                , userPreferences:  newUserPreferences
+                , userAreaState
+                , cardManagerState
+                }
 
 
 handleUserAreaEvent (ChangePasswordEvent newPassword) cardManagerState userAreaState state@{index: Just index, username: Just username, userPreferences: Just userPreferences, pinEncryptedPassword} _ = 
   do
-    ProxyResponse proxy userUpdateInfo <- runStep (changeUserPassword state newPassword) (WidgetState (spinnerOverlay "Update password" White) (Main { index, credentials: {username, password: newPassword}, pinExists: isJust pinEncryptedPassword, cardManagerState, userAreaState, userPreferences }))
+    ProxyResponse proxy userUpdateInfo <- runStep (changeUserPassword state newPassword) (WidgetState (spinnerOverlay "Update password" White) page)
     pure (Tuple 
       (state {proxy = proxy, c = Just userUpdateInfo.c, p = Just userUpdateInfo.p, s = Just userUpdateInfo.s, password = Just newPassword})
-      (WidgetState
-        hiddenOverlayInfo
-        (Main { index
-              , credentials:      {username, password: newPassword}
-              , pinExists:        isJust pinEncryptedPassword
-              , userPreferences
-              , userAreaState
-              , cardManagerState
-              }
-        )
-      )
+      (WidgetState hiddenOverlayInfo page)
     )
 
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage White
+  >>= handleOperationResult state defaultErrorPage true White
+
+  where
+    page = Main { index
+                , credentials:      {username, password: newPassword}
+                , pinExists:        isJust pinEncryptedPassword
+                , userPreferences
+                , userAreaState
+                , cardManagerState
+                }
 
 handleUserAreaEvent (SetPinEvent pinAction) cardManagerState userAreaState state@{index: Just index, username: Just username, password: Just password, userPreferences: Just userPreferences} _ =
   do
@@ -128,7 +126,7 @@ handleUserAreaEvent (SetPinEvent pinAction) cardManagerState userAreaState state
           )
   
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage White
+  >>= handleOperationResult state defaultErrorPage true White
   
   where 
     page = Main { index
@@ -175,4 +173,4 @@ handleUserAreaEvent LogoutEvent _ _ _ _ = liftEffect $ window >>= location >>= r
 handleUserAreaEvent _ _ _ state _ = do
   throwError $ InvalidStateError (CorruptedState "State is corrupted")
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage White
+  >>= handleOperationResult state defaultErrorPage true White

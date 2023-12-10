@@ -51,7 +51,7 @@ handleLoginPageEvent (LoginEvent cred) state@{proxy, srpConf} fragmentState =
     pure res
   
   # runExceptT 
-  >>= handleOperationResult state initialPage Black
+  >>= handleOperationResult state initialPage true Black
 
   where 
     initialPage = (Login emptyLoginFormData {credentials = cred})
@@ -66,7 +66,7 @@ handleLoginPageEvent (LoginPinEvent pin) state@{proxy, hash, srpConf, username, 
   
   # runExceptT
   >>= handlePinResult state initialPage Black
-  >>= (\(Tuple page either) -> handleOperationResult state page Black either)
+  >>= (\(Tuple page either) -> handleOperationResult state page true Black either)
 
   where
     initialPage = Login emptyLoginFormData {pin = pin, loginType = PinLogin}

@@ -38,10 +38,13 @@ defaultView widgetState = (unsafeCoerce unit <$ appView widgetState)
 defaultErrorPage :: Page
 defaultErrorPage = Login emptyLoginFormData
 
-handleOperationResult :: StatelessAppState -> Page -> OverlayColor -> Either AppError OperationState -> Widget HTML OperationState
-handleOperationResult state page color = either
-                                        manageError
-                                        (\res@(Tuple _ (WidgetState _ page')) -> delayOperation 500 (WidgetState { status: Done, color, message: "" } page') *> pure res)
+handleOperationResult :: StatelessAppState -> Page -> Boolean -> OverlayColor -> Either AppError OperationState -> Widget HTML OperationState
+handleOperationResult state page showDone color = either
+                                                    manageError
+                                                    (\res@(Tuple _ (WidgetState _ page')) -> if   showDone
+                                                                                             then delayOperation 500 (WidgetState { status: Done, color, message: "" } page') *> pure res
+                                                                                             else pure res
+                                                    )
                                                 
   where
     manageError :: AppError -> Widget HTML OperationState
