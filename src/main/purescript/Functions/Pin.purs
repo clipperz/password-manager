@@ -40,8 +40,8 @@ import Web.Storage.Storage (Storage, removeItem, setItem)
 makeKey :: String -> String
 makeKey = (<>) "clipperz.is."
 
-isPinValid :: Int -> Boolean
-isPinValid p = (length $ show p) == 5
+isPinValid :: PIN -> Boolean
+isPinValid p = (length p) == 5
 
 generateKeyFromPin :: HashFunction -> String -> Aff CryptoKey
 generateKeyFromPin hashf pin = do
@@ -63,9 +63,9 @@ deleteCredentials storage = do
   removeItem (makeKey "passphrase") storage
   removeItem (makeKey "failures")   storage
 
-saveCredentials :: StatelessAppState -> Int -> Storage -> ExceptT AppError Aff HexString
+saveCredentials :: StatelessAppState -> String -> Storage -> ExceptT AppError Aff HexString
 saveCredentials {username: Just u, password: Just p, hash: hashf} pin storage = do
-  key <- liftAff $ (generateKeyFromPin hashf $ show pin)
+  key <- liftAff $ (generateKeyFromPin hashf pin)
   -- 256 bits
   let paddingBytesLength = (256 - 16 * length (toString Hex (hex p))) / 8
   paddingBytes     <- liftAff $ asArrayBuffer   <$> (randomBytes paddingBytesLength)

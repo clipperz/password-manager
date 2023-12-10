@@ -10,17 +10,17 @@ import Control.Bind (bind)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HeytingAlgebra (not)
-import Data.Int (fromString)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe)
 import Data.Ord ((>))
 import Data.Semigroup ((<>))
 import Data.String.CodeUnits (length)
+import Functions.Communication.StatelessOneTimeShare (PIN)
 import Functions.Pin (isPinValid)
 import React (ReactElement)
 import Unsafe.Coerce (unsafeCoerce)
 import Views.SimpleWebComponents (simpleButton)
 
-data PinEvent = Reset | SetPin Int
+data PinEvent = Reset | SetPin PIN
 
 setPinView :: Boolean -> Widget HTML PinEvent
 setPinView pinExists = div [Props._id "pinPage"] [ form [] [
@@ -66,10 +66,8 @@ setPinView pinExists = div [Props._id "pinPage"] [ form [] [
 
     submitWidget :: String -> Widget (Array ReactElement) PinEvent
     submitWidget pin =
-      if pinExists then
-        simpleButton "reset" "Reset" false Reset
-      else case fromString pin of
-        Just p  -> simpleButton "save" "Save" (not (isPinValid p)) (SetPin p)
-        Nothing -> simpleButton "save" "Save" true (SetPin 0)
+      if   pinExists 
+      then simpleButton "reset" "Reset"  false                  Reset
+      else simpleButton "save"  "Save"  (not (isPinValid pin)) (SetPin pin)
 
 
