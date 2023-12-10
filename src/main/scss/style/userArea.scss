@@ -56,6 +56,10 @@ div#userPage {
 					background-color: inherit;
 				}
 
+				a.link {
+					width: auto;
+				}
+
 				ul.userSidebarSubitems {
 					&.hidden {
 						display: none;
