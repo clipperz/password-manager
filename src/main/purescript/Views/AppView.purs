@@ -34,13 +34,14 @@ data Page = Loading (Maybe Page) | Login LoginFormData | Signup SignupDataForm |
 type MainPageWidgetState = {
   index                         :: Index
 , credentials                   :: Credentials
+, pinExists                     :: Boolean
 , userAreaState                 :: UserAreaState
 , cardManagerState              :: CardManagerState
 , userPreferences               :: UserPreferences
 }
 
 emptyMainPageWidgetState :: MainPageWidgetState
-emptyMainPageWidgetState = { index: emptyIndex, credentials: emptyCredentials, userAreaState: userAreaInitialState, cardManagerState: cardManagerInitialState, userPreferences: defaultUserPreferences }
+emptyMainPageWidgetState = { index: emptyIndex, credentials: emptyCredentials, pinExists: false, userAreaState: userAreaInitialState, cardManagerState: cardManagerInitialState, userPreferences: defaultUserPreferences }
 
 data WidgetState = WidgetState OverlayInfo Page
 
@@ -67,13 +68,13 @@ appView (WidgetState overlayInfo page) =
         (signupFormView credentials)
       ]
     , div [Props.classList (Just <$> ["page", "main", show $ location (Main emptyMainPageWidgetState) page])] [ do
-        let {index, userAreaState, credentials, cardManagerState, userPreferences} = case page of
+        let {index, userAreaState, credentials, pinExists, cardManagerState, userPreferences} = case page of
                                         Main homePageWidgetState' -> homePageWidgetState'
                                         _                         -> emptyMainPageWidgetState
         
         div [Props._id "homePage"] [
           ( MainPageCardManagerEvent                         # uncurry) <$> cardsManagerView cardManagerState index (unwrap userPreferences).passwordGeneratorSettings
-        , ((MainPageUserAreaEvent # flip $ cardManagerState) # uncurry) <$> userAreaView userAreaState userPreferences credentials
+        , ((MainPageUserAreaEvent # flip $ cardManagerState) # uncurry) <$> userAreaView userAreaState userPreferences credentials pinExists
         ] 
       ]
     ]
