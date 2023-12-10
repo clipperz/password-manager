@@ -16,20 +16,21 @@ import Data.Map (Map, fromFoldable, insert, lookup)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Ord (class Ord)
 import Data.Tuple (Tuple(..))
+import DataModel.Credentials (Credentials)
 import DataModel.User (UserPreferences)
 import DataModel.WidgetState (WidgetState(..))
 import Effect.Class (liftEffect)
 import Functions.EnvironmentalVariables (currentCommit)
-import OperationalWidgets.ChangePasswordWidget (changePasswordWidget, emptyChangePasswordDataForm)
 import OperationalWidgets.DeleteUserWidget (deleteUserWidget)
 import OperationalWidgets.ExportWidget (exportWidget)
 import OperationalWidgets.ImportWidget (importWidget)
 import OperationalWidgets.PinWidget (setPinWidget)
+import Views.ChangePasswordView (changePasswordView)
 import Views.Components (footerComponent)
 import Views.UserPreferencesView (userPreferencesView)
 
 data UserAreaEvent    = UpdateUserPreferencesEvent UserPreferences
-                      | ChangePasswordEvent -- ??
+                      | ChangePasswordEvent String
                       | SetPinEvent -- ??
                       | DeleteAccountEvent -- ??
                       | ImportCardsEvent -- List Card ??
@@ -57,8 +58,8 @@ derive instance ordUserAreaSubmenus :: Ord UserAreaSubmenu
 
 data UserAreaInternalEvent = StateUpdate UserAreaState | UserAreaEvent UserAreaEvent
 
-userAreaView :: UserAreaState -> UserPreferences -> Widget HTML (Tuple UserAreaEvent UserAreaState)
-userAreaView state@{showUserArea, userAreaOpenPage, userAreaSubmenus} userPreferences = do
+userAreaView :: UserAreaState -> UserPreferences -> Credentials -> Widget HTML (Tuple UserAreaEvent UserAreaState)
+userAreaView state@{showUserArea, userAreaOpenPage, userAreaSubmenus} userPreferences credentials = do
   commitHash <- liftEffect $ currentCommit
   res <- div [Props._id "userPage", Props.className (if showUserArea then "open" else "closed")] [
     div [Props.onClick, Props.className "mask"] [] $> UserAreaEvent CloseUserAreaEvent
@@ -70,7 +71,7 @@ userAreaView state@{showUserArea, userAreaOpenPage, userAreaSubmenus} userPrefer
   , userAreaInternalView
   ]
   case res of
-    StateUpdate updatedState -> userAreaView updatedState userPreferences
+    StateUpdate updatedState -> userAreaView updatedState userPreferences credentials
     UserAreaEvent event      -> pure $ (Tuple event state)
 
   where
@@ -114,7 +115,7 @@ userAreaView state@{showUserArea, userAreaOpenPage, userAreaSubmenus} userPrefer
     userAreaInternalView = 
       case userAreaOpenPage of
         Preferences     -> frame (userPreferencesView userPreferences <#> (UserAreaEvent <<< UpdateUserPreferencesEvent))
-        ChangePassword  -> frame (changePasswordWidget Default emptyChangePasswordDataForm)
+        ChangePassword  -> frame (changePasswordView  credentials     <#> (UserAreaEvent <<< ChangePasswordEvent))
         Pin             -> frame (setPinWidget Default $> UserAreaEvent SetPinEvent)
         Delete          -> frame (deleteUserWidget $> UserAreaEvent DeleteAccountEvent)
         Import          -> frame (importWidget $> UserAreaEvent ImportCardsEvent)

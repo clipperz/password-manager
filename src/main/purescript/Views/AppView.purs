@@ -12,6 +12,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Show (class Show, show)
 import Data.Tuple (uncurry)
+import DataModel.Credentials (Credentials, emptyCredentials)
 import DataModel.Index (Index, emptyIndex)
 import DataModel.User (UserPreferences, defaultUserPreferences)
 import Effect.Class (liftEffect)
@@ -32,13 +33,14 @@ data Page = Loading (Maybe Page) | Login LoginFormData | Signup SignupDataForm |
 
 type MainPageWidgetState = {
   index                         :: Index
+, credentials                   :: Credentials
 , userAreaState                 :: UserAreaState
 , cardManagerState              :: CardManagerState
 , userPreferences               :: UserPreferences
 }
 
 emptyMainPageWidgetState :: MainPageWidgetState
-emptyMainPageWidgetState = { index: emptyIndex, userAreaState: userAreaInitialState, cardManagerState: cardManagerInitialState, userPreferences: defaultUserPreferences }
+emptyMainPageWidgetState = { index: emptyIndex, credentials: emptyCredentials, userAreaState: userAreaInitialState, cardManagerState: cardManagerInitialState, userPreferences: defaultUserPreferences }
 
 data WidgetState = WidgetState OverlayInfo Page
 
@@ -65,17 +67,16 @@ appView (WidgetState overlayInfo page) =
         (signupFormView credentials)
       ]
     , div [Props.classList (Just <$> ["page", "main", show $ location (Main emptyMainPageWidgetState) page])] [ do
-        let {index, userAreaState, cardManagerState, userPreferences} = case page of
+        let {index, userAreaState, credentials, cardManagerState, userPreferences} = case page of
                                         Main homePageWidgetState' -> homePageWidgetState'
                                         _                         -> emptyMainPageWidgetState
         
         div [Props._id "homePage"] [
           ( MainPageCardManagerEvent                         # uncurry) <$> cardsManagerView cardManagerState index (unwrap userPreferences).passwordGeneratorSettings
-        , ((MainPageUserAreaEvent # flip $ cardManagerState) # uncurry) <$> userAreaView     userAreaState    userPreferences
+        , ((MainPageUserAreaEvent # flip $ cardManagerState) # uncurry) <$> userAreaView userAreaState userPreferences credentials
         ] 
       ]
     ]
-
 
 data PagePosition = LeftPosition | CenterPosition | RightPosition
 instance showPagePosition :: Show PagePosition where

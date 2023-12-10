@@ -27,38 +27,37 @@ import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit, unit)
-import DataModel.AppState (AppState, AppError(..), InvalidStateError(..))
+import DataModel.AppState (AppError(..), AppState, InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index(..), CardEntry(..))
-import DataModel.SRP (SRPConf)
-import DataModel.User (IndexReference(..), MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard, UserInfoReferences(..), UserPreferencesReference(..), MasterKey)
+import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState)
+import DataModel.User (IndexReference(..), MasterKey, MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserInfoReferences(..), UserPreferencesReference(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff, class MonadAff)
 import Effect.Class (liftEffect, class MonadEffect)
 import Effect.Exception as EX
-import Functions.Communication.BackendCommunication (isStatusCodeOk, manageGenericRequest)
 import Functions.Communication.Blobs (deleteBlob)
 import Functions.Communication.Cards (deleteCardWithState)
-import Functions.Communication.Users (getMasterKey, deleteUserCard)
+import Functions.Communication.StatelessBackend (isStatusCodeOk, manageGenericRequest)
+import Functions.Communication.Users (deleteUserCard)
 import Functions.EncodeDecode (decryptJson, encryptJson)
-import Functions.JSState (getAppState, updateAppState)
+import Functions.JSState (getAppState)
 import Functions.Pin (deleteCredentials)
 import Functions.SRP as SRP
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
 
 type ModifyUserData = { c :: HexString
-                      , oldUserCard :: UserCard
-                      , newUserCard :: UserCard
+                      , p :: HexString
+                      , s :: HexString
                       }
 
-changeUserPassword :: SRPConf -> HexString -> HexString -> String -> String -> ExceptT AppError Aff Unit
-changeUserPassword conf oldC oldP username password = do
+changeUserPassword :: StatelessAppState -> String -> ExceptT AppError Aff (ProxyResponse ModifyUserData)
+changeUserPassword {srpConf, c: Just oldC, p: Just oldP, username: Just username, proxy, hash: hashFunc, masterKey: Just (Tuple masterKeyContent _)} newPassword = do
   s        <- liftAff $ SRP.randomArrayBuffer 32
-  newC     <- liftAff $ SRP.prepareC conf username password
-  newP     <- liftAff $ SRP.prepareP conf username password
-  (Tuple masterKeyContent _) <- getMasterKey oldC
-  newV <- ExceptT $ (lmap (ProtocolError <<< SRPError <<< show)) <$> (SRP.prepareV conf s newP)
+  newC     <- liftAff $ SRP.prepareC srpConf username newPassword
+  newP     <- liftAff $ SRP.prepareP srpConf username newPassword
+  newV <- ExceptT $ (lmap (ProtocolError <<< SRPError <<< show)) <$> (SRP.prepareV srpConf s newP)
   oldMasterPassword <- liftAff $ KI.importKey raw (toArrayBuffer oldP) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   newMasterPassword <- liftAff $ KI.importKey raw newP (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   masterKeyDecryptedContent <- ExceptT $ (bimap (ProtocolError <<< CryptoError <<< show) UserInfoReferences) <$> decryptJson oldMasterPassword (toArrayBuffer $ masterKeyContent)
@@ -73,15 +72,14 @@ changeUserPassword conf oldC oldP username password = do
   let url         = joinWith "/" [ "users", toString Hex oldC ]
   let body        = (json $ encodeJson newUserCard) :: RequestBody
   
-  response <- manageGenericRequest url PUT (Just body) RF.ignore
+  ProxyResponse proxy' response <- manageGenericRequest {hashFunc, proxy} url PUT (Just body) RF.ignore
   if isStatusCodeOk response.status
-    then ExceptT $ updateAppState { c:        Just $ fromArrayBuffer newC
-                                  , p:        Just $ fromArrayBuffer newP
-                                  , s:        Just $ fromArrayBuffer s
-                                  , username: Just   username
-                                  , password: Just   password
-                                  }
+    then pure $ ProxyResponse proxy' { c:        fromArrayBuffer newC
+                                     , p:        fromArrayBuffer newP
+                                     , s:        fromArrayBuffer s
+                                     }
     else throwError $ ProtocolError (ResponseError (unwrap response.status))
+changeUserPassword _ _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
 
 deleteUserSteps :: forall m. MonadAff m 
                     => MonadEffect m 

@@ -8,20 +8,17 @@ import Concur.React (HTML)
 import Control.Applicative (pure)
 import Control.Bind (bind, (>>=))
 import Control.Category ((<<<), (>>>))
-import Control.Monad.Except (except)
-import Control.Monad.Except.Trans (ExceptT, runExceptT)
-import Data.Either (note)
+import Control.Monad.Except.Trans (ExceptT, runExceptT, throwError)
 import Data.Function ((#), ($))
 import Data.Map (delete, insert, lookup)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Card as DataModel.Card
 import DataModel.FragmentState as Fragment
-import DataModel.Index (CardEntry(..), Index, addToIndex, emptyIndex, reference, removeFromIndex)
+import DataModel.Index (CardEntry(..), Index, addToIndex, reference, removeFromIndex)
 import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState)
-import DataModel.User (defaultUserPreferences)
 import Functions.Card (appendToTitle, archiveCard, getCardContent, restoreCard)
 import Functions.Communication.Blobs (getStatelessBlob)
 import Functions.Communication.Cards (deleteCard, postCard)
@@ -37,52 +34,50 @@ loadingMainPage index cardManagerState = Main emptyMainPageWidgetState { index =
 
 handleCardManagerEvent :: CardManagerEvent -> CardManagerState -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState
 
-
-handleCardManagerEvent OpenUserAreaEvent cardManagerState state@{index, userPreferences} _ = 
+handleCardManagerEvent OpenUserAreaEvent cardManagerState state@{index: Just index, userPreferences: Just userPreferences, username: Just username, password: Just password} _ = 
   doNothing (Tuple 
               state
               (WidgetState
-                 hiddenOverlayInfo
-                (Main { index: fromMaybe emptyIndex index
+                hiddenOverlayInfo
+                (Main { index
+                      , credentials:   {username, password}
                       , userAreaState: userAreaInitialState {showUserArea = true}
                       , cardManagerState
-                      , userPreferences: fromMaybe defaultUserPreferences userPreferences })))
+                      , userPreferences
+                      }
+                )
+              )
+            )
 
 
-handleCardManagerEvent (OpenCardViewEvent cardEntry) cardManagerState state@{index, userPreferences} _ = 
+handleCardManagerEvent (OpenCardViewEvent cardEntry) cardManagerState state@{index: Just index, userPreferences: Just userPreferences, username: Just username, password: Just password} _ = 
   do
-    index'            <- except $ note (InvalidStateError $ CorruptedState "index not found")            index
-    userPreferences'  <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") userPreferences
-
-    Tuple state' card <- getCardSteps state cardEntry (Main { index: index', userAreaState: userAreaInitialState, cardManagerState, userPreferences: userPreferences'})
+    Tuple state' card <- getCardSteps state cardEntry (Main { index, credentials: {username, password}, userAreaState: userAreaInitialState, cardManagerState, userPreferences})
     pure (Tuple
             state'
             (WidgetState
               hiddenOverlayInfo
-              (Main { index:            index'
-                    , userPreferences:  userPreferences'
+              (Main { index
+                    , credentials:      {username, password}
+                    , userPreferences
                     , userAreaState:    userAreaInitialState
                     , cardManagerState: cardManagerState {selectedEntry = (Just cardEntry), cardViewState = Card card cardEntry}
                     }
               )
             )
-         ) 
+          )
 
   # runExceptT
   >>= handleOperationResult state defaultErrorPage Black
 
 
-handleCardManagerEvent (AddCardEvent card) cardManagerState state@{index} _ = 
+handleCardManagerEvent (AddCardEvent card) cardManagerState state@{index: Just index} _ = 
   do
-  do
-    index' <- except $ note (InvalidStateError $ CorruptedState "index not found") index
-
-    res    <- addCardSteps cardManagerState state card (loadingMainPage index' cardManagerState) "Add card"
+    res <- addCardSteps cardManagerState state card (loadingMainPage index cardManagerState) "Add card"
     pure res
 
   # runExceptT
   >>= handleOperationResult state defaultErrorPage Black
-  --   index' <- except $ note (InvalidStateError $ CorruptedState "index not found") index
     
   --   res    <- addCardStepsWithStateT card (loadingMainPage index' (CardForm $ NewCard $ Just card)) "Add card"
   --   pure res
@@ -92,35 +87,31 @@ handleCardManagerEvent (AddCardEvent card) cardManagerState state@{index} _ =
   -- >>= handleOperationResultWithStateT defaultErrorPage
 
 
-handleCardManagerEvent (CloneCardEvent cardEntry) cardManagerState state@{index} _ = 
+handleCardManagerEvent (CloneCardEvent cardEntry) cardManagerState state@{index: Just index} _ = 
   do
-    index'            <- except $ note (InvalidStateError $ CorruptedState "index not found") index
-
-    Tuple state' card <- getCardSteps state cardEntry (loadingMainPage index' cardManagerState)
+    Tuple state' card <- getCardSteps state cardEntry (loadingMainPage index cardManagerState)
     let cloneCard      = appendToTitle " - copy" <<< (\(DataModel.Card.Card card') -> DataModel.Card.Card card' {archived = false}) $ card
-    res               <- addCardSteps cardManagerState state' cloneCard (loadingMainPage index' cardManagerState) "Clone card"
+    res               <- addCardSteps cardManagerState state' cloneCard (loadingMainPage index cardManagerState) "Clone card"
     pure res
 
   # runExceptT
   >>= handleOperationResult state defaultErrorPage Black
 
 
-handleCardManagerEvent (DeleteCardEvent cardEntry) cardManagerState state@{hash: hashFunc, index, userPreferences} _ =
+handleCardManagerEvent (DeleteCardEvent cardEntry) cardManagerState state@{hash: hashFunc, index: Just index, userPreferences: Just userPreferences, username: Just username, password: Just password} _ =
   do
-    index'                                <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
-    userPreferences'                      <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") userPreferences
-
-    Tuple state'@{proxy} card             <- getCardSteps state cardEntry (loadingMainPage index' cardManagerState)
-    ProxyResponse proxy' _                <- runStep (deleteCard {proxy, hashFunc} (unwrap cardEntry).cardReference card) (WidgetState (spinnerOverlay "Delete card"  Black) (loadingMainPage index' cardManagerState))
-    let updatedIndex                       = removeFromIndex cardEntry index'
-    ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state' {proxy = proxy'}) updatedIndex)                 (WidgetState (spinnerOverlay "Update index" Black) (loadingMainPage index' cardManagerState))
+    Tuple state'@{proxy} card             <- getCardSteps state cardEntry (loadingMainPage index cardManagerState)
+    ProxyResponse proxy' _                <- runStep (deleteCard {proxy, hashFunc} (unwrap cardEntry).cardReference card) (WidgetState (spinnerOverlay "Delete card"  Black) (loadingMainPage index cardManagerState))
+    let updatedIndex                       = removeFromIndex cardEntry index
+    ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state' {proxy = proxy'}) updatedIndex)                 (WidgetState (spinnerOverlay "Update index" Black) (loadingMainPage index cardManagerState))
 
     pure (Tuple 
             (state' {proxy = proxy'', index = Just updatedIndex, userInfoReferences = Just stateUpdateInfo.newUserInfoReferences, masterKey = Just stateUpdateInfo.newMasterKey})
             (WidgetState
               hiddenOverlayInfo
               (Main { index:            updatedIndex
-                    , userPreferences:  userPreferences'
+                    , credentials:      {username, password}
+                    , userPreferences
                     , userAreaState:    userAreaInitialState
                     , cardManagerState: cardManagerState {cardViewState = NoCard, selectedEntry = Nothing}
                     }
@@ -132,40 +123,39 @@ handleCardManagerEvent (DeleteCardEvent cardEntry) cardManagerState state@{hash:
   >>= handleOperationResult state defaultErrorPage Black
 
 
-handleCardManagerEvent (EditCardEvent oldCardEntry updatedCard) cardManagerState state@{index} _ =
+handleCardManagerEvent (EditCardEvent oldCardEntry updatedCard) cardManagerState state@{index: Just index} _ =
   do
-    index'                        <- except $ note (InvalidStateError $ CorruptedState "index not found") index
-    
-    Tuple state'          oldCard <- getCardSteps                   state  oldCardEntry                     (loadingMainPage index' cardManagerState)
-    res                           <- editCardSteps cardManagerState state' oldCardEntry oldCard updatedCard (loadingMainPage index' cardManagerState)
+    Tuple state' oldCard <- getCardSteps                   state  oldCardEntry                     (loadingMainPage index cardManagerState)
+    res                  <- editCardSteps cardManagerState state' oldCardEntry oldCard updatedCard (loadingMainPage index cardManagerState)
     pure res
   
   # runExceptT
   >>= handleOperationResult state defaultErrorPage Black
 
 
-handleCardManagerEvent (ArchiveCardEvent cardEntry) cardManagerState state@{index} _ =
+handleCardManagerEvent (ArchiveCardEvent cardEntry) cardManagerState state@{index: Just index} _ =
   do
-    index'                        <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
-
-    Tuple state'         card     <- getCardSteps                   state  cardEntry                  (loadingMainPage index' cardManagerState)
-    let updatedCard                = archiveCard card
-    res                           <- editCardSteps cardManagerState state' cardEntry card updatedCard (loadingMainPage index' cardManagerState)
+    Tuple state' card <- getCardSteps                   state  cardEntry                  (loadingMainPage index cardManagerState)
+    let updatedCard    = archiveCard card
+    res               <- editCardSteps cardManagerState state' cardEntry card updatedCard (loadingMainPage index cardManagerState)
     pure res
 
   # runExceptT
   >>= handleOperationResult state defaultErrorPage Black
 
 
-handleCardManagerEvent (RestoreCardEvent cardEntry) cardManagerState state@{index} _ =
+handleCardManagerEvent (RestoreCardEvent cardEntry) cardManagerState state@{index: Just index} _ =
   do
-    index'                        <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
-
-    Tuple state'         card     <- getCardSteps                   state  cardEntry                  (loadingMainPage index' cardManagerState)
-    let updatedCard                = restoreCard card
-    res                           <- editCardSteps cardManagerState state' cardEntry card updatedCard (loadingMainPage index' cardManagerState)
+    Tuple state' card <- getCardSteps                   state  cardEntry                  (loadingMainPage index cardManagerState)
+    let updatedCard    = restoreCard card
+    res               <- editCardSteps cardManagerState state' cardEntry card updatedCard (loadingMainPage index cardManagerState)
     pure res
 
+  # runExceptT
+  >>= handleOperationResult state defaultErrorPage Black
+
+handleCardManagerEvent _ _ state _ = do
+  throwError $ InvalidStateError (CorruptedState "State is corrupted")
   # runExceptT
   >>= handleOperationResult state defaultErrorPage Black
 
@@ -186,12 +176,9 @@ getCardSteps state@{proxy, hash, cardsCache} cardEntry@(CardEntry entry) page = 
          card
 
 addCardSteps :: CardManagerState -> StatelessAppState -> DataModel.Card.Card -> Page -> String -> ExceptT AppError (Widget HTML) OperationState
-addCardSteps cardManagerState state@{index, userPreferences, cardsCache} newCard page message = do
-  index'                                <- except $ note (InvalidStateError $ CorruptedState "index not found")             index
-  userPreferences'                      <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") userPreferences
-
+addCardSteps cardManagerState state@{index: Just index, userPreferences: Just userPreferences, cardsCache, username: Just username, password: Just password} newCard page message = do
   ProxyResponse proxy'  newCardEntry    <- runStep (postCard state newCard)                            (WidgetState (spinnerOverlay message        Black) page)
-  let updatedIndex                       = addToIndex newCardEntry index'
+  let updatedIndex                       = addToIndex newCardEntry index
   ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index" Black) page)
   let updatedCardCache                   = insert (reference newCardEntry) newCard cardsCache
 
@@ -206,21 +193,20 @@ addCardSteps cardManagerState state@{index, userPreferences, cardsCache} newCard
           (WidgetState
             hiddenOverlayInfo
             (Main { index:            updatedIndex
-                  , userPreferences:  userPreferences'
+                  , credentials:      {username, password}
+                  , userPreferences
                   , userAreaState:    userAreaInitialState
                   , cardManagerState: cardManagerState {cardViewState = Card newCard newCardEntry, selectedEntry = Just newCardEntry}
                   }
             )
           )
         )
+addCardSteps _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
 
 editCardSteps :: CardManagerState -> StatelessAppState -> CardEntry -> DataModel.Card.Card -> DataModel.Card.Card -> Page -> ExceptT AppError (Widget HTML) OperationState
-editCardSteps cardManagerState state@{index, hash: hashFunc, userPreferences, cardsCache} oldCardEntry oldCard updatedCard page = do
-  index'                                 <- except $ note (InvalidStateError $ CorruptedState "index not found")            index
-  userPreferences'                       <- except $ note (InvalidStateError $ CorruptedState "user preferences not found") userPreferences
-
+editCardSteps cardManagerState state@{index: Just index, hash: hashFunc, userPreferences: Just userPreferences, cardsCache, username: Just username, password: Just password} oldCardEntry oldCard updatedCard page = do
   ProxyResponse proxy'   cardEntry       <- runStep (postCard state updatedCard)                                                         (WidgetState (spinnerOverlay "Post updated card" Black) page)
-  let updatedIndex                        = addToIndex cardEntry >>> removeFromIndex oldCardEntry $ index'
+  let updatedIndex                        = addToIndex cardEntry >>> removeFromIndex oldCardEntry $ index
   ProxyResponse proxy''  stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex)                                  (WidgetState (spinnerOverlay "Update index"      Black) page)
   ProxyResponse proxy''' _               <- runStep (deleteCard  {proxy: proxy'', hashFunc} (unwrap oldCardEntry).cardReference oldCard) (WidgetState (spinnerOverlay "Delete old card"   Black) page)
   let updatedCardCache                    = insert (reference cardEntry) updatedCard >>> delete (reference oldCardEntry) $ cardsCache
@@ -230,13 +216,15 @@ editCardSteps cardManagerState state@{index, hash: hashFunc, userPreferences, ca
     (WidgetState
       hiddenOverlayInfo
       (Main { index:            updatedIndex
-            , userPreferences:  userPreferences'
+            , credentials:      {username, password}
+            , userPreferences
             , userAreaState:    userAreaInitialState
             , cardManagerState: cardManagerState {cardViewState = (Card updatedCard cardEntry), selectedEntry = Just cardEntry}
             }
       )
     )
   )
+editCardSteps _ _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
 
 -- ========================================================================================================================
 
