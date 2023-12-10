@@ -22,9 +22,8 @@ import DataModel.FragmentState (FragmentState)
 import DataModel.FragmentState as Fragment
 import Effect (Effect)
 import Foreign (unsafeToForeign)
-import Functions.JSState (saveAppState)
 import Functions.Pin (makeKey)
-import Functions.State (computeInitialState, computeInitialStatelessState)
+import Functions.State (computeInitialStatelessState)
 import JSURI (decodeURI)
 import OperationalWidgets.App (app)
 import Record (merge)
@@ -40,8 +39,6 @@ import Web.Storage.Storage (getItem)
 
 main :: Effect Unit
 main = do
-  computeInitialState >>= saveAppState -- TODO REMOVE
-  
   appState      <- computeInitialStatelessState
   fragmentState <- parseFragment <$> (window >>= location >>= hash)
   

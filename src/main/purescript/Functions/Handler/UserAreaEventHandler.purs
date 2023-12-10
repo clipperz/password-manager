@@ -2,13 +2,14 @@ module Functions.Handler.UserAreaEventHandler where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
+import Control.Alt ((<#>))
 import Control.Alternative ((<*))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))
 import Control.Monad.Except.Trans (runExceptT, throwError)
 import Data.Either (Either(..))
 import Data.Function ((#), ($))
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe, isNothing)
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
@@ -19,12 +20,20 @@ import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Functions.Communication.Users (updateUserPreferences)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
+import Functions.Pin (makeKey)
+import Functions.State (computeInitialStatelessState)
 import Functions.Timer (activateTimer, stopTimer)
 import Functions.User (changeUserPassword)
+import Unsafe.Coerce (unsafeCoerce)
 import Views.AppView (Page(..), WidgetState(..), emptyMainPageWidgetState)
 import Views.CardsManagerView (CardManagerState)
+import Views.LoginFormView (LoginType(..), emptyLoginFormData)
 import Views.OverlayView (OverlayColor(..), hiddenOverlayInfo, spinnerOverlay)
 import Views.UserAreaView (UserAreaEvent(..), UserAreaPage(..), UserAreaState)
+import Web.HTML (window)
+import Web.HTML.Location (reload)
+import Web.HTML.Window (localStorage, location)
+import Web.Storage.Storage (getItem)
 
 handleUserAreaEvent :: UserAreaEvent -> CardManagerState -> UserAreaState -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState
 
@@ -94,10 +103,23 @@ handleUserAreaEvent (ExportJsonEvent)                _ _ state         _ = doNot
 handleUserAreaEvent (ExportOfflineCopyEvent)         _ _ state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ExportOfflineCopyEvent")     --TODO: implement [fsolaroli - 29/11/2023]
 
 
-handleUserAreaEvent (LockEvent)                      _ _ state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "LockEvent")                  --TODO: implement [fsolaroli - 29/11/2023]
+handleUserAreaEvent LockEvent _ _ {username: Just username} _ = 
+  do
+    state      <- liftEffect   computeInitialStatelessState
+    passphrase <- liftEffect $ window >>= localStorage >>= getItem (makeKey "passphrase")
+    pure $ Tuple 
+            (state {username = Just username, password = passphrase})
+            (WidgetState
+              hiddenOverlayInfo
+              (Login emptyLoginFormData { credentials = {username, password: fromMaybe "" passphrase}
+                                        , loginType   = if isNothing passphrase then CredentialLogin else PinLogin
+                                        }
+              )
+            ) 
 
 
-handleUserAreaEvent (LogoutEvent)                   _ _  state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "LogoutEvent")                --TODO: implement [fsolaroli - 29/11/2023]
+handleUserAreaEvent LogoutEvent _ _ _ _ = liftEffect $ window >>= location >>= reload <#> unsafeCoerce
+
 
 handleUserAreaEvent _ _ _ state _ = do
   throwError $ InvalidStateError (CorruptedState "State is corrupted")
