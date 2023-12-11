@@ -125,15 +125,16 @@ div#userPage {
         flex-direction: column;
 
 		border-right: 1px solid #222;
-
-		.disableOverlay {
-			left: 50vw;
-		}
-
+		
         &.open {
-            background-color: black;
+			background-color: black;
 			height: 100%;
 			overflow: auto;
+
+			div.disableOverlay {
+				padding: 0;
+				left: 50vw;
+			}
 
             header {
                 border-bottom: 1px solid white;

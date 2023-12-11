@@ -1,5 +1,6 @@
 module Functions.Handler.CardManagerEventHandler
-  ( handleCardManagerEvent
+  ( getCardSteps
+  , handleCardManagerEvent
   )
   where
 

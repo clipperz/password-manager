@@ -112,3 +112,9 @@ deleteStatelessBlob connectionState encryptedBlob reference = do
   if isStatusCodeOk response.status
     then pure       $ ProxyResponse proxy response.body
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
+
+deleteBlobWithReference :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse String)
+deleteBlobWithReference connectionState reference = do
+  ProxyResponse proxy' encryptedBlob <- getStatelessBlob connectionState reference
+  deleteStatelessBlob connectionState {proxy = proxy'} encryptedBlob reference
+

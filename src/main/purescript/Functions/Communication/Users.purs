@@ -1,24 +1,10 @@
-module Functions.Communication.Users
-  ( UpdateUserStateUpdateInfo
-  , deleteUserCard
-  , getIndexWithState
-  , getMasterKey
-  , getRemoteUserCard
-  , getIndex
-  , getStatelessMasterKey
-  , getStatelessUserPreferences
-  , getUserPreferences
-  , updateIndex
-  , updateUserCard
-  , updateUserPreferences
-  )
-  where
+module Functions.Communication.Users where
 
 import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
 import Control.Alt ((<#>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind)
 import Control.Monad.Except.Trans (ExceptT(..), except, throwError, withExceptT)
 import Control.Semigroupoid ((>>>))
 import Crypto.Subtle.Constants.AES (aesCTR)
@@ -53,12 +39,12 @@ import Functions.Communication.StatelessBackend (ConnectionState)
 import Functions.Communication.StatelessBackend as Stateless
 import Functions.EncodeDecode (cryptoKeyAES, encryptJson)
 import Functions.Index (getIndexContent)
-import Functions.JSState (getAppState, updateAppState)
+import Functions.JSState (getAppState)
 import Functions.SRP (prepareV)
 import Functions.State (getSRPConf)
 
-getStatelessMasterKey :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse MasterKey)
-getStatelessMasterKey connectionState c = do
+getMasterKey :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse MasterKey)
+getMasterKey connectionState c = do
   let url = joinWith "/" ["users", show c]
   ProxyResponse newProxy response <- Stateless.manageGenericRequest connectionState url GET Nothing RF.json
   if isStatusCodeOk response.status
@@ -66,24 +52,6 @@ getStatelessMasterKey connectionState c = do
       newMasterKey <- except $ flip lmap (decodeJson response.body) (show >>> DecodeError >>> ProtocolError)
       pure $ ProxyResponse newProxy newMasterKey
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
-
--- TODO REMOVE
-getMasterKey :: HexString -> ExceptT AppError Aff MasterKey
-getMasterKey c = do
-  { masterKey: maybeMasterKey } <- ExceptT $ liftEffect $ getAppState
-  case maybeMasterKey of
-    Nothing -> do
-      -- c <- except $ note (InvalidStateError (MissingValue "c is Nothing")) maybec
-      let url = joinWith "/" ["users", show c]
-      response <- manageGenericRequest url GET Nothing RF.json
-      if isStatusCodeOk response.status
-        then do
-          newMasterKey <- except $ flip lmap (decodeJson response.body) (show >>> DecodeError >>> ProtocolError)
-          ExceptT $ updateAppState { masterKey: Just newMasterKey }
-          pure newMasterKey
-        else throwError $ ProtocolError (ResponseError $ unwrap response.status)
-    Just masterKey -> pure masterKey
--- ------------
 
 getRemoteUserCard :: ExceptT AppError Aff RequestUserCard
 getRemoteUserCard = do
@@ -104,12 +72,22 @@ updateUserCard connectionState c newUserCard = do
     then pure $ ProxyResponse proxy' (unwrap newUserCard).masterKey
     else throwError (ProtocolError $ ResponseError $ unwrap response.status)
 
-deleteUserCard :: HexString -> ExceptT AppError Aff Unit
-deleteUserCard c = do
+-- TODO REMOVE
+deleteUserCardWithState :: HexString -> ExceptT AppError Aff Unit
+deleteUserCardWithState c = do
   let url = joinWith "/" ["users", toString Hex c]
   response <- manageGenericRequest url DELETE Nothing RF.string
   if isStatusCodeOk response.status
     then pure unit
+    else throwError (ProtocolError $ ResponseError $ unwrap response.status)
+-- -----------
+
+deleteUserCard :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse Unit)
+deleteUserCard connectionState c = do
+  let url = joinWith "/" ["users", toString Hex c]
+  ProxyResponse proxy response <- Stateless.manageGenericRequest connectionState url DELETE Nothing RF.string
+  if isStatusCodeOk response.status
+    then pure $ ProxyResponse proxy unit
     else throwError (ProtocolError $ ResponseError $ unwrap response.status)
 
 -- TODO REMOVE
@@ -145,6 +123,17 @@ getStatelessUserPreferences connectionState (UserPreferencesReference { referenc
   getStatelessDecryptedBlob connectionState reference cryptoKey
 
 -- ------------
+
+deleteUserInfo :: ConnectionState -> MasterKey -> ExceptT AppError Aff (ProxyResponse Unit)
+deleteUserInfo connectionState (Tuple _ masterKeyEncodingVersion) =
+  case masterKeyEncodingVersion of
+    V_1    -> pure $ ProxyResponse connectionState.proxy unit -- with version 1.0 the userInfoReference record is saved inside the UserCard and not as a separate blob
+    -- "2.0"   -> do
+    --   p <- except $ (note (InvalidStateError $ MissingValue $ "p not present") state.p)
+    --   masterPassword <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+    --   decryptedMasterKeyContent <- withExceptT (\err -> ProtocolError $ CryptoError $ show err) (ExceptT $ decryptWithAesCTR (toArrayBuffer masterKeyContent) masterPassword)
+    --   { after: hash } <- pure $ splitHexInHalf (fromArrayBuffer decryptedMasterKeyContent)
+    --   void $ deleteBlob hash
 
 type UpdateUserStateUpdateInfo = {newUserInfoReferences :: UserInfoReferences, newMasterKey :: MasterKey }
 

@@ -84,6 +84,8 @@ newtype IndexReference =
     , indexVersion :: String
     }
   
+derive instance newtypeIndexReference :: Newtype IndexReference _
+
 instance showIndexReference :: Show IndexReference where
   show (IndexReference record) = show record
 
@@ -92,6 +94,7 @@ instance encodeJsonIndexReference :: EncodeJson IndexReference where
 
 instance decodeJsonIndexReference :: DecodeJson IndexReference where
   decodeJson json = rmap (\record -> IndexReference record) (decodeJson json)
+
 
 newtype UserPreferences = 
   UserPreferences

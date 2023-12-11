@@ -1,4 +1,7 @@
-module Functions.Handler.UserAreaEventHandler where
+module Functions.Handler.UserAreaEventHandler
+  ( handleUserAreaEvent
+  )
+  where
 
 import Affjax.ResponseFormat as RF
 import Concur.Core (Widget)
@@ -12,18 +15,24 @@ import Data.Either (Either(..))
 import Data.Function ((#), ($))
 import Data.HTTP.Method (Method(..))
 import Data.HexString (hex)
+import Data.List (foldl)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, isNothing)
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
-import Data.Unit (unit)
+import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Credentials (emptyCredentials)
 import DataModel.FragmentState as Fragment
-import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState)
+import DataModel.Index (Index(..))
+import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState, discardResult)
+import DataModel.User (UserInfoReferences(..))
 import Effect.Class (liftEffect)
 import Effect.Console (log)
+import Functions.Communication.Blobs (deleteBlobWithReference)
+import Functions.Communication.Cards (deleteCard)
 import Functions.Communication.StatelessBackend (manageGenericRequest)
-import Functions.Communication.Users (updateUserPreferences)
+import Functions.Communication.Users (deleteUserCard, deleteUserInfo, updateUserPreferences)
+import Functions.Handler.CardManagerEventHandler (getCardSteps)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
 import Functions.Pin (deleteCredentials, makeKey, saveCredentials)
 import Functions.State (resetState)
@@ -142,8 +151,26 @@ handleUserAreaEvent (SetPinEvent pinAction) cardManagerState userAreaState state
                 }
 
 
-handleUserAreaEvent (DeleteAccountEvent)             _ _ state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "DeleteAccountEvent")         --TODO: implement [fsolaroli - 29/11/2023]
+handleUserAreaEvent DeleteAccountEvent cardManagerState userAreaState state@{hash: hashFunc, username: Just username, password: Just password, index: Just index, userPreferences: Just userPreferences, userInfoReferences: Just (UserInfoReferences {indexReference, preferencesReference}), c: Just c, masterKey: Just masterKey, pinEncryptedPassword} _ =
+  do
+    ProxyResponse proxy'     _ <- deleteCardsSteps state index page
+    ProxyResponse proxy''    _ <- runStep (deleteBlobWithReference {hashFunc, proxy: proxy'}   (unwrap indexReference).reference      ) (WidgetState (spinnerOverlay "Delete Index"       White) page)
+    ProxyResponse proxy'''   _ <- runStep (deleteBlobWithReference {hashFunc, proxy: proxy''}  (unwrap preferencesReference).reference) (WidgetState (spinnerOverlay "Delete Preferences" White) page)
+    ProxyResponse proxy''''  _ <- runStep (deleteUserInfo          {hashFunc, proxy: proxy'''}  masterKey                             ) (WidgetState (spinnerOverlay "Delete User Info"   White) page)
+    ProxyResponse proxy''''' _ <- runStep (deleteUserCard          {hashFunc, proxy: proxy''''} c                                     ) (WidgetState (spinnerOverlay "Delete User Card"   White) page)
+    _                          <- liftEffect $ window >>= localStorage >>= deleteCredentials
+    logoutSteps (state {proxy = proxy''''', username = Nothing}) "Logout" page
+  # runExceptT
+  >>= handleOperationResult state defaultErrorPage true White
 
+  where 
+    page = Main { index
+                , credentials: {username, password}
+                , pinExists:   isJust pinEncryptedPassword
+                , cardManagerState
+                , userAreaState
+                , userPreferences
+                }
 
 handleUserAreaEvent (ImportCardsEvent)               _ _ state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ImportCardsEvent")           --TODO: implement [fsolaroli - 29/11/2023]
 
@@ -207,3 +234,12 @@ logoutSteps state@{username, hash: hashFunc, proxy} message page =
                                         }
               )
             ) 
+
+deleteCardsSteps :: StatelessAppState -> Index -> Page -> ExceptT AppError (Widget HTML) (ProxyResponse Unit)
+deleteCardsSteps state@{hash: hashFunc, proxy} (Index list) page =
+  foldl (\proxyResponse entry -> do
+    ProxyResponse proxy' _      <- proxyResponse
+    Tuple {proxy: proxy''} card <- getCardSteps (state {proxy = proxy'}) entry page
+    res                         <- runStep (deleteCard {hashFunc, proxy: proxy''} (unwrap entry).cardReference card) (WidgetState (spinnerOverlay "Delete cards" White) page)
+    pure $ discardResult res
+  ) (pure $ ProxyResponse proxy unit) list

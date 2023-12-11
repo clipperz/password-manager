@@ -20,18 +20,18 @@ import DataModel.Credentials (Credentials)
 import DataModel.User (UserPreferences)
 import Effect.Class (liftEffect)
 import Functions.EnvironmentalVariables (currentCommit)
-import OperationalWidgets.DeleteUserWidget (deleteUserWidget)
 import OperationalWidgets.ExportWidget (exportWidget)
 import OperationalWidgets.ImportWidget (importWidget)
 import Views.ChangePasswordView (changePasswordView)
 import Views.Components (footerComponent)
+import Views.DeleteUserView (deleteUserView)
 import Views.SetPinView (PinEvent, setPinView)
 import Views.UserPreferencesView (userPreferencesView)
 
 data UserAreaEvent    = UpdateUserPreferencesEvent UserPreferences
                       | ChangePasswordEvent String
                       | SetPinEvent PinEvent
-                      | DeleteAccountEvent -- ??
+                      | DeleteAccountEvent
                       | ImportCardsEvent -- List Card ??
                       | ExportJsonEvent -- ??
                       | ExportOfflineCopyEvent -- ??
@@ -116,7 +116,7 @@ userAreaView state@{showUserArea, userAreaOpenPage, userAreaSubmenus} userPrefer
         Preferences     -> frame (userPreferencesView userPreferences <#> (UserAreaEvent <<< UpdateUserPreferencesEvent))
         ChangePassword  -> frame (changePasswordView  credentials     <#> (UserAreaEvent <<< ChangePasswordEvent))
         Pin             -> frame (setPinView          pinExists       <#> (UserAreaEvent <<< SetPinEvent))
-        Delete          -> frame (deleteUserWidget $> UserAreaEvent DeleteAccountEvent)
+        Delete          -> frame (deleteUserView      credentials      $> (UserAreaEvent     DeleteAccountEvent))
         Import          -> frame (importWidget $> UserAreaEvent ImportCardsEvent)
         Export          -> frame (exportWidget $> UserAreaEvent ExportJsonEvent)
         About           -> frame (text "This is Clipperz")

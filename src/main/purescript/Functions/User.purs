@@ -2,50 +2,35 @@ module Functions.User where
 
 import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
-import Control.Alt (class Alt)
 import Control.Applicative (pure)
-import Control.Bind (bind, (>>=))
-import Control.Monad.Except.Trans (ExceptT(..), except, runExceptT, throwError, withExceptT)
+import Control.Bind (bind)
+import Control.Monad.Except.Trans (ExceptT(..), throwError, withExceptT)
 import Control.Semigroupoid ((<<<))
 import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Types (decrypt, encrypt, raw, unwrapKey, CryptoKey)
 import Data.Argonaut.Encode.Class (encodeJson)
-import Data.Array (toUnfoldable)
 import Data.Bifunctor (lmap, bimap)
-import Data.Either (note, Either(..))
 import Data.Function (($))
-import Data.Functor ((<$>), map, void)
+import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
 import Data.HexString (Base(..), HexString, fromArrayBuffer, toArrayBuffer, toString)
-import Data.List (List, length, singleton, zipWith, (..))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.Operation (OperationStep(..))
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
-import Data.Unit (Unit, unit)
-import DataModel.AppState (AppError(..), AppState, InvalidStateError(..))
+import DataModel.AppState (AppError(..), InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.Index (Index(..), CardEntry(..))
 import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState)
-import DataModel.User (IndexReference(..), MasterKey, MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserInfoReferences(..), UserPreferencesReference(..))
+import DataModel.User (MasterKey, MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserInfoReferences(..))
 import Effect.Aff (Aff)
-import Effect.Aff.Class (liftAff, class MonadAff)
-import Effect.Class (liftEffect, class MonadEffect)
+import Effect.Aff.Class (liftAff)
 import Effect.Exception as EX
-import Functions.Communication.Blobs (deleteBlob)
-import Functions.Communication.Cards (deleteCardWithState)
 import Functions.Communication.StatelessBackend (isStatusCodeOk, manageGenericRequest)
-import Functions.Communication.Users (deleteUserCard)
 import Functions.EncodeDecode (decryptJson, encryptJson)
-import Functions.JSState (getAppState)
-import Functions.Pin (deleteCredentials)
 import Functions.SRP as SRP
-import Web.HTML (window)
-import Web.HTML.Window (localStorage)
 
 type ModifyUserData = { c :: HexString
                       , p :: HexString
@@ -74,84 +59,12 @@ changeUserPassword {srpConf, c: Just oldC, p: Just oldP, username: Just username
   
   ProxyResponse proxy' response <- manageGenericRequest {hashFunc, proxy} url PUT (Just body) RF.ignore
   if isStatusCodeOk response.status
-    then pure $ ProxyResponse proxy' { c:        fromArrayBuffer newC
-                                     , p:        fromArrayBuffer newP
-                                     , s:        fromArrayBuffer s
+    then pure $ ProxyResponse proxy' { c: fromArrayBuffer newC
+                                     , p: fromArrayBuffer newP
+                                     , s: fromArrayBuffer s
                                      }
     else throwError $ ProtocolError (ResponseError (unwrap response.status))
 changeUserPassword _ _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
-
-deleteUserSteps :: forall m. MonadAff m 
-                    => MonadEffect m 
-                    => Alt m 
-                    => Index 
-                    -> (Int -> m (Either AppError Unit))
-                    -> (String -> m (Either AppError Unit))
-                    -> List (OperationStep (Either AppError Unit) (Either AppError Unit) m)
-deleteUserSteps (Index entries) progressBarFunc stepPlaceholderFunc = do
-  deleteCardStep <$> (zipWith (\i -> \c -> {index: i, entry: c}) (0 .. (length entries)) entries)
-  <>
-  (toUnfoldable $ createIntermediateSteps [ 
-    Tuple  "Deleting index card" (do
-      (IndexReference record) <- ExceptT $ extractIndexReference <$> (liftEffect getAppState)
-      void $ deleteBlob record.reference
-    )
-  , Tuple "Deleting user preferences" (do
-      (UserPreferencesReference record) <- ExceptT $ extractUserPreferencesReference <$> (liftEffect getAppState)
-      void $ deleteBlob record.reference
-    ) 
-  , Tuple "Deleting user info" (do
-          state <- ExceptT $ liftEffect getAppState
-          (Tuple masterKeyContent masterKeyEncodingVersion) <- except $ (note (InvalidStateError $ MissingValue $ "masterKey not present") state.masterKey)
-          case masterKeyEncodingVersion of
-            V_1    -> pure unit -- with version 1.0 the userInfoReference record is saved inside the UserCard and not as a separate blob
-            -- "2.0"   -> do
-            --   p <- except $ (note (InvalidStateError $ MissingValue $ "p not present") state.p)
-            --   masterPassword <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-            --   decryptedMasterKeyContent <- withExceptT (\err -> ProtocolError $ CryptoError $ show err) (ExceptT $ decryptWithAesCTR (toArrayBuffer masterKeyContent) masterPassword)
-            --   { after: hash } <- pure $ splitHexInHalf (fromArrayBuffer decryptedMasterKeyContent)
-            --   void $ deleteBlob hash
-    ) 
-  , Tuple "Deleting user card" (do
-      c <- ExceptT $ extractC <$> (liftEffect getAppState)
-      deleteUserCard c
-    ) 
-  ])
-  <>
-  (singleton $ LastStep (\psr ->
-                case psr of
-                  Left err -> pure $ Left err
-                  Right _ -> liftAff $ runExceptT $ (ExceptT $ Right <$> (liftEffect (window >>= localStorage))) >>= (\v -> liftAff $ liftEffect $ (deleteCredentials v))
-              ) (stepPlaceholderFunc "Deleting pin")) 
-
-  where 
-    deleteCardStep { index, entry: (CardEntry r) } = 
-      IntermediateStep (\psr ->
-                          case psr of
-                            Left err -> pure $ Left err
-                            Right _ -> liftAff $ ((<$>) (\_ -> unit)) <$> (runExceptT $ deleteCardWithState $ r.cardReference)
-                       ) (progressBarFunc index)
-
-    createIntermediateSteps :: Array (Tuple String (ExceptT AppError Aff Unit)) -> Array (OperationStep (Either AppError Unit) (Either AppError Unit) m)
-    createIntermediateSteps = map (\(Tuple placeholder stepActions) -> 
-      IntermediateStep (\psr ->
-                          case psr of
-                            Left err -> pure $ Left err
-                            Right _ -> liftAff $ runExceptT $ stepActions
-                        ) (stepPlaceholderFunc placeholder)
-    )
-
-    extractIndexReference :: Either AppError AppState -> Either AppError IndexReference
-    extractIndexReference (Left err)   = Left err
-    extractIndexReference (Right state) = (\(UserInfoReferences { indexReference }) -> indexReference) <$> (note (InvalidStateError $ MissingValue $ "indexReference not present") state.userInfoReferences)
-
-    extractUserPreferencesReference :: Either AppError AppState -> Either AppError UserPreferencesReference
-    extractUserPreferencesReference (Left err)    = Left err
-    extractUserPreferencesReference (Right state) = (\(UserInfoReferences { preferencesReference }) -> preferencesReference) <$> (note (InvalidStateError $ MissingValue $ "preferencesReference not present") state.userInfoReferences)
-
-    extractC :: Either AppError AppState -> Either AppError HexString
-    extractC (Left err)    = Left err
-    extractC (Right state) = note (InvalidStateError $ MissingValue $ "c not present") state.c
 
 decryptUserInfoReferences :: MasterKey -> HexString -> ExceptT AppError Aff UserInfoReferences
 decryptUserInfoReferences (Tuple encryptedRef _) p = do -- TODO: handle version
