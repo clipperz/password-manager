@@ -1,31 +1,34 @@
 module Functions.Handler.UserAreaEventHandler where
 
+import Affjax.ResponseFormat as RF
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Control.Alt (($>), (<#>), (<$>))
 import Control.Alternative ((<*))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))
-import Control.Monad.Except.Trans (runExceptT, throwError)
+import Control.Monad.Except.Trans (ExceptT, runExceptT, throwError)
 import Data.Either (Either(..))
 import Data.Function ((#), ($))
+import Data.HTTP.Method (Method(..))
 import Data.HexString (hex)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, isNothing)
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
+import DataModel.Credentials (emptyCredentials)
 import DataModel.FragmentState as Fragment
 import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState)
 import Effect.Class (liftEffect)
 import Effect.Console (log)
+import Functions.Communication.StatelessBackend (manageGenericRequest)
 import Functions.Communication.Users (updateUserPreferences)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
 import Functions.Pin (deleteCredentials, makeKey, saveCredentials)
-import Functions.State (computeInitialStatelessState)
+import Functions.State (resetState)
 import Functions.Timer (activateTimer, stopTimer)
 import Functions.User (changeUserPassword)
-import Unsafe.Coerce (unsafeCoerce)
 import Views.AppView (Page(..), WidgetState(..), emptyMainPageWidgetState)
 import Views.CardsManagerView (CardManagerState)
 import Views.LoginFormView (LoginType(..), emptyLoginFormData)
@@ -33,8 +36,7 @@ import Views.OverlayView (OverlayColor(..), hiddenOverlayInfo, spinnerOverlay)
 import Views.SetPinView (PinEvent(..))
 import Views.UserAreaView (UserAreaEvent(..), UserAreaPage(..), UserAreaState)
 import Web.HTML (window)
-import Web.HTML.Location (reload)
-import Web.HTML.Window (localStorage, location)
+import Web.HTML.Window (localStorage)
 import Web.Storage.Storage (getItem)
 
 handleUserAreaEvent :: UserAreaEvent -> CardManagerState -> UserAreaState -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState
@@ -152,25 +154,56 @@ handleUserAreaEvent (ExportJsonEvent)                _ _ state         _ = doNot
 handleUserAreaEvent (ExportOfflineCopyEvent)         _ _ state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ExportOfflineCopyEvent")     --TODO: implement [fsolaroli - 29/11/2023]
 
 
-handleUserAreaEvent LockEvent _ _ {username: Just username} _ = 
-  do
-    state      <- liftEffect   computeInitialStatelessState
-    passphrase <- liftEffect $ window >>= localStorage >>= getItem (makeKey "passphrase")
-    pure $ Tuple 
-            (state {username = Just username, pinEncryptedPassword = hex <$> passphrase})
-            (WidgetState
-              hiddenOverlayInfo
-              (Login emptyLoginFormData { credentials = {username, password: fromMaybe "" passphrase}
-                                        , loginType   = if isNothing passphrase then CredentialLogin else PinLogin
-                                        }
-              )
-            ) 
+handleUserAreaEvent LockEvent cardManagerState userAreaState state@{username: Just username, password: Just password, index: Just index, userPreferences: Just userPreferences, pinEncryptedPassword} _ = 
+  logoutSteps state "Lock" page
+  # runExceptT
+  >>= handleOperationResult state defaultErrorPage true White
+  
+  where
+    page = Main { index
+                , credentials:      {username, password}
+                , pinExists:        isJust pinEncryptedPassword
+                , userPreferences
+                , userAreaState
+                , cardManagerState
+                }
 
+handleUserAreaEvent LogoutEvent cardManagerState userAreaState state@{index: Just index, username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword} _ = 
+  logoutSteps (state {username = Nothing}) "Logout" page
+  # runExceptT
+  >>= handleOperationResult state defaultErrorPage true White
 
-handleUserAreaEvent LogoutEvent _ _ _ _ = liftEffect $ window >>= location >>= reload <#> unsafeCoerce
-
+  where
+    page = Main { index
+                , credentials:      {username, password}
+                , pinExists:        isJust pinEncryptedPassword
+                , userPreferences
+                , userAreaState
+                , cardManagerState
+                }
 
 handleUserAreaEvent _ _ _ state _ = do
   throwError $ InvalidStateError (CorruptedState "State is corrupted")
   # runExceptT
   >>= handleOperationResult state defaultErrorPage true White
+
+-- ===================================================================================================
+
+logoutSteps :: StatelessAppState -> String -> Page -> ExceptT AppError (Widget HTML) OperationState
+logoutSteps state@{username, hash: hashFunc, proxy} message page =
+  do
+    passphrase <- runStep (do 
+                            _   <- manageGenericRequest {hashFunc, proxy} "logout" POST Nothing RF.string
+                            res <- liftEffect $ window >>= localStorage >>= getItem (makeKey "passphrase")
+                            pure res
+                          ) (WidgetState (spinnerOverlay message White) page)
+    
+    pure $ Tuple 
+            ((resetState state) {username = username, pinEncryptedPassword = hex <$> passphrase})
+            (WidgetState
+              hiddenOverlayInfo
+              (Login emptyLoginFormData { credentials = emptyCredentials {username = fromMaybe "" username}
+                                        , loginType   = if isNothing passphrase then CredentialLogin else PinLogin
+                                        }
+              )
+            ) 

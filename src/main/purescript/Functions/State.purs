@@ -8,21 +8,24 @@ import Data.Either (Either(..))
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
+import Data.HexString (HexString)
+import Data.Map (Map)
 import Data.Map.Internal (empty)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst, snd)
-import Data.Unit (Unit)
-import DataModel.AppState (AppError, AppState, HashState(..), KDFState(..), ProxyConnectionStatus(..), SRPInfo)
+import DataModel.AppState (AppError, AppState, HashState(..), KDFState(..), ProxyConnectionStatus(..))
 import DataModel.AsyncValue (AsyncValue(..))
-import DataModel.ProxyType (ProxyType(..), BackendSessionState(..))
+import DataModel.Card (Card)
+import DataModel.Index (Index)
+import DataModel.ProxyType (ProxyType(..))
 import DataModel.SRP (HashFunction, KDF, SRPConf, concatKDF, group1024, hashFuncSHA1, hashFuncSHA256, k)
 import DataModel.StatelessAppState (StatelessAppState)
 import DataModel.StatelessAppState as Stateless
+import DataModel.User (MasterKey, UserInfoReferences, UserPreferences)
 import Effect (Effect)
-import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Functions.JSState (getAppState, saveAppState)
+import Functions.JSState (getAppState)
 import Record (merge)
 import Web.DOM (Element, Node)
 import Web.DOM.Element (fromNode, id)
@@ -35,47 +38,6 @@ import Web.HTML.Window (document)
 
 offlineDataId :: String
 offlineDataId = "offlineData"
-
-computeInitialState :: Effect AppState
-computeInitialState = do
-  script <- runMaybeT do
-    body            :: HTMLElement                  <- MaybeT $ (window >>= document >>= body)
-    childs          :: Array Node                   <- liftEffect $ (childNodes (toNode body) >>= toArray)
-    elementsWithId  :: Array (Tuple Element String) <- liftEffect $ sequence $ mapIds <$> (catMaybes $ fromNode <$> childs)
-    MaybeT $ pure $ fst <$> head (filter (\element_id -> (snd element_id) == offlineDataId) elementsWithId)
-  case script of
-    Just _  -> pure $ withOfflineProxy
-    Nothing -> pure ( withOnlineProxy "/api")
-
-  where 
-    mapIds :: Element -> Effect (Tuple Element String)
-    mapIds e = (Tuple e) <$> (id e)
-
-    baseSRPInfo :: SRPInfo
-    baseSRPInfo = {
-      group: group1024
-    , k: k
-    , hash: SHA256
-    , kdf: ConcatKDF
-    }
-
-    withOfflineProxy = merge { proxy: OfflineProxy (BackendSessionState { b: Nothing, aa: Nothing, bb: Nothing }) } baseState
-    withOnlineProxy url = merge { proxy: (OnlineProxy url) } baseState
-    baseState = { currentChallenge: Nothing
-                , sessionKey: Nothing
-                , toll: (Loading Nothing)
-                , username: Nothing
-                , password: Nothing
-                , c: Nothing
-                , s: Nothing
-                , p: Nothing
-                , srpInfo: baseSRPInfo
-                , hash: SHA256
-                , cardsCache: empty
-                , masterKey: Nothing
-                , userInfoReferences: Nothing 
-                , userPreferences: Nothing
-                }
 
 computeInitialStatelessState :: Effect StatelessAppState
 computeInitialStatelessState = do
@@ -91,7 +53,42 @@ computeInitialStatelessState = do
   where 
     mapIds :: Element -> Effect (Tuple Element String)
     mapIds e = (Tuple e) <$> (id e)
+  
+    withOfflineProxy    = merge { proxy: Stateless.StaticProxy Nothing } baseState
+    withOnlineProxy url = merge { proxy: (Stateless.OnlineProxy url {toll: Loading Nothing, currentChallenge: Nothing} Nothing) } baseState
 
+resetState :: StatelessAppState -> StatelessAppState
+resetState state = merge baseState state
+
+baseState ∷ { username :: Maybe String
+            , password :: Maybe String
+            , pinEncryptedPassword :: Maybe HexString
+            , c :: Maybe HexString
+            , p :: Maybe HexString
+            , s :: Maybe HexString
+            , srpConf :: SRPConf
+            , hash :: HashFunction
+            , cardsCache :: Map HexString Card
+            , masterKey :: Maybe MasterKey
+            , userInfoReferences :: Maybe UserInfoReferences
+            , userPreferences :: Maybe UserPreferences
+            , index :: Maybe Index
+            }
+baseState = { username: Nothing
+            , password: Nothing
+            , pinEncryptedPassword: Nothing
+            , c: Nothing
+            , s: Nothing
+            , p: Nothing
+            , srpConf: baseSRPConf
+            , hash: hashFuncSHA256
+            , cardsCache: empty
+            , masterKey: Nothing
+            , userInfoReferences: Nothing 
+            , userPreferences: Nothing
+            , index: Nothing
+            }
+  where
     baseSRPConf :: SRPConf
     baseSRPConf = {
       group: group1024
@@ -100,26 +97,6 @@ computeInitialStatelessState = do
     , kdf: concatKDF
     }
 
-    withOfflineProxy    = merge { proxy: Stateless.StaticProxy Nothing } baseState
-    withOnlineProxy url = merge { proxy: (Stateless.OnlineProxy url {toll: Loading Nothing, currentChallenge: Nothing} Nothing) } baseState
-    baseState = { username: Nothing
-                , password: Nothing
-                , pinEncryptedPassword: Nothing
-                , c: Nothing
-                , s: Nothing
-                , p: Nothing
-                , srpConf: baseSRPConf
-                , hash: hashFuncSHA256
-                , cardsCache: empty
-                , masterKey: Nothing
-                , userInfoReferences: Nothing 
-                , userPreferences: Nothing
-                , index: Nothing
-                }
-resetState :: Aff Unit
-resetState = do
-  is <- liftEffect computeInitialState
-  liftEffect $ saveAppState is
 
 getKDFFromState :: KDFState -> KDF
 getKDFFromState kdfState =
