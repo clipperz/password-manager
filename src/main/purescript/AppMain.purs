@@ -23,7 +23,7 @@ import DataModel.FragmentState as Fragment
 import Effect (Effect)
 import Foreign (unsafeToForeign)
 import Functions.Pin (makeKey)
-import Functions.State (computeInitialStatelessState)
+import Functions.State (computeInitialState)
 import JSURI (decodeURI)
 import OperationalWidgets.App (app)
 import Record (merge)
@@ -39,7 +39,7 @@ import Web.Storage.Storage (getItem)
 
 main :: Effect Unit
 main = do
-  appState      <- computeInitialStatelessState
+  appState      <- computeInitialState
   fragmentState <- parseFragment <$> (window >>= location >>= hash)
   
   credentials   <- getCredentialsFromLocalStorage

@@ -39,8 +39,8 @@ import Web.HTML.Window (document)
 offlineDataId :: String
 offlineDataId = "offlineData"
 
-computeInitialStatelessState :: Effect StatelessAppState
-computeInitialStatelessState = do
+computeInitialState :: Effect StatelessAppState
+computeInitialState = do
   script <- runMaybeT do
     body            :: HTMLElement                  <- MaybeT $ (window >>= document >>= body)
     childs          :: Array Node                   <- liftEffect $ (childNodes (toNode body) >>= toArray)
