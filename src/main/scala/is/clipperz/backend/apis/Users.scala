@@ -19,6 +19,7 @@ import zio.http.{ Http, Method, Response, Request, Status }
 import zio.http.* //TODO: fix How do you import `Root` and `/`?
 import zio.json.EncoderOps
 import zio.stream.ZStream
+import is.clipperz.backend.data.Base
 
 val usersApi: ClipperzHttpApp = Http.collectZIO[Request]:
   case request @ Method.POST -> Root / "api" / "users" / c =>
@@ -102,13 +103,22 @@ val usersApi: ClipperzHttpApp = Http.collectZIO[Request]:
             .flatMap(currentUser =>
               fromStream[RequestUserCard](content)
                 .flatMap { userCard =>
-                  if userCard.originMasterKey.contains(currentUser.masterKey(0)) 
-                  then
-                    (userArchive.saveUser(remoteFromRequest(userCard), true))
-                    <&>
-                    userArchive.deleteUser(HexString(c))
-                  else
-                    ZIO.fail(new BadRequestException("origin does not match"))
+                    userArchive
+                        .getUser(HexString(userCard.c.toString))
+                        .flatMap(optionalUser =>
+                        optionalUser match
+                            case Some(_) => ZIO.fail(new ConflictualRequestException("User already exists"))
+                            case None    => ZIO.succeed(())
+                        )
+                    *>
+                    (if userCard.originMasterKey.contains(currentUser.masterKey(0)) 
+                    then
+                        (userArchive.saveUser(remoteFromRequest(userCard), true))
+                        <&>
+                        userArchive.deleteUser(HexString(c))
+                    else
+                        ZIO.fail(new BadRequestException("origin does not match"))
+                    )
                 }
             )
         )

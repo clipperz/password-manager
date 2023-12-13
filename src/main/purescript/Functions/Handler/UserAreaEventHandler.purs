@@ -95,7 +95,7 @@ handleUserAreaEvent (UpdateUserPreferencesEvent newUserPreferences) cardManagerS
                 }
 
 
-handleUserAreaEvent (ChangePasswordEvent newPassword) cardManagerState userAreaState state@{index: Just index, username: Just username, userPreferences: Just userPreferences, pinEncryptedPassword} _ = 
+handleUserAreaEvent (ChangePasswordEvent newPassword) cardManagerState userAreaState state@{index: Just index, username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword} _ = 
   do
     ProxyResponse proxy userUpdateInfo <- runStep (changeUserPassword state newPassword) (WidgetState (spinnerOverlay "Update password" White) page)
     pure (Tuple 
@@ -104,16 +104,24 @@ handleUserAreaEvent (ChangePasswordEvent newPassword) cardManagerState userAreaS
     )
 
   # runExceptT
-  >>= handleOperationResult state defaultErrorPage true White
+  >>= handleOperationResult state errorPage true White
 
   where
-    page = Main { index
-                , credentials:      {username, password: newPassword}
-                , pinExists:        isJust pinEncryptedPassword
-                , userPreferences
-                , userAreaState
-                , cardManagerState
-                }
+    page      = Main { index
+                     , credentials:      {username, password: newPassword}
+                     , pinExists:        isJust pinEncryptedPassword
+                     , userPreferences
+                     , userAreaState
+                     , cardManagerState
+                     }
+
+    errorPage = Main { index
+                     , credentials:      {username, password}
+                     , pinExists:        isJust pinEncryptedPassword
+                     , userPreferences
+                     , userAreaState
+                     , cardManagerState
+                     }
 
 handleUserAreaEvent (SetPinEvent pinAction) cardManagerState userAreaState state@{index: Just index, username: Just username, password: Just password, userPreferences: Just userPreferences} _ =
   do
