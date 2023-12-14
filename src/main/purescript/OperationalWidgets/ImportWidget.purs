@@ -149,8 +149,10 @@ importWidget = do
                 in case eitherCards of
                     Left  err    -> importPage index (Just $ show err) (UploadContent (stringify json))
                     Right cards -> importPage index Nothing $ ChooseCards $ (\c@(Card r) -> Tuple (not r.archived) c) <$> cards
+    
     importPage index _ (ChooseCards cards) = do
       (cardSelectionWidget (UploadContent (stringify $ encodeJson (snd <$> cards))) cards) >>= (importPage index Nothing)
+    
     importPage index _ (Confirm { tag, selectedCards }) = 
       let cards = case tag of
                     Just t  -> prepareSelectedCards t selectedCards 

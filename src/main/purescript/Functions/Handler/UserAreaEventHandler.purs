@@ -6,44 +6,61 @@ module Functions.Handler.UserAreaEventHandler
 import Affjax.ResponseFormat as RF
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Control.Alt (($>), (<#>), (<$>))
+import Control.Alt (map, ($>), (<#>), (<$>))
 import Control.Alternative ((<*))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))
-import Control.Monad.Except.Trans (ExceptT, runExceptT, throwError)
+import Control.Category (identity, (<<<))
+import Control.Monad.Except.Trans (ExceptT(..), except, runExceptT, throwError)
+import Data.Argonaut.Core (stringify)
+import Data.Argonaut.Decode (decodeJson)
+import Data.Argonaut.Encode (encodeJson)
+import Data.Argonaut.Parser (jsonParser)
+import Data.Array (filter, foldr, length, snoc)
+import Data.Bifunctor (lmap)
 import Data.Either (Either(..))
+import Data.FoldableWithIndex (foldWithIndexM)
 import Data.Function ((#), ($))
 import Data.HTTP.Method (Method(..))
 import Data.HexString (hex)
+import Data.HeytingAlgebra (not)
 import Data.List (foldl)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, isNothing)
+import Data.Monoid ((<>))
 import Data.Newtype (unwrap)
-import Data.Tuple (Tuple(..))
+import Data.Show (show)
+import Data.Tuple (Tuple(..), fst, snd)
 import Data.Unit (Unit, unit)
 import DataModel.AppState (AppError(..), InvalidStateError(..))
+import DataModel.Card as DataModel.Card
+import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (emptyCredentials)
 import DataModel.FragmentState as Fragment
-import DataModel.Index (Index(..))
+import DataModel.Index (Index(..), addToIndex)
 import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState, discardResult)
 import DataModel.User (UserInfoReferences(..))
 import Effect.Class (liftEffect)
 import Effect.Console (log)
+import Functions.Card (addTag)
 import Functions.Communication.Blobs (deleteBlobWithReference)
-import Functions.Communication.Cards (deleteCard)
+import Functions.Communication.Cards (deleteCard, postCard)
 import Functions.Communication.StatelessBackend (manageGenericRequest)
-import Functions.Communication.Users (deleteUserCard, deleteUserInfo, updateUserPreferences)
+import Functions.Communication.Users (deleteUserCard, deleteUserInfo, updateIndex, updateUserPreferences)
 import Functions.Handler.CardManagerEventHandler (getCardSteps)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
+import Functions.Import (decodeHTML, decodeImport, parseHTMLImport, readFile)
 import Functions.Pin (deleteCredentials, makeKey, saveCredentials)
 import Functions.State (resetState)
+import Functions.Time (formatDateTimeToDate, getCurrentDateTime)
 import Functions.Timer (activateTimer, stopTimer)
 import Functions.User (changeUserPassword)
 import Views.AppView (Page(..), WidgetState(..), emptyMainPageWidgetState)
-import Views.CardsManagerView (CardManagerState)
+import Views.CardsManagerView (CardManagerState, CardViewState(..))
+import Views.ImportView (ImportStep(..))
 import Views.LoginFormView (LoginType(..), emptyLoginFormData)
 import Views.OverlayView (OverlayColor(..), hiddenOverlayInfo, spinnerOverlay)
 import Views.SetPinView (PinEvent(..))
-import Views.UserAreaView (UserAreaEvent(..), UserAreaPage(..), UserAreaState)
+import Views.UserAreaView (UserAreaEvent(..), UserAreaPage(..), UserAreaState, userAreaInitialState)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
 import Web.Storage.Storage (getItem)
@@ -180,13 +197,105 @@ handleUserAreaEvent DeleteAccountEvent cardManagerState userAreaState state@{has
                 , userPreferences
                 }
 
-handleUserAreaEvent (ImportCardsEvent)               _ _ state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ImportCardsEvent")           --TODO: implement [fsolaroli - 29/11/2023]
+
+handleUserAreaEvent (ImportCardsEvent importState) cardManagerState userAreaState state@{proxy, index: Just index, username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword} _ = 
+  case importState.step of
+    Upload    ->
+      do
+        toDecode    <- runStep (case importState.content of
+                                 Left  file   -> do
+                                   fileContent     <- readFile file
+                                   codedCardData   <- except $ parseHTMLImport fileContent
+                                   (pure $ decodeHTML codedCardData) <#> Left
+                                 Right string -> (except $ lmap (ProtocolError <<< DecodeError) $ jsonParser string) <#> Right
+                               ) (WidgetState (spinnerOverlay "Parse File" White) page)
+        
+        result      <- runStep (case toDecode of
+                                 Left  htmlData -> ExceptT $ liftEffect $ decodeImport htmlData
+                                 Right jsonData -> except  $ lmap (ProtocolError <<< DecodeError <<< show) $ decodeJson jsonData
+                               ) (WidgetState (spinnerOverlay "Decode Data" White) page)
+
+        currentDate <- runStep ((((<>) "Import_") <<< formatDateTimeToDate) <$> (liftEffect getCurrentDateTime)) (WidgetState (spinnerOverlay "Get current date" White) page)
+
+        pure $ Tuple 
+                state $
+                WidgetState
+                  hiddenOverlayInfo $
+                  Main { index
+                       , credentials: {username, password}
+                       , pinExists: isJust pinEncryptedPassword
+                       , cardManagerState
+                       , userAreaState : userAreaState {importState = importState {content = Right $ stringify $ encodeJson result, step = Selection, tag = Tuple true currentDate, selection = result <#> (\c@(DataModel.Card.Card r) -> Tuple (not r.archived) c)}}
+                       , userPreferences
+                       }
+
+      # runExceptT
+      >>= handleOperationResult state page true White
+    
+    Selection ->
+      doNothing $ Tuple 
+                    state $
+                    WidgetState
+                      hiddenOverlayInfo $
+                      Main { index
+                           , credentials: {username, password}
+                           , pinExists: isJust pinEncryptedPassword
+                           , cardManagerState
+                           , userAreaState : userAreaState {importState = importState {step = Confirm}}
+                           , userPreferences
+                           }
+    
+    Confirm   ->
+      do
+        let cardToImport                      = filter fst importState.selection <#> snd # (if fst importState.tag
+                                                                                            then (map $ addTag (snd importState.tag))
+                                                                                            else identity
+                                                                                           )
+        let nToImport                         = length cardToImport
+        ProxyResponse proxy' entries          <- foldWithIndexM (\i (ProxyResponse proxy' entries) card -> do
+          ProxyResponse proxy'' newCardEntry  <- runStep (postCard state {proxy = proxy'} card) (WidgetState (spinnerOverlay ("Import card " <> show i <> " of " <> show nToImport) White) page)
+          pure $ ProxyResponse proxy'' (snoc entries newCardEntry)
+        ) (ProxyResponse proxy []) cardToImport
+        let updatedIndex                       = foldr addToIndex index entries        
+        ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index" White) page)
+
+        pure (Tuple 
+          (state { proxy = proxy''
+                 , index = Just updatedIndex
+                 , userInfoReferences = Just stateUpdateInfo.newUserInfoReferences
+                 , masterKey = Just stateUpdateInfo.newMasterKey
+                 }
+          )
+          (WidgetState
+            hiddenOverlayInfo
+            (Main { index:            updatedIndex
+                  , credentials:      {username, password}
+                  , pinExists: isJust pinEncryptedPassword
+                  , userPreferences
+                  , userAreaState:    userAreaInitialState
+                  , cardManagerState: cardManagerState {cardViewState = NoCard, selectedEntry = Nothing}
+                  }
+            )
+          )
+        )
+      
+      
+      # runExceptT
+      >>= handleOperationResult state page true White  
+  where
+    page = Main { index
+                , credentials: {username, password}
+                , pinExists: isJust pinEncryptedPassword
+                , cardManagerState
+                , userAreaState : userAreaState {importState = importState}
+                , userPreferences
+                }
 
 
-handleUserAreaEvent (ExportJsonEvent)                _ _ state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ExportJsonEvent")            --TODO: implement [fsolaroli - 29/11/2023]
+handleUserAreaEvent (ExportJsonEvent) _ _ state _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ExportJsonEvent")            --TODO: implement [fsolaroli - 29/11/2023]
 
 
-handleUserAreaEvent (ExportOfflineCopyEvent)         _ _ state         _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ExportOfflineCopyEvent")     --TODO: implement [fsolaroli - 29/11/2023]
+handleUserAreaEvent (ExportOfflineCopyEvent) _ _ state _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ExportOfflineCopyEvent")     --TODO: implement [fsolaroli - 29/11/2023]
 
 
 handleUserAreaEvent LockEvent cardManagerState userAreaState state@{username: Just username, password: Just password, index: Just index, userPreferences: Just userPreferences, pinEncryptedPassword} _ = 

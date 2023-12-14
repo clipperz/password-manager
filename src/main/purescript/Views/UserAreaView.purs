@@ -21,10 +21,10 @@ import DataModel.User (UserPreferences)
 import Effect.Class (liftEffect)
 import Functions.EnvironmentalVariables (currentCommit)
 import OperationalWidgets.ExportWidget (exportWidget)
-import OperationalWidgets.ImportWidget (importWidget)
 import Views.ChangePasswordView (changePasswordView)
 import Views.Components (footerComponent)
 import Views.DeleteUserView (deleteUserView)
+import Views.ImportView (ImportState, importView, initialImportState)
 import Views.SetPinView (PinEvent, setPinView)
 import Views.UserPreferencesView (userPreferencesView)
 
@@ -32,7 +32,7 @@ data UserAreaEvent    = UpdateUserPreferencesEvent UserPreferences
                       | ChangePasswordEvent String
                       | SetPinEvent PinEvent
                       | DeleteAccountEvent
-                      | ImportCardsEvent -- List Card ??
+                      | ImportCardsEvent ImportState
                       | ExportJsonEvent -- ??
                       | ExportOfflineCopyEvent -- ??
                       | CloseUserAreaEvent
@@ -42,11 +42,12 @@ data UserAreaEvent    = UpdateUserPreferencesEvent UserPreferences
 type UserAreaState = {
   showUserArea     :: Boolean
 , userAreaOpenPage :: UserAreaPage
+, importState      :: ImportState
 , userAreaSubmenus :: Map UserAreaSubmenu Boolean
 }
 
 userAreaInitialState :: UserAreaState
-userAreaInitialState = { showUserArea: false, userAreaOpenPage: None, userAreaSubmenus: fromFoldable [(Tuple Account false), (Tuple Data false)]}
+userAreaInitialState = { showUserArea: false, userAreaOpenPage: None, importState: initialImportState, userAreaSubmenus: fromFoldable [(Tuple Account false), (Tuple Data false)]}
 
 data UserAreaPage = Export | Import | Pin | Delete | Preferences | ChangePassword | About | None
 derive instance eqUserAreaPage :: Eq UserAreaPage
@@ -58,7 +59,7 @@ derive instance ordUserAreaSubmenus :: Ord UserAreaSubmenu
 data UserAreaInternalEvent = StateUpdate UserAreaState | UserAreaEvent UserAreaEvent
 
 userAreaView :: UserAreaState -> UserPreferences -> Credentials -> Boolean -> Widget HTML (Tuple UserAreaEvent UserAreaState)
-userAreaView state@{showUserArea, userAreaOpenPage, userAreaSubmenus} userPreferences credentials pinExists = do
+userAreaView state@{showUserArea, userAreaOpenPage, importState, userAreaSubmenus} userPreferences credentials pinExists = do
   commitHash <- liftEffect $ currentCommit
   res <- div [Props._id "userPage", Props.className (if showUserArea then "open" else "closed")] [
     div [Props.onClick, Props.className "mask"] [] $> UserAreaEvent CloseUserAreaEvent
@@ -117,7 +118,7 @@ userAreaView state@{showUserArea, userAreaOpenPage, userAreaSubmenus} userPrefer
         ChangePassword  -> frame (changePasswordView  credentials     <#> (UserAreaEvent <<< ChangePasswordEvent))
         Pin             -> frame (setPinView          pinExists       <#> (UserAreaEvent <<< SetPinEvent))
         Delete          -> frame (deleteUserView      credentials      $> (UserAreaEvent     DeleteAccountEvent))
-        Import          -> frame (importWidget $> UserAreaEvent ImportCardsEvent)
+        Import          -> frame (importView          importState     <#> (UserAreaEvent <<< ImportCardsEvent))
         Export          -> frame (exportWidget $> UserAreaEvent ExportJsonEvent)
         About           -> frame (text "This is Clipperz")
         None            -> emptyUserComponent

@@ -1,5 +1,6 @@
 module Functions.Card
   ( FieldType(..)
+  , addTag
   , appendToTitle
   , archiveCard
   , getCardContent
@@ -18,6 +19,7 @@ import Crypto.Subtle.Key.Types (encrypt, decrypt, raw, unwrapKey, CryptoKey)
 import Data.Argonaut.Core (Json)
 import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Parser (jsonParser)
+import Data.Array (snoc)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Either (Either(..))
 import Data.Function (($))
@@ -54,6 +56,9 @@ data FieldType = Email | Url | Passphrase | None
 
 appendToTitle :: String -> Card -> Card
 appendToTitle titleAppend (Card card@{content: CardValues cardValues@{title}}) = Card (card {content = CardValues cardValues {title = title <> titleAppend} })
+
+addTag :: String -> Card -> Card
+addTag tag (Card card@{content: CardValues cardValues@{tags}}) = Card (card {content = CardValues cardValues {tags = snoc tags tag}})
 
 archiveCard :: Card -> Card
 archiveCard (Card card) = Card card {archived = true}
