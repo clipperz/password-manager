@@ -38,7 +38,7 @@ val blobsApi: Routes[BlobArchive, Throwable] = Routes(
                                 ZIO.attempt(HexString(filename.get))
                                     .flatMap(hash => archive.saveBlob(hash, data))
                             case _ =>
-                                ZIO.fail(new BadRequestException("Parameter 'file' must be a binary file"))
+                                ZIO.fail(new BadRequestException("Parameter 'blob' must be a binary file"))
                         }
                       )
             )
@@ -66,19 +66,19 @@ val blobsApi: Routes[BlobArchive, Throwable] = Routes(
                       .filter(field => field.name == "blob")
                       .run(ZSink.last)
                       .flatMap(field => 
-                          field match {
-                              case Some(FormField.StreamingBinary(_, _, _, filename, data)) =>
-                                  ZIO.attempt(HexString(filename.get))
-                                      .flatMap(hash => archive.deleteBlob(hash, data))
-                              case _ =>
-                                  ZIO.fail(new BadRequestException("Parameter 'file' must be a binary file"))
-                          }
+                            field match {
+                                case Some(FormField.StreamingBinary(_, _, _, filename, data)) =>
+                                    ZIO.attempt(HexString(filename.get))
+                                        .flatMap(hash => archive.deleteBlob(hash, data))
+                                case _ =>
+                                    ZIO.fail(new BadRequestException("Parameter 'blob' must be a binary file"))
+                            }
                       )
             )
             .map:
                 case true  => Response.ok
                 case false => Response(status = Status.NotFound)
-            .catchSome {
+            .catchAll {
                 case ex: BadRequestException =>
                     ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
                 case ex: NonWritableArchiveException =>
