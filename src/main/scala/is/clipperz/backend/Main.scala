@@ -12,11 +12,9 @@ import zio.metrics.connectors.MetricsConfig
 import zio.http.{
   Header,
   Headers,
-  Http,
   HttpApp,
   Method,
   Path,
-  PathSyntax,
   Request,
   Response,
   Status,
@@ -26,8 +24,13 @@ import zio.http.netty.{ EventLoopGroups, NettyConfig }
 import zio.http.netty.NettyConfig.LeakDetectionLevel
 
 import is.clipperz.backend.apis.{ blobsApi, loginApi, logoutApi, staticApi, usersApi, oneTimeShareApi }
-import is.clipperz.backend.middleware.{ hashcash, sessionChecks }
+import is.clipperz.backend.middleware.{ /* hashcash, */ sessionChecks }
 import is.clipperz.backend.services.{ BlobArchive, PRNG, SessionManager, SrpManager, TollManager, UserArchive, OneTimeShareArchive }
+import zio.http.Server.RequestStreaming
+import zio.http.Routes
+import zio.http.endpoint.Endpoint
+import zio.http.endpoint.openapi.OpenAPI
+import zio.http.endpoint.openapi.OpenAPIGen
 
 object Main extends zio.ZIOAppDefault:
   override val bootstrap =
@@ -39,12 +42,11 @@ object Main extends zio.ZIOAppDefault:
     PRNG & SessionManager & TollManager & UserArchive & BlobArchive & OneTimeShareArchive & SrpManager
 
   type ClipperzHttpApp = HttpApp[
-    ClipperzEnvironment,
-    Throwable,
+    ClipperzEnvironment
   ]
 
-  val clipperzBackend: ClipperzHttpApp = usersApi ++ loginApi ++ logoutApi ++ blobsApi ++ oneTimeShareApi ++ staticApi
-  val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (sessionChecks ++ hashcash)
+  val clipperzBackend: ClipperzHttpApp = (usersApi ++ loginApi ++ logoutApi ++ blobsApi ++ oneTimeShareApi ++ staticApi).sandbox.toHttpApp
+  val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (sessionChecks /* ++ hashcash */)
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
     if args.length == 4 then
@@ -57,19 +59,19 @@ object Main extends zio.ZIOAppDefault:
 
       val nThreads: Int = args.headOption.flatMap(x => Try(x.toInt).toOption).getOrElse(0)
 
-      val config           = Server.Config.default
-                              .port(port)
-                              // .withRequestStreaming(RequestStreaming.Enabled) //TODO: enable and change handling in frontend
-      val nettyConfig      = NettyConfig.default
-                              .leakDetection(LeakDetectionLevel.PARANOID)
-                              .maxThreads(nThreads)
+      val config        = Server.Config.default
+                            .port(port)
+                            .requestStreaming(RequestStreaming.Enabled)
+      val nettyConfig   = NettyConfig.default
+                            .leakDetection(LeakDetectionLevel.PARANOID)
+                            .maxThreads(nThreads)
 
       blobBasePath.toFile().nn.mkdirs()
       userBasePath.toFile().nn.mkdirs()
       oneTimeShareBasePath.toFile().nn.mkdirs()
 
       Server
-        .install(completeClipperzBackend.withDefaultErrorResponse)
+        .install(completeClipperzBackend)
         .flatMap(port =>
              ZIO.logInfo(s"Server started on port ${port}")
           *> ZIO.never

@@ -24,7 +24,7 @@ import is.clipperz.backend.services.SignupData
 import is.clipperz.backend.services.Session
 import zio.test.ZIOSpec
 import zio.{ Scope, ZLayer, Layer }
-import zio.test.TestResult.all
+import zio.test.TestResult.allSuccesses
 import is.clipperz.backend.services.OneTimeShareArchive
 import is.clipperz.backend.services.RemoteUserCard
 import is.clipperz.backend.services.RequestUserCard
@@ -235,7 +235,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
               .map(card => assertTrue(result.status.code == 200, card == testUser))
           else ZIO.succeed(assertNever(s"Wrong GET result code: ${result.status.code}"))
         )
-      } yield all(assertTrue(postCode == 200), res)
+      } yield allSuccesses(assertTrue(postCode == 200), res)
     } @@ TestAspect.after(deleteSession(prepareGet(c.toString(), true)))
       @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
     test("PUT no session -> 400") {
@@ -291,7 +291,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
               .map(card => assertTrue(result.status.code == 200, card == testUser2))
           else ZIO.succeed(assertNever(s"Wrong GET result code: ${result.status.code}"))
         )
-      } yield all(assertTrue(putCode == 200), res)
+      } yield allSuccesses(assertTrue(putCode == 200), res)
     } @@ TestAspect.after(deleteSession(prepareGet(c.toString(), true)))
       @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
     test("POST / DELETE -> _, 200") {

@@ -19,7 +19,6 @@ import is.clipperz.backend.data.HexString.bytesToHex
 import is.clipperz.backend.functions.crypto.HashFunction
 import java.nio.file.Path
 import is.clipperz.backend.functions.FileSystem
-import is.clipperz.backend.services.SaveBlobData
 import is.clipperz.backend.services.PRNG
 import is.clipperz.backend.services.SessionManager
 import is.clipperz.backend.services.UserArchive
@@ -27,9 +26,6 @@ import is.clipperz.backend.services.BlobArchive
 import is.clipperz.backend.services.TollManager
 import is.clipperz.backend.services.tollByteSize
 import is.clipperz.backend.services.SrpManager
-import is.clipperz.backend.middleware.{
-  hashcash,
-}
 import is.clipperz.backend.services.TollChallenge
 import is.clipperz.backend.services.TollReceipt
 import is.clipperz.backend.services.Session
@@ -74,15 +70,16 @@ object SessionMiddlewareSpec extends ZIOSpecDefault:
     remoteAddress = Some(InetAddress.getLocalHost().nn)
   )
 
-  val createSessionApi: HttpApp[SessionManager, Throwable] = Http.collectZIO:
-    case request @ Method.GET -> Root / "create" / key =>
-      ZIO
-        .service[SessionManager]
-        .flatMap(sessionManager => sessionManager.getSession(request).map((sessionManager, _)))
-        .flatMap((sessionManager, session) => sessionManager.saveSession(Session(session._1, Map(("c", key)))))
-        .map(_ => Response.ok)
+  val createSessionApi: HttpApp[SessionManager] = Routes(
+    Method.GET / "create" / string("key") -> handler: (key: String, request: Request) =>
+        ZIO
+          .service[SessionManager]
+          .flatMap(sessionManager => sessionManager.getSession(request).map((sessionManager, _)))
+          .flatMap((sessionManager, session) => sessionManager.saveSession(Session(session._1, Map(("c", key)))))
+          .map(_ => Response.ok)
+  ).sandbox.toHttpApp
 
-  val idApp: HttpApp[SessionManager, Throwable] = createSessionApi ++ (Http.fromHandler(Handler.ok) @@ sessionChecks)
+  val idApp: HttpApp[SessionManager] = createSessionApi ++ (HttpApp.collectZIO(_ => ZIO.succeed(Response.ok)) @@ sessionChecks)
 
   val sessionHeaderNecessary = List("users", "login", "blobs", "logout")
   val validSessionNecessary = List(

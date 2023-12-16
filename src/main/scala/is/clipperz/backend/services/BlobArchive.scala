@@ -19,15 +19,6 @@ import is.clipperz.backend.exceptions.BadRequestException
 
 type BlobHash = HexString
 
-case class SaveBlobData(
-    data: HexString,
-    hash: BlobHash,
-  )
-
-object SaveBlobData:
-  implicit val decoder: JsonDecoder[SaveBlobData] = DeriveJsonDecoder.gen[SaveBlobData]
-  implicit val encoder: JsonEncoder[SaveBlobData] = DeriveJsonEncoder.gen[SaveBlobData]
-
 // ----------------------------------------------------------------------------
 
 trait BlobArchive:

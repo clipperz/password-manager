@@ -6,7 +6,7 @@ import zio.stream.ZStream
 import zio.test.{ ZIOSpecDefault, assertTrue, assertNever, assertZIO, check }
 import zio.test.Assertion.{ fails, isSubtype, anything, isTrue }
 import zio.test.TestAspect.timeout
-import zio.test.TestResult.all
+import zio.test.TestResult.allSuccesses
 import is.clipperz.backend.functions.SrpFunctions.{ baseConfiguration, SrpFunctionsV6a }
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.{ bigIntToHex, bytesToHex }
@@ -88,7 +88,7 @@ object SrpManangerSpec extends ZIOSpecDefault:
             aa <- ZIO.succeed(srpFunctions.computeA(bytesToBigInt(a)))
             (step1Response, context) <- srp.srpStep1(SRPStep1Data(cHex, bigIntToHex(aa)), sessionContext)
             bb <- ZIO.succeed(bigIntToHex(srpFunctions.computeB(BigInt(context.content("b"), 16), v)))
-          } yield all(
+          } yield allSuccesses(
             assertTrue(context.content("c") == cHex.toString()),
             assertTrue(context.content.isDefinedAt("b")),
             assertTrue(context.content("B") == bb.toString()),

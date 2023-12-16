@@ -16,7 +16,7 @@ import is.clipperz.backend.services.{ OneTimeShareArchive, OneTimeSecret }
 import is.clipperz.backend.functions.responseTimer
 
 import zio.{ ZIO, Cause, Chunk }
-import zio.http.{ Http, Method, Path, PathSyntax, Response, Request, Status }
+import zio.http.{ Method, Path, Response, Request, Status }
 import zio.http.* //TODO: fix How do you import `Root` and `/`?
 import zio.json.{ EncoderOps, JsonDecoder, DeriveJsonDecoder, JsonEncoder, DeriveJsonEncoder }
 import zio.stream.{ ZStream }
@@ -38,8 +38,8 @@ object OneTimeSecretData:
 
 // ------------------------------------------------------------------------------------
 
-val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
-  case request @ Method.POST -> Root / "api" / "share" =>
+val oneTimeShareApi = Routes(
+  Method.POST / "api" / "share" -> handler : (request: Request) =>
     responseTimer("share", request.method)(
       ZIO
         .service[OneTimeShareArchive]
@@ -65,8 +65,8 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
           case e => ZIO.logFatalCause(s"${e.getMessage()}", Cause.fail(e)).flatMap(_ => ZIO.fail(e))
         }
     ) @@ LogAspect.logAnnotateRequestData(request)
-
-  case request @ Method.GET -> Root / "api" / "redeem" / id =>
+,
+  Method.GET / "api" / "redeem" / string("id") -> handler : (id: String, request: Request)=>
     responseTimer("redeem", request.method)(
       ZIO
         .service[OneTimeShareArchive]
@@ -108,4 +108,4 @@ val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
           case e => ZIO.logFatalCause(s"${e.getMessage()}", Cause.fail(e)).flatMap(_ => ZIO.fail(e))
         }
     ) @@ LogAspect.logAnnotateRequestData(request)
-}
+)

@@ -2,7 +2,7 @@ package is.clipperz.backend.middleware
 
 import zio.ZIO
 import zio.json.EncoderOps
-import zio.http.{ Headers, Http, Request, Response, Status }
+import zio.http.{ Headers, Request, Response, Status }
 import zio.http.* //TODO: fix How do you import `!!` and `/`?
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.functions.{ fromString, extractPath }
@@ -13,10 +13,15 @@ import is.clipperz.backend.exceptions.BadRequestException
 import zio.Cause
 import is.clipperz.backend.LogAspect
 import zio.http.Handler.RequestHandlerSyntax
-import zio.http.RequestHandlerMiddleware.Simple
+// import zio.http.RequestHandlerMiddleware.Simple
 import zio.Trace
+import is.clipperz.backend.services.PRNG
+import is.clipperz.backend.services.UserArchive
+import is.clipperz.backend.services.BlobArchive
+import is.clipperz.backend.services.OneTimeShareArchive
+import is.clipperz.backend.services.SrpManager
 
-type TollMiddleware = RequestHandlerMiddleware[Nothing, TollManager & SessionManager, Throwable, Any]
+type TollMiddleware = HandlerAspect[TollManager & SessionManager, Any]
 
 def isTollRequired(req: Request): Boolean =
   List("users", "login", "blobs").contains(extractPath(req))
@@ -55,24 +60,90 @@ def verifyRequestToll(request: Request): ZIO[TollManager & SessionManager, Throw
       })
     }
 
-val hashcash: TollMiddleware = new RequestHandlerMiddleware.Simple[TollManager & SessionManager, Throwable] {
-  override def apply[R1 <: TollManager & SessionManager, Err1 >: Throwable](handler: Handler[R1, Err1, Request, Response])(implicit trace: Trace): Handler[R1, Err1, Request, Response] =
-    Handler.fromFunctionZIO[Request] { request =>
-        verifyRequestToll(request)
-          .map((isRequestTollValid, newToll) =>
-            ( isRequestTollValid match 
-                case true  => handler
-                case false => Handler.status(Status.PaymentRequired)
-            ) .addHeader(TollManager.tollHeader,      newToll.toll.toString)
-              .addHeader(TollManager.tollCostHeader,  newToll.cost.toString)
-          )
-          .catchSome {
-            case ex: NoSuchElementException =>
-              ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Handler.status(Status.BadRequest))
-            case ex: BadRequestException =>
-              ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Handler.status(Status.BadRequest))
-            case ex =>
-              ZIO.logErrorCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Handler.status(Status.InternalServerError))
-          } @@ LogAspect.logAnnotateRequestData(request)
-    }.flatten
-}.when(isTollRequired)
+// val hashcash: TollMiddleware = new RequestHandlerMiddleware.Simple[TollManager & SessionManager, Throwable] {
+//   override def apply[R1 <: TollManager & SessionManager, Err1 >: Throwable](handler: Handler[R1, Err1, Request, Response])(implicit trace: Trace): Handler[R1, Err1, Request, Response] =
+//     Handler.fromFunctionZIO[Request] { request =>
+//         verifyRequestToll(request)
+//           .map((isRequestTollValid, newToll) =>
+//             ( isRequestTollValid match 
+//                 case true  => handler
+//                 case false => Handler.status(Status.PaymentRequired)
+//             ) .addHeader(TollManager.tollHeader,      newToll.toll.toString)
+//               .addHeader(TollManager.tollCostHeader,  newToll.cost.toString)
+//           )
+//           .catchSome {
+//             case ex: NoSuchElementException =>
+//               ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Handler.status(Status.BadRequest))
+//             case ex: BadRequestException =>
+//               ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Handler.status(Status.BadRequest))
+//             case ex =>
+//               ZIO.logErrorCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Handler.status(Status.InternalServerError))
+//           } @@ LogAspect.logAnnotateRequestData(request)
+//     }.flatten
+// }.when(isTollRequired)
+
+// val hashcash = new Middleware[Any] {
+//   override def apply[Env1 <: Any, Throwable](routes: Routes[Env1, Throwable]) =
+//     routes.transform(handler => 
+//         Handler.fromFunctionZIO[Request] { request =>
+//             verifyRequestToll(request)
+//               .map((isRequestTollValid, newToll) =>
+//                  (if isRequestTollValid
+//                   then handler
+//                   else Handler.status(Status.PaymentRequired)
+//                  ).addHeader(TollManager.tollHeader,      newToll.toll.toString)
+//                   .addHeader(TollManager.tollCostHeader,  newToll.cost.toString)
+//                 )
+//             //   .catchSome {
+//             //     case ex: NoSuchElementException =>
+//             //       ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Handler.status(Status.BadRequest))
+//             //     case ex: BadRequestException =>
+//             //       ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Handler.status(Status.BadRequest))
+//             //     case ex =>
+//             //       ZIO.logErrorCause(s"${ex.getMessage()}",   Cause.fail(ex)).as(Handler.status(Status.InternalServerError))
+//             //   } @@ LogAspect.logAnnotateRequestData(request)
+//         }.flatten//.sandbox.when(isTollRequired)
+//     )
+// } 
+
+// val hashcash =
+//     Middleware.intercept((request, response) =>
+//         verifyRequestToll(request)
+//         .map((isRequestTollValid, newToll) =>
+//             (if isRequestTollValid  
+//                 then response
+//                 else Response.status(Status.PaymentRequired)
+//             ).addHeader(TollManager.tollHeader,      newToll.toll.toString)
+//              .addHeader(TollManager.tollCostHeader,  newToll.cost.toString)
+//             )
+//         .flatMapError{
+//             case ex: NoSuchElementException =>
+//                 ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response.status(Status.BadRequest))
+//             case ex: BadRequestException =>
+//                 ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response.status(Status.BadRequest))
+//             case ex =>
+//                 ZIO.logErrorCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response.status(Status.InternalServerError))
+//         } @@ LogAspect.logAnnotateRequestData(request)
+//     ).when(isTollRequired)
+
+// val hashcash =
+//     Middleware.interceptIncomingHandler[TollManager & SessionManager, Any](
+//         Handler.fromFunctionZIO[Request] { request =>
+//             verifyRequestToll(request)
+//             .map((isRequestTollValid, newToll) =>
+//                 (if isRequestTollValid  
+//                     then Handler.identity
+//                     else Handler.status(Status.PaymentRequired)
+//                 ).addHeader(TollManager.tollHeader,      newToll.toll.toString)
+//                  .addHeader(TollManager.tollCostHeader,  newToll.cost.toString)
+//                 )
+//             .flatMapError{
+//                 case ex: NoSuchElementException =>
+//                     ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Handler.status(Status.BadRequest))
+//                 case ex: BadRequestException =>
+//                     ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Handler.status(Status.BadRequest))
+//                 case ex =>
+//                     ZIO.logErrorCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Handler.status(Status.InternalServerError))
+//             } @@ LogAspect.logAnnotateRequestData(request)
+//         }.flatten
+//     ).when(isTollRequired)

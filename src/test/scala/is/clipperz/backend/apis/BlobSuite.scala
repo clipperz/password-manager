@@ -18,7 +18,6 @@ import is.clipperz.backend.data.HexString.bytesToHex
 import is.clipperz.backend.functions.crypto.HashFunction
 import java.nio.file.Path
 import is.clipperz.backend.functions.FileSystem
-import is.clipperz.backend.services.SaveBlobData
 import is.clipperz.backend.services.PRNG
 import is.clipperz.backend.services.SessionManager
 import is.clipperz.backend.services.UserArchive
@@ -48,56 +47,35 @@ object BlobSpec extends ZIOSpecDefault:
     "src/test/resources/blobs/4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63.blob"
   )
 
-  val blobData: SaveBlobData = SaveBlobData(
-    data = bytesToHex(
+  val validBlobData: Array[Byte] =
       Files
         .readAllBytes(Paths.get("src/test/resources/blobs/4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63.blob"))
         .nn
-    ),
-    hash = HexString("4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
-  )
+  val validBlobHash = HexString("4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63")
 
   val post = Request(
     url = URL(Root / "blobs"),
     method = Method.POST,
     headers = Headers.empty,
-    body = Body.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
+    body = Body.fromMultipartForm(Form.empty.append(FormField.binaryField(name = "blob", data = Chunk.fromArray(validBlobData), filename = Some(validBlobHash.toString()), mediaType = MediaType.any)), Boundary("???")),
     version = Version.Http_1_1,
     remoteAddress = None
   )
 
   val delete = Request(
-    url = URL(Root / "blobs" / blobData.hash.toString()),
+    url = URL(Root / "blobs"),
     method = Method.DELETE,
     headers = Headers.empty,
-    body = Body.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
+    body = Body.fromMultipartForm(Form.empty.append(FormField.binaryField(name = "blob", data = Chunk.fromArray(validBlobData), filename = Some(validBlobHash.toString()), mediaType = MediaType.any)), Boundary("???")),
     version = Version.Http_1_1,
     remoteAddress = None
   )
 
   val deleteDifferentHashes = Request(
-    url = URL(Root / "blobs" / "aaaaaa" ),
+    url = URL(Root / "blobs"),
     method = Method.DELETE,
     headers = Headers.empty,
-    body = Body.fromString(blobData.toJson, StandardCharsets.UTF_8.nn),
-    version = Version.Http_1_1,
-    remoteAddress = None
-  )
-
-  val invalidDelete = Request(
-    url = URL(Root / "blobs" / blobData.hash.toString()),
-    method = Method.DELETE,
-    headers = Headers.empty,
-    body = Body.fromString("invalidData", StandardCharsets.UTF_8.nn),
-    version = Version.Http_1_1,
-    remoteAddress = None
-  )
-
-  val get = Request(
-    url = URL(Root / "blobs" / blobData.hash.toString()),
-    method = Method.GET,
-    headers = Headers.empty,
-    body = Body.empty,
+    body = Body.fromMultipartForm(Form.empty.append(FormField.binaryField(name = "blob", data = Chunk.fromArray(validBlobData), filename = Some("aaaaaa"), mediaType = MediaType.any)), Boundary("???")),
     version = Version.Http_1_1,
     remoteAddress = None
   )
@@ -105,11 +83,29 @@ object BlobSpec extends ZIOSpecDefault:
   val invalidBlobKey = "f1234d75178d892a133a410355a5a990cf75d2f33eba25d575943d4df632f3a4"
   val invalidBlobContent = "invalid"
 
+  val invalidDelete = Request(
+    url = URL(Root / "blobs"),
+    method = Method.DELETE,
+    headers = Headers.empty,
+    body = Body.fromMultipartForm(Form.empty.append(FormField.binaryField(name = "blob", data = Chunk.fromArray(invalidBlobContent.getBytes().nn), filename = Some(validBlobHash.toString()), mediaType = MediaType.any)), Boundary("???")),
+    version = Version.Http_1_1,
+    remoteAddress = None
+  )
+
+  val get = Request(
+    url = URL(Root / "blobs" / validBlobHash.toString()),
+    method = Method.GET,
+    headers = Headers.empty,
+    body = Body.empty,
+    version = Version.Http_1_1,
+    remoteAddress = None
+  )
+
   val postInvalid = Request(
     url = URL(Root / "blobs"),
     method = Method.POST,
     headers = Headers.empty,
-    body = Body.fromString(invalidBlobContent, StandardCharsets.UTF_8.nn),
+    body = Body.fromMultipartForm(Form.empty.append(FormField.binaryField(name = "blob", data = Chunk.fromArray(invalidBlobContent.getBytes().nn), filename = None, mediaType = MediaType.any)), Boundary("???")),
     version = Version.Http_1_1,
     remoteAddress = None
   )
@@ -118,16 +114,16 @@ object BlobSpec extends ZIOSpecDefault:
     url = URL(Root / "blobs"),
     method = Method.POST,
     headers = Headers.empty,
-    body = Body.fromString("", StandardCharsets.UTF_8.nn),
+    body = Body.fromMultipartForm(Form.empty.append(FormField.binaryField(name = "blob", data = Chunk.fromArray("".getBytes().nn), filename = None, mediaType = MediaType.any)), Boundary("--XXX")),
     version = Version.Http_1_1,
     remoteAddress = None
   )
 
   def spec = suite("BlobApis")(
-    test("DELETE valid blob -> 404") {
+    test("DELETE valid blob -> 200") {
       for {
         statusCodeDelete <- app.runZIO(delete).map(response => response.status.code)
-      } yield assertTrue(statusCodeDelete == 404)
+      } yield assertTrue(statusCodeDelete == 200)
     },
     test("DELETE invalid blob -> 400") {
       for {
@@ -157,7 +153,7 @@ object BlobSpec extends ZIOSpecDefault:
     test("POST -> hash response") {
       for {
         body <- app.runZIO(post).flatMap(response => response.body.asString)
-      } yield assertTrue(body == blobData.hash.toString())
+      } yield assertTrue(body == validBlobData.toString())
     },
     test("POST / GET -> 200") {
       for {
@@ -174,7 +170,7 @@ object BlobSpec extends ZIOSpecDefault:
             .run(ZSink.digest(MessageDigest.getInstance("SHA-256").nn))
             .map((chunk: Chunk[Byte]) => HexString.bytesToHex(chunk.toArray))
         )
-      } yield assertTrue(hash == blobData.hash)
+      } yield assertTrue(hash == validBlobHash)
     },
     test("POST / DELETE -> _, 200") {
       for {

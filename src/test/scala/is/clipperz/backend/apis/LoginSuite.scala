@@ -18,7 +18,6 @@ import is.clipperz.backend.data.HexString.bytesToHex
 import is.clipperz.backend.functions.crypto.HashFunction
 import java.nio.file.Path
 import is.clipperz.backend.functions.FileSystem
-import is.clipperz.backend.services.SaveBlobData
 import is.clipperz.backend.services.PRNG
 import is.clipperz.backend.services.SessionManager
 import is.clipperz.backend.services.UserArchive
@@ -229,7 +228,7 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
         )
         response2 <- app.runZIO(loginRequestStep2(c.toString(), SRPStep2Data(HexString.bytesToHex(m1)).toJson, true))
         stepResponse <- fromStream[SRPStep2Response](response2.body.asStream)
-      } yield assertTrue(response2.status.code == 200, stepResponse.encUserInfoReferences == testUser.masterKey._1)
+      } yield assertTrue(response2.status.code == 200, stepResponse.masterKey._1 == testUser.masterKey._1)
     },
   ).provideLayerShared(environment) @@
     TestAspect.sequential @@

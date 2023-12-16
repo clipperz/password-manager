@@ -87,7 +87,7 @@ postStatelessBlob connectionState blob hash = do
 -- TODO REMOVE
 deleteBlob :: HexString -> ExceptT AppError Aff String
 deleteBlob reference = do
-  let url = joinWith "/" ["blobs", toString Hex reference]
+  let url = joinWith "/" ["blobs"]
   encryptedCard <- getBlob reference
   body <- formData <$> (liftEffect $ do
       formData <- new
