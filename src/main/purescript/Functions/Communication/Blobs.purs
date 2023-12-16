@@ -102,7 +102,7 @@ deleteBlob reference = do
 
 deleteStatelessBlob :: ConnectionState -> ArrayBuffer -> HexString -> ExceptT AppError Aff (ProxyResponse String)
 deleteStatelessBlob connectionState encryptedBlob reference = do
-  let url = joinWith "/" ["blobs", toString Hex reference]
+  let url = joinWith "/" ["blobs"]
   body <- formData <$> (liftEffect $ do
       formData <- new
       appendBlob (EntryName "blob") (blobFromArrayBuffer encryptedBlob) (Just $ FileName (toString Hex reference)) formData
