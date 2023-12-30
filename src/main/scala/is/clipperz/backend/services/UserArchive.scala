@@ -50,7 +50,7 @@ def remoteFromRequest(requestUserCard : RequestUserCard): RemoteUserCard =
 case class UserCard(
     originMasterKey: HexString,
     masterKey: (HexString, String)
-  )
+)
 
 object UserCard:
   implicit val decoder: JsonDecoder[UserCard] = DeriveJsonDecoder.gen[UserCard]

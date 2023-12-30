@@ -126,12 +126,13 @@ val usersApi: Routes[BlobArchive & UserArchive & SessionManager, Throwable] = Ro
             .catchSome {
             case ex: ResourceNotFoundException =>
                 ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.NotFound))
-            case ex: BadRequestException =>
+            case ex @ ( _: BadRequestException 
+                      | _: ConflictualRequestException
+                      | _: FailedConversionException
+                      ) =>
                 ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
             case ex: NonWritableArchiveException =>
                 ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-            case ex: FailedConversionException =>
-                ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
             }
         ) @@ LogAspect.logAnnotateRequestData(request)
 ,  
@@ -168,12 +169,12 @@ val usersApi: Routes[BlobArchive & UserArchive & SessionManager, Throwable] = Ro
             .catchSome {
             case ex: ResourceNotFoundException =>
                 ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.NotFound))
-            case ex: BadRequestException =>
+            case ex @ ( _: BadRequestException
+                      | _: FailedConversionException
+                      ) =>
                 ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
             case ex: NonWritableArchiveException =>
                 ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-            case ex: FailedConversionException =>
-                ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
             }
         ) @@ LogAspect.logAnnotateRequestData(request)
 ,

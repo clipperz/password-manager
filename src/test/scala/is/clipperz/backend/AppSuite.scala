@@ -129,15 +129,15 @@ object AppSpec extends ZIOSpecDefault:
         ZIO.succeed(response)
       else
         computeReceiptFromResponse(response)
-          .zip(ZIO.attempt(response.rawHeader(TollManager.tollHeader).get))
-          .zip(ZIO.attempt(response.rawHeader(TollManager.tollCostHeader).get))
-          .flatMap((receipt, tollHeader, tollCostHeader) =>
+        .zip(ZIO.attempt(response.rawHeader(TollManager.tollHeader).get))
+        .zip(ZIO.attempt(response.rawHeader(TollManager.tollCostHeader).get))
+        .flatMap((receipt, tollHeader, tollCostHeader) =>
             manageRequestWithTollPayment(
-              req.addHeaders(Headers(TollManager.tollReceiptHeader, receipt.toString()))
-                 .addHeaders(Headers(TollManager.tollHeader, tollHeader))
-                 .addHeaders(Headers(TollManager.tollCostHeader, tollCostHeader))
+                req.addHeaders(Headers(TollManager.tollReceiptHeader, receipt.toString()))
+                    .addHeaders(Headers(TollManager.tollHeader, tollHeader))
+                    .addHeaders(Headers(TollManager.tollCostHeader, tollCostHeader))
             )
-          )
+        )
     )
   
   private def computeReceiptFromResponse(res: Response) =
