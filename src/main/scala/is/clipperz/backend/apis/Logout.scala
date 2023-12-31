@@ -21,11 +21,5 @@ val logoutApi = Routes(
                   .deleteSession(request)
                   .map(_ => Response.text(""))
           )
-          .catchSome {
-              case ex: BadRequestException =>
-                  ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-              case ex: NoSuchElementException =>
-                  ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-          }
       ) @@ LogAspect.logAnnotateRequestData(request)
 )

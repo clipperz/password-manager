@@ -42,17 +42,6 @@ val loginApi: Routes[SessionManager & SrpManager, Throwable] = Routes(
                     }
             )
             .map(step1Response => Response.json(step1Response.toJson))
-            .catchAll {
-                case ex: ResourceNotFoundException =>
-                    ZIO.logInfo(s"${ex.getMessage()}").as(Response(status = Status.NotFound))
-                case ex: BadRequestException =>
-                    ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-                case ex: FailedConversionException =>
-                    ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-                case ex: NoSuchElementException =>
-                    ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-                case ex => ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-            }
         ) @@ LogAspect.logAnnotateRequestData(request)
 ,
     Method.POST / "api" / "login" / "step2" / string("c") -> handler: (c: String, request: Request) =>
@@ -72,16 +61,5 @@ val loginApi: Routes[SessionManager & SrpManager, Throwable] = Routes(
                     }
             )
             .map(step2Response => Response.json(step2Response.toJson))
-            .catchAll {
-                case ex: ResourceNotFoundException =>
-                    ZIO.logInfo(s"${ex.getMessage()}").as(Response(status = Status.NotFound))
-                case ex: FailedConversionException =>
-                    ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-                case ex: BadRequestException =>
-                    ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-                case ex: NoSuchElementException =>
-                    ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-                case ex => ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-            } 
         ) @@ LogAspect.logAnnotateRequestData(request)
 )

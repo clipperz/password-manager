@@ -55,15 +55,6 @@ val oneTimeShareApi = Routes(
             )
         ) 
         .map(id => Response.text(s"${id}"))
-        .catchAll {
-          case ex: BadRequestException =>
-            ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-          case ex: NonWritableArchiveException =>
-            ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-          case ex: FailedConversionException =>
-            ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-          case e => ZIO.logFatalCause(s"${e.getMessage()}", Cause.fail(e)).flatMap(_ => ZIO.fail(e))
-        }
     ) @@ LogAspect.logAnnotateRequestData(request)
 ,
   Method.GET / "api" / "redeem" / string("id") -> handler : (id: String, request: Request)=>
@@ -94,18 +85,5 @@ val oneTimeShareApi = Routes(
             body = Body.fromStream(bytes),
           )
         )
-        .catchAll {
-          case ex: ResourceExpiredException => 
-            ZIO.logInfo(s"${ex.getMessage()}").as(Response(status = Status.Gone))
-          case ex: ResourceNotFoundException =>
-            ZIO.logInfo(s"${ex.getMessage()}").as(Response(status = Status.NotFound))
-          case ex: NonWritableArchiveException =>
-            ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-          case ex: FailedConversionException =>
-            ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-          case ex: DateTimeParseException =>
-            ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-          case e => ZIO.logFatalCause(s"${e.getMessage()}", Cause.fail(e)).flatMap(_ => ZIO.fail(e))
-        }
     ) @@ LogAspect.logAnnotateRequestData(request)
 )

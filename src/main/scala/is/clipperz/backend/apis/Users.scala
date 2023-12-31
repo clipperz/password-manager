@@ -66,19 +66,6 @@ val usersApi: Routes[BlobArchive & UserArchive & SessionManager, Throwable] = Ro
                 )
             )
             .map(results => Response.text(results._1.toString))
-            .catchSome {
-            case ex: ResourceConflictException =>
-                ZIO.logDebugCause(s"RESOURCE CONFLICT: ${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.Conflict))
-            case ex: ConflictualRequestException =>
-                ZIO.logDebugCause(s"CONFLICTUAL REQUEST: ${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.Conflict))
-            case ex: BadRequestException =>
-                ZIO.logFatalCause(s"BAD REQUEST: ${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-            case ex: NonWritableArchiveException =>
-                ZIO.logFatalCause(s"NON WRITABLE ARCHIVE: ${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-            case ex: FailedConversionException =>
-                ZIO.logWarningCause(s"FAILED CONVERSION: ${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-            case ex => ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).flatMap(_ => ZIO.fail(ex))
-            }
         ) @@ LogAspect.logAnnotateRequestData(request)
 ,
     Method.PUT / "api"  / "users" / string("c") -> handler: (c: String, request: Request) =>
@@ -123,17 +110,6 @@ val usersApi: Routes[BlobArchive & UserArchive & SessionManager, Throwable] = Ro
                 )
             )
             .map(_ => Response.ok)
-            .catchSome {
-            case ex: ResourceNotFoundException =>
-                ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.NotFound))
-            case ex @ ( _: BadRequestException 
-                      | _: ConflictualRequestException
-                      | _: FailedConversionException
-                      ) =>
-                ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-            case ex: NonWritableArchiveException =>
-                ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-            }
         ) @@ LogAspect.logAnnotateRequestData(request)
 ,  
     Method.PATCH / "api" / "users" / string("c") -> handler: (c: String, request: Request) =>
@@ -166,16 +142,6 @@ val usersApi: Routes[BlobArchive & UserArchive & SessionManager, Throwable] = Ro
                 )
             )
             .map(_ => Response.ok)
-            .catchSome {
-            case ex: ResourceNotFoundException =>
-                ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.NotFound))
-            case ex @ ( _: BadRequestException
-                      | _: FailedConversionException
-                      ) =>
-                ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-            case ex: NonWritableArchiveException =>
-                ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-            }
         ) @@ LogAspect.logAnnotateRequestData(request)
 ,
     Method.GET / "api" / "users" / string("c") -> handler: (c: String, request: Request) =>
@@ -195,12 +161,6 @@ val usersApi: Routes[BlobArchive & UserArchive & SessionManager, Throwable] = Ro
                 case None       => Response(status = Status.NotFound)
                 case Some(card) => Response.json(card.masterKey.toJson)
             )
-            .catchSome {
-                case ex: NonReadableArchiveException =>
-                ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-                case ex: BadRequestException =>
-                ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-            }
         ) @@ LogAspect.logAnnotateRequestData(request)
 ,
     Method.DELETE / "api" / "users" / string("c") -> handler: (c: String, request: Request) =>
@@ -224,13 +184,5 @@ val usersApi: Routes[BlobArchive & UserArchive & SessionManager, Throwable] = Ro
                     )
                 )
             )
-            .catchSome {
-            case ex: NonWritableArchiveException =>
-                ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-            case ex: BadRequestException =>
-                ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-            case ex: ResourceNotFoundException =>
-                ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.NotFound))
-            }
         ) @@ LogAspect.logAnnotateRequestData(request)
 )

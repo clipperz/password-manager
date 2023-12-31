@@ -48,17 +48,6 @@ val blobsApi: Routes[BlobArchive, Throwable] = Routes(
                 then ZIO.fail(new BadRequestException("No fields in form"))
                 else ZIO.succeed(Response.text(s"${result}"))
             )
-            .catchSome {
-                case ex: EmptyContentException =>
-                    ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-                case ex: BadRequestException =>
-                    ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-                case ex: NonWritableArchiveException =>
-                    ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-                case ex: FailedConversionException =>
-                    ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-                case ex => ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-            }
         ) @@ LogAspect.logAnnotateRequestData(request)
 ,
     Method.DELETE / "api" / "blobs" -> handler: (request: Request) =>
@@ -83,16 +72,7 @@ val blobsApi: Routes[BlobArchive, Throwable] = Routes(
             .map:
                 case true  => Response.ok
                 case false => Response(status = Status.NotFound)
-            .catchAll {
-                case ex: BadRequestException =>
-                    ZIO.logInfoCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-                case ex: NonWritableArchiveException =>
-                    ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-                case ex: FailedConversionException =>
-                    ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-                case ex => ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-            }
-        ) @@ LogAspect.logAnnotateRequestData(request)
+    ) @@ LogAspect.logAnnotateRequestData(request)
 ,
     Method.GET / "api" / "blobs" / string("hash") -> handler: (hash: String, request: Request) =>
         responseTimer("blobs", request.method)(
@@ -107,13 +87,5 @@ val blobsApi: Routes[BlobArchive, Throwable] = Routes(
                                 .addHeader("Content-Type", "application/octet-stream"),
                 )
             )
-            .catchSome {
-            case ex: ResourceNotFoundException =>
-                ZIO.logInfo(s"${ex.getMessage()}").as(Response(status = Status.NotFound))
-            case ex: NonWritableArchiveException =>
-                ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-            case ex: FailedConversionException =>
-                ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-            }
         ) @@ LogAspect.logAnnotateRequestData(request)
 )

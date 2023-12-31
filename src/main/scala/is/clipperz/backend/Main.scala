@@ -2,7 +2,7 @@ package is.clipperz.backend
 
 import java.nio.file.FileSystems
 import scala.util.Try
-import zio.{ ZIO, Scope, ZIOAppArgs, ZIOAppDefault, LogLevel, Runtime, ZLayer }
+import zio.{ Cause, ZIO, Scope, Task, ZIOAppArgs, ZIOAppDefault, LogLevel, Runtime, ZLayer }
 import zio.durationInt
 import zio.logging.LogFormat
 import zio.logging.backend.SLF4J
@@ -31,12 +31,14 @@ import zio.http.Routes
 import zio.http.endpoint.Endpoint
 import zio.http.endpoint.openapi.OpenAPI
 import zio.http.endpoint.openapi.OpenAPIGen
+import zio.http.Status.NotFound
+import is.clipperz.backend.exceptions.*
+import java.time.format.DateTimeParseException
 
 object Main extends zio.ZIOAppDefault:
   override val bootstrap =
     val logFormat = LogFormat.colored |-| LogFormat.spans
     Runtime.removeDefaultLoggers ++ Runtime.addLogger(CustomLogger.basicColoredLogger(LogLevel.Info)) // >>> SLF4J.slf4j(logFormat)
-    // Runtime.removeDefaultLoggers ++ Runtime.addLogger(CustomLogger.basicLogger) // >>> SLF4J.slf4j(logFormat)
 
   type ClipperzEnvironment =
     PRNG & SessionManager & TollManager & UserArchive & BlobArchive & OneTimeShareArchive & SrpManager
@@ -45,7 +47,40 @@ object Main extends zio.ZIOAppDefault:
     ClipperzEnvironment
   ]
 
-  val clipperzBackend: ClipperzHttpApp = (usersApi ++ loginApi ++ logoutApi ++ blobsApi ++ oneTimeShareApi ++ staticApi).sandbox.toHttpApp
+  def customErrorHandler(c: Cause[Throwable]): ZIO[Any, Nothing, Response] =
+    val err = c.failureOption.getOrElse(c.dieOption.getOrElse(new Exception())) 
+
+    ZIO.logWarningCause(s"${err.getMessage()}", c).as(
+        Response( status = (err match {
+            case ( _: EmptyContentException
+                 | _: FailedConversionException
+                 | _: BadRequestException
+                 | _: NoSuchElementException
+                 ) =>
+                    Status.BadRequest
+            
+            case ( _: ResourceNotFoundException
+                 ) =>
+                    Status.NotFound
+
+            case ( _: ResourceExpiredException
+                 ) =>
+                    Status.Gone
+
+            case ( _: ResourceConflictException
+                 | _: ConflictualRequestException
+                 ) => Status.Conflict
+                    
+            case ( _: NonWritableArchiveException
+                 | _: NonReadableArchiveException
+                 | _: DateTimeParseException
+                 | _
+                 ) =>
+                    Status.InternalServerError
+        }))
+    )
+
+  val clipperzBackend: ClipperzHttpApp = (usersApi ++ loginApi ++ logoutApi ++ blobsApi ++ oneTimeShareApi ++ staticApi).handleErrorCauseZIO(customErrorHandler).toHttpApp
   val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (sessionChecks /* ++ hashcash */)
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
