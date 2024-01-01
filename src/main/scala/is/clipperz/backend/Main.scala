@@ -56,27 +56,17 @@ object Main extends zio.ZIOAppDefault:
                  | _: FailedConversionException
                  | _: BadRequestException
                  | _: NoSuchElementException
-                 ) =>
-                    Status.BadRequest
-            
-            case ( _: ResourceNotFoundException
-                 ) =>
-                    Status.NotFound
-
-            case ( _: ResourceExpiredException
-                 ) =>
-                    Status.Gone
-
+                 )                                =>  Status.BadRequest
+            case ( _: ResourceNotFoundException ) =>  Status.NotFound
+            case ( _: ResourceExpiredException )  =>  Status.Gone
             case ( _: ResourceConflictException
                  | _: ConflictualRequestException
-                 ) => Status.Conflict
-                    
+                 )                                =>  Status.Conflict
             case ( _: NonWritableArchiveException
                  | _: NonReadableArchiveException
                  | _: DateTimeParseException
-                 | _
-                 ) =>
-                    Status.InternalServerError
+                 )                                =>  Status.InternalServerError
+            case ( _ )                            =>  Status.InternalServerError
         }))
     )
 
