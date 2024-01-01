@@ -1,8 +1,9 @@
-ThisBuild / scalaVersion := "2.12.15"
+ThisBuild / scalaVersion := "2.12.18"
 ThisBuild / useSuperShell := false
 ThisBuild / autoStartServer := false
 
 update / evictionWarningOptions := EvictionWarningOptions.empty
+// dependencyOverrides +=  "org.scala-lang.modules" %% "scala-xml" % "2.2.0"
 dependencyOverrides += "org.scala-lang.modules" % "scala-xml_2.12" % "2.1.0"
 
 addDependencyTreePlugin
