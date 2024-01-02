@@ -39,7 +39,7 @@ object SessionMiddlewareSpec extends ZIOSpecDefault:
 
   def getFromPath(path: String): Request =
     Request(
-      url = URL(Root / path / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
+      url = URL(Root / "api" / path / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
       method = Method.GET,
       headers = Headers.empty,
       body = Body.empty,
@@ -49,7 +49,7 @@ object SessionMiddlewareSpec extends ZIOSpecDefault:
 
   def withSessionFromPath(path: String, method: Method): Request =
     Request(
-      url = URL(Root / path / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
+      url = URL(Root / "api" / path / "4073041693a9a66983e6ffb75b521310d30e6db60afc0f97d440cb816bce7c63"),
       method = method,
       headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
       body = Body.empty,
@@ -62,7 +62,7 @@ object SessionMiddlewareSpec extends ZIOSpecDefault:
   val get = getFromPath("ciao")
 
   val createSession = Request(
-    url = URL(Root / "create" / sessionKey),
+    url = URL(Root / "api" / "create" / sessionKey),
     method = Method.GET,
     headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
     body = Body.empty,
@@ -71,7 +71,7 @@ object SessionMiddlewareSpec extends ZIOSpecDefault:
   )
 
   val createSessionApi: HttpApp[SessionManager] = Routes(
-    Method.GET / "create" / string("key") -> handler: (key: String, request: Request) =>
+    Method.GET / "api" / "create" / string("key") -> handler: (key: String, request: Request) =>
         ZIO
           .service[SessionManager]
           .flatMap(sessionManager => sessionManager.getSession(request).map((sessionManager, _)))

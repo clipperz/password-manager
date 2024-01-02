@@ -24,7 +24,8 @@ import zio.http.netty.{ EventLoopGroups, NettyConfig }
 import zio.http.netty.NettyConfig.LeakDetectionLevel
 
 import is.clipperz.backend.apis.{ blobsApi, loginApi, logoutApi, staticApi, usersApi, oneTimeShareApi }
-import is.clipperz.backend.middleware.{ /* hashcash, */ sessionChecks }
+import is.clipperz.backend.functions.{ customErrorHandler }
+import is.clipperz.backend.middleware.{ sessionChecks, hashcash }
 import is.clipperz.backend.services.{ BlobArchive, PRNG, SessionManager, SrpManager, TollManager, UserArchive, OneTimeShareArchive }
 import zio.http.Server.RequestStreaming
 import zio.http.Routes
@@ -47,31 +48,8 @@ object Main extends zio.ZIOAppDefault:
     ClipperzEnvironment
   ]
 
-  def customErrorHandler(c: Cause[Throwable]): ZIO[Any, Nothing, Response] =
-    val err = c.failureOption.getOrElse(c.dieOption.getOrElse(new Exception())) 
-
-    ZIO.logWarningCause(s"${err.getMessage()}", c).as(
-        Response( status = (err match {
-            case ( _: EmptyContentException
-                 | _: FailedConversionException
-                 | _: BadRequestException
-                 | _: NoSuchElementException
-                 )                                =>  Status.BadRequest
-            case ( _: ResourceNotFoundException ) =>  Status.NotFound
-            case ( _: ResourceExpiredException )  =>  Status.Gone
-            case ( _: ResourceConflictException
-                 | _: ConflictualRequestException
-                 )                                =>  Status.Conflict
-            case ( _: NonWritableArchiveException
-                 | _: NonReadableArchiveException
-                 | _: DateTimeParseException
-                 )                                =>  Status.InternalServerError
-            case ( _ )                            =>  Status.InternalServerError
-        }))
-    )
-
   val clipperzBackend: ClipperzHttpApp = (usersApi ++ loginApi ++ logoutApi ++ blobsApi ++ oneTimeShareApi ++ staticApi).handleErrorCauseZIO(customErrorHandler).toHttpApp
-  val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (sessionChecks /* ++ hashcash */)
+  val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (sessionChecks ++ hashcash)
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
     if args.length == 4 then

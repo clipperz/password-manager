@@ -117,7 +117,7 @@ manageGenericRequest connectionState@{ proxy, hashFunc } path method body respon
       | otherwise           = \_ ->
           throwError $ AS.ProtocolError (ResponseError n)
 
-    updateToll (OnlineProxy baseUrl oldTollManager sessionKey) tollManager = OnlineProxy baseUrl (merge oldTollManager tollManager) sessionKey
+    updateToll (OnlineProxy baseUrl oldTollManager sessionKey) tollManager = OnlineProxy baseUrl (merge tollManager oldTollManager) sessionKey
     updateToll offline@(StaticProxy _)                         _           = offline
     
     extractChallenge :: Array ResponseHeader -> Maybe TollChallenge
@@ -135,7 +135,7 @@ manageGenericRequest connectionState@{ proxy, hashFunc } path method body respon
             url            = joinWith "/" [baseUrl, path]
           , method         = Left method
           , headers        = createHeaders proxy
-          , content        = body 
+          , content        = body
           , responseFormat = responseFormat
         }
       )

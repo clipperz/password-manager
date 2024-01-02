@@ -6,7 +6,6 @@ import zio.http.* //TODO: fix How do you import `!!` and `/`?
 import is.clipperz.backend.Main.ClipperzHttpApp
 import zio.metrics.{ Metric, MetricLabel }
 import zio.ZIO
-import is.clipperz.backend.functions.extractPath
 
 val staticApi = Routes(
     Method.GET / "api" / "static" / trailing -> handler:
