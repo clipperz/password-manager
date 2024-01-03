@@ -30,6 +30,7 @@ import is.clipperz.backend.services.TollChallenge
 import is.clipperz.backend.services.TollReceipt
 import java.net.InetAddress
 import is.clipperz.backend.middleware.SessionMiddlewareSpec.idApp
+import is.clipperz.backend.services.ChallengeType
 
 object HashCashMiddlewareSpec extends ZIOSpecDefault:
   val layers =
@@ -66,7 +67,7 @@ object HashCashMiddlewareSpec extends ZIOSpecDefault:
     remoteAddress = Some(InetAddress.getLocalHost().nn)
   )
 
-  val idApp: HttpApp[TollManager & SessionManager] = HttpApp.collectZIO(_ => ZIO.succeed(Response.ok)) @@ hashcash
+  val idApp: HttpApp[TollManager & SessionManager] = HttpApp.collectZIO(_ => ZIO.succeed(Response.ok)) @@ hashcash(ChallengeType.MESSAGE, ChallengeType.MESSAGE)
 
   def spec = suite("HashCashMiddleware")(
     test("400 if no session is active") {

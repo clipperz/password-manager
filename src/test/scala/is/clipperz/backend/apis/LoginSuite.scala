@@ -41,12 +41,15 @@ import is.clipperz.backend.services.SRPStep2Response
 import is.clipperz.backend.services.OneTimeShareArchive
 import is.clipperz.backend.services.RequestUserCard
 import is.clipperz.backend.services.RemoteUserCard
+import is.clipperz.backend.functions.customErrorHandler
 
 object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
   override def bootstrap: ZLayer[Any, Any, UserArchive & BlobArchive] =
     UserArchive.fs(userBasePath, 2, false) ++ BlobArchive.fs(blobBasePath, 2, false)
 
-  val app = Main.clipperzBackend
+  val app =  (   loginApi        
+             ).handleErrorCauseZIO(customErrorHandler)
+                .toHttpApp
   val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
   val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
   val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "one_time_share").nn

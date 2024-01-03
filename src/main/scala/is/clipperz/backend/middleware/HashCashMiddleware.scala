@@ -20,22 +20,7 @@ import zio.http.Handler.RequestHandlerSyntax
 
 type TollMiddleware = HandlerAspect[TollManager & SessionManager, Any]
 
-def isTollRequired(req: Request): Boolean =
-    List("users", "login", "blobs").contains(extractPath(req))
-
-def getChallengeType(req: Request): ChallengeType =
-  extractPath(req) match
-    case "users" => ChallengeType.REGISTER
-    case "login" => ChallengeType.CONNECT
-    case "blobs" => ChallengeType.MESSAGE
-
-def getNextChallengeType(req: Request): ChallengeType =
-  extractPath(req) match
-    case "users" => ChallengeType.CONNECT
-    case "login" => ChallengeType.MESSAGE
-    case "blobs" => ChallengeType.MESSAGE
-
-def verifyRequestToll(request: Request) =
+def verifyRequestToll(request: Request, challengeType: ChallengeType, nextChallengeType: ChallengeType) =
   ZIO.service[SessionManager].zip(ZIO.service[TollManager])
     .flatMap { (sessionManager, tollManager) =>
       sessionManager.getSession(request).flatMap(session => {
@@ -49,29 +34,25 @@ def verifyRequestToll(request: Request) =
 
         tollIsValid.catchAll(_ => ZIO.succeed(false))
         .flatMap(tollIsValid => for {
-            nextChallengeType <-  ZIO.succeed(if (tollIsValid) then getNextChallengeType(request) else getChallengeType(request))
-            nextChallenge     <-  tollManager.getToll(tollManager.getChallengeCost(nextChallengeType))
-            _                 <-  sessionManager.saveSession(session + (TollManager.tollChallengeContentKey, nextChallenge.toJson))
-          } yield (tollIsValid, nextChallenge)
+            challengeTypeForNextStep <-  ZIO.succeed(if (tollIsValid) then nextChallengeType else challengeType)
+            challengeForNextStep     <-  tollManager.getToll(tollManager.getChallengeCost(challengeTypeForNextStep))
+            _                        <-  sessionManager.saveSession(session + (TollManager.tollChallengeContentKey, challengeForNextStep.toJson))
+          } yield (tollIsValid, challengeForNextStep)
         )
       })
     }.mapError(customMapError)
 
-val hashcash = new Middleware[SessionManager & TollManager]:
+def hashcash(challengeType: ChallengeType, nextChallengeType: ChallengeType) = new Middleware[SessionManager & TollManager]:
   override def apply[Env1 <: SessionManager & TollManager, Err](routes: Routes[Env1, Err]): Routes[Env1, Err] =
     routes.transform(handler => 
         Handler.fromFunctionZIO[Request] { request =>
-            (   if isTollRequired(request)
-                then
-                    verifyRequestToll(request)
-                    .map((isRequestTollValid, newToll) =>
-                        (if isRequestTollValid
-                        then handler
-                        else Handler.status(Status.PaymentRequired)
-                        ).addHeader(TollManager.tollHeader,     newToll.toll.toString)
-                         .addHeader(TollManager.tollCostHeader, newToll.cost.toString)
-                        )
-                else ZIO.succeed(handler)
-            ) @@ LogAspect.logAnnotateRequestData(request)
+            verifyRequestToll(request, challengeType, nextChallengeType).tap(res => ZIO.log(s"VERIFY REQUEST TOLL RESULT: $res"))
+            .map((isRequestTollValid, newToll) =>
+                ( if isRequestTollValid
+                  then handler
+                  else Handler.status(Status.PaymentRequired)
+                ).addHeader(TollManager.tollHeader,     newToll.toll.toString)
+                 .addHeader(TollManager.tollCostHeader, newToll.cost.toString)
+            )
         }.flatten
     )

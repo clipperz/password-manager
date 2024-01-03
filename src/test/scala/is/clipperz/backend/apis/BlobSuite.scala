@@ -29,10 +29,13 @@ import is.clipperz.backend.services.SrpManager
 import is.clipperz.backend.functions.fromStream
 import is.clipperz.backend.services.OneTimeShareArchive
 import zio.durationInt
+import is.clipperz.backend.functions.customErrorHandler
 
 
 object BlobSpec extends ZIOSpecDefault:
-    val app = Main.clipperzBackend
+    val app =  (   blobsApi        
+               ).handleErrorCauseZIO(customErrorHandler)
+                .toHttpApp
     val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
     val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
     val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "one_time_share").nn

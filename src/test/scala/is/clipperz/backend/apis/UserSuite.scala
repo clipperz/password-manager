@@ -28,12 +28,15 @@ import zio.test.TestResult.allSuccesses
 import is.clipperz.backend.services.OneTimeShareArchive
 import is.clipperz.backend.services.RemoteUserCard
 import is.clipperz.backend.services.RequestUserCard
+import is.clipperz.backend.functions.customErrorHandler
 
 object UserSpec extends ZIOSpec[SessionManager]:
     override def bootstrap: ZLayer[Any, Any, SessionManager] =
         sessionManagerLayer
 
-    val app = Main.clipperzBackend
+    val app =  (   usersApi
+               ).handleErrorCauseZIO(customErrorHandler)
+                .toHttpApp
     val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
     val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
     val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "one_time_share").nn

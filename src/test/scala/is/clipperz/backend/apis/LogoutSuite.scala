@@ -39,9 +39,12 @@ import is.clipperz.backend.functions.SrpFunctions.SrpFunctionsV6a
 import is.clipperz.backend.functions.SrpFunctions
 import is.clipperz.backend.services.SRPStep2Response
 import is.clipperz.backend.services.OneTimeShareArchive
+import is.clipperz.backend.functions.customErrorHandler
 
 object LogoutSpec extends ZIOSpecDefault:
-  val app = Main.clipperzBackend
+  val app =  ( logoutApi
+             ).handleErrorCauseZIO(customErrorHandler)
+              .toHttpApp
   val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
   val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
   val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "one_time_share").nn

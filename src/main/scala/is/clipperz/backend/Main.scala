@@ -35,6 +35,7 @@ import zio.http.endpoint.openapi.OpenAPIGen
 import zio.http.Status.NotFound
 import is.clipperz.backend.exceptions.*
 import java.time.format.DateTimeParseException
+import is.clipperz.backend.services.ChallengeType
 
 object Main extends zio.ZIOAppDefault:
   override val bootstrap =
@@ -48,8 +49,17 @@ object Main extends zio.ZIOAppDefault:
     ClipperzEnvironment
   ]
 
-  val clipperzBackend: ClipperzHttpApp = (usersApi ++ loginApi ++ logoutApi ++ blobsApi ++ oneTimeShareApi ++ staticApi).handleErrorCauseZIO(customErrorHandler).toHttpApp
-  val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (sessionChecks ++ hashcash)
+  val clipperzBackend: ClipperzHttpApp = (
+        usersApi        @@ hashcash(ChallengeType.REGISTER, ChallengeType.CONNECT)
+    ++  loginApi        @@ hashcash(ChallengeType.CONNECT,  ChallengeType.MESSAGE)
+    ++  logoutApi
+    ++  blobsApi        @@ hashcash(ChallengeType.MESSAGE,  ChallengeType.MESSAGE)
+    ++  oneTimeShareApi @@ hashcash(ChallengeType.SHARE,    ChallengeType.SHARE)
+    ++  staticApi
+    ).handleErrorCauseZIO(customErrorHandler)
+     .toHttpApp
+  
+  val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (sessionChecks)
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
     if args.length == 4 then

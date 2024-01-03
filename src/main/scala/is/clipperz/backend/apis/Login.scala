@@ -28,7 +28,7 @@ val loginApi: Routes[SessionManager & SrpManager, Throwable] = Routes(
             ZIO
             .service[SessionManager]
             .zip(ZIO.service[SrpManager])
-            .zip(ZIO.succeed(request.body.asStream)).tap(_ => ZIO.logInfo(s"STEP 1 - c:$c"))
+            .zip(ZIO.succeed(request.body.asStream))
             .flatMap((sessionManager, srpManager, content) =>
                 fromStream[SRPStep1Data](content)
                     .flatMap { loginStep1Data =>
