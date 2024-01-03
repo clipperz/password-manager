@@ -184,7 +184,15 @@ handleUserAreaEvent DeleteAccountEvent cardManagerState userAreaState state@{has
     ProxyResponse proxy''''  _ <- runStep (deleteUserInfo          {hashFunc, proxy: proxy'''}  masterKey                             ) (WidgetState (spinnerOverlay "Delete User Info"   White) page)
     ProxyResponse proxy''''' _ <- runStep (deleteUserCard          {hashFunc, proxy: proxy''''} c                                     ) (WidgetState (spinnerOverlay "Delete User Card"   White) page)
     _                          <- liftEffect $ window >>= localStorage >>= deleteCredentials
-    logoutSteps (state {proxy = proxy''''', username = Nothing}) "Logout" page
+    pure $ Tuple 
+            (resetState state {proxy = proxy'''''})
+            (WidgetState
+              hiddenOverlayInfo
+              (Login emptyLoginFormData { credentials = emptyCredentials
+                                        , loginType   = CredentialLogin
+                                        }
+              )
+            ) 
   # runExceptT
   >>= handleOperationResult state defaultErrorPage true White
 
