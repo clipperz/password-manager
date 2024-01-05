@@ -2,7 +2,7 @@ package is.clipperz.backend.middleware
 
 import java.util.NoSuchElementException
 import is.clipperz.backend.data.HexString
-import is.clipperz.backend.functions.{ fromString, extractPath, customMapError }
+import is.clipperz.backend.functions.{ fromString, customMapError }
 import is.clipperz.backend.services.{ ChallengeType, SessionManager, TollManager, TollChallenge }
 import is.clipperz.backend.Main.ClipperzHttpApp
 import is.clipperz.backend.exceptions.BadRequestException
@@ -17,6 +17,7 @@ import zio.json.EncoderOps
 import zio.http.{ Headers, Request, Response, Status }
 import zio.http.* //TODO: fix How do you import `!!` and `/`?
 import zio.http.Handler.RequestHandlerSyntax
+import is.clipperz.backend.services.SessionKey
 
 type TollMiddleware = HandlerAspect[TollManager & SessionManager, Any]
 
@@ -26,10 +27,10 @@ def verifyRequestToll(request: Request, challengeType: ChallengeType, nextChalle
       sessionManager.getSession(request).flatMap(session => {
         var tollIsValid = for {
           challengeJson     <-  ZIO.attempt(session(TollManager.tollChallengeContentKey).get)
-                                   .mapError(e => new BadRequestException("No challenge related to this session"))
           challenge         <-  fromString[TollChallenge](challengeJson)
           receipt           <-  ZIO.attempt(request.rawHeader(TollManager.tollReceiptHeader).map(HexString(_)).get)
-          tollIsValid       <-  tollManager.verifyToll(challenge, receipt)
+        //   _ <- ZIO.log("VERIGYING TOLL...")
+          tollIsValid       <-  tollManager.verifyToll(challenge, receipt)//.tap(_ => ZIO.log("TOLL VERIFIED"))
         } yield tollIsValid
 
         tollIsValid.catchAll(_ => ZIO.succeed(false))
@@ -37,22 +38,23 @@ def verifyRequestToll(request: Request, challengeType: ChallengeType, nextChalle
             challengeTypeForNextStep <-  ZIO.succeed(if (tollIsValid) then nextChallengeType else challengeType)
             challengeForNextStep     <-  tollManager.getToll(tollManager.getChallengeCost(challengeTypeForNextStep))
             _                        <-  sessionManager.saveSession(session + (TollManager.tollChallengeContentKey, challengeForNextStep.toJson))
-          } yield (tollIsValid, challengeForNextStep)
+          } yield (tollIsValid, challengeForNextStep, session.key)
         )
       })
-    }.mapError(customMapError)
+    }.mapError(customMapError) @@ LogAspect.logAnnotateRequestData(request)
 
 def hashcash(challengeType: ChallengeType, nextChallengeType: ChallengeType) = new Middleware[SessionManager & TollManager]:
   override def apply[Env1 <: SessionManager & TollManager, Err](routes: Routes[Env1, Err]): Routes[Env1, Err] =
     routes.transform(handler => 
         Handler.fromFunctionZIO[Request] { request =>
-            verifyRequestToll(request, challengeType, nextChallengeType).tap(res => ZIO.log(s"VERIFY REQUEST TOLL RESULT: $res"))
-            .map((isRequestTollValid, newToll) =>
+            verifyRequestToll(request, challengeType, nextChallengeType)
+            .map((isRequestTollValid, newToll, sessionKey) =>
                 ( if isRequestTollValid
                   then handler
                   else Handler.status(Status.PaymentRequired)
-                ).addHeader(TollManager.tollHeader,     newToll.toll.toString)
-                 .addHeader(TollManager.tollCostHeader, newToll.cost.toString)
+                ).addHeader(TollManager.tollHeader,              newToll.toll.toString)
+                 .addHeader(TollManager.tollCostHeader,          newToll.cost.toString)
+                 .addHeader(SessionManager.sessionKeyHeaderName, sessionKey)
             )
         }.flatten
     )

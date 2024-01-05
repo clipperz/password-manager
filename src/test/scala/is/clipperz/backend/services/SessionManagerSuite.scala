@@ -7,6 +7,7 @@ import java.security.MessageDigest
 import scala.language.postfixOps
 import zio.{ Chunk, ZIO }
 import zio.stream.{ ZStream, ZSink }
+import zio.test.TestResult.{ allSuccesses }
 import zio.test.Assertion.{ nothing, throws, throwsA, fails, isSubtype, anything }
 import zio.test.{ ZIOSpecDefault, assertTrue, assert, assertCompletes, assertNever, assertZIO, TestAspect }
 import zio.json.EncoderOps
@@ -40,7 +41,7 @@ object SessionManagerSpec extends ZIOSpecDefault:
     remoteAddress = None
   )
 
-  val layers = SessionManager.live
+  val layers = PRNG.live ++ (PRNG.live >>> SessionManager.live)
 
   def spec = suite("SessionManager")(
     test("getSession - empty") {
@@ -65,16 +66,15 @@ object SessionManagerSpec extends ZIOSpecDefault:
     test("verifySessionUser - success") {
       for {
         manager <- ZIO.service[SessionManager]
-        _ <- manager.verifySessionUser(c, testSession)
-      } yield assertCompletes
+      } yield allSuccesses(
+        assertCompletes
+      , assertTrue(manager.verifySessionUser(c, testSession))
+      )
     } +
     test("verifySessionUser - fail - different C") {
       for {
         manager <- ZIO.service[SessionManager]
-        res <- assertZIO(manager.verifySessionUser(cfail, testSession).exit)(
-          fails(isSubtype[BadRequestException](anything))
-        )
-      } yield res
+      } yield assertTrue(manager.verifySessionUser(cfail, testSession) == false)
     } +
     test("deleteSession - success") {
       for {
@@ -86,7 +86,6 @@ object SessionManagerSpec extends ZIOSpecDefault:
     test("verifySessionUser - fail - no c") {
       for {
         manager <- ZIO.service[SessionManager]
-        res <- assertZIO(manager.verifySessionUser(c, emptyTestSession).exit)(fails(isSubtype[BadRequestException](anything)))
-      } yield res
+      } yield assertTrue(manager.verifySessionUser(c, emptyTestSession) == false)
     }
   ).provideLayerShared(layers) @@ TestAspect.sequential

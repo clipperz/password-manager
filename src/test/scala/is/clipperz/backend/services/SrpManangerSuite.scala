@@ -36,7 +36,7 @@ object SrpManangerSpec extends ZIOSpecDefault:
   val layers =
     archive ++
       PRNG.live ++
-      SessionManager.live ++
+      (PRNG.live >>> SessionManager.live) ++
       ((archive ++ PRNG.live) >>> SrpManager.v6a())
 
   val testRequestEmpty = Request(

@@ -41,7 +41,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
     val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
     val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "one_time_share").nn
 
-    val sessionManagerLayer: Layer[Nothing, SessionManager] = SessionManager.live
+    val sessionManagerLayer = PRNG.live ++ (PRNG.live >>> SessionManager.live)
 
     val environment =
         PRNG.live ++

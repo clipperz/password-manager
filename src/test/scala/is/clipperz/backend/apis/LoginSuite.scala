@@ -56,7 +56,7 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
 
   val environment =
     PRNG.live ++
-    SessionManager.live ++
+    (PRNG.live >>> SessionManager.live) ++
     UserArchive.fs(userBasePath, 2, false) ++
     BlobArchive.fs(blobBasePath, 2, false) ++
     OneTimeShareArchive.fs(oneTimeShareBasePath, 2, false) ++

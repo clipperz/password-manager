@@ -6,7 +6,7 @@ import zio.test.Spec
 import zio.test.{ ZIOSpecDefault, assertTrue, assert, assertCompletes, assertZIO, TestAspect }
 import java.nio.file.FileSystems
 
-import is.clipperz.backend.functions.collectFileSystemMetrics
+import is.clipperz.backend.middleware.collectFileSystemMetrics
 import java.nio.file.Files
 import zio.ZIO
 

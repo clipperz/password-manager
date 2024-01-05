@@ -11,7 +11,7 @@ import is.clipperz.backend.exceptions.{
   ResourceNotFoundException,
   EmptyContentException,
 }
-import is.clipperz.backend.functions.scheduledFileSystemMetricsCollection
+import is.clipperz.backend.middleware.scheduledFileSystemMetricsCollection
 import zio.Duration
 
 // ============================================================================

@@ -14,11 +14,11 @@ import Data.Bifunctor (lmap)
 import Data.BigInt (BigInt, fromInt)
 import Data.Either (note)
 import Data.Eq ((==))
-import Data.Function (flip, (#), ($))
+import Data.Function ((#), ($))
 import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
 import Data.HexString (HexString, fromArrayBuffer, fromBigInt, toArrayBuffer, toBigInt)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
@@ -50,16 +50,12 @@ type PrepareLoginResult = {
 }
 
 prepareLogin :: Proxy -> SRPConf -> Credentials -> ExceptT AppError Aff (ProxyResponse PrepareLoginResult)
-prepareLogin (StaticProxy _)                               _        _                     = throwError $ UnhandledCondition "TODO"
-prepareLogin (OnlineProxy url tollManager maybeSessionKey) srpConf { username, password } = do
+prepareLogin       (StaticProxy _)                               _        _                     = throwError $ UnhandledCondition "TODO"
+prepareLogin proxy@(OnlineProxy _ _ _) srpConf { username, password } = do
   c         <- liftAff $ fromArrayBuffer <$> SRP.prepareC srpConf username password
   p         <- liftAff $ fromArrayBuffer <$> SRP.prepareP srpConf username password
 
-  sessionKey <- liftAff $ flip fromMaybe maybeSessionKey <$> (fromArrayBuffer <$> SRP.randomArrayBuffer 32)
-  
-  let newProxy = OnlineProxy url tollManager (Just sessionKey)
-
-  pure $ ProxyResponse newProxy {c, p}
+  pure $ ProxyResponse proxy {c, p}
   
 -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

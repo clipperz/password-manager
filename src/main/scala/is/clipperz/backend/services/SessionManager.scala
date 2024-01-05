@@ -5,6 +5,7 @@ import zio.{ ZIO, Layer, ZLayer, Tag, Task }
 import zio.internal.stacktracer.Tracer
 import zio.http.Request
 import is.clipperz.backend.exceptions.BadRequestException
+import is.clipperz.backend.data.HexString.bytesToHex
 
 type SessionKey = String
 type SessionContent = Map[String, String]
@@ -20,27 +21,24 @@ case class Session(val key: SessionKey, val content: SessionContent):
 trait SessionManager:
   def getSession(request: Request): Task[Session]
   def saveSession(content: Session): Task[SessionKey]
-  def verifySessionUser(c: String, session: Session): Task[Unit] =
+  def verifySessionUser(c: String, session: Session): Boolean =
     session("c") match
-      case Some(session_c) =>
-        if (session_c == c) 
-          then ZIO.succeed(())
-          else ZIO.fail(new BadRequestException("c in request path differs from c in session"))
-      case None => ZIO.fail(new BadRequestException("session does not contain c"))
+      case Some(session_c) => session_c == c
+      case None => false
   def deleteSession(request: Request): Task[Unit]
 
 object SessionManager:
   val sessionKeyHeaderName = "clipperz-usersession-id"
 
-  case class TrivialSessionManager(/* */) extends SessionManager:
+  case class TrivialSessionManager(prng: PRNG) extends SessionManager:
     var sessions: Map[SessionKey, Session] = new HashMap[SessionKey, Session]()
     def emptySession(key: SessionKey) = Session(key, new HashMap[String, String]())
 
     override def getSession(request: Request): Task[Session] =
       ZIO
         .attempt(request.rawHeader(SessionManager.sessionKeyHeaderName).get)
+        .catchAll(_ => prng.nextBytes(32).map(bytesToHex(_).toString()))
         .map(key => sessions.getOrElse(key, emptySession(key)))
-        .mapError(err => new BadRequestException("session key not found in header"))
 
     override def saveSession(content: Session): Task[SessionKey] =
       sessions = sessions + ((content._1, content))
@@ -51,5 +49,10 @@ object SessionManager:
          .map(key => sessions = sessions - key)
          .mapError(_ => new NoSuchElementException("session header key not found when deleting session"))
 
-  val live: Layer[Nothing, SessionManager] =
-    ZLayer.succeed[SessionManager](new TrivialSessionManager)(Tag[SessionManager], Tracer.newTrace)
+  val live: ZLayer[PRNG, Throwable, SessionManager] =
+    ZLayer.scoped(
+      for {
+        prng <- ZIO.service[PRNG]
+      } yield TrivialSessionManager(prng)
+    )
+    // ZLayer.succeed[SessionManager](new TrivialSessionManager)(Tag[SessionManager], Tracer.newTrace)

@@ -8,6 +8,7 @@ import Affjax.StatusCode (StatusCode(..))
 import Affjax.Web as AXW
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
+import Control.Category ((>>>))
 import Control.Monad.Except.Trans (ExceptT(..), throwError, withExceptT)
 import Data.Array (filter)
 import Data.Bifunctor (lmap)
@@ -36,6 +37,8 @@ import DataModel.SRP (HashFunction)
 import DataModel.StatelessAppState (Proxy(..), ProxyResponse(..))
 import Effect.Aff (Aff, delay)
 import Effect.Aff.Class (liftAff)
+import Effect.Class (liftEffect)
+import Effect.Console (log)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Record (merge)
 
@@ -102,23 +105,27 @@ manageGenericRequest connectionState@{ proxy, hashFunc } path method body respon
     manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AS.AppError Aff (ProxyResponse (AXW.Response a)))
     manageResponse code@(StatusCode n)
       | n == 402          = \response -> -- TODO: improve
-          case (extractChallenge response.headers) of
-            Just challenge -> do
+          case extractChallenge response.headers, extractSession response.headers of
+            Just challenge, Just session -> do
                   receipt <- liftAff $ computeReceipt hashFunc challenge
-                  manageGenericRequest { proxy: (updateToll proxy { toll: Done receipt, currentChallenge: Just challenge }), hashFunc } path method body responseFormat
-            Nothing -> throwError $ AS.ProtocolError (IllegalResponse "HashCash headers not present or wrong")
+                  liftEffect $ log "CHALLENGE TOLL COMPUTED, SENDING NEW REQUEST..."
+                  manageGenericRequest { proxy: (updateToll { toll: Done receipt, currentChallenge: Just challenge } >>> updateSession (Just session)) proxy, hashFunc } path method body responseFormat
+            _, _ -> throwError $ AS.ProtocolError (IllegalResponse "HashCash and Session headers not present or wrong")
       | isStatusCodeOk code = \(response :: AXW.Response a) ->
-          case (extractChallenge response.headers) of
-            Nothing -> 
-                  pure $ ProxyResponse (updateToll proxy { toll: Loading Nothing, currentChallenge: Nothing }) response
-            Just challenge -> do
+          case extractChallenge response.headers, extractSession response.headers of
+            Just challenge, Just session -> do
                   receipt  <- liftAff $ computeReceipt hashFunc challenge --TODO this is not async anymore
-                  pure $ ProxyResponse (updateToll proxy { toll: Done receipt, currentChallenge: Just challenge }) response
+                  pure $ ProxyResponse (updateToll { toll: Done receipt, currentChallenge: Just challenge } >>> updateSession (Just session) $ proxy) response
+            _, _ -> 
+                  pure $ ProxyResponse (updateToll { toll: Loading Nothing, currentChallenge: Nothing }     >>> updateSession Nothing        $ proxy) response
       | otherwise           = \_ ->
           throwError $ AS.ProtocolError (ResponseError n)
 
-    updateToll (OnlineProxy baseUrl oldTollManager sessionKey) tollManager = OnlineProxy baseUrl (merge tollManager oldTollManager) sessionKey
-    updateToll offline@(StaticProxy _)                         _           = offline
+    updateToll tollManager (OnlineProxy baseUrl oldTollManager sessionKey) = OnlineProxy baseUrl (merge tollManager oldTollManager) sessionKey
+    updateToll _           offline@(StaticProxy _)                         = offline
+    
+    updateSession sessionKey (OnlineProxy baseUrl tollManager _) = OnlineProxy baseUrl tollManager sessionKey
+    updateSession _          offline@(StaticProxy _)             = offline
     
     extractChallenge :: Array ResponseHeader -> Maybe TollChallenge
     extractChallenge headers =
@@ -127,6 +134,13 @@ manageGenericRequest connectionState@{ proxy, hashFunc } path method body respon
       in case tollArray, costArray of
           [tollHeader], [costHeader] -> (\cost -> { toll: hex $ value tollHeader, cost }) <$> fromString (value costHeader)
           _,             _           -> Nothing
+
+    extractSession :: Array ResponseHeader -> Maybe SessionKey
+    extractSession headers =
+      let sessionArray = filter (\a -> name a == sessionKeyHeaderName) headers
+      in case sessionArray of
+        [sessionHeader] -> Just $ hex (value sessionHeader)
+        _               -> Nothing
 
     doOnlineRequest :: String -> ExceptT ProtocolError Aff (AXW.Response a)
     doOnlineRequest baseUrl =

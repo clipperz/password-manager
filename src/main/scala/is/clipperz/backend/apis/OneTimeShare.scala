@@ -13,7 +13,6 @@ import is.clipperz.backend.exceptions.{ BadRequestException, FailedConversionExc
 import is.clipperz.backend.functions.fromStream
 import is.clipperz.backend.services.{ SessionManager, SrpManager, SRPStep1Data, SRPStep2Data }
 import is.clipperz.backend.services.{ OneTimeShareArchive, OneTimeSecret }
-import is.clipperz.backend.functions.responseTimer
 
 import zio.{ ZIO, Cause, Chunk }
 import zio.http.{ Method, Path, Response, Request, Status }
@@ -40,50 +39,46 @@ object OneTimeSecretData:
 
 val oneTimeShareApi = Routes(
   Method.POST / "api" / "share" -> handler : (request: Request) =>
-    responseTimer("share", request.method)(
-      ZIO
-        .service[OneTimeShareArchive]
-        .zip(ZIO.succeed(request.body.asStream))
-        .flatMap((archive, stream) =>
-          fromStream[OneTimeSecretData](stream)
-            .map ((secretData: OneTimeSecretData) => 
-              val start = DateTime.now().withZone(DateTimeZone.UTC).nn
-              OneTimeSecret(secretData.secret, start + secretData.duration.toLong, Option(secretData.version))
-            )
-            .flatMap ((secret: OneTimeSecret) =>
-              archive.saveSecret(ZStream.fromChunks(Chunk.fromArray((secret).toJson.getBytes(StandardCharsets.UTF_8).nn)))
-            )
-        ) 
-        .map(id => Response.text(s"${id}"))
-    ) @@ LogAspect.logAnnotateRequestData(request)
+    ZIO
+    .service[OneTimeShareArchive]
+    .zip(ZIO.succeed(request.body.asStream))
+    .flatMap((archive, stream) =>
+        fromStream[OneTimeSecretData](stream)
+        .map ((secretData: OneTimeSecretData) => 
+            val start = DateTime.now().withZone(DateTimeZone.UTC).nn
+            OneTimeSecret(secretData.secret, start + secretData.duration.toLong, Option(secretData.version))
+        )
+        .flatMap ((secret: OneTimeSecret) =>
+            archive.saveSecret(ZStream.fromChunks(Chunk.fromArray((secret).toJson.getBytes(StandardCharsets.UTF_8).nn)))
+        )
+    ) 
+    .map(id => Response.text(s"${id}")) @@ LogAspect.logAnnotateRequestData(request)
 ,
   Method.GET / "api" / "redeem" / string("id") -> handler : (id: String, request: Request)=>
-    responseTimer("redeem", request.method)(
-      ZIO
-        .service[OneTimeShareArchive]
-        .flatMap(archive =>
-          archive.getSecret(id).flatMap(oneTimeSecret => 
-              if (oneTimeSecret.expirationDate < DateTime.now()) {
-                archive.deleteSecret(id).flatMap(_ =>
-                  ZIO.fail(new ResourceExpiredException("Secret Expired"))
+    ZIO
+    .service[OneTimeShareArchive]
+    .flatMap(archive =>
+        archive.getSecret(id).flatMap(oneTimeSecret => 
+            if (oneTimeSecret.expirationDate < DateTime.now()) {
+            archive.deleteSecret(id).flatMap(_ =>
+                ZIO.fail(new ResourceExpiredException("Secret Expired"))
+            )
+            } else {
+            ZIO.succeed(
+                ( oneTimeSecret.version
+                , ZStream
+                    .fromChunk(Chunk.fromArray(oneTimeSecret.secret.toByteArray))
+                    .ensuring(archive.deleteSecret(id).isSuccess)
                 )
-              } else {
-                ZIO.succeed(
-                  ( oneTimeSecret.version
-                  , ZStream
-                      .fromChunk(Chunk.fromArray(oneTimeSecret.secret.toByteArray))
-                      .ensuring(archive.deleteSecret(id).isSuccess)
-                  )
-                )
-              }
-          )
+            )
+            }
         )
-        .map((version: Option[String], bytes: ZStream[Any, Throwable, Byte]) => 
-          Response(
-            status = Status.Ok,
-            headers = version.map(v => Headers("clipperz-onetimesecret-version", v)).getOrElse(Headers.empty),
-            body = Body.fromStream(bytes),
-          )
+    )
+    .map((version: Option[String], bytes: ZStream[Any, Throwable, Byte]) => 
+        Response(
+        status = Status.Ok,
+        headers = version.map(v => Headers("clipperz-onetimesecret-version", v)).getOrElse(Headers.empty),
+        body = Body.fromStream(bytes),
         )
     ) @@ LogAspect.logAnnotateRequestData(request)
 )

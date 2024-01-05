@@ -29,13 +29,12 @@ import is.clipperz.backend.services.SrpManager
 import is.clipperz.backend.services.TollChallenge
 import is.clipperz.backend.services.TollReceipt
 import java.net.InetAddress
-import is.clipperz.backend.middleware.SessionMiddlewareSpec.idApp
 import is.clipperz.backend.services.ChallengeType
 
 object HashCashMiddlewareSpec extends ZIOSpecDefault:
   val layers =
     PRNG.live ++
-      SessionManager.live ++
+      (PRNG.live >>> SessionManager.live) ++
       (PRNG.live >>> TollManager.live)
 
   val sessionKey = "____sessionKey____"

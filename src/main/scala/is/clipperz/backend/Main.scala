@@ -25,7 +25,7 @@ import zio.http.netty.NettyConfig.LeakDetectionLevel
 
 import is.clipperz.backend.apis.{ blobsApi, loginApi, logoutApi, staticApi, usersApi, oneTimeShareApi }
 import is.clipperz.backend.functions.{ customErrorHandler }
-import is.clipperz.backend.middleware.{ sessionChecks, hashcash }
+import is.clipperz.backend.middleware.{ hashcash, metrics }
 import is.clipperz.backend.services.{ BlobArchive, PRNG, SessionManager, SrpManager, TollManager, UserArchive, OneTimeShareArchive }
 import zio.http.Server.RequestStreaming
 import zio.http.Routes
@@ -59,7 +59,7 @@ object Main extends zio.ZIOAppDefault:
     ).handleErrorCauseZIO(customErrorHandler)
      .toHttpApp
   
-  val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (sessionChecks)
+  val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ metrics()
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
     if args.length == 4 then
