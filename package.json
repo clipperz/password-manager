@@ -13,7 +13,8 @@
         "keep-building": "spago --jobs 10 build --watch --purs-args '--codegen js,sourcemaps -o ./target/output.purescript'",
         "keep-packaging": "webpack watch --config ./webpack.config.js --stats verbose",
         "rebuild": "clear; npm run clean; npm run build",
-        "test-browser": "webpack serve --config ./webpack.test.config.js --stats verbose"
+        "test-browser": "webpack serve --config ./webpack.test.config.js --stats verbose",
+        "upgrade-set": "spago upgrade-set"
     },
     "devDependencies": {
         "css-loader": "^6.7.3",
@@ -33,6 +34,7 @@
         "big-integer": "^1.6.51",
         "buffer": "^6.0.3",
         "decimal.js": "^10.3.1",
+        "downloadjs": "^1.4.7",
         "long": "4.0.0",
         "markdown-it": "^13.0.1",
         "react": "17.0.2",

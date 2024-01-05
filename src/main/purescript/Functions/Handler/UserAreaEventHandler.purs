@@ -24,7 +24,8 @@ import Data.Function ((#), ($))
 import Data.HTTP.Method (Method(..))
 import Data.HexString (hex)
 import Data.HeytingAlgebra (not)
-import Data.List (foldl)
+import Data.List (List(..), foldl)
+import Data.List as List
 import Data.Maybe (Maybe(..), fromMaybe, isJust, isNothing)
 import Data.Monoid ((<>))
 import Data.Newtype (unwrap)
@@ -43,9 +44,10 @@ import Effect.Class (liftEffect)
 import Effect.Console (log)
 import Functions.Card (addTag)
 import Functions.Communication.Blobs (deleteBlobWithReference)
-import Functions.Communication.Cards (deleteCard, postCard)
+import Functions.Communication.Cards (deleteCard, getCard, postCard)
 import Functions.Communication.StatelessBackend (manageGenericRequest)
 import Functions.Communication.Users (deleteUserCard, deleteUserInfo, updateIndex, updateUserPreferences)
+import Functions.Export (prepareCardsForUnencryptedExport)
 import Functions.Handler.CardManagerEventHandler (getCardSteps)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
 import Functions.Import (decodeHTML, decodeImport, parseHTMLImport, readFile)
@@ -56,11 +58,13 @@ import Functions.Timer (activateTimer, stopTimer)
 import Functions.User (changeUserPassword)
 import Views.AppView (Page(..), WidgetState(..), emptyMainPageWidgetState)
 import Views.CardsManagerView (CardManagerState, CardViewState(..))
+import Views.ExportView (ExportEvent(..))
 import Views.ImportView (ImportStep(..))
 import Views.LoginFormView (LoginType(..), emptyLoginFormData)
 import Views.OverlayView (OverlayColor(..), hiddenOverlayInfo, spinnerOverlay)
 import Views.SetPinView (PinEvent(..))
 import Views.UserAreaView (UserAreaEvent(..), UserAreaPage(..), UserAreaState, userAreaInitialState)
+import Web.DownloadJs (download)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
 import Web.Storage.Storage (getItem)
@@ -300,11 +304,33 @@ handleUserAreaEvent (ImportCardsEvent importState) cardManagerState userAreaStat
                 }
 
 
-handleUserAreaEvent (ExportJsonEvent) _ _ state _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ExportJsonEvent")            --TODO: implement [fsolaroli - 29/11/2023]
+handleUserAreaEvent (ExportEvent OfflineCopy) _ _ state _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ExportOfflineCopyEvent")  --TODO: implement [fsolaroli - 29/11/2023]
 
 
-handleUserAreaEvent (ExportOfflineCopyEvent) _ _ state _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ExportOfflineCopyEvent")     --TODO: implement [fsolaroli - 29/11/2023]
-
+handleUserAreaEvent (ExportEvent UnencryptedCopy) cardManagerState userAreaState state@{index: Just index@(Index cardEntryList), username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword} _ =
+  do
+    let nToDownload = List.length cardEntryList
+    Tuple state' cardList <- foldWithIndexM (\i (Tuple state' cards) cardEntry -> do
+          Tuple state'' card <- runStep (getCard state' cardEntry) (WidgetState (spinnerOverlay ("Download card " <> show i <> " of " <> show nToDownload) White) page)
+          pure $ Tuple state'' (List.snoc cards card)
+        ) (Tuple state Nil) cardEntryList
+    
+    doc  <- liftEffect $ prepareCardsForUnencryptedExport cardList
+    date <- runStep (liftEffect $ formatDateTimeToDate <$> getCurrentDateTime) (WidgetState (spinnerOverlay "Create document" White) page)
+    _    <- liftEffect $ download doc (date <> "_Clipperz_Export_" <> username <> ".html") "application/octet-stream"
+  
+    pure $ Tuple state' (WidgetState hiddenOverlayInfo page)
+  # runExceptT
+  >>= handleOperationResult state page true White  
+  
+  where
+      page = Main { index
+                  , credentials:      {username, password}
+                  , pinExists:        isJust pinEncryptedPassword
+                  , userPreferences
+                  , userAreaState
+                  , cardManagerState
+                  }
 
 handleUserAreaEvent LockEvent cardManagerState userAreaState state@{username: Just username, password: Just password, index: Just index, userPreferences: Just userPreferences, pinEncryptedPassword} _ = 
   logoutSteps state "Lock" page

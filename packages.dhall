@@ -1,6 +1,6 @@
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.15.4-20221107/packages.dhall
-        sha256:cd0c29e8a69cf70b714ce3ee91c57c02b3d20a1118e35dd8405f33aa80177849
+      https://github.com/purescript/package-sets/releases/download/psc-0.15.7-20230408/packages.dhall
+        sha256:eafb4e5bcbc2de6172e9457f321764567b33bc7279bd6952468d0d422aa33948
 
 in  upstream
   with bigints =
@@ -139,7 +139,7 @@ in  upstream
     , version = "clipperz"
     }
   with markdown-it =
-    { dependencies = 
+    { dependencies =
       [ "effect"
       , "prelude"
       , "psci-support"

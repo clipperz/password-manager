@@ -46,7 +46,7 @@ import Effect.Exception (error)
 import Foreign (readString)
 import Functions.Communication.BackendCommunication (manageGenericRequest, isStatusCodeOk)
 import Functions.Communication.Blobs (getBlob)
-import Functions.Communication.Cards (getCard)
+import Functions.Communication.Cards (getCardWithState)
 import Functions.Communication.Users (getRemoteUserCard)
 import Functions.Events (renderElement)
 import Functions.JSState (getAppState)
@@ -216,6 +216,17 @@ prepareUnencryptedCopySteps placeholders mkPlaceholderGetCard index = toUnfoldab
     ]
   )
 
+prepareCardsForUnencryptedExport :: List Card -> Effect String
+prepareCardsForUnencryptedExport cardList = do
+  dt <- getCurrentDateTime
+  let date = formatDateTimeToDate dt
+  let time = formatDateTimeToTime dt
+  let styleString    = "<style type=\"text/css\">" <> unencryptedExportStyle <> "</style>"
+  let htmlDocString1 = "<div><header><h1>Your data on Clipperz</h1><h5>Export generated on " <> date <> " at " <> time <> "</h5></header>"
+  let htmlDocString2 = "</div>"
+  let htmlDocContent = prepareUnencryptedContent cardList
+  pure $ styleString <> htmlDocString1 <> htmlDocContent <> htmlDocString2
+
 ------------------------------------------------
 
 prepareBlobListSteps :: forall m. MonadAff m => MonadEffect m => (Int -> m (Either String OfflineCopyStepResult)) -> Index -> ExceptT AppError Aff (List (OperationStep (Either String OfflineCopyStepResult) (Either String String) m))
@@ -258,12 +269,12 @@ prepareCardListSteps placeholderFunc (Index entries) =
                     \prevRes -> case prevRes of
                       Left err -> pure $ Left err
                       Right (CardList cards) -> do
-                        newCard <- liftAff $ runExceptT $ getCard cardReference
+                        newCard <- liftAff $ runExceptT $ getCardWithState cardReference
                         case newCard of
                           Left err -> pure $ Left $ show err
                           Right c -> pure $ Right $ CardList $ snoc cards c
                       Right StartStep -> do
-                        newCard <- liftAff $ runExceptT $ getCard cardReference
+                        newCard <- liftAff $ runExceptT $ getCardWithState cardReference
                         case newCard of
                           Left err -> pure $ Left $ show err
                           Right c -> pure $ Right $ CardList $ Cons c Nil
@@ -282,7 +293,7 @@ formatText = (replaceAll (Pattern "<") (Replacement "&lt;")) <<< (replaceAll (Pa
 prepareCardList :: Index -> ExceptT AppError Aff (List Card)
 prepareCardList (Index l) = do
   let refs = (\(CardEntry cr) -> cr.cardReference) <$> (sort l)
-  sequence $ getCard <$> refs
+  sequence $ getCardWithState <$> refs
 
 prepareUnencryptedContent :: List Card -> String
 prepareUnencryptedContent l = 
