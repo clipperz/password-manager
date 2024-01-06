@@ -6,6 +6,12 @@ import zio.internal.stacktracer.Tracer
 import zio.http.Request
 import is.clipperz.backend.exceptions.BadRequestException
 import is.clipperz.backend.data.HexString.bytesToHex
+import zio.cache.Cache
+import java.util.concurrent.TimeUnit
+import java.time.Duration
+import zio.cache.Lookup
+import zio.Ref
+import scala.concurrent.duration.fromNow
 
 type SessionKey = String
 type SessionContent = Map[String, String]
@@ -34,25 +40,55 @@ object SessionManager:
     var sessions: Map[SessionKey, Session] = new HashMap[SessionKey, Session]()
     def emptySession(key: SessionKey) = Session(key, new HashMap[String, String]())
 
-    override def getSession(request: Request): Task[Session] =
+    override def getSession (request: Request): Task[Session] =
       ZIO
         .attempt(request.rawHeader(SessionManager.sessionKeyHeaderName).get)
         .catchAll(_ => prng.nextBytes(32).map(bytesToHex(_).toString()))
         .map(key => sessions.getOrElse(key, emptySession(key)))
 
-    override def saveSession(content: Session): Task[SessionKey] =
+    override def saveSession (content: Session): Task[SessionKey] =
       sessions = sessions + ((content._1, content))
       ZIO.succeed(content._1)
 
-    override def deleteSession(request: Request): Task[Unit] =
+    override def deleteSession (request: Request): Task[Unit] =
       ZIO.attempt(request.rawHeader(SessionManager.sessionKeyHeaderName).get)
          .map(key => sessions = sessions - key)
          .mapError(_ => new NoSuchElementException("session header key not found when deleting session"))
 
+  case class ZioCacheSessionManager (prng: PRNG, sessions: Cache[String, Nothing, Ref[Session]]) extends SessionManager:
+    // val sessions =  Cache.make(capacity = 100, timeToLive = Duration.ofMinutes(10).nn, lookup = Lookup(emptySession))
+    // def emptySession (key: SessionKey): ZIO[Any, Nothing, Ref[Session]] = Ref.make(Session(key, new HashMap[String, String]()))
+
+    override def getSession (request: Request): Task[Session] =
+      ZIO
+        .attempt (request.rawHeader(SessionManager.sessionKeyHeaderName).get)
+        .catchAll(_   => prng.nextBytes(32).map(bytesToHex(_).toString()))
+        .flatMap (key => sessions.get(key))
+        .flatMap (_.get)
+
+    override def saveSession (content: Session): Task[SessionKey] =
+      sessions
+        .get(content.key)
+        .flatMap(ref => ref.set(content))
+        .flatMap(_   => ZIO.succeed(content.key))
+
+    override def deleteSession (request: Request): Task[Unit] =
+      ZIO
+        .attempt (request.rawHeader(SessionManager.sessionKeyHeaderName).get)
+        .catchAll(_   => prng.nextBytes(32).map(bytesToHex(_).toString()))
+        .flatMap (key => sessions.invalidate(key))
+
+
   val live: ZLayer[PRNG, Throwable, SessionManager] =
+    // ZLayer.scoped(
+    //   for {
+    //     prng <- ZIO.service[PRNG]
+    //   } yield TrivialSessionManager(prng)
+    // )
+
     ZLayer.scoped(
       for {
-        prng <- ZIO.service[PRNG]
-      } yield TrivialSessionManager(prng)
+        prng      <- ZIO.service[PRNG]
+        sessions  <- Cache.make(capacity = 100, timeToLive = Duration.ofMinutes(10).nn, lookup = Lookup((key: SessionKey) => Ref.make(Session(key, new HashMap[String, String]))))
+      } yield ZioCacheSessionManager(prng, sessions)
     )
-    // ZLayer.succeed[SessionManager](new TrivialSessionManager)(Tag[SessionManager], Tracer.newTrace)
