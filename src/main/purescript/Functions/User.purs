@@ -21,14 +21,14 @@ import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
-import DataModel.AppState (AppError(..), InvalidStateError(..))
+import DataModel.AppError (AppError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState)
+import DataModel.AppState (ProxyResponse(..), AppState, InvalidStateError(..))
 import DataModel.User (MasterKey, MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserInfoReferences(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Exception as EX
-import Functions.Communication.StatelessBackend (isStatusCodeOk, manageGenericRequest)
+import Functions.Communication.Backend (isStatusCodeOk, manageGenericRequest)
 import Functions.EncodeDecode (decryptJson, encryptJson)
 import Functions.SRP as SRP
 
@@ -37,7 +37,7 @@ type ModifyUserData = { c :: HexString
                       , s :: HexString
                       }
 
-changeUserPassword :: StatelessAppState -> String -> ExceptT AppError Aff (ProxyResponse ModifyUserData)
+changeUserPassword :: AppState -> String -> ExceptT AppError Aff (ProxyResponse ModifyUserData)
 changeUserPassword {srpConf, c: Just oldC, p: Just oldP, username: Just username, proxy, hash: hashFunc, masterKey: Just (Tuple masterKeyContent _)} newPassword = do
   s        <- liftAff $ SRP.randomArrayBuffer 32
   newC     <- liftAff $ SRP.prepareC srpConf username newPassword

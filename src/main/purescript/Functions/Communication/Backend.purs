@@ -1,4 +1,4 @@
-module Functions.Communication.StatelessBackend where
+module Functions.Communication.Backend where
 
 import Affjax.RequestBody (RequestBody)
 import Affjax.RequestHeader (RequestHeader(..))
@@ -29,16 +29,14 @@ import Data.String.Common (joinWith)
 import Data.Time.Duration (Milliseconds(..))
 import Data.Unfoldable (fromMaybe)
 import Data.Unit (Unit)
-import DataModel.AppState as AS
+import DataModel.AppError (AppError(..))
 import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue)
 import DataModel.Communication.FromString (class FromString)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.SRP (HashFunction)
-import DataModel.StatelessAppState (Proxy(..), ProxyResponse(..))
+import DataModel.AppState (Proxy(..), ProxyResponse(..))
 import Effect.Aff (Aff, delay)
 import Effect.Aff.Class (liftAff)
-import Effect.Class (liftEffect)
-import Effect.Console (log)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Record (merge)
 
@@ -83,7 +81,7 @@ foreign import _readBlob :: String -> String
 
 foreign import _readUserCard :: Unit -> String
 
-manageGenericRequest :: forall a. FromString a => ConnectionState -> Path -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AS.AppError Aff (ProxyResponse (AXW.Response a))
+manageGenericRequest :: forall a. FromString a => ConnectionState -> Path -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AppError Aff (ProxyResponse (AXW.Response a))
 manageGenericRequest connectionState@{ proxy, hashFunc } path method body responseFormat = do
   case proxy of
     (OnlineProxy baseUrl tollManager _) -> do
@@ -93,24 +91,23 @@ manageGenericRequest connectionState@{ proxy, hashFunc } path method body respon
           liftAff $ delay $ Milliseconds 1.0 -- TODO: may be changed from busy waiting to waiting for a signal
           manageGenericRequest connectionState path method body responseFormat
         _                -> do -- Loading Nothing || Done _
-          response <- withExceptT AS.ProtocolError (doOnlineRequest baseUrl)
+          response <- withExceptT ProtocolError (doOnlineRequest baseUrl)
           manageResponse response.status response
           
 
     (StaticProxy _) -> do
-      -- withExceptT AS.ProtocolError $ doOfflineRequest session
-      throwError $ AS.ProtocolError (ResponseError 500)
+      -- withExceptT ProtocolError $ doOfflineRequest session
+      throwError $ ProtocolError (ResponseError 500)
   
   where
-    manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AS.AppError Aff (ProxyResponse (AXW.Response a)))
+    manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AppError Aff (ProxyResponse (AXW.Response a)))
     manageResponse code@(StatusCode n)
       | n == 402          = \response -> -- TODO: improve
           case extractChallenge response.headers, extractSession response.headers of
             Just challenge, Just session -> do
                   receipt <- liftAff $ computeReceipt hashFunc challenge
-                  liftEffect $ log "CHALLENGE TOLL COMPUTED, SENDING NEW REQUEST..."
                   manageGenericRequest { proxy: (updateToll { toll: Done receipt, currentChallenge: Just challenge } >>> updateSession (Just session)) proxy, hashFunc } path method body responseFormat
-            _, _ -> throwError $ AS.ProtocolError (IllegalResponse "HashCash and Session headers not present or wrong")
+            _, _ -> throwError $ ProtocolError (IllegalResponse "HashCash and Session headers not present or wrong")
       | isStatusCodeOk code = \(response :: AXW.Response a) ->
           case extractChallenge response.headers, extractSession response.headers of
             Just challenge, Just session -> do
@@ -119,7 +116,7 @@ manageGenericRequest connectionState@{ proxy, hashFunc } path method body respon
             _, _ -> 
                   pure $ ProxyResponse (updateToll { toll: Loading Nothing, currentChallenge: Nothing }     >>> updateSession Nothing        $ proxy) response
       | otherwise           = \_ ->
-          throwError $ AS.ProtocolError (ResponseError n)
+          throwError $ ProtocolError (ResponseError n)
 
     updateToll tollManager (OnlineProxy baseUrl oldTollManager sessionKey) = OnlineProxy baseUrl (merge tollManager oldTollManager) sessionKey
     updateToll _           offline@(StaticProxy _)                         = offline

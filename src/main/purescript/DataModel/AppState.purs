@@ -1,34 +1,22 @@
-module DataModel.AppState
-  ( AppError(..)
-  , AppState
-  , Element
-  , HashState(..)
-  , InvalidStateError(..)
-  , KDFState(..)
-  , ProxyConnectionStatus(..)
-  , SRPInfo
-  , UserConnectionStatus(..)
-  , WrongVersion
-  )
-  where
-
-import Prelude
+module DataModel.AppState where
 
 import Data.Argonaut.Decode.Class (class DecodeJson)
 import Data.Argonaut.Decode.Generic (genericDecodeJson)
 import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Argonaut.Encode.Generic (genericEncodeJson)
-import Data.BigInt (BigInt)
+import Data.Eq (class Eq)
 import Data.Generic.Rep (class Generic)
 import Data.HexString (HexString)
 import Data.Map.Internal (Map)
 import Data.Maybe (Maybe)
-import Data.PrettyShow (class PrettyShow, prettyShow)
+import Data.PrettyShow (class PrettyShow)
+import Data.Semigroup ((<>))
+import Data.Show (class Show, show)
+import Data.Unit (Unit, unit)
 import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
-import DataModel.Communication.ProtocolError (ProtocolError)
-import DataModel.ProxyType (ProxyType)
-import DataModel.SRP (SRPGroup)
+import DataModel.Index (Index)
+import DataModel.SRP (HashFunction, SRPConf)
 import DataModel.User (MasterKey, UserInfoReferences, UserPreferences)
 import Functions.HashCash (TollChallenge)
 
@@ -37,44 +25,76 @@ data ProxyConnectionStatus = ProxyOnline | ProxyOffline
 
 derive instance showProxyConnectionStatus :: Eq ProxyConnectionStatus
 
+-- ==================
+
+type Url = String
+type Path = String
+type SessionKey = HexString
+
+type BackendSessionRecord = {
+  b  :: HexString
+, aa :: HexString
+, bb :: HexString
+}
+data BackendSessionState = BackendSessionState BackendSessionRecord
+
+derive instance eqBackendSessionState :: Eq BackendSessionState
+derive instance genericBackendSessionState :: Generic BackendSessionState _
+
+instance encodeJsonBackendSessionState :: EncodeJson BackendSessionState where
+  encodeJson a = genericEncodeJson a
+
+instance decodeJsonBackendSessionState :: DecodeJson BackendSessionState where
+  decodeJson a = genericDecodeJson a
+
+instance showBackendSessionState :: Show BackendSessionState where
+  show (BackendSessionState r) = show r
+
+type TollManager = {
+  toll :: AsyncValue HexString
+, currentChallenge :: Maybe TollChallenge
+}
+
+data Proxy = OnlineProxy Url TollManager (Maybe SessionKey)
+           | StaticProxy (Maybe BackendSessionState)
+
+-- derive instance eqProxy :: Eq Proxy
+derive instance genericProxy :: Generic Proxy _
+
+instance encodeJsonProxy :: EncodeJson Proxy where
+  encodeJson a = genericEncodeJson a
+
+instance decodeJsonProxy :: DecodeJson Proxy where
+  decodeJson a = genericDecodeJson a
+
+data ProxyResponse a = ProxyResponse Proxy a
+
+discardResult :: forall a. ProxyResponse a -> ProxyResponse Unit
+discardResult (ProxyResponse proxy _) = ProxyResponse proxy unit
+
+responseValue :: forall a. ProxyResponse a -> a
+responseValue (ProxyResponse _ a) = a
+
+-- ==================
+
 type AppState =
-  { proxy :: ProxyType
-  , sessionKey :: Maybe HexString
-  , toll :: AsyncValue HexString
-  , currentChallenge :: Maybe TollChallenge
+  { proxy :: Proxy
   , username :: Maybe String
   , password :: Maybe String
+  , pinEncryptedPassword :: Maybe HexString
   , c :: Maybe HexString
   , p :: Maybe HexString
   , s :: Maybe HexString
-  , srpInfo :: SRPInfo
-  , hash :: HashState
+  , srpConf :: SRPConf
+  , hash :: HashFunction
   , cardsCache :: Map HexString Card
   , masterKey :: Maybe MasterKey
   , userInfoReferences :: Maybe UserInfoReferences
   , userPreferences :: Maybe UserPreferences
+  , index :: Maybe Index
   }
 
-type SRPInfo = { group :: SRPGroup, k :: BigInt, hash:: HashState, kdf :: KDFState }
-
-data KDFState = ConcatKDF
-instance showKDFState :: Show KDFState where
-  show ConcatKDF = "ConcatKDF"
-derive instance genericKDFState :: Generic KDFState _
-instance encodeJsonKDFState :: EncodeJson KDFState where
-  encodeJson a = genericEncodeJson a
-instance decodeJsonKDFState :: DecodeJson KDFState where
-  decodeJson a = genericDecodeJson a
-
-data HashState = SHA256 | SHA1
-instance showHashState :: Show HashState where
-  show SHA256 = "SHA256"
-  show SHA1   = "SHA1"
-derive instance genericHashState :: Generic HashState _
-instance encodeJsonHashState :: EncodeJson HashState where
-  encodeJson a = genericEncodeJson a
-instance decodeJsonHashState :: DecodeJson HashState where
-  decodeJson a = genericDecodeJson a
+data AppStateResponse a = AppStateResponse AppState a
 
 data InvalidStateError = CorruptedState String | MissingValue String | CorruptedSavedPassphrase String
 instance showInvalidStateError :: Show InvalidStateError where
@@ -88,27 +108,3 @@ instance prettyShowInvalidStateError :: PrettyShow InvalidStateError where
   prettyShow (CorruptedState _) = "The application state is corrupted, please restart it."
   prettyShow (MissingValue _) = "The application state is corrupted, please restart it."
   prettyShow (CorruptedSavedPassphrase _) = "Clipperz could not decrypt your credentials, please log in without using the device PIN."
-
-type Element = String
-type WrongVersion = String
-
-data AppError = InvalidStateError InvalidStateError | ProtocolError ProtocolError | ImportError String | CannotInitState String | InvalidOperationError String | InvalidVersioning Element WrongVersion | UnhandledCondition String
-instance showAppError :: Show AppError where
-  show (InvalidStateError err)     = "Invalid state Error: "  <> show err
-  show (ProtocolError err)         = "Protocol Error: " <> show err
-  show (ImportError err)           = "Import Error: " <> err
-  show (CannotInitState err)       = "Cannot init state: " <> err
-  show (InvalidOperationError err) = "Invalid operation error: " <> err
-  show (InvalidVersioning elem v)  = "Invalid Versioning [" <> v <> "] of " <> elem 
-  show (UnhandledCondition err)    = "Unahandled Condition: " <> err
-
-instance prettyShowAppError :: PrettyShow AppError where
-  prettyShow (InvalidStateError err)     = prettyShow err
-  prettyShow (ProtocolError err)         = prettyShow err
-  prettyShow (ImportError err)           = "Your imported values are not in the right format! (" <> err <> ")" 
-  prettyShow (CannotInitState _)         = "Cannot init state, please try to reload"
-  prettyShow (InvalidOperationError _)   = "Invalid operation error, something was not programmed correctly."
-  prettyShow (InvalidVersioning elem _)  = elem <> " is encoded in an unsupported version" 
-  prettyShow (UnhandledCondition     _)  = "" -- TODO?
-
-derive instance eqAppError :: Eq AppError

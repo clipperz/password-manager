@@ -17,7 +17,7 @@ import Data.Maybe (Maybe(..))
 import Data.Ord ((<))
 import Data.String (length)
 import DataModel.Credentials (Credentials, emptyCredentials)
-import Functions.Communication.StatelessOneTimeShare (PIN)
+import Functions.Communication.OneTimeShare (PIN)
 
 -- data PinViewResult = Pin Int | NormalLogin
 

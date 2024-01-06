@@ -22,18 +22,18 @@ import Data.Semiring ((*))
 import Data.Show (show)
 import Data.String.CodeUnits (length, splitAt)
 import Data.Unit (Unit)
-import DataModel.AppState (AppError(..), InvalidStateError(..))
+import DataModel.AppError (AppError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials)
 import DataModel.SRP (HashFunction)
-import DataModel.StatelessAppState (StatelessAppState)
+import DataModel.AppState (InvalidStateError(..), AppState)
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Fortuna (randomBytes)
 import Functions.ArrayBuffer (concatArrayBuffers)
-import Functions.Communication.StatelessOneTimeShare (PIN)
+import Functions.Communication.OneTimeShare (PIN)
 import Functions.EncodeDecode (decryptJson, encryptJson)
 import Web.Storage.Storage (Storage, removeItem, setItem)
 
@@ -63,7 +63,7 @@ deleteCredentials storage = do
   removeItem (makeKey "passphrase") storage
   removeItem (makeKey "failures")   storage
 
-saveCredentials :: StatelessAppState -> String -> Storage -> ExceptT AppError Aff HexString
+saveCredentials :: AppState -> String -> Storage -> ExceptT AppError Aff HexString
 saveCredentials {username: Just u, password: Just p, hash: hashf} pin storage = do
   key <- liftAff $ (generateKeyFromPin hashf pin)
   -- 256 bits

@@ -19,15 +19,15 @@ import Data.Ord ((<))
 import Data.Show (show)
 import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
-import DataModel.AppState (AppError(..), InvalidStateError(..))
+import DataModel.AppError (AppError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials, emptyCredentials)
 import DataModel.FragmentState as Fragment
-import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState)
+import DataModel.AppState (InvalidStateError(..), ProxyResponse(..), AppState)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Login (PrepareLoginResult, loginStep1, loginStep2, prepareLogin)
-import Functions.Communication.Users (getIndex, getStatelessUserPreferences)
+import Functions.Communication.Users (getIndex, getUserPreferences)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultView, doNothing, handleOperationResult, runStep)
 import Functions.Pin (decryptPassphraseWithPin, deleteCredentials, makeKey)
 import Functions.SRP (checkM2)
@@ -42,7 +42,7 @@ import Web.HTML (window)
 import Web.HTML.Window (localStorage)
 import Web.Storage.Storage (getItem, setItem)
 
-handleLoginPageEvent :: LoginPageEvent -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState 
+handleLoginPageEvent :: LoginPageEvent -> AppState -> Fragment.FragmentState -> Widget HTML OperationState 
 
 handleLoginPageEvent (LoginEvent cred) state@{proxy, srpConf} fragmentState =
   do
@@ -79,7 +79,7 @@ handleLoginPageEvent (GoToCredentialLoginEvent username) state _ = doNothing (Tu
 
 -- ========================================================================================================================
 
-loginSteps :: Credentials -> StatelessAppState -> Fragment.FragmentState -> Page -> PrepareLoginResult -> ExceptT AppError (Widget HTML) OperationState
+loginSteps :: Credentials -> AppState -> Fragment.FragmentState -> Page -> PrepareLoginResult -> ExceptT AppError (Widget HTML) OperationState
 loginSteps cred state@{proxy, hash: hashFunc, srpConf} fragmentState page prepareLoginResult = do
 
   ProxyResponse proxy'   loginStep1Result <- runStep (loginStep1         proxy   hashFunc srpConf prepareLoginResult.c)                                       (WidgetState {status: Spinner, color: Black, message: "SRP step 1"   } page)
@@ -103,11 +103,11 @@ loginSteps cred state@{proxy, hash: hashFunc, srpConf} fragmentState page prepar
 
   pure $ res
 
-loadHomePageSteps :: StatelessAppState -> Fragment.FragmentState -> ExceptT AppError (Widget HTML) OperationState
+loadHomePageSteps :: AppState -> Fragment.FragmentState -> ExceptT AppError (Widget HTML) OperationState
 loadHomePageSteps state@{hash: hashFunc, proxy, userInfoReferences: maybeUserInfoReferences} fragmentState = do
   userInfoReferences                    <- except $ note (InvalidStateError $ CorruptedState "UserInfoReferences is Nothing") maybeUserInfoReferences
 
-  ProxyResponse proxy'  userPreferences <- runStep (getStatelessUserPreferences { proxy,            hashFunc } (unwrap userInfoReferences).preferencesReference) (WidgetState {status: Spinner, color: Black, message: "Get user preferences"} $ Main emptyMainPageWidgetState)
+  ProxyResponse proxy'  userPreferences <- runStep (getUserPreferences { proxy,            hashFunc } (unwrap userInfoReferences).preferencesReference) (WidgetState {status: Spinner, color: Black, message: "Get user preferences"} $ Main emptyMainPageWidgetState)
   ProxyResponse proxy'' index           <- runStep (getIndex                    { proxy: proxy',    hashFunc } (unwrap userInfoReferences).indexReference)       (WidgetState {status: Spinner, color: Black, message: "Get index"}            $ Main emptyMainPageWidgetState)
   
   case (unwrap userPreferences).automaticLock of
@@ -122,7 +122,7 @@ loadHomePageSteps state@{hash: hashFunc, proxy, userInfoReferences: maybeUserInf
 
 type MaxPinAttemptsReached = Boolean
 
-handlePinResult :: StatelessAppState -> Page -> OverlayColor -> Either AppError OperationState -> Widget HTML (Tuple Page (Either AppError OperationState))
+handlePinResult :: AppState -> Page -> OverlayColor -> Either AppError OperationState -> Widget HTML (Tuple Page (Either AppError OperationState))
 handlePinResult state page color either = do
   storage <- liftEffect $ window >>= localStorage
   newPage <- case either of

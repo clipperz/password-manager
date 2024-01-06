@@ -15,8 +15,8 @@ import Data.Show (show)
 import Data.Time.Duration (Milliseconds(..))
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit, unit)
-import DataModel.AppState (AppError)
-import DataModel.StatelessAppState (StatelessAppState)
+import DataModel.AppError (AppError)
+import DataModel.AppState (AppState)
 import Effect.Aff (Aff, delay)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -26,7 +26,7 @@ import Views.AppView (Page(..), WidgetState(..), appView)
 import Views.LoginFormView (emptyLoginFormData)
 import Views.OverlayView (OverlayColor, OverlayStatus(..))
 
-type OperationState = Tuple StatelessAppState WidgetState
+type OperationState = Tuple AppState WidgetState
 
 runStep :: forall a. ExceptT AppError Aff a -> WidgetState -> ExceptT AppError (Widget HTML) a
 runStep step widgetState = ExceptT $ (step # runExceptT # liftAff) <|> (defaultView widgetState)
@@ -38,7 +38,7 @@ defaultView widgetState = (unsafeCoerce unit <$ appView widgetState)
 defaultErrorPage :: Page
 defaultErrorPage = Login emptyLoginFormData
 
-handleOperationResult :: StatelessAppState -> Page -> Boolean -> OverlayColor -> Either AppError OperationState -> Widget HTML OperationState
+handleOperationResult :: AppState -> Page -> Boolean -> OverlayColor -> Either AppError OperationState -> Widget HTML OperationState
 handleOperationResult state page showDone color = either
                                                     manageError
                                                     (\res@(Tuple _ (WidgetState _ page')) -> if   showDone

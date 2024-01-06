@@ -7,7 +7,6 @@ import Affjax.ResponseFormat as RF
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Control.Alt (map, ($>), (<#>), (<$>))
-import Control.Alternative ((<*))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))
 import Control.Category (identity, (<<<))
@@ -22,9 +21,9 @@ import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldWithIndexM)
 import Data.Function ((#), ($))
 import Data.HTTP.Method (Method(..))
-import Data.HexString (hex)
+import Data.HexString (HexString, fromArrayBuffer, hex)
 import Data.HeytingAlgebra (not)
-import Data.List (List(..), foldl)
+import Data.List (List(..), foldl, (:))
 import Data.List as List
 import Data.Maybe (Maybe(..), fromMaybe, isJust, isNothing)
 import Data.Monoid ((<>))
@@ -32,22 +31,22 @@ import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.Tuple (Tuple(..), fst, snd)
 import Data.Unit (Unit, unit)
-import DataModel.AppState (AppError(..), InvalidStateError(..))
+import DataModel.AppError (AppError(..))
+import DataModel.Card (Card)
 import DataModel.Card as DataModel.Card
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (emptyCredentials)
 import DataModel.FragmentState as Fragment
-import DataModel.Index (Index(..), addToIndex)
-import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState, discardResult)
-import DataModel.User (UserInfoReferences(..))
+import DataModel.Index (CardEntry(..), CardReference(..), Index(..), addToIndex)
+import DataModel.AppState (InvalidStateError(..), ProxyResponse(..), AppState, discardResult)
+import DataModel.User (IndexReference(..), UserInfoReferences(..), UserPreferencesReference(..))
 import Effect.Class (liftEffect)
-import Effect.Console (log)
 import Functions.Card (addTag)
-import Functions.Communication.Blobs (deleteBlobWithReference)
+import Functions.Communication.Blobs (deleteBlobWithReference, getBlob)
 import Functions.Communication.Cards (deleteCard, getCard, postCard)
-import Functions.Communication.StatelessBackend (manageGenericRequest)
-import Functions.Communication.Users (deleteUserCard, deleteUserInfo, updateIndex, updateUserPreferences)
-import Functions.Export (prepareCardsForUnencryptedExport)
+import Functions.Communication.Backend (ConnectionState, manageGenericRequest)
+import Functions.Communication.Users (computeRemoteUserCard, deleteUserCard, deleteUserInfo, updateIndex, updateUserPreferences)
+import Functions.Export (BlobsList, appendCardsDataInPlace, getBasicHTML, prepareCardsForUnencryptedExport, prepareHTMLBlob)
 import Functions.Handler.CardManagerEventHandler (getCardSteps)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
 import Functions.Import (decodeHTML, decodeImport, parseHTMLImport, readFile)
@@ -56,7 +55,7 @@ import Functions.State (resetState)
 import Functions.Time (formatDateTimeToDate, getCurrentDateTime)
 import Functions.Timer (activateTimer, stopTimer)
 import Functions.User (changeUserPassword)
-import Views.AppView (Page(..), WidgetState(..), emptyMainPageWidgetState)
+import Views.AppView (Page(..), WidgetState(..))
 import Views.CardsManagerView (CardManagerState, CardViewState(..))
 import Views.ExportView (ExportEvent(..))
 import Views.ImportView (ImportStep(..))
@@ -69,7 +68,7 @@ import Web.HTML (window)
 import Web.HTML.Window (localStorage)
 import Web.Storage.Storage (getItem)
 
-handleUserAreaEvent :: UserAreaEvent -> CardManagerState -> UserAreaState -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState
+handleUserAreaEvent :: UserAreaEvent -> CardManagerState -> UserAreaState -> AppState -> Fragment.FragmentState -> Widget HTML OperationState
 
 
 handleUserAreaEvent (CloseUserAreaEvent) cardManagerState userAreaState state@{index: Just index, userPreferences: Just userPreferences, username: Just username, password: Just password, pinEncryptedPassword} _ = 
@@ -304,24 +303,39 @@ handleUserAreaEvent (ImportCardsEvent importState) cardManagerState userAreaStat
                 }
 
 
-handleUserAreaEvent (ExportEvent OfflineCopy) _ _ state _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Main emptyMainPageWidgetState))) <* (liftEffect $ log "ExportOfflineCopyEvent")  --TODO: implement [fsolaroli - 29/11/2023]
-
+handleUserAreaEvent (ExportEvent OfflineCopy) cardManagerState userAreaState state@{proxy, hash: hashFunc, index: Just index@(Index cardEntryList), username: Just username, password: Just password, userPreferences: Just userPreferences, userInfoReferences: Just (UserInfoReferences { indexReference: IndexReference { reference: indexRef }, preferencesReference: UserPreferencesReference { reference: prefRef}}), pinEncryptedPassword} _ =
+  do
+    let references = prefRef : indexRef : ((\(CardEntry {cardReference: CardReference {reference}}) -> reference) <$> cardEntryList)
+    
+    ProxyResponse proxy' blobs <- downloadBlobsSteps references {hashFunc, proxy} page
+    remoteUserCard             <- runStep (computeRemoteUserCard state)                                                                                  (WidgetState (spinnerOverlay "Compute user card" White) page)
+    ProxyResponse proxy'' doc  <- runStep (getBasicHTML {hashFunc, proxy: proxy'})                                                                       (WidgetState (spinnerOverlay "Download html"     White) page)
+    documentToDownload         <- runStep (appendCardsDataInPlace doc blobs remoteUserCard >>= (liftEffect <<< prepareHTMLBlob))                                                              (WidgetState (spinnerOverlay "Create document"   White) page)
+    date                       <- runStep (liftEffect $ formatDateTimeToDate <$> getCurrentDateTime)                                                     (WidgetState (spinnerOverlay ""                  White) page)
+    _                          <- runStep (liftEffect $ download documentToDownload (date <> "_Clipperz_Offline" <> ".html") "application/octet-stream") (WidgetState (spinnerOverlay "Download document" White) page)
+    pure $ Tuple state {proxy = proxy''} (WidgetState hiddenOverlayInfo page)
+  # runExceptT
+  >>= handleOperationResult state page true White
+  
+  where
+      page = Main { index
+                  , credentials:      {username, password}
+                  , pinExists:        isJust pinEncryptedPassword
+                  , userPreferences
+                  , userAreaState
+                  , cardManagerState
+                  }
 
 handleUserAreaEvent (ExportEvent UnencryptedCopy) cardManagerState userAreaState state@{index: Just index@(Index cardEntryList), username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword} _ =
   do
-    let nToDownload = List.length cardEntryList
-    Tuple state' cardList <- foldWithIndexM (\i (Tuple state' cards) cardEntry -> do
-          Tuple state'' card <- runStep (getCard state' cardEntry) (WidgetState (spinnerOverlay ("Download card " <> show i <> " of " <> show nToDownload) White) page)
-          pure $ Tuple state'' (List.snoc cards card)
-        ) (Tuple state Nil) cardEntryList
-    
-    doc  <- liftEffect $ prepareCardsForUnencryptedExport cardList
-    date <- runStep (liftEffect $ formatDateTimeToDate <$> getCurrentDateTime) (WidgetState (spinnerOverlay "Create document" White) page)
-    _    <- liftEffect $ download doc (date <> "_Clipperz_Export_" <> username <> ".html") "application/octet-stream"
+    Tuple state' cardList <- downloadCardsSteps cardEntryList state page
+    doc                   <- runStep (liftEffect $ prepareCardsForUnencryptedExport cardList)                                                    (WidgetState (spinnerOverlay "Create document"   White) page)
+    date                  <- runStep (liftEffect $ formatDateTimeToDate <$> getCurrentDateTime)                                                  (WidgetState (spinnerOverlay ""                  White) page)
+    _                     <- runStep (liftEffect $ download doc (date <> "_Clipperz_Export_" <> username <> ".html") "application/octet-stream") (WidgetState (spinnerOverlay "Download document" White) page)
   
     pure $ Tuple state' (WidgetState hiddenOverlayInfo page)
   # runExceptT
-  >>= handleOperationResult state page true White  
+  >>= handleOperationResult state page true White
   
   where
       page = Main { index
@@ -367,7 +381,25 @@ handleUserAreaEvent _ _ _ state _ = do
 
 -- ===================================================================================================
 
-logoutSteps :: StatelessAppState -> String -> Page -> ExceptT AppError (Widget HTML) OperationState
+downloadCardsSteps :: List CardEntry -> AppState -> Page -> ExceptT AppError (Widget HTML) (Tuple AppState (List Card))
+downloadCardsSteps cardEntryList state page = 
+  foldWithIndexM (\i (Tuple state' cards) cardEntry -> do
+    Tuple state'' card <- runStep (getCard state' cardEntry) (WidgetState (spinnerOverlay ("Download card " <> show i <> " of " <> show nToDownload) White) page)
+    pure $ Tuple state'' (List.snoc cards card)
+  ) (Tuple state Nil) cardEntryList
+  where
+    nToDownload = List.length cardEntryList
+
+downloadBlobsSteps :: List HexString -> ConnectionState -> Page -> ExceptT AppError (Widget HTML) (ProxyResponse BlobsList)
+downloadBlobsSteps referenceList {proxy, hashFunc} page = 
+  foldWithIndexM (\i (ProxyResponse proxy' blobs) reference -> do
+    ProxyResponse proxy'' arrayBuffer <- runStep (getBlob {proxy: proxy', hashFunc} reference) (WidgetState (spinnerOverlay ("Download blob " <> show i <> " of " <> show nToDownload) White) page)
+    pure $ ProxyResponse proxy'' (List.snoc blobs (Tuple reference (fromArrayBuffer arrayBuffer)))
+  ) (ProxyResponse proxy Nil) referenceList
+  where
+    nToDownload = List.length referenceList
+
+logoutSteps :: AppState -> String -> Page -> ExceptT AppError (Widget HTML) OperationState
 logoutSteps state@{username, hash: hashFunc, proxy} message page =
   do
     passphrase <- runStep (do 
@@ -386,7 +418,7 @@ logoutSteps state@{username, hash: hashFunc, proxy} message page =
               )
             ) 
 
-deleteCardsSteps :: StatelessAppState -> Index -> Page -> ExceptT AppError (Widget HTML) (ProxyResponse Unit)
+deleteCardsSteps :: AppState -> Index -> Page -> ExceptT AppError (Widget HTML) (ProxyResponse Unit)
 deleteCardsSteps state@{hash: hashFunc, proxy} (Index list) page =
   foldl (\proxyResponse entry -> do
     ProxyResponse proxy' _      <- proxyResponse

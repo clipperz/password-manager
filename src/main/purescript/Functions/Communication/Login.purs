@@ -23,17 +23,17 @@ import Data.Newtype (unwrap)
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
-import DataModel.AppState (AppError(..))
+import DataModel.AppError (AppError(..))
 import DataModel.Communication.Login (LoginStep1Response, LoginStep2Response)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials)
 import DataModel.SRP (SRPConf, HashFunction)
-import DataModel.StatelessAppState (Proxy(..), ProxyResponse(..))
+import DataModel.AppState (Proxy(..), ProxyResponse(..))
 import DataModel.User (MasterKey, UserInfoReferences)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
-import Functions.Communication.StatelessBackend (isStatusCodeOk, manageGenericRequest)
+import Functions.Communication.Backend (isStatusCodeOk, manageGenericRequest)
 import Functions.SRP as SRP
 import Functions.User (decryptUserInfoReferences)
     
@@ -50,7 +50,7 @@ type PrepareLoginResult = {
 }
 
 prepareLogin :: Proxy -> SRPConf -> Credentials -> ExceptT AppError Aff (ProxyResponse PrepareLoginResult)
-prepareLogin       (StaticProxy _)                               _        _                     = throwError $ UnhandledCondition "TODO"
+prepareLogin       (StaticProxy _)     _       _                      = throwError $ UnhandledCondition "TODO [implement offline login]"
 prepareLogin proxy@(OnlineProxy _ _ _) srpConf { username, password } = do
   c         <- liftAff $ fromArrayBuffer <$> SRP.prepareC srpConf username password
   p         <- liftAff $ fromArrayBuffer <$> SRP.prepareP srpConf username password

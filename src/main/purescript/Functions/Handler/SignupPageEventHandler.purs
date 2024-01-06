@@ -9,7 +9,7 @@ import Data.Function ((#), ($))
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import DataModel.FragmentState as Fragment
-import DataModel.StatelessAppState (ProxyResponse(..), StatelessAppState)
+import DataModel.AppState (ProxyResponse(..), AppState)
 import Functions.Communication.Signup (signupUser)
 import Functions.Handler.GenericHandlerFunctions (OperationState, doNothing, handleOperationResult, runStep)
 import Functions.Handler.LoginPageEventHandler (loginSteps)
@@ -18,11 +18,11 @@ import Views.LoginFormView (LoginFormData, LoginType(..), emptyLoginFormData)
 import Views.OverlayView (OverlayColor(..), hiddenOverlayInfo, spinnerOverlay)
 import Views.SignupFormView (SignupPageEvent(..), getSignupDataFromCredentials)
 
-getLoginFormData :: StatelessAppState -> LoginFormData
+getLoginFormData :: AppState -> LoginFormData
 getLoginFormData {username: Just username, pinEncryptedPassword: Just _} = emptyLoginFormData { credentials = {username, password: ""}, loginType = PinLogin }
 getLoginFormData _ = emptyLoginFormData
 
-handleSignupPageEvent :: SignupPageEvent -> StatelessAppState -> Fragment.FragmentState -> Widget HTML OperationState
+handleSignupPageEvent :: SignupPageEvent -> AppState -> Fragment.FragmentState -> Widget HTML OperationState
 
 handleSignupPageEvent (SignupEvent cred) state@{proxy, hash, srpConf} fragmentState = 
   do

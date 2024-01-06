@@ -4,7 +4,6 @@ import Control.Applicative (pure)
 import Control.Bind (bind, (>>=))
 import Control.Monad.Maybe.Trans (MaybeT(..), runMaybeT)
 import Data.Array (filter, catMaybes, head)
-import Data.Either (Either(..))
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
@@ -14,18 +13,14 @@ import Data.Map.Internal (empty)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst, snd)
-import DataModel.AppState (AppError, AppState, HashState(..), KDFState(..), ProxyConnectionStatus(..))
 import DataModel.AsyncValue (AsyncValue(..))
 import DataModel.Card (Card)
 import DataModel.Index (Index)
-import DataModel.ProxyType (ProxyType(..))
-import DataModel.SRP (HashFunction, KDF, SRPConf, concatKDF, group1024, hashFuncSHA1, hashFuncSHA256, k)
-import DataModel.StatelessAppState (StatelessAppState)
-import DataModel.StatelessAppState as Stateless
+import DataModel.SRP (HashFunction, SRPConf, concatKDF, group1024, hashFuncSHA256, k)
+import DataModel.AppState (Proxy(..), AppState)
 import DataModel.User (MasterKey, UserInfoReferences, UserPreferences)
 import Effect (Effect)
 import Effect.Class (liftEffect)
-import Functions.JSState (getAppState)
 import Record (merge)
 import Web.DOM (Element, Node)
 import Web.DOM.Element (fromNode, id)
@@ -39,7 +34,7 @@ import Web.HTML.Window (document)
 offlineDataId :: String
 offlineDataId = "offlineData"
 
-computeInitialState :: Effect StatelessAppState
+computeInitialState :: Effect AppState
 computeInitialState = do
   script <- runMaybeT do
     body            :: HTMLElement                  <- MaybeT $ (window >>= document >>= body)
@@ -54,10 +49,10 @@ computeInitialState = do
     mapIds :: Element -> Effect (Tuple Element String)
     mapIds e = (Tuple e) <$> (id e)
   
-    withOfflineProxy    = merge { proxy: Stateless.StaticProxy Nothing } baseState
-    withOnlineProxy url = merge { proxy: (Stateless.OnlineProxy url {toll: Loading Nothing, currentChallenge: Nothing} Nothing) } baseState
+    withOfflineProxy    = merge { proxy:  StaticProxy Nothing }                                                         baseState
+    withOnlineProxy url = merge { proxy: (OnlineProxy url {toll: Loading Nothing, currentChallenge: Nothing} Nothing) } baseState
 
-resetState :: StatelessAppState -> StatelessAppState
+resetState :: AppState -> AppState
 resetState state = merge baseState state
 
 baseState ∷ { username :: Maybe String
@@ -96,34 +91,3 @@ baseState = { username: Nothing
     , hash: hashFuncSHA256
     , kdf: concatKDF
     }
-
-
-getKDFFromState :: KDFState -> KDF
-getKDFFromState kdfState =
-  case kdfState of
-    ConcatKDF -> concatKDF
-
-getHashFromState :: HashState -> HashFunction
-getHashFromState hashState =
-  case hashState of
-    SHA256 -> hashFuncSHA256
-    SHA1   -> hashFuncSHA1
-
-getHashFunctionFromAppState :: AppState -> HashFunction
-getHashFunctionFromAppState s = getHashFromState s.hash
-
-getSRPConf :: Effect (Either AppError SRPConf)
-getSRPConf = do
-  eitherState <- getAppState
-  pure $ case eitherState of
-    Left err -> Left err 
-    Right state -> Right $ getSRPConfFromState state
-
-getSRPConfFromState :: AppState -> SRPConf
-getSRPConfFromState state = { group: state.srpInfo.group, k: state.srpInfo.k, hash: getHashFromState state.srpInfo.hash, kdf: getKDFFromState state.srpInfo.kdf }
-
-isOfflineCopy :: AppState -> ProxyConnectionStatus
-isOfflineCopy { proxy } =
-  case proxy of
-    OfflineProxy _  -> ProxyOffline
-    _               -> ProxyOnline
