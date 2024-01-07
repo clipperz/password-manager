@@ -63,10 +63,12 @@ object SessionManager:
       ZIO
         .attempt (request.rawHeader(SessionManager.sessionKeyHeaderName).get)
         .catchAll(_   => prng.nextBytes(32).map(bytesToHex(_).toString()))
-        .flatMap (key => sessions.get(key))
+        .flatMap (key => sessions.refresh(key) *> sessions.get(key))
         .flatMap (_.get)
 
     override def saveSession (content: Session): Task[SessionKey] =
+      sessions.refresh(content.key)
+
       sessions
         .get(content.key)
         .flatMap(ref => ref.set(content))
