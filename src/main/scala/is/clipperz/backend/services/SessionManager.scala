@@ -56,14 +56,11 @@ object SessionManager:
          .mapError(_ => new NoSuchElementException("session header key not found when deleting session"))
 
   case class ZioCacheSessionManager (prng: PRNG, sessions: Cache[String, Nothing, Ref[Session]]) extends SessionManager:
-    // val sessions =  Cache.make(capacity = 100, timeToLive = Duration.ofMinutes(10).nn, lookup = Lookup(emptySession))
-    // def emptySession (key: SessionKey): ZIO[Any, Nothing, Ref[Session]] = Ref.make(Session(key, new HashMap[String, String]()))
-
     override def getSession (request: Request): Task[Session] =
       ZIO
         .attempt (request.rawHeader(SessionManager.sessionKeyHeaderName).get)
         .catchAll(_   => prng.nextBytes(32).map(bytesToHex(_).toString()))
-        .flatMap (key => sessions.refresh(key) *> sessions.get(key))
+        .flatMap (key => sessions.get(key))
         .flatMap (_.get)
 
     override def saveSession (content: Session): Task[SessionKey] =
@@ -81,13 +78,14 @@ object SessionManager:
         .flatMap (key => sessions.invalidate(key))
 
 
-  val live: ZLayer[PRNG, Throwable, SessionManager] =
-    // ZLayer.scoped(
-    //   for {
-    //     prng <- ZIO.service[PRNG]
-    //   } yield TrivialSessionManager(prng)
-    // )
+  val liveTrivial: ZLayer[PRNG, Throwable, SessionManager] =
+    ZLayer.scoped(
+        for {
+            prng <- ZIO.service[PRNG]
+        } yield TrivialSessionManager(prng)
+    )
 
+  val live: ZLayer[PRNG, Throwable, SessionManager] =
     ZLayer.scoped(
       for {
         prng      <- ZIO.service[PRNG]
