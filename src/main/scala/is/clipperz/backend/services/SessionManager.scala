@@ -60,8 +60,14 @@ object SessionManager:
       ZIO
         .attempt (request.rawHeader(SessionManager.sessionKeyHeaderName).get)
         .catchAll(_   => prng.nextBytes(32).map(bytesToHex(_).toString()))
-        .flatMap (key => sessions.get(key))
-        .flatMap (_.get)
+        .flatMap (key => 
+            for {
+                session <- sessions.get(key).flatMap(_.get)
+                _       <- sessions.invalidate(key)
+                ref     <- sessions.get(key)
+                _       <- ref.set(session)
+            } yield session
+        )
 
     override def saveSession (content: Session): Task[SessionKey] =
       sessions.refresh(content.key)
@@ -89,6 +95,7 @@ object SessionManager:
     ZLayer.scoped(
       for {
         prng      <- ZIO.service[PRNG]
-        sessions  <- Cache.make(capacity = 100, timeToLive = Duration.ofMinutes(10).nn, lookup = Lookup((key: SessionKey) => Ref.make(Session(key, new HashMap[String, String]))))
+        // sessions  <- Cache.make(capacity = 100, timeToLive = Duration.ofMinutes(10).nn, lookup = Lookup((key: SessionKey) => Ref.make(Session(key, new HashMap[String, String]))))
+        sessions  <- Cache.make(capacity = 100, timeToLive = Duration.ofMinutes(1).nn, lookup = Lookup((key: SessionKey) => Ref.make(Session(key, new HashMap[String, String]))))
       } yield ZioCacheSessionManager(prng, sessions)
     )
