@@ -1,43 +1,55 @@
 module Functions.Communication.Backend where
 
-import Affjax.RequestBody (RequestBody)
+import Affjax.RequestBody (RequestBody, json)
 import Affjax.RequestHeader (RequestHeader(..))
 import Affjax.ResponseFormat as RF
 import Affjax.ResponseHeader (ResponseHeader, name, value)
 import Affjax.StatusCode (StatusCode(..))
 import Affjax.Web as AXW
+import Control.Alt ((<#>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
 import Control.Category ((>>>))
+import Control.Monad.Except (except)
 import Control.Monad.Except.Trans (ExceptT(..), throwError, withExceptT)
+import Data.Argonaut.Decode (decodeJson)
+import Data.Argonaut.Encode (encodeJson)
 import Data.Array (filter)
+import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Bifunctor (lmap)
+import Data.BigInt (BigInt, fromInt)
 import Data.Boolean (otherwise)
-import Data.Either (Either(..))
+import Data.Either (Either(..), note)
 import Data.Eq ((==))
-import Data.Function (($))
+import Data.Function ((#), ($))
 import Data.Functor ((<$>))
-import Data.HTTP.Method (Method)
-import Data.HexString (HexString, hex)
+import Data.HTTP.Method (Method(..))
+import Data.HexString (HexString, fromArrayBuffer, fromBigInt, hex, toArrayBuffer, toBigInt)
 import Data.HeytingAlgebra ((&&))
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..))
+import Data.Newtype (unwrap)
 import Data.Ord ((<=), (>=))
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Time.Duration (Milliseconds(..))
+import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
-import Data.Unit (Unit)
+import Data.Unit (Unit, unit)
 import DataModel.AppError (AppError(..))
+import DataModel.AppState (Proxy(..), ProxyResponse(..))
 import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue)
 import DataModel.Communication.FromString (class FromString)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.SRP (HashFunction)
-import DataModel.AppState (Proxy(..), ProxyResponse(..))
+import DataModel.Credentials (Credentials)
+import DataModel.SRP (HashFunction, SRPConf)
+import DataModel.User (MasterKey)
 import Effect.Aff (Aff, delay)
 import Effect.Aff.Class (liftAff)
+import Functions.ArrayBuffer (arrayBufferToBigInt)
 import Functions.HashCash (TollChallenge, computeReceipt)
+import Functions.SRP as SRP
 import Record (merge)
 
 -- ==================================================
@@ -47,8 +59,10 @@ type Path = String
 type SessionKey = HexString
 
 type ConnectionState = {
-  proxy    :: Proxy
-, hashFunc :: HashFunction
+  proxy       :: Proxy
+, hashFunc    :: HashFunction
+, srpConf     :: SRPConf
+, credentials :: Credentials
 }
 
 -- ----------------------------------------------------------------------------
@@ -82,7 +96,7 @@ foreign import _readBlob :: String -> String
 foreign import _readUserCard :: Unit -> String
 
 manageGenericRequest :: forall a. FromString a => ConnectionState -> Path -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AppError Aff (ProxyResponse (AXW.Response a))
-manageGenericRequest connectionState@{ proxy, hashFunc } path method body responseFormat = do
+manageGenericRequest connectionState@{ proxy, hashFunc, srpConf, credentials: {username, password} } path method body responseFormat = do
   case proxy of
     (OnlineProxy baseUrl tollManager _) -> do
        case tollManager.toll of
@@ -102,11 +116,44 @@ manageGenericRequest connectionState@{ proxy, hashFunc } path method body respon
   where
     manageResponse :: StatusCode -> (AXW.Response a -> ExceptT AppError Aff (ProxyResponse (AXW.Response a)))
     manageResponse code@(StatusCode n)
-      | n == 402          = \response -> -- TODO: improve
+      | n == 401 = \_ -> do
+          -- TODO: [fsolaroli - 07-01-2024]
+          c         <- liftAff $ fromArrayBuffer <$> SRP.prepareC srpConf username password
+          p         <- liftAff $ fromArrayBuffer <$> SRP.prepareP srpConf username password
+          (Tuple a aa) <- withExceptT (\err -> ProtocolError $ SRPError $ show err) (ExceptT $ SRP.prepareA srpConf)
+          let urlStep1  = joinWith "/" ["login", "step1", show c] :: String
+          let bodyStep1 = json $ encodeJson { c, aa: fromBigInt aa }  :: RequestBody
+          ProxyResponse proxy' step1Response <- manageGenericRequest connectionState urlStep1 POST (Just bodyStep1) RF.json
+          {s, bb: bb_} :: {s :: HexString, bb :: HexString} <- if isStatusCodeOk step1Response.status
+                                                            then except     $ (decodeJson step1Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err) 
+                                                            else throwError $  ProtocolError (ResponseError (unwrap step1Response.status))
+          bb :: BigInt <- except $ (toBigInt bb_) # note (ProtocolError $ SRPError "Error in converting B from String to BigInt")
+          _ <-  if bb == fromInt (0)
+                then throwError $ ProtocolError (SRPError "Server returned B == 0")
+                else pure unit
+          x  :: BigInt      <-  ExceptT $ (srpConf.kdf srpConf.hash (toArrayBuffer s) (toArrayBuffer p)) <#> (\ab -> note (ProtocolError $ SRPError "Cannot convert x from ArrayBuffer to BigInt") (arrayBufferToBigInt ab))
+          ss :: BigInt      <- (ExceptT $ SRP.prepareSClient srpConf aa bb x a) # withExceptT (\err -> ProtocolError $ SRPError $ show err)
+          kk :: ArrayBuffer <-  liftAff $ SRP.prepareK  srpConf ss
+          m1 :: ArrayBuffer <-  liftAff $ SRP.prepareM1 srpConf c s aa bb kk
+          let urlStep2  = joinWith "/" ["login", "step2", show c]      :: String
+          let bodyStep2 = json $ encodeJson { m1: fromArrayBuffer m1 } :: RequestBody
+          ProxyResponse proxy'' step2Response <- manageGenericRequest connectionState{proxy = proxy'} urlStep2 POST (Just bodyStep2) RF.json
+          {m2, masterKey: _} :: {m2 :: HexString, masterKey :: MasterKey} <-  if isStatusCodeOk step2Response.status
+                                                                              then except $     (decodeJson step2Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err)
+                                                                              else throwError $  ProtocolError $ ResponseError (unwrap step2Response.status)
+          -- userInfoReferences <- decryptUserInfoReferences masterKey p
+          -- pure $ ProxyResponse newProxy { m1, kk, m2, userInfoReferences, masterKey }
+          result <- liftAff $ SRP.checkM2 srpConf aa m1 kk (toArrayBuffer m2) 
+          
+          if result
+          then manageGenericRequest connectionState{proxy = proxy''} path method body responseFormat
+          else throwError $ ProtocolError (SRPError "Client M2 doesn't match with server M2")
+
+      | n == 402 = \response -> -- TODO: improve
           case extractChallenge response.headers, extractSession response.headers of
             Just challenge, Just session -> do
                   receipt <- liftAff $ computeReceipt hashFunc challenge
-                  manageGenericRequest { proxy: (updateToll { toll: Done receipt, currentChallenge: Just challenge } >>> updateSession (Just session)) proxy, hashFunc } path method body responseFormat
+                  manageGenericRequest connectionState { proxy = (updateToll { toll: Done receipt, currentChallenge: Just challenge } >>> updateSession (Just session)) proxy } path method body responseFormat
             _, _ -> throwError $ ProtocolError (IllegalResponse "HashCash and Session headers not present or wrong")
       | isStatusCodeOk code = \(response :: AXW.Response a) ->
           case extractChallenge response.headers, extractSession response.headers of
@@ -115,7 +162,7 @@ manageGenericRequest connectionState@{ proxy, hashFunc } path method body respon
                   pure $ ProxyResponse (updateToll { toll: Done receipt, currentChallenge: Just challenge } >>> updateSession (Just session) $ proxy) response
             _, _ -> 
                   pure $ ProxyResponse (updateToll { toll: Loading Nothing, currentChallenge: Nothing }     >>> updateSession Nothing        $ proxy) response
-      | otherwise           = \_ ->
+      | otherwise = \_ ->
           throwError $ ProtocolError (ResponseError n)
 
     updateToll tollManager (OnlineProxy baseUrl oldTollManager sessionKey) = OnlineProxy baseUrl (merge tollManager oldTollManager) sessionKey

@@ -23,7 +23,7 @@ import Data.Function ((#), ($))
 import Data.HTTP.Method (Method(..))
 import Data.HexString (HexString, fromArrayBuffer, hex)
 import Data.HeytingAlgebra (not)
-import Data.List (List(..), foldl, (:))
+import Data.List (List(..), (:))
 import Data.List as List
 import Data.Maybe (Maybe(..), fromMaybe, isJust, isNothing)
 import Data.Monoid ((<>))
@@ -32,22 +32,21 @@ import Data.Show (show)
 import Data.Tuple (Tuple(..), fst, snd)
 import Data.Unit (Unit, unit)
 import DataModel.AppError (AppError(..))
+import DataModel.AppState (AppState, CardsCache, InvalidStateError(..), ProxyResponse(..), discardResult)
 import DataModel.Card (Card)
 import DataModel.Card as DataModel.Card
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (emptyCredentials)
 import DataModel.FragmentState as Fragment
 import DataModel.Index (CardEntry(..), CardReference(..), Index(..), addToIndex)
-import DataModel.AppState (InvalidStateError(..), ProxyResponse(..), AppState, discardResult)
 import DataModel.User (IndexReference(..), UserInfoReferences(..), UserPreferencesReference(..))
 import Effect.Class (liftEffect)
 import Functions.Card (addTag)
+import Functions.Communication.Backend (ConnectionState, manageGenericRequest)
 import Functions.Communication.Blobs (deleteBlobWithReference, getBlob)
 import Functions.Communication.Cards (deleteCard, getCard, postCard)
-import Functions.Communication.Backend (ConnectionState, manageGenericRequest)
 import Functions.Communication.Users (computeRemoteUserCard, deleteUserCard, deleteUserInfo, updateIndex, updateUserPreferences)
 import Functions.Export (BlobsList, appendCardsDataInPlace, getBasicHTML, prepareCardsForUnencryptedExport, prepareHTMLBlob)
-import Functions.Handler.CardManagerEventHandler (getCardSteps)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
 import Functions.Import (decodeHTML, decodeImport, parseHTMLImport, readFile)
 import Functions.Pin (deleteCredentials, makeKey, saveCredentials)
@@ -179,13 +178,14 @@ handleUserAreaEvent (SetPinEvent pinAction) cardManagerState userAreaState state
                 }
 
 
-handleUserAreaEvent DeleteAccountEvent cardManagerState userAreaState state@{hash: hashFunc, username: Just username, password: Just password, index: Just index, userPreferences: Just userPreferences, userInfoReferences: Just (UserInfoReferences {indexReference, preferencesReference}), c: Just c, masterKey: Just masterKey, pinEncryptedPassword} _ =
+handleUserAreaEvent DeleteAccountEvent cardManagerState userAreaState state@{proxy, srpConf, hash: hashFunc, cardsCache, username: Just username, password: Just password, index: Just index, userPreferences: Just userPreferences, userInfoReferences: Just (UserInfoReferences {indexReference, preferencesReference}), c: Just c, masterKey: Just masterKey, pinEncryptedPassword} _ =
   do
-    ProxyResponse proxy'     _ <- deleteCardsSteps state index page
-    ProxyResponse proxy''    _ <- runStep (deleteBlobWithReference {hashFunc, proxy: proxy'}   (unwrap indexReference).reference      ) (WidgetState (spinnerOverlay "Delete Index"       White) page)
-    ProxyResponse proxy'''   _ <- runStep (deleteBlobWithReference {hashFunc, proxy: proxy''}  (unwrap preferencesReference).reference) (WidgetState (spinnerOverlay "Delete Preferences" White) page)
-    ProxyResponse proxy''''  _ <- runStep (deleteUserInfo          {hashFunc, proxy: proxy'''}  masterKey                             ) (WidgetState (spinnerOverlay "Delete User Info"   White) page)
-    ProxyResponse proxy''''' _ <- runStep (deleteUserCard          {hashFunc, proxy: proxy''''} c                                     ) (WidgetState (spinnerOverlay "Delete User Card"   White) page)
+    let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+    ProxyResponse proxy'     _ <-          deleteCardsSteps        connectionState                    cardsCache index page
+    ProxyResponse proxy''    _ <- runStep (deleteBlobWithReference connectionState{proxy = proxy'}   (unwrap indexReference).reference      ) (WidgetState (spinnerOverlay "Delete Index"       White) page)
+    ProxyResponse proxy'''   _ <- runStep (deleteBlobWithReference connectionState{proxy = proxy''}  (unwrap preferencesReference).reference) (WidgetState (spinnerOverlay "Delete Preferences" White) page)
+    ProxyResponse proxy''''  _ <- runStep (deleteUserInfo          connectionState{proxy = proxy'''}  masterKey                             ) (WidgetState (spinnerOverlay "Delete User Info"   White) page)
+    ProxyResponse proxy''''' _ <- runStep (deleteUserCard          connectionState{proxy = proxy''''} c                                     ) (WidgetState (spinnerOverlay "Delete User Card"   White) page)
     _                          <- liftEffect $ window >>= localStorage >>= deleteCredentials
     pure $ Tuple 
             (resetState state {proxy = proxy'''''})
@@ -209,7 +209,7 @@ handleUserAreaEvent DeleteAccountEvent cardManagerState userAreaState state@{has
                 }
 
 
-handleUserAreaEvent (ImportCardsEvent importState) cardManagerState userAreaState state@{proxy, index: Just index, username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword} _ = 
+handleUserAreaEvent (ImportCardsEvent importState) cardManagerState userAreaState state@{proxy, hash: hashFunc, srpConf, index: Just index, username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword} _ = 
   case importState.step of
     Upload    ->
       do
@@ -258,13 +258,14 @@ handleUserAreaEvent (ImportCardsEvent importState) cardManagerState userAreaStat
     
     Confirm   ->
       do
+        let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
         let cardToImport                      = filter fst importState.selection <#> snd # (if fst importState.tag
                                                                                             then (map $ addTag (snd importState.tag))
                                                                                             else identity
                                                                                            )
         let nToImport                         = length cardToImport
         ProxyResponse proxy' entries          <- foldWithIndexM (\i (ProxyResponse proxy' entries) card -> do
-          ProxyResponse proxy'' newCardEntry  <- runStep (postCard state {proxy = proxy'} card) (WidgetState (spinnerOverlay ("Import card " <> show i <> " of " <> show nToImport) White) page)
+          ProxyResponse proxy'' newCardEntry  <- runStep (postCard connectionState{proxy = proxy'} card) (WidgetState (spinnerOverlay ("Import card " <> show i <> " of " <> show nToImport) White) page)
           pure $ ProxyResponse proxy'' (snoc entries newCardEntry)
         ) (ProxyResponse proxy []) cardToImport
         let updatedIndex                       = foldr addToIndex index entries        
@@ -303,13 +304,14 @@ handleUserAreaEvent (ImportCardsEvent importState) cardManagerState userAreaStat
                 }
 
 
-handleUserAreaEvent (ExportEvent OfflineCopy) cardManagerState userAreaState state@{proxy, hash: hashFunc, index: Just index@(Index cardEntryList), username: Just username, password: Just password, userPreferences: Just userPreferences, userInfoReferences: Just (UserInfoReferences { indexReference: IndexReference { reference: indexRef }, preferencesReference: UserPreferencesReference { reference: prefRef}}), pinEncryptedPassword} _ =
+handleUserAreaEvent (ExportEvent OfflineCopy) cardManagerState userAreaState state@{proxy, hash: hashFunc, srpConf, index: Just index@(Index cardEntryList), username: Just username, password: Just password, userPreferences: Just userPreferences, userInfoReferences: Just (UserInfoReferences { indexReference: IndexReference { reference: indexRef }, preferencesReference: UserPreferencesReference { reference: prefRef}}), pinEncryptedPassword} _ =
   do
     let references = prefRef : indexRef : ((\(CardEntry {cardReference: CardReference {reference}}) -> reference) <$> cardEntryList)
-    
-    ProxyResponse proxy' blobs <- downloadBlobsSteps references {hashFunc, proxy} page
+    let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+
+    ProxyResponse proxy' blobs <- downloadBlobsSteps references connectionState page
     remoteUserCard             <- runStep (computeRemoteUserCard state)                                                                                  (WidgetState (spinnerOverlay "Compute user card" White) page)
-    ProxyResponse proxy'' doc  <- runStep (getBasicHTML {hashFunc, proxy: proxy'})                                                                       (WidgetState (spinnerOverlay "Download html"     White) page)
+    ProxyResponse proxy'' doc  <- runStep (getBasicHTML connectionState{proxy = proxy'})                                                                       (WidgetState (spinnerOverlay "Download html"     White) page)
     documentToDownload         <- runStep (appendCardsDataInPlace doc blobs remoteUserCard >>= (liftEffect <<< prepareHTMLBlob))                                                              (WidgetState (spinnerOverlay "Create document"   White) page)
     date                       <- runStep (liftEffect $ formatDateTimeToDate <$> getCurrentDateTime)                                                     (WidgetState (spinnerOverlay ""                  White) page)
     _                          <- runStep (liftEffect $ download documentToDownload (date <> "_Clipperz_Offline" <> ".html") "application/octet-stream") (WidgetState (spinnerOverlay "Download document" White) page)
@@ -326,14 +328,15 @@ handleUserAreaEvent (ExportEvent OfflineCopy) cardManagerState userAreaState sta
                   , cardManagerState
                   }
 
-handleUserAreaEvent (ExportEvent UnencryptedCopy) cardManagerState userAreaState state@{index: Just index@(Index cardEntryList), username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword} _ =
+handleUserAreaEvent (ExportEvent UnencryptedCopy) cardManagerState userAreaState state@{index: Just index@(Index cardEntryList), proxy, hash: hashFunc, srpConf, username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword, cardsCache} _ =
   do
-    Tuple state' cardList <- downloadCardsSteps cardEntryList state page
-    doc                   <- runStep (liftEffect $ prepareCardsForUnencryptedExport cardList)                                                    (WidgetState (spinnerOverlay "Create document"   White) page)
-    date                  <- runStep (liftEffect $ formatDateTimeToDate <$> getCurrentDateTime)                                                  (WidgetState (spinnerOverlay ""                  White) page)
-    _                     <- runStep (liftEffect $ download doc (date <> "_Clipperz_Export_" <> username <> ".html") "application/octet-stream") (WidgetState (spinnerOverlay "Download document" White) page)
-  
-    pure $ Tuple state' (WidgetState hiddenOverlayInfo page)
+    let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+    ProxyResponse proxy' (Tuple cardsCache' cardList) <-                       downloadCardsSteps cardEntryList cardsCache connectionState page
+    doc                                               <- runStep (liftEffect $ prepareCardsForUnencryptedExport cardList)                                                    (WidgetState (spinnerOverlay "Create document"   White) page)
+    date                                              <- runStep (liftEffect $ formatDateTimeToDate <$> getCurrentDateTime)                                                  (WidgetState (spinnerOverlay ""                  White) page)
+    _                                                 <- runStep (liftEffect $ download doc (date <> "_Clipperz_Export_" <> username <> ".html") "application/octet-stream") (WidgetState (spinnerOverlay "Download document" White) page)
+                              
+    pure $ Tuple state{proxy = proxy', cardsCache = cardsCache'} (WidgetState hiddenOverlayInfo page)
   # runExceptT
   >>= handleOperationResult state page true White
   
@@ -381,29 +384,30 @@ handleUserAreaEvent _ _ _ state _ = do
 
 -- ===================================================================================================
 
-downloadCardsSteps :: List CardEntry -> AppState -> Page -> ExceptT AppError (Widget HTML) (Tuple AppState (List Card))
-downloadCardsSteps cardEntryList state page = 
-  foldWithIndexM (\i (Tuple state' cards) cardEntry -> do
-    Tuple state'' card <- runStep (getCard state' cardEntry) (WidgetState (spinnerOverlay ("Download card " <> show i <> " of " <> show nToDownload) White) page)
-    pure $ Tuple state'' (List.snoc cards card)
-  ) (Tuple state Nil) cardEntryList
+downloadCardsSteps :: List CardEntry -> CardsCache -> ConnectionState -> Page -> ExceptT AppError (Widget HTML) (ProxyResponse (Tuple CardsCache (List Card)))
+downloadCardsSteps cardEntryList cardsCache connectionState page = 
+  foldWithIndexM (\i (ProxyResponse proxy' (Tuple cardsCache' cards)) cardEntry -> do
+    ProxyResponse proxy'' (Tuple cardsCache'' card) <- runStep (getCard connectionState{proxy = proxy'} cardsCache' cardEntry) (WidgetState (spinnerOverlay ("Download card " <> show i <> " of " <> show nToDownload) White) page)
+    pure $ ProxyResponse proxy'' (Tuple cardsCache'' (List.snoc cards card))
+  ) (ProxyResponse connectionState.proxy (Tuple cardsCache Nil)) cardEntryList
   where
     nToDownload = List.length cardEntryList
 
 downloadBlobsSteps :: List HexString -> ConnectionState -> Page -> ExceptT AppError (Widget HTML) (ProxyResponse BlobsList)
-downloadBlobsSteps referenceList {proxy, hashFunc} page = 
+downloadBlobsSteps referenceList connectionState page = 
   foldWithIndexM (\i (ProxyResponse proxy' blobs) reference -> do
-    ProxyResponse proxy'' arrayBuffer <- runStep (getBlob {proxy: proxy', hashFunc} reference) (WidgetState (spinnerOverlay ("Download blob " <> show i <> " of " <> show nToDownload) White) page)
+    ProxyResponse proxy'' arrayBuffer <- runStep (getBlob connectionState{proxy = proxy'} reference) (WidgetState (spinnerOverlay ("Download blob " <> show i <> " of " <> show nToDownload) White) page)
     pure $ ProxyResponse proxy'' (List.snoc blobs (Tuple reference (fromArrayBuffer arrayBuffer)))
-  ) (ProxyResponse proxy Nil) referenceList
+  ) (ProxyResponse connectionState.proxy Nil) referenceList
   where
     nToDownload = List.length referenceList
 
 logoutSteps :: AppState -> String -> Page -> ExceptT AppError (Widget HTML) OperationState
-logoutSteps state@{username, hash: hashFunc, proxy} message page =
+logoutSteps state@{username, hash: hashFunc, proxy, srpConf} message page =
   do
+    let connectionState = {proxy, hashFunc, srpConf, credentials: emptyCredentials}
     passphrase <- runStep (do 
-                            _   <- manageGenericRequest {hashFunc, proxy} "logout" POST Nothing RF.string
+                            _   <- manageGenericRequest connectionState "logout" POST Nothing RF.string
                             res <- liftEffect $ window >>= localStorage >>= getItem (makeKey "passphrase")
                             pure res
                           ) (WidgetState (spinnerOverlay message White) page)
@@ -418,11 +422,14 @@ logoutSteps state@{username, hash: hashFunc, proxy} message page =
               )
             ) 
 
-deleteCardsSteps :: AppState -> Index -> Page -> ExceptT AppError (Widget HTML) (ProxyResponse Unit)
-deleteCardsSteps state@{hash: hashFunc, proxy} (Index list) page =
-  foldl (\proxyResponse entry -> do
-    ProxyResponse proxy' _      <- proxyResponse
-    Tuple {proxy: proxy''} card <- getCardSteps (state {proxy = proxy'}) entry page
-    res                         <- runStep (deleteCard {hashFunc, proxy: proxy''} (unwrap entry).cardReference card) (WidgetState (spinnerOverlay "Delete cards" White) page)
-    pure $ discardResult res
-  ) (pure $ ProxyResponse proxy unit) list
+deleteCardsSteps :: ConnectionState -> CardsCache -> Index -> Page -> ExceptT AppError (Widget HTML) (ProxyResponse Unit)
+deleteCardsSteps connectionState cardsCache (Index list) page =
+  foldWithIndexM (\i (ProxyResponse proxy' _) cardEntry -> do
+    discardResult <$> runStep (
+      getCard    connectionState{proxy = proxy'}   cardsCache cardEntry                  >>= (\(ProxyResponse proxy'' (Tuple _ card)) ->
+      deleteCard connectionState{proxy = proxy''} (unwrap cardEntry).cardReference card
+    )) (WidgetState (spinnerOverlay ("Delete card " <> show i <> " of " <> show nToDelete) White) page)
+  ) (ProxyResponse connectionState.proxy unit) list
+
+  where
+    nToDelete = List.length list

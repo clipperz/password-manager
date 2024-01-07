@@ -62,7 +62,7 @@ checkboxesLabels = fromFoldable [
 
 --------------------------------
 
-signupFormView :: SignupDataForm -> Widget HTML SignupPageEvent -- TODO: return SignupDataForm to show the compiled formWidget in loading
+signupFormView :: SignupDataForm -> Widget HTML SignupPageEvent
 signupFormView formData = either GoToLoginEvent SignupEvent <$> 
   form [Props.className "signupForm"] [
     do

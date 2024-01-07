@@ -13,11 +13,11 @@ import Data.Map.Internal (empty)
 import Data.Maybe (Maybe(..))
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst, snd)
+import DataModel.AppState (Proxy(..), AppState)
 import DataModel.AsyncValue (AsyncValue(..))
 import DataModel.Card (Card)
 import DataModel.Index (Index)
-import DataModel.SRP (HashFunction, SRPConf, concatKDF, group1024, hashFuncSHA256, k)
-import DataModel.AppState (Proxy(..), AppState)
+import DataModel.SRP (HashFunction, SRPConf, baseSRPConf, hashFuncSHA256)
 import DataModel.User (MasterKey, UserInfoReferences, UserPreferences)
 import Effect (Effect)
 import Effect.Class (liftEffect)
@@ -83,11 +83,3 @@ baseState = { username: Nothing
             , userPreferences: Nothing
             , index: Nothing
             }
-  where
-    baseSRPConf :: SRPConf
-    baseSRPConf = {
-      group: group1024
-    , k: k
-    , hash: hashFuncSHA256
-    , kdf: concatKDF
-    }

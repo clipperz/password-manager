@@ -98,22 +98,23 @@ type UpdateUserStateUpdateInfo = {newUserInfoReferences :: UserInfoReferences, n
 
 updateIndex :: AppState -> Index -> ExceptT AppError Aff (ProxyResponse UpdateUserStateUpdateInfo)
 
-updateIndex { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, index: Just index } newIndex = do
+updateIndex { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, index: Just index, username: Just username, password: Just password, srpConf } newIndex = do
+  let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
   cryptoKey            :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer oldReference.masterKey)
   indexCardContent     :: ArrayBuffer <- liftAff $ encryptJson cryptoKey newIndex
   indexCardContentHash :: ArrayBuffer <- liftAff $ hashFunc (indexCardContent : Nil)
-  ProxyResponse proxy'   _            <- postBlob {proxy, hashFunc} indexCardContent indexCardContentHash
+  ProxyResponse proxy'   _            <- postBlob connectionState indexCardContent indexCardContentHash
   -- -------------------
   let newIndexReference                = IndexReference $ oldReference { reference = fromArrayBuffer indexCardContentHash }
   let newUserInfoReferences            = UserInfoReferences r { indexReference = newIndexReference }
   masterPassword       :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer p)
   masterKeyContent     :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newUserInfoReferences
   let newUserCard                      = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
-  ProxyResponse proxy'' newMasterKey  <- updateUserCard {proxy: proxy', hashFunc} c newUserCard
+  ProxyResponse proxy'' newMasterKey  <- updateUserCard connectionState{proxy = proxy'} c newUserCard
   -- -------------------
   oldIndexCartContent  :: ArrayBuffer <- liftAff $ encryptJson cryptoKey index
 
-  ProxyResponse proxy''' _            <- deleteBlob {proxy: proxy'', hashFunc} oldIndexCartContent oldReference.reference
+  ProxyResponse proxy''' _            <- deleteBlob connectionState{proxy = proxy''} oldIndexCartContent oldReference.reference
   
   pure $ ProxyResponse proxy''' { newUserInfoReferences, newMasterKey }
 
@@ -122,21 +123,22 @@ updateIndex _ _ =
 
 updateUserPreferences :: AppState -> UserPreferences -> ExceptT AppError Aff (ProxyResponse UpdateUserStateUpdateInfo)
 
-updateUserPreferences { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ preferencesReference: (UserPreferencesReference { reference, key }) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, userPreferences: Just userPreferences } newUserPreferences = do
+updateUserPreferences { c: Just c, p: Just p, username: Just username, password: Just password, srpConf, userInfoReferences: Just (UserInfoReferences r@{ preferencesReference: (UserPreferencesReference { reference, key }) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, userPreferences: Just userPreferences } newUserPreferences = do
+  let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
   cryptoKey              :: CryptoKey   <- liftAff $ KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   preferencesContent     :: ArrayBuffer <- liftAff $ encryptJson cryptoKey newUserPreferences
   preferencesContentHash :: ArrayBuffer <- liftAff $ hashFunc (preferencesContent : Nil)
-  ProxyResponse proxy'   _              <- postBlob {proxy, hashFunc} preferencesContent preferencesContentHash
+  ProxyResponse proxy'   _              <- postBlob connectionState preferencesContent preferencesContentHash
   -- -------------------
   let newUserPreferencesReference        = UserPreferencesReference { reference: fromArrayBuffer preferencesContentHash, key}
   let newUserInfoReferences              = UserInfoReferences r { preferencesReference = newUserPreferencesReference }
   masterPassword         :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer p)
   masterKeyContent       :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newUserInfoReferences
   let newUserCard                        = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
-  ProxyResponse proxy'' newMasterKey    <- updateUserCard {proxy: proxy', hashFunc} c newUserCard
+  ProxyResponse proxy'' newMasterKey    <- updateUserCard connectionState{proxy = proxy'} c newUserCard
   -- -------------------
   oldUserPreferencesCartContent         <- liftAff $ encryptJson cryptoKey userPreferences
-  ProxyResponse proxy''' _              <- deleteBlob {proxy: proxy'', hashFunc} oldUserPreferencesCartContent reference
+  ProxyResponse proxy''' _              <- deleteBlob connectionState{proxy = proxy''} oldUserPreferencesCartContent reference
 
   pure $ ProxyResponse proxy''' { newUserInfoReferences, newMasterKey }
 

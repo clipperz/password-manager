@@ -16,11 +16,12 @@ import Data.Maybe (Maybe(..), isJust, isNothing)
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError(..))
+import DataModel.AppState (AppState, CardsCache, InvalidStateError(..), ProxyResponse(..))
 import DataModel.Card as DataModel.Card
 import DataModel.FragmentState as Fragment
 import DataModel.Index (CardEntry(..), Index, addToIndex, reference, removeFromIndex)
-import DataModel.AppState (InvalidStateError(..), ProxyResponse(..), AppState)
 import Functions.Card (appendToTitle, archiveCard, getCardContent, restoreCard)
+import Functions.Communication.Backend (ConnectionState)
 import Functions.Communication.Blobs (getBlob)
 import Functions.Communication.Cards (deleteCard, postCard)
 import Functions.Communication.Users (updateIndex)
@@ -52,11 +53,12 @@ handleCardManagerEvent OpenUserAreaEvent cardManagerState state@{index: Just ind
             )
 
 
-handleCardManagerEvent (OpenCardViewEvent cardEntry) cardManagerState state@{index: Just index, userPreferences: Just userPreferences, username: Just username, password: Just password, pinEncryptedPassword, cardsCache} _ = 
+handleCardManagerEvent (OpenCardViewEvent cardEntry) cardManagerState state@{index: Just index, userPreferences: Just userPreferences, proxy, srpConf, hash: hashFunc, username: Just username, password: Just password, pinEncryptedPassword, cardsCache} _ = 
   do
-    Tuple state' card <- getCardSteps state cardEntry (Main { index, credentials: {username, password}, pinExists: isJust pinEncryptedPassword, userAreaState: userAreaInitialState, cardManagerState, userPreferences})
+    let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+    ProxyResponse proxy' (Tuple cardsCache' card) <- getCardSteps connectionState cardsCache cardEntry (Main { index, credentials: {username, password}, pinExists: isJust pinEncryptedPassword, userAreaState: userAreaInitialState, cardManagerState, userPreferences})
     pure (Tuple
-            state'
+            state {proxy = proxy', cardsCache = cardsCache'}
             (WidgetState
               hiddenOverlayInfo
               (Main { index
@@ -90,26 +92,28 @@ handleCardManagerEvent (AddCardEvent card) cardManagerState state@{index: Just i
   -- >>= handleOperationResultWithStateT defaultErrorPage
 
 
-handleCardManagerEvent (CloneCardEvent cardEntry) cardManagerState state@{index: Just index} _ = 
+handleCardManagerEvent (CloneCardEvent cardEntry) cardManagerState state@{index: Just index, srpConf, proxy, hash: hashFunc, username: Just username, password: Just password, cardsCache} _ = 
   do
-    Tuple state' card <- getCardSteps state cardEntry (loadingMainPage index cardManagerState)
+    let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+    ProxyResponse proxy' (Tuple cardsCache' card) <- getCardSteps connectionState cardsCache cardEntry (loadingMainPage index cardManagerState)
     let cloneCard      = appendToTitle " - copy" <<< (\(DataModel.Card.Card card') -> DataModel.Card.Card card' {archived = false}) $ card
-    res               <- addCardSteps cardManagerState state' cloneCard (loadingMainPage index cardManagerState) "Clone card"
+    res               <- addCardSteps cardManagerState state{proxy = proxy', cardsCache = cardsCache'} cloneCard (loadingMainPage index cardManagerState) "Clone card"
     pure res
 
   # runExceptT
   >>= handleOperationResult state defaultErrorPage true Black
 
 
-handleCardManagerEvent (DeleteCardEvent cardEntry) cardManagerState state@{hash: hashFunc, index: Just index, userPreferences: Just userPreferences, username: Just username, password: Just password, pinEncryptedPassword} _ =
+handleCardManagerEvent (DeleteCardEvent cardEntry) cardManagerState state@{hash: hashFunc, srpConf, proxy, cardsCache, index: Just index, userPreferences: Just userPreferences, username: Just username, password: Just password, pinEncryptedPassword} _ =
   do
-    Tuple state'@{proxy} card             <- getCardSteps state cardEntry (loadingMainPage index cardManagerState)
-    ProxyResponse proxy' _                <- runStep (deleteCard {proxy, hashFunc} (unwrap cardEntry).cardReference card) (WidgetState (spinnerOverlay "Delete card"  Black) (loadingMainPage index cardManagerState))
+    let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+    ProxyResponse proxy' (Tuple cardsCache' card) <- getCardSteps connectionState cardsCache cardEntry (loadingMainPage index cardManagerState)
+    ProxyResponse proxy'' _                <- runStep (deleteCard connectionState{proxy = proxy'} (unwrap cardEntry).cardReference card) (WidgetState (spinnerOverlay "Delete card"  Black) (loadingMainPage index cardManagerState))
     let updatedIndex                       = removeFromIndex cardEntry index
-    ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state' {proxy = proxy'}) updatedIndex)                 (WidgetState (spinnerOverlay "Update index" Black) (loadingMainPage index cardManagerState))
+    ProxyResponse proxy''' stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy''}) updatedIndex)                 (WidgetState (spinnerOverlay "Update index" Black) (loadingMainPage index cardManagerState))
 
     pure (Tuple 
-            (state' {proxy = proxy'', index = Just updatedIndex, userInfoReferences = Just stateUpdateInfo.newUserInfoReferences, masterKey = Just stateUpdateInfo.newMasterKey})
+            (state {proxy = proxy''', cardsCache = cardsCache', index = Just updatedIndex, userInfoReferences = Just stateUpdateInfo.newUserInfoReferences, masterKey = Just stateUpdateInfo.newMasterKey})
             (WidgetState
               hiddenOverlayInfo
               (Main { index:            updatedIndex
@@ -127,32 +131,35 @@ handleCardManagerEvent (DeleteCardEvent cardEntry) cardManagerState state@{hash:
   >>= handleOperationResult state defaultErrorPage true Black
 
 
-handleCardManagerEvent (EditCardEvent oldCardEntry updatedCard) cardManagerState state@{index: Just index} _ =
+handleCardManagerEvent (EditCardEvent oldCardEntry updatedCard) cardManagerState state@{index: Just index, srpConf, proxy, hash: hashFunc, username: Just username, password: Just password, cardsCache} _ =
   do
-    Tuple state' oldCard <- getCardSteps                   state  oldCardEntry                     (loadingMainPage index cardManagerState)
-    res                  <- editCardSteps cardManagerState state' oldCardEntry oldCard updatedCard (loadingMainPage index cardManagerState)
+    let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+    ProxyResponse proxy' (Tuple cardsCache' oldCard) <- getCardSteps                   connectionState cardsCache                     oldCardEntry                     (loadingMainPage index cardManagerState)
+    res                                              <- editCardSteps cardManagerState state{proxy = proxy', cardsCache = cardsCache'} oldCardEntry oldCard updatedCard (loadingMainPage index cardManagerState)
     pure res
   
   # runExceptT
   >>= handleOperationResult state defaultErrorPage true Black
 
 
-handleCardManagerEvent (ArchiveCardEvent cardEntry) cardManagerState state@{index: Just index} _ =
+handleCardManagerEvent (ArchiveCardEvent cardEntry) cardManagerState state@{index: Just index, srpConf, proxy, hash: hashFunc, username: Just username, password: Just password, cardsCache} _ =
   do
-    Tuple state' card <- getCardSteps                   state  cardEntry                  (loadingMainPage index cardManagerState)
+    let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+    ProxyResponse proxy' (Tuple cardsCache' card) <- getCardSteps                   connectionState cardsCache                     cardEntry                  (loadingMainPage index cardManagerState)
     let updatedCard    = archiveCard card
-    res               <- editCardSteps cardManagerState state' cardEntry card updatedCard (loadingMainPage index cardManagerState)
+    res                                           <- editCardSteps cardManagerState state{proxy = proxy', cardsCache = cardsCache'} cardEntry card updatedCard (loadingMainPage index cardManagerState)
     pure res
 
   # runExceptT
   >>= handleOperationResult state defaultErrorPage true Black
 
 
-handleCardManagerEvent (RestoreCardEvent cardEntry) cardManagerState state@{index: Just index} _ =
+handleCardManagerEvent (RestoreCardEvent cardEntry) cardManagerState state@{index: Just index, srpConf, proxy, hash: hashFunc, username: Just username, password: Just password, cardsCache} _ =
   do
-    Tuple state' card <- getCardSteps                   state  cardEntry                  (loadingMainPage index cardManagerState)
+    let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+    ProxyResponse proxy' (Tuple cardsCache' card) <- getCardSteps                   connectionState cardsCache                     cardEntry                  (loadingMainPage index cardManagerState)
     let updatedCard    = restoreCard card
-    res               <- editCardSteps cardManagerState state' cardEntry card updatedCard (loadingMainPage index cardManagerState)
+    res                                           <- editCardSteps cardManagerState state{proxy = proxy', cardsCache = cardsCache'} cardEntry card updatedCard (loadingMainPage index cardManagerState)
     pure res
 
   # runExceptT
@@ -165,23 +172,21 @@ handleCardManagerEvent _ _ state _ = do
 
 -- ===================================================================================================
 
-getCardSteps :: AppState -> CardEntry -> Page -> ExceptT AppError (Widget HTML) (Tuple AppState DataModel.Card.Card)
-getCardSteps state@{proxy, hash, cardsCache} cardEntry@(CardEntry entry) page = do
+getCardSteps :: ConnectionState -> CardsCache -> CardEntry -> Page -> ExceptT AppError (Widget HTML) (ProxyResponse (Tuple CardsCache DataModel.Card.Card))
+getCardSteps connectionState cardsCache cardEntry@(CardEntry entry) page = do
   let cardFromCache = lookup (reference cardEntry) cardsCache
   case cardFromCache of
-    Just card -> pure $ Tuple state card
+    Just card -> pure $ ProxyResponse connectionState.proxy (Tuple cardsCache card)
     Nothing   -> do
-      ProxyResponse proxy' blob <- runStep (getBlob {proxy, hashFunc: hash} (reference cardEntry)) (WidgetState (spinnerOverlay "Get card"     Black) page)  
-      card                      <- runStep (getCardContent blob (entry.cardReference))                      (WidgetState (spinnerOverlay "Decrypt card" Black) page)
+      ProxyResponse proxy' blob <- runStep (getBlob connectionState (reference cardEntry)) (WidgetState (spinnerOverlay "Get card"     Black) page)  
+      card                      <- runStep (getCardContent blob (entry.cardReference))     (WidgetState (spinnerOverlay "Decrypt card" Black) page)
       let updatedCardsCache = insert (reference cardEntry) card cardsCache
-      pure $ Tuple
-        (state { proxy      = proxy'
-               , cardsCache = updatedCardsCache})
-         card
+      pure $ ProxyResponse proxy' (Tuple updatedCardsCache card)
 
 addCardSteps :: CardManagerState -> AppState -> DataModel.Card.Card -> Page -> String -> ExceptT AppError (Widget HTML) OperationState
-addCardSteps cardManagerState state@{index: Just index, userPreferences: Just userPreferences, cardsCache, username: Just username, password: Just password, pinEncryptedPassword} newCard page message = do
-  ProxyResponse proxy'  newCardEntry    <- runStep (postCard state newCard)                            (WidgetState (spinnerOverlay message        Black) page)
+addCardSteps cardManagerState state@{index: Just index, userPreferences: Just userPreferences, proxy, hash: hashFunc, srpConf, cardsCache, username: Just username, password: Just password, pinEncryptedPassword} newCard page message = do
+  let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+  ProxyResponse proxy'  newCardEntry    <- runStep (postCard connectionState newCard)                  (WidgetState (spinnerOverlay message        Black) page)
   let updatedIndex                       = addToIndex newCardEntry index
   ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index" Black) page)
   let updatedCardCache                   = insert (reference newCardEntry) newCard cardsCache
@@ -209,11 +214,12 @@ addCardSteps cardManagerState state@{index: Just index, userPreferences: Just us
 addCardSteps _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
 
 editCardSteps :: CardManagerState -> AppState -> CardEntry -> DataModel.Card.Card -> DataModel.Card.Card -> Page -> ExceptT AppError (Widget HTML) OperationState
-editCardSteps cardManagerState state@{index: Just index, hash: hashFunc, userPreferences: Just userPreferences, cardsCache, username: Just username, password: Just password, pinEncryptedPassword} oldCardEntry oldCard updatedCard page = do
-  ProxyResponse proxy'   cardEntry       <- runStep (postCard state updatedCard)                                                         (WidgetState (spinnerOverlay "Post updated card" Black) page)
+editCardSteps cardManagerState state@{index: Just index, proxy, srpConf, hash: hashFunc, userPreferences: Just userPreferences, cardsCache, username: Just username, password: Just password, pinEncryptedPassword} oldCardEntry oldCard updatedCard page = do
+  let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+  ProxyResponse proxy'   cardEntry       <- runStep (postCard connectionState updatedCard)                                                     (WidgetState (spinnerOverlay "Post updated card" Black) page)
   let updatedIndex                        = addToIndex cardEntry >>> removeFromIndex oldCardEntry $ index
-  ProxyResponse proxy''  stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex)                                  (WidgetState (spinnerOverlay "Update index"      Black) page)
-  ProxyResponse proxy''' _               <- runStep (deleteCard  {proxy: proxy'', hashFunc} (unwrap oldCardEntry).cardReference oldCard) (WidgetState (spinnerOverlay "Delete old card"   Black) page)
+  ProxyResponse proxy''  stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'})         updatedIndex)                                (WidgetState (spinnerOverlay "Update index"      Black) page)
+  ProxyResponse proxy''' _               <- runStep (deleteCard  connectionState{proxy = proxy''} (unwrap oldCardEntry).cardReference oldCard) (WidgetState (spinnerOverlay "Delete old card"   Black) page)
   let updatedCardCache                    = insert (reference cardEntry) updatedCard >>> delete (reference oldCardEntry) $ cardsCache
 
   pure (Tuple 

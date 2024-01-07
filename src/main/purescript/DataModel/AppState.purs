@@ -77,6 +77,8 @@ responseValue (ProxyResponse _ a) = a
 
 -- ==================
 
+type CardsCache = Map HexString Card
+
 type AppState =
   { proxy :: Proxy
   , username :: Maybe String
@@ -87,7 +89,7 @@ type AppState =
   , s :: Maybe HexString
   , srpConf :: SRPConf
   , hash :: HashFunction
-  , cardsCache :: Map HexString Card
+  , cardsCache :: CardsCache
   , masterKey :: Maybe MasterKey
   , userInfoReferences :: Maybe UserInfoReferences
   , userPreferences :: Maybe UserPreferences

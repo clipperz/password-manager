@@ -38,7 +38,7 @@ type ModifyUserData = { c :: HexString
                       }
 
 changeUserPassword :: AppState -> String -> ExceptT AppError Aff (ProxyResponse ModifyUserData)
-changeUserPassword {srpConf, c: Just oldC, p: Just oldP, username: Just username, proxy, hash: hashFunc, masterKey: Just (Tuple masterKeyContent _)} newPassword = do
+changeUserPassword {srpConf, c: Just oldC, p: Just oldP, username: Just username, password: Just password, proxy, hash: hashFunc, masterKey: Just (Tuple masterKeyContent _)} newPassword = do
   s        <- liftAff $ SRP.randomArrayBuffer 32
   newC     <- liftAff $ SRP.prepareC srpConf username newPassword
   newP     <- liftAff $ SRP.prepareP srpConf username newPassword
@@ -57,7 +57,7 @@ changeUserPassword {srpConf, c: Just oldC, p: Just oldP, username: Just username
   let url         = joinWith "/" [ "users", toString Hex oldC ]
   let body        = (json $ encodeJson newUserCard) :: RequestBody
   
-  ProxyResponse proxy' response <- manageGenericRequest {hashFunc, proxy} url PUT (Just body) RF.ignore
+  ProxyResponse proxy' response <- manageGenericRequest {hashFunc, proxy, srpConf, credentials: {username, password}} url PUT (Just body) RF.ignore
   if isStatusCodeOk response.status
     then pure $ ProxyResponse proxy' { c: fromArrayBuffer newC
                                      , p: fromArrayBuffer newP

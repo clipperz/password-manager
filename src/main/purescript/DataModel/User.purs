@@ -135,7 +135,7 @@ instance encodeJsonUserPreferencesReference :: EncodeJson UserPreferencesReferen
 instance decodeJsonUserPreferencesReference :: DecodeJson UserPreferencesReference where
   decodeJson json = rmap (\record -> UserPreferencesReference record) (decodeJson json)
 
-newtype UserInfoReferences =
+newtype UserInfoReferences = --TODO: change references structure [fsolaroli - 06/01/2024]
   UserInfoReferences 
     { preferencesReference :: UserPreferencesReference
     , indexReference :: IndexReference

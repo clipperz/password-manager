@@ -104,3 +104,11 @@ k = (fromMaybe bigInt0 (toBigInt $ hex "7556AA045AEF2CDD07ABAF0F665C3E818913186F
 -- --------------------------------------------
 
 type SRPConf = { group :: SRPGroup, k :: BigInt, hash :: HashFunction, kdf :: KDF }
+
+baseSRPConf :: SRPConf
+baseSRPConf = {
+  group: group1024
+, k: k
+, hash: hashFuncSHA256
+, kdf: concatKDF
+}
