@@ -95,7 +95,7 @@ val zio_version = "2.1-RC1"
 val zio_http_version = "3.0.0-RC4"
 val zio_logging_version = "2.1.12"
 val zio_json_version = "0.5.0"
-val zio_cache_version = "0.2.0"
+val zio_cache_version = "0.2.3"
 val nscala_time_version = "2.32.0"
 val zio_metrics = "2.1.0"
 
