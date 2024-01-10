@@ -9,7 +9,7 @@ import Control.Semigroupoid ((>>>))
 import Data.Argonaut.Encode.Class (encodeJson)
 import Data.Function (flip, ($))
 import Data.HTTP.Method (Method(..))
-import Data.HexString (HexString)
+import Data.HexString (HexString, hex)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Show (show)
@@ -17,7 +17,7 @@ import Data.String.Common (joinWith)
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (Proxy(..), ProxyResponse(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.Credentials (Credentials, emptyCredentials)
+import DataModel.Credentials (Credentials)
 import DataModel.SRP (SRPConf, HashFunction)
 import DataModel.User (RequestUserCard(..))
 import Effect.Aff (Aff)
@@ -36,7 +36,7 @@ signupUser proxy@(OnlineProxy _ _ _) hashFunc srpConf credentials = do
   let path  = joinWith "/" ["users", show u.c]
   let body = (json $ encodeJson request) :: RequestBody
   --- ---------------------------
-  ProxyResponse newProxy response <- signupRequest {proxy, hashFunc, srpConf, credentials: emptyCredentials} path POST (Just body) RF.string
+  ProxyResponse newProxy response <- signupRequest {proxy, hashFunc, srpConf, c: hex "", p: hex ""} path POST (Just body) RF.string
   if isStatusCodeOk response.status
     then pure $ ProxyResponse newProxy {c: u.c, p: p}
     else throwError $ ProtocolError (ResponseError (unwrap response.status))

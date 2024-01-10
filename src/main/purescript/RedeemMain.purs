@@ -8,12 +8,12 @@ import Control.Bind (bind, (>>=))
 import Data.Array (last)
 import Data.Function (($))
 import Data.Functor ((<$>))
+import Data.HexString (hex)
 import Data.Maybe (Maybe(..))
 import Data.String (Pattern(..), drop, split)
 import Data.Unit (Unit)
 import DataModel.AppState (Proxy(..))
 import DataModel.AsyncValue (AsyncValue(..))
-import DataModel.Credentials (emptyCredentials)
 import DataModel.SRP (baseSRPConf, hashFuncSHA256)
 import Effect (Effect)
 import Functions.Communication.Backend (ConnectionState)
@@ -26,8 +26,9 @@ initialConnectionState :: ConnectionState
 initialConnectionState = {
   proxy: OnlineProxy "/api" { toll: Loading Nothing, currentChallenge: Nothing } Nothing
 , hashFunc: hashFuncSHA256
-, credentials: emptyCredentials
 , srpConf: baseSRPConf
+, c: hex ""
+, p: hex ""
 }
 
 main :: Effect Unit

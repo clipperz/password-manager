@@ -53,7 +53,6 @@ import DataModel.AppState (Proxy(..), ProxyResponse(..))
 import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue)
 import DataModel.Communication.FromString (class FromString)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.Credentials (Credentials)
 import DataModel.SRP (SRPConf, HashFunction)
 import DataModel.User (MasterKey)
 import Effect.Aff (Aff, delay)
@@ -71,10 +70,11 @@ type Path = String
 type SessionKey = HexString
 
 type ConnectionState = {
-  proxy       :: Proxy
-, hashFunc    :: HashFunction
-, srpConf     :: SRPConf
-, credentials :: Credentials
+  proxy    :: Proxy
+, hashFunc :: HashFunction
+, srpConf  :: SRPConf
+, c        :: HexString
+, p        :: HexString
 }
 
 -- ----------------------------------------------------------------------------
@@ -157,17 +157,13 @@ manageGenericRequest proxy path method body responseFormat = do
 
 
 manageAuth :: forall a. FromString a => ConnectionState -> Path -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AppError Aff (ProxyResponse (AXW.Response a)) -> ExceptT AppError Aff (ProxyResponse (AXW.Response a))
-manageAuth connectionState@{ srpConf, credentials: {username, password} } path method body responseFormat exceptT = do
+manageAuth connectionState@{ srpConf, c, p } path method body responseFormat exceptT = do
   res <- liftAff $ runExceptT exceptT
   case res of
     Right response -> pure response
     Left err' -> case err' of
       ProtocolError (ResponseError 401) -> do
         -- this implementation is copied from Functions.Communication.Login functions to avoid circular dependency
-        -- prepare login
-        c         <- liftAff $ fromArrayBuffer <$> SRP.prepareC srpConf username password
-        p         <- liftAff $ fromArrayBuffer <$> SRP.prepareP srpConf username password
-        
         -- login step1
         (Tuple a aa) <- withExceptT (\err -> ProtocolError $ SRPError $ show err) (ExceptT $ SRP.prepareA srpConf)
         let urlStep1  = joinWith "/" ["login", "step1", show c] :: String

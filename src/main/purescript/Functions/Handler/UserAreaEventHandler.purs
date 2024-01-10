@@ -178,9 +178,9 @@ handleUserAreaEvent (SetPinEvent pinAction) cardManagerState userAreaState state
                 }
 
 
-handleUserAreaEvent DeleteAccountEvent cardManagerState userAreaState state@{proxy, srpConf, hash: hashFunc, cardsCache, username: Just username, password: Just password, index: Just index, userPreferences: Just userPreferences, userInfoReferences: Just (UserInfoReferences {indexReference, preferencesReference}), c: Just c, masterKey: Just masterKey, pinEncryptedPassword} _ =
+handleUserAreaEvent DeleteAccountEvent cardManagerState userAreaState state@{proxy, srpConf, hash: hashFunc, cardsCache, username: Just username, password: Just password, index: Just index, userPreferences: Just userPreferences, userInfoReferences: Just (UserInfoReferences {indexReference, preferencesReference}), c: Just c, p: Just p, masterKey: Just masterKey, pinEncryptedPassword} _ =
   do
-    let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+    let connectionState = {proxy, hashFunc, srpConf, c, p}
     ProxyResponse proxy'     _ <-          deleteCardsSteps        connectionState                    cardsCache index page
     ProxyResponse proxy''    _ <- runStep (deleteBlobWithReference connectionState{proxy = proxy'}   (unwrap indexReference).reference      ) (WidgetState (spinnerOverlay "Delete Index"       White) page)
     ProxyResponse proxy'''   _ <- runStep (deleteBlobWithReference connectionState{proxy = proxy''}  (unwrap preferencesReference).reference) (WidgetState (spinnerOverlay "Delete Preferences" White) page)
@@ -209,7 +209,7 @@ handleUserAreaEvent DeleteAccountEvent cardManagerState userAreaState state@{pro
                 }
 
 
-handleUserAreaEvent (ImportCardsEvent importState) cardManagerState userAreaState state@{proxy, hash: hashFunc, srpConf, index: Just index, username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword} _ = 
+handleUserAreaEvent (ImportCardsEvent importState) cardManagerState userAreaState state@{proxy, hash: hashFunc, srpConf, index: Just index, username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword, c: Just c, p: Just p} _ = 
   case importState.step of
     Upload    ->
       do
@@ -236,7 +236,7 @@ handleUserAreaEvent (ImportCardsEvent importState) cardManagerState userAreaStat
                        , credentials: {username, password}
                        , pinExists: isJust pinEncryptedPassword
                        , cardManagerState
-                       , userAreaState : userAreaState {importState = importState {content = Right $ stringify $ encodeJson result, step = Selection, tag = Tuple true currentDate, selection = result <#> (\c@(DataModel.Card.Card r) -> Tuple (not r.archived) c)}}
+                       , userAreaState : userAreaState {importState = importState {content = Right $ stringify $ encodeJson result, step = Selection, tag = Tuple true currentDate, selection = result <#> (\card@(DataModel.Card.Card r) -> Tuple (not r.archived) card)}}
                        , userPreferences
                        }
 
@@ -258,7 +258,7 @@ handleUserAreaEvent (ImportCardsEvent importState) cardManagerState userAreaStat
     
     Confirm   ->
       do
-        let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+        let connectionState = {proxy, hashFunc, srpConf, c, p}
         let cardToImport                      = filter fst importState.selection <#> snd # (if fst importState.tag
                                                                                             then (map $ addTag (snd importState.tag))
                                                                                             else identity
@@ -304,10 +304,10 @@ handleUserAreaEvent (ImportCardsEvent importState) cardManagerState userAreaStat
                 }
 
 
-handleUserAreaEvent (ExportEvent OfflineCopy) cardManagerState userAreaState state@{proxy, hash: hashFunc, srpConf, index: Just index@(Index cardEntryList), username: Just username, password: Just password, userPreferences: Just userPreferences, userInfoReferences: Just (UserInfoReferences { indexReference: IndexReference { reference: indexRef }, preferencesReference: UserPreferencesReference { reference: prefRef}}), pinEncryptedPassword} _ =
+handleUserAreaEvent (ExportEvent OfflineCopy) cardManagerState userAreaState state@{proxy, hash: hashFunc, srpConf, c: Just c, p: Just p, index: Just index@(Index cardEntryList), username: Just username, password: Just password, userPreferences: Just userPreferences, userInfoReferences: Just (UserInfoReferences { indexReference: IndexReference { reference: indexRef }, preferencesReference: UserPreferencesReference { reference: prefRef}}), pinEncryptedPassword} _ =
   do
     let references = prefRef : indexRef : ((\(CardEntry {cardReference: CardReference {reference}}) -> reference) <$> cardEntryList)
-    let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+    let connectionState = {proxy, hashFunc, srpConf, c, p}
 
     ProxyResponse proxy' blobs <- downloadBlobsSteps references connectionState page
     remoteUserCard             <- runStep (computeRemoteUserCard state)                                                                                  (WidgetState (spinnerOverlay "Compute user card" White) page)
@@ -328,9 +328,9 @@ handleUserAreaEvent (ExportEvent OfflineCopy) cardManagerState userAreaState sta
                   , cardManagerState
                   }
 
-handleUserAreaEvent (ExportEvent UnencryptedCopy) cardManagerState userAreaState state@{index: Just index@(Index cardEntryList), proxy, hash: hashFunc, srpConf, username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword, cardsCache} _ =
+handleUserAreaEvent (ExportEvent UnencryptedCopy) cardManagerState userAreaState state@{index: Just index@(Index cardEntryList), proxy, hash: hashFunc, srpConf, c: Just c, p: Just p, username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword, cardsCache} _ =
   do
-    let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+    let connectionState = {proxy, hashFunc, srpConf, c, p}
     ProxyResponse proxy' (Tuple cardsCache' cardList) <-                       downloadCardsSteps cardEntryList cardsCache connectionState page
     doc                                               <- runStep (liftEffect $ prepareCardsForUnencryptedExport cardList)                                                    (WidgetState (spinnerOverlay "Create document"   White) page)
     date                                              <- runStep (liftEffect $ formatDateTimeToDate <$> getCurrentDateTime)                                                  (WidgetState (spinnerOverlay ""                  White) page)
@@ -405,7 +405,7 @@ downloadBlobsSteps referenceList connectionState page =
 logoutSteps :: AppState -> String -> Page -> ExceptT AppError (Widget HTML) OperationState
 logoutSteps state@{username, hash: hashFunc, proxy, srpConf} message page =
   do
-    let connectionState = {proxy, hashFunc, srpConf, credentials: emptyCredentials}
+    let connectionState = {proxy, hashFunc, srpConf, c: hex "", p: hex ""}
     passphrase <- runStep (do 
                             _   <- genericRequest connectionState "logout" POST Nothing RF.string
                             res <- liftEffect $ window >>= localStorage >>= getItem (makeKey "passphrase")

@@ -11,7 +11,6 @@ import Data.String (drop)
 import Data.Unit (Unit)
 import DataModel.AppState (Proxy(..))
 import DataModel.AsyncValue (AsyncValue(..))
-import DataModel.Credentials (emptyCredentials)
 import DataModel.SRP (baseSRPConf, hashFuncSHA256)
 import Effect (Effect)
 import Foreign (unsafeToForeign)
@@ -27,8 +26,9 @@ initialConnectionState :: ConnectionState
 initialConnectionState = {
   proxy: OnlineProxy "/api" { toll: Loading Nothing, currentChallenge: Nothing } Nothing
 , hashFunc: hashFuncSHA256
-, credentials: emptyCredentials
 , srpConf: baseSRPConf
+, c: hex ""
+, p: hex ""
 }
 
 main :: Effect Unit

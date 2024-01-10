@@ -98,8 +98,8 @@ type UpdateUserStateUpdateInfo = {newUserInfoReferences :: UserInfoReferences, n
 
 updateIndex :: AppState -> Index -> ExceptT AppError Aff (ProxyResponse UpdateUserStateUpdateInfo)
 
-updateIndex { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, index: Just index, username: Just username, password: Just password, srpConf } newIndex = do
-  let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+updateIndex { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, index: Just index, srpConf } newIndex = do
+  let connectionState = {proxy, hashFunc, srpConf, c, p}
   cryptoKey            :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer oldReference.masterKey)
   indexCardContent     :: ArrayBuffer <- liftAff $ encryptJson cryptoKey newIndex
   indexCardContentHash :: ArrayBuffer <- liftAff $ hashFunc (indexCardContent : Nil)
@@ -123,8 +123,8 @@ updateIndex _ _ =
 
 updateUserPreferences :: AppState -> UserPreferences -> ExceptT AppError Aff (ProxyResponse UpdateUserStateUpdateInfo)
 
-updateUserPreferences { c: Just c, p: Just p, username: Just username, password: Just password, srpConf, userInfoReferences: Just (UserInfoReferences r@{ preferencesReference: (UserPreferencesReference { reference, key }) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, userPreferences: Just userPreferences } newUserPreferences = do
-  let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+updateUserPreferences { c: Just c, p: Just p, srpConf, userInfoReferences: Just (UserInfoReferences r@{ preferencesReference: (UserPreferencesReference { reference, key }) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, userPreferences: Just userPreferences } newUserPreferences = do
+  let connectionState = {proxy, hashFunc, srpConf, c, p}
   cryptoKey              :: CryptoKey   <- liftAff $ KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   preferencesContent     :: ArrayBuffer <- liftAff $ encryptJson cryptoKey newUserPreferences
   preferencesContentHash :: ArrayBuffer <- liftAff $ hashFunc (preferencesContent : Nil)

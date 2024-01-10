@@ -11,7 +11,7 @@ import Control.Monad.Except.Trans (ExceptT, runExceptT)
 import Data.CommutativeRing ((+))
 import Data.Either (Either(..))
 import Data.Function ((#), ($))
-import Data.HexString (toArrayBuffer)
+import Data.HexString (hex, toArrayBuffer)
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (unwrap)
@@ -81,7 +81,7 @@ handleLoginPageEvent (GoToCredentialLoginEvent username) state _ = doNothing (Tu
 
 loginSteps :: Credentials -> AppState -> Fragment.FragmentState -> Page -> PrepareLoginResult -> ExceptT AppError (Widget HTML) OperationState
 loginSteps cred state@{proxy, hash: hashFunc, srpConf} fragmentState page prepareLoginResult = do
-  let connectionState = {proxy, hashFunc, srpConf, credentials: cred}
+  let connectionState = {proxy, hashFunc, srpConf, c : hex "", p: hex ""}
   ProxyResponse proxy'   loginStep1Result <- runStep (loginStep1         connectionState                 prepareLoginResult.c)                                       (WidgetState {status: Spinner, color: Black, message: "SRP step 1"   } page)
   ProxyResponse proxy''  loginStep2Result <- runStep (loginStep2         connectionState{proxy = proxy'} prepareLoginResult.c prepareLoginResult.p loginStep1Result) (WidgetState {status: Spinner, color: Black, message: "SRP step 2"   } page)
   _                                       <- runStep ((liftAff $ checkM2 srpConf loginStep1Result.aa loginStep2Result.m1 loginStep2Result.kk (toArrayBuffer loginStep2Result.m2)) >>= (\result -> 
@@ -105,8 +105,8 @@ loginSteps cred state@{proxy, hash: hashFunc, srpConf} fragmentState page prepar
 
 loadHomePageSteps :: AppState -> Fragment.FragmentState -> ExceptT AppError (Widget HTML) OperationState
 
-loadHomePageSteps state@{hash: hashFunc, proxy, srpConf, userInfoReferences: Just userInfoReferences, username: Just username, password: Just password} fragmentState = do
-  let connectionState = {proxy, hashFunc, srpConf, credentials: {username, password}}
+loadHomePageSteps state@{hash: hashFunc, proxy, srpConf, userInfoReferences: Just userInfoReferences, c: Just c, p: Just p} fragmentState = do
+  let connectionState = {proxy, hashFunc, srpConf, c, p}
 
   ProxyResponse proxy'  userPreferences <- runStep (getUserPreferences connectionState                  (unwrap userInfoReferences).preferencesReference) (WidgetState {status: Spinner, color: Black, message: "Get user preferences"} $ Main emptyMainPageWidgetState)
   ProxyResponse proxy'' index           <- runStep (getIndex           connectionState{ proxy = proxy'} (unwrap userInfoReferences).indexReference)       (WidgetState {status: Spinner, color: Black, message: "Get index"}            $ Main emptyMainPageWidgetState)
