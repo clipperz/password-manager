@@ -26,13 +26,13 @@ import Data.String.Common (joinWith)
 import Data.Time.Duration (Seconds, fromDuration)
 import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError(..))
+import DataModel.AppState (ProxyResponse(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.SRP (hashFuncSHA256)
-import DataModel.AppState (ProxyResponse(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Exception as EX
-import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, manageGenericRequest)
+import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, shareRequest)
 import Functions.EncodeDecode (cryptoKeyAES, decryptArrayBuffer, decryptJson, encryptArrayBuffer, encryptJson)
 import Functions.SRP (randomArrayBuffer)
 
@@ -66,7 +66,7 @@ share connectionState encryptedSecret duration = do
       }
     )
 
-  ProxyResponse _ response <- manageGenericRequest connectionState url POST (Just body) RF.string
+  ProxyResponse _ response <- shareRequest connectionState url POST (Just body) RF.string
   if isStatusCodeOk response.status
     then pure $ response.body
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
@@ -75,7 +75,7 @@ redeem :: ConnectionState -> UUID -> ExceptT AppError Aff (Tuple SecretVersion A
 redeem connectionState id = do
   let url = joinWith "/" ["redeem", id]
 
-  ProxyResponse _ response <- manageGenericRequest connectionState url GET Nothing RF.arrayBuffer
+  ProxyResponse _ response <- shareRequest connectionState url GET Nothing RF.arrayBuffer
   if isStatusCodeOk response.status
     then do
       version <- secretVersionFromString $ fromMaybe "V_1" (value <$> find (\header -> (name header) == oneTimeSecretVersionHeaderName) (response.headers))

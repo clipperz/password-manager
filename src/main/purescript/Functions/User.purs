@@ -28,7 +28,7 @@ import DataModel.User (MasterKey, MasterKeyEncodingVersion(..), RequestUserCard(
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Exception as EX
-import Functions.Communication.Backend (isStatusCodeOk, manageGenericRequest)
+import Functions.Communication.Backend (isStatusCodeOk, genericRequest)
 import Functions.EncodeDecode (decryptJson, encryptJson)
 import Functions.SRP as SRP
 
@@ -57,7 +57,7 @@ changeUserPassword {srpConf, c: Just oldC, p: Just oldP, username: Just username
   let url         = joinWith "/" [ "users", toString Hex oldC ]
   let body        = (json $ encodeJson newUserCard) :: RequestBody
   
-  ProxyResponse proxy' response <- manageGenericRequest {hashFunc, proxy, srpConf, credentials: {username, password}} url PUT (Just body) RF.ignore
+  ProxyResponse proxy' response <- genericRequest {hashFunc, proxy, srpConf, credentials: {username, password}} url PUT (Just body) RF.ignore
   if isStatusCodeOk response.status
     then pure $ ProxyResponse proxy' { c: fromArrayBuffer newC
                                      , p: fromArrayBuffer newP

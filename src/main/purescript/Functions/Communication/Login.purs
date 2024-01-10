@@ -33,7 +33,7 @@ import DataModel.User (MasterKey, UserInfoReferences)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
-import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, manageGenericRequest)
+import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, loginRequest)
 import Functions.SRP as SRP
 import Functions.User (decryptUserInfoReferences)
     
@@ -69,7 +69,7 @@ loginStep1 connectionState@{srpConf} c = do
   (Tuple a aa) <- withExceptT (\err -> ProtocolError $ SRPError $ show err) (ExceptT $ SRP.prepareA srpConf)
   let url  = joinWith "/" ["login", "step1", show c] :: String
   let body = json $ encodeJson { c, aa: fromBigInt aa }  :: RequestBody
-  ProxyResponse newProxy step1Response <- manageGenericRequest connectionState url POST (Just body) RF.json
+  ProxyResponse newProxy step1Response <- loginRequest connectionState url POST (Just body) RF.json
   responseBody :: LoginStep1Response <- if isStatusCodeOk step1Response.status
                                           then except     $ (decodeJson step1Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err) 
                                           else throwError $  ProtocolError (ResponseError (unwrap step1Response.status))
@@ -101,7 +101,7 @@ loginStep2 connectionState@{srpConf} c p { aa, bb, a, s } = do
   m1 :: ArrayBuffer <-  liftAff $ SRP.prepareM1 srpConf c s aa bb kk
   let url  = joinWith "/" ["login", "step2", show c]      :: String
   let body = json $ encodeJson { m1: fromArrayBuffer m1 } :: RequestBody
-  ProxyResponse newProxy step2Response <- manageGenericRequest connectionState url POST (Just body) RF.json
+  ProxyResponse newProxy step2Response <- loginRequest connectionState url POST (Just body) RF.json
   responseBody :: LoginStep2Response <- if isStatusCodeOk step2Response.status
                                           then except $     (decodeJson step2Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err)
                                           else throwError $  ProtocolError $ ResponseError (unwrap step2Response.status)

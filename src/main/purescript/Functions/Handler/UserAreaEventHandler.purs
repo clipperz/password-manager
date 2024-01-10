@@ -42,7 +42,7 @@ import DataModel.Index (CardEntry(..), CardReference(..), Index(..), addToIndex)
 import DataModel.User (IndexReference(..), UserInfoReferences(..), UserPreferencesReference(..))
 import Effect.Class (liftEffect)
 import Functions.Card (addTag)
-import Functions.Communication.Backend (ConnectionState, manageGenericRequest)
+import Functions.Communication.Backend (ConnectionState, genericRequest)
 import Functions.Communication.Blobs (deleteBlobWithReference, getBlob)
 import Functions.Communication.Cards (deleteCard, getCard, postCard)
 import Functions.Communication.Users (computeRemoteUserCard, deleteUserCard, deleteUserInfo, updateIndex, updateUserPreferences)
@@ -407,7 +407,7 @@ logoutSteps state@{username, hash: hashFunc, proxy, srpConf} message page =
   do
     let connectionState = {proxy, hashFunc, srpConf, credentials: emptyCredentials}
     passphrase <- runStep (do 
-                            _   <- manageGenericRequest connectionState "logout" POST Nothing RF.string
+                            _   <- genericRequest connectionState "logout" POST Nothing RF.string
                             res <- liftEffect $ window >>= localStorage >>= getItem (makeKey "passphrase")
                             pure res
                           ) (WidgetState (spinnerOverlay message White) page)

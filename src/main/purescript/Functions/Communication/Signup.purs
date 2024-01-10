@@ -21,7 +21,7 @@ import DataModel.Credentials (Credentials, emptyCredentials)
 import DataModel.SRP (SRPConf, HashFunction)
 import DataModel.User (RequestUserCard(..))
 import Effect.Aff (Aff)
-import Functions.Communication.Backend (isStatusCodeOk, manageGenericRequest)
+import Functions.Communication.Backend (isStatusCodeOk, signupRequest)
 import Functions.Communication.Login (PrepareLoginResult)
 import Functions.Signup (prepareSignupParameters)
 
@@ -36,7 +36,7 @@ signupUser proxy@(OnlineProxy _ _ _) hashFunc srpConf credentials = do
   let path  = joinWith "/" ["users", show u.c]
   let body = (json $ encodeJson request) :: RequestBody
   --- ---------------------------
-  ProxyResponse newProxy response <- manageGenericRequest {proxy, hashFunc, srpConf, credentials: emptyCredentials} path POST (Just body) RF.string
+  ProxyResponse newProxy response <- signupRequest {proxy, hashFunc, srpConf, credentials: emptyCredentials} path POST (Just body) RF.string
   if isStatusCodeOk response.status
     then pure $ ProxyResponse newProxy {c: u.c, p: p}
     else throwError $ ProtocolError (ResponseError (unwrap response.status))

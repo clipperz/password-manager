@@ -22,7 +22,7 @@ import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.AppState (ProxyResponse(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, manageGenericRequest)
+import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, genericRequest)
 import Functions.Communication.BlobFromArrayBuffer (blobFromArrayBuffer)
 import Functions.EncodeDecode (decryptJson)
 import Web.XHR.FormData (EntryName(..), FileName(..), appendBlob, new)
@@ -32,7 +32,7 @@ import Web.XHR.FormData (EntryName(..), FileName(..), appendBlob, new)
 getBlob :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse ArrayBuffer)
 getBlob connectionState hash = do
   let url = joinWith "/" ["blobs", show $ hash]
-  ProxyResponse proxy response <- manageGenericRequest connectionState url GET Nothing RF.arrayBuffer
+  ProxyResponse proxy response <- genericRequest connectionState url GET Nothing RF.arrayBuffer
   if isStatusCodeOk response.status
     then pure $ ProxyResponse proxy response.body
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
@@ -51,7 +51,7 @@ postBlob connectionState blob hash = do
       appendBlob (EntryName "blob") (blobFromArrayBuffer blob) (Just $ FileName (toString Hex (fromArrayBuffer hash))) formData
       pure $ formData
   )
-  manageGenericRequest connectionState url POST (Just body) RF.string
+  genericRequest connectionState url POST (Just body) RF.string
 
 deleteBlob :: ConnectionState -> ArrayBuffer -> HexString -> ExceptT AppError Aff (ProxyResponse String)
 deleteBlob connectionState encryptedBlob reference = do
@@ -61,7 +61,7 @@ deleteBlob connectionState encryptedBlob reference = do
       appendBlob (EntryName "blob") (blobFromArrayBuffer encryptedBlob) (Just $ FileName (toString Hex reference)) formData
       pure $ formData
   )
-  ProxyResponse proxy response <- manageGenericRequest connectionState url DELETE (Just body) RF.string
+  ProxyResponse proxy response <- genericRequest connectionState url DELETE (Just body) RF.string
   if isStatusCodeOk response.status
     then pure       $ ProxyResponse proxy response.body
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)

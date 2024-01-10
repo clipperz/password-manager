@@ -26,13 +26,13 @@ import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..), fst)
 import Data.Unit (Unit, unit)
 import DataModel.AppError (AppError(..))
+import DataModel.AppState (InvalidStateError(..), ProxyResponse(..), AppState)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index)
-import DataModel.AppState (InvalidStateError(..), ProxyResponse(..), AppState)
 import DataModel.User (IndexReference(..), MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard(..), UserInfoReferences(..), UserPreferences, UserPreferencesReference(..), MasterKey)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, manageGenericRequest)
+import Functions.Communication.Backend (ConnectionState, genericRequest, isStatusCodeOk)
 import Functions.Communication.Blobs (deleteBlob, getBlob, getDecryptedBlob, postBlob)
 import Functions.EncodeDecode (cryptoKeyAES, encryptJson)
 import Functions.Index (getIndexContent)
@@ -41,7 +41,7 @@ import Functions.SRP (prepareV)
 getMasterKey :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse MasterKey)
 getMasterKey connectionState c = do
   let url = joinWith "/" ["users", show c]
-  ProxyResponse newProxy response <- manageGenericRequest connectionState url GET Nothing RF.json
+  ProxyResponse newProxy response <- genericRequest connectionState url GET Nothing RF.json
   if isStatusCodeOk response.status
     then do
       newMasterKey <- except $ flip lmap (decodeJson response.body) (show >>> DecodeError >>> ProtocolError)
@@ -58,7 +58,7 @@ updateUserCard :: ConnectionState -> HexString -> UserCard -> ExceptT AppError A
 updateUserCard connectionState c newUserCard = do
   let url = joinWith "/" ["users", toString Hex c]
   let body = (json $ encodeJson newUserCard) :: RequestBody
-  ProxyResponse proxy' response <- manageGenericRequest connectionState url PATCH (Just body) RF.string
+  ProxyResponse proxy' response <- genericRequest connectionState url PATCH (Just body) RF.string
   if isStatusCodeOk response.status
     then pure $ ProxyResponse proxy' (unwrap newUserCard).masterKey
     else throwError (ProtocolError $ ResponseError $ unwrap response.status)
@@ -66,7 +66,7 @@ updateUserCard connectionState c newUserCard = do
 deleteUserCard :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse Unit)
 deleteUserCard connectionState c = do
   let url = joinWith "/" ["users", toString Hex c]
-  ProxyResponse proxy response <- manageGenericRequest connectionState url DELETE Nothing RF.string
+  ProxyResponse proxy response <- genericRequest connectionState url DELETE Nothing RF.string
   if isStatusCodeOk response.status
     then pure $ ProxyResponse proxy unit
     else throwError (ProtocolError $ ResponseError $ unwrap response.status)

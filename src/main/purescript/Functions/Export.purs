@@ -31,7 +31,7 @@ import DataModel.User (RequestUserCard(..))
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, manageGenericRequest)
+import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, genericRequest)
 import Functions.Events (renderElement)
 import Functions.State (offlineDataId)
 import Functions.Time (getCurrentDateTime, formatDateTimeToDate, formatDateTimeToTime)
@@ -76,7 +76,7 @@ prepareUnencryptedContent l =
 getBasicHTML :: ConnectionState -> ExceptT AppError Aff (ProxyResponse Document)
 getBasicHTML connectionState = do
   let url = "static/index.html"
-  ProxyResponse proxy res <- manageGenericRequest connectionState url GET Nothing RF.document
+  ProxyResponse proxy res <- genericRequest connectionState url GET Nothing RF.document
   if isStatusCodeOk res.status
   then pure $ ProxyResponse proxy res.body
   else throwError $ ProtocolError (ResponseError $ unwrap res.status)
