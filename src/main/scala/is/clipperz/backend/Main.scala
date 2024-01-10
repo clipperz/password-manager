@@ -37,6 +37,7 @@ import is.clipperz.backend.exceptions.*
 import java.time.format.DateTimeParseException
 import is.clipperz.backend.services.ChallengeType
 import java.time.Duration
+import zio.http.Middleware
 
 object Main extends zio.ZIOAppDefault:
   override val bootstrap =
@@ -60,12 +61,12 @@ object Main extends zio.ZIOAppDefault:
     ).handleErrorCauseZIO(customErrorHandler)
      .toHttpApp
   
-  val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ metrics()
+  val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (Middleware.timeout(30.seconds) ++ metrics()) //TODO: add timeout time to configuration file [fsolaroli - 10/01/2024]
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
     if args.length == 4 then
-      val blobBasePath = FileSystems.getDefault().nn.getPath(args(0)).nn
-      val userBasePath = FileSystems.getDefault().nn.getPath(args(1)).nn
+      val blobBasePath         = FileSystems.getDefault().nn.getPath(args(0)).nn
+      val userBasePath         = FileSystems.getDefault().nn.getPath(args(1)).nn
       val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath(args(2)).nn
       val port = args(3).toInt
 
@@ -92,7 +93,7 @@ object Main extends zio.ZIOAppDefault:
         )
         .provide(
           PRNG.live,
-          SessionManager.live(30.minutes),
+          SessionManager.live(30.minutes), //TODO: add cache timeToLive to configuration file [fsolarol - 10/01/2024]
           TollManager.live,
           UserArchive.fs(userBasePath, 2, true),
           BlobArchive.fs(blobBasePath, 2, true),
