@@ -2,275 +2,148 @@ module Views.CardsManagerView where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, text, ol, p', button, header, span)
+import Concur.React.DOM (button, div, header, li, ol, span, text)
 import Concur.React.Props as Props
-import Control.Alt ((<|>))
+import Control.Alt (($>), (<#>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
-import Control.Semigroupoid ((<<<))
-import Data.Array (nub, sort)
-import Data.Eq ((==), (/=))
-import Data.EuclideanRing (mod)
+import Control.Category ((<<<))
+import Data.Array (fromFoldable, nub)
+import Data.Eq (class Eq, (/=), (==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
-import Data.HeytingAlgebra ((||), (&&), not)
-import Data.List (fold, filter, length, List(..), (!!), elemIndex)
+import Data.List (fold)
 import Data.List as List
-import Data.Maybe (Maybe(..))
-import Data.PrettyShow (prettyShow)
-import Data.Ring ((-))
+import Data.Maybe (Maybe(..), maybe)
 import Data.Semigroup ((<>))
-import Data.Semiring ((+))
-import Data.Show (class Show, show)
 import Data.Tuple (Tuple(..))
-import Data.Unfoldable (fromMaybe)
-import DataModel.AppState (AppError, ProxyConnectionStatus)
 import DataModel.Card (Card, emptyCard)
-import DataModel.Index (Index(..), CardEntry(..))
-import DataModel.WidgetOperations (IndexUpdateAction(..), IndexUpdateData(..))
-import DataModel.WidgetState (WidgetState(..))
-import Effect.Class (liftEffect)
-import OperationalWidgets.CardWidget (cardWidget)
-import OperationalWidgets.CreateCardWidget (CardFormInput(..), createCardWidget)
-import React.SyntheticEvent as Events
-import Views.CardViews (cardView)
+import DataModel.Index (CardEntry(..), Index(..))
+import DataModel.Password (PasswordGeneratorSettings)
+import IndexFilterView (Filter(..), FilterData, FilterViewStatus(..), filteredEntries, getClassNameFromFilterStatus, indexFilterView, initialFilterData, shownEntries)
+import Views.CardViews (CardEvent(..), cardView)
 import Views.CreateCardView (createCardView)
-import Views.IndexView (indexView, ComplexIndexFilter, IndexFilter(..), removeLastCardFilter, toFilterFunc, complexToFilterFunc)
-import Views.SimpleWebComponents (simpleButton, loadingDiv, simpleCheckboxWidget, simpleTextInputWidgetWithFocus, clickableListItemWidget)
+import Views.SimpleWebComponents (simpleButton)
 
-data CardViewAction = UpdateIndex IndexUpdateData | ShowCard CardEntry | ShowAddCard | ShowUserArea
-instance showCardViewAction :: Show CardViewAction where
-  show (UpdateIndex (IndexUpdateData a _)) = "UpdateIndex " <> show a
-  show (ShowCard entry)  = "Show Card " <> show entry
-  show  ShowAddCard    = "Show Add Card"
-  show  ShowUserArea   = "Show User Area"
+data CardFormInput = NewCard (Maybe Card) | ModifyCard Card CardEntry -- TODO NewCard | NewCardFromFragment Card | ModifyCard Card CardEntry [fsolaroli - 03/12/2023]
+derive instance eqCardFormInput :: Eq CardFormInput
 
-type CardViewState = { cardView :: CardView, cardViewState :: WidgetState }
+data CardManagerEvent = AddCardEvent                Card
+                      | CloneCardEvent    CardEntry
+                      | DeleteCardEvent   CardEntry
+                      | EditCardEvent     CardEntry Card
+                      | ArchiveCardEvent  CardEntry
+                      | RestoreCardEvent  CardEntry
+                      | OpenCardViewEvent CardEntry
+                      | OpenUserAreaEvent
 
-data CardView = NoCard | CardFromReference CardEntry | JustCard Card | CardForm CardFormInput
-instance showCardView :: Show CardView where
-  show NoCard = "NoCard"
-  show (CardFromReference cr) = "CardFromReference " <> show cr
-  show (JustCard c) = "JustCard " <> show c
-  show (CardForm (NewCard c)) = "CardForm - NewCard " <> show c
-  show (CardForm (ModifyCard c)) = "CardForm - ModifyCard " <> show c
+data CardViewState = NoCard | Card Card CardEntry | CardForm CardFormInput
+derive instance eqCardViewState :: Eq CardViewState
 
-data InternalAction = CardViewAction CardViewAction | ChangeFilter ComplexIndexFilter | KeyBoardAction Events.SyntheticKeyboardEvent | ShowFilters FilterViewStatus
-
-type CardsViewInfo = {
-  index :: Index
-, indexFilter :: ComplexIndexFilter
-, selectedIndexPosition :: Maybe Int
+type CardManagerState = { 
+  filterData    :: FilterData
+, selectedEntry :: Maybe CardEntry
 , cardViewState :: CardViewState
-, error :: Maybe AppError
 }
 
-data FilterViewStatus = FilterViewClosed | FilterViewOpen
+cardManagerInitialState :: CardManagerState
+cardManagerInitialState = {
+  filterData: initialFilterData
+, selectedEntry: Nothing
+, cardViewState: NoCard
+}
 
-mkCardsViewInfo :: Index -> ComplexIndexFilter -> Maybe Int -> CardViewState -> Maybe AppError -> CardsViewInfo
-mkCardsViewInfo index indexFilter selectedIndexPosition cardViewState error = { index, indexFilter, selectedIndexPosition, cardViewState, error }
+data CardsManagerInternalEvent = StateUpdate CardManagerState | CardManagerEvent CardManagerEvent
 
-getClassNameFromFilterStatus :: FilterViewStatus -> String
-getClassNameFromFilterStatus status = case status of
-  FilterViewClosed  -> "closed"
-  FilterViewOpen    -> "open"
-
-cardsManagerView :: ProxyConnectionStatus -> FilterViewStatus -> CardsViewInfo -> Widget HTML (Tuple CardsViewInfo CardViewAction)
-cardsManagerView proxyConnectionStatus filterViewStatus currentInfo@{ index: i@(Index entries)
-                                                                    , indexFilter: cif@{archived, indexFilter}
-                                                                    , selectedIndexPosition
-                                                                    , cardViewState: cvs@{ cardView: cv, cardViewState } 
-                                                                    , error} = do 
-  let cEntry = case cv of 
-                CardFromReference ce -> Just ce
-                _ -> Nothing
-  res <- div [Props._id "cardsManager", KeyBoardAction <$> Props.onKeyDown, Props.className $ "filterView_" <> getClassNameFromFilterStatus filterViewStatus] $ (text <$> (fromMaybe $ prettyShow <$> error)) <> [
-    div [Props._id "filterView"] [
-      (ShowFilters FilterViewClosed) <$ div [Props.onClick, Props.className "mask"] []
-    , ChangeFilter <$> div [Props.className "content"] [
-        prepareFilter <$> div [Props.className "filter"] [
-          ol [Props.className "defaultSets"][
-            getFilterListElement NoFilter "All" ["allCards"]
-          , getFilterListElement RecentFilter "Recent (TODO)" ["recentCards"]
-          , getFilterListElement UntaggedFilter "Untagged" ["untaggedCards"]
-          ]
-        , GeneralFilter <$> div [Props._id "searchForm", Props.className (if (indexFilter == GeneralFilter currentGeneralFilter && currentGeneralFilter /= "") then "selected" else  "")] [
-            simpleTextInputWidgetWithFocus "search" (text "search") "search" currentGeneralFilter
-          , span [Props.className "count"] [text $ show $ countShownCards (GeneralFilter currentGeneralFilter)]
-          ]
-        , div [Props.className "tags"] [
-            span [Props.className "tags"] [text "Tags"]
-          , ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (TagFilter tag) tag []) <$> shownSortedTags)
-          ]
-        ]
-      , toggleArchivedButton
-      ]
-    ]
+cardsManagerView :: CardManagerState -> Index -> PasswordGeneratorSettings -> Widget HTML (Tuple CardManagerEvent CardManagerState)
+cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archived}, selectedEntry, cardViewState} index@(Index list) userPasswordGeneratorSettings = do
+  res <- div [Props._id "cardsManager", Props.className $ "filterView_" <> getClassNameFromFilterStatus filterViewStatus] [
+    indexFilterView filterData index <#> updateFilterData
   , div [Props.className "cardToolbarFrame"] [
-    --   div [Props._id "filterHeader"] [
       toolbarHeader "frame"
-    , div [Props._id "mainView", Props.className $ getMainViewClassFromCardState cvs] [
+    , div [Props._id "mainView", Props.className (if cardViewState /= NoCard then "CardViewOpen" else "CardViewClose")] [
         div [Props._id "indexView"] [
           toolbarHeader "cardList"
-        , div [Props.className "addCard"] [simpleButton "addCard" "add card" false (CardViewAction ShowAddCard)]
-        , (CardViewAction <<< ShowCard) <$> indexView i cEntry cif -- TODO:
+        , div [Props.className "addCard"] [simpleButton "addCard" "add card" false (StateUpdate state { cardViewState = CardForm $ NewCard Nothing, selectedEntry = Nothing})]
+        , indexView index selectedEntry filter archived <#> (CardManagerEvent <<< OpenCardViewEvent)
         ]
       , div [Props._id "card"] [
-          case cvs of
-          { cardView: CardForm (ModifyCard card),     cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ createCardView card      allSortedTags false cardViewState
-          { cardView: CardForm (NewCard (Just card)), cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ createCardView card      allSortedTags false cardViewState
-          { cardView: CardForm (NewCard Nothing),     cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate Nothing)     <$ createCardView emptyCard allSortedTags false cardViewState
-          { cardView: CardForm card,                  cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> createCardWidget card allSortedTags cardViewState
-          { cardView: CardFromReference ref,          cardViewState: _       } ->  (CardViewAction <<< UpdateIndex) <$> cardWidget ref allSortedTags cardViewState
-          { cardView: JustCard card,                  cardViewState: Loading } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ (div [] [loadingDiv, cardView card proxyConnectionStatus])
-          { cardView: JustCard card,                  cardViewState: _       } -> ((CardViewAction <<< UpdateIndex)  $  IndexUpdateData NoUpdate (Just card)) <$ cardView card proxyConnectionStatus
-          { cardView: NoCard       ,                  cardViewState: _       } -> div [] []
+          mainStageView cardViewState
         ]
       ]
     ]
   ]
+
   case res of
-    CardViewAction (ShowCard ref) -> cardsManagerView proxyConnectionStatus filterViewStatus {
-        index: i
-      , indexFilter: (removeLastCardFilter cif (Just ref))
-      , selectedIndexPosition: elemIndex ref sortedFilteredEntries
-      , cardViewState: { cardView: CardFromReference ref, cardViewState }
-      , error: Nothing
-    }
-    CardViewAction action -> pure $ Tuple (currentInfo { indexFilter = (removeLastCardFilter cif Nothing) }) action
-    ShowFilters status -> cardsManagerView proxyConnectionStatus status currentInfo
-    ChangeFilter newFilter -> do
-      let f = complexToFilterFunc lastUses newFilter
-      case cv of
-        CardFromReference ref ->  cardsManagerView proxyConnectionStatus (setFilterViewStatus indexFilter) {
-            index: i
-          , indexFilter: newFilter
-          , selectedIndexPosition
-          , cardViewState: if f ref then cvs else { cardView: NoCard, cardViewState }
-          , error: Nothing
-        }
-        _ -> cardsManagerView proxyConnectionStatus (setFilterViewStatus indexFilter) {
-            index: i
-          , indexFilter: newFilter
-          , selectedIndexPosition
-          , cardViewState: cvs
-          , error: Nothing
-        }
-    KeyBoardAction ev -> do
-      key <- liftEffect $ Events.key ev
-      case key of
-        "a" ->          keyboardAction closeCardInfo
-        "ArrowLeft" ->  keyboardAction closeCardInfo
-        "Escape" ->     keyboardAction closeCardInfo
-        "d" ->          keyboardAction openCardInfo
-        "ArrowRight" -> keyboardAction openCardInfo
-        "Enter" ->      keyboardAction openCardInfo
-        "w" ->          keyboardAction moveUpInfo
-        "ArrowUp" ->    keyboardAction moveUpInfo
-        "s" ->          keyboardAction moveDownInfo
-        "ArrowDown" ->  keyboardAction moveDownInfo
-        _  ->           keyboardAction currentInfo
-      where keyboardAction = cardsManagerView proxyConnectionStatus filterViewStatus
+    CardManagerEvent event    -> pure $ Tuple event state
+    StateUpdate      newState -> cardsManagerView newState index userPasswordGeneratorSettings
 
   where
-    getMainViewClassFromCardState cvs_ =
-      case cvs_ of
-        { cardView: NoCard,               cardViewState: _ }        -> "NoCard"
-        { cardView: _,                    cardViewState: Loading }  -> "Loading"
-        { cardView: CardForm _,           cardViewState: _       }  -> "CardForm"
-        { cardView: CardFromReference _,  cardViewState: _ }        -> "CardFromReference"
-        { cardView: JustCard _,           cardViewState: _ }        -> "JustCard"
+    updateFilterData :: FilterData -> CardsManagerInternalEvent --TODO: are these `update` functions useless with lenses? [fsolaroli - 28/11/2023]
+    updateFilterData filterData' = StateUpdate (state { filterData = filterData' })
 
-    toolbarHeader className = 
-      header [Props.className className] [
-        (ShowFilters FilterViewOpen) <$ div [Props.className "tags"] [button [Props.onClick] [text "tags"]],
-        div [Props.className "selection"] [getFilterHeader indexFilter],
-        (CardViewAction ShowUserArea) <$ div [Props.className "menu"] [button [Props.onClick] [text "menu"]]
-      ]
+    updateCardView :: CardViewState -> CardManagerState
+    updateCardView cardViewState' = (state { cardViewState = cardViewState' })
 
-    setFilterViewStatus filter = case filter of
-      GeneralFilter _ -> FilterViewOpen
-      _ -> FilterViewClosed
-
-    closeCardInfo = 
-      case cv of
-        CardForm _ -> currentInfo
-        _ -> { index: i
-             , indexFilter: cif
-             , selectedIndexPosition
-             , cardViewState: { cardView: NoCard, cardViewState: Default }
-             , error: Nothing }
-    openCardInfo = 
-      case cv of
-        CardForm _ -> currentInfo
-        _ -> case selectedIndexPosition of
-          Nothing -> case sortedFilteredEntries of
-              Nil -> currentInfo
-              Cons ref _ -> currentInfo { selectedIndexPosition = Just 0, cardViewState = { cardView: CardFromReference ref, cardViewState: Default } }
-          Just n -> case sortedFilteredEntries !! n of
-            Nothing -> currentInfo
-            Just ref -> currentInfo { cardViewState = { cardView: CardFromReference ref, cardViewState: Default } }
-    moveUpInfo =
-      case cv of
-        NoCard -> currentInfo --{ selectedIndexPosition = ((\n -> (n - 1) `mod` (length shownEntries)) <$> selectedIndexPosition) }
-        CardForm _ -> currentInfo
-        _ -> case selectedIndexPosition of
-          Nothing -> currentInfo { selectedIndexPosition = Just 0 }
-          Just n -> let newN = (n - 1) `mod` (length shownEntries)
-                    in case sortedFilteredEntries !! newN of
-                      Nothing -> currentInfo
-                      Just ref -> currentInfo { selectedIndexPosition = Just newN, cardViewState = {cardView: CardFromReference ref, cardViewState: Default}}          
-    moveDownInfo =
-      case cv of
-        NoCard -> currentInfo --{ selectedIndexPosition = ((\n -> (n + 1) `mod` (length shownEntries)) <$> selectedIndexPosition) }
-        CardForm _ -> currentInfo
-        _ -> case selectedIndexPosition of
-          Nothing -> currentInfo { selectedIndexPosition = Just 0 }
-          Just n -> let newN = (n + 1) `mod` (length shownEntries)
-                    in case sortedFilteredEntries !! newN of
-                      Nothing -> currentInfo
-                      Just ref -> currentInfo { selectedIndexPosition = Just newN, cardViewState = {cardView: CardFromReference ref, cardViewState: Default}}
-
-    toggleArchivedButton = 
-      (\b -> { archived: b, indexFilter }) <$> div [Props._id "archivedFilterArea"] [
-        simpleCheckboxWidget "showArchived" (text "Show archived cards") archived
-      , (span [Props.className "count"] [text $ show countArchivedCards])
-      ]
-    countArchivedCards = length $ filter (\(CardEntry r) -> r.archived) entries
-
-    prepareFilter :: IndexFilter -> ComplexIndexFilter
-    prepareFilter newFilter = {archived, indexFilter: newFilter}
-
-    currentGeneralFilter = case indexFilter of
-      GeneralFilter t -> t
-      _ -> ""
-
-    sortedFilteredEntries = List.sort $ filter (toFilterFunc lastUses indexFilter) shownEntries
-
-    allSortedTags = sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) <$> entries
-
-    shownEntries = filter (\(CardEntry r) -> archived || (not r.archived)) entries
-
-    shownSortedTags = sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) <$> shownEntries
-
-    getFilterHeader :: forall a. IndexFilter -> Widget HTML a
+    getFilterHeader :: forall a. Filter -> Widget HTML a
     getFilterHeader f =
       case f of
-        ComposedAndFilter f' f'' -> p' [getFilterHeader f', getFilterHeader f'']
-        ComposedOrFilter f' f''  -> p' [getFilterHeader f', getFilterHeader f'']
-        GeneralFilter title      -> span [] [text title]
-        TagFilter tag            -> span [] [text tag]
-        RecentFilter             -> text "recent"
-        UntaggedFilter           -> text "untagged"
-        NoFilter                 -> text "clipperz"
-        _                        -> text ""
+        Search searchString -> span [] [text searchString]
+        Tag    tag          -> span [] [text tag]
+        Recent              -> text "recent"
+        Untagged            -> text "untagged"
+        All                 -> text "clipperz"
 
-    lastUses = { allLastUses: (\(CardEntry r) -> r.lastUsed) <$> entries }
+    toolbarHeader :: String -> Widget HTML CardsManagerInternalEvent
+    toolbarHeader className = header [Props.className className] [
+      div [Props.className "tags"] [button [Props.onClick] [text "tags"]] $> updateFilterData (filterData {filterViewStatus = FilterViewOpen})
+    , div [Props.className "selection"] [getFilterHeader filter]
+    , (CardManagerEvent OpenUserAreaEvent) <$ div [Props.className "menu"] [button [Props.onClick] [text "menu"]]
+    ]
 
-    countShownCards :: IndexFilter -> Int
-    countShownCards RecentFilter = length $ filter (toFilterFunc lastUses RecentFilter) entries
-    countShownCards indexFilt = length $ filter (toFilterFunc lastUses indexFilt) shownEntries
+    allTags :: Array String
+    allTags = nub $ fold $ (\(CardEntry entry) -> entry.tags) <$> fromFoldable list
 
-    getFilterListElement :: IndexFilter -> String -> Array String -> Widget HTML IndexFilter
-    -- getFilterListElement indexFilt s classes = clickableListItemWidget false (div [] [ text s, div [] [text $ show $ countShownCards indexFilt]]) classes indexFilt
-    getFilterListElement indexFilt s classes = clickableListItemWidget false (span [Props.className "label"] [ text s ] <|> span [Props.className "count"] [text $ show $ countShownCards indexFilt]) (if indexFilter == indexFilt then (classes <> ["selected"]) else classes) indexFilt
+    handleCardEvents :: CardEvent -> CardsManagerInternalEvent
+    handleCardEvents (Edit    cardEntry card) = StateUpdate      $ updateCardView (CardForm $ ModifyCard card cardEntry)
+    handleCardEvents (Clone   cardEntry     ) = CardManagerEvent (CloneCardEvent   cardEntry)
+    handleCardEvents (Archive cardEntry     ) = CardManagerEvent (ArchiveCardEvent cardEntry)
+    handleCardEvents (Restore cardEntry     ) = CardManagerEvent (RestoreCardEvent cardEntry)
+    handleCardEvents (Delete  cardEntry     ) = CardManagerEvent (DeleteCardEvent  cardEntry)
+    handleCardEvents (Exit                  ) = StateUpdate $ state { cardViewState = NoCard, selectedEntry = Nothing}
+
+    mainStageView :: CardViewState -> Widget HTML CardsManagerInternalEvent
+    mainStageView NoCard                   = div [] []
+    mainStageView (Card card cardEntry)    = cardView card cardEntry <#> handleCardEvents
+    mainStageView (CardForm cardFormInput) = createCardView inputCard allTags userPasswordGeneratorSettings <#> (maybe (StateUpdate $ updateCardView viewCardStateUpdate) (CardManagerEvent <<< outputEvent))
+      where
+
+        inputCard = case cardFormInput of
+          NewCard   (Just card) -> card
+          NewCard    Nothing    -> emptyCard
+          ModifyCard card _     -> card
+        
+        viewCardStateUpdate = case cardFormInput of
+          NewCard    _    -> NoCard
+          ModifyCard card cardEntry -> Card card cardEntry
+
+        outputEvent = case cardFormInput of
+          NewCard    _           -> AddCardEvent
+          ModifyCard _ cardEntry -> EditCardEvent cardEntry
+
+
+-- ==================================================================                                                                                                                             
+
+indexView :: Index -> Maybe CardEntry -> Filter -> Boolean -> Widget HTML CardEntry
+indexView (Index entries) selectedEntry filter archived = ol [] (
+  (fromFoldable sortedCards) <#> (\cardEntry@(CardEntry { title, archived: archived' }) -> 
+    li [Props.classList [archivedClass archived', selectedClass cardEntry], cardEntry <$ Props.onClick] [
+      text title
+    ]
+  )
+) 
+
+  where
+    sortedCards = List.sort $ filteredEntries filter (shownEntries entries selectedEntry archived)
+    archivedClass archived' = if archived'                   then Just "archived" else Nothing
+    selectedClass entry     = if selectedEntry == Just entry then Just "selected" else Nothing

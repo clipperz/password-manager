@@ -13,14 +13,21 @@ import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 
 data OverlayStatus = Hidden | Spinner | Done | Failed | Copy
-type OverlayInfo = { status :: OverlayStatus, message :: String }
+data OverlayColor  = Black | White
+type OverlayInfo   = { status :: OverlayStatus, color :: OverlayColor, message :: String }
+
+hiddenOverlayInfo :: OverlayInfo
+hiddenOverlayInfo = { status: Hidden, color: Black, message: "" }
+
+spinnerOverlay :: String -> OverlayColor -> OverlayInfo
+spinnerOverlay message color = { status: Spinner, color, message }
 
 overlay :: forall a. OverlayInfo -> Widget HTML a
 overlay info =
-  div [Props.classList (Just <$> ["overlay", visibility])] [
+  div [Props.classList (Just <$> ["overlay", visibility, color])] [
     case info.status of
       Hidden  ->  div  [] []
-      Spinner ->  div  [Props.className "spinner"]     $ map (\i -> div [Props.className ("bar" <> (format dd (toNumber i)))] []) (range 1 12)
+      Spinner ->  div  [Props.className "spinner"]     $ map (\i -> div [Props.className (color <> " " <> "bar" <> (format dd (toNumber i)))] []) (range 1 12)
       Done    ->  span [Props.className "icon done"]   [text "done"]
       Copy    ->  span [Props.className "icon copy"]   [text "copy"]
       Failed  ->  span [Props.className "icon failed"] [text "failed"]
@@ -35,3 +42,8 @@ overlay info =
     visibility = case info.status of
       Hidden  -> "hidden"
       _       -> "visible"
+
+    color :: String
+    color = case info.color of
+      Black -> "black"
+      White -> "white"

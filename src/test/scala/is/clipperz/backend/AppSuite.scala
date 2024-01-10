@@ -8,7 +8,7 @@ import scala.language.postfixOps
 import zio.{ Chunk, ZIO }
 import zio.stream.{ ZStream, ZSink }
 import zio.test.Assertion.nothing
-import zio.test.TestResult.all
+import zio.test.TestResult.allSuccesses
 import zio.test.{ ZIOSpecDefault, assertTrue, assertNever, assert, TestAspect }
 import zio.json.EncoderOps
 import zio.http.{ Version, Headers, Method, URL, Request, Body }
@@ -20,7 +20,6 @@ import is.clipperz.backend.functions.Conversions.{ bytesToBigInt, bigIntToBytes 
 import is.clipperz.backend.functions.crypto.HashFunction
 import java.nio.file.Path
 import is.clipperz.backend.functions.FileSystem
-import is.clipperz.backend.services.SaveBlobData
 import is.clipperz.backend.services.PRNG
 import is.clipperz.backend.services.SessionManager
 import is.clipperz.backend.services.UserArchive
@@ -46,6 +45,7 @@ import is.clipperz.backend.services.SRPStep1Response
 import is.clipperz.backend.services.SRPStep2Data
 import is.clipperz.backend.services.OneTimeShareArchive
 import java.net.InetAddress
+import is.clipperz.backend.services.RequestUserCard
 
 object AppSpec extends ZIOSpecDefault:
   val app = Main.completeClipperzBackend
@@ -55,7 +55,7 @@ object AppSpec extends ZIOSpecDefault:
 
   val environment =
     PRNG.live ++
-      SessionManager.live ++
+      (PRNG.live >>> SessionManager.live()) ++
       UserArchive.fs(userBasePath, 2, false) ++
       BlobArchive.fs(blobBasePath, 2, false) ++
       OneTimeShareArchive.fs(oneTimeShareBasePath, 2, false) ++
@@ -64,10 +64,8 @@ object AppSpec extends ZIOSpecDefault:
 
   val srpFunctions = new SrpFunctionsV6a()
 
-  val blob = SaveBlobData(
-    data = HexString("f5a34923d74831d3bf89733671f50949225dd117f60da6d8902cdbe45dd6df0feef9a4147358cd90d77e8696526ab605aeedd272a7bec6070bf9d08d63487b3a5fd14f3683c62eac4fbafce314684bad9eec5bc1f92caa39735b42aa269b840b12790339936c49ef51964f153754fd602efd74b1f03aa92f367c010e700f9637c72a3349b3e7eb6ecb3ce10b9e01300dfe5400347d1aad5a364d8d9ff3d67100e5f51e2d2cb23625977226263c584acc3f7d83652e486d7c69a732a7b71ae8"),
-    hash = HexString("da50820830b6d3a1257c5fc75e2119543a733e6b728a265b05af8ea2e7163184")
-  )
+  val blobData = HexString("f5a34923d74831d3bf89733671f50949225dd117f60da6d8902cdbe45dd6df0feef9a4147358cd90d77e8696526ab605aeedd272a7bec6070bf9d08d63487b3a5fd14f3683c62eac4fbafce314684bad9eec5bc1f92caa39735b42aa269b840b12790339936c49ef51964f153754fd602efd74b1f03aa92f367c010e700f9637c72a3349b3e7eb6ecb3ce10b9e01300dfe5400347d1aad5a364d8d9ff3d67100e5f51e2d2cb23625977226263c584acc3f7d83652e486d7c69a732a7b71ae8")
+  val blobHash = HexString("da50820830b6d3a1257c5fc75e2119543a733e6b728a265b05af8ea2e7163184")
 
   val sessionKey1 = "sessionKey1"
   val sessionKey2 = "sessionKey2"
@@ -83,7 +81,7 @@ object AppSpec extends ZIOSpecDefault:
         getCardResult <- doBlobGet(sessionKey2)
         deleteCardResult <- doBlobDelete(sessionKey2)
         logoutResult2 <- doLogout(sessionKey2)
-      } yield all(
+      } yield allSuccesses(
         signupResult,
         loginResult1,
         saveCardResult,
@@ -104,13 +102,16 @@ object AppSpec extends ZIOSpecDefault:
 
   val p = HexString("597ed0c523f50c6db089a92845693a3f2454590026d71d6a9028a69967d33f6d")
 
-  val userCard: UserCard = UserCard(
+  val userCard: RequestUserCard = RequestUserCard(
     c = HexString("7815018e9d84b5b0f319c87dee46c8876e85806823500e03e72c5d66e5d40456"),
     s = HexString("2f89a30b8a940d810641099be4d11ac26ce65c382ee9d690501fe123d06f9420"),
     v = HexString("b4deef40924f1d6083ff7c2e763d54e60623c6fed66738070c14ca092c43945579ea68e6dd5c364c5082c04c6fac83783aeec17b07471f26fb23c360fd8e7892467eb463da0c725863052389aba7bd21956efc47d127b45942cbd97f835a368cfc72b5ce0d817f0cad52d6cbf01f169b8d700532ebd00b3319f140b73c187754"),
     srpVersion = "6a",
-    masterKeyEncodingVersion = "1.0",
-    masterKeyContent = HexString("f20d14d5152ea0659cbd2b7dedd3d284987391be7b2143e19b2281b50d9c0966b533f11a66ecf658bcc3706ec2136213d38eb0dc4e5020a1d0e30d9b8c901600")
+    originMasterKey = None,
+    masterKey = (
+      HexString("f20d14d5152ea0659cbd2b7dedd3d284987391be7b2143e19b2281b50d9c0966b533f11a66ecf658bcc3706ec2136213d38eb0dc4e5020a1d0e30d9b8c901600"),
+      "1.0"
+    )
   )
 
   val signupData = SignupData(
@@ -128,15 +129,15 @@ object AppSpec extends ZIOSpecDefault:
         ZIO.succeed(response)
       else
         computeReceiptFromResponse(response)
-          .zip(ZIO.attempt(response.rawHeader(TollManager.tollHeader).get))
-          .zip(ZIO.attempt(response.rawHeader(TollManager.tollCostHeader).get))
-          .flatMap((receipt, tollHeader, tollCostHeader) =>
+        .zip(ZIO.attempt(response.rawHeader(TollManager.tollHeader).get))
+        .zip(ZIO.attempt(response.rawHeader(TollManager.tollCostHeader).get))
+        .flatMap((receipt, tollHeader, tollCostHeader) =>
             manageRequestWithTollPayment(
-              req.addHeaders(Headers(TollManager.tollReceiptHeader, receipt.toString()))
-                 .addHeaders(Headers(TollManager.tollHeader, tollHeader))
-                 .addHeaders(Headers(TollManager.tollCostHeader, tollCostHeader))
+                req.addHeaders(Headers(TollManager.tollReceiptHeader, receipt.toString()))
+                    .addHeaders(Headers(TollManager.tollHeader, tollHeader))
+                    .addHeaders(Headers(TollManager.tollCostHeader, tollCostHeader))
             )
-          )
+        )
     )
   
   private def computeReceiptFromResponse(res: Response) =
@@ -206,7 +207,7 @@ object AppSpec extends ZIOSpecDefault:
       url = URL(Root / "blobs"),
       method = Method.POST,
       headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
-      body = Body.fromString(blob.toJson, StandardCharsets.UTF_8.nn),
+      body = Body.fromMultipartForm(Form.empty.append(FormField.binaryField(name = "blob", data = Chunk.fromArray(blobData.toByteArray), filename = Some(blobHash.toString()), mediaType = MediaType.any)), Boundary("--XXX")),
       version = Version.Http_1_1,
       remoteAddress = Some(InetAddress.getLocalHost().nn)
     )
@@ -216,7 +217,7 @@ object AppSpec extends ZIOSpecDefault:
 
   private def doBlobGet(sessionKey: String) =
     val request = Request(
-      url = URL(Root / "blobs" / blob.hash.toString() ),
+      url = URL(Root / "blobs" / blobHash.toString() ),
       method = Method.GET,
       headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
       body = Body.empty,
@@ -229,10 +230,10 @@ object AppSpec extends ZIOSpecDefault:
 
   private def doBlobDelete(sessionKey: String) =
     val request = Request(
-      url = URL(Root / "blobs" / blob.hash.toString() ),
+      url = URL(Root / "blobs"),
       method = Method.DELETE,
       headers = Headers(SessionManager.sessionKeyHeaderName, sessionKey),
-      body = Body.fromString(blob.toJson, StandardCharsets.UTF_8.nn),
+      body = Body.fromMultipartForm(Form.empty.append(FormField.binaryField(name = "blob", data = Chunk.fromArray(blobData.toByteArray), filename = Some(blobHash.toString()), mediaType = MediaType.any)), Boundary("--XXX")),
       version = Version.Http_1_1,
       remoteAddress = Some(InetAddress.getLocalHost().nn)
     )

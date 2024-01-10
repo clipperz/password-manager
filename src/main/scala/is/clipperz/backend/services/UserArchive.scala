@@ -13,49 +13,67 @@ import is.clipperz.backend.exceptions.BadRequestException
 
 // ============================================================================
 
-case class UserCard(
+case class RequestUserCard(
     c: HexString,
     s: HexString,
     v: HexString,
     srpVersion: String,
-    masterKeyEncodingVersion: String,
-    masterKeyContent: HexString,
+    originMasterKey: Option[HexString],
+    masterKey: (HexString, String)
   )
+
+object RequestUserCard:
+  implicit val decoder: JsonDecoder[RequestUserCard] = DeriveJsonDecoder.gen[RequestUserCard]
+  implicit val encoder: JsonEncoder[RequestUserCard] = DeriveJsonEncoder.gen[RequestUserCard]
+
+case class RemoteUserCard(
+    c: HexString,
+    s: HexString,
+    v: HexString,
+    srpVersion: String,
+    masterKey: (HexString, String)
+  )
+
+object RemoteUserCard:
+  implicit val decoder: JsonDecoder[RemoteUserCard] = DeriveJsonDecoder.gen[RemoteUserCard]
+  implicit val encoder: JsonEncoder[RemoteUserCard] = DeriveJsonEncoder.gen[RemoteUserCard]
+
+def remoteFromRequest(requestUserCard : RequestUserCard): RemoteUserCard =
+  RemoteUserCard(
+    requestUserCard.c,
+    requestUserCard.s,
+    requestUserCard.v,
+    requestUserCard.srpVersion,
+    requestUserCard.masterKey
+  )
+
+case class UserCard(
+    originMasterKey: HexString,
+    masterKey: (HexString, String)
+)
 
 object UserCard:
   implicit val decoder: JsonDecoder[UserCard] = DeriveJsonDecoder.gen[UserCard]
-  implicit val encoder: JsonEncoder[UserCard] = DeriveJsonEncoder.gen[UserCard]
-
-case class ModifyUserCard(
-    c: HexString,
-    oldUserCard: UserCard,
-    newUserCard: UserCard,
-  )
-
-object ModifyUserCard:
-  implicit val decoder: JsonDecoder[ModifyUserCard] = DeriveJsonDecoder.gen[ModifyUserCard]
-  implicit val encoder: JsonEncoder[ModifyUserCard] = DeriveJsonEncoder.gen[ModifyUserCard]
 
 // ============================================================================
 
 trait UserArchive:
-  def getUser(username: HexString): Task[Option[UserCard]]
-  def saveUser(user: UserCard, overwrite: Boolean): Task[HexString]
-  def deleteUser(user: UserCard): Task[Boolean]
+  def getUser(username: HexString): Task[Option[RemoteUserCard]]
+  def saveUser(user: RemoteUserCard, overwrite: Boolean): Task[HexString]
+  def deleteUser(c: HexString): Task[Boolean]
 
 object UserArchive:
   case class FileSystemUserArchive(keyBlobArchive: KeyBlobArchive) extends UserArchive:
-    override def getUser(username: HexString): Task[Option[UserCard]] =
-      keyBlobArchive
+    override def getUser(username: HexString): Task[Option[RemoteUserCard]] =
+        keyBlobArchive
         .getBlob(username.toString)
-        .flatMap(fromStream[UserCard])
-        .map(cr => Some(cr))
+        .flatMap(fromStream[RemoteUserCard](_).map(Some.apply))
         .catchSome:
           case ex: ResourceNotFoundException => ZIO.succeed(None)
           case ex => ZIO.fail(ex)
 
-    override def saveUser(userCard: UserCard, overwrite: Boolean): Task[HexString] =
-      def saveUserCard(userCard: UserCard): Task[HexString] =
+    override def saveUser(userCard: RemoteUserCard, overwrite: Boolean): Task[HexString] =
+      def saveUserCard(userCard: RemoteUserCard): Task[HexString] =
         keyBlobArchive
           .saveBlob(
             userCard.c.toString,
@@ -63,20 +81,18 @@ object UserArchive:
           )
           .map(_ => userCard.c)
 
-      this.getUser(userCard.c).flatMap(optionalUser =>
-        optionalUser match
-          case Some(user) =>
-            if (overwrite) saveUserCard(userCard) else ZIO.fail(new ResourceConflictException("User already present"))
-          case None => saveUserCard(userCard)
+      this.getUser(userCard.c).flatMap(optional => if optional.isDefined
+        then (if (overwrite) 
+                then saveUserCard(userCard)
+                else ZIO.fail(new ResourceConflictException("User already present")))
+        else saveUserCard(userCard)
       )
 
-    override def deleteUser(user: UserCard): Task[Boolean] =
+    override def deleteUser(c: HexString): Task[Boolean] =
       this
-        .getUser(user.c)
-        .flatMap(o =>
-          if o.isDefined then
-            if o.contains(user) then keyBlobArchive.deleteBlob(user.c.toString)
-            else ZIO.fail(new BadRequestException("User card is different than the one saved"))
+        .getUser(c)
+        .flatMap(optional => if optional.isDefined
+          then keyBlobArchive.deleteBlob(c.toString)
           else ZIO.fail(new ResourceNotFoundException("User does not exist"))
         )
 
@@ -84,6 +100,8 @@ object UserArchive:
       basePath: Path,
       levels: Int,
       requireExistingPath: Boolean = true,
-    ): ZLayer[Any, Throwable, UserArchive] =
-    val keyBlobArchive = KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels, requireExistingPath);
-    ZLayer.succeed[UserArchive](new FileSystemUserArchive(keyBlobArchive))
+  ): ZLayer[Any, Throwable, UserArchive] =
+    ZLayer.fromZIO[Any, Throwable, UserArchive](
+      KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels, requireExistingPath)
+        .map(new FileSystemUserArchive(_))
+    )

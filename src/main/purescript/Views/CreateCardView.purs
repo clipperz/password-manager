@@ -8,14 +8,12 @@ import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (=<<))
-import Control.Monad.Except.Trans (runExceptT)
 import Control.Semigroupoid ((<<<))
-import Data.Array (filter, singleton, snoc, sort)
-import Data.Either (fromRight, hush)
+import Data.Array (difference, elem, filter, singleton, snoc, sort)
 import Data.Eq ((==), (/=))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
-import Data.HeytingAlgebra (not, (&&), (||))
+import Data.HeytingAlgebra (not)
 import Data.Maybe (Maybe(..), isJust, maybe, fromMaybe)
 import Data.Semigroup ((<>))
 import Data.String (null)
@@ -23,37 +21,29 @@ import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
 import Data.Unit (Unit, unit)
 import DataModel.AsyncValue as Async
-import DataModel.Card (Card(..), CardField(..), CardValues(..), emptyCard, emptyCardField)
-import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
-import DataModel.User (UserPreferences(..))
-import DataModel.WidgetState (WidgetState(..))
-import Effect.Aff.Class (liftAff)
+import DataModel.Card (Card(..), CardField(..), CardValues(..), emptyCardField)
+import DataModel.Password (PasswordGeneratorSettings)
 import Effect.Class (liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
 import Functions.Card (getFieldType, FieldType(..))
-import Functions.Communication.Users (getUserPreferences)
-import Functions.JSState (getAppState)
 import Functions.Time (getCurrentTimestamp)
 import MarkdownIt (renderString)
 import Views.Components (dynamicWrapper, entropyMeter)
 import Views.PasswordGenerator (passwordGenerator)
-import Views.SimpleWebComponents (confirmationWidget, dragAndDropAndRemoveList, loadingDiv, simpleButton)
+import Views.SimpleWebComponents (confirmationWidget, dragAndDropAndRemoveList, simpleButton)
 
-
-createCardView :: Card -> Array String -> Boolean -> WidgetState -> Widget HTML (Maybe Card)
-createCardView card allTags isNew state = do
-  maybeUp <- hush <$> (liftAff $ runExceptT getUserPreferences)
-  let fromAppStateToPasswordSettings = \_ -> fromMaybe standardPasswordGeneratorSettings $ (\(UserPreferences up) -> up.passwordGeneratorSettings) <$> maybeUp
-  passwordGeneratorSettings <- ((fromRight standardPasswordGeneratorSettings) <<< ((<$>) fromAppStateToPasswordSettings)) <$> (liftEffect getAppState)
-  mCard <- div [Props._id "cardForm"] do
-    case state of
-      Default   -> [mask, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
-      Loading   -> [mask, loadingDiv, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]] -- TODO: deactivate form
-      Error err -> [mask, text err, div [Props.className "cardForm"] [demand (formSignal passwordGeneratorSettings)]]
+createCardView :: Card -> Array String -> PasswordGeneratorSettings -> Widget HTML (Maybe Card)
+createCardView card allTags passwordGeneratorSettings = do
+  mCard <- div [Props._id "cardForm"] [
+    mask
+  , div [Props.className "cardForm"] [
+      demand (formSignal passwordGeneratorSettings)
+    ]
+  ]
   case mCard of
-    Just (Card { content, secrets, timestamp: _ }) -> do
+    Just (Card { content, secrets }) -> do
       timestamp' <- liftEffect $ getCurrentTimestamp
-      pure $ Just $ Card { content, secrets, archived: false, timestamp: timestamp' }
+      pure $ Just (Card { content, secrets, archived: false, timestamp: timestamp' })
     Nothing -> pure Nothing
 
   where 
@@ -63,9 +53,9 @@ createCardView card allTags isNew state = do
     getActionButton cardField =
       case getFieldType cardField of
         Passphrase  -> button [unit <$ Props.onClick, Props.disabled false, Props.className "action passwordGenerator" ] [span [] [text "password generator"]]
-        Email       -> button [Props.disabled true, Props.className "action email"] [span [] [text "email"]]
-        Url         -> button [Props.className "action url", Props.disabled true]  [span [] [text "url"]]
-        None        -> button [Props.className "action none", Props.disabled true] [span [] [text "none"]]
+        Email       -> button [Props.disabled true, Props.className "action email"]                                      [span [] [text "email"]]
+        Url         -> button [Props.className "action url",  Props.disabled true]                                       [span [] [text "url"]]
+        None        -> button [Props.className "action none", Props.disabled true]                                       [span [] [text "none"]]
 
     cardFieldWidget :: PasswordGeneratorSettings -> CardField -> Widget HTML CardField
     cardFieldWidget defaultSettings cf@(CardField r@{ name, value, locked, settings}) = do
@@ -129,8 +119,8 @@ createCardView card allTags isNew state = do
         Nothing -> pure $ Just tag'
         Just _  -> pure $ Nothing
 
-    inputTagSignal :: String -> Signal HTML (Tuple String Boolean)
-    inputTagSignal newTag = do
+    inputTagSignal :: String -> Array String -> Signal HTML (Tuple String Boolean)
+    inputTagSignal newTag tags = do
 
       loopW (Tuple newTag false) (\(Tuple value _) -> do
         result <- form [(\_ -> Tuple value (value /= "")) <$> Props.onSubmit] [
@@ -141,11 +131,11 @@ createCardView card allTags isNew state = do
               , Props.placeholder "add tag"
               , Props.value value
               , Props.list "tags-list"
-              , (\e -> Tuple (Props.unsafeTargetValue e) false) <$> Props.onChange
+              , (\e -> Tuple (Props.unsafeTargetValue e) (elem (Props.unsafeTargetValue e) (difference allTags tags))) <$> Props.onInput
               ]
-            , datalist [Props._id "tags-list"] ((\t -> option [] [text t]) <$> allTags)
+            , datalist [Props._id "tags-list"] ((\t -> option [] [text t]) <$> (difference allTags tags))
           ]
-        ]
+        ] 
         pure result
       )
 
@@ -154,7 +144,7 @@ createCardView card allTags isNew state = do
       ul_ [] do
         tags' <- (\ts -> ((maybe [] singleton) =<< filter isJust ts)) <$> (sequence $ tagSignal <$> sort tags)
         li_ [Props.className "addTag"] do
-          Tuple newTag' addTag <- inputTagSignal newTag
+          Tuple newTag' addTag <- inputTagSignal newTag tags
           case addTag of
             false -> pure $ Tuple newTag' tags'
             true  -> do
@@ -184,7 +174,7 @@ createCardView card allTags isNew state = do
         div_ [Props.className "cardFormFields"] do
           title' :: String <- loopW title (\_title -> label [Props.className "title"] [
             span [Props.className "label"] [text "Title"]
-          , dynamicWrapper Nothing _title $ textarea [Props.rows 1, Props.placeholder "Card title", Props.value _title, Props.unsafeTargetValue <$> Props.onChange] []
+          , dynamicWrapper Nothing _title $ textarea [Props.rows 1, Props.placeholder "Card title", Props.autoFocus true, Props.value _title, Props.unsafeTargetValue <$> Props.onChange] []
           ])
 
           Tuple newTag' tags' <- tagsSignal newTag tags
@@ -203,11 +193,12 @@ createCardView card allTags isNew state = do
                        }
           }
       res <- fireOnce $ div [Props.className "submitButtons"] [(cancelButton formValues) <|> (saveButton formValues)]
-      -- TODO: add check for form validity
+
       pure res
 
     cancelButton v = 
-      if ((card == v && not isNew) || (v == emptyCard && isNew)) then 
+      if (card == v) then 
+      -- if ((card == v && not isNew) || (v == emptyCard && isNew)) then 
         simpleButton "inactive cancel" "cancel" false Nothing 
       else do
         _ <- simpleButton "active cancel" "cancel" false Nothing 
@@ -215,4 +206,5 @@ createCardView card allTags isNew state = do
         if confirmation then pure Nothing else (cancelButton v)
 
     saveButton v = 
-      simpleButton "save" "save" ((not isNew && card == v) || (isNew && v == emptyCard)) (Just v)
+      -- simpleButton "save" "save" ((not isNew && card == v) || (isNew && v == emptyCard)) (Just v)
+      simpleButton "save" "save" (card == v) (Just v)

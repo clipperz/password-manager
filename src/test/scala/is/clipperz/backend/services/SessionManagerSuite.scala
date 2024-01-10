@@ -7,8 +7,9 @@ import java.security.MessageDigest
 import scala.language.postfixOps
 import zio.{ Chunk, ZIO }
 import zio.stream.{ ZStream, ZSink }
+import zio.test.TestResult.{ allSuccesses }
 import zio.test.Assertion.{ nothing, throws, throwsA, fails, isSubtype, anything }
-import zio.test.{ ZIOSpecDefault, assertTrue, assert, assertCompletes, assertNever, assertZIO, TestAspect }
+import zio.test.{ ZIOSpecDefault, assertTrue, assert, assertCompletes, assertNever, assertZIO, check, TestAspect, Gen }
 import zio.json.EncoderOps
 import zio.http.{ Version, Headers, Method, URL, Request, Body }
 import zio.http.*
@@ -21,103 +22,86 @@ import zio.Clock
 import zio.Clock.ClockLive
 import zio.test.TestClock
 import zio.Duration
+import zio.durationInt
 import is.clipperz.backend.exceptions.BadRequestException
+import scala.collection.immutable.HashMap
 
 object SessionManagerSpec extends ZIOSpecDefault:
-  val sessionKey = "sessionKey"
+  val testSessionKey = "testSessionKey"
   val c = "username"
   val cfail = "username2"
   val sessionContent = Map(("c", c))
-  val testSession = Session(sessionKey, sessionContent)
+  val testSession = Session(testSessionKey, sessionContent)
+  val emptyTestSession = Session(testSessionKey, HashMap.empty)
+  val cacheTimeToLive = 5.seconds
 
-  val testRequestEmpty = Request(
+  def testRequest(key: String) = Request(
     url = URL(Root),
     method = Method.GET,
-    headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
-    body = Body.empty,
-    version = Version.Http_1_1,
-    remoteAddress = None
-  )
-  val testRequestSuccess = Request(
-    url = URL(Root / "users" / c),
-    method = Method.GET,
-    headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
-    body = Body.empty,
-    version = Version.Http_1_1,
-    remoteAddress = None
-  )
-  val testRequestFail = Request(
-    url = URL(Root / "users" / cfail),
-    method = Method.GET,
-    headers = Headers((SessionManager.sessionKeyHeaderName, sessionKey)),
-    body = Body.empty,
-    version = Version.Http_1_1,
-    remoteAddress = None
-  )
-  val testRequestNoHeader = Request(
-    url = URL(Root / "users" / (c + "fail")),
-    method = Method.GET,
-    headers = Headers.empty,
+    headers = Headers((SessionManager.sessionKeyHeaderName, key)),
     body = Body.empty,
     version = Version.Http_1_1,
     remoteAddress = None
   )
 
-  val layers = SessionManager.live
+  val layers = (PRNG.live >>> SessionManager.live(cacheTimeToLive))
 
-  def spec = suite("SessionManager")(
-    test("getSession - empty") {
-      for {
-        manager <- ZIO.service[SessionManager]
-        session <- manager.getSession(testRequestEmpty)
-      } yield assertTrue(session.content.isEmpty)
-    } +
-    test("saveSession - success") {
-      for {
-        manager <- ZIO.service[SessionManager]
-        savedKey <- manager.saveSession(testSession)
-        savedSession <- manager.getSession(testRequestEmpty)
-      } yield assertTrue(savedKey == testSession.key, savedSession == testSession)
-    } +
-    test("getSession - success") {
-      for {
-        manager <- ZIO.service[SessionManager]
-        session <- manager.getSession(testRequestEmpty)
-      } yield assertTrue(session == testSession)
-    } +
+  def spec = (suite("SessionManager")(
+    test("get session - empty") {
+        for {
+            manager <- ZIO.service[SessionManager]
+            session <- manager.getSession(testRequest(testSessionKey))
+        } yield assertTrue(session.isEmpty)
+    },
+    test("save/get session - success") {
+        for {
+            manager      <- ZIO.service[SessionManager]
+            savedKey     <- manager.saveSession(testSession)
+            savedSession <- manager.getSession(testRequest(savedKey))
+        } yield assertTrue(savedSession == testSession, savedKey == testSessionKey)
+    },
     test("verifySessionUser - success") {
-      for {
-        manager <- ZIO.service[SessionManager]
-        _ <- manager.verifySessionUser(c, testRequestSuccess)
-      } yield assertCompletes
-    } +
+        for {
+            manager <- ZIO.service[SessionManager]
+        } yield allSuccesses(
+            assertCompletes
+        ,   assertTrue(manager.verifySessionUser(c, testSession))
+        )
+    },
     test("verifySessionUser - fail - different C") {
-      for {
-        manager <- ZIO.service[SessionManager]
-        res <- assertZIO(manager.verifySessionUser(cfail, testRequestFail).exit)(
-          fails(isSubtype[BadRequestException](anything))
-        )
-      } yield res
-    } +
+        for {
+            manager <- ZIO.service[SessionManager]
+        } yield assertTrue(manager.verifySessionUser(cfail, testSession) == false)
+    },
     test("deleteSession - success") {
-      for {
-        manager <- ZIO.service[SessionManager]
-        _ <- manager.deleteSession(testRequestEmpty)
-        savedSession <- manager.getSession(testRequestEmpty)
-      } yield assertTrue(savedSession.content.isEmpty)
-    } +
+        for {
+            manager      <- ZIO.service[SessionManager]
+            key          <- manager.saveSession(testSession)
+            _            <- manager.deleteSession(testRequest(key))
+            savedSession <- manager.getSession(testRequest(key))
+        } yield assertTrue(savedSession.isEmpty)
+    },
     test("verifySessionUser - fail - no c") {
-      for {
-        manager <- ZIO.service[SessionManager]
-        res <- assertZIO(manager.verifySessionUser(c, testRequestSuccess).exit)(fails(isSubtype[BadRequestException](anything)))
-      } yield res
-    } +
-    test("verifySessionUser - fail - no header") {
-      for {
-        manager <- ZIO.service[SessionManager]
-        res <- assertZIO(manager.verifySessionUser(c, testRequestNoHeader).exit)(
-          fails(isSubtype[BadRequestException](anything))
-        )
-      } yield res
+        for {
+            manager <- ZIO.service[SessionManager]
+        } yield assertTrue(manager.verifySessionUser(c, emptyTestSession) == false)
+    },
+    test("session is deleted after timeToLive") {
+        for {
+            manager      <- ZIO.service[SessionManager]
+            savedKey     <- manager.saveSession(testSession)
+            _            <- TestClock.adjust(cacheTimeToLive.plusNanos(1).nn)
+            savedSession <- manager.getSession(testRequest(savedKey))
+        } yield assertTrue(savedSession.isEmpty)
+    },
+    test("session timeout is refreshed when used") {
+        for {
+            manager      <- ZIO.service[SessionManager]
+            savedKey     <- manager.saveSession(testSession)
+            _            <- TestClock.adjust(cacheTimeToLive.minusSeconds(1).nn)
+            _            <- manager.getSession(testRequest(savedKey))
+            _            <- TestClock.adjust(cacheTimeToLive)
+            savedSession <- manager.getSession(testRequest(savedKey))
+        } yield assertTrue(savedSession == testSession)
     }
-  ).provideLayerShared(layers) @@ TestAspect.sequential
+  )).provideLayer(layers)

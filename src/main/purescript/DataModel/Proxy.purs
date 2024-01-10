@@ -1,4 +1,4 @@
-module DataModel.Proxy where
+module DataModel.ProxyType where
 
 import Data.Eq (class Eq)
 import Data.HexString (HexString)
@@ -31,18 +31,18 @@ instance decodeJsonBackendSessionState :: DecodeJson BackendSessionState where
 instance showBackendSessionState :: Show BackendSessionState where
   show (BackendSessionState r) = show r
 
-data Proxy = OnlineProxy String | OfflineProxy BackendSessionState
+data ProxyType = OnlineProxy String | OfflineProxy BackendSessionState
 
-derive instance eqProxy :: Eq Proxy
-derive instance genericProxy :: Generic Proxy _
+derive instance eqProxy :: Eq ProxyType
+derive instance genericProxy :: Generic ProxyType _
 
-instance encodeJsonProxy :: EncodeJson Proxy where
+instance encodeJsonProxy :: EncodeJson ProxyType where
   encodeJson a = genericEncodeJson a
 
-instance decodeJsonProxy :: DecodeJson Proxy where
+instance decodeJsonProxy :: DecodeJson ProxyType where
   decodeJson a = genericDecodeJson a
 
-instance showProxy :: Show Proxy where
-  show (OnlineProxy  s)  = "Online Proxy: " <> s
-  show (OfflineProxy c)  = "Offline Proxy: " <> (show c)
+instance showProxy :: Show ProxyType where
+  show (OnlineProxy  s)  = "Online ProxyType: " <> s
+  show (OfflineProxy c)  = "Offline ProxyType: " <> (show c)
 

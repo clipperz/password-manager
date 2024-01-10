@@ -28,7 +28,7 @@ import Effect.Aff.Class (liftAff)
 import Functions.Clipboard (copyToClipboard)
 import Functions.Password (randomPassword)
 import Views.Components (dynamicWrapper, entropyMeter)
-import Views.OverlayView (overlay)
+import Views.OverlayView (OverlayColor(..), overlay)
 import Views.OverlayView as OverlayStatus
 
 extractValue :: forall a. Monoid a => AsyncValue a -> a
@@ -111,7 +111,7 @@ suggestionWidget av =
       
       case res of
         PasswordChange p       -> suggestionWidget $ Done p
-        CopyPassword p         -> (suggestionWidget $ Done p) <|> (liftAff $ (Left p) <$ delay (Milliseconds 1000.0)) <|> overlay { status: OverlayStatus.Copy, message: "copied" }
+        CopyPassword p         -> (suggestionWidget $ Done p) <|> (liftAff $ (Left p) <$ delay (Milliseconds 1000.0)) <|> overlay { status: OverlayStatus.Copy, color: Black, message: "copied" }
         UpdatePassword         -> suggestionWidget $ Done ""
         InsertPassword newPswd -> pure $ Right newPswd 
 

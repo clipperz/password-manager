@@ -1,110 +1,81 @@
 module Functions.Pin where
 
 import Bytes (asArrayBuffer)
-import Control.Applicative (pure)
-import Control.Bind (bind, discard, (>>=))
-import Control.Monad.Except.Trans (ExceptT(..), except, withExceptT, mapExceptT)
+import Control.Alternative (pure)
+import Control.Bind (bind, discard)
+import Control.Monad.Except.Trans (ExceptT(..), except, throwError, withExceptT)
 import Control.Semigroupoid ((<<<))
 import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Types (encrypt, decrypt, raw, unwrapKey, CryptoKey)
-import Data.BigInt (fromInt)
-import Data.Either (Either(..), note, hush)
+import Data.Either (note)
+import Data.Eq ((==))
 import Data.EuclideanRing ((/))
-import Data.Function (($))
+import Data.Function ((#), ($))
 import Data.Functor ((<$>))
-import Data.HexString (hex, toArrayBuffer, toString, fromArrayBuffer, Base(..))
-import Data.HeytingAlgebra ((&&))
-import Data.Int (fromString)
+import Data.HexString (Base(..), HexString, fromArrayBuffer, hex, toArrayBuffer, toString)
 import Data.List (List(..), (:))
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Ord ((>), (<))
+import Data.Maybe (Maybe(..))
 import Data.Ring ((-))
 import Data.Semigroup ((<>))
-import Data.Semiring ((*), (+))
+import Data.Semiring ((*))
 import Data.Show (show)
-import Data.String.CodeUnits (splitAt, length)
+import Data.String.CodeUnits (length, splitAt)
 import Data.Unit (Unit)
-import DataModel.AppState (AppError(..), InvalidStateError(..))
+import DataModel.AppError (AppError(..))
+import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials)
 import DataModel.SRP (HashFunction)
+import DataModel.AppState (InvalidStateError(..), AppState)
 import Effect (Effect)
 import Effect.Aff (Aff)
+import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Effect.Exception as EX
 import Effect.Fortuna (randomBytes)
-import Functions.ArrayBuffer (concatArrayBuffers, bigIntToArrayBuffer)
+import Functions.ArrayBuffer (concatArrayBuffers)
+import Functions.Communication.OneTimeShare (PIN)
 import Functions.EncodeDecode (decryptJson, encryptJson)
-import Functions.JSState (getAppState)
-import Functions.State (getHashFunctionFromAppState)
-import Web.Storage.Storage (getItem, setItem, removeItem, Storage)
-import Web.HTML (window)
-import Web.HTML.Window (localStorage)
+import Web.Storage.Storage (Storage, removeItem, setItem)
 
 makeKey :: String -> String
 makeKey = (<>) "clipperz.is."
 
-isPinValid :: Int -> Boolean
-isPinValid p = p > 9999 && p < 100000
+isPinValid :: PIN -> Boolean
+isPinValid p = (length p) == 5
 
-generateKeyFromPin :: HashFunction -> Int -> Aff CryptoKey
+generateKeyFromPin :: HashFunction -> String -> Aff CryptoKey
 generateKeyFromPin hashf pin = do
-  pinBuffer <- hashf $ (bigIntToArrayBuffer $ fromInt pin) : Nil
+  pinBuffer <- hashf $ (toArrayBuffer $ hex pin) : Nil
   KI.importKey raw pinBuffer (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
 
-decryptPassphrase :: Int -> String -> String -> ExceptT AppError Aff Credentials
-decryptPassphrase pin user encryptedPassphrase = do
-  state <- ExceptT $ liftEffect getAppState
-  let hashf = getHashFunctionFromAppState state
-  key <- ExceptT $ Right <$> (generateKeyFromPin hashf pin)
-  let ab = toArrayBuffer $ hex $ encryptedPassphrase
-  { padding: padding, passphrase: passphrase } :: { padding :: Int, passphrase :: String } <- withExceptT (\e -> InvalidStateError $ CorruptedSavedPassphrase $ "Decrypt passphrase: " <> EX.message e) $ ExceptT $ decryptJson key ab
+decryptPassphraseWithPin :: HashFunction -> PIN -> Maybe String -> Maybe HexString -> ExceptT AppError Aff Credentials
+decryptPassphraseWithPin hashFunc pin username' pinEncryptedPassword' = do  
+  username             <- except $ username'             # note (InvalidStateError (CorruptedSavedPassphrase "user not found in local storage"))
+  pinEncryptedPassword <- except $ pinEncryptedPassword' # note (InvalidStateError (CorruptedSavedPassphrase "passphrase not found in local storage"))
+  key <- liftAff $ generateKeyFromPin hashFunc pin
+  { padding, passphrase } :: { padding :: Int, passphrase :: String } <- decryptJson key (toArrayBuffer pinEncryptedPassword) # ExceptT # withExceptT (ProtocolError <<< CryptoError <<< show)
   let split = toString Dec $ hex $ (splitAt ((length passphrase) - (padding * 2)) passphrase).before
-  pure { username: user, password: split }
+  pure $ { username, password: split }
 
-decryptPassphraseWithRemoval :: Int -> String -> String -> ExceptT AppError Aff Credentials
-decryptPassphraseWithRemoval pin user encryptedPassphrase = do
-  state <- ExceptT $ liftEffect getAppState
-  let hashf = getHashFunctionFromAppState state
-  key <- ExceptT $ Right <$> (generateKeyFromPin hashf pin)
-  let ab = toArrayBuffer $ hex $ encryptedPassphrase
-  eitherData :: Maybe { padding :: Int, passphrase :: String } <- ExceptT $ Right <$> (hush <$> decryptJson key ab)
-  storage <- ExceptT $ Right <$> (liftEffect $ window >>= localStorage)
-  case eitherData of
-    Just { padding: padding, passphrase: passphrase } -> do
-      let split = toString Dec $ hex $ (splitAt ((length passphrase) - (padding * 2)) passphrase).before
-      ExceptT $ Right <$> (liftEffect $ setItem (makeKey "failures") (show 0) storage)
-      except $ Right { username: user, password: split }
-    Nothing -> do
-      failures <- ExceptT $ Right <$> (liftEffect $ getItem (makeKey "failures") storage)
-      let count = (((fromMaybe 0) <<< fromString <<< (fromMaybe "")) failures) + 1
-      if count < 3 then do
-        ExceptT $ Right <$> (liftEffect $ setItem (makeKey "failures") (show count) storage)
-        except $ Left $ InvalidStateError $ CorruptedSavedPassphrase "Saved passphrase could not be decrypted"
-      else do
-        mapExceptT liftEffect $ deleteCredentials storage
-        except $ Left $ InvalidStateError $ CorruptedSavedPassphrase "Saved passphrase could not be decrypted, removing saved data"
-
-deleteCredentials :: Storage -> ExceptT AppError Effect Unit
+deleteCredentials :: Storage -> Effect Unit
 deleteCredentials storage = do
-  ExceptT $ Right <$> (removeItem (makeKey "user") storage)
-  ExceptT $ Right <$> (removeItem (makeKey "passphrase") storage)
-  ExceptT $ Right <$> (removeItem (makeKey "failures") storage)
+  removeItem (makeKey "user")       storage
+  removeItem (makeKey "passphrase") storage
+  removeItem (makeKey "failures")   storage
 
-saveCredentials :: Int -> Storage -> ExceptT AppError Aff Unit
-saveCredentials pin storage = do
-  state@{ username, password } <- ExceptT $ liftEffect getAppState
-  u <- except $ note (InvalidStateError (MissingValue "Missing username from state")) username
-  p <- except $ note (InvalidStateError (MissingValue "Missing password from state")) password
-  let hashf = getHashFunctionFromAppState state
-  key <- ExceptT $ Right <$> (generateKeyFromPin hashf pin)
-
+saveCredentials :: AppState -> String -> Storage -> ExceptT AppError Aff HexString
+saveCredentials {username: Just u, password: Just p, hash: hashf} pin storage = do
+  key <- liftAff $ (generateKeyFromPin hashf pin)
   -- 256 bits
-  let paddingBytesLength = (256 - 16 * length (show (hex p))) / 8
-  paddingBytes <- ExceptT $ (Right <<< asArrayBuffer) <$> (randomBytes paddingBytesLength)
-  paddedPassphrase <- ExceptT $ (Right <<< fromArrayBuffer) <$> (liftEffect $ concatArrayBuffers ((toArrayBuffer $ hex p) : paddingBytes : Nil))
+  let paddingBytesLength = (256 - 16 * length (toString Hex (hex p))) / 8
+  paddingBytes     <- liftAff $ asArrayBuffer   <$> (randomBytes paddingBytesLength)
+  paddedPassphrase <- liftAff $ fromArrayBuffer <$> (liftEffect $ concatArrayBuffers ((toArrayBuffer $ hex p) : paddingBytes : Nil))
   let obj = { padding: paddingBytesLength, passphrase: paddedPassphrase }
 
-  encryptedCredentials <- ExceptT $ Right <$> (encryptJson key obj)
-  liftEffect $ setItem (makeKey "user") u storage -- save username  
-  liftEffect $ setItem (makeKey "passphrase") (show $ fromArrayBuffer encryptedCredentials) storage -- save password
+  encryptedCredentials <- liftAff $ fromArrayBuffer <$> encryptJson key obj
+  liftEffect $ setItem (makeKey "user")        u                                  storage
+  liftEffect $ setItem (makeKey "passphrase") (toString Hex encryptedCredentials) storage
+  liftEffect $ setItem (makeKey "failures")   (show 0)                            storage
+
+  pure encryptedCredentials
+saveCredentials _ _ _ = throwError (InvalidStateError (MissingValue "Missing username from state"))

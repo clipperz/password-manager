@@ -2,7 +2,7 @@ module Functions.Import where
 
 import Control.Applicative (pure)
 import Control.Bind (bind, (=<<), (>>=))
-import Control.Monad.Except (except, runExcept)
+import Control.Monad.Except (ExceptT, except, runExcept)
 import Control.Semigroupoid ((<<<))
 import Data.Argonaut.Core (Json, caseJsonArray, caseJsonObject, toBoolean, toObject, toString)
 import Data.Argonaut.Decode.Class (decodeJson)
@@ -24,11 +24,22 @@ import Data.String.Pattern (Pattern(..), Replacement(..))
 import Data.String.Regex (Regex, regex, match)
 import Data.String.Regex.Flags (global)
 import Data.Traversable (sequence)
-import DataModel.AppState (AppError(..))
+import DataModel.AppError (AppError(..))
 import DataModel.Card (Card(..), CardValues(..), CardField(..))
 import Effect (Effect)
+import Effect.Aff (Aff)
+import Effect.Aff.Class (liftAff)
+import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 import Foreign.Object (Object, lookup, values)
 import Functions.Time (getCurrentTimestamp)
+import Web.File.File (File)
+
+foreign import _readFile :: File -> EffectFnAff String
+
+readFile :: Maybe File -> ExceptT AppError Aff String
+readFile maybeFile = do
+  file   <- except $ note (ImportError "File not found") maybeFile
+  liftAff $ fromEffectFnAff (_readFile file)
 
 foreign import decodeHTML :: String -> String
 

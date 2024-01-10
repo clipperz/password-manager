@@ -19,7 +19,7 @@ object TollChallenge:
   implicit val encoder: JsonEncoder[TollChallenge] = DeriveJsonEncoder.gen[TollChallenge]
 
 enum ChallengeType:
-  case CONNECT, REGISTER, MESSAGE
+  case CONNECT, REGISTER, MESSAGE, SHARE
 
 val tollByteSize = 32
 
@@ -51,20 +51,16 @@ object TollManager:
         val binaryToll = challenge.toll.toByteArray.map(byteToBinary).mkString
         ByteArrays
           .hashOfArrays(HashFunction.hashSHA256, receipt.toByteArray) // receipt hash
-          .map(hash => hash.map(byteToBinary).mkString) // get binary string
-          .map(binaryHash =>
-            if binaryHash.take(challenge.cost) == binaryToll.take(challenge.cost) then true
-            else
-              // println(s" Toll -> ${binaryToll}; Receipt -> ${receipt}; Hash -> ${binaryHash}")
-              false
-          ) // check if equal bits are more than the cost of the challenge
+          .map(hash => hash.map(byteToBinary).mkString)
+          .map(binaryHash => binaryHash.take(challenge.cost) == binaryToll.take(challenge.cost))
       else ZIO.fail(new IllegalArgumentException("Invalid challenge cost"))
 
     override def getChallengeCost(challengeType: ChallengeType): TollCost =
       challengeType match
-        case ChallengeType.CONNECT => 3
-        case ChallengeType.REGISTER => 3
-        case ChallengeType.MESSAGE => 2
+        case ChallengeType.CONNECT  => 3
+        case ChallengeType.REGISTER => 4
+        case ChallengeType.MESSAGE  => 2
+        case ChallengeType.SHARE    => 3 
 
   val live: ZLayer[PRNG, Throwable, TollManager] =
     ZLayer.scoped(

@@ -11,6 +11,7 @@ import is.clipperz.backend.exceptions.{
   ResourceNotFoundException,
   EmptyContentException,
 }
+import is.clipperz.backend.middleware.scheduledFileSystemMetricsCollection
 import zio.Duration
 
 // ============================================================================
@@ -33,9 +34,6 @@ object KeyBlobArchive:
           else ZIO.fail(new ResourceNotFoundException("Blob not found"))
         )
         .getOrElse(ZIO.fail(new ResourceNotFoundException("Blob not found")))
-        .catchSome:
-          case ex: ResourceNotFoundException => ZIO.fail(ex)
-          case ex => ZIO.fail(new NonReadableArchiveException(s"${ex}"))
 
     override def saveBlob(key: Key, content: ZStream[Any, Throwable, Byte]): Task[Unit] =
       ZIO
@@ -88,7 +86,9 @@ object KeyBlobArchive:
         basePath: Path,
         levels: Int,
         requireExistingPath: Boolean = true,
-      ): FileSystemKeyBlobArchive =
+      ): Task[FileSystemKeyBlobArchive] =
       if (Files.exists(basePath) && Files.isDirectory(basePath)) || !requireExistingPath then
-        new FileSystemKeyBlobArchive(basePath, levels)
-      else throw new IllegalArgumentException("Base path does not exist")
+        scheduledFileSystemMetricsCollection(basePath).forkDaemon
+        *>
+        ZIO.succeed(new FileSystemKeyBlobArchive(basePath, levels))
+      else ZIO.fail(new IllegalArgumentException("Base path does not exist"))

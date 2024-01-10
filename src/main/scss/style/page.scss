@@ -3,149 +3,203 @@ div.page {
     &.login {
         background-color: $main-color;
         color: $main-text-color;
-
-        button {
-            &:hover {
-                background-color: $core-alternate-color;
-                color: $core-alternate-text-color;
-            }
-        }
     }
+
+	div.loginButton, div.signupButton {
+		display: flex;
+		background-color: white;
+		width: 100%;
+
+		button {
+			margin-top: 0px;
+
+			&:hover {
+				background-color: $core-alternate-color;
+				color: $core-alternate-text-color;
+			}
+		}
+
+
+	} 
 
     &.signup {
         background-color: $core-alternate-color;
         color: $core-alternate-text-color;
 
-        form {
-            label.terms_of_service, label.not_recoverable {
-                color: #666;
-                // background-color: pink;
-                @include fancyVisible();
+        form.signupForm {
+			.signupInputs {
+				label.terms_of_service, label.not_recoverable {
+					color: #666;
+					// background-color: pink;
+					@include fancyVisible();
+	
+					flex-direction: row-reverse;
+					align-items: flex-start;
+					margin-bottom: 10px;
+	
+					span.label {
+						width: 100%;
+						align-self: baseline;
+						text-align: left;
+						margin-left: 10px;
+						height: auto;
+						line-height: 18pt;
+	
+						a {
+							color: $main-color;
+						}
+					}
+	
+					input {
+						align-self: baseline;
+						flex: 1;
+						width: auto;
+					}
+				}
+	
+			}
 
-                flex-direction: row-reverse;
-                align-items: flex-start;
-                margin-bottom: 10px;
-
-                span.label {
-                    width: 100%;
-                    align-self: baseline;
-                    text-align: left;
-                    margin-left: 10px;
-                    height: auto;
-                    line-height: 18pt;
-
-                    a {
-                        color: $main-color;
-                    }
-                }
-
-                input {
-                    align-self: baseline;
-                    flex: 1;
-                    width: auto;
-                }
-            }
-        }
-        button {
-            &:hover {
-                background-color: $main-color;
-                color: $main-text-color;
-            }
-        }
+			button {
+				&:hover {
+					background-color: $main-color;
+					color: $main-text-color;
+				}
+			}
+		}
     }
 
     &.login, &.signup {
-        form {
-            position: relative;
-            background-color: white;
-            padding: 20px;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
-            text-align: center;
+        form.loginForm , form.signupForm  {
+			display: flex;
+			flex-direction: column;
 
-            label {
-                display: flex;
-                @include fancyHidden();
-            }
+			.loginInputs, .signupInputs {
+				position: relative;
+				background-color: white;
+				padding: 20px;
+				max-width: 400px;
+				margin-left: auto;
+				margin-right: auto;
+				text-align: center;
+	
+				label {
+					display: flex;
+					@include fancyHidden();
+				}
 
-            &.checkboxes {
-                flex-direction: column;
-                div {
-                    flex: auto;
-                    display: flex;
-                    flex-direction: row-reverse;
-                    justify-content: flex-end;
-                    align-items: flex-start;
+				& > span {
+					display: block;
+					width: 100%;
+					text-align: left;
+					color: grey;
+				}
 
-                    label {
-                        color: black;
-                        display: block;
-                        text-align: left;
-                        line-height: 14pt;
-                        padding: 3px 6px;
-                    }
-
-                    input {
-                        width: auto;
-                    }
-                }
-            }
-    
-            input {
-                font-family: "clipperz-font";
-                padding: 5px;
-                margin-top: 5px;
-                margin-bottom: 5px;
-                font-size: 24pt;
-                width: 100%;
-                border: 1px solid #ccc;
-                border-radius: 0px;
-                display: block;
-            }
-
-            button {
-                cursor: pointer;
-
-                min-height: 48px;
-                min-width: 48px;
-                font-size: 24pt;
-                padding: 10px 25px;
-                border: 1px solid white;
-
-                background-color: $main-color;
-                color: $main-text-color;
-
-                &:disabled {
-                    background-color: $neutral-color;
-                    color: $neutral-text-color;
-                    cursor: default;
-                }
-            }
+				& > a {
+					display: block;
+					margin-top: 10px;
+					text-decoration: underline;
+					color: $main-color;
+					cursor: pointer;
+				}
+	
+				&.checkboxes {
+					flex-direction: column;
+					div {
+						flex: auto;
+						display: flex;
+						flex-direction: row-reverse;
+						justify-content: flex-end;
+						align-items: flex-start;
+	
+						label {
+							color: black;
+							display: block;
+							text-align: left;
+							line-height: 14pt;
+							padding: 3px 6px;
+						}
+	
+						input {
+							width: auto;
+						}
+					}
+				}
+		
+				input {
+					font-family: "clipperz-font";
+					padding: 5px;
+					margin-top: 5px;
+					margin-bottom: 5px;
+					font-size: 24pt;
+					width: 100%;
+					border: 1px solid #ccc;
+					border-radius: 0px;
+					display: block;
+				}
+	
+				div button {
+					cursor: pointer;
+	
+					min-height: 48px;
+					min-width: 48px;
+					font-size: 24pt;
+					padding: 10px 25px;
+					border: 1px solid white;
+	
+					background-color: $main-color;
+					color: $main-text-color;
+	
+					&:disabled {
+						background-color: $neutral-color;
+						color: $neutral-text-color;
+						cursor: default;
+					}
+				}
+			}
         }
+		
+		div button.login, div button.signup {
+			cursor: pointer;
 
-        button {
-            margin-top: 25px;
-            margin-bottom: 25px;
-            line-height: 34pt;
-            font-family: "clipperz-font";
-            min-height: 46px;
-            min-width: 46px;
-            font-size: 24pt;
-            font-weight: 500;
-            border: 0px;
-            padding: 10px 25px;
-            cursor: pointer;
-            background-color: $neutral-color;
-            color: $neutral-text-color;
-            margin-left: auto;
-            margin-right: auto;
+			min-height: 48px;
+			min-width: 48px;
+			font-size: 24pt;
+			padding: 10px 25px;
+			border: 1px solid white;
 
-            // &:hover {
-            //     background-color: $core-alternate-color;
-            //     color: $core-alternate-text-color;
-            // }
-        }
+			background-color: $main-color;
+			color: $main-text-color;
+
+			&:disabled {
+				background-color: $neutral-color;
+				color: $neutral-text-color;
+				cursor: default;
+			}
+
+		}
+
+		button {
+			margin-top: 25px;
+			margin-bottom: 25px;
+			line-height: 34pt;
+			font-family: "clipperz-font";
+			min-height: 46px;
+			min-width: 46px;
+			font-size: 24pt;
+			font-weight: 500;
+			border: 0px;
+			padding: 10px 25px;
+			cursor: pointer;
+			background-color: $neutral-color;
+			color: $neutral-text-color;
+			margin-left: auto;
+			margin-right: auto;
+
+			&:hover {
+				background-color: $core-alternate-color;
+				color: $core-alternate-text-color;
+			}
+		}
     }
 
     div.content {

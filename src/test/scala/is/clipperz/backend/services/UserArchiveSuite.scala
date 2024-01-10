@@ -32,21 +32,19 @@ object UserArchiveSpec extends ZIOSpecDefault:
   val environment = UserArchive.fs(userBasePath, 2, false)
 
   val c = HexString("abcdef0192837465")
-  val testUser = UserCard(
+  val testUser = RemoteUserCard(
     c,
     HexString("adc"),
     HexString("adcf"),
     "srpVersion_test",
-    "masterKeyEncodingVersion_test",
-    HexString("masterKeyContent_test")
+    (HexString("masterKeyContent_test"), "masterKeyEncodingVersion_test")
   )
-  val testUser2 = UserCard(
+  val testUser2 = RemoteUserCard(
     c,
     HexString("adc2"),
     HexString("adcf2"),
     "srpVersion_test",
-    "masterKeyEncodingVersion_test",
-    HexString("masterKeyContent_test")
+    (HexString("masterKeyContent_test"), "masterKeyEncodingVersion_test")
   )
 
   def spec = suite("UserArchive")(
@@ -88,23 +86,17 @@ object UserArchiveSpec extends ZIOSpecDefault:
           user <- archive.getUser(c)
         } yield assertTrue(user == Some(testUser2))
       } +
-      test("deleteBlob - fail - different user") {
-        for {
-          archive <- ZIO.service[UserArchive]
-          res <- assertZIO(archive.deleteUser(testUser).exit)(fails(isSubtype[BadRequestException](anything)))
-        } yield res
-      } +
       test("deleteBlob - success") {
         for {
           archive <- ZIO.service[UserArchive]
-          resDelete <- archive.deleteUser(testUser2)
+          resDelete <- archive.deleteUser(testUser.c)
           resGet <- archive.getUser(c).map(_.isDefined)
         } yield assertTrue(resDelete, !resGet)
       } +
       test("deleteBlob - fail - not present") {
         for {
           archive <- ZIO.service[UserArchive]
-          res <- assertZIO(archive.deleteUser(testUser2).exit)(fails(isSubtype[ResourceNotFoundException](anything)))
+          res <- assertZIO(archive.deleteUser(testUser2.c).exit)(fails(isSubtype[ResourceNotFoundException](anything)))
         } yield res
       }
   ).provideSomeLayerShared(environment) @@

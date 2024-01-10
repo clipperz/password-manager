@@ -36,12 +36,6 @@
                 }
             }
 
-            &.untaggedCards {
-                // &::before {
-                //     content: "";
-                // }
-            }
-
             &.selected {
                 color: $main-color;
             }
@@ -101,22 +95,29 @@
 			font-size: 14pt;
 		}
 
+		&.selected {
+			label.search input {
+				color: $main-color;
+			}
+		}
+
         label.search {
-            // font-family: "clipperz-icons";
             font-size: 14pt;
-            // margin-left: 8px;
             margin-right: 6px;
 			flex: 1;
 
 			@include fancyHidden();
 			
 			input {
+				&:focus {
+					color: $main-color
+				}
 				font-size: 14pt;
 				border: 0px;
 				border-bottom: 1px solid #333;
 				outline: none;
 				width: 160px;
-				color: $main-color;
+				color: #fff;
 				background-color: $core-alternate-color;
 	
 				&::placeholder {
@@ -130,7 +131,6 @@
     }
 
     div#archivedFilterArea {
-        // background-color: pink;
         display: flex;
         flex-direction: row;
 		justify-content: space-between;
@@ -138,10 +138,6 @@
         border-top: 1px dotted #333;
         padding: 10px;
         font-size: 10pt;
-
-        // div {
-        //     flex: 1;
-        // }
 		
         label {
 			padding-left: 5px;

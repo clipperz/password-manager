@@ -6,6 +6,27 @@ const decodeHTML = function(s) {
     return txt.value;
 }
 
+const _readFile = function (file) { 
+    return (onError, onSuccess) => {
+        let result = new Promise((resolve, reject) => {
+            if (!file) {
+                reject("File not readable");
+            }
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                resolve(e.target.result);
+            };
+            reader.readAsText(file);
+        });
+
+        result.then(onSuccess).catch(onError);
+        return (cancelError, cancelerError, cancelerSuccess) => {
+        // Handle however you'd cancel the `o` (if the API supports it)
+        }
+    }; 
+};
+
 export {
-    decodeHTML
+    decodeHTML,
+	_readFile
 }

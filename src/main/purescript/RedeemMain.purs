@@ -1,41 +1,35 @@
 module RedeemMain where
 
-import Concur.Core (Widget)
-import Concur.React (HTML)
 import Concur.React.DOM (div, text)
 import Concur.React.Props as Props
 import Concur.React.Run (runWidgetInDom)
 import Control.Applicative (pure)
-import Control.Bind (bind, discard, (>>=))
-import Control.Monad.Except (runExceptT)
+import Control.Bind (bind, (>>=))
 import Data.Array (last)
-import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
+import Data.HexString (hex)
 import Data.Maybe (Maybe(..))
-import Data.Show (show)
 import Data.String (Pattern(..), drop, split)
 import Data.Unit (Unit)
+import DataModel.AppState (Proxy(..))
+import DataModel.AsyncValue (AsyncValue(..))
+import DataModel.SRP (baseSRPConf, hashFuncSHA256)
 import Effect (Effect)
-import Effect.Aff.Class (liftAff)
-import Effect.Class (liftEffect)
-import Effect.Console (log)
-import Functions.JSState (modifyAppState)
-import Functions.State (computeInitialState)
+import Functions.Communication.Backend (ConnectionState)
 import OperationalWidgets.RedeemWidget (redeemWidget)
 import Web.HTML (window)
 import Web.HTML.Location (hash, pathname)
 import Web.HTML.Window (location)
 
-wrapper :: forall a. Widget HTML a -> Widget HTML a
-wrapper widget = do
-  initialState <- liftEffect $ runExceptT $ computeInitialState
-  case initialState of
-    Right st -> liftAff $ do
-      liftEffect $ modifyAppState st
-    Left err -> do
-      liftEffect $ log $ show err
-  widget
+initialConnectionState :: ConnectionState
+initialConnectionState = {
+  proxy: OnlineProxy "/api" { toll: Loading Nothing, currentChallenge: Nothing } Nothing
+, hashFunc: hashFuncSHA256
+, srpConf: baseSRPConf
+, c: hex ""
+, p: hex ""
+}
 
 main :: Effect Unit
 main = do
@@ -48,4 +42,4 @@ main = do
     Just "" -> (div [Props.className "error"] [text "Missing document id"])
     Just id -> case key of
       "" ->    (div [Props.className "error"] [text "Missing document encryption key"])
-      _  ->    (wrapper $ redeemWidget id key)
+      _  ->    (redeemWidget initialConnectionState id key)

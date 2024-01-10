@@ -6,73 +6,83 @@ module AppMain
 import Concur.React.Run (runWidgetInDom)
 import Control.Alternative (pure)
 import Control.Bind (bind, discard, (>>=))
-import Control.Monad.Except (runExceptT)
 import Data.Argonaut.Decode (fromJsonString)
 import Data.Array (catMaybes)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
+import Data.HexString (HexString, hex)
 import Data.Map (fromFoldable, lookup)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (split)
 import Data.String.Pattern (Pattern(..))
 import Data.Tuple (Tuple(..))
-import Data.Unit (Unit, unit)
-import DataModel.AppState (AppState)
-import DataModel.FragmentData as Fragment
+import Data.Unit (Unit)
+import DataModel.FragmentState (FragmentState)
+import DataModel.FragmentState as Fragment
 import Effect (Effect)
-import Functions.JSState (modifyAppState)
+import Foreign (unsafeToForeign)
+import Functions.Pin (makeKey)
 import Functions.State (computeInitialState)
 import JSURI (decodeURI)
-import OperationalWidgets.App (Page(..), app, doTestLogin)
+import OperationalWidgets.App (app)
 import Record (merge)
-import Web.HTML (window)
-import Web.HTML.Location (hash, setHash)
-import Web.HTML.Window (location)
+import Web.HTML (Window, window)
+import Web.HTML.History (DocumentTitle(..), URL(..), replaceState)
+import Web.HTML.Location (hash, pathname)
+import Web.HTML.Window (history, localStorage, location)
+import Web.Storage.Storage (getItem)
+
+-- ============================================
+--  parse external state that is never updated
+-- ============================================
 
 main :: Effect Unit
 main = do
-  l <- window >>= location
-  h <- hash l
-  maybeState <- computeStateWithFragmentData h
-  case maybeState of
-    Nothing -> pure unit
-    Just state@{fragmentData} -> do
-      modifyAppState state
-      case fragmentData of
-        Just Fragment.Registration -> runWidgetInDom "app" (app Signup)
-        Just (Fragment.Login cred) -> runWidgetInDom "app" (doTestLogin cred)
-        _                          -> do
-                                      setHash "" l
-                                      runWidgetInDom "app" (app (Loading (Just Login)))
+  appState      <- computeInitialState
+  fragmentState <- parseFragment <$> (window >>= location >>= hash)
+  
+  credentials   <- getCredentialsFromLocalStorage
 
-parseQueryString :: String -> Array (Tuple String String)
-parseQueryString query = 
-  let keyValues = split (Pattern "&") query
-      splitKeyValue = \s -> case split (Pattern "=") s of
-                              [key, value] -> Just $ Tuple key value
-                              _ -> Nothing
-  in catMaybes $ splitKeyValue <$> keyValues 
+  window >>= removeFragment
+  
+  runWidgetInDom "app" $ app (merge credentials appState) fragmentState
 
-computeStateWithFragmentData :: String -> Effect (Maybe AppState)
-computeStateWithFragmentData fragment = do
-  initialState <- runExceptT $ computeInitialState
+-- ---------------------------------------------
 
-  case initialState of
-    Right state -> do
-      fragmentData <- pure $ case fragment of
-        "#registration" -> Just Fragment.Registration
-        str -> do
-          case split (Pattern "?") str of
-            [ "#login", query ] -> do
-              let parameters = fromFoldable $ parseQueryString query
-              case (lookup "username" parameters), (lookup "password" parameters) of
-                Just username, Just password -> Just $ Fragment.Login {username, password}
-                _, _ -> Just $ Fragment.Unrecognized fragment
-            [ "#addCard", cardData ] -> case fromJsonString (fromMaybe cardData (decodeURI cardData)) of
-              Right card -> Just $ Fragment.AddCard card
-              Left  _    -> Just $ Fragment.Unrecognized fragment
-            _ -> Nothing
-      pure $ Just (merge {fragmentData: fragmentData} state )      
-    Left _ -> do
-      pure Nothing
+getCredentialsFromLocalStorage :: Effect { username :: Maybe String, pinEncryptedPassword :: Maybe HexString }
+getCredentialsFromLocalStorage = do
+  storage    <- window >>= localStorage
+  user       <- getItem (makeKey "user")       storage
+  passphrase <- getItem (makeKey "passphrase") storage
+  pure $ {username: user, pinEncryptedPassword: hex <$> passphrase}
+
+removeFragment :: Window -> Effect Unit
+removeFragment w = do
+  pathName <- location w >>= pathname
+  history w >>= replaceState (unsafeToForeign {}) (DocumentTitle "") (URL pathName)
+
+parseFragment :: String -> FragmentState
+parseFragment fragment = case fragment of
+  "#registration" -> Fragment.Registration
+  str -> do
+    case split (Pattern "?") str of
+      [ "#login", query ] -> do
+        let parameters = fromFoldable $ parseQueryString query
+        case (lookup "username" parameters), (lookup "password" parameters) of
+          Just username, Just password -> Fragment.Login {username, password}
+          _, _ -> Fragment.Unrecognized fragment
+      [ "#addCard", cardData ] -> case fromJsonString (fromMaybe cardData (decodeURI cardData)) of
+        Right card -> Fragment.AddCard card
+        Left  _    -> Fragment.Unrecognized fragment
+      _ -> Fragment.Empty
+
+  where
+
+    parseQueryString :: String -> Array (Tuple String String)
+    parseQueryString query = 
+      let keyValues = split (Pattern "&") query
+          splitKeyValue = \s -> case split (Pattern "=") s of
+                                  [key, value] -> Just $ Tuple key value
+                                  _ -> Nothing
+      in catMaybes $ splitKeyValue <$> keyValues 

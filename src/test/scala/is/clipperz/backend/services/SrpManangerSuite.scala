@@ -6,7 +6,7 @@ import zio.stream.ZStream
 import zio.test.{ ZIOSpecDefault, assertTrue, assertNever, assertZIO, check }
 import zio.test.Assertion.{ fails, isSubtype, anything, isTrue }
 import zio.test.TestAspect.timeout
-import zio.test.TestResult.all
+import zio.test.TestResult.allSuccesses
 import is.clipperz.backend.functions.SrpFunctions.{ baseConfiguration, SrpFunctionsV6a }
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.{ bigIntToHex, bytesToHex }
@@ -23,6 +23,7 @@ import is.clipperz.backend.TestUtilities
 import zio.test.TestAspect
 import is.clipperz.backend.exceptions.ResourceNotFoundException
 import zio.http.*
+import is.clipperz.backend.services.RemoteUserCard
 
 object SrpManangerSpec extends ZIOSpecDefault:
   val samples = 10
@@ -35,7 +36,7 @@ object SrpManangerSpec extends ZIOSpecDefault:
   val layers =
     archive ++
       PRNG.live ++
-      SessionManager.live ++
+      (PRNG.live >>> SessionManager.live()) ++
       ((archive ++ PRNG.live) >>> SrpManager.v6a())
 
   val testRequestEmpty = Request(
@@ -66,13 +67,14 @@ object SrpManangerSpec extends ZIOSpecDefault:
             x <- config.keyDerivationFunction(s, p).map(bytes => bytesToBigInt(bytes))
             v <- ZIO.succeed(srpFunctions.computeV(x))
             card <- ZIO.succeed(
-              UserCard(
+              RemoteUserCard(
                 c = cHex,
                 s = sHex,
                 v = bigIntToHex(v),
                 srpVersion = "srpVersion_testFullTrip",
-                masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
-                masterKeyContent = HexString("masterKeyContent_testFullTrip")
+                // originMasterKey = None,
+                // masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
+                masterKey = (HexString("masterKeyContent_testFullTrip"), "masterKeyEncodingVersion_testFullTrip")
               )
             )
 
@@ -86,7 +88,7 @@ object SrpManangerSpec extends ZIOSpecDefault:
             aa <- ZIO.succeed(srpFunctions.computeA(bytesToBigInt(a)))
             (step1Response, context) <- srp.srpStep1(SRPStep1Data(cHex, bigIntToHex(aa)), sessionContext)
             bb <- ZIO.succeed(bigIntToHex(srpFunctions.computeB(BigInt(context.content("b"), 16), v)))
-          } yield all(
+          } yield allSuccesses(
             assertTrue(context.content("c") == cHex.toString()),
             assertTrue(context.content.isDefinedAt("b")),
             assertTrue(context.content("B") == bb.toString()),
@@ -144,13 +146,14 @@ object SrpManangerSpec extends ZIOSpecDefault:
             x <- config.keyDerivationFunction(s, p).map(bytes => bytesToBigInt(bytes))
             v <- ZIO.succeed(srpFunctions.computeV(x))
             card <- ZIO.succeed(
-              UserCard(
+              RemoteUserCard(
                 c = cHex,
                 s = sHex,
                 v = bigIntToHex(v),
                 srpVersion = "srpVersion_testFullTrip",
-                masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
-                masterKeyContent = HexString("masterKeyContent_testFullTrip")
+                // originMasterKey = None,
+                // masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
+                masterKey = (HexString("masterKeyContent_testFullTrip"), "masterKeyEncodingVersion_testFullTrip")
               )
             )
 

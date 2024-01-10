@@ -19,15 +19,6 @@ import is.clipperz.backend.exceptions.BadRequestException
 
 type BlobHash = HexString
 
-case class SaveBlobData(
-    data: HexString,
-    hash: BlobHash,
-  )
-
-object SaveBlobData:
-  implicit val decoder: JsonDecoder[SaveBlobData] = DeriveJsonDecoder.gen[SaveBlobData]
-  implicit val encoder: JsonEncoder[SaveBlobData] = DeriveJsonEncoder.gen[SaveBlobData]
-
 // ----------------------------------------------------------------------------
 
 trait BlobArchive:
@@ -103,8 +94,8 @@ object BlobArchive:
     ): ZLayer[Any, Throwable, BlobArchive] =
     val keyBlobArchive = KeyBlobArchive.FileSystemKeyBlobArchive(basePath, levels, requireExistingPath)
     val baseTmpPath = basePath.resolve("tmp").nn
-
     ZLayer.scoped(
       initializeBlobArchive(baseTmpPath)
-        .map(_ => FileSystemBlobArchive(keyBlobArchive, baseTmpPath))
+      *>
+      keyBlobArchive.map(FileSystemBlobArchive(_, baseTmpPath))
     )

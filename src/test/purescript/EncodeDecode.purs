@@ -1,5 +1,7 @@
 module Test.EncodeDecode where
 
+import Functions.EncodeDecode
+
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))
 import Crypto.Subtle.Constants.AES as AES
@@ -8,8 +10,8 @@ import Crypto.Subtle.Key.Generate as Key.Generate
 import Crypto.Subtle.Key.Types as Key.Types
 import Data.ArrayBuffer.Typed as Data.ArrayBuffer.Typed
 import Data.ArrayBuffer.Types (ArrayBuffer, ArrayView, Uint8)
-import Data.Eq ((==))
 import Data.Either (Either(..))
+import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Identity (Identity)
@@ -22,22 +24,16 @@ import Data.String.CodePoints (toCodePointArray)
 import Data.TextDecoder as Decoder
 import Data.TextEncoder as Encoder
 import Data.Unit (Unit)
-import DataModel.Card (Card(..), card0)
+import DataModel.Card (Card(..), cardValues0)
 import Effect.Aff (Aff)
-import Effect.Exception (Error, error)
 import Effect.Class (liftEffect)
-import Functions.EncodeDecode
--- import Crypto.Subtle.Constants.AES (aesCTR, l256)
--- import Crypto.Subtle.Key.Import as KI
--- import Crypto.Subtle.Key.Generate as KG
--- import Crypto.Subtle.Key.Types (encrypt, exportKey, decrypt, raw, unwrapKey, CryptoKey)
+import Effect.Exception (Error, error)
+import Functions.ArrayBuffer (emptyByteArrayBuffer)
+import Test.QuickCheck ((<?>), (===), Result(..))
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual)
-import Test.QuickCheck ((<?>), (===), Result(..))
--- import Test.Spec.QuickCheck (quickCheck)
 import TestClasses (AsciiString, UnicodeString)
 import TestUtilities (makeTestableOnBrowser, quickCheckAffInBrowser, failOnBrowser, makeQuickCheckOnBrowser)
-import Functions.ArrayBuffer (emptyByteArrayBuffer)
 
 encodeDecodeSpec :: SpecT Aff Unit Identity Unit
 encodeDecodeSpec = 
@@ -52,7 +48,7 @@ encodeDecodeSpec =
       quickCheckAffInBrowser encryptDecrypt samples encryptDecryptText
     let encryptDecryptJson = "encrypt then decrypt using json"
     it encryptDecryptJson do
-      let card@(Card r) = Card { content: card0, secrets: [], timestamp: 1661377622.0, archived: false }
+      let card@(Card r) = Card { content: cardValues0, secrets: [], timestamp: 1661377622.0, archived: false }
       masterKey :: Key.Types.CryptoKey <- Key.Generate.generateKey (Key.Generate.aes AES.aesCTR AES.l256) true [Key.Types.encrypt, Key.Types.decrypt, Key.Types.unwrapKey]
       encrypted <- encryptJson masterKey card
       result <- decryptJson masterKey encrypted

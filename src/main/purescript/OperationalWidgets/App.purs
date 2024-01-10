@@ -1,245 +1,42 @@
-module OperationalWidgets.App
-  ( Page(..)
-  , SharedCardReference
-  , app
-  , doTestLogin
-  )
-  where
+module OperationalWidgets.App ( app ) where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (a, button, div, h1, h3, header, li, p, span, text, ul)
-import Concur.React.Props as Props
-import Control.Alt ((<|>))
-import Control.Applicative (pure)
-import Control.Bind (bind, (>>=), discard)
-import Control.Monad.Except.Trans (runExceptT)
-import Data.Either as E
-import Data.Eq ((==), class Eq)
+import Control.Bind (bind, (=<<))
 import Data.Function (($))
-import Data.Functor ((<$), (<$>))
-import Data.Maybe (Maybe(..))
-import Data.Semigroup ((<>))
-import Data.Show (class Show, show)
-import Data.Time.Duration (Milliseconds(..))
-import DataModel.AppState (UserConnectionStatus(..))
-import DataModel.Credentials (Credentials, emptyCredentials)
-import DataModel.WidgetState as WS
-import Effect.Aff (delay, never, Aff)
-import Effect.Aff.Class (liftAff)
-import Effect.Class (liftEffect)
-import Effect.Class.Console (log)
-import Functions.Communication.Signup (signupUser)
-import Functions.EnvironmentalVariables (currentCommit)
-import Functions.Login (doLogin)
-import Functions.Pin (decryptPassphraseWithRemoval)
-import OperationalWidgets.HomePageWidget (homePageWidget)
-import Record (merge)
-import Views.Components (footerComponent)
-import Views.LoginFormView (loginFormView', PinCredentials)
-import Views.OverlayView (OverlayStatus(..), overlay)
-import Views.SignupFormView (emptyDataForm, signupFormView)
-import Web.HTML (window)
-import Web.HTML.Window (localStorage)
+import Data.Tuple (Tuple(..))
+import DataModel.FragmentState as Fragment
+import DataModel.AppState (AppState)
+import Functions.Handler.CardManagerEventHandler (handleCardManagerEvent)
+import Functions.Handler.GenericHandlerFunctions (OperationState)
+import Functions.Handler.LoginPageEventHandler (handleLoginPageEvent)
+import Functions.Handler.SignupPageEventHandler (getLoginFormData, handleSignupPageEvent)
+import Functions.Handler.UserAreaEventHandler (handleUserAreaEvent)
+import Views.AppView (Page(..), PageEvent(..), WidgetState(..), appView)
+import Views.LoginFormView (LoginPageEvent(..))
+import Views.OverlayView (hiddenOverlayInfo)
+import Views.SignupFormView (emptyDataForm)
 
-app :: forall a. Page -> Widget HTML a
-app nextPage = app' (ShowPage (Loading (Just nextPage))) { credentials: emptyCredentials }
-
-doTestLogin :: forall a. Credentials -> Widget HTML a
-doTestLogin {username, password} = do
-  app' (DoLogin testCredentials) { credentials: testCredentials }
+app :: forall a. AppState -> Fragment.FragmentState -> Widget HTML a
+app appState fragmentState = case fragmentState of
+    Fragment.Login cred   -> appWithInitialOperation appState (LoginPageEvent $ LoginEvent cred)
+    Fragment.Registration -> appLoop          (Tuple appState (WidgetState hiddenOverlayInfo (Signup  emptyDataForm)))
+    _                     -> appLoop          (Tuple appState (WidgetState hiddenOverlayInfo (Login $ getLoginFormData appState)))
+  
   where
-    testCredentials = { username: username, password: password}
+    appWithInitialOperation :: AppState -> PageEvent -> Widget HTML a
+    appWithInitialOperation state event = do
+      appLoop =<< executeOperation event state fragmentState
 
-type SharedCardReference = String
-type SharedCardPassword  = String
+    appLoop :: (Tuple AppState WidgetState) -> Widget HTML a
+    appLoop (Tuple state widgetState) = do
 
-data Page = Loading (Maybe Page) | Login | Signup | Share (Maybe SharedCardReference) | Main
-data Action = DoLogout 
-            | ShowPage Page 
-            | DoLogin Credentials 
-            | DoLoginWithPin PinCredentials 
-            | DoSignup Credentials 
-            | ShowSharedCard SharedCardReference SharedCardPassword 
-            | ShowError Page 
-            | ShowSuccess Page 
+      resultEvent <- appView widgetState
+        
+      appLoop =<< executeOperation resultEvent state fragmentState
 
-app' :: forall a. Action -> { credentials :: Credentials } -> Widget HTML a
-app' action st@{ credentials } = do
-  log $ show action
-  nextAction:: Action <- exitBooting action <|>
-    div [Props.className "mainDiv"] [
-        headerPage (actionPage action) (Loading Nothing) []
-      , headerPage (actionPage action) Login [
-          (getLoginActionType <$> (loginFormView' credentials)) <|> ((ShowPage Signup) <$ button [Props.onClick] [text "sign up"]) -- TODO: if login fails this is reset
-          {-
-            Even when using Signals, the moment the signal terminates because the user clicks "login" its value is lost, because the signal will be drawn anew
-          -}
-        ]
-      , headerPage (actionPage action) Signup [
-          (DoSignup <$> (signupFormView WS.Default $ merge credentials emptyDataForm)) <|> ((ShowPage Login) <$ button [Props.onClick] [text "login"])
-        ]
-      , div [Props.classList (Just <$> ["page", "share", show $ location (Share Nothing) (actionPage action)])] [
-          div [Props.className "content"] [text "share"]
-        ]
-      , div [Props.classList (Just <$> ["page", "main", show $ location Main (actionPage action)])] [
-        DoLogout <$ (homePageWidget $ (if (action == (ShowPage Main)) then UserLoggedIn else UserAnonymous))
-      ]
-    ]
-    <|>
-    overlayFromAction action
-    <|> 
-    (liftAff $ doOp action)
-  case nextAction of
-    DoLogin cred -> app' nextAction $ st { credentials = cred }
-    ShowPage Main -> app' nextAction $ st { credentials = emptyCredentials }
-    _ -> app' nextAction st
-
-  where 
-    getLoginActionType :: E.Either PinCredentials Credentials -> Action
-    getLoginActionType (E.Left pinCredentials) = DoLoginWithPin pinCredentials
-    getLoginActionType (E.Right credentials_) = DoLogin credentials_
-
-overlayFromAction :: forall a. Action -> Widget HTML a
-overlayFromAction (DoLogin _)        = overlay { status: Spinner, message: "loading" }
-overlayFromAction (DoLoginWithPin _) = overlay { status: Spinner, message: "loading" }
-overlayFromAction (DoSignup _)       = overlay { status: Spinner, message: "loading" }
-overlayFromAction (ShowError _)      = overlay { status: Failed, message: "error" }
-overlayFromAction (ShowSuccess _)    = overlay { status: Done, message: "" }
-overlayFromAction _ = overlay { status: Hidden, message: "loading" }
--- ==================================================
-
-data PagePosition = Left | Center | Right
-instance showPagePosition :: Show PagePosition where
-  show Left   = "left"
-  show Center = "center"
-  show Right  = "right"
-
-location :: Page -> Page -> PagePosition
-location referencePage currentPage = case referencePage, currentPage of
-  Loading _,  Loading _ -> Center
-  Login,      Login     -> Center
-  Signup,     Signup    -> Center
-  Share _,    Share _   -> Center
-  Main,       Main      -> Center
-
-  Loading _,  _         -> Left
-  Login,      Signup    -> Left
-  Login,      Share _   -> Left
-  Signup,     Share _   -> Left
-  _,          Main      -> Left
-  _,          _         -> Right
-
-pageClassName :: Page -> String
-pageClassName (Loading _) = "loading"
-pageClassName Login       = "login"
-pageClassName Signup      = "signup"
-pageClassName (Share _)   = "share"
-pageClassName Main        = "main"
-
-exitBooting :: Action -> Widget HTML Action
-exitBooting (ShowPage (Loading (Just nextPage)))  = liftAff $ (ShowPage nextPage) <$ delay (Milliseconds 1.0)
-exitBooting action                                = liftAff $ action              <$ never
-
--- ==================================================
-
-actionPage :: Action -> Page
-actionPage (ShowPage page)      = page
-actionPage (DoLogin _)          = Login
-actionPage (DoLoginWithPin _)   = Login
-actionPage (DoSignup _)         = Signup
-actionPage (ShowSharedCard r _) = Share (Just r)
-actionPage (DoLogout)           = Login
-actionPage (ShowError page)     = page
-actionPage (ShowSuccess page)   = page
-
-headerPage :: forall a. Page -> Page -> Array (Widget HTML a) -> Widget HTML a
-headerPage currentPage page innerContent = do
-  commitHash <- liftEffect $ currentCommit
-  div [Props.classList (Just <$> ["page", pageClassName page, show $ location page currentPage])] [
-    div [Props.className "content"] [
-      headerComponent
-    , div [Props.className "body"] innerContent
-    , otherComponent
-    , footerComponent commitHash
-    , shortcutsDiv
-    ]
-  ]
-
-
-headerComponent :: forall a. Widget HTML a
-headerComponent =
-  header [] [
-    h1 [] [text "clipperz"]
-  , h3 [] [text "keep it to yourself"]
-  ]
-
-otherComponent :: forall a. Widget HTML a
-otherComponent =
-  div [(Props.className "other")] [
-    div [(Props.className "links")] [
-      ul [] [
-        li [] [a [Props.href "https://clipperz.is/about/",          Props.target "_blank"] [text "About"]]
-      , li [] [a [Props.href "https://clipperz.is/terms_service/",  Props.target "_blank"] [text "Terms of service"]]
-      , li [] [a [Props.href "https://clipperz.is/privacy_policy/", Props.target "_blank"] [text "Privacy"]]
-      ]
-    ]
-  ]
-
-shortcutsDiv :: forall a. Widget HTML a
-shortcutsDiv = div [Props._id "shortcutsHelp", Props.className "hidden"] [
-  p [] [span [] [text "/"]], p [] [text "search"]
-, p [] [span [] [text "*"]], p [] [text "reset search"]
-, p [] [span [] [text "Enter, d, RightArrow"]], p [] [text "open card"]
-, p [] [span [] [text "Escape, a, LeftArrow"]], p [] [text "close card"]
-, p [] [span [] [text "w, UpArrow, s, DownArrow"]], p [] [text "Navigate between cards"]
-, p [] [span [] [text "lock"]], p [] [text "Lock"]
-]
-
-doOp :: Action -> Aff Action
-doOp (DoLogin cred) = do
-  res <- runExceptT $ doLogin cred
-  case res of
-    E.Right _ -> pure $ ShowSuccess Main
-    E.Left err -> do
-      log $ "Login error: " <> (show err)
-      pure $ ShowError Login
-doOp (DoLoginWithPin {pin, user, passphrase}) = do
-  _  <- liftEffect $ window >>= localStorage
-  ei <- runExceptT $ decryptPassphraseWithRemoval pin user passphrase
-  case ei of
-    E.Right cred -> pure (DoLogin cred)
-    E.Left e -> do
-      log $ show e
-      pure $ ShowError Login
-doOp (ShowSuccess nextPage) = (ShowPage nextPage) <$ delay (Milliseconds 500.0)
-doOp (ShowError nextPage)   = (ShowPage nextPage) <$ delay (Milliseconds 500.0)
-doOp (DoSignup cred) = do
-  res <- liftAff $ runExceptT $ signupUser cred
-  case res of
-    E.Right _ -> pure $ DoLogin cred
-    E.Left err -> do
-      log $ "Signup error: " <> (show err)
-      pure $ ShowPage Signup
-doOp a = a <$ never
-
-instance showPage :: Show Page where
-  show (Loading _)  = "Loading"
-  show (Login)      = "Login"
-  show (Signup)     = "Signup"
-  show (Share _)    = "Share"
-  show (Main)       = "Main"
-
-derive instance eqPage :: Eq Page
-
-instance showAction :: Show Action where
-  show (ShowPage page)      = "Show Page " <> show page
-  show (DoLogin _)          = "Do Login"
-  show (DoLoginWithPin _)   = "Do LoginWithPint"
-  show (DoSignup _)         = "Do Signup"
-  show (ShowSharedCard _ _) = "Show Shared Card"
-  show (ShowError page)     = "Show Error " <> show page 
-  show (ShowSuccess page)   = "Show Success " <> show page 
-  show DoLogout = "DoLogout"
-
-derive instance eqAction :: Eq Action
+executeOperation :: PageEvent -> AppState -> Fragment.FragmentState -> Widget HTML OperationState
+executeOperation (SignupPageEvent          event)      = handleSignupPageEvent  event
+executeOperation (LoginPageEvent           event)      = handleLoginPageEvent   event
+executeOperation (MainPageCardManagerEvent event s)    = handleCardManagerEvent event s
+executeOperation (MainPageUserAreaEvent    event s s') = handleUserAreaEvent    event s s'

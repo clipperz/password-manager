@@ -26,7 +26,7 @@ import Functions.Clipboard (copyToClipboard)
 import Functions.Communication.OneTimeShare (SecretData)
 import Functions.Password (randomPIN)
 import Views.Components (Enabled(..), dynamicWrapper)
-import Views.OverlayView (OverlayStatus(..), overlay)
+import Views.OverlayView (OverlayColor(..), OverlayStatus(..), overlay)
 
 data Secret = SecretString String --| SecretCard String
 
@@ -89,7 +89,7 @@ shareSignal enabled secret' secretData = do
       result <- pinSection pin (Enabled (enabled && true))
       case result of
         RegeneratePin  -> "" <$ pinSection pin (Enabled false) <|> (liftAff $ randomPIN 5)
-        CopyPin        -> "" <$ pinSection pin (Enabled false) <|> (liftAff $ pin <$ delay (Milliseconds 1000.0)) <|> (overlay { status: Copy, message: "copied" })
+        CopyPin        -> "" <$ pinSection pin (Enabled false) <|> (liftAff $ pin <$ delay (Milliseconds 1000.0)) <|> (overlay { status: Copy, color: Black, message: "copied" })
     )
     newDuration <- loopW duration_ (\duration -> do
       getDurationFromLabel <$> div [Props.className "duration"] [

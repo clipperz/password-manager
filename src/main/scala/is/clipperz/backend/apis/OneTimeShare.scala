@@ -13,10 +13,9 @@ import is.clipperz.backend.exceptions.{ BadRequestException, FailedConversionExc
 import is.clipperz.backend.functions.fromStream
 import is.clipperz.backend.services.{ SessionManager, SrpManager, SRPStep1Data, SRPStep2Data }
 import is.clipperz.backend.services.{ OneTimeShareArchive, OneTimeSecret }
-import is.clipperz.backend.functions.responseTimer
 
 import zio.{ ZIO, Cause, Chunk }
-import zio.http.{ Http, Method, Path, PathSyntax, Response, Request, Status }
+import zio.http.{ Method, Path, Response, Request, Status }
 import zio.http.* //TODO: fix How do you import `Root` and `/`?
 import zio.json.{ EncoderOps, JsonDecoder, DeriveJsonDecoder, JsonEncoder, DeriveJsonEncoder }
 import zio.stream.{ ZStream }
@@ -38,74 +37,48 @@ object OneTimeSecretData:
 
 // ------------------------------------------------------------------------------------
 
-val oneTimeShareApi: ClipperzHttpApp = Http.collectZIO[Request] {
-  case request @ Method.POST -> Root / "api" / "share" =>
-    responseTimer("share")(
-      ZIO
-        .service[OneTimeShareArchive]
-        .zip(ZIO.succeed(request.body.asStream))
-        .flatMap((archive, stream) =>
-          fromStream[OneTimeSecretData](stream)
-            .map ((secretData: OneTimeSecretData) => 
-              val start = DateTime.now().withZone(DateTimeZone.UTC).nn
-              OneTimeSecret(secretData.secret, start + secretData.duration.toLong, Option(secretData.version))
-            )
-            .flatMap ((secret: OneTimeSecret) =>
-              archive.saveSecret(ZStream.fromChunks(Chunk.fromArray((secret).toJson.getBytes(StandardCharsets.UTF_8).nn)))
-            )
-        ) 
-        .map(id => Response.text(s"${id}"))
-        .catchAll {
-          case ex: BadRequestException =>
-            ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-          case ex: NonWritableArchiveException =>
-            ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-          case ex: FailedConversionException =>
-            ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.BadRequest))
-          case e => ZIO.logFatalCause(s"${e.getMessage()}", Cause.fail(e)).flatMap(_ => ZIO.fail(e))
-        }
-    ) @@ LogAspect.logAnnotateRequestData(request)
-
-  case request @ Method.GET -> Root / "api" / "redeem" / id =>
-    responseTimer("redeem")(
-      ZIO
-        .service[OneTimeShareArchive]
-        .flatMap(archive =>
-          archive.getSecret(id).flatMap(oneTimeSecret => 
-              if (oneTimeSecret.expirationDate < DateTime.now()) {
-                archive.deleteSecret(id).flatMap(_ =>
-                  ZIO.fail(new ResourceExpiredException("Secret Expired"))
-                )
-              } else {
-                ZIO.succeed(
-                  ( oneTimeSecret.version
-                  , ZStream
-                      .fromChunk(Chunk.fromArray(oneTimeSecret.secret.toByteArray))
-                      .ensuring(archive.deleteSecret(id).isSuccess)
-                  )
-                )
-              }
-          )
+val oneTimeShareApi = Routes(
+  Method.POST / "api" / "share" -> handler : (request: Request) =>
+    ZIO
+    .service[OneTimeShareArchive]
+    .zip(ZIO.succeed(request.body.asStream))
+    .flatMap((archive, stream) =>
+        fromStream[OneTimeSecretData](stream)
+        .map ((secretData: OneTimeSecretData) => 
+            val start = DateTime.now().withZone(DateTimeZone.UTC).nn
+            OneTimeSecret(secretData.secret, start + secretData.duration.toLong, Option(secretData.version))
         )
-        .map((version: Option[String], bytes: ZStream[Any, Throwable, Byte]) => 
-          Response(
-            status = Status.Ok,
-            headers = version.map(v => Headers("clipperz-oneTimeSecret-version", v)).getOrElse(Headers.empty),
-            body = Body.fromStream(bytes),
-          )
+        .flatMap ((secret: OneTimeSecret) =>
+            archive.saveSecret(ZStream.fromChunks(Chunk.fromArray((secret).toJson.getBytes(StandardCharsets.UTF_8).nn)))
         )
-        .catchAll {
-          case ex: ResourceExpiredException => 
-            ZIO.logInfo(s"${ex.getMessage()}").as(Response(status = Status.Gone))
-          case ex: ResourceNotFoundException =>
-            ZIO.logInfo(s"${ex.getMessage()}").as(Response(status = Status.NotFound))
-          case ex: NonWritableArchiveException =>
-            ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-          case ex: FailedConversionException =>
-            ZIO.logWarningCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-          case ex: DateTimeParseException =>
-            ZIO.logFatalCause(s"${ex.getMessage()}", Cause.fail(ex)).as(Response(status = Status.InternalServerError))
-          case e => ZIO.logFatalCause(s"${e.getMessage()}", Cause.fail(e)).flatMap(_ => ZIO.fail(e))
-        }
+    ) 
+    .map(id => Response.text(s"${id}")) @@ LogAspect.logAnnotateRequestData(request)
+,
+  Method.GET / "api" / "redeem" / string("id") -> handler : (id: String, request: Request)=>
+    ZIO
+    .service[OneTimeShareArchive]
+    .flatMap(archive =>
+        archive.getSecret(id).flatMap(oneTimeSecret => 
+            if (oneTimeSecret.expirationDate < DateTime.now()) {
+            archive.deleteSecret(id).flatMap(_ =>
+                ZIO.fail(new ResourceExpiredException("Secret Expired"))
+            )
+            } else {
+            ZIO.succeed(
+                ( oneTimeSecret.version
+                , ZStream
+                    .fromChunk(Chunk.fromArray(oneTimeSecret.secret.toByteArray))
+                    .ensuring(archive.deleteSecret(id).isSuccess)
+                )
+            )
+            }
+        )
+    )
+    .map((version: Option[String], bytes: ZStream[Any, Throwable, Byte]) => 
+        Response(
+        status = Status.Ok,
+        headers = version.map(v => Headers("clipperz-onetimesecret-version", v)).getOrElse(Headers.empty),
+        body = Body.fromStream(bytes),
+        )
     ) @@ LogAspect.logAnnotateRequestData(request)
-}
+)
