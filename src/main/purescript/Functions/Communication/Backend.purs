@@ -163,8 +163,12 @@ manageAuth connectionState@{ srpConf, credentials: {username, password} } path m
     Right response -> pure response
     Left err' -> case err' of
       ProtocolError (ResponseError 401) -> do
+        -- this implementation is copied from Functions.Communication.Login functions to avoid circular dependency
+        -- prepare login
         c         <- liftAff $ fromArrayBuffer <$> SRP.prepareC srpConf username password
         p         <- liftAff $ fromArrayBuffer <$> SRP.prepareP srpConf username password
+        
+        -- login step1
         (Tuple a aa) <- withExceptT (\err -> ProtocolError $ SRPError $ show err) (ExceptT $ SRP.prepareA srpConf)
         let urlStep1  = joinWith "/" ["login", "step1", show c] :: String
         let bodyStep1 = json $ encodeJson { c, aa: fromBigInt aa }  :: RequestBody
@@ -176,6 +180,8 @@ manageAuth connectionState@{ srpConf, credentials: {username, password} } path m
         _ <-  if bb == fromInt (0)
               then throwError $ ProtocolError (SRPError "Server returned B == 0")
               else pure unit
+        
+        -- login step2
         x  :: BigInt      <-  ExceptT $ (srpConf.kdf srpConf.hash (toArrayBuffer s) (toArrayBuffer p)) <#> (\ab -> note (ProtocolError $ SRPError "Cannot convert x from ArrayBuffer to BigInt") (arrayBufferToBigInt ab))
         ss :: BigInt      <- (ExceptT $ SRP.prepareSClient srpConf aa bb x a) # withExceptT (\err -> ProtocolError $ SRPError $ show err)
         kk :: ArrayBuffer <-  liftAff $ SRP.prepareK  srpConf ss
@@ -186,6 +192,8 @@ manageAuth connectionState@{ srpConf, credentials: {username, password} } path m
         {m2, masterKey: _} :: {m2 :: HexString, masterKey :: MasterKey} <-  if isStatusCodeOk step2Response.status
                                                                             then except $     (decodeJson step2Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err)
                                                                             else throwError $  ProtocolError $ ResponseError (unwrap step2Response.status)
+        
+        --
         result <- liftAff $ SRP.checkM2 srpConf aa m1 kk (toArrayBuffer m2) 
         
         if result
