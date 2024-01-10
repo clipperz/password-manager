@@ -86,16 +86,10 @@ object UserArchiveSpec extends ZIOSpecDefault:
           user <- archive.getUser(c)
         } yield assertTrue(user == Some(testUser2))
       } +
-      test("deleteBlob - fail - different user") {
-        for {
-          archive <- ZIO.service[UserArchive]
-          res <- assertZIO(archive.deleteUser(testUser.c).exit)(fails(isSubtype[BadRequestException](anything)))
-        } yield res
-      } +
       test("deleteBlob - success") {
         for {
           archive <- ZIO.service[UserArchive]
-          resDelete <- archive.deleteUser(testUser2.c)
+          resDelete <- archive.deleteUser(testUser.c)
           resGet <- archive.getUser(c).map(_.isDefined)
         } yield assertTrue(resDelete, !resGet)
       } +

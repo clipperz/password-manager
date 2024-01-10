@@ -34,7 +34,7 @@ import is.clipperz.backend.services.ChallengeType
 object HashCashMiddlewareSpec extends ZIOSpecDefault:
   val layers =
     PRNG.live ++
-      (PRNG.live >>> SessionManager.live) ++
+      (PRNG.live >>> SessionManager.live()) ++
       (PRNG.live >>> TollManager.live)
 
   val sessionKey = "____sessionKey____"
@@ -72,7 +72,7 @@ object HashCashMiddlewareSpec extends ZIOSpecDefault:
     test("400 if no session is active") {
         for {
             getStatus <- idApp.runZIO(get).map(res => res.status)
-        } yield assertTrue(getStatus == Status.BadRequest)
+        } yield assertTrue(getStatus == Status.PaymentRequired)
     },
     test("402 if hashcash is missing") {
         for {

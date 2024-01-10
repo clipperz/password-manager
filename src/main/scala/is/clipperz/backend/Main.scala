@@ -36,6 +36,7 @@ import zio.http.Status.NotFound
 import is.clipperz.backend.exceptions.*
 import java.time.format.DateTimeParseException
 import is.clipperz.backend.services.ChallengeType
+import java.time.Duration
 
 object Main extends zio.ZIOAppDefault:
   override val bootstrap =
@@ -91,7 +92,7 @@ object Main extends zio.ZIOAppDefault:
         )
         .provide(
           PRNG.live,
-          SessionManager.live,
+          SessionManager.live(30.minutes),
           TollManager.live,
           UserArchive.fs(userBasePath, 2, true),
           BlobArchive.fs(blobBasePath, 2, true),

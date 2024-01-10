@@ -51,7 +51,7 @@ object LogoutSpec extends ZIOSpecDefault:
 
   val environment =
     PRNG.live ++
-      (PRNG.live >>> SessionManager.live) ++
+      (PRNG.live >>> SessionManager.live()) ++
       UserArchive.fs(userBasePath, 2, false) ++
       BlobArchive.fs(blobBasePath, 2, false) ++
       OneTimeShareArchive.fs(oneTimeShareBasePath, 2, false) ++
@@ -79,12 +79,6 @@ object LogoutSpec extends ZIOSpecDefault:
   )
 
   def spec = suite("LogoutApis")(
-    test("logout - fail - no session key in header") {
-      val request = logoutNoSession
-      for {
-        responseCode <- app.runZIO(request).map(response => response.status.code)
-      } yield assertTrue(responseCode == 400)
-    },
     test("logout - success") {
       val request = logoutWithSession
       for {

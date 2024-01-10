@@ -41,7 +41,7 @@ object UserSpec extends ZIOSpec[SessionManager]:
     val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
     val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "one_time_share").nn
 
-    val sessionManagerLayer = PRNG.live ++ (PRNG.live >>> SessionManager.live)
+    val sessionManagerLayer = PRNG.live ++ (PRNG.live >>> SessionManager.live())
 
     val environment =
         PRNG.live ++
@@ -171,15 +171,15 @@ object UserSpec extends ZIOSpec[SessionManager]:
         .map(_ => ())
 
     def spec = suite("UserApis")(
-        test("GET with no session -> 400") {
+        test("GET with no session -> 401") {
             for {
                 statusCode <- app.runZIO(prepareGet(c.toString(), true)).map(res => res.status.code)
-            } yield assertTrue(statusCode == 400)
+            } yield assertTrue(statusCode == 401)
         },
-        test("DELETE no session -> 400") {
+        test("DELETE no session -> 401") {
             for {
                 statusCode <- app.runZIO(prepareDelete(c.toString(), true)).map(res => res.status.code)
-            } yield assertTrue(statusCode == 400)
+            } yield assertTrue(statusCode == 401)
         },
         test("GET non existent user -> 404") {
             for {
@@ -188,11 +188,11 @@ object UserSpec extends ZIOSpec[SessionManager]:
             } yield assertTrue(statusCode == 404)
         } @@ TestAspect.after(deleteSession(prepareGet(c.toString(), true)))
           @@ TestAspect.before(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-        test("GET no session header -> 400") {
+        test("GET no session header -> 401") {
             for {
                 _ <- prepareSession(c.toString())
                 statusCode <- app.runZIO(prepareGet(c.toString(), false)).map(res => res.status.code)
-            } yield assertTrue(statusCode == 400)
+            } yield assertTrue(statusCode == 401)
         } @@ TestAspect.after(deleteSession(prepareGet(c.toString(), true))),
         test("DELETE non existent user -> 404") {
             for {
@@ -201,11 +201,11 @@ object UserSpec extends ZIOSpec[SessionManager]:
             } yield assertTrue(statusCode == 404)
         } @@ TestAspect.after(deleteSession(prepareDelete(c.toString(), true)))
           @@ TestAspect.before(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-        test("DELETE no session header -> 400") {
+        test("DELETE no session header -> 401") {
             for {
                 _ <- prepareSession(c.toString())
                 statusCode <- app.runZIO(prepareDelete(c.toString(), false)).map(res => res.status.code)
-            } yield assertTrue(statusCode == 400)
+            } yield assertTrue(statusCode == 401)
         },
         test("POST different c -> 400") {
             for {
@@ -241,16 +241,16 @@ object UserSpec extends ZIOSpec[SessionManager]:
             } yield allSuccesses(assertTrue(postCode == 200), res)
         } @@ TestAspect.after(deleteSession(prepareGet(c.toString(), true)))
           @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-        test("PUT no session -> 400") {
+        test("PUT no session -> 401") {
             for {
                 res <- app.runZIO(preparePut(c.toString(), testUser2.toJson, true)).map(r => r.status.code)
-            } yield assertTrue(res == 400)
+            } yield assertTrue(res == 401)
         } @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-        test("PUT no session header -> 400") {
+        test("PUT no session header -> 401") {
             for {
                 _ <- prepareSession(c.toString())
                 putCode <- app.runZIO(preparePut(c.toString(), testUser2.toJson, false)).map(res => res.status.code)
-            } yield assertTrue(putCode == 400)
+            } yield assertTrue(putCode == 401)
         } @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
         test("PUT non existent user -> 404") {
             for {
