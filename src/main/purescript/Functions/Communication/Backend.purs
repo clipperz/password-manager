@@ -150,6 +150,7 @@ manageGenericRequest proxy path method body responseFormat = do
             url            = joinWith "/" [baseUrl, path]
           , method         = Left method
           , headers        = createHeaders proxy
+          , timeout        = Just (Milliseconds 10000.0)
           , content        = body
           , responseFormat = responseFormat
         }

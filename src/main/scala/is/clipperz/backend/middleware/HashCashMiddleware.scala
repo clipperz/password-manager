@@ -25,15 +25,13 @@ def verifyRequestToll(request: Request, challengeType: ChallengeType, nextChalle
   ZIO.service[SessionManager].zip(ZIO.service[TollManager])
     .flatMap { (sessionManager, tollManager) =>
       sessionManager.getSession(request).flatMap(session => {
-        var tollIsValid = for {
+        (for {
           challengeJson     <-  ZIO.attempt(session(TollManager.tollChallengeContentKey).get)
           challenge         <-  fromString[TollChallenge](challengeJson)
           receipt           <-  ZIO.attempt(request.rawHeader(TollManager.tollReceiptHeader).map(HexString(_)).get)
-        //   _ <- ZIO.log("VERIGYING TOLL...")
-          tollIsValid       <-  tollManager.verifyToll(challenge, receipt)//.tap(_ => ZIO.log("TOLL VERIFIED"))
-        } yield tollIsValid
-
-        tollIsValid.catchAll(_ => ZIO.succeed(false))
+          tollIsValid       <-  tollManager.verifyToll(challenge, receipt)
+        } yield tollIsValid)
+        .catchAll(err => ZIO.log(s"HASHCASH MIDDLEWARE [error: ${err.getMessage()}]") *> ZIO.succeed(false))
         .flatMap(tollIsValid => for {
             challengeTypeForNextStep <-  ZIO.succeed(if (tollIsValid) then nextChallengeType else challengeType)
             challengeForNextStep     <-  tollManager.getToll(tollManager.getChallengeCost(challengeTypeForNextStep))
@@ -51,10 +49,13 @@ def hashcash(challengeType: ChallengeType, nextChallengeType: ChallengeType) = n
             .map((isRequestTollValid, newToll, sessionKey) =>
                 ( if isRequestTollValid
                   then handler
-                  else Handler.status(Status.PaymentRequired)
+                  else Handler
+                        .status(Status.PaymentRequired)
+                        .addHeader(Header.Connection.Close)
                 ).addHeader(TollManager.tollHeader,              newToll.toll.toString)
                  .addHeader(TollManager.tollCostHeader,          newToll.cost.toString)
                  .addHeader(SessionManager.sessionKeyHeaderName, sessionKey)
+                 
             )
         }.flatten
     )
