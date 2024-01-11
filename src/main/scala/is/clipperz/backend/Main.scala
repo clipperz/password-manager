@@ -61,7 +61,7 @@ object Main extends zio.ZIOAppDefault:
     ).handleErrorCauseZIO(customErrorHandler)
      .toHttpApp
   
-  val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (Middleware.timeout(30.seconds) ++ metrics()) //TODO: add timeout time to configuration file [fsolaroli - 10/01/2024]
+  val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (Middleware.timeout(10.seconds) ++ metrics()) //TODO: add timeout time to configuration file [fsolaroli - 10/01/2024]
 
   val run = ZIOAppArgs.getArgs.flatMap { args =>
     if args.length == 4 then

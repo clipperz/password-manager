@@ -23,8 +23,6 @@ latest updated on January 10th, 2024
 
 
 ## Errors
-- [ ] `sign-up` requests work only seldomly on Firefox; it does not work with other browsers
-- [ ] `login` requests seem to work reliably only on Firefox; on Safari and Chrome-Dev it works only sometime
 
 
 ## New Featurs (still to be designed)
@@ -44,3 +42,7 @@ latest updated on January 10th, 2024
 - [x] PureScript - handled html export and offline copy download. The offline copy is not working, as the OfflineProxy is not complet, yet.
 - [x] Documentation - update `README.md`
 - [x] Documentation - add `TODO.md`
+
+2024-01-11
+- [x] Errors - `sign-up` requests work only seldomly on Firefox; it does not work with other browsers
+- [x] Errors - `login` requests seem to work reliably only on Firefox; on Safari and Chrome-Dev it works only sometime
