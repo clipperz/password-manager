@@ -98,6 +98,8 @@ emptyIndex = Index Nil
 newtype Index = 
   Index (List CardEntry)
 
+derive instance newtypeIndex :: Newtype Index _
+
 instance encodeJsonIndex :: EncodeJson Index where
   encodeJson (Index list) = encodeJson list
 

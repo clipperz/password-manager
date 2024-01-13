@@ -6,6 +6,7 @@ import Data.Bifunctor (rmap)
 import Data.Eq (class Eq, eq)
 import Data.List.Types (List(..))
 import Data.Maybe (Maybe(..))
+import Data.Newtype (class Newtype)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import DataModel.Password (PasswordGeneratorSettings)
@@ -20,7 +21,9 @@ newtype CardField =
     , locked :: Boolean
     , settings :: Maybe PasswordGeneratorSettings
     }
-  
+
+derive instance newtypeCardField :: Newtype CardField _
+
 instance eqCardField :: Eq CardField where
   eq (CardField r1) (CardField r2) = eq r1 r2
 
@@ -44,6 +47,8 @@ newtype CardValues =
     , notes   :: String
     }
 
+derive instance newtypeCardValues :: Newtype CardValues _
+
 instance eqCardValues :: Eq CardValues where
   eq (CardValues r1) (CardValues r2) = eq r1 r2
 
@@ -65,6 +70,8 @@ newtype Card =
     , archived :: Boolean
     , timestamp :: Number
     }
+
+derive instance newtypeCard :: Newtype Card _
 
 instance eqCard :: Eq Card where
   eq (Card r1) (Card r2) = eq { content: r1.content, archived: r1.archived } { content: r2.content, archived: r2.archived }

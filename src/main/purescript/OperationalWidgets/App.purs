@@ -2,11 +2,23 @@ module OperationalWidgets.App ( app ) where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
+import Concur.React.DOM (button, span, text)
+import Concur.React.Props as Props
+import Control.Alternative ((*>))
 import Control.Bind (bind, (=<<))
+import Data.Argonaut.Core (stringify)
+import Data.Codec.Argonaut as CA
+import Data.Eq ((==))
 import Data.Function (($))
+import Data.Monoid ((<>))
 import Data.Tuple (Tuple(..))
-import DataModel.FragmentState as Fragment
 import DataModel.AppState (AppState)
+import DataModel.Codec (widgetStateCodec)
+import DataModel.FragmentState as Fragment
+import Effect.Aff.Class (liftAff)
+import Effect.Class (liftEffect)
+import Functions.Clipboard (copyToClipboard)
+import Functions.EnvironmentalVariables (currentCommit)
 import Functions.Handler.CardManagerEventHandler (handleCardManagerEvent)
 import Functions.Handler.GenericHandlerFunctions (OperationState)
 import Functions.Handler.LoginPageEventHandler (handleLoginPageEvent)
@@ -31,7 +43,7 @@ app appState fragmentState = case fragmentState of
     appLoop :: (Tuple AppState WidgetState) -> Widget HTML a
     appLoop (Tuple state widgetState) = do
 
-      resultEvent <- appView widgetState
+      resultEvent <- appView widgetState <> debugState widgetState
         
       appLoop =<< executeOperation resultEvent state fragmentState
 
@@ -40,3 +52,15 @@ executeOperation (SignupPageEvent          event)      = handleSignupPageEvent  
 executeOperation (LoginPageEvent           event)      = handleLoginPageEvent   event
 executeOperation (MainPageCardManagerEvent event s)    = handleCardManagerEvent event s
 executeOperation (MainPageUserAreaEvent    event s s') = handleUserAreaEvent    event s s'
+
+debugState :: forall a. WidgetState -> Widget HTML a
+debugState widgetState = do
+  commit <- liftEffect $ currentCommit
+  let jsonEncodedState = stringify $ CA.encode widgetStateCodec widgetState
+  _ <-  if   commit == "development" 
+        then button [Props._id "DEBUG", Props.onClick] [span [] [text "DEBUG"]] *> (liftAff $ copyToClipboard jsonEncodedState)
+        else emptyEl
+  debugState widgetState
+
+emptyEl :: forall a. Widget HTML a
+emptyEl = text ""

@@ -1,0 +1,28 @@
+button#DEBUG {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+}
+
+div#DEBUG_INPUT {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	height: 100vh;
+	
+	div {
+		padding: 10px;
+		background-color: white;
+		border: 2px red dashed;
+		color: red;
+	}
+
+	textarea {
+		flex: 1;
+		padding: 10px;
+	}
+
+	button {
+		height: 15%;
+	}
+}

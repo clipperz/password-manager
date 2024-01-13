@@ -7,14 +7,15 @@ import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
+import Test.Codec (codecSpec)
+import Test.EncodeDecode (encodeDecodeSpec)
+import Test.HashCash (hashCashSpec)
+import Test.HexString (hexSpec)
+import Test.Import (importSpec)
+import Test.SRP (srpSpec)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
 import Test.Utilities (utilitiesSpec)
-import Test.SRP (srpSpec)
-import Test.EncodeDecode (encodeDecodeSpec)
-import Test.HexString (hexSpec)
-import Test.HashCash (hashCashSpec)
-import Test.Import (importSpec)
 
 main :: Effect Unit
 main = launchAff_ $ do
@@ -25,4 +26,5 @@ main = launchAff_ $ do
     hexSpec
     hashCashSpec
     importSpec
+    codecSpec
   liftEffect $ log "END TESTS"
