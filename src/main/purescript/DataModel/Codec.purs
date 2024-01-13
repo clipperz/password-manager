@@ -16,9 +16,9 @@ import DataModel.Credentials (Credentials)
 import DataModel.Index (CardEntry(..), CardReference(..), Index(..))
 import DataModel.Password (PasswordGeneratorSettings)
 import DataModel.User (UserPreferences(..))
+import DataModel.WidgetState (Page(..), WidgetState(..), MainPageWidgetState)
 import IndexFilterView (Filter(..), FilterData, FilterViewStatus(..))
 import Type.Proxy (Proxy(..))
-import Views.AppView (MainPageWidgetState, Page(..), WidgetState(..))
 import Views.CardsManagerView (CardFormInput(..), CardManagerState, CardViewState)
 import Views.CardsManagerView as CardViewState
 import Views.ImportView (ImportState, ImportStep(..))
@@ -545,7 +545,6 @@ cardFormInputCodec = dimap toVariant fromVariant $ CAV.variantMatch
       { newCard:    NewCard
       , modifyCard: (\{card, cardEntry} -> ModifyCard card cardEntry)
       }
-
 
 -- newtype UserPreferences = 
 --   UserPreferences

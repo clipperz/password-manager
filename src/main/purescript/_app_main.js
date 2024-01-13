@@ -1,5 +1,7 @@
 const Main = require ("../../../target/output.purescript/AppMain")
 
+var Mousetrap = require('../js/Mousetrap');
+
 import "../scss/main.scss";
 
 function addEventBubblingBlockers() {
@@ -37,7 +39,11 @@ window.addEventListener("dragover",function(e){
 	e.preventDefault();
   },false);
 
-// function addShortcutsManagement() {
+function addShortcutsManagement() {
+	Mousetrap.bind('ctrl+alt+c', function(e) {
+		document.getElementById("DEBUG").click()
+	});
+
 //     Mousetrap.bind("/", function(ev) {
 //         document.getElementById("generalFilter").focus();
 //         ev.preventDefault();
@@ -71,7 +77,7 @@ window.addEventListener("dragover",function(e){
 //             view: window,
 //         }))
 //     })
-// }
+}
 
 function addPreventDefaults() {
     /*
@@ -97,10 +103,8 @@ function main () {
         You will probably want to make it a function from String -> Effect ()
     */
     addEventBubblingBlockers();
-    // addShortcutsManagement();
+    addShortcutsManagement();
     addPreventDefaults();
-
-    // document.addEventListener("keydown", ev => console.log(ev))
 
     Main.main();
 }

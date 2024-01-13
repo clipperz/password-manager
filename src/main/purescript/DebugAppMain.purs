@@ -22,6 +22,7 @@ import Data.String (Pattern(..), stripPrefix)
 import Data.Unit (Unit, unit)
 import DataModel.Codec (widgetStateCodec)
 import DataModel.Codec as Codec
+import DataModel.WidgetState (WidgetState)
 import Effect (Effect)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -29,7 +30,7 @@ import Foreign (unsafeToForeign)
 import Functions.Clipboard (getClipboardContent)
 import Functions.Debug (formatJsonString)
 import JSURI (decodeURIComponent)
-import Views.AppView (WidgetState, appView)
+import Views.AppView (appView)
 import Web.HTML (window)
 import Web.HTML.History (DocumentTitle(..), URL(..), replaceState)
 import Web.HTML.Location (hash, pathname, setHash)
@@ -51,7 +52,7 @@ loop :: WidgetState -> Widget HTML Unit
 loop widgetState = do
   _ <- demand $ do
     loopW unit (\_ -> unit <$ appView widgetState)
-    fireOnce (button [Props.onClick, Props._id "DEBUG"] [text "Modify State"])
+    fireOnce (button [Props.onClick, Props._id "DEBUG_MODIFY"] [text "Modify State"])
   debugApp (Just widgetState)
 
 getWidgetState :: Boolean -> Maybe JsonDecodeError -> Maybe String -> Widget HTML WidgetState
@@ -68,7 +69,7 @@ getWidgetState autoSubmit maybeError maybeDefault = do
           ] [] <#> Props.unsafeTargetValue
         )
 
-        fireOnce (button [Props.onClick $> v] [text "Load App"])
+        fireOnce (button [Props._id "DEBUG_LOAD", Props.onClick $> v] [text "Load App"])
     ]
   decodeWidgetStateJson jsonState
 
