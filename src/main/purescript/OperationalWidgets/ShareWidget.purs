@@ -4,13 +4,13 @@ import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.React.DOM (a, button, div, p, text)
 import Concur.React.Props as Props
-import Control.Alt ((<|>))
-import Control.Alternative (pure)
+import Control.Alt (($>), (<|>))
+import Control.Alternative (pure, (*>))
 import Control.Bind (bind, (=<<), (>>=))
 import Control.Monad.Except (runExceptT)
 import Data.Either (Either(..))
 import Data.Function (($))
-import Data.Functor ((<$), (<$>))
+import Data.Functor ((<$))
 import Data.HexString (fromArrayBuffer, toString)
 import Data.HexString as Base
 import Data.Semigroup ((<>))
@@ -58,7 +58,7 @@ shareWidget connectionState secret = do
                 <>
                 div [Props.className "share"] [
                   div [Props.className "url"] [a [Props.href url, Props.target "_blank"] [text url]]
-                , true <$ button [(\_ -> copyToClipboard url) <$> Props.onClick] [text "copy share link"]
+                , button [Props.onClick] [text "copy share link"] *> (liftAff $ copyToClipboard url $> true)
                 ]
       _ <- if result then 
                 go url secretData <|> (liftAff $ delay (Milliseconds 1000.0)) <|> overlay { status: Copy, color: Black, message: "copied" }

@@ -5,6 +5,7 @@ import Concur.React (HTML)
 import Concur.React.DOM (button, div, h4, header, input, label, span, text, textarea)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
+import Control.Alternative ((*>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Semigroupoid ((<<<))
@@ -105,9 +106,9 @@ suggestionWidget av =
           , entropyMeter s
         ]
         <>
-        (CopyPassword s <$  button [Props.className "copy", Props.title "copy", (\_ -> copyToClipboard s) <$> Props.onClick] [span [] [text "copy"]])
+        (CopyPassword   s <$  (button [Props.className "copy", Props.title "copy", Props.onClick] [span [] [text "copy"]] *> (liftAff $ copyToClipboard s)))
         <>
-        (InsertPassword <$> button [Props.className "setPassword", Props.title "insert", Props.disabled b, s <$ Props.onClick] [span [] [text "set password"]])
+        (InsertPassword s <$  button [Props.className "setPassword", Props.title "insert", Props.disabled b, Props.onClick] [span [] [text "set password"]])
       
       case res of
         PasswordChange p       -> suggestionWidget $ Done p

@@ -6,7 +6,7 @@ import Concur.React (HTML)
 import Concur.React.DOM (a_, div, h3, li', li_, p_, text, textarea, ul)
 import Concur.React.Props as Props
 import Control.Applicative (pure)
-import Control.Bind (bind)
+import Control.Bind (bind, discard)
 import Data.Array (null)
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
@@ -16,6 +16,7 @@ import Data.Semigroup ((<>))
 import Data.Unit (unit)
 import DataModel.Card (Card(..), CardField(..), CardValues(..))
 import DataModel.Index (CardEntry)
+import Effect.Aff.Class (liftAff)
 import Effect.Unsafe (unsafePerformEffect)
 import Functions.Clipboard (copyToClipboard)
 import MarkdownIt (renderString)
@@ -98,5 +99,5 @@ cardField f@(CardField {name, value, locked}) = do
     else (text "")
     )
   ] --TODO add class based on content for urls and emails
-  _ <- pure $ copyToClipboard value
+  liftAff $ copyToClipboard value
   cardField f

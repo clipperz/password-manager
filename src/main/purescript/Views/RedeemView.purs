@@ -6,6 +6,7 @@ import Concur.React (HTML)
 import Concur.React.DOM (a, button, div, form, input, label, span, text, textarea)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
+import Control.Alternative ((*>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Category ((>>>))
@@ -95,7 +96,7 @@ redeemedView secret = do
                                     , Props.readOnly true
                                     ] []
                                 ]
-  , true <$ button [(\_ -> copyToClipboard secret) <$> Props.onClick] [text "copy"]
+  , true <$ (button [Props.onClick] [text "copy"] *> (liftAff $ copyToClipboard secret))
   ]
   _ <- if result then
     redeemedView secret <|> (liftAff $ delay (Milliseconds 1000.0)) <|> overlay { status: Copy, color: Black, message: "copied" }
