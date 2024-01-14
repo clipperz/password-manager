@@ -23,13 +23,13 @@ import Control.Bind (bind, discard, (>>=))
 import Control.Category ((>>>))
 import Control.Monad.Except (except, runExceptT)
 import Control.Monad.Except.Trans (ExceptT(..), throwError, withExceptT)
-import Data.Argonaut.Decode (decodeJson)
-import Data.Argonaut.Encode (encodeJson)
 import Data.Array (filter)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Bifunctor (lmap)
 import Data.BigInt (BigInt, fromInt)
 import Data.Boolean (otherwise)
+import Data.Codec.Argonaut (decode, encode)
+import Data.Codec.Argonaut.Record as CAR
 import Data.Either (Either(..), note)
 import Data.Eq ((==))
 import Data.Function ((#), ($))
@@ -51,6 +51,7 @@ import Data.Unit (Unit, unit)
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (Proxy(..), ProxyResponse(..))
 import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue)
+import DataModel.Codec as Codec
 import DataModel.Communication.FromString (class FromString)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.SRP (SRPConf, HashFunction)
@@ -60,6 +61,7 @@ import Effect.Aff.Class (liftAff)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.SRP as SRP
+import DataModel.SRPCodec as SRPCodec
 import Prim.Row (class Nub, class Union)
 import Record (merge)
 
@@ -168,10 +170,10 @@ manageAuth connectionState@{ srpConf, c, p } path method body responseFormat exc
         -- login step1
         (Tuple a aa) <- withExceptT (\err -> ProtocolError $ SRPError $ show err) (ExceptT $ SRP.prepareA srpConf)
         let urlStep1  = joinWith "/" ["login", "step1", show c] :: String
-        let bodyStep1 = json $ encodeJson { c, aa: fromBigInt aa }  :: RequestBody
+        let bodyStep1 = json $ encode (CAR.object "loginStep1Request" {c: Codec.hexStringCodec, aa: Codec.hexStringCodec}) { c, aa: fromBigInt aa }  :: RequestBody
         ProxyResponse proxy' step1Response <- loginRequest connectionState urlStep1 POST (Just bodyStep1) RF.json
         {s, bb: bb_} :: {s :: HexString, bb :: HexString} <- if isStatusCodeOk step1Response.status
-                                                          then except     $ (decodeJson step1Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err) 
+                                                          then except     $ (decode SRPCodec.loginStep1ResponseCodec step1Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err) 
                                                           else throwError $  ProtocolError (ResponseError (unwrap step1Response.status))
         bb :: BigInt <- except $ (toBigInt bb_) # note (ProtocolError $ SRPError "Error in converting B from String to BigInt")
         _ <-  if bb == fromInt (0)
@@ -184,10 +186,10 @@ manageAuth connectionState@{ srpConf, c, p } path method body responseFormat exc
         kk :: ArrayBuffer <-  liftAff $ SRP.prepareK  srpConf ss
         m1 :: ArrayBuffer <-  liftAff $ SRP.prepareM1 srpConf c s aa bb kk
         let urlStep2  = joinWith "/" ["login", "step2", show c]      :: String
-        let bodyStep2 = json $ encodeJson { m1: fromArrayBuffer m1 } :: RequestBody
+        let bodyStep2 = json $ encode (CAR.object "loginStep2Request" {m1: Codec.hexStringCodec}) { m1: fromArrayBuffer m1 } :: RequestBody
         ProxyResponse proxy'' step2Response <- loginRequest connectionState{proxy = proxy'} urlStep2 POST (Just bodyStep2) RF.json
         {m2, masterKey: _} :: {m2 :: HexString, masterKey :: MasterKey} <-  if isStatusCodeOk step2Response.status
-                                                                            then except $     (decodeJson step2Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err)
+                                                                            then except $     (decode SRPCodec.loginStep2ResponseCodec step2Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err)
                                                                             else throwError $  ProtocolError $ ResponseError (unwrap step2Response.status)
         
         --

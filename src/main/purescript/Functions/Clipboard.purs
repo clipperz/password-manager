@@ -4,13 +4,20 @@ module Functions.Clipboard
   )
   where
 
-import Control.Promise (Promise, toAffE)
-import Effect (Effect)
-import Effect.Aff (Aff)
+import Control.Alt ((<#>))
+import Control.Bind ((=<<))
+import Data.Either (hush)
+import Data.Function (($))
+import Data.Maybe (Maybe)
+import Data.Unit (Unit)
+import Effect.Aff (Aff, attempt)
+import Promise.Aff (toAffE)
+import Web.Clipboard (clipboard, readText, writeText)
+import Web.HTML (window)
+import Web.HTML.Window (navigator)
 
-foreign import copyToClipboard :: forall a. String -> a
+copyToClipboard :: String -> Aff Unit
+copyToClipboard string = toAffE $ writeText string =<< clipboard =<< navigator =<< window
 
-foreign import _getClipboardContent :: Effect (Promise String)
-
-getClipboardContent :: Aff String
-getClipboardContent = toAffE _getClipboardContent
+getClipboardContent :: Aff (Maybe String)
+getClipboardContent = attempt (toAffE $ readText =<< clipboard =<< navigator =<< window) <#> hush

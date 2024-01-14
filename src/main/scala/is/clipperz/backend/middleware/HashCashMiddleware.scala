@@ -31,7 +31,7 @@ def verifyRequestToll(request: Request, challengeType: ChallengeType, nextChalle
           receipt           <-  ZIO.attempt(request.rawHeader(TollManager.tollReceiptHeader).map(HexString(_)).get)
           tollIsValid       <-  tollManager.verifyToll(challenge, receipt)
         } yield tollIsValid)
-        .catchAll(err => ZIO.log(s"HASHCASH MIDDLEWARE [error: ${err.getMessage()}]") *> ZIO.succeed(false))
+        .catchAll(_ => ZIO.succeed(false))
         .flatMap(tollIsValid => for {
             challengeTypeForNextStep <-  ZIO.succeed(if (tollIsValid) then nextChallengeType else challengeType)
             challengeForNextStep     <-  tollManager.getToll(tollManager.getChallengeCost(challengeTypeForNextStep))

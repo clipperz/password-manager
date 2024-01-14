@@ -20,14 +20,15 @@ import DataModel.AppState (AppState, CardsCache, InvalidStateError(..), ProxyRes
 import DataModel.Card as DataModel.Card
 import DataModel.FragmentState as Fragment
 import DataModel.Index (CardEntry(..), Index, addToIndex, reference, removeFromIndex)
+import DataModel.WidgetState (CardManagerState, CardViewState(..), Page(..), WidgetState(..))
 import Functions.Card (appendToTitle, archiveCard, getCardContent, restoreCard)
 import Functions.Communication.Backend (ConnectionState)
 import Functions.Communication.Blobs (getBlob)
 import Functions.Communication.Cards (deleteCard, postCard)
 import Functions.Communication.Users (updateIndex)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
-import Views.AppView (Page(..), WidgetState(..), emptyMainPageWidgetState)
-import Views.CardsManagerView (CardManagerEvent(..), CardManagerState, CardViewState(..))
+import Views.AppView (emptyMainPageWidgetState)
+import Views.CardsManagerView (CardManagerEvent(..))
 import Views.OverlayView (OverlayColor(..), hiddenOverlayInfo, spinnerOverlay)
 import Views.UserAreaView (userAreaInitialState)
 

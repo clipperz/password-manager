@@ -10,11 +10,10 @@ import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Types (decrypt, encrypt)
 import Crypto.Subtle.Key.Types as Key.Types
 import Data.Argonaut.Core as A
-import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
-import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
 import Data.Argonaut.Parser as P
 import Data.ArrayBuffer.Typed as ABTyped
 import Data.ArrayBuffer.Types (ArrayBuffer, ArrayView, Uint8)
+import Data.Codec.Argonaut (JsonCodec, decode, encode)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$>))
@@ -72,14 +71,14 @@ encryptArrayBuffer key ab = encryptWithAesCTR ab key
 decryptArrayBuffer ::  Key.Types.CryptoKey -> ArrayBuffer -> Aff (Either EX.Error ArrayBuffer)
 decryptArrayBuffer key ab = decryptWithAesCTR ab key
 
-encryptJson :: forall a. EncodeJson a => Key.Types.CryptoKey -> a -> Aff ArrayBuffer
-encryptJson key object = encryptWithAesCTR (toArrayBuffer $ hex (A.stringify $ encodeJson object)) key
+encryptJson :: forall a. JsonCodec a -> Key.Types.CryptoKey -> a -> Aff ArrayBuffer
+encryptJson codec key object = encryptWithAesCTR (toArrayBuffer $ hex (A.stringify $ encode codec object)) key
   
-decryptJson :: forall a. DecodeJson a => Key.Types.CryptoKey -> ArrayBuffer -> Aff (Either EX.Error a)
-decryptJson key bytes = do
+decryptJson :: forall a. JsonCodec a -> Key.Types.CryptoKey -> ArrayBuffer -> Aff (Either EX.Error a)
+decryptJson codec key bytes = do
     result :: Either EX.Error a <- runExceptT $ do
       decryptedData :: ArrayBuffer <- ExceptT $ liftAff $ decryptWithAesCTR bytes key
       parsedJson  <- withExceptT (\err -> EX.error $ show err) (except $ P.jsonParser $ toString Dec $ fromArrayBuffer decryptedData)
-      object :: a <- withExceptT (\err -> EX.error $ show err) (except $ decodeJson parsedJson)
+      object :: a <- withExceptT (\err -> EX.error $ show err) (except $ decode codec parsedJson)
       pure object
     pure result

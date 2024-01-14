@@ -6,11 +6,9 @@ import Affjax.ResponseHeader (name, value)
 import Control.Applicative (pure)
 import Control.Bind (bind, (=<<))
 import Control.Monad.Except.Trans (ExceptT(..), throwError, withExceptT)
-import Data.Argonaut.Decode (class DecodeJson)
-import Data.Argonaut.Encode (encodeJson)
-import Data.Argonaut.Encode.Class (class EncodeJson)
 import Data.Array (find)
 import Data.ArrayBuffer.Types (ArrayBuffer)
+import Data.Codec.Argonaut (JsonCodec, encode)
 import Data.Either (Either)
 import Data.Eq ((==))
 import Data.Function (flip, (#), ($))
@@ -27,7 +25,9 @@ import Data.Time.Duration (Seconds, fromDuration)
 import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (ProxyResponse(..))
+import DataModel.Communication.OneTimeShare (SecretVersion(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
+import DataModel.OneTimeShareCodec as OneTimeShareCodec
 import DataModel.SRP (hashFuncSHA256)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
@@ -36,8 +36,6 @@ import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, shareRe
 import Functions.EncodeDecode (cryptoKeyAES, decryptArrayBuffer, decryptJson, encryptArrayBuffer, encryptJson)
 import Functions.SRP (randomArrayBuffer)
 
-data SecretVersion = V_1
-
 secretVersionFromString :: String -> ExceptT AppError Aff SecretVersion
 secretVersionFromString "V_1" = pure V_1
 secretVersionFromString s     = throwError $ InvalidVersioning "SecretVersion" s
@@ -45,23 +43,14 @@ secretVersionFromString s     = throwError $ InvalidVersioning "SecretVersion" s
 oneTimeSecretVersionHeaderName :: String
 oneTimeSecretVersionHeaderName = "clipperz-onetimesecret-version"
 
-type SecretData = { secret   :: String
-                  , pin      :: String
-                  , duration :: Seconds
-                  }
-
 type UUID = String
-
-
-instance secretVersionDeriveJson :: EncodeJson SecretVersion where
-  encodeJson V_1 = encodeJson "V_1"
 
 share :: ConnectionState -> ArrayBuffer -> Seconds -> ExceptT AppError Aff UUID
 share connectionState encryptedSecret duration = do
   let url  = joinWith "/" ["share"]
-  let body = (json $ encodeJson 
+  let body = (json $ encode OneTimeShareCodec.secretRequestDataCodec 
       { secret:   fromArrayBuffer encryptedSecret
-      , duration: unwrap $ fromDuration duration
+      , duration: fromDuration duration
       , version:  V_1
       }
     )
@@ -88,10 +77,10 @@ type PIN = String
 type EncryptedContent = ArrayBuffer
 type EncryptionKey = ArrayBuffer
 
-encryptSecret :: forall a. EncodeJson a => a -> Aff (Tuple EncryptionKey EncryptedContent)
-encryptSecret secret =  do
+encryptSecret :: forall a. JsonCodec a -> a -> Aff (Tuple EncryptionKey EncryptedContent)
+encryptSecret codec secret =  do
   key             <- liftAff $ randomArrayBuffer 32
-  encryptedSecret <- liftAff $ (flip encryptJson) secret =<< cryptoKeyAES key
+  encryptedSecret <- liftAff $ (\cryptoKey -> encryptJson codec cryptoKey secret) =<< cryptoKeyAES key
   pure $ Tuple key encryptedSecret
 
 encryptKeyWithPin :: EncryptionKey -> PIN -> Aff EncryptedContent
@@ -100,11 +89,11 @@ encryptKeyWithPin key pin = do
   encryptedKey <- (flip encryptArrayBuffer) key =<< cryptoKeyAES pinKey
   pure encryptedKey
 
-decryptSecret :: forall a. DecodeJson a => SecretVersion -> PIN -> EncryptedContent -> EncryptedContent -> ExceptT AppError Aff a
-decryptSecret V_1 pin encryptedKey encryptedSecret = do
+decryptSecret :: forall a. JsonCodec a -> SecretVersion -> PIN -> EncryptedContent -> EncryptedContent -> ExceptT AppError Aff a
+decryptSecret codec V_1 pin encryptedKey encryptedSecret = do
   pinKey       <- liftAff $ (hashFuncSHA256 $ singleton (toArrayBuffer $ hex pin))
-  decryptedKey <- ((flip decryptArrayBuffer) (toArrayBuffer $ fromArrayBuffer encryptedKey) =<< cryptoKeyAES pinKey) # mapError "Get decrypted key"
-  result       <- ((flip decryptJson)         encryptedSecret =<< cryptoKeyAES decryptedKey)                         # mapError "Get decrypted blob"
+  decryptedKey <- ((flip decryptArrayBuffer) (toArrayBuffer $ fromArrayBuffer encryptedKey) =<< cryptoKeyAES pinKey)       # mapError "Get decrypted key"
+  result       <- ((\cryptoKey -> decryptJson codec cryptoKey encryptedSecret)              =<< cryptoKeyAES decryptedKey) # mapError "Get decrypted blob"
   pure result
 
   where

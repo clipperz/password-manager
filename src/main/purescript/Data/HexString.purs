@@ -1,6 +1,6 @@
 module Data.HexString
   ( Base(..)
-  , HexString
+  , HexString(..)
   , fromArrayBuffer
   , fromBigInt
   , hex
@@ -15,21 +15,19 @@ module Data.HexString
   where
 
 import Control.Semigroupoid ((>>>))
-import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
-import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
 import Data.Array.NonEmpty (fromArray, toArray, singleton, NonEmptyArray)
 import Data.ArrayBuffer.Types (ArrayBuffer)
-import Data.Bifunctor (rmap)
 import Data.BigInt (BigInt, fromBase, toBase)
-import Data.Either(hush, Either)
+import Data.Either (hush, Either)
 import Data.Eq (class Eq, eq, (==))
 import Data.EuclideanRing (mod, (/))
 import Data.Function (($))
 import Data.Functor ((<$>))
-import Data.Maybe(Maybe, maybe, fromMaybe)
+import Data.Maybe (Maybe, maybe, fromMaybe)
+import Data.Newtype (class Newtype)
 import Data.Ord (class Ord)
 import Data.Semigroup ((<>))
-import Data.Show (class Show, show)
+import Data.Show (class Show)
 import Data.String (toLower, toUpper)
 import Data.String.CodeUnits (length, splitAt, dropWhile, fromCharArray)
 import Data.String.Common (replaceAll)
@@ -46,18 +44,14 @@ foreign import arrayBufferToHex :: ArrayBuffer -> String
 
 -- ----------------------------------------------------------------
 
-data HexString = HexString String
+newtype HexString = HexString String
 
 derive instance ordHexString :: Ord HexString
 
+derive instance newtypeHexString :: Newtype HexString _
+
 instance eqHexString :: Eq HexString where
   eq (HexString h) (HexString h') = eq (dropWhile (_ == '0') h) (dropWhile (_ == '0') h')
-
-instance decodeJsonHexString :: DecodeJson HexString where
-  decodeJson json = rmap (\s -> hex s) (decodeJson json)
-
-instance encodeJsonHexString :: EncodeJson HexString where
-  encodeJson hexString = encodeJson $ show hexString
 
 instance showHexString :: Show HexString where
   show hexString = toString Hex hexString

@@ -20,6 +20,7 @@ import Data.Show (show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst, snd, swap)
 import DataModel.Card (Card(..), CardValues(..), CardField(..))
+import DataModel.WidgetState (ImportState, ImportStep(..))
 import React.SyntheticEvent (NativeEventTarget, SyntheticEvent_)
 import Unsafe.Coerce (unsafeCoerce)
 import Views.SimpleWebComponents (simpleButton, simpleTextAreaSignal, simpleTextInputWidget)
@@ -31,15 +32,6 @@ data QuickSelection = All | None | Archived | NonArchived
 data SelectionAction = Cards (Array (Tuple Boolean Card)) | NewQuickSelection QuickSelection
 
 type CardSelectionInfo = { tag :: Maybe String, selectedCards :: (Array (Tuple Boolean Card)) }
-
-data ImportStep = Upload | Selection | Confirm
-
-type ImportState = {
-  step      :: ImportStep
-, content   :: Either (Maybe File) String
-, selection :: Array (Tuple Boolean Card)
-, tag       :: Tuple Boolean String
-}
 
 initialImportState :: ImportState
 initialImportState = {

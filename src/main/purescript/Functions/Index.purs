@@ -1,5 +1,6 @@
 module Functions.Index where
 
+import Control.Alt ((<$>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Error.Class (throwError)
@@ -7,22 +8,40 @@ import Control.Monad.Except.Trans (ExceptT(..), withExceptT, except)
 import Control.Semigroupoid ((>>>))
 import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Key.Import as KI
-import Crypto.Subtle.Key.Types (encrypt, decrypt, raw, unwrapKey, CryptoKey)
+import Crypto.Subtle.Key.Types (CryptoKey, decrypt, encrypt, exportKey, raw, unwrapKey)
 import Data.Argonaut.Core (Json)
-import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.ArrayBuffer.Types (ArrayBuffer)
+import Data.Codec.Argonaut (decode)
 import Data.Function (($))
 import Data.HexString (Base(..), fromArrayBuffer, toArrayBuffer, toString)
+import Data.List (List(..), (:))
 import Data.Show (class Show, show)
+import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError(..))
+import DataModel.Card (Card(..), CardValues(..), currentCardVersion)
+import DataModel.Codec as Codec
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.Index (Index)
+import DataModel.Index (CardEntry(..), CardReference(..), Index)
 import DataModel.IndexVersions.IndexV1 (Index_V1, indexFromV1)
+import DataModel.SRP (HashFunction)
 import DataModel.User (IndexReference(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Functions.EncodeDecode (decryptWithAesCTR)
+import Functions.EncodeDecode (decryptWithAesCTR, encryptJson)
+
+createCardEntry :: Card -> CryptoKey -> HashFunction -> Aff (Tuple ArrayBuffer CardEntry)
+createCardEntry card@(Card { content: (CardValues content), archived, timestamp: _ }) key hashf = do
+  encryptedCard <- encryptJson Codec.cardCodec key card
+  hash <- hashf (encryptedCard : Nil)
+  exportedKey <- fromArrayBuffer <$> exportKey raw key
+  let cardEntry = CardEntry { title: content.title
+                               , cardReference: CardReference { reference: fromArrayBuffer hash, key: exportedKey, cardVersion: currentCardVersion }
+                               , archived: archived
+                               , tags: content.tags
+                               , lastUsed: 0.0
+                               }
+  pure $ Tuple encryptedCard cardEntry
 
 getIndexContent :: ArrayBuffer -> IndexReference -> ExceptT AppError Aff Index
 getIndexContent bytes (IndexReference ref) =
@@ -31,7 +50,7 @@ getIndexContent bytes (IndexReference ref) =
       cryptoKey     :: CryptoKey   <- liftAff $ KI.importKey raw (toArrayBuffer ref.masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       decryptedData :: ArrayBuffer <- mapError (ExceptT $ decryptWithAesCTR bytes cryptoKey)
       parsedJson    :: Json        <- mapError (except $ jsonParser $ toString Dec $ fromArrayBuffer decryptedData)
-      indexV1       :: Index_V1    <- mapError (except $ decodeJson parsedJson)
+      indexV1       :: Index_V1    <- mapError (except $ decode Codec.indexV1Codec parsedJson)
       pure $ indexFromV1 indexV1
     version -> throwError $ InvalidVersioning version "index"
 

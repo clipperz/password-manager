@@ -6,6 +6,7 @@ import Concur.React (HTML)
 import Concur.React.DOM (button, div, form, h4, label, option, select, span, text, textarea)
 import Concur.React.Props as Props
 import Control.Alt ((<$), (<|>))
+import Control.Alternative ((*>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Semigroupoid ((>>>))
@@ -20,15 +21,15 @@ import Data.String (null)
 import Data.String.CodeUnits (singleton, toCharArray)
 import Data.Time.Duration (Days(..), Hours(..), Minutes(..), Seconds, convertDuration)
 import Data.Tuple (Tuple(..), fst, snd)
+import DataModel.Communication.OneTimeShare (SecretData)
 import Effect.Aff (Aff, Milliseconds(..), delay)
 import Effect.Aff.Class (liftAff)
 import Functions.Clipboard (copyToClipboard)
-import Functions.Communication.OneTimeShare (SecretData)
 import Functions.Password (randomPIN)
 import Views.Components (Enabled(..), dynamicWrapper)
 import Views.OverlayView (OverlayColor(..), OverlayStatus(..), overlay)
 
-data Secret = SecretString String --| SecretCard String
+data Secret = SecretString String -- | SecretCard String
 
 secretIsString :: Secret -> Boolean
 secretIsString (SecretString _) = true
@@ -123,12 +124,12 @@ shareSignal enabled secret' secretData = do
                         , Props.title "regenerate"
                         , Props.onClick
                         ] [span [] [text "generate password"]] 
-      , CopyPin       <$ button [
+      , CopyPin       <$ (button [
                           Props._type "button"
                         , Props.className "copyPin"
                         , Props.title "copy"
-                        , (\_ -> copyToClipboard pin) <$> Props.onClick
-                        ] [span [] [text "copy"]]
+                        , Props.onClick
+                        ] [span [] [text "copy"]] *> (liftAff $ copyToClipboard pin))
       ]
 
     disableSubmitButton :: Secret -> String -> Boolean

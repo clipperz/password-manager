@@ -1,23 +1,24 @@
-module AppMain
-  ( main
-  )
-  where
+module AppMain ( main ) where
 
 import Concur.React.Run (runWidgetInDom)
 import Control.Alternative (pure)
-import Control.Bind (bind, discard, (>>=))
-import Data.Argonaut.Decode (fromJsonString)
+import Control.Bind (bind, discard, (=<<), (>>=))
+import Control.Category ((<<<))
+import Data.Argonaut.Parser (jsonParser)
 import Data.Array (catMaybes)
-import Data.Either (Either(..))
+import Data.Bifunctor (lmap)
+import Data.Codec.Argonaut (JsonDecodeError(..), decode)
+import Data.Either (Either(..), note)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HexString (HexString, hex)
 import Data.Map (fromFoldable, lookup)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..))
 import Data.String (split)
 import Data.String.Pattern (Pattern(..))
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
+import DataModel.Codec as Codec
 import DataModel.FragmentState (FragmentState)
 import DataModel.FragmentState as Fragment
 import Effect (Effect)
@@ -32,10 +33,6 @@ import Web.HTML.History (DocumentTitle(..), URL(..), replaceState)
 import Web.HTML.Location (hash, pathname)
 import Web.HTML.Window (history, localStorage, location)
 import Web.Storage.Storage (getItem)
-
--- ============================================
---  parse external state that is never updated
--- ============================================
 
 main :: Effect Unit
 main = do
@@ -72,7 +69,7 @@ parseFragment fragment = case fragment of
         case (lookup "username" parameters), (lookup "password" parameters) of
           Just username, Just password -> Fragment.Login {username, password}
           _, _ -> Fragment.Unrecognized fragment
-      [ "#addCard", cardData ] -> case fromJsonString (fromMaybe cardData (decodeURI cardData)) of
+      [ "#addCard", cardData ] -> case decode Codec.cardCodec =<< (lmap TypeMismatch <<< jsonParser) =<< (note MissingValue $ decodeURI cardData) of
         Right card -> Fragment.AddCard card
         Left  _    -> Fragment.Unrecognized fragment
       _ -> Fragment.Empty

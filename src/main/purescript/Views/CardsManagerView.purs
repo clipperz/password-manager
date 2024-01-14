@@ -9,7 +9,7 @@ import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Category ((<<<))
 import Data.Array (fromFoldable, nub)
-import Data.Eq (class Eq, (/=), (==))
+import Data.Eq ((/=), (==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
 import Data.List (fold)
@@ -20,13 +20,11 @@ import Data.Tuple (Tuple(..))
 import DataModel.Card (Card, emptyCard)
 import DataModel.Index (CardEntry(..), Index(..))
 import DataModel.Password (PasswordGeneratorSettings)
+import DataModel.WidgetState (CardFormInput(..), CardManagerState, CardViewState(..))
 import IndexFilterView (Filter(..), FilterData, FilterViewStatus(..), filteredEntries, getClassNameFromFilterStatus, indexFilterView, initialFilterData, shownEntries)
 import Views.CardViews (CardEvent(..), cardView)
 import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (simpleButton)
-
-data CardFormInput = NewCard (Maybe Card) | ModifyCard Card CardEntry -- TODO NewCard | NewCardFromFragment Card | ModifyCard Card CardEntry [fsolaroli - 03/12/2023]
-derive instance eqCardFormInput :: Eq CardFormInput
 
 data CardManagerEvent = AddCardEvent                Card
                       | CloneCardEvent    CardEntry
@@ -36,15 +34,6 @@ data CardManagerEvent = AddCardEvent                Card
                       | RestoreCardEvent  CardEntry
                       | OpenCardViewEvent CardEntry
                       | OpenUserAreaEvent
-
-data CardViewState = NoCard | Card Card CardEntry | CardForm CardFormInput
-derive instance eqCardViewState :: Eq CardViewState
-
-type CardManagerState = { 
-  filterData    :: FilterData
-, selectedEntry :: Maybe CardEntry
-, cardViewState :: CardViewState
-}
 
 cardManagerInitialState :: CardManagerState
 cardManagerInitialState = {

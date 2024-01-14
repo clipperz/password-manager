@@ -17,10 +17,10 @@ import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Types (encrypt, decrypt, raw, unwrapKey, CryptoKey)
 import Data.Argonaut.Core (Json)
-import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (snoc)
 import Data.ArrayBuffer.Types (ArrayBuffer)
+import Data.Codec.Argonaut (decode)
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.HexString (fromArrayBuffer, toArrayBuffer, toString, Base(..))
@@ -31,6 +31,7 @@ import Data.String.Regex.Flags (noFlags)
 import DataModel.AppError (AppError(..))
 import DataModel.Card (Card(..), CardField(..), CardValues(..))
 import DataModel.CardVersions.CardV1 (Card_V1, cardFromV1)
+import DataModel.Codec as Codec
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardReference(..))
 import Effect.Aff (Aff)
@@ -44,7 +45,7 @@ getCardContent bytes (CardReference ref) =
       cryptoKey     :: CryptoKey   <- liftAff $ KI.importKey raw (toArrayBuffer ref.key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
       decryptedData :: ArrayBuffer <- mapError (ExceptT $ decryptWithAesCTR bytes cryptoKey)
       parsedJson    :: Json        <- mapError (except  $ jsonParser $ toString Dec (fromArrayBuffer decryptedData))
-      cardV1        :: Card_V1     <- mapError (except  $ decodeJson parsedJson)
+      cardV1        :: Card_V1     <- mapError (except  $ decode Codec.cardV1Codec parsedJson)
       pure $ cardFromV1 cardV1
     version -> throwError $ InvalidVersioning version "card"
 

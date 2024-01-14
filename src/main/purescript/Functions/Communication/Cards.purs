@@ -14,7 +14,8 @@ import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError)
 import DataModel.AppState (CardsCache, ProxyResponse(..))
 import DataModel.Card (Card)
-import DataModel.Index (CardEntry(..), CardReference(..), createCardEntry, reference)
+import DataModel.Codec as Codec
+import DataModel.Index (CardEntry(..), CardReference(..), reference)
 import DataModel.SRP (hashFuncSHA256)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
@@ -22,6 +23,7 @@ import Functions.Card (getCardContent)
 import Functions.Communication.Backend (ConnectionState)
 import Functions.Communication.Blobs (deleteBlob, getBlob, postBlob)
 import Functions.EncodeDecode (cryptoKeyAES, encryptJson)
+import Functions.Index (createCardEntry)
 
 getCard :: ConnectionState -> CardsCache -> CardEntry -> ExceptT AppError Aff (ProxyResponse (Tuple CardsCache Card))
 getCard connectionState cardsCache cardEntry@(CardEntry entry) = do
@@ -37,7 +39,7 @@ getCard connectionState cardsCache cardEntry@(CardEntry entry) = do
 deleteCard :: ConnectionState -> CardReference -> Card -> ExceptT AppError Aff (ProxyResponse String)
 deleteCard connectionState (CardReference { reference, key }) card = do
   cryptoKey     <- liftAff $ cryptoKeyAES (toArrayBuffer key)
-  encryptedCard <- liftAff $ encryptJson cryptoKey card
+  encryptedCard <- liftAff $ encryptJson Codec.cardCodec cryptoKey card
   deleteBlob connectionState encryptedCard reference
 
 postCard :: ConnectionState -> Card -> ExceptT AppError Aff (ProxyResponse CardEntry)

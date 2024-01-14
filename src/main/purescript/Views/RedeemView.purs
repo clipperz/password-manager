@@ -6,11 +6,14 @@ import Concur.React (HTML)
 import Concur.React.DOM (a, button, div, form, input, label, span, text, textarea)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
+import Control.Alternative ((*>))
 import Control.Applicative (pure)
-import Control.Bind (bind)
+import Control.Bind (bind, (=<<))
 import Control.Category ((>>>))
-import Data.Argonaut.Decode (fromJsonString)
+import Data.Argonaut.Parser (jsonParser)
 import Data.Array (mapWithIndex, replicate)
+import Data.Bifunctor (lmap)
+import Data.Codec.Argonaut (JsonDecodeError(..), decode)
 import Data.Either (Either(..))
 import Data.Eq ((==))
 import Data.Function (($))
@@ -22,6 +25,7 @@ import Data.Ord ((<), (>))
 import Data.String (length)
 import Data.Unit (Unit, unit)
 import DataModel.Card (Card(..))
+import DataModel.Codec as Codec
 import Effect.Aff (Milliseconds(..), delay)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -74,7 +78,7 @@ redeemView (Enabled enabled) = do
 redeemedView :: String -> Widget HTML Unit
 redeemedView secret = do
   result <- div [Props.className "redeemedView"] [
-    false <$ case fromJsonString secret of
+    false <$ case decode Codec.cardCodec =<< (lmap TypeMismatch $ jsonParser secret) of
       Right (Card {content}) -> div [Props.className "redeemedCard"] [
                                   text ("Here is your secret card:")
                                 , cardContent content
@@ -95,7 +99,7 @@ redeemedView secret = do
                                     , Props.readOnly true
                                     ] []
                                 ]
-  , true <$ button [(\_ -> copyToClipboard secret) <$> Props.onClick] [text "copy"]
+  , true <$ (button [Props.onClick] [text "copy"] *> (liftAff $ copyToClipboard secret))
   ]
   _ <- if result then
     redeemedView secret <|> (liftAff $ delay (Milliseconds 1000.0)) <|> overlay { status: Copy, color: Black, message: "copied" }

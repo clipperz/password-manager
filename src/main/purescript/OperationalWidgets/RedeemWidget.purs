@@ -7,6 +7,7 @@ import Concur.React.Props as Props
 import Control.Alt ((<$), (<|>))
 import Control.Bind (bind, (>>=))
 import Control.Monad.Except (runExceptT)
+import Data.Codec.Argonaut as CA
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.HexString (hex, toArrayBuffer)
@@ -37,7 +38,7 @@ redeemWidget connectionState id cryptedKey = do
     pin <- redeemView (Enabled true)
     eitherSecret <- ( liftAff $ runExceptT $ do
                         (Tuple secretVersion enryptedSecret) <- redeem connectionState id
-                        decryptSecret secretVersion pin (toArrayBuffer $ hex cryptedKey) enryptedSecret
+                        decryptSecret CA.string secretVersion pin (toArrayBuffer $ hex cryptedKey) enryptedSecret
                     )
                     <|>
                     ( overlay { status: Spinner, color: Black, message: "loading" } )

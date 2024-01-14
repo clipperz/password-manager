@@ -9,45 +9,35 @@ import Control.Bind (bind)
 import Data.Function (flip, (#), ($))
 import Data.Functor ((<$>))
 import Data.Maybe (Maybe(..))
+import Data.Monoid ((<>))
 import Data.Newtype (unwrap)
 import Data.Show (class Show, show)
 import Data.Tuple (uncurry)
-import DataModel.Credentials (Credentials, emptyCredentials)
-import DataModel.Index (Index, emptyIndex)
-import DataModel.User (UserPreferences, defaultUserPreferences)
+import DataModel.Credentials (emptyCredentials)
+import DataModel.Index (emptyIndex)
+import DataModel.User (defaultUserPreferences)
+import DataModel.WidgetState (MainPageWidgetState, Page(..), UserAreaState, WidgetState(..), CardManagerState)
 import Effect.Class (liftEffect)
+import Functions.Debug (debugState)
 import Functions.EnvironmentalVariables (currentCommit)
-import Views.CardsManagerView (CardManagerEvent, CardManagerState, cardManagerInitialState, cardsManagerView)
+import Views.CardsManagerView (CardManagerEvent, cardManagerInitialState, cardsManagerView)
 import Views.Components (footerComponent)
-import Views.LoginFormView (LoginFormData, LoginPageEvent, emptyLoginFormData, loginPage)
-import Views.OverlayView (OverlayInfo, overlay)
-import Views.SignupFormView (SignupDataForm, SignupPageEvent, emptyDataForm, signupFormView)
-import Views.UserAreaView (UserAreaEvent, UserAreaState, userAreaInitialState, userAreaView)
-
-data PageEvent        = LoginPageEvent           LoginPageEvent
-                      | SignupPageEvent          SignupPageEvent
-                      | MainPageCardManagerEvent CardManagerEvent CardManagerState
-                      | MainPageUserAreaEvent    UserAreaEvent    CardManagerState UserAreaState
-
-data Page = Loading (Maybe Page) | Login LoginFormData | Signup SignupDataForm | Main MainPageWidgetState
-
-type MainPageWidgetState = {
-  index                         :: Index
-, credentials                   :: Credentials
-, pinExists                     :: Boolean
-, userAreaState                 :: UserAreaState
-, cardManagerState              :: CardManagerState
-, userPreferences               :: UserPreferences
-}
+import Views.LoginFormView (LoginPageEvent, emptyLoginFormData, loginPage)
+import Views.OverlayView (overlay)
+import Views.SignupFormView (SignupPageEvent, emptyDataForm, signupFormView)
+import Views.UserAreaView (UserAreaEvent, userAreaInitialState, userAreaView)
 
 emptyMainPageWidgetState :: MainPageWidgetState
 emptyMainPageWidgetState = { index: emptyIndex, credentials: emptyCredentials, pinExists: false, userAreaState: userAreaInitialState, cardManagerState: cardManagerInitialState, userPreferences: defaultUserPreferences }
 
-data WidgetState = WidgetState OverlayInfo Page
+data PageEvent = LoginPageEvent           LoginPageEvent
+               | SignupPageEvent          SignupPageEvent
+               | MainPageCardManagerEvent CardManagerEvent CardManagerState
+               | MainPageUserAreaEvent    UserAreaEvent    CardManagerState UserAreaState
 
 appView :: WidgetState -> Widget HTML PageEvent
-appView (WidgetState overlayInfo page) =
-  appPages
+appView widgetState@(WidgetState overlayInfo page) =
+  appPages <> debugState widgetState
   <|>
   overlay overlayInfo
 
@@ -145,8 +135,3 @@ shortcutsDiv = div [Props._id "shortcutsHelp", Props.className "hidden"] [
 , p [] [span [] [text "lock"]], p [] [text "Lock"]
 ]
 
-instance showPage :: Show Page where
-  show (Loading _) = "Loading"
-  show (Login _)   = "Login"
-  show (Signup _)  = "Signup"
-  show (Main _)    = "Main"

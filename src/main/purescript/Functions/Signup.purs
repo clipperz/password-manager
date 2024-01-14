@@ -17,25 +17,17 @@ import Data.List.Types (List(..), (:))
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..), snd)
 import DataModel.Card (Card, defaultCards)
+import DataModel.Codec as Codec
+import DataModel.Communication.Signup (RegisterUserRequest)
 import DataModel.Credentials (Credentials)
-import DataModel.Index (Index(..), CardEntry(..), CardReference(..), createCardEntry, currentIndexVersion)
+import DataModel.Index (Index(..), CardEntry(..), CardReference(..), currentIndexVersion)
 import DataModel.SRP (SRPConf, SRPError)
 import DataModel.User (IndexReference(..), MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserInfoReferences(..), UserPreferencesReference(..), defaultUserPreferences)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.EncodeDecode (encryptJson)
+import Functions.Index (createCardEntry)
 import Functions.SRP as SRP
-
-
-type RegisterUserRequest = {
-  user                 :: RequestUserCard
-, p                    :: HexString
-, preferencesReference :: HexString
-, preferencesContent   :: HexString
-, indexCardReference   :: HexString
-, indexCardContent     :: HexString
-, cards                :: Array (Tuple HexString HexString)
-}
 
 prepareCards :: SRPConf -> List Card -> Aff (List (Tuple ArrayBuffer CardEntry))
 prepareCards srpConf cards = extractAff $ convertToCardEntry <$> cards
@@ -62,19 +54,19 @@ prepareSignupParameters srpConf form = runExceptT $ do
   v                      :: HexString   <- ExceptT $ SRP.prepareV srpConf sAb pAb
   masterKey              :: CryptoKey   <- liftAff $ KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
   masterKey2             :: CryptoKey   <- liftAff $ KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
-  indexCardContent       :: ArrayBuffer <- liftAff $ encryptJson masterKey (Index (snd <$> cards))
+  indexCardContent       :: ArrayBuffer <- liftAff $ encryptJson Codec.indexCodec masterKey (Index (snd <$> cards))
   masterPassword         :: CryptoKey   <- liftAff $ KI.importKey raw pAb (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
   indexCardContentHash   :: HexString   <- liftAff $ fromArrayBuffer <$> srpConf.hash (indexCardContent : Nil)
   masterKeyHex           :: HexString   <- liftAff $ fromArrayBuffer <$> exportKey raw masterKey
   masterKeyHex2          :: HexString   <- liftAff $ fromArrayBuffer <$> exportKey raw masterKey2
   let indexReference     =  IndexReference { reference: indexCardContentHash, masterKey: masterKeyHex, indexVersion: currentIndexVersion }
-  preferencesContent     :: ArrayBuffer <- liftAff $ encryptJson masterKey2 defaultUserPreferences
+  preferencesContent     :: ArrayBuffer <- liftAff $ encryptJson Codec.userPreferencesCodec masterKey2 defaultUserPreferences
   preferencesContentHash :: HexString   <- liftAff $ fromArrayBuffer <$> srpConf.hash (preferencesContent : Nil)
   let preferencesReference = UserPreferencesReference { reference: preferencesContentHash, key: masterKeyHex2 }
 
   let userInfoReference = UserInfoReferences { preferencesReference, indexReference }
 
-  masterKeyContent       :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword userInfoReference
+  masterKeyContent       :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson Codec.userInfoReferencesCodec masterPassword userInfoReference
   pure  { user:
             RequestUserCard
               { c: c
