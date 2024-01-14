@@ -8,6 +8,7 @@ import Control.Alt (($>), (<|>))
 import Control.Alternative (pure, (*>))
 import Control.Bind (bind, (=<<), (>>=))
 import Control.Monad.Except (runExceptT)
+import Data.Codec.Argonaut as CA
 import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Functor ((<$))
@@ -17,12 +18,13 @@ import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit, unit)
+import DataModel.Communication.OneTimeShare (SecretData)
 import Effect.Aff (Milliseconds(..), delay)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Clipboard (copyToClipboard)
 import Functions.Communication.Backend (ConnectionState)
-import Functions.Communication.OneTimeShare (SecretData, encryptKeyWithPin, encryptSecret, share)
+import Functions.Communication.OneTimeShare (encryptKeyWithPin, encryptSecret, share)
 import Functions.EnvironmentalVariables (currentCommit, redeemURL)
 import Views.OverlayView (OverlayColor(..), OverlayStatus(..), overlay)
 import Views.ShareView (Secret, emptySecretData, shareView)
@@ -35,8 +37,7 @@ shareWidget connectionState secret = do
   version <- liftEffect currentCommit
   do
     secretData <- shareView true secret =<< liftAff emptySecretData
-    -- result <- (Right (Tuple "" "") <$ shareView false secret secretData) <|> (liftAff $ runExceptT $ share secretData)
-    Tuple encryptionKey encryptedSecret <- liftAff $ encryptSecret secretData.secret
+    Tuple encryptionKey encryptedSecret <- liftAff $ encryptSecret CA.string secretData.secret
     result <- ( liftAff $ runExceptT $ share connectionState encryptedSecret secretData.duration )
               <|>
               ( overlay { status: Spinner, color: Black, message: "loading" } )

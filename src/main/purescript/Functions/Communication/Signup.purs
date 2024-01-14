@@ -6,7 +6,7 @@ import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (ExceptT(..), throwError, withExceptT)
 import Control.Semigroupoid ((>>>))
-import Data.Argonaut.Encode.Class (encodeJson)
+import Data.Codec.Argonaut (encode)
 import Data.Function (flip, ($))
 import Data.HTTP.Method (Method(..))
 import Data.HexString (HexString, hex)
@@ -23,6 +23,7 @@ import DataModel.User (RequestUserCard(..))
 import Effect.Aff (Aff)
 import Functions.Communication.Backend (isStatusCodeOk, signupRequest)
 import Functions.Communication.Login (PrepareLoginResult)
+import DataModel.SRPCodec as SRPCodec
 import Functions.Signup (prepareSignupParameters)
 
 type SessionKey = HexString
@@ -34,7 +35,7 @@ signupUser       (StaticProxy _)     _        _       _           = throwError $
 signupUser proxy@(OnlineProxy _ _ _) hashFunc srpConf credentials = do
   request@{user: RequestUserCard u, p} <- flip withExceptT (ExceptT (prepareSignupParameters srpConf credentials)) (show >>> SRPError >>> ProtocolError)
   let path  = joinWith "/" ["users", show u.c]
-  let body = (json $ encodeJson request) :: RequestBody
+  let body = (json $ encode SRPCodec.registerUserRequestCodec request) :: RequestBody
   --- ---------------------------
   ProxyResponse newProxy response <- signupRequest {proxy, hashFunc, srpConf, c: hex "", p: hex ""} path POST (Just body) RF.string
   if isStatusCodeOk response.status

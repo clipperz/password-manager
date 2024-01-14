@@ -8,23 +8,23 @@ import Control.Alt (($>), (<#>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Category ((<<<))
-import Data.Eq (class Eq, (==))
+import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HeytingAlgebra (not)
 import Data.Map (Map, fromFoldable, insert, lookup)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Ord (class Ord)
 import Data.Tuple (Tuple(..))
 import DataModel.Credentials (Credentials)
 import DataModel.User (UserPreferences)
+import DataModel.WidgetState (UserAreaPage(..), UserAreaState, UserAreaSubmenu(..), ImportState)
 import Effect.Class (liftEffect)
 import Functions.EnvironmentalVariables (currentCommit)
 import Views.ChangePasswordView (changePasswordView)
 import Views.Components (footerComponent)
 import Views.DeleteUserView (deleteUserView)
 import Views.ExportView (ExportEvent, exportView)
-import Views.ImportView (ImportState, importView, initialImportState)
+import Views.ImportView (importView, initialImportState)
 import Views.SetPinView (PinEvent, setPinView)
 import Views.UserPreferencesView (userPreferencesView)
 
@@ -38,22 +38,8 @@ data UserAreaEvent    = UpdateUserPreferencesEvent UserPreferences
                       | LockEvent
                       | LogoutEvent
 
-type UserAreaState = {
-  showUserArea     :: Boolean
-, userAreaOpenPage :: UserAreaPage
-, importState      :: ImportState
-, userAreaSubmenus :: Map UserAreaSubmenu Boolean
-}
-
 userAreaInitialState :: UserAreaState
 userAreaInitialState = { showUserArea: false, userAreaOpenPage: None, importState: initialImportState, userAreaSubmenus: fromFoldable [(Tuple Account false), (Tuple Data false)]}
-
-data UserAreaPage = Export | Import | Pin | Delete | Preferences | ChangePassword | About | None
-derive instance eqUserAreaPage :: Eq UserAreaPage
-
-data UserAreaSubmenu = Account | Data
-derive instance  eqUserAreaSubmenus :: Eq  UserAreaSubmenu
-derive instance ordUserAreaSubmenus :: Ord UserAreaSubmenu
 
 data UserAreaInternalEvent = StateUpdate UserAreaState | UserAreaEvent UserAreaEvent
 

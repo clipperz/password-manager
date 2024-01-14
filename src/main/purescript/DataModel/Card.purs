@@ -1,8 +1,5 @@
 module DataModel.Card where
 
-import Data.Argonaut.Decode.Class (class DecodeJson, decodeJson)
-import Data.Argonaut.Encode.Class (class EncodeJson, encodeJson)
-import Data.Bifunctor (rmap)
 import Data.Eq (class Eq, eq)
 import Data.List.Types (List(..))
 import Data.Maybe (Maybe(..))
@@ -30,12 +27,6 @@ instance eqCardField :: Eq CardField where
 instance showCardField :: Show CardField where
   show (CardField { name, value, locked }) = "[" <> show locked <> "] " <> name <> ": " <> value
 
-instance encodeJsonCardField :: EncodeJson CardField where
-  encodeJson (CardField record) = encodeJson record
-
-instance decodeJsonCardField :: DecodeJson CardField where
-  decodeJson json = rmap (\record -> CardField record) (decodeJson json)
-
 -- --------------------------------------------
 
 newtype CardValues = 
@@ -55,12 +46,6 @@ instance eqCardValues :: Eq CardValues where
 instance showCardValues :: Show CardValues where
   show (CardValues record) = show record
 
-instance encodeJsonCardValue :: EncodeJson CardValues where
-  encodeJson (CardValues record) = encodeJson record
-
-instance decodeJsonCardValue :: DecodeJson CardValues where
-  decodeJson json = rmap (\record -> CardValues record) (decodeJson json)
-
 -- --------------------------------------------
 
 newtype Card = 
@@ -78,12 +63,6 @@ instance eqCard :: Eq Card where
 
 instance showCard :: Show Card where
   show (Card record) = show record
-
-instance encodeJsonCard :: EncodeJson Card where
-  encodeJson (Card record) = encodeJson record
-
-instance decodeJsonCard :: DecodeJson Card where
-  decodeJson json = rmap (\record -> Card record) (decodeJson json)
 
 -- --------------------------------------------
 

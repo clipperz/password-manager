@@ -10,10 +10,9 @@ import Control.Semigroupoid ((>>>))
 import Crypto.Subtle.Constants.AES (aesCTR)
 import Crypto.Subtle.Key.Import as KI
 import Crypto.Subtle.Key.Types (encrypt, decrypt, raw, unwrapKey, CryptoKey)
-import Data.Argonaut.Decode.Class (decodeJson)
-import Data.Argonaut.Encode.Class (encodeJson)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Bifunctor (lmap)
+import Data.Codec.Argonaut (decode, encode)
 import Data.Function (flip, ($))
 import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
@@ -27,6 +26,7 @@ import Data.Tuple (Tuple(..), fst)
 import Data.Unit (Unit, unit)
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (InvalidStateError(..), ProxyResponse(..), AppState)
+import DataModel.Codec as Codec
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (Index)
 import DataModel.User (IndexReference(..), MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard(..), UserInfoReferences(..), UserPreferences, UserPreferencesReference(..), MasterKey)
@@ -37,6 +37,7 @@ import Functions.Communication.Blobs (deleteBlob, getBlob, getDecryptedBlob, pos
 import Functions.EncodeDecode (cryptoKeyAES, encryptJson)
 import Functions.Index (getIndexContent)
 import Functions.SRP (prepareV)
+import DataModel.SRPCodec as SRPCodec
 
 getMasterKey :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse MasterKey)
 getMasterKey connectionState c = do
@@ -44,7 +45,7 @@ getMasterKey connectionState c = do
   ProxyResponse newProxy response <- genericRequest connectionState url GET Nothing RF.json
   if isStatusCodeOk response.status
     then do
-      newMasterKey <- except $ flip lmap (decodeJson response.body) (show >>> DecodeError >>> ProtocolError)
+      newMasterKey <- except $ flip lmap (decode SRPCodec.masterKeyCodec response.body) (show >>> DecodeError >>> ProtocolError)
       pure $ ProxyResponse newProxy newMasterKey
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
 
@@ -57,7 +58,7 @@ computeRemoteUserCard _ = throwError $ InvalidStateError (CorruptedState "State 
 updateUserCard :: ConnectionState -> HexString -> UserCard -> ExceptT AppError Aff (ProxyResponse MasterKey)
 updateUserCard connectionState c newUserCard = do
   let url = joinWith "/" ["users", toString Hex c]
-  let body = (json $ encodeJson newUserCard) :: RequestBody
+  let body = (json $ encode SRPCodec.userCardCodec newUserCard) :: RequestBody
   ProxyResponse proxy' response <- genericRequest connectionState url PATCH (Just body) RF.string
   if isStatusCodeOk response.status
     then pure $ ProxyResponse proxy' (unwrap newUserCard).masterKey
@@ -79,7 +80,7 @@ getIndex connectionState indexRef@(IndexReference { reference }) = do
 getUserPreferences :: ConnectionState -> UserPreferencesReference -> ExceptT AppError Aff (ProxyResponse UserPreferences)
 getUserPreferences connectionState (UserPreferencesReference { reference, key }) = do
   cryptoKey :: CryptoKey <- liftAff $ KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-  getDecryptedBlob connectionState reference cryptoKey
+  getDecryptedBlob connectionState reference Codec.userPreferencesCodec cryptoKey
 
 -- ------------
 
@@ -101,18 +102,18 @@ updateIndex :: AppState -> Index -> ExceptT AppError Aff (ProxyResponse UpdateUs
 updateIndex { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, index: Just index, srpConf } newIndex = do
   let connectionState = {proxy, hashFunc, srpConf, c, p}
   cryptoKey            :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer oldReference.masterKey)
-  indexCardContent     :: ArrayBuffer <- liftAff $ encryptJson cryptoKey newIndex
+  indexCardContent     :: ArrayBuffer <- liftAff $ encryptJson Codec.indexCodec cryptoKey newIndex
   indexCardContentHash :: ArrayBuffer <- liftAff $ hashFunc (indexCardContent : Nil)
   ProxyResponse proxy'   _            <- postBlob connectionState indexCardContent indexCardContentHash
   -- -------------------
   let newIndexReference                = IndexReference $ oldReference { reference = fromArrayBuffer indexCardContentHash }
   let newUserInfoReferences            = UserInfoReferences r { indexReference = newIndexReference }
   masterPassword       :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer p)
-  masterKeyContent     :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newUserInfoReferences
+  masterKeyContent     :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson Codec.userInfoReferencesCodec masterPassword newUserInfoReferences
   let newUserCard                      = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
   ProxyResponse proxy'' newMasterKey  <- updateUserCard connectionState{proxy = proxy'} c newUserCard
   -- -------------------
-  oldIndexCartContent  :: ArrayBuffer <- liftAff $ encryptJson cryptoKey index
+  oldIndexCartContent  :: ArrayBuffer <- liftAff $ encryptJson Codec.indexCodec cryptoKey index
 
   ProxyResponse proxy''' _            <- deleteBlob connectionState{proxy = proxy''} oldIndexCartContent oldReference.reference
   
@@ -126,18 +127,18 @@ updateUserPreferences :: AppState -> UserPreferences -> ExceptT AppError Aff (Pr
 updateUserPreferences { c: Just c, p: Just p, srpConf, userInfoReferences: Just (UserInfoReferences r@{ preferencesReference: (UserPreferencesReference { reference, key }) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, userPreferences: Just userPreferences } newUserPreferences = do
   let connectionState = {proxy, hashFunc, srpConf, c, p}
   cryptoKey              :: CryptoKey   <- liftAff $ KI.importKey raw (toArrayBuffer key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-  preferencesContent     :: ArrayBuffer <- liftAff $ encryptJson cryptoKey newUserPreferences
+  preferencesContent     :: ArrayBuffer <- liftAff $ encryptJson Codec.userPreferencesCodec cryptoKey newUserPreferences
   preferencesContentHash :: ArrayBuffer <- liftAff $ hashFunc (preferencesContent : Nil)
   ProxyResponse proxy'   _              <- postBlob connectionState preferencesContent preferencesContentHash
   -- -------------------
   let newUserPreferencesReference        = UserPreferencesReference { reference: fromArrayBuffer preferencesContentHash, key}
   let newUserInfoReferences              = UserInfoReferences r { preferencesReference = newUserPreferencesReference }
   masterPassword         :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer p)
-  masterKeyContent       :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newUserInfoReferences
+  masterKeyContent       :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson Codec.userInfoReferencesCodec masterPassword newUserInfoReferences
   let newUserCard                        = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
   ProxyResponse proxy'' newMasterKey    <- updateUserCard connectionState{proxy = proxy'} c newUserCard
   -- -------------------
-  oldUserPreferencesCartContent         <- liftAff $ encryptJson cryptoKey userPreferences
+  oldUserPreferencesCartContent         <- liftAff $ encryptJson Codec.userPreferencesCodec cryptoKey userPreferences
   ProxyResponse proxy''' _              <- deleteBlob connectionState{proxy = proxy''} oldUserPreferencesCartContent reference
 
   pure $ ProxyResponse proxy''' { newUserInfoReferences, newMasterKey }

@@ -7,11 +7,11 @@ import Control.Alt ((<#>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (ExceptT(..), except, throwError, withExceptT)
-import Data.Argonaut.Decode.Class (decodeJson)
-import Data.Argonaut.Encode.Class (encodeJson)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Bifunctor (lmap)
 import Data.BigInt (BigInt, fromInt)
+import Data.Codec.Argonaut (decode, encode)
+import Data.Codec.Argonaut.Record as CAR
 import Data.Either (note)
 import Data.Eq ((==))
 import Data.Function ((#), ($))
@@ -25,6 +25,7 @@ import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (ProxyResponse(..))
+import DataModel.Codec as Codec
 import DataModel.Communication.Login (LoginStep1Response, LoginStep2Response)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials)
@@ -35,6 +36,7 @@ import Effect.Aff.Class (liftAff)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
 import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, loginRequest)
 import Functions.SRP as SRP
+import DataModel.SRPCodec as SRPCodec
 import Functions.User (decryptUserInfoReferences)
     
 -- ----------------------------------------------------------------------------
@@ -68,10 +70,10 @@ loginStep1 :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyRespons
 loginStep1 connectionState@{srpConf} c = do
   (Tuple a aa) <- withExceptT (\err -> ProtocolError $ SRPError $ show err) (ExceptT $ SRP.prepareA srpConf)
   let url  = joinWith "/" ["login", "step1", show c] :: String
-  let body = json $ encodeJson { c, aa: fromBigInt aa }  :: RequestBody
+  let body = json $ encode (CAR.object "loginStep1Request" {c: Codec.hexStringCodec, aa: Codec.hexStringCodec}) { c, aa: fromBigInt aa }  :: RequestBody
   ProxyResponse newProxy step1Response <- loginRequest connectionState url POST (Just body) RF.json
   responseBody :: LoginStep1Response <- if isStatusCodeOk step1Response.status
-                                          then except     $ (decodeJson step1Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err) 
+                                          then except     $ (decode SRPCodec.loginStep1ResponseCodec step1Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err) 
                                           else throwError $  ProtocolError (ResponseError (unwrap step1Response.status))
   bb :: BigInt <- except $ (toBigInt responseBody.bb) # note (ProtocolError $ SRPError "Error in converting B from String to BigInt")
   if bb == fromInt (0)
@@ -100,10 +102,10 @@ loginStep2 connectionState@{srpConf} c p { aa, bb, a, s } = do
   kk :: ArrayBuffer <-  liftAff $ SRP.prepareK  srpConf ss
   m1 :: ArrayBuffer <-  liftAff $ SRP.prepareM1 srpConf c s aa bb kk
   let url  = joinWith "/" ["login", "step2", show c]      :: String
-  let body = json $ encodeJson { m1: fromArrayBuffer m1 } :: RequestBody
+  let body = json $ encode (CAR.object "loginStep2Request" {m1: Codec.hexStringCodec}) { m1: fromArrayBuffer m1 } :: RequestBody
   ProxyResponse newProxy step2Response <- loginRequest connectionState url POST (Just body) RF.json
-  responseBody :: LoginStep2Response <- if isStatusCodeOk step2Response.status
-                                          then except $     (decodeJson step2Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err)
+  responseBody :: LoginStep2Response   <- if isStatusCodeOk step2Response.status
+                                          then except $     (decode SRPCodec.loginStep2ResponseCodec step2Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err)
                                           else throwError $  ProtocolError $ ResponseError (unwrap step2Response.status)
   userInfoReferences <- decryptUserInfoReferences responseBody.masterKey p
   pure $ ProxyResponse newProxy { m1, kk, m2: responseBody.m2, userInfoReferences, masterKey: responseBody.masterKey }

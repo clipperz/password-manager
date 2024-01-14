@@ -17,11 +17,8 @@ import Data.Maybe (Maybe(..))
 import Data.Ord ((<))
 import Data.String (length)
 import DataModel.Credentials (Credentials, emptyCredentials)
+import DataModel.WidgetState (LoginFormData, LoginType(..))
 import Functions.Communication.OneTimeShare (PIN)
-
--- data PinViewResult = Pin Int | NormalLogin
-
-data LoginType = CredentialLogin | PinLogin
 
 type Username = String
 
@@ -36,12 +33,6 @@ data LoginPageEvent   = LoginEvent Credentials
                       | LoginPinEvent PIN
                       | GoToCredentialLoginEvent Username
                       | GoToSignupEvent Credentials
-
-type LoginFormData = 
-  { credentials :: Credentials
-  , pin :: PIN
-  , loginType :: LoginType
-  }
 
 emptyLoginFormData :: LoginFormData
 emptyLoginFormData = { credentials: emptyCredentials, pin: "", loginType: CredentialLogin }
@@ -103,7 +94,6 @@ credentialLoginWidget formData = do
                               button [(Left  formValues) <$ Props.onClick]                                                                         [text "sign up"]
                            )
       pure result
-    -- liftEffect $ log $ "signalResult " <> show signalResult
     pure signalResult
 
 pinLoginWidget :: Boolean -> String -> Widget HTML PIN

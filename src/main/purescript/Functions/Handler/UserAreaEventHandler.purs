@@ -12,11 +12,11 @@ import Control.Bind (bind, discard, (>>=))
 import Control.Category (identity, (<<<))
 import Control.Monad.Except.Trans (ExceptT(..), except, runExceptT, throwError)
 import Data.Argonaut.Core (stringify)
-import Data.Argonaut.Decode (decodeJson)
-import Data.Argonaut.Encode (encodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (filter, foldr, length, snoc)
 import Data.Bifunctor (lmap)
+import Data.Codec.Argonaut (decode, encode)
+import Data.Codec.Argonaut as CA
 import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldWithIndexM)
 import Data.Function ((#), ($))
@@ -35,12 +35,13 @@ import DataModel.AppError (AppError(..))
 import DataModel.AppState (AppState, CardsCache, InvalidStateError(..), ProxyResponse(..), discardResult)
 import DataModel.Card (Card)
 import DataModel.Card as DataModel.Card
+import DataModel.Codec as Codec
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (emptyCredentials)
 import DataModel.FragmentState as Fragment
 import DataModel.Index (CardEntry(..), CardReference(..), Index(..), addToIndex)
 import DataModel.User (IndexReference(..), UserInfoReferences(..), UserPreferencesReference(..))
-import DataModel.WidgetState (Page(..), WidgetState(..))
+import DataModel.WidgetState (CardManagerState, CardViewState(..), ImportStep(..), LoginType(..), Page(..), UserAreaPage(..), UserAreaState, WidgetState(..))
 import Effect.Class (liftEffect)
 import Functions.Card (addTag)
 import Functions.Communication.Backend (ConnectionState, genericRequest)
@@ -55,13 +56,11 @@ import Functions.State (resetState)
 import Functions.Time (formatDateTimeToDate, getCurrentDateTime)
 import Functions.Timer (activateTimer, stopTimer)
 import Functions.User (changeUserPassword)
-import Views.CardsManagerView (CardManagerState, CardViewState(..))
 import Views.ExportView (ExportEvent(..))
-import Views.ImportView (ImportStep(..))
-import Views.LoginFormView (LoginType(..), emptyLoginFormData)
+import Views.LoginFormView (emptyLoginFormData)
 import Views.OverlayView (OverlayColor(..), hiddenOverlayInfo, spinnerOverlay)
 import Views.SetPinView (PinEvent(..))
-import Views.UserAreaView (UserAreaEvent(..), UserAreaPage(..), UserAreaState, userAreaInitialState)
+import Views.UserAreaView (UserAreaEvent(..), userAreaInitialState)
 import Web.DownloadJs (download)
 import Web.HTML (window)
 import Web.HTML.Window (localStorage)
@@ -223,7 +222,7 @@ handleUserAreaEvent (ImportCardsEvent importState) cardManagerState userAreaStat
         
         result      <- runStep (case toDecode of
                                  Left  htmlData -> ExceptT $ liftEffect $ decodeImport htmlData
-                                 Right jsonData -> except  $ lmap (ProtocolError <<< DecodeError <<< show) $ decodeJson jsonData
+                                 Right jsonData -> except  $ lmap (ProtocolError <<< DecodeError <<< show) $ decode (CA.array Codec.cardCodec) jsonData
                                ) (WidgetState (spinnerOverlay "Decode Data" White) page)
 
         currentDate <- runStep ((((<>) "Import_") <<< formatDateTimeToDate) <$> (liftEffect getCurrentDateTime)) (WidgetState (spinnerOverlay "Get current date" White) page)
@@ -236,7 +235,7 @@ handleUserAreaEvent (ImportCardsEvent importState) cardManagerState userAreaStat
                        , credentials: {username, password}
                        , pinExists: isJust pinEncryptedPassword
                        , cardManagerState
-                       , userAreaState : userAreaState {importState = importState {content = Right $ stringify $ encodeJson result, step = Selection, tag = Tuple true currentDate, selection = result <#> (\card@(DataModel.Card.Card r) -> Tuple (not r.archived) card)}}
+                       , userAreaState : userAreaState {importState = importState {content = Right $ stringify $ encode (CA.array Codec.cardCodec) result, step = Selection, tag = Tuple true currentDate, selection = result <#> (\card@(DataModel.Card.Card r) -> Tuple (not r.archived) card)}}
                        , userPreferences
                        }
 

@@ -6,7 +6,6 @@
   , "affjax-web"
   , "argonaut-codecs"
   , "argonaut-core"
-  , "argonaut-generic"
   , "arraybuffer"
   , "arraybuffer-builder"
   , "arraybuffer-types"

@@ -8,13 +8,13 @@ import Control.Monad.Except.Trans (runExceptT)
 import Data.Function ((#), ($))
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
-import DataModel.FragmentState as Fragment
 import DataModel.AppState (ProxyResponse(..), AppState)
-import DataModel.WidgetState (Page(..), WidgetState(..))
+import DataModel.FragmentState as Fragment
+import DataModel.WidgetState (LoginFormData, LoginType(..), Page(..), WidgetState(..))
 import Functions.Communication.Signup (signupUser)
 import Functions.Handler.GenericHandlerFunctions (OperationState, doNothing, handleOperationResult, runStep)
 import Functions.Handler.LoginPageEventHandler (loginSteps)
-import Views.LoginFormView (LoginFormData, LoginType(..), emptyLoginFormData)
+import Views.LoginFormView (emptyLoginFormData)
 import Views.OverlayView (OverlayColor(..), hiddenOverlayInfo, spinnerOverlay)
 import Views.SignupFormView (SignupPageEvent(..), getSignupDataFromCredentials)
 

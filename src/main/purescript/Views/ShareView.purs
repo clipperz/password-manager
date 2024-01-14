@@ -21,15 +21,15 @@ import Data.String (null)
 import Data.String.CodeUnits (singleton, toCharArray)
 import Data.Time.Duration (Days(..), Hours(..), Minutes(..), Seconds, convertDuration)
 import Data.Tuple (Tuple(..), fst, snd)
+import DataModel.Communication.OneTimeShare (SecretData)
 import Effect.Aff (Aff, Milliseconds(..), delay)
 import Effect.Aff.Class (liftAff)
 import Functions.Clipboard (copyToClipboard)
-import Functions.Communication.OneTimeShare (SecretData)
 import Functions.Password (randomPIN)
 import Views.Components (Enabled(..), dynamicWrapper)
 import Views.OverlayView (OverlayColor(..), OverlayStatus(..), overlay)
 
-data Secret = SecretString String --| SecretCard String
+data Secret = SecretString String -- | SecretCard String
 
 secretIsString :: Secret -> Boolean
 secretIsString (SecretString _) = true

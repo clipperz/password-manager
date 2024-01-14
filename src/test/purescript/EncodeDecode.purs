@@ -25,6 +25,7 @@ import Data.TextDecoder as Decoder
 import Data.TextEncoder as Encoder
 import Data.Unit (Unit)
 import DataModel.Card (Card(..), cardValues0)
+import DataModel.Codec as Codec
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Effect.Exception (Error, error)
@@ -50,8 +51,8 @@ encodeDecodeSpec =
     it encryptDecryptJson do
       let card@(Card r) = Card { content: cardValues0, secrets: [], timestamp: 1661377622.0, archived: false }
       masterKey :: Key.Types.CryptoKey <- Key.Generate.generateKey (Key.Generate.aes AES.aesCTR AES.l256) true [Key.Types.encrypt, Key.Types.decrypt, Key.Types.unwrapKey]
-      encrypted <- encryptJson masterKey card
-      result <- decryptJson masterKey encrypted
+      encrypted <- encryptJson Codec.cardCodec masterKey card
+      result    <- decryptJson Codec.cardCodec masterKey encrypted
       case result of
         Left err -> failOnBrowser encryptDecryptJson (show err)
         Right (Card decrypted) -> makeTestableOnBrowser encryptDecryptJson decrypted shouldEqual r

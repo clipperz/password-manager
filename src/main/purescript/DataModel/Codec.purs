@@ -12,24 +12,22 @@ import Data.Profunctor (dimap, wrapIso)
 import Data.Unit (unit)
 import Data.Variant as V
 import DataModel.Card (Card(..), CardField(..), CardValues(..))
+import DataModel.CardVersions.CardV1 (CardValues_V1, Card_V1, CardField_V1)
 import DataModel.Credentials (Credentials)
 import DataModel.Index (CardEntry(..), CardReference(..), Index(..))
+import DataModel.IndexVersions.IndexV1 (CardEntry_V1, CardReference_V1, Index_V1)
 import DataModel.Password (PasswordGeneratorSettings)
-import DataModel.User (UserPreferences(..))
-import DataModel.WidgetState (Page(..), WidgetState(..), MainPageWidgetState)
+import DataModel.Pin (PasswordPin)
+import DataModel.User (IndexReference(..), UserInfoReferences(..), UserPreferences(..), UserPreferencesReference(..))
+import DataModel.WidgetState (CardFormInput(..), CardManagerState, CardViewState, ImportState, ImportStep(..), LoginFormData, LoginType(..), MainPageWidgetState, Page(..), UserAreaPage(..), UserAreaState, UserAreaSubmenu(..), WidgetState(..))
+import DataModel.WidgetState (CardViewState(..)) as CardViewState
 import IndexFilterView (Filter(..), FilterData, FilterViewStatus(..))
 import Type.Proxy (Proxy(..))
-import Views.CardsManagerView (CardFormInput(..), CardManagerState, CardViewState)
-import Views.CardsManagerView as CardViewState
-import Views.ImportView (ImportState, ImportStep(..))
-import Views.LoginFormView (LoginFormData, LoginType(..))
 import Views.OverlayView (OverlayColor(..), OverlayStatus(..), OverlayInfo)
 import Views.SignupFormView (SignupDataForm)
-import Views.UserAreaView (UserAreaPage(..), UserAreaState, UserAreaSubmenu(..))
 import Web.File.File (File)
 
 -- data WidgetState = WidgetState OverlayInfo Page
-
 widgetStateCodec :: CA.JsonCodec WidgetState
 widgetStateCodec = dimap toVariant fromVariant $ CAV.variantMatch
     { widgetState: Right (CA.object "WidgetState" $ CAR.record {overlayInfo: overlayInfoCodec, page: pageCodec})
@@ -42,7 +40,6 @@ widgetStateCodec = dimap toVariant fromVariant $ CAV.variantMatch
       }
 
 -- type OverlayInfo   = { status :: OverlayStatus, color :: OverlayColor, message :: String }
-
 overlayInfoCodec :: CA.JsonCodec OverlayInfo
 overlayInfoCodec =
   CA.object "OverlayInfo"
@@ -54,7 +51,6 @@ overlayInfoCodec =
     )
 
 -- data OverlayStatus = Hidden | Spinner | Done | Failed | Copy
-
 overlayStatusCodec :: CA.JsonCodec OverlayStatus
 overlayStatusCodec = dimap toVariant fromVariant $ CAV.variantMatch
     { hidden:  Left unit
@@ -79,7 +75,6 @@ overlayStatusCodec = dimap toVariant fromVariant $ CAV.variantMatch
       }
 
 -- data OverlayColor  = Black | White
-
 overlayColorCodec :: CA.JsonCodec OverlayColor
 overlayColorCodec = dimap toVariant fromVariant $ CAV.variantMatch
     { black: Left unit
@@ -96,7 +91,6 @@ overlayColorCodec = dimap toVariant fromVariant $ CAV.variantMatch
 
 
 -- data Page = Loading (Maybe Page) | Login LoginFormData | Signup SignupDataForm | Main MainPageWidgetState
-
 pageCodec :: CA.JsonCodec Page
 pageCodec = dimap toVariant fromVariant $ CAV.variantMatch
     { loading: Left  Nothing-- Right (CAR.maybe pageCodec)
@@ -122,7 +116,6 @@ pageCodec = dimap toVariant fromVariant $ CAV.variantMatch
 --   , pin :: PIN
 --   , loginType :: LoginType
 --   }
-
 loginFormDataCodec :: CA.JsonCodec LoginFormData
 loginFormDataCodec =
   CA.object "LoginFormData"
@@ -136,7 +129,6 @@ loginFormDataCodec =
 -- type Credentials =  { username :: String
 --                     , password :: String
 --                     }
-
 credentialsCodec :: CA.JsonCodec Credentials
 credentialsCodec =
   CA.object "Credentials"
@@ -147,7 +139,6 @@ credentialsCodec =
     )
 
 -- data LoginType = CredentialLogin | PinLogin
-
 loginTypeCodec :: CA.JsonCodec LoginType
 loginTypeCodec = dimap toVariant fromVariant $ CAV.variantMatch
     { credentialsLogin: Left unit
@@ -167,7 +158,6 @@ loginTypeCodec = dimap toVariant fromVariant $ CAV.variantMatch
 --                       , verifyPassword :: String
 --                       , checkboxes     :: Array (Tuple String Boolean)
 --                       }
-
 signupDataFormCodec :: CA.JsonCodec SignupDataForm
 signupDataFormCodec =
   CA.object "SignupDataForm"
@@ -187,7 +177,6 @@ signupDataFormCodec =
 -- , cardManagerState              :: CardManagerState
 -- , userPreferences               :: UserPreferences
 -- }
-
 mainPageWidgetStateCodec :: CA.JsonCodec MainPageWidgetState
 mainPageWidgetStateCodec = 
   CA.object "MainPageWidgetState"
@@ -203,10 +192,13 @@ mainPageWidgetStateCodec =
 
 -- newtype Index = 
 --   Index (List CardEntry)
-
 indexCodec :: CA.JsonCodec Index
 indexCodec =
   wrapIso Index (CAC.list cardEntryCodec)
+
+-- type Index_V1 = List CardEntry_V1
+indexV1Codec :: CA.JsonCodec Index_V1
+indexV1Codec = CAC.list cardEntryV1Codec
 
 -- newtype CardEntry =
 --   CardEntry
@@ -217,13 +209,31 @@ indexCodec =
 --     , lastUsed :: Number
 --     -- , attachment :: Boolean
 --     }
-
 cardEntryCodec :: CA.JsonCodec CardEntry
 cardEntryCodec = wrapIso CardEntry $
   CA.object "CardEntry"
     (CAR.record
       { title:         CA.string
       , cardReference: cardReferenceCodec
+      , archived:      CA.boolean
+      , tags:          CA.array CA.string
+      , lastUsed:      CA.number
+      }
+    )
+  
+-- type CardEntry_V1 = 
+--   { title :: String
+--   , cardReference :: CardReference_V1
+--   , archived :: Boolean
+--   , tags :: Array String
+--   , lastUsed :: Number
+--   }
+cardEntryV1Codec :: CA.JsonCodec CardEntry_V1
+cardEntryV1Codec = 
+  CA.object "CardEntry"
+    (CAR.record
+      { title:         CA.string
+      , cardReference: cardReferenceV1Codec
       , archived:      CA.boolean
       , tags:          CA.array CA.string
       , lastUsed:      CA.number
@@ -236,7 +246,6 @@ cardEntryCodec = wrapIso CardEntry $
 --     , key :: HexString
 --     , cardVersion :: String
 --     }
-
 cardReferenceCodec :: CA.JsonCodec CardReference
 cardReferenceCodec = wrapIso CardReference $
   CA.object "CardReference"
@@ -247,6 +256,22 @@ cardReferenceCodec = wrapIso CardReference $
       }
     )
 
+-- type CardReference_V1 =
+--   { reference :: HexString
+--   , key :: HexString
+--   , cardVersion :: String
+--   }
+cardReferenceV1Codec :: CA.JsonCodec CardReference_V1
+cardReferenceV1Codec = 
+  CA.object "CardReference"
+    (CAR.record
+      { reference:   hexStringCodec
+      , key:         hexStringCodec
+      , cardVersion: CA.string
+      }
+    )
+
+-- newtype HexString = HexString String
 hexStringCodec :: CA.JsonCodec HexString
 hexStringCodec = wrapIso HexString CA.string
 
@@ -256,7 +281,6 @@ hexStringCodec = wrapIso HexString CA.string
 -- , importState      :: ImportState
 -- , userAreaSubmenus :: Map UserAreaSubmenu Boolean
 -- }
-
 userAreaStateCodec :: CA.JsonCodec UserAreaState
 userAreaStateCodec =
   CA.object "UserAreaState"
@@ -269,7 +293,6 @@ userAreaStateCodec =
     )
 
 -- data UserAreaPage = Export | Import | Pin | Delete | Preferences | ChangePassword | About | None
-
 userAreaPageCodec :: CA.JsonCodec UserAreaPage
 userAreaPageCodec = dimap toVariant fromVariant $ CAV.variantMatch
     { export:         Left unit
@@ -309,7 +332,6 @@ userAreaPageCodec = dimap toVariant fromVariant $ CAV.variantMatch
 -- , selection :: Array (Tuple Boolean Card)
 -- , tag       :: Tuple Boolean String
 -- }
-
 importStateCodec :: CA.JsonCodec ImportState
 importStateCodec = 
   CA.object "ImportState"
@@ -329,7 +351,6 @@ importStateCodec =
         fromVariant   = V.match {file: \_ -> Nothing}
 
 -- data ImportStep = Upload | Selection | Confirm
-
 importStepCodec :: CA.JsonCodec ImportStep
 importStepCodec = dimap toVariant fromVariant $ CAV.variantMatch
     { upload:    Left unit
@@ -348,7 +369,6 @@ importStepCodec = dimap toVariant fromVariant $ CAV.variantMatch
       }
 
 -- data UserAreaSubmenu = Account | Data
-
 userAreaSubmenuCodec :: CA.JsonCodec UserAreaSubmenu
 userAreaSubmenuCodec = dimap toVariant fromVariant $ CAV.variantMatch
     { account: Left unit
@@ -370,7 +390,6 @@ userAreaSubmenuCodec = dimap toVariant fromVariant $ CAV.variantMatch
 --     , archived :: Boolean
 --     , timestamp :: Number
 --     }
-
 cardCodec :: CA.JsonCodec Card
 cardCodec = wrapIso Card (
   CA.object "Card"
@@ -383,6 +402,21 @@ cardCodec = wrapIso Card (
     )
 )
 
+-- type Card_V1 = 
+--   { content :: CardValues_V1
+--   , secrets :: Array String
+--   , archived :: Boolean
+--   , timestamp :: Number
+--   }
+cardV1Codec :: CA.JsonCodec Card_V1
+cardV1Codec =
+  CAR.object "cardV1"
+    { content   : cardValuesV1Codec
+    , secrets   : CA.array CA.string
+    , archived  : CA.boolean
+    , timestamp : CA.number
+    }
+
 -- newtype CardValues = 
 --   CardValues
 --     { title   :: String
@@ -390,7 +424,6 @@ cardCodec = wrapIso Card (
 --     , fields  :: Array CardField
 --     , notes   :: String
 --     }
-
 cardValuesCodec :: CA.JsonCodec CardValues
 cardValuesCodec = wrapIso CardValues (
   CA.object "CardValues"
@@ -403,6 +436,21 @@ cardValuesCodec = wrapIso CardValues (
     )
 )
 
+-- type CardValues_V1 = 
+--   { title   :: String
+--   , tags    :: Array String
+--   , fields  :: Array CardField_V1
+--   , notes   :: String
+--   }
+cardValuesV1Codec :: CA.JsonCodec CardValues_V1
+cardValuesV1Codec = 
+  CAR.object "cardValuesV1"
+    { title   : CA.string
+    , tags    : CA.array CA.string
+    , fields  : CA.array cardFieldV1Codec
+    , notes   : CA.string
+    }
+
 -- newtype CardField =
 --   CardField
 --     { name   :: String
@@ -410,7 +458,6 @@ cardValuesCodec = wrapIso CardValues (
 --     , locked :: Boolean
 --     , settings :: Maybe PasswordGeneratorSettings
 --     }
-
 cardFieldCodec :: CA.JsonCodec CardField
 cardFieldCodec = wrapIso CardField (
   CA.object "CardField"
@@ -423,11 +470,25 @@ cardFieldCodec = wrapIso CardField (
     )
 )
 
+-- type CardField_V1 =
+--   { name   :: String
+--   , value  :: String
+--   , locked :: Boolean
+--   , settings :: Maybe PasswordGeneratorSettings
+--   }
+cardFieldV1Codec :: CA.JsonCodec CardField_V1
+cardFieldV1Codec =
+  CAR.object "cardFieldV1"
+    { name     : CA.string
+    , value    : CA.string
+    , locked   : CA.boolean
+    , settings : CAR.optional passwordGeneratorSettingsCodec
+    }
+
 -- type PasswordGeneratorSettings = {
 --     length              :: Int,
 --     characters          :: String
 -- }
-
 passwordGeneratorSettingsCodec :: CA.JsonCodec PasswordGeneratorSettings
 passwordGeneratorSettingsCodec = 
   CA.object "PasswordGeneratorSettings"
@@ -442,7 +503,6 @@ passwordGeneratorSettingsCodec =
 -- , selectedEntry :: Maybe CardEntry
 -- , cardViewState :: CardViewState
 -- }
-
 cardManagerStateCodec :: CA.JsonCodec CardManagerState
 cardManagerStateCodec =
   CA.object "CardManagerState"
@@ -459,7 +519,6 @@ cardManagerStateCodec =
 -- , filterViewStatus :: FilterViewStatus
 -- , searchString :: String
 -- }
-
 filterDataCodec :: CA.JsonCodec FilterData
 filterDataCodec =
   CA.object "FilterData"
@@ -472,7 +531,6 @@ filterDataCodec =
     )
 
 -- data Filter = All | Recent | Untagged | Search String | Tag String
-
 filterCodec :: CA.JsonCodec Filter
 filterCodec = dimap toVariant fromVariant $ CAV.variantMatch
     { all:      Left unit
@@ -497,7 +555,6 @@ filterCodec = dimap toVariant fromVariant $ CAV.variantMatch
       }
 
 -- data FilterViewStatus = FilterViewClosed | FilterViewOpen
-
 filterViewStatusCodec :: CA.JsonCodec FilterViewStatus
 filterViewStatusCodec = dimap toVariant fromVariant $ CAV.variantMatch
     { close: Left unit
@@ -513,7 +570,6 @@ filterViewStatusCodec = dimap toVariant fromVariant $ CAV.variantMatch
       }
 
 -- data CardViewState = NoCard | Card Card CardEntry | CardForm CardFormInput 
-
 cardViewStateCodec :: CA.JsonCodec CardViewState
 cardViewStateCodec = dimap toVariant fromVariant $ CAV.variantMatch
     { noCard:   Left  unit
@@ -530,8 +586,8 @@ cardViewStateCodec = dimap toVariant fromVariant $ CAV.variantMatch
       , card:     \{card, cardEntry} -> CardViewState.Card card cardEntry
       , cardForm:                       CardViewState.CardForm
       }
--- data CardFormInput = NewCard (Maybe Card) | ModifyCard Card CardEntry
 
+-- data CardFormInput = NewCard (Maybe Card) | ModifyCard Card CardEntry
 cardFormInputCodec :: CA.JsonCodec CardFormInput
 cardFormInputCodec = dimap toVariant fromVariant $ CAV.variantMatch
     { newCard:    Right (CAC.maybe cardCodec)
@@ -552,7 +608,6 @@ cardFormInputCodec = dimap toVariant fromVariant $ CAV.variantMatch
 --     , automaticLock :: Either Int Int -- Left  -> automatic lock disabled while keeping the time
 --                                       -- Right -> automatic lock enabled
 --     }
-
 userPreferencesCodec :: CA.JsonCodec UserPreferences
 userPreferencesCodec = wrapIso UserPreferences (
   CA.object "UserPreferences"
@@ -562,3 +617,52 @@ userPreferencesCodec = wrapIso UserPreferences (
       }
     )
 )
+
+-- newtype UserInfoReferences = --TODO: change references structure [fsolaroli - 06/01/2024]
+--   UserInfoReferences 
+--     { preferencesReference :: UserPreferencesReference
+--     , indexReference :: IndexReference
+--     }
+userInfoReferencesCodec :: CA.JsonCodec UserInfoReferences
+userInfoReferencesCodec = wrapIso UserInfoReferences $
+  CA.object "UserInfoReferences"
+    (CAR.record
+      { preferencesReference: userPreferencesReferenceCodec
+      , indexReference:       indexReferenceCodec
+      }
+    )
+
+-- newtype UserPreferencesReference =
+--   UserPreferencesReference
+--     { reference :: HexString
+--     , key :: HexString
+--     }
+userPreferencesReferenceCodec :: CA.JsonCodec UserPreferencesReference
+userPreferencesReferenceCodec = wrapIso UserPreferencesReference $
+  CA.object "UserPreferencesReference"
+    (CAR.record
+      { reference: hexStringCodec
+      , key:       hexStringCodec
+      }
+    )
+
+-- newtype IndexReference =
+--   IndexReference
+--     { reference :: HexString
+--     , masterKey :: HexString
+--     , indexVersion :: String
+--     }
+indexReferenceCodec :: CA.JsonCodec IndexReference
+indexReferenceCodec = wrapIso IndexReference $
+  CA.object "IndexReference"
+    (CAR.record
+      { reference:    hexStringCodec
+      , masterKey:    hexStringCodec
+      , indexVersion: CA.string
+      }
+    )
+
+-- type PasswordPin = { padding :: Int, passphrase :: String }
+passwordPinCodec :: CA.JsonCodec PasswordPin
+passwordPinCodec =
+  CAR.object "passwordPin" { padding : CA.int , passphrase : CA.string }

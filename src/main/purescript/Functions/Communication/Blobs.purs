@@ -6,8 +6,8 @@ import Affjax.Web as AXW
 import Control.Bind (bind, discard, pure)
 import Control.Monad.Except.Trans (ExceptT(..), throwError, withExceptT)
 import Crypto.Subtle.Key.Types (CryptoKey)
-import Data.Argonaut.Decode.Class (class DecodeJson)
 import Data.ArrayBuffer.Types (ArrayBuffer)
+import Data.Codec.Argonaut (JsonCodec)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
@@ -18,8 +18,8 @@ import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import DataModel.AppError (AppError(..))
-import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.AppState (ProxyResponse(..))
+import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, genericRequest)
@@ -37,10 +37,10 @@ getBlob connectionState hash = do
     then pure $ ProxyResponse proxy response.body
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
 
-getDecryptedBlob :: forall a. DecodeJson a => ConnectionState -> HexString -> CryptoKey -> ExceptT AppError Aff (ProxyResponse a) 
-getDecryptedBlob connectionState reference key = do
+getDecryptedBlob :: forall a. ConnectionState -> HexString -> JsonCodec a -> CryptoKey -> ExceptT AppError Aff (ProxyResponse a) 
+getDecryptedBlob connectionState reference codec key = do
   ProxyResponse proxy blob <- getBlob connectionState reference
-  decryptedBlob <- withExceptT (\e -> ProtocolError $ CryptoError $ "Get decrypted blob: " <> show e) (ExceptT $ decryptJson key blob)
+  decryptedBlob <- withExceptT (\e -> ProtocolError $ CryptoError $ "Get decrypted blob: " <> show e) (ExceptT $ decryptJson codec key blob)
   pure $ ProxyResponse proxy decryptedBlob
 
 postBlob :: ConnectionState -> ArrayBuffer -> ArrayBuffer -> ExceptT AppError Aff (ProxyResponse (AXW.Response String))

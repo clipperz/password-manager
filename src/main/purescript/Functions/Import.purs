@@ -5,13 +5,13 @@ import Control.Bind (bind, (=<<), (>>=))
 import Control.Monad.Except (ExceptT, except, runExcept)
 import Control.Semigroupoid ((<<<))
 import Data.Argonaut.Core (Json, caseJsonArray, caseJsonObject, toBoolean, toObject, toString)
-import Data.Argonaut.Decode.Class (decodeJson)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (head, tail, elem, filter)
 import Data.Array.NonEmpty as ANE
 import Data.Array.NonEmpty.Internal (NonEmptyArray)
 import Data.Bifunctor (lmap)
 import Data.Boolean (otherwise)
+import Data.Codec.Argonaut (decode)
 import Data.Either (Either(..), note)
 import Data.Eq (eq, (==))
 import Data.Function (($))
@@ -26,6 +26,7 @@ import Data.String.Regex.Flags (global)
 import Data.Traversable (sequence)
 import DataModel.AppError (AppError(..))
 import DataModel.Card (Card(..), CardValues(..), CardField(..))
+import DataModel.Codec as Codec
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
@@ -74,7 +75,7 @@ decodeImport s = do
 
 decodeCard :: Number -> Json -> Either AppError Card
 decodeCard timestamp json = 
-  let epsilonTryResult = decodeJson json -- assumes version currently in use
+  let epsilonTryResult = decode Codec.cardCodec json -- assumes version currently in use
   in case epsilonTryResult of
     Right _ -> lmap (\_ -> ImportError "Cannot convert json to array of card") epsilonTryResult
     Left _ -> 
