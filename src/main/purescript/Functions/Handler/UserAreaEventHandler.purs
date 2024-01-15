@@ -69,312 +69,235 @@ import Web.Storage.Storage (getItem)
 handleUserAreaEvent :: UserAreaEvent -> CardManagerState -> UserAreaState -> AppState -> Fragment.FragmentState -> Widget HTML OperationState
 
 
-handleUserAreaEvent (CloseUserAreaEvent) cardManagerState userAreaState state@{index: Just index, userPreferences: Just userPreferences, username: Just username, password: Just password, pinEncryptedPassword} _ = 
-  doNothing (Tuple 
-              state
-              (WidgetState
-                hiddenOverlayInfo
-                (Main { index
-                      , credentials:   {username, password}
-                      , pinExists:     isJust pinEncryptedPassword
-                      , userAreaState: userAreaState {showUserArea = false, userAreaOpenPage = None}
-                      , cardManagerState
-                      , userPreferences
-                      }
+handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, srpConf, hash: hashFunc, cardsCache, username: Just username, password: Just password, index: Just index, userPreferences: Just userPreferences, userInfoReferences: Just (UserInfoReferences {indexReference: IndexReference { reference: indexRef}, preferencesReference: UserPreferencesReference {reference: prefRef }}), c: Just c, p: Just p, masterKey: Just masterKey, pinEncryptedPassword} _ = do
+  let defaultPage = { index
+                    , credentials:      {username, password}
+                    , pinExists:        isJust pinEncryptedPassword
+                    , userPreferences
+                    , userAreaState
+                    , cardManagerState
+                    }
+
+  case userAreaEvent of
+    (CloseUserAreaEvent) -> 
+      doNothing (Tuple 
+                  state
+                  (WidgetState
+                    hiddenOverlayInfo
+                    (Main defaultPage {userAreaState = userAreaState {showUserArea = false, userAreaOpenPage = None}})
+                  )
                 )
-              )
-            )
-
-
-handleUserAreaEvent (UpdateUserPreferencesEvent newUserPreferences) cardManagerState userAreaState state@{index: Just index, username: Just username, password: Just password, pinEncryptedPassword} _ = 
-  do
-    ProxyResponse proxy stateUpdateInfo <- runStep (updateUserPreferences state newUserPreferences) (WidgetState (spinnerOverlay "Update user preferences" White) page)
     
-    liftEffect $ stopTimer
-    case (unwrap newUserPreferences).automaticLock of
-      Left  _ -> pure unit
-      Right n -> liftEffect $ activateTimer n
-
-    pure (Tuple 
-      (state {proxy = proxy, userInfoReferences = Just stateUpdateInfo.newUserInfoReferences, masterKey = Just stateUpdateInfo.newMasterKey, userPreferences = Just newUserPreferences})
-      (WidgetState hiddenOverlayInfo page)
-    )
-         
-  # runExceptT
-  >>= handleOperationResult state defaultErrorPage true White
-
-  where
-    page = Main { index
-                , credentials:      {username, password}
-                , pinExists:        isJust pinEncryptedPassword
-                , userPreferences:  newUserPreferences
-                , userAreaState
-                , cardManagerState
-                }
-
-
-handleUserAreaEvent (ChangePasswordEvent newPassword) cardManagerState userAreaState state@{index: Just index, username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword} _ = 
-  do
-    ProxyResponse proxy userUpdateInfo <- runStep (changeUserPassword state newPassword) (WidgetState (spinnerOverlay "Update password" White) page)
-    pure (Tuple 
-      (state {proxy = proxy, c = Just userUpdateInfo.c, p = Just userUpdateInfo.p, s = Just userUpdateInfo.s, password = Just newPassword})
-      (WidgetState hiddenOverlayInfo page)
-    )
-
-  # runExceptT
-  >>= handleOperationResult state errorPage true White
-
-  where
-    page      = Main { index
-                     , credentials:      {username, password: newPassword}
-                     , pinExists:        isJust pinEncryptedPassword
-                     , userPreferences
-                     , userAreaState
-                     , cardManagerState
-                     }
-
-    errorPage = Main { index
-                     , credentials:      {username, password}
-                     , pinExists:        isJust pinEncryptedPassword
-                     , userPreferences
-                     , userAreaState
-                     , cardManagerState
-                     }
-
-handleUserAreaEvent (SetPinEvent pinAction) cardManagerState userAreaState state@{index: Just index, username: Just username, password: Just password, userPreferences: Just userPreferences} _ =
-  do
-    storage <- liftEffect $ window >>= localStorage
-    pinEncryptedPassword <- runStep (case pinAction of
-                                      Reset      -> (liftEffect $ deleteCredentials storage)  $> Nothing
-                                      SetPin pin -> (saveCredentials state pin storage)      <#> Just
-                                    ) (WidgetState
-                                        (spinnerOverlay (case pinAction of
-                                                          Reset    -> "Reset PIN"
-                                                          SetPin _ -> "Set PIN") 
-                                                        White)
-                                        page
-                                      )
-    pure (Tuple 
-            (state {pinEncryptedPassword = pinEncryptedPassword})
-            (WidgetState
-              hiddenOverlayInfo
-              page
-            )
-          )
-  
-  # runExceptT
-  >>= handleOperationResult state defaultErrorPage true White
-  
-  where 
-    page = Main { index
-                , credentials: {username, password}
-                , pinExists: case pinAction of
-                              Reset    -> false
-                              SetPin _ -> true
-                , cardManagerState
-                , userAreaState
-                , userPreferences
-                }
-
-
-handleUserAreaEvent DeleteAccountEvent cardManagerState userAreaState state@{proxy, srpConf, hash: hashFunc, cardsCache, username: Just username, password: Just password, index: Just index, userPreferences: Just userPreferences, userInfoReferences: Just (UserInfoReferences {indexReference, preferencesReference}), c: Just c, p: Just p, masterKey: Just masterKey, pinEncryptedPassword} _ =
-  do
-    let connectionState = {proxy, hashFunc, srpConf, c, p}
-    ProxyResponse proxy'     _ <-          deleteCardsSteps        connectionState                    cardsCache index page
-    ProxyResponse proxy''    _ <- runStep (deleteBlobWithReference connectionState{proxy = proxy'}   (unwrap indexReference).reference      ) (WidgetState (spinnerOverlay "Delete Index"       White) page)
-    ProxyResponse proxy'''   _ <- runStep (deleteBlobWithReference connectionState{proxy = proxy''}  (unwrap preferencesReference).reference) (WidgetState (spinnerOverlay "Delete Preferences" White) page)
-    ProxyResponse proxy''''  _ <- runStep (deleteUserInfo          connectionState{proxy = proxy'''}  masterKey                             ) (WidgetState (spinnerOverlay "Delete User Info"   White) page)
-    ProxyResponse proxy''''' _ <- runStep (deleteUserCard          connectionState{proxy = proxy''''} c                                     ) (WidgetState (spinnerOverlay "Delete User Card"   White) page)
-    _                          <- liftEffect $ window >>= localStorage >>= deleteCredentials
-    pure $ Tuple 
-            (resetState state {proxy = proxy'''''})
-            (WidgetState
-              hiddenOverlayInfo
-              (Login emptyLoginFormData { credentials = emptyCredentials
-                                        , loginType   = CredentialLogin
-                                        }
-              )
-            ) 
-  # runExceptT
-  >>= handleOperationResult state defaultErrorPage true White
-
-  where 
-    page = Main { index
-                , credentials: {username, password}
-                , pinExists:   isJust pinEncryptedPassword
-                , cardManagerState
-                , userAreaState
-                , userPreferences
-                }
-
-
-handleUserAreaEvent (ImportCardsEvent importState) cardManagerState userAreaState state@{proxy, hash: hashFunc, srpConf, index: Just index, username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword, c: Just c, p: Just p} _ = 
-  case importState.step of
-    Upload    ->
-      do
-        toDecode    <- runStep (case importState.content of
-                                 Left  file   -> do
-                                   fileContent     <- readFile file
-                                   codedCardData   <- except $ parseHTMLImport fileContent
-                                   (pure $ decodeHTML codedCardData) <#> Left
-                                 Right string -> (except $ lmap (ProtocolError <<< DecodeError) $ jsonParser string) <#> Right
-                               ) (WidgetState (spinnerOverlay "Parse File" White) page)
+    (UpdateUserPreferencesEvent newUserPreferences) -> 
+      let page = Main defaultPage { userPreferences = newUserPreferences }
+      in do
+        ProxyResponse proxy' stateUpdateInfo <- runStep (updateUserPreferences state newUserPreferences) (WidgetState (spinnerOverlay "Update user preferences" White) page)
         
-        result      <- runStep (case toDecode of
-                                 Left  htmlData -> ExceptT $ liftEffect $ decodeImport htmlData
-                                 Right jsonData -> except  $ lmap (ProtocolError <<< DecodeError <<< show) $ decode (CA.array Codec.cardCodec) jsonData
-                               ) (WidgetState (spinnerOverlay "Decode Data" White) page)
+        liftEffect $ stopTimer
+        case (unwrap newUserPreferences).automaticLock of
+          Left  _ -> pure unit
+          Right n -> liftEffect $ activateTimer n
 
-        currentDate <- runStep ((((<>) "Import_") <<< formatDateTimeToDate) <$> (liftEffect getCurrentDateTime)) (WidgetState (spinnerOverlay "Get current date" White) page)
+        pure (Tuple 
+          (state {proxy = proxy', userInfoReferences = Just stateUpdateInfo.newUserInfoReferences, masterKey = Just stateUpdateInfo.newMasterKey, userPreferences = Just newUserPreferences})
+          (WidgetState hiddenOverlayInfo page)
+        )
+            
+      # runExceptT
+      >>= handleOperationResult state defaultErrorPage true White   
 
-        pure $ Tuple 
-                state $
-                WidgetState
-                  hiddenOverlayInfo $
-                  Main { index
-                       , credentials: {username, password}
-                       , pinExists: isJust pinEncryptedPassword
-                       , cardManagerState
-                       , userAreaState : userAreaState {importState = importState {content = Right $ stringify $ encode (CA.array Codec.cardCodec) result, step = Selection, tag = Tuple true currentDate, selection = result <#> (\card@(DataModel.Card.Card r) -> Tuple (not r.archived) card)}}
-                       , userPreferences
-                       }
+    (ChangePasswordEvent newPassword) ->
+      let page      = Main defaultPage { credentials = {username, password: newPassword} }
+          errorPage = Main defaultPage
+      in do
+        ProxyResponse proxy' userUpdateInfo <- runStep (changeUserPassword state newPassword) (WidgetState (spinnerOverlay "Update password" White) page)
+        pure (Tuple 
+          (state {proxy = proxy', c = Just userUpdateInfo.c, p = Just userUpdateInfo.p, s = Just userUpdateInfo.s, password = Just newPassword})
+          (WidgetState hiddenOverlayInfo page)
+        )
 
       # runExceptT
-      >>= handleOperationResult state page true White
+      >>= handleOperationResult state errorPage true White
     
-    Selection ->
-      doNothing $ Tuple 
+    (SetPinEvent pinAction) ->
+      let page = Main defaultPage { pinExists = case pinAction of
+                                                  Reset    -> false
+                                                  SetPin _ -> true
+                                  }
+      in do
+        storage               <- liftEffect $ window >>= localStorage
+        pinEncryptedPassword' <- runStep (case pinAction of
+                                          Reset      -> (liftEffect $ deleteCredentials storage)  $> Nothing
+                                          SetPin pin -> (saveCredentials state pin storage)      <#> Just
+                                        ) (WidgetState
+                                            (spinnerOverlay (case pinAction of
+                                                              Reset    -> "Reset PIN"
+                                                              SetPin _ -> "Set PIN") 
+                                                            White)
+                                            page
+                                          )
+        pure (Tuple 
+                (state {pinEncryptedPassword = pinEncryptedPassword'})
+                (WidgetState
+                  hiddenOverlayInfo
+                  page
+                )
+              )
+
+      # runExceptT
+      >>= handleOperationResult state defaultErrorPage true White
+
+    (DeleteAccountEvent) ->
+      let page = Main defaultPage
+      in do
+        let connectionState = {proxy, hashFunc, srpConf, c, p}
+        ProxyResponse proxy'     _ <-          deleteCardsSteps        connectionState                    cardsCache index page
+        ProxyResponse proxy''    _ <- runStep (deleteBlobWithReference connectionState{proxy = proxy'}    indexRef  ) (WidgetState (spinnerOverlay "Delete Index"       White) page)
+        ProxyResponse proxy'''   _ <- runStep (deleteBlobWithReference connectionState{proxy = proxy''}   prefRef   ) (WidgetState (spinnerOverlay "Delete Preferences" White) page)
+        ProxyResponse proxy''''  _ <- runStep (deleteUserInfo          connectionState{proxy = proxy'''}  masterKey ) (WidgetState (spinnerOverlay "Delete User Info"   White) page)
+        ProxyResponse proxy''''' _ <- runStep (deleteUserCard          connectionState{proxy = proxy''''} c         ) (WidgetState (spinnerOverlay "Delete User Card"   White) page)
+        _                          <- liftEffect $ window >>= localStorage >>= deleteCredentials
+        pure $ Tuple 
+                (resetState state {proxy = proxy'''''})
+                (WidgetState
+                  hiddenOverlayInfo
+                  (Login emptyLoginFormData { credentials = emptyCredentials
+                                            , loginType   = CredentialLogin
+                                            }
+                  )
+                ) 
+      # runExceptT
+      >>= handleOperationResult state defaultErrorPage true White
+   
+    (ImportCardsEvent importState) ->
+      let page = Main defaultPage { userAreaState = userAreaState {importState = importState} }
+      in case importState.step of
+        Upload    ->
+          do
+            toDecode    <- runStep (case importState.content of
+                                    Left  file   -> do
+                                      fileContent     <- readFile file
+                                      codedCardData   <- except $ parseHTMLImport fileContent
+                                      (pure $ decodeHTML codedCardData) <#> Left
+                                    Right string -> (except $ lmap (ProtocolError <<< DecodeError) $ jsonParser string) <#> Right
+                                  ) (WidgetState (spinnerOverlay "Parse File" White) page)
+            
+            result      <- runStep (case toDecode of
+                                    Left  htmlData -> ExceptT $ liftEffect $ decodeImport htmlData
+                                    Right jsonData -> except  $ lmap (ProtocolError <<< DecodeError <<< show) $ decode (CA.array Codec.cardCodec) jsonData
+                                  ) (WidgetState (spinnerOverlay "Decode Data" White) page)
+
+            currentDate <- runStep ((((<>) "Import_") <<< formatDateTimeToDate) <$> (liftEffect getCurrentDateTime)) (WidgetState (spinnerOverlay "Get current date" White) page)
+
+            pure $ Tuple 
                     state $
                     WidgetState
                       hiddenOverlayInfo $
                       Main { index
-                           , credentials: {username, password}
-                           , pinExists: isJust pinEncryptedPassword
-                           , cardManagerState
-                           , userAreaState : userAreaState {importState = importState {step = Confirm}}
-                           , userPreferences
-                           }
-    
-    Confirm   ->
-      do
-        let connectionState = {proxy, hashFunc, srpConf, c, p}
-        let cardToImport                      = filter fst importState.selection <#> snd # (if fst importState.tag
-                                                                                            then (map $ addTag (snd importState.tag))
-                                                                                            else identity
-                                                                                           )
-        let nToImport                         = length cardToImport
-        ProxyResponse proxy' entries          <- foldWithIndexM (\i (ProxyResponse proxy' entries) card -> do
-          ProxyResponse proxy'' newCardEntry  <- runStep (postCard connectionState{proxy = proxy'} card) (WidgetState (spinnerOverlay ("Import card " <> show i <> " of " <> show nToImport) White) page)
-          pure $ ProxyResponse proxy'' (snoc entries newCardEntry)
-        ) (ProxyResponse proxy []) cardToImport
-        let updatedIndex                       = foldr addToIndex index entries        
-        ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index" White) page)
+                          , credentials: {username, password}
+                          , pinExists: isJust pinEncryptedPassword
+                          , cardManagerState
+                          , userAreaState : userAreaState {importState = importState {content = Right $ stringify $ encode (CA.array Codec.cardCodec) result, step = Selection, tag = Tuple true currentDate, selection = result <#> (\card@(DataModel.Card.Card r) -> Tuple (not r.archived) card)}}
+                          , userPreferences
+                          }
 
-        pure (Tuple 
-          (state { proxy = proxy''
-                 , index = Just updatedIndex
-                 , userInfoReferences = Just stateUpdateInfo.newUserInfoReferences
-                 , masterKey = Just stateUpdateInfo.newMasterKey
-                 }
-          )
-          (WidgetState
-            hiddenOverlayInfo
-            (Main { index:            updatedIndex
-                  , credentials:      {username, password}
-                  , pinExists: isJust pinEncryptedPassword
-                  , userPreferences
-                  , userAreaState:    userAreaInitialState
-                  , cardManagerState: cardManagerState {cardViewState = NoCard, selectedEntry = Nothing}
-                  }
-            )
-          )
-        )
+          # runExceptT
+          >>= handleOperationResult state page true White
       
+        Selection ->
+          doNothing $ Tuple 
+                        state $
+                        WidgetState
+                          hiddenOverlayInfo $
+                          Main { index
+                              , credentials: {username, password}
+                              , pinExists: isJust pinEncryptedPassword
+                              , cardManagerState
+                              , userAreaState : userAreaState {importState = importState {step = Confirm}}
+                              , userPreferences
+                              }
+        
+        Confirm   ->
+          do
+            let connectionState = {proxy, hashFunc, srpConf, c, p}
+            let cardToImport                      = filter fst importState.selection <#> snd # (if fst importState.tag
+                                                                                                then (map $ addTag (snd importState.tag))
+                                                                                                else identity
+                                                                                              )
+            let nToImport                         = length cardToImport
+            ProxyResponse proxy' entries          <- foldWithIndexM (\i (ProxyResponse proxy' entries) card -> do
+              ProxyResponse proxy'' newCardEntry  <- runStep (postCard connectionState{proxy = proxy'} card) (WidgetState (spinnerOverlay ("Import card " <> show i <> " of " <> show nToImport) White) page)
+              pure $ ProxyResponse proxy'' (snoc entries newCardEntry)
+            ) (ProxyResponse proxy []) cardToImport
+            let updatedIndex                       = foldr addToIndex index entries        
+            ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index" White) page)
+
+            pure (Tuple 
+              (state { proxy = proxy''
+                    , index = Just updatedIndex
+                    , userInfoReferences = Just stateUpdateInfo.newUserInfoReferences
+                    , masterKey = Just stateUpdateInfo.newMasterKey
+                    }
+              )
+              (WidgetState
+                hiddenOverlayInfo
+                (Main { index:            updatedIndex
+                      , credentials:      {username, password}
+                      , pinExists: isJust pinEncryptedPassword
+                      , userPreferences
+                      , userAreaState:    userAreaInitialState
+                      , cardManagerState: cardManagerState {cardViewState = NoCard, selectedEntry = Nothing}
+                      }
+                )
+              )
+          )
+      
+          # runExceptT
+          >>= handleOperationResult state page true White  
+
+    (ExportEvent OfflineCopy) ->
+      let page = Main defaultPage
+      in do
+        let references = prefRef : indexRef : ((\(CardEntry {cardReference: CardReference {reference}}) -> reference) <$> (unwrap index))
+        let connectionState = {proxy, hashFunc, srpConf, c, p}
+
+        ProxyResponse proxy' blobs <- downloadBlobsSteps references connectionState page
+        remoteUserCard             <- runStep (computeRemoteUserCard state)                                                                                  (WidgetState (spinnerOverlay "Compute user card" White) page)
+        ProxyResponse proxy'' doc  <- runStep (getBasicHTML connectionState{proxy = proxy'})                                                                       (WidgetState (spinnerOverlay "Download html"     White) page)
+        documentToDownload         <- runStep (appendCardsDataInPlace doc blobs remoteUserCard >>= (liftEffect <<< prepareHTMLBlob))                                                              (WidgetState (spinnerOverlay "Create document"   White) page)
+        date                       <- runStep (liftEffect $ formatDateTimeToDate <$> getCurrentDateTime)                                                     (WidgetState (spinnerOverlay ""                  White) page)
+        _                          <- runStep (liftEffect $ download documentToDownload (date <> "_Clipperz_Offline" <> ".html") "application/octet-stream") (WidgetState (spinnerOverlay "Download document" White) page)
+        pure $ Tuple state {proxy = proxy''} (WidgetState hiddenOverlayInfo page)
       
       # runExceptT
-      >>= handleOperationResult state page true White  
-  where
-    page = Main { index
-                , credentials: {username, password}
-                , pinExists: isJust pinEncryptedPassword
-                , cardManagerState
-                , userAreaState : userAreaState {importState = importState}
-                , userPreferences
-                }
+      >>= handleOperationResult state page true White
 
+    (ExportEvent UnencryptedCopy) ->
+      let page = Main defaultPage
+      in do
+        let connectionState = {proxy, hashFunc, srpConf, c, p}
+        ProxyResponse proxy' (Tuple cardsCache' cardList) <-                       downloadCardsSteps (unwrap index) cardsCache connectionState page
+        doc                                               <- runStep (liftEffect $ prepareCardsForUnencryptedExport cardList)                                                    (WidgetState (spinnerOverlay "Create document"   White) page)
+        date                                              <- runStep (liftEffect $ formatDateTimeToDate <$> getCurrentDateTime)                                                  (WidgetState (spinnerOverlay ""                  White) page)
+        _                                                 <- runStep (liftEffect $ download doc (date <> "_Clipperz_Export_" <> username <> ".html") "application/octet-stream") (WidgetState (spinnerOverlay "Download document" White) page)
+                                  
+        pure $ Tuple state{proxy = proxy', cardsCache = cardsCache'} (WidgetState hiddenOverlayInfo page)
+      # runExceptT
+      >>= handleOperationResult state page true White
 
-handleUserAreaEvent (ExportEvent OfflineCopy) cardManagerState userAreaState state@{proxy, hash: hashFunc, srpConf, c: Just c, p: Just p, index: Just index@(Index cardEntryList), username: Just username, password: Just password, userPreferences: Just userPreferences, userInfoReferences: Just (UserInfoReferences { indexReference: IndexReference { reference: indexRef }, preferencesReference: UserPreferencesReference { reference: prefRef}}), pinEncryptedPassword} _ =
-  do
-    let references = prefRef : indexRef : ((\(CardEntry {cardReference: CardReference {reference}}) -> reference) <$> cardEntryList)
-    let connectionState = {proxy, hashFunc, srpConf, c, p}
-
-    ProxyResponse proxy' blobs <- downloadBlobsSteps references connectionState page
-    remoteUserCard             <- runStep (computeRemoteUserCard state)                                                                                  (WidgetState (spinnerOverlay "Compute user card" White) page)
-    ProxyResponse proxy'' doc  <- runStep (getBasicHTML connectionState{proxy = proxy'})                                                                       (WidgetState (spinnerOverlay "Download html"     White) page)
-    documentToDownload         <- runStep (appendCardsDataInPlace doc blobs remoteUserCard >>= (liftEffect <<< prepareHTMLBlob))                                                              (WidgetState (spinnerOverlay "Create document"   White) page)
-    date                       <- runStep (liftEffect $ formatDateTimeToDate <$> getCurrentDateTime)                                                     (WidgetState (spinnerOverlay ""                  White) page)
-    _                          <- runStep (liftEffect $ download documentToDownload (date <> "_Clipperz_Offline" <> ".html") "application/octet-stream") (WidgetState (spinnerOverlay "Download document" White) page)
-    pure $ Tuple state {proxy = proxy''} (WidgetState hiddenOverlayInfo page)
-  # runExceptT
-  >>= handleOperationResult state page true White
+    (LockEvent) ->
+      let page = Main defaultPage
+      in
+        logoutSteps state "Lock" page
+        # runExceptT
+        >>= handleOperationResult state defaultErrorPage true White
   
-  where
-      page = Main { index
-                  , credentials:      {username, password}
-                  , pinExists:        isJust pinEncryptedPassword
-                  , userPreferences
-                  , userAreaState
-                  , cardManagerState
-                  }
-
-handleUserAreaEvent (ExportEvent UnencryptedCopy) cardManagerState userAreaState state@{index: Just index@(Index cardEntryList), proxy, hash: hashFunc, srpConf, c: Just c, p: Just p, username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword, cardsCache} _ =
-  do
-    let connectionState = {proxy, hashFunc, srpConf, c, p}
-    ProxyResponse proxy' (Tuple cardsCache' cardList) <-                       downloadCardsSteps cardEntryList cardsCache connectionState page
-    doc                                               <- runStep (liftEffect $ prepareCardsForUnencryptedExport cardList)                                                    (WidgetState (spinnerOverlay "Create document"   White) page)
-    date                                              <- runStep (liftEffect $ formatDateTimeToDate <$> getCurrentDateTime)                                                  (WidgetState (spinnerOverlay ""                  White) page)
-    _                                                 <- runStep (liftEffect $ download doc (date <> "_Clipperz_Export_" <> username <> ".html") "application/octet-stream") (WidgetState (spinnerOverlay "Download document" White) page)
-                              
-    pure $ Tuple state{proxy = proxy', cardsCache = cardsCache'} (WidgetState hiddenOverlayInfo page)
-  # runExceptT
-  >>= handleOperationResult state page true White
-  
-  where
-      page = Main { index
-                  , credentials:      {username, password}
-                  , pinExists:        isJust pinEncryptedPassword
-                  , userPreferences
-                  , userAreaState
-                  , cardManagerState
-                  }
-
-handleUserAreaEvent LockEvent cardManagerState userAreaState state@{username: Just username, password: Just password, index: Just index, userPreferences: Just userPreferences, pinEncryptedPassword} _ = 
-  logoutSteps state "Lock" page
-  # runExceptT
-  >>= handleOperationResult state defaultErrorPage true White
-  
-  where
-    page = Main { index
-                , credentials:      {username, password}
-                , pinExists:        isJust pinEncryptedPassword
-                , userPreferences
-                , userAreaState
-                , cardManagerState
-                }
-
-handleUserAreaEvent LogoutEvent cardManagerState userAreaState state@{index: Just index, username: Just username, password: Just password, userPreferences: Just userPreferences, pinEncryptedPassword} _ = 
-  logoutSteps (state {username = Nothing}) "Logout" page
-  # runExceptT
-  >>= handleOperationResult state defaultErrorPage true White
-
-  where
-    page = Main { index
-                , credentials:      {username, password}
-                , pinExists:        isJust pinEncryptedPassword
-                , userPreferences
-                , userAreaState
-                , cardManagerState
-                }
+    (LogoutEvent) ->
+      let page = Main defaultPage
+      in
+        logoutSteps (state {username = Nothing}) "Logout" page
+        # runExceptT
+        >>= handleOperationResult state defaultErrorPage true White
 
 handleUserAreaEvent _ _ _ state _ = do
   throwError $ InvalidStateError (CorruptedState "State is corrupted")
