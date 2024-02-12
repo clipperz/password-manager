@@ -263,8 +263,8 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
 
         ProxyResponse proxy' blobs <- downloadBlobsSteps references connectionState page
         remoteUserCard             <- runStep (computeRemoteUserCard state)                                                                                  (WidgetState (spinnerOverlay "Compute user card" White) page)
-        ProxyResponse proxy'' doc  <- runStep (getBasicHTML connectionState{proxy = proxy'})                                                                       (WidgetState (spinnerOverlay "Download html"     White) page)
-        documentToDownload         <- runStep (appendCardsDataInPlace doc blobs remoteUserCard >>= (liftEffect <<< prepareHTMLBlob))                                                              (WidgetState (spinnerOverlay "Create document"   White) page)
+        ProxyResponse proxy'' doc  <- runStep (getBasicHTML connectionState{proxy = proxy'})                                                                 (WidgetState (spinnerOverlay "Download html"     White) page)
+        documentToDownload         <- runStep (appendCardsDataInPlace doc blobs remoteUserCard >>= (liftEffect <<< prepareHTMLBlob))                         (WidgetState (spinnerOverlay "Create document"   White) page)
         date                       <- runStep (liftEffect $ formatDateTimeToDate <$> getCurrentDateTime)                                                     (WidgetState (spinnerOverlay ""                  White) page)
         _                          <- runStep (liftEffect $ download documentToDownload (date <> "_Clipperz_Offline" <> ".html") "application/octet-stream") (WidgetState (spinnerOverlay "Download document" White) page)
         pure $ Tuple state {proxy = proxy''} (WidgetState hiddenOverlayInfo page)
@@ -329,7 +329,7 @@ logoutSteps state@{username, hash: hashFunc, proxy, srpConf} message page =
   do
     let connectionState = {proxy, hashFunc, srpConf, c: hex "", p: hex ""}
     passphrase <- runStep (do 
-                            _   <- genericRequest connectionState "logout" POST Nothing RF.string
+                            _   <- genericRequest connectionState "logout" POST Nothing RF.ignore
                             res <- liftEffect $ window >>= localStorage >>= getItem (makeKey "passphrase")
                             pure res
                           ) (WidgetState (spinnerOverlay message White) page)

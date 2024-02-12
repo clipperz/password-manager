@@ -6,7 +6,7 @@ import Data.Map.Internal (Map)
 import Data.Maybe (Maybe)
 import Data.PrettyShow (class PrettyShow)
 import Data.Semigroup ((<>))
-import Data.Show (class Show, show)
+import Data.Show (class Show)
 import Data.Unit (Unit, unit)
 import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
@@ -19,17 +19,11 @@ type Url = String
 type Path = String
 type SessionKey = HexString
 
-type BackendSessionRecord = {
+type BackendSessionState = {
   b  :: HexString
 , aa :: HexString
 , bb :: HexString
 }
-data BackendSessionState = BackendSessionState BackendSessionRecord
-
-derive instance eqBackendSessionState :: Eq BackendSessionState
-
-instance showBackendSessionState :: Show BackendSessionState where
-  show (BackendSessionState r) = show r
 
 type TollManager = {
   toll             :: AsyncValue HexString

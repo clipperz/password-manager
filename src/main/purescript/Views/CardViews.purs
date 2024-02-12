@@ -5,8 +5,9 @@ import Concur.Core.FRP (Signal, fireOnce, loopW)
 import Concur.React (HTML)
 import Concur.React.DOM (a_, div, h3, li', li_, p_, text, textarea, ul)
 import Concur.React.Props as Props
+import Control.Alt ((<#>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard)
+import Control.Bind (bind, discard, (=<<))
 import Data.Array (null)
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
@@ -17,8 +18,10 @@ import Data.Unit (unit)
 import DataModel.Card (Card(..), CardField(..), CardValues(..))
 import DataModel.Index (CardEntry)
 import Effect.Aff.Class (liftAff)
+import Effect.Class (liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
 import Functions.Clipboard (copyToClipboard)
+import Functions.State (isOffline)
 import MarkdownIt (renderString)
 import Views.Components (dynamicWrapper, entropyMeter)
 import Views.SimpleWebComponents (simpleButton, confirmationWidget)
@@ -37,7 +40,7 @@ data CardEvent = Edit    CardEntry Card
 cardView :: Card -> CardEntry -> Widget HTML CardEvent
 cardView card@(Card r) cardEntry = do
   res <- div [Props._id "cardView"] [
-    cardActions true
+    cardActions =<< (liftEffect isOffline <#> not)
   , cardContent r.content
   ]
   case res of

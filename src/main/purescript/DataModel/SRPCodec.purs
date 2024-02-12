@@ -8,6 +8,7 @@ import Data.Codec.Argonaut.Common as CAC
 import Data.Codec.Argonaut.Record as CAR
 import Data.Either (Either(..))
 import Data.Function (($))
+import Data.HexString (HexString)
 import Data.Profunctor (wrapIso)
 import DataModel.Codec as Codec
 import DataModel.Communication.Login (LoginStep2Response, LoginStep1Response)
@@ -53,11 +54,11 @@ requestUserCardCodec = wrapIso RequestUserCard $
     , masterKey: masterKeyCodec
     }
 
-loginStep2ResponseCodec :: CA.JsonCodec LoginStep2Response
-loginStep2ResponseCodec =
-  CAR.object "loginStep2Response"
-    { m2        : Codec.hexStringCodec
-    , masterKey : masterKeyCodec
+loginStep1RequestCodec :: CA.JsonCodec {c :: HexString, aa :: HexString}
+loginStep1RequestCodec = 
+  CAR.object "loginStep1Request" 
+    { c:  Codec.hexStringCodec
+    , aa: Codec.hexStringCodec
     }
 
 loginStep1ResponseCodec :: CA.JsonCodec LoginStep1Response
@@ -65,6 +66,19 @@ loginStep1ResponseCodec =
   CAR.object "loginStep1Response"
     { s  : Codec.hexStringCodec
     , bb : Codec.hexStringCodec
+    }
+
+loginStep2RequestCodec :: CA.JsonCodec {m1 :: HexString}
+loginStep2RequestCodec = 
+  CAR.object "loginStep2Request"
+    { m1: Codec.hexStringCodec
+    }
+
+loginStep2ResponseCodec :: CA.JsonCodec LoginStep2Response
+loginStep2ResponseCodec =
+  CAR.object "loginStep2Response"
+    { m2        : Codec.hexStringCodec
+    , masterKey : masterKeyCodec
     }
 
 registerUserRequestCodec :: CA.JsonCodec RegisterUserRequest
