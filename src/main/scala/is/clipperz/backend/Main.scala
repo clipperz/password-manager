@@ -1,43 +1,22 @@
 package is.clipperz.backend
 
-import java.nio.file.FileSystems
-import scala.util.Try
-import zio.{ Cause, ZIO, Scope, Task, ZIOAppArgs, ZIOAppDefault, LogLevel, Runtime, ZLayer }
-import zio.durationInt
-import zio.logging.LogFormat
-import zio.logging.backend.SLF4J
-import zio.metrics.connectors.datadog
-import zio.metrics.connectors.MetricsConfig
-
-import zio.http.{
-  Header,
-  Headers,
-  HttpApp,
-  Method,
-  Path,
-  Request,
-  Response,
-  Status,
-}
-import zio.http.{ Server }
-import zio.http.netty.{ EventLoopGroups, NettyConfig }
-import zio.http.netty.NettyConfig.LeakDetectionLevel
-
 import is.clipperz.backend.apis.{ blobsApi, loginApi, logoutApi, staticApi, usersApi, oneTimeShareApi }
 import is.clipperz.backend.functions.{ customErrorHandler }
 import is.clipperz.backend.middleware.{ hashcash, metrics }
 import is.clipperz.backend.services.{ BlobArchive, PRNG, SessionManager, SrpManager, TollManager, UserArchive, OneTimeShareArchive }
-import zio.http.Server.RequestStreaming
-import zio.http.Routes
-import zio.http.endpoint.Endpoint
-import zio.http.endpoint.openapi.OpenAPI
-import zio.http.endpoint.openapi.OpenAPIGen
-import zio.http.Status.NotFound
-import is.clipperz.backend.exceptions.*
-import java.time.format.DateTimeParseException
 import is.clipperz.backend.services.ChallengeType
-import java.time.Duration
-import zio.http.Middleware
+
+import java.nio.file.FileSystems
+
+import scala.util.Try
+
+import zio.{ LogLevel, Runtime, ZIOAppArgs, ZIO, ZLayer, durationInt }
+import zio.logging.LogFormat
+import zio.metrics.connectors.{ MetricsConfig, datadog }
+import zio.http.{ HttpApp, Middleware, Server }
+import zio.http.netty.{ EventLoopGroups, NettyConfig }
+import zio.http.netty.NettyConfig.LeakDetectionLevel
+import zio.http.Server.RequestStreaming
 
 object Main extends zio.ZIOAppDefault:
   override val bootstrap =

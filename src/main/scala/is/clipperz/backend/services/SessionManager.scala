@@ -1,18 +1,17 @@
 package is.clipperz.backend.services
 
-import scala.collection.immutable.HashMap
-import zio.{ ZIO, Layer, ZLayer, Tag, Task, UIO }
-import zio.internal.stacktracer.Tracer
-import zio.http.Request
 import is.clipperz.backend.exceptions.BadRequestException
 import is.clipperz.backend.data.HexString.bytesToHex
-import zio.cache.Cache
+
 import java.util.concurrent.TimeUnit
-import zio.durationInt
-import zio.cache.Lookup
-import zio.Ref
+
+import scala.collection.immutable.HashMap
 import scala.concurrent.duration.fromNow
-import zio.Duration
+
+import zio.{ Duration, Ref, ZIO, Layer, ZLayer, Tag, Task, UIO, durationInt }
+import zio.cache.{ Cache, Lookup }
+import zio.internal.stacktracer.Tracer
+import zio.http.Request
 
 type SessionKey = String
 type SessionContent = Map[String, String]

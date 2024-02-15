@@ -1,11 +1,7 @@
 package is.clipperz.backend.services
 
-import com.github.nscala_time.time.Imports.*
-
-import java.io.{ File, FileOutputStream, FileNotFoundException, IOException }
-import java.nio.file.Path
-import java.security.MessageDigest
-import java.util.UUID
+import com.github.nscala_time.time.Imports.DateTime
+import com.github.nscala_time.time.StaticDateTimeFormat
 
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.{ bytesToHex }
@@ -13,10 +9,14 @@ import is.clipperz.backend.exceptions.{ EmptyContentException, NonWritableArchiv
 import is.clipperz.backend.functions.crypto.HashFunction
 import is.clipperz.backend.functions.fromStream
 
+import java.io.{ File, FileOutputStream, FileNotFoundException, IOException }
+import java.nio.file.Path
+import java.security.MessageDigest
+import java.util.UUID
+
 import zio.{ Duration, ZIO, ZLayer, Task, Chunk }
 import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder }
 import zio.stream.{ ZStream, ZSink }
-import com.github.nscala_time.time.StaticDateTimeFormat
 
 // ----------------------------------------------------------------------------
 

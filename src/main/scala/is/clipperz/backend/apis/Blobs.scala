@@ -1,27 +1,27 @@
 package is.clipperz.backend.apis
 
 import java.io.FileNotFoundException
+
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.exceptions.{
-  NonWritableArchiveException,
-  NonReadableArchiveException,
-  FailedConversionException,
-  ResourceNotFoundException,
+    NonWritableArchiveException,
+    NonReadableArchiveException,
+    FailedConversionException,
+    ResourceNotFoundException,
+    EmptyContentException,
+    BadRequestException
 }
-import is.clipperz.backend.exceptions.EmptyContentException
-import is.clipperz.backend.exceptions.BadRequestException
 import is.clipperz.backend.functions.{ fromStream }
 import is.clipperz.backend.services.{ BlobArchive }
 import is.clipperz.backend.Main.ClipperzHttpApp
 import is.clipperz.backend.LogAspect
 
-import zio.{ ZIO, Cause }
-import zio.http.{ Headers, Body, Method, Path, Response, Request, Status }
-import zio.http.*
+import zio.{ ZIO, Cause, Chunk }
+import zio.http.{ Headers, Body, Method, FormField, Path, Response, Request, Routes, Status, handler }
 import zio.http.Header.{ ContentType, ContentTransferEncoding }
 import zio.http.codec.HeaderCodec
+import zio.http.codec.PathCodec.string
 import zio.stream.{ ZStream, ZSink }
-import zio.Chunk
 
 val blobsApi: Routes[BlobArchive, Throwable] = Routes(
     Method.POST / "api" / "blobs" -> handler: (request: Request) =>

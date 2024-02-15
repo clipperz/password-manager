@@ -4,6 +4,7 @@ import com.github.nscala_time.time.Imports.*
 
 import java.util
 import java.time.LocalDate
+import java.time.format.DateTimeParseException
 import java.nio.charset.StandardCharsets
 
 import is.clipperz.backend.Main.ClipperzHttpApp
@@ -11,17 +12,13 @@ import is.clipperz.backend.LogAspect
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.exceptions.{ BadRequestException, FailedConversionException, ResourceNotFoundException, NonWritableArchiveException, ResourceExpiredException }
 import is.clipperz.backend.functions.fromStream
-import is.clipperz.backend.services.{ SessionManager, SrpManager, SRPStep1Data, SRPStep2Data }
-import is.clipperz.backend.services.{ OneTimeShareArchive, OneTimeSecret }
+import is.clipperz.backend.services.{ SessionManager, SrpManager, SRPStep1Data, SRPStep2Data, OneTimeShareArchive, OneTimeSecret }
 
 import zio.{ ZIO, Cause, Chunk }
-import zio.http.{ Method, Path, Response, Request, Status }
-import zio.http.* //TODO: fix How do you import `Root` and `/`?
+import zio.metrics.Metric
+import zio.http.{ Method, Path, Response, Request, Status, Routes, Headers, Body, handler, string }
 import zio.json.{ EncoderOps, JsonDecoder, DeriveJsonDecoder, JsonEncoder, DeriveJsonEncoder }
 import zio.stream.{ ZStream }
-
-import java.time.format.DateTimeParseException
-import zio.metrics.Metric
 
 // ------------------------------------------------------------------------------------
 

@@ -1,11 +1,13 @@
 package is.clipperz.backend.functions
 
-import zio.{ ZIO, Task }
-import zio.stream.{ ZSink, ZStream }
-import java.nio.charset.StandardCharsets
-import zio.json.{ JsonDecoder, DecoderOps }
-
 import is.clipperz.backend.exceptions.FailedConversionException
+
+import java.nio.charset.StandardCharsets
+
+import zio.{ ZIO, Task }
+import zio.json.{ JsonDecoder, DecoderOps }
+import zio.stream.{ ZSink, ZStream }
+
 
 def fromStream[A](using decoder: JsonDecoder[A])(content: ZStream[Any, Throwable, Byte]): Task[A] =
   content

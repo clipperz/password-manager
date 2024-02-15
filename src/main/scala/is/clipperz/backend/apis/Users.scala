@@ -1,5 +1,6 @@
 package is.clipperz.backend.apis
-import is.clipperz.backend.data.HexString
+
+import is.clipperz.backend.data.{ HexString, Base }
 import is.clipperz.backend.exceptions.{
   NonWritableArchiveException,
   NonReadableArchiveException,
@@ -10,17 +11,15 @@ import is.clipperz.backend.exceptions.{
   ConflictualRequestException,
 }
 import is.clipperz.backend.functions.{ fromStream }
-import is.clipperz.backend.services.*
 import is.clipperz.backend.Main.ClipperzHttpApp
+import is.clipperz.backend.middleware.authorizedMiddleware
 import is.clipperz.backend.LogAspect
+import is.clipperz.backend.services.{BlobArchive, RequestUserCard, SessionManager, SignupData, UserArchive, UserCard, remoteFromRequest}
 
 import zio.{ ZIO, Cause }
-import zio.http.{ Method, Response, Request, Status }
-import zio.http.*
+import zio.http.{ Method, Response, Request, Routes, Status, handler, string }
 import zio.json.EncoderOps
 import zio.stream.ZStream
-import is.clipperz.backend.data.Base
-import is.clipperz.backend.middleware.authorizedMiddleware
 
 val usersApi: Routes[BlobArchive & UserArchive & SessionManager, Throwable] = Routes(
     Method.POST / "api" / "users" / string("c") -> (handler: (c: String, request: Request) =>

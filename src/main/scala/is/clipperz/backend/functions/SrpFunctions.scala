@@ -1,8 +1,5 @@
 package is.clipperz.backend.functions
 
-import zio.{ ZIO, Task, Chunk }
-import zio.stream.{ ZStream, ZSink }
-import java.security.MessageDigest
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.srp.{ SRPGroup, SRPConfigV6a }
 import is.clipperz.backend.functions.crypto.HashFunction
@@ -10,6 +7,11 @@ import is.clipperz.backend.functions.crypto.HashFunction.hashSHA256
 import is.clipperz.backend.functions.crypto.KeyDerivationFunction.kdfSHA256
 import is.clipperz.backend.functions.Conversions.{ bytesToBigInt, bigIntToBytes }
 import is.clipperz.backend.functions.ByteArrays.{ hashOfArrays, bitxor }
+
+import java.security.MessageDigest
+
+import zio.{ ZIO, Task, Chunk }
+import zio.stream.{ ZStream, ZSink }
 
 trait SrpFunctions:
   def computeA(a: BigInt): BigInt

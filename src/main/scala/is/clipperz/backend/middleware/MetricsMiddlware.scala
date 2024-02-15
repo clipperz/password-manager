@@ -1,26 +1,13 @@
 package is.clipperz.backend.middleware
 
+import java.nio.file.{ Files, Path }
+import java.util.concurrent.TimeUnit.{ SECONDS, NANOSECONDS }
+
 import scala.jdk.CollectionConverters.*
 
-import java.util.concurrent.TimeUnit.{ SECONDS, NANOSECONDS }
-import java.nio.file.Path
-import java.nio.file.Files
-
-import zio.{ ZIO, Chunk, Task, Schedule }
-import zio.durationInt
-import zio.metrics.{ Metric, MetricLabel }
-import zio.http.{ Response, Method }
-import zio.http.HandlerAspect
-import zio.http.Handler
-import zio.http.Request
-import zio.Clock
-import zio.http.Middleware
-import zio.metrics.MetricKeyType
-import zio.Trace
-import zio.RuntimeFlags
-import zio.http.RoutePattern
-import zio.http.Routes
-import zio.Duration
+import zio.{ Clock, Duration, Chunk, RuntimeFlags, Schedule, Task, Trace, ZIO, durationInt }
+import zio.metrics.{ Metric, MetricLabel, MetricKeyType }
+import zio.http.{ Handler, HandlerAspect, Method, Middleware, RoutePattern, Response, Request, Routes }
 
 private val nanoToSeconds = 1e-9
 

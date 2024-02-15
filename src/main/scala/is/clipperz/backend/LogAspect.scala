@@ -1,6 +1,6 @@
 package is.clipperz.backend
 
-import zio.*
+import zio.{ Trace, UIO, ZIOAspect, ZIO }
 import zio.http.Request
 
 object LogAspect:

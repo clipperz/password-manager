@@ -1,14 +1,14 @@
 package is.clipperz.backend.services
 
-import zio.{ ZIO, ZLayer, Task }
-import zio.stream.ZStream
-import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder }
 import is.clipperz.backend.data.HexString
-import is.clipperz.backend.data.HexString.*
-import is.clipperz.backend.functions.Conversions.*
+import is.clipperz.backend.data.HexString.{ bytesToHex, bigIntToHex }
+import is.clipperz.backend.functions.Conversions.{ bigIntToBytes, bytesToBigInt }
 import is.clipperz.backend.functions.SrpFunctions.SrpFunctionsV6a
-import is.clipperz.backend.exceptions.ResourceNotFoundException
-import is.clipperz.backend.exceptions.BadRequestException
+import is.clipperz.backend.exceptions.{ BadRequestException, ResourceNotFoundException }
+
+import zio.{ ZIO, ZLayer, Task }
+import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder }
+import zio.stream.ZStream
 
 // ============================================================================
 

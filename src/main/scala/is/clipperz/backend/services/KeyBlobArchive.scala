@@ -1,10 +1,5 @@
 package is.clipperz.backend.services
 
-import java.io.{ File, FileNotFoundException }
-import java.nio.file.{ Files, Path }
-import zio.{ Task, ZIO }
-import zio.stream.{ ZSink, ZStream }
-
 import is.clipperz.backend.exceptions.{
   NonWritableArchiveException,
   NonReadableArchiveException,
@@ -12,7 +7,12 @@ import is.clipperz.backend.exceptions.{
   EmptyContentException,
 }
 import is.clipperz.backend.middleware.scheduledFileSystemMetricsCollection
-import zio.Duration
+
+import java.io.{ File, FileNotFoundException }
+import java.nio.file.{ Files, Path }
+
+import zio.{ Duration, Task, ZIO }
+import zio.stream.{ ZSink, ZStream }
 
 // ============================================================================
 
