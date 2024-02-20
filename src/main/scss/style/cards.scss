@@ -940,6 +940,7 @@ div#homePage {
                                         &:disabled {
                                             background-color: #5a5;
                                             &:hover {
+                                                cursor: default;
                                                 background-color: #5a5;
                                             }
                                         }
