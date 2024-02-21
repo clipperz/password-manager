@@ -23,6 +23,7 @@ import DataModel.Password (PasswordGeneratorSettings)
 import DataModel.WidgetState (CardFormInput(..), CardManagerState, CardViewState(..))
 import IndexFilterView (Filter(..), FilterData, FilterViewStatus(..), filteredEntries, getClassNameFromFilterStatus, indexFilterView, initialFilterData, shownEntries)
 import Views.CardViews (CardEvent(..), cardView)
+import Views.Components (proxyInfoComponent)
 import Views.CreateCardView (createCardView)
 import Views.SimpleWebComponents (simpleButton)
 
@@ -50,6 +51,7 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archiv
     indexFilterView filterData index <#> updateFilterData
   , div [Props.className "cardToolbarFrame"] [
       toolbarHeader "frame"
+    , proxyInfoComponent [Just "withDate"]
     , div [Props._id "mainView", Props.className (if cardViewState /= NoCard then "CardViewOpen" else "CardViewClose")] [
         div [Props._id "indexView"] [
           toolbarHeader "cardList"

@@ -3,14 +3,16 @@ module Functions.Export where
 import Affjax.ResponseFormat as RF
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
+import Control.Category (identity)
 import Control.Monad.Except (throwError)
 import Control.Monad.Except.Trans (ExceptT(..), except)
 import Control.Semigroupoid ((<<<))
 import Data.Argonaut.Core as AC
 import Data.Codec.Argonaut (encode)
 import Data.Codec.Argonaut.Common as CAC
-import Data.Either (Either(..), note)
+import Data.Either (Either(..), either, note)
 import Data.Foldable (fold)
+import Data.Formatter.DateTime (formatDateTime)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
@@ -37,7 +39,7 @@ import Effect.Class (liftEffect)
 import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, genericRequest)
 import Functions.Events (renderElement)
 import Functions.State (offlineDataId)
-import Functions.Time (getCurrentDateTime, formatDateTimeToDate, formatDateTimeToTime)
+import Functions.Time (formatDateTimeToDate, formatDateTimeToTime, getCurrentDateTime)
 import Web.DOM.Document (Document, documentElement, toNode, createElement)
 import Web.DOM.Element as EL
 import Web.DOM.Node (lastChild, firstChild, insertBefore, setTextContent)
@@ -86,10 +88,12 @@ getBasicHTML connectionState = do
 
 appendCardsDataInPlace :: Document -> List (Tuple HexString HexString) -> RequestUserCard -> ExceptT AppError Aff Document
 appendCardsDataInPlace doc blobList requestUserCard = do
-  let blobsContent = "const blobs = { " <> (fold $ (\(Tuple k v) -> "\"" <> show k <> "\": \"" <> show v <> "\", " ) <$> blobList) <> "}"
-  let userCardContent = "const userCard = " <> (AC.stringify $ encode SRPCodec.requestUserCardCodec requestUserCard)
-  let prepareContent = "window.blobs = blobs; window.userCard = userCard;"
-  let nodeContent = userCardContent <> ";\n" <> blobsContent <> ";\n" <> prepareContent
+  let blobsContent     = "const blobs = { "          <> (fold $ (\(Tuple k v) -> "\"" <> show k <> "\": \"" <> show v <> "\", " ) <$> blobList) <> "}"
+  let userCardContent  = "const userCard = "         <> (AC.stringify $ encode SRPCodec.requestUserCardCodec requestUserCard)
+  currentDateTime <- liftEffect getCurrentDateTime
+  let offlineTimestamp = "const offlineTimestamp = '" <> ((either identity identity $ formatDateTime "ddd, D MMMM YYYY HH:mm:ss" currentDateTime) <> " UTC'")
+  let prepareContent   = "window.blobs = blobs; window.userCard = userCard; window.offlineTimestamp = offlineTimestamp;"
+  let nodeContent      = userCardContent <> ";\n" <> blobsContent <> ";\n" <> offlineTimestamp <> ";\n" <> prepareContent
 
   let asNode = toNode doc
   html <- ExceptT $ (note $ UnhandledCondition "TODO") <$> (liftEffect $ lastChild asNode)

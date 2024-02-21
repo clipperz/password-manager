@@ -21,7 +21,7 @@ import Effect.Class (liftEffect)
 import Functions.Debug (debugState)
 import Functions.EnvironmentalVariables (currentCommit)
 import Views.CardsManagerView (CardManagerEvent, cardManagerInitialState, cardsManagerView)
-import Views.Components (footerComponent)
+import Views.Components (footerComponent, proxyInfoComponent)
 import Views.LoginFormView (LoginPageEvent, emptyLoginFormData, loginPage)
 import Views.OverlayView (overlay)
 import Views.SignupFormView (SignupPageEvent, emptyDataForm, signupFormView)
@@ -98,7 +98,8 @@ headerPage currentPage page innerContent = do
   commitHash <- liftEffect $ currentCommit
   div [Props.classList (Just <$> ["page", pageClassName page, show $ location page currentPage])] [
     div [Props.className "content"] [
-      headerComponent
+      proxyInfoComponent []
+    , headerComponent
     , div [Props.className "body"] innerContent
     , otherComponent
     , footerComponent commitHash

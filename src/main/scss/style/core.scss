@@ -1,4 +1,5 @@
 @import "./palette.scss";
+@import "../structure/mixin.scss";
 
 // @media (prefers-color-scheme: light) {
 // 	html {
@@ -32,6 +33,8 @@ div.page {
     div.content {
         display: flex;
         flex-direction: column;
+
+		@include offlineHeader();
 
         header {
             width: 100%;

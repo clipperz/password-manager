@@ -13,6 +13,7 @@ import Data.Map.Internal (empty)
 import Data.Maybe (Maybe(..), isJust)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst, snd)
+import Data.Unit (Unit)
 import DataModel.AppState (Proxy(..), AppState)
 import DataModel.AsyncValue (AsyncValue(..))
 import DataModel.Card (Card)
@@ -30,6 +31,8 @@ import Web.HTML (HTMLElement, window)
 import Web.HTML.HTMLDocument (body)
 import Web.HTML.HTMLElement (toNode)
 import Web.HTML.Window (document)
+
+foreign import _readTimestamp :: Unit -> String
 
 offlineDataId :: String
 offlineDataId = "offlineData"
