@@ -117,7 +117,7 @@ loadHomePageSteps state@{hash: hashFunc, proxy, srpConf, userInfoReferences: Jus
     Left  _ -> pure unit
 
   let cardViewState = case fragmentState of
-                        Fragment.AddCard card -> CardForm (NewCard $ Just card)
+                        Fragment.AddCard card -> CardForm (NewCardFromFragment card)
                         _                     -> NoCard
 
   pure $ Tuple (state {proxy = proxy'', index = Just index, userPreferences = Just userPreferences}) (WidgetState {status: Hidden, color: Black, message: ""} (Main emptyMainPageWidgetState { index = index, cardManagerState = cardManagerInitialState { cardViewState = cardViewState } }))

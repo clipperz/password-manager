@@ -572,9 +572,9 @@ filterViewStatusCodec = dimap toVariant fromVariant $ CAV.variantMatch
 -- data CardViewState = NoCard | Card Card CardEntry | CardForm CardFormInput 
 cardViewStateCodec :: CA.JsonCodec CardViewState
 cardViewStateCodec = dimap toVariant fromVariant $ CAV.variantMatch
-    { noCard:   Left  unit
+    { noCard:   Left   unit
     , card:     Right (CA.object "Card" (CAR.record {card: cardCodec, cardEntry: cardEntryCodec }))
-    , cardForm: Right cardFormInputCodec
+    , cardForm: Right  cardFormInputCodec
     }
   where
     toVariant = case _ of
@@ -587,19 +587,22 @@ cardViewStateCodec = dimap toVariant fromVariant $ CAV.variantMatch
       , cardForm:                       CardViewState.CardForm
       }
 
--- data CardFormInput = NewCard (Maybe Card) | ModifyCard Card CardEntry
+-- data CardFormInput = NewCard | NewCardFromFragment Card | ModifyCard Card CardEntry
 cardFormInputCodec :: CA.JsonCodec CardFormInput
 cardFormInputCodec = dimap toVariant fromVariant $ CAV.variantMatch
-    { newCard:    Right (CAC.maybe cardCodec)
-    , modifyCard: Right (CA.object "ModifyCard" (CAR.record {card: cardCodec, cardEntry: cardEntryCodec }))
+    { newCard             : Left   unit
+    , newCardFromFragment : Right  cardCodec
+    , modifyCard          : Right (CA.object "ModifyCard" (CAR.record {card: cardCodec, cardEntry: cardEntryCodec }))
     }
   where
     toVariant = case _ of
-      NewCard mc      -> V.inj (Proxy :: _ "newCard"     ) mc
-      ModifyCard c ce -> V.inj (Proxy :: _ "modifyCard" ) {card: c, cardEntry: ce}
+      NewCard                -> V.inj (Proxy :: _ "newCard"            )  unit
+      NewCardFromFragment ce -> V.inj (Proxy :: _ "newCardFromFragment")  ce
+      ModifyCard c ce        -> V.inj (Proxy :: _ "modifyCard"         ) {card: c, cardEntry: ce}
     fromVariant = V.match
-      { newCard:    NewCard
-      , modifyCard: (\{card, cardEntry} -> ModifyCard card cardEntry)
+      { newCard:              \_ -> NewCard
+      , newCardFromFragment: (\cardEntry         -> NewCardFromFragment cardEntry)
+      , modifyCard:          (\{card, cardEntry} -> ModifyCard card cardEntry)
       }
 
 -- newtype UserPreferences = 

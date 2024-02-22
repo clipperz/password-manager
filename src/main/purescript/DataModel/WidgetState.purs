@@ -76,7 +76,7 @@ data WidgetState = WidgetState OverlayInfo Page
 
 -- -------------------------------------
 
-data CardFormInput = NewCard (Maybe Card) | ModifyCard Card CardEntry -- TODO NewCard | NewCardFromFragment Card | ModifyCard Card CardEntry [fsolaroli - 03/12/2023]
+data CardFormInput = NewCard | NewCardFromFragment Card | ModifyCard Card CardEntry
 derive instance eqCardFormInput :: Eq CardFormInput
 
 data CardViewState = NoCard | Card Card CardEntry | CardForm CardFormInput

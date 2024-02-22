@@ -55,7 +55,7 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archiv
     , div [Props._id "mainView", Props.className (if cardViewState /= NoCard then "CardViewOpen" else "CardViewClose")] [
         div [Props._id "indexView"] [
           toolbarHeader "cardList"
-        , div [Props.className "addCard"] [simpleButton "addCard" "add card" false (StateUpdate state { cardViewState = CardForm $ NewCard Nothing, selectedEntry = Nothing})]
+        , div [Props.className "addCard"] [simpleButton "addCard" "add card" false (StateUpdate state { cardViewState = CardForm NewCard, selectedEntry = Nothing})]
         , indexView index selectedEntry filter archived <#> (CardManagerEvent <<< OpenCardViewEvent)
         ]
       , div [Props._id "card"] [
@@ -104,22 +104,24 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archiv
     handleCardEvents (Exit                  ) = StateUpdate $ state { cardViewState = NoCard, selectedEntry = Nothing}
 
     mainStageView :: CardViewState -> Widget HTML CardsManagerInternalEvent
-    mainStageView NoCard                   = div [] []
+    mainStageView  NoCard                  = div [] []
     mainStageView (Card card cardEntry)    = cardView card cardEntry <#> handleCardEvents
     mainStageView (CardForm cardFormInput) = createCardView inputCard allTags userPasswordGeneratorSettings <#> (maybe (StateUpdate $ updateCardView viewCardStateUpdate) (CardManagerEvent <<< outputEvent))
       where
 
         inputCard = case cardFormInput of
-          NewCard   (Just card) -> card
-          NewCard    Nothing    -> emptyCard
-          ModifyCard card _     -> card
+          NewCard                    -> emptyCard
+          NewCardFromFragment card   -> card
+          ModifyCard          card _ -> card
         
         viewCardStateUpdate = case cardFormInput of
-          NewCard    _    -> NoCard
+          NewCard                   -> NoCard
+          NewCardFromFragment _     -> NoCard 
           ModifyCard card cardEntry -> Card card cardEntry
 
         outputEvent = case cardFormInput of
-          NewCard    _           -> AddCardEvent
+          NewCard                -> AddCardEvent
+          NewCardFromFragment _  -> AddCardEvent
           ModifyCard _ cardEntry -> EditCardEvent cardEntry
 
 
