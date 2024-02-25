@@ -26,17 +26,20 @@ Necessary tools:
 
 ### Building and running the application
 All the building and running of the application is managed by sbt, that under the hood uses yarn to manage the Purescript side.
-On a console, in the base folder run `sbt` to open the sbt console, after that the command `r` (or `runAll`) builds the whole project, both Scala and Purescript and then starts the Scala server that also serves the frontend at `localhost:8090/index.html`.
+On a console, in the base folder run `sbt` to open the sbt console, after that the command `r` (or `runAll`) builds the whole project, both Scala and Purescript and then starts the Scala server that also serves the frontend at `localhost:8090/api/static/index.html`.
+
+#### Debugging
+In order to reload a given status, use the page at the following url: `localhost:8090/api/static/debug_index.html`
  
 ### Running tests
 Command to run inside of the sbt console to execute tests:
 - Scala
 	- `Test/compile`: compiles the tests
 	- `test`: runs all the Scala tests
-	- `Test/test {path of the test suit}` (ex: `Test/test is.clipperz.backend.SrpFunctionsConversionsSuite`): run a specific test suite
+	- `testOnly {path of the test suit}` (ex: `testOnly is.clipperz.backend.SrpFunctionsConversionsSuite`): run a specific test suite
 	- `Test/run`: show a list of all the test suits from which you can choose one to run
 - Purescript
-	- `testPurescript`: starts a server on `localhost:1234` that runs all the Purescript tests on browser and prints the result in the browser console
+	- `testPurescript`: starts a server on `localhost:9000` that runs all the Purescript tests on browser and prints the result in the browser console
 - `t` (or `testAll`): run `test` first and `testPurescript` after that. Note that if a Scala test doesn't pass `testPurescript` will not be executed.
 
 ### Docker images
@@ -54,3 +57,5 @@ To run:
 ```
 docker run -p 8080:8080 -v ${PWD}/target/archive/user:/archive/user -v ${PWD}/target/archive/blob:/archive/blob clipperz
 ```
+
+
