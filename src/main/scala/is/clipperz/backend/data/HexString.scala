@@ -8,7 +8,8 @@ enum Base:
 
 class HexString private (private val s: String):
   private val hexString: String = normalizeHex(
-    if HexString.isHex(s) then s
+    if HexString.isHex(s)
+    then s
     else HexString.hexEncode(s).toString
   )
 
@@ -35,7 +36,8 @@ class HexString private (private val s: String):
 
 object HexString:
   def apply(s: String): HexString =
-    if s.isEmpty() then throw new IllegalArgumentException("Cannot create HexString from empty string")
+    if s.isEmpty()
+    then throw new IllegalArgumentException("Cannot create HexString from empty string")
     else new HexString(s)
 
   implicit val decoder: JsonDecoder[HexString] = JsonDecoder[String].map(HexString(_))

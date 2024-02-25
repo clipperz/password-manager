@@ -60,7 +60,7 @@ object UserCard:
 trait UserArchive:
   def getUser(username: HexString): Task[Option[RemoteUserCard]]
   def saveUser(user: RemoteUserCard, overwrite: Boolean): Task[HexString]
-  def deleteUser(c: HexString): Task[Boolean]
+  def deleteUser(c: HexString): Task[Unit]
 
 object UserArchive:
   case class FileSystemUserArchive(keyBlobArchive: KeyBlobArchive) extends UserArchive:
@@ -88,7 +88,7 @@ object UserArchive:
         else saveUserCard(userCard)
       )
 
-    override def deleteUser(c: HexString): Task[Boolean] =
+    override def deleteUser(c: HexString): Task[Unit] =
       this
         .getUser(c)
         .flatMap(optional => if optional.isDefined
