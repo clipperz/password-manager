@@ -5,8 +5,10 @@ module Data.HexString
   , fromBigInt
   , hex
   , hexChars
+  , hexLength
   , isHex
   , isHexRegex
+  , splitHexAt
   , splitHexInHalf
   , toArrayBuffer
   , toBigInt
@@ -29,7 +31,7 @@ import Data.Ord (class Ord)
 import Data.Semigroup ((<>))
 import Data.Show (class Show)
 import Data.String (toLower, toUpper)
-import Data.String.CodeUnits (length, splitAt, dropWhile, fromCharArray)
+import Data.String.CodeUnits (dropWhile, fromCharArray, length, splitAt)
 import Data.String.Common (replaceAll)
 import Data.String.Pattern (Pattern(..), Replacement(..))
 import Data.String.Regex (regex, Regex, test)
@@ -72,6 +74,9 @@ fromBigInt n = hex $ toBase 16 n
 hex :: String -> HexString
 hex s = normalizeHex $ HexString if isHex s then s else hexEncode s
 
+hexLength :: HexString -> Int
+hexLength (HexString s) = length s
+
 isHexRegex :: Either String Regex
 isHexRegex = (regex "^[0-9a-fA-F ]+$" noFlags)
 
@@ -79,7 +84,10 @@ isHex :: String -> Boolean
 isHex s = maybe false (\reg -> test reg s) (hush isHexRegex)
 
 splitHexInHalf :: HexString -> { before :: HexString, after :: HexString }
-splitHexInHalf (HexString s) = let split = (splitAt ((length s) / 2) s)
+splitHexInHalf hexString = splitHexAt (hexLength hexString / 2) hexString
+
+splitHexAt :: Int -> HexString -> { before :: HexString, after :: HexString }
+splitHexAt position (HexString s) = let split = (splitAt position s)
   in { before: hex split.before, after: hex split.after }
 
 normalizeHex :: HexString -> HexString

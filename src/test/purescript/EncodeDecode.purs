@@ -2,22 +2,20 @@ module Test.EncodeDecode where
 
 import Functions.EncodeDecode
 
+import Control.Alt ((<#>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (>>=))
-import Crypto.Subtle.Constants.AES as AES
-import Crypto.Subtle.Encrypt as Encrypt
-import Crypto.Subtle.Key.Generate as Key.Generate
 import Crypto.Subtle.Key.Types as Key.Types
 import Data.ArrayBuffer.Typed as Data.ArrayBuffer.Typed
 import Data.ArrayBuffer.Types (ArrayBuffer, ArrayView, Uint8)
-import Data.Either (Either(..))
+import Data.Either (Either(..), hush)
 import Data.Eq ((==))
 import Data.Function (($))
 import Data.Functor ((<$>))
+import Data.HexString (fromArrayBuffer)
 import Data.Identity (Identity)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.Ring ((*))
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.CodePoints (toCodePointArray)
@@ -29,10 +27,9 @@ import DataModel.Codec as Codec
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Effect.Exception (Error, error)
-import Functions.ArrayBuffer (emptyByteArrayBuffer)
 import Test.QuickCheck ((<?>), (===), Result(..))
 import Test.Spec (describe, it, SpecT)
-import Test.Spec.Assertions (shouldEqual)
+import Test.Spec.Assertions (shouldEqual, shouldNotEqual)
 import TestClasses (AsciiString, UnicodeString)
 import TestUtilities (makeTestableOnBrowser, quickCheckAffInBrowser, failOnBrowser, makeQuickCheckOnBrowser)
 
@@ -50,29 +47,31 @@ encodeDecodeSpec =
     let encryptDecryptJson = "encrypt then decrypt using json"
     it encryptDecryptJson do
       let card@(Card r) = Card { content: cardValues0, secrets: [], timestamp: 1661377622.0, archived: false }
-      masterKey :: Key.Types.CryptoKey <- Key.Generate.generateKey (Key.Generate.aes AES.aesCTR AES.l256) true [Key.Types.encrypt, Key.Types.decrypt, Key.Types.unwrapKey]
+      masterKey :: Key.Types.CryptoKey <- generateCryptoKeyAesGCM
       encrypted <- encryptJson Codec.cardCodec masterKey card
       result    <- decryptJson Codec.cardCodec masterKey encrypted
       case result of
         Left err -> failOnBrowser encryptDecryptJson (show err)
         Right (Card decrypted) -> makeTestableOnBrowser encryptDecryptJson decrypted shouldEqual r
-
+    let encryptSameContent = "encrypt same content"
+    it encryptSameContent do
+      let card = Card { content: cardValues0, secrets: [], timestamp: 1661377622.0, archived: false }
+      masterKey :: Key.Types.CryptoKey <- generateCryptoKeyAesGCM
+      encrypted1 <- encryptJson Codec.cardCodec masterKey card
+      encrypted2 <- encryptJson Codec.cardCodec masterKey card
+      makeTestableOnBrowser encryptSameContent (fromArrayBuffer encrypted1) shouldNotEqual (fromArrayBuffer encrypted2)
 
 encryptDecryptText :: AsciiString -> Aff Result
 encryptDecryptText text' = do
   let text = unwrap text'
   let encodedText = Encoder.encode Encoder.Utf8 text :: ArrayView Uint8   -- Uint8Array
   let textBuffer = Data.ArrayBuffer.Typed.buffer encodedText :: ArrayBuffer
-  let blockSize' = 16 :: Int
-  let blockSizeInBits' = blockSize' * 8 :: Int
-  let emptyCounter = emptyByteArrayBuffer blockSize' :: ArrayBuffer
-  let algorithm = (Encrypt.aesCTR emptyCounter blockSizeInBits') :: Encrypt.EncryptAlgorithm
 
-  key              :: Key.Types.CryptoKey    <- Key.Generate.generateKey (Key.Generate.aes AES.aesCTR AES.l256) false [Key.Types.encrypt, Key.Types.decrypt]
+  key              :: Key.Types.CryptoKey    <- generateCryptoKeyAesGCM
 
-  encryptedData     :: ArrayBuffer     <- Encrypt.encrypt algorithm key textBuffer
+  encryptedData     :: ArrayBuffer     <- encryptArrayBuffer key textBuffer
 
-  decryptedData :: Maybe ArrayBuffer <- Encrypt.decrypt algorithm key encryptedData
+  decryptedData :: Maybe ArrayBuffer <- decryptArrayBuffer key encryptedData <#> hush
   decryptedDataView :: Either Error (ArrayView Uint8) <- case decryptedData of
       Nothing -> pure $ Left (error "Something went wrong")
       Just d  -> liftEffect $ Right <$> (Data.ArrayBuffer.Typed.whole d)

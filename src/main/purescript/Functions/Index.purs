@@ -1,14 +1,11 @@
 module Functions.Index where
 
-import Control.Alt ((<$>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Error.Class (throwError)
 import Control.Monad.Except.Trans (ExceptT(..), withExceptT, except)
 import Control.Semigroupoid ((>>>))
-import Crypto.Subtle.Constants.AES (aesCTR)
-import Crypto.Subtle.Key.Import as KI
-import Crypto.Subtle.Key.Types (CryptoKey, decrypt, encrypt, exportKey, raw, unwrapKey)
+import Crypto.Subtle.Key.Types (CryptoKey)
 import Data.Argonaut.Core (Json)
 import Data.Argonaut.Parser (jsonParser)
 import Data.ArrayBuffer.Types (ArrayBuffer)
@@ -28,13 +25,13 @@ import DataModel.SRP (HashFunction)
 import DataModel.User (IndexReference(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Functions.EncodeDecode (decryptWithAesCTR, encryptJson)
+import Functions.EncodeDecode (decryptWithAesGCM, encryptJson, exportCryptoKeyToHex, importCryptoKeyAesGCM)
 
 createCardEntry :: Card -> CryptoKey -> HashFunction -> Aff (Tuple ArrayBuffer CardEntry)
 createCardEntry card@(Card { content: (CardValues content), archived, timestamp: _ }) key hashf = do
   encryptedCard <- encryptJson Codec.cardCodec key card
   hash <- hashf (encryptedCard : Nil)
-  exportedKey <- fromArrayBuffer <$> exportKey raw key
+  exportedKey <- exportCryptoKeyToHex key
   let cardEntry = CardEntry { title: content.title
                                , cardReference: CardReference { reference: fromArrayBuffer hash, key: exportedKey, cardVersion: currentCardVersion }
                                , archived: archived
@@ -47,8 +44,8 @@ getIndexContent :: ArrayBuffer -> IndexReference -> ExceptT AppError Aff Index
 getIndexContent bytes (IndexReference ref) =
   case ref.indexVersion of 
     "V1"    -> do
-      cryptoKey     :: CryptoKey   <- liftAff $ KI.importKey raw (toArrayBuffer ref.masterKey) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      decryptedData :: ArrayBuffer <- mapError (ExceptT $ decryptWithAesCTR bytes cryptoKey)
+      cryptoKey     :: CryptoKey   <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer ref.masterKey)
+      decryptedData :: ArrayBuffer <- mapError (ExceptT $ decryptWithAesGCM bytes cryptoKey)
       parsedJson    :: Json        <- mapError (except $ jsonParser $ toString Dec $ fromArrayBuffer decryptedData)
       indexV1       :: Index_V1    <- mapError (except $ decode Codec.indexV1Codec parsedJson)
       pure $ indexFromV1 indexV1

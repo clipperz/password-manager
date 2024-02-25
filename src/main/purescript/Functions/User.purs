@@ -6,9 +6,7 @@ import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (ExceptT(..), throwError, withExceptT)
 import Control.Semigroupoid ((<<<))
-import Crypto.Subtle.Constants.AES (aesCTR)
-import Crypto.Subtle.Key.Import as KI
-import Crypto.Subtle.Key.Types (decrypt, encrypt, raw, unwrapKey, CryptoKey)
+import Crypto.Subtle.Key.Types (CryptoKey)
 import Data.Bifunctor (lmap)
 import Data.Codec.Argonaut (encode)
 import Data.Function (($))
@@ -31,7 +29,7 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Exception as EX
 import Functions.Communication.Backend (isStatusCodeOk, genericRequest)
-import Functions.EncodeDecode (decryptJson, encryptJson)
+import Functions.EncodeDecode (decryptJson, encryptJson, importCryptoKeyAesGCM)
 import Functions.SRP as SRP
 
 type ModifyUserData = { c :: HexString
@@ -45,8 +43,8 @@ changeUserPassword {srpConf, c: Just oldC, p: Just oldP, username: Just username
   newC     <- liftAff $ SRP.prepareC srpConf username newPassword
   newP     <- liftAff $ SRP.prepareP srpConf username newPassword
   newV <- ExceptT $ (lmap (ProtocolError <<< SRPError <<< show)) <$> (SRP.prepareV srpConf s newP)
-  oldMasterPassword <- liftAff $ KI.importKey raw (toArrayBuffer oldP) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-  newMasterPassword <- liftAff $ KI.importKey raw newP (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+  oldMasterPassword <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer oldP)
+  newMasterPassword <- liftAff $ importCryptoKeyAesGCM newP
   masterKeyDecryptedContent <- ExceptT $ (lmap (ProtocolError <<< CryptoError <<< show)) <$> decryptJson Codec.userInfoReferencesCodec oldMasterPassword (toArrayBuffer $ masterKeyContent)
   masterKeyEncryptedContent <- liftAff $ fromArrayBuffer <$> encryptJson Codec.userInfoReferencesCodec newMasterPassword masterKeyDecryptedContent
   let newUserCard = RequestUserCard { c: fromArrayBuffer newC
@@ -70,7 +68,7 @@ changeUserPassword _ _ = throwError $ InvalidStateError (CorruptedState "State i
 
 decryptUserInfoReferences :: MasterKey -> HexString -> ExceptT AppError Aff UserInfoReferences
 decryptUserInfoReferences (Tuple encryptedRef _) p = do -- TODO: handle version
-  masterPassword :: CryptoKey <- liftAff $ KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+  masterPassword :: CryptoKey <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer p)
   mapCryptoError $ ExceptT $ decryptJson Codec.userInfoReferencesCodec masterPassword (toArrayBuffer encryptedRef)
 
   where 

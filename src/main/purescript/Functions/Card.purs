@@ -13,9 +13,7 @@ import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (ExceptT(..), except, throwError, withExceptT)
 import Control.Semigroupoid ((>>>))
-import Crypto.Subtle.Constants.AES (aesCTR)
-import Crypto.Subtle.Key.Import as KI
-import Crypto.Subtle.Key.Types (encrypt, decrypt, raw, unwrapKey, CryptoKey)
+import Crypto.Subtle.Key.Types (CryptoKey)
 import Data.Argonaut.Core (Json)
 import Data.Argonaut.Parser (jsonParser)
 import Data.Array (snoc)
@@ -36,14 +34,14 @@ import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Index (CardReference(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Functions.EncodeDecode (decryptWithAesCTR)
+import Functions.EncodeDecode (decryptWithAesGCM, importCryptoKeyAesGCM)
 
 getCardContent :: ArrayBuffer -> CardReference -> ExceptT AppError Aff Card
 getCardContent bytes (CardReference ref) =
   case ref.cardVersion of 
     "V1"    -> do
-      cryptoKey     :: CryptoKey   <- liftAff $ KI.importKey raw (toArrayBuffer ref.key) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-      decryptedData :: ArrayBuffer <- mapError (ExceptT $ decryptWithAesCTR bytes cryptoKey)
+      cryptoKey     :: CryptoKey   <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer ref.key)
+      decryptedData :: ArrayBuffer <- mapError (ExceptT $ decryptWithAesGCM bytes cryptoKey)
       parsedJson    :: Json        <- mapError (except  $ jsonParser $ toString Dec (fromArrayBuffer decryptedData))
       cardV1        :: Card_V1     <- mapError (except  $ decode Codec.cardV1Codec parsedJson)
       pure $ cardFromV1 cardV1

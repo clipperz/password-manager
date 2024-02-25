@@ -33,7 +33,7 @@ import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Exception as EX
 import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, shareRequest)
-import Functions.EncodeDecode (cryptoKeyAES, decryptArrayBuffer, decryptJson, encryptArrayBuffer, encryptJson)
+import Functions.EncodeDecode (importCryptoKeyAesGCM, decryptArrayBuffer, decryptJson, encryptArrayBuffer, encryptJson)
 import Functions.SRP (randomArrayBuffer)
 
 secretVersionFromString :: String -> ExceptT AppError Aff SecretVersion
@@ -80,20 +80,20 @@ type EncryptionKey = ArrayBuffer
 encryptSecret :: forall a. JsonCodec a -> a -> Aff (Tuple EncryptionKey EncryptedContent)
 encryptSecret codec secret =  do
   key             <- liftAff $ randomArrayBuffer 32
-  encryptedSecret <- liftAff $ (\cryptoKey -> encryptJson codec cryptoKey secret) =<< cryptoKeyAES key
+  encryptedSecret <- liftAff $ (\cryptoKey -> encryptJson codec cryptoKey secret) =<< importCryptoKeyAesGCM key
   pure $ Tuple key encryptedSecret
 
 encryptKeyWithPin :: EncryptionKey -> PIN -> Aff EncryptedContent
 encryptKeyWithPin key pin = do
   pinKey       <-  hashFuncSHA256 $ singleton (toArrayBuffer $ hex pin)
-  encryptedKey <- (flip encryptArrayBuffer) key =<< cryptoKeyAES pinKey
+  encryptedKey <- (flip encryptArrayBuffer) key =<< importCryptoKeyAesGCM pinKey
   pure encryptedKey
 
 decryptSecret :: forall a. JsonCodec a -> SecretVersion -> PIN -> EncryptedContent -> EncryptedContent -> ExceptT AppError Aff a
 decryptSecret codec V_1 pin encryptedKey encryptedSecret = do
   pinKey       <- liftAff $ (hashFuncSHA256 $ singleton (toArrayBuffer $ hex pin))
-  decryptedKey <- ((flip decryptArrayBuffer) (toArrayBuffer $ fromArrayBuffer encryptedKey) =<< cryptoKeyAES pinKey)       # mapError "Get decrypted key"
-  result       <- ((\cryptoKey -> decryptJson codec cryptoKey encryptedSecret)              =<< cryptoKeyAES decryptedKey) # mapError "Get decrypted blob"
+  decryptedKey <- ((flip decryptArrayBuffer) (toArrayBuffer $ fromArrayBuffer encryptedKey) =<< importCryptoKeyAesGCM pinKey)       # mapError "Get decrypted key"
+  result       <- ((\cryptoKey -> decryptJson codec cryptoKey encryptedSecret)              =<< importCryptoKeyAesGCM decryptedKey) # mapError "Get decrypted blob"
   pure result
 
   where

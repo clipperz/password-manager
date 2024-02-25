@@ -279,7 +279,7 @@ editCardSteps _ _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "Stat
 --   state <- get
 --   case state of
 --     { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, index: Just index } -> do
---       cryptoKey            :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer oldReference.masterKey)
+--       cryptoKey            :: CryptoKey   <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer oldReference.masterKey)
 --       indexCardContent     :: ArrayBuffer <- liftAff $ encryptJson cryptoKey newIndex
 --       indexCardContentHash :: ArrayBuffer <- liftAff $ hashFunc (indexCardContent : Nil)
 --       ProxyResponse proxy'   _            <- mapExceptT lift $ postBlob {proxy, hashFunc} indexCardContent indexCardContentHash
@@ -287,7 +287,7 @@ editCardSteps _ _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "Stat
 --       -- -------------------
 --       let newIndexReference                = IndexReference $ oldReference { reference = fromArrayBuffer indexCardContentHash }
 --       let newUserInfoReferences            = UserInfoReferences r { indexReference = newIndexReference }
---       masterPassword       :: CryptoKey   <- liftAff $ cryptoKeyAES (toArrayBuffer p)
+--       masterPassword       :: CryptoKey   <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer p)
 --       masterKeyContent     :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newUserInfoReferences
 --       let newUserCard                      = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
 --       ProxyResponse proxy'' newMasterKey  <- mapExceptT lift $ updateUserCard {proxy: proxy', hashFunc} c newUserCard

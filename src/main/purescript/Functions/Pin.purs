@@ -5,9 +5,7 @@ import Control.Alternative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (ExceptT(..), except, throwError, withExceptT)
 import Control.Semigroupoid ((<<<))
-import Crypto.Subtle.Constants.AES (aesCTR)
-import Crypto.Subtle.Key.Import as KI
-import Crypto.Subtle.Key.Types (encrypt, decrypt, raw, unwrapKey, CryptoKey)
+import Crypto.Subtle.Key.Types (CryptoKey)
 import Data.Either (note)
 import Data.Eq ((==))
 import Data.EuclideanRing ((/))
@@ -36,7 +34,7 @@ import Effect.Class (liftEffect)
 import Effect.Fortuna (randomBytes)
 import Functions.ArrayBuffer (concatArrayBuffers)
 import Functions.Communication.OneTimeShare (PIN)
-import Functions.EncodeDecode (decryptJson, encryptJson)
+import Functions.EncodeDecode (decryptJson, encryptJson, importCryptoKeyAesGCM)
 import Web.Storage.Storage (Storage, removeItem, setItem)
 
 makeKey :: String -> String
@@ -48,7 +46,7 @@ isPinValid p = (length p) == 5
 generateKeyFromPin :: HashFunction -> String -> Aff CryptoKey
 generateKeyFromPin hashf pin = do
   pinBuffer <- hashf $ (toArrayBuffer $ hex pin) : Nil
-  KI.importKey raw pinBuffer (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+  importCryptoKeyAesGCM pinBuffer
 
 decryptPassphraseWithPin :: HashFunction -> PIN -> Maybe String -> Maybe HexString -> ExceptT AppError Aff Credentials
 decryptPassphraseWithPin hashFunc pin username' pinEncryptedPassword' = do  
