@@ -12,18 +12,29 @@ import zio.stream.ZStream
 
 // ============================================================================
 
+case class CardsSignupData(
+    cardContent: HexString,
+    cardReference: HexString,
+    cardIdentifier: HexString
+)
+
+object CardsSignupData:
+  implicit val decoder: JsonDecoder[CardsSignupData] = DeriveJsonDecoder.gen[CardsSignupData]
+  implicit val encoder: JsonEncoder[CardsSignupData] = DeriveJsonEncoder.gen[CardsSignupData]
+
+
 case class SignupData(
     user: RequestUserCard,
 
     userInfoReference: HexString,
-    // userInfoIdentifier: HexString,
+    userInfoIdentifier: HexString,
     userInfoContent: HexString,
 
     indexCardReference: HexString,
-    // indexCardIdentifier: HexString,
+    indexCardIdentifier: HexString,
     indexCardContent: HexString,
 
-    cards: Array[(HexString, HexString)],
+    cards: Array[CardsSignupData],
   )
 object SignupData:
   implicit val decoder: JsonDecoder[SignupData] = DeriveJsonDecoder.gen[SignupData]

@@ -3,15 +3,19 @@ package is.clipperz.backend.services
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.bytesToHex
 import is.clipperz.backend.functions.crypto.HashFunction
+import is.clipperz.backend.functions.fromStream
 import is.clipperz.backend.exceptions.{ EmptyContentException, NonWritableArchiveException, BadRequestException }
 
 import java.io.{ File, FileNotFoundException, FileOutputStream, IOException }
+import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.security.MessageDigest
 
 import zio.{ Chunk, Duration, ZIO, ZLayer, Task }
 import zio.stream.{ ZStream, ZSink }
 import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder }
+import java.nio.charset.Charset
+import zio.http.Charsets
 
 // ----------------------------------------------------------------------------
 
@@ -37,7 +41,8 @@ object BlobArchive:
                 .getMetadata(hash.toString)
                 .flatMap(_.run(ZSink.collectAll[Byte]))
                 .map(_.toArray)
-                .map(bytesToHex(_))
+                .map(new String(_, StandardCharsets.UTF_8))
+                .map(HexString(_))
 
         override def saveBlob(hash: BlobHash, identifier: HexString, content: ZStream[Any, Throwable, Byte]): Task[BlobHash] =
             val tmpFile = File.createTempFile("pre", "suff", tmpDir.toFile())
@@ -51,7 +56,7 @@ object BlobArchive:
                 if (hash_ == hash)
                 then ZIO.scoped:
                     keyBlobArchive
-                        .saveBlobWithMetadata(hash.toString, ZStream.fromPath(tmpFile.nn.toPath().nn), ZStream.fromChunk(Chunk.fromArray(identifier.toByteArray)))
+                        .saveBlobWithMetadata(hash.toString, ZStream.fromPath(tmpFile.nn.toPath().nn), ZStream.fromChunk(Chunk.fromArray(identifier.toString().getBytes(StandardCharsets.UTF_8).nn)))
                         .map(_ => tmpFile.nn.delete())
                         .map(_ => hash)
                 else ZIO.fail(new BadRequestException(s"Hash of content does not match with hash in request"))
@@ -73,7 +78,7 @@ object BlobArchive:
                     .flatMap(storedIdentifier =>
                         if storedIdentifier == identifier
                         then keyBlobArchive.deleteBlob(hash.toString)
-                        else ZIO.fail(new BadRequestException(s"Wrong 'identifier' provided"))
+                        else ZIO.fail(new BadRequestException(s"Wrong 'identifier' provided [stored: $storedIdentifier, received: $identifier]"))
                     )
 
             // ZIO.scoped:

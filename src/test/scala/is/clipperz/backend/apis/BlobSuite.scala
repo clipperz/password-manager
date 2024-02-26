@@ -64,7 +64,7 @@ object BlobSpec extends ZIOSpecDefault:
                     , filename = Some(hash.toString())
                     , contentType = MediaType.application.`octet-stream`
                 ),
-                FormField.simpleField( name = "identifier", value = identifier.toString(Base.Hex) )
+                FormField.binaryField(name = "identifier", data = Chunk.fromArray(identifier.toByteArray), mediaType = MediaType.application.`octet-stream`)
                 // FormField.StreamingBinary(
                 //       name = "identifier"
                 //     , data = ZStream.fromChunk(Chunk.fromArray(identifier.toByteArray))
@@ -91,11 +91,10 @@ object BlobSpec extends ZIOSpecDefault:
         url = URL(Root / "api" / "blobs" / hash.toString()),
         method = Method.DELETE,
         body = Body.fromStream(
-            Form(FormField.Text(
-                name = "identifier"
-                , value = identifier.toString()
-                , contentType = MediaType.text.`plain`
-                , filename = None
+            Form(FormField.binaryField(
+                  name = "identifier"
+                , data = Chunk.fromArray(identifier.toByteArray)
+                , mediaType = MediaType.application.`octet-stream`
             ))
             .multipartBytes(Boundary(boundary))
         ).contentType(newMediaType = MediaType.multipart.`form-data`, newBoundary = Boundary(boundary)),

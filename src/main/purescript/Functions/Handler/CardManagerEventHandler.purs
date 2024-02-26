@@ -8,7 +8,7 @@ import Concur.Core (Widget)
 import Concur.React (HTML)
 import Control.Applicative (pure)
 import Control.Bind (bind, (>>=))
-import Control.Category ((<<<), (>>>))
+import Control.Category ((<<<))
 import Control.Monad.Except.Trans (ExceptT, runExceptT, throwError)
 import Data.Function ((#), ($))
 import Data.Map (insert, lookup)
@@ -22,6 +22,7 @@ import DataModel.FragmentState as Fragment
 import DataModel.Index (CardEntry(..), Index, addToIndex, reference, removeFromIndex)
 import DataModel.User (UserInfo(..))
 import DataModel.WidgetState (CardManagerState, CardViewState(..), Page(..), WidgetState(..))
+import Effect.Aff.Class (liftAff)
 import Functions.Card (appendToTitle, archiveCard, getCardContent, restoreCard)
 import Functions.Communication.Backend (ConnectionState)
 import Functions.Communication.Blobs (getBlob)
@@ -98,7 +99,7 @@ handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just inde
     (DeleteCardEvent cardEntry) ->
       do
         ProxyResponse proxy'  cardsCache'     <- runStep (deleteCard connectionState cardsCache (unwrap cardEntry).cardReference) (WidgetState (spinnerOverlay "Delete card"  Black) (loadingMainPage index cardManagerState))
-        let updatedIndex                       =          removeFromIndex cardEntry index
+        updatedIndex                          <- liftAff (removeFromIndex cardEntry index)
         ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex)                      (WidgetState (spinnerOverlay "Update index" Black) (loadingMainPage index cardManagerState))
 
         pure (Tuple 
@@ -168,7 +169,7 @@ addCardSteps :: CardManagerState -> AppState -> DataModel.Card.Card -> Page -> S
 addCardSteps cardManagerState state@{index: Just index, userInfo: Just (UserInfo {userPreferences}), proxy, hash: hashFunc, srpConf, c: Just c, p: Just p, cardsCache, username: Just username, password: Just password, pinEncryptedPassword} newCard page message = do
   let connectionState = {proxy, hashFunc, srpConf, c, p}
   ProxyResponse proxy'  (Tuple cardsCache' newCardEntry) <- runStep (postCard connectionState cardsCache newCard)       (WidgetState (spinnerOverlay message        Black) page)
-  let updatedIndex                                        =          addToIndex newCardEntry index
+  updatedIndex                                           <- liftAff (addToIndex newCardEntry index)
   ProxyResponse proxy''  stateUpdateInfo                 <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index" Black) page)
 
   pure (Tuple 
@@ -198,7 +199,7 @@ editCardSteps cardManagerState state@{index: Just index, proxy, srpConf, hash: h
   let connectionState = {proxy, hashFunc, srpConf, c, p}
   ProxyResponse proxy'   (Tuple cardsCache' cardEntry) <- runStep (postCard connectionState cardsCache updatedCard)                                             (WidgetState (spinnerOverlay "Post updated card" Black) page)
   ProxyResponse proxy''         cardsCache''           <- runStep (deleteCard  connectionState{proxy = proxy'} cardsCache' (unwrap oldCardEntry).cardReference) (WidgetState (spinnerOverlay "Delete old card"   Black) page)
-  let updatedIndex                                      =          addToIndex cardEntry >>> removeFromIndex oldCardEntry $ index
+  updatedIndex                                         <- liftAff (addToIndex cardEntry index >>= removeFromIndex oldCardEntry)
   ProxyResponse proxy'''  stateUpdateInfo              <- runStep (updateIndex (state {proxy = proxy''}) updatedIndex)                                          (WidgetState (spinnerOverlay "Update index"      Black) page)
 
   pure (Tuple 

@@ -11,7 +11,7 @@ import Data.Codec.Argonaut (JsonCodec)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
-import Data.HexString (Base(..), HexString, toString)
+import Data.HexString (Base(..), HexString, toArrayBuffer, toString)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
@@ -26,13 +26,13 @@ import Effect.Class (liftEffect)
 import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, genericRequest)
 import Functions.Communication.BlobFromArrayBuffer (blobFromArrayBuffer)
 import Functions.EncodeDecode (decryptJson)
-import Web.XHR.FormData (EntryName(..), FileName(..), append, appendBlob, new)
+import Web.XHR.FormData (EntryName(..), FileName(..), appendBlob, new)
 
 -- ----------------------------------------------------------------------------
 
 getBlob :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse ArrayBuffer)
 getBlob connectionState hash = do
-  let url = joinWith "/" ["blobs", show $ hash]
+  let url = joinWith "/" ["blobs", toString Hex hash]
   ProxyResponse proxy response <- genericRequest connectionState url GET Nothing RF.arrayBuffer
   if isStatusCodeOk response.status
     then pure $ ProxyResponse proxy response.body
@@ -49,8 +49,8 @@ postBlob connectionState blob blobReference blobIdentifier = do
   let url = joinWith "/" ["blobs"]
   body <- formData <$> (liftEffect $ do
       formData <- new
-      append     (EntryName "indentifier") (toString Hex blobIdentifier)                                                formData
-      appendBlob (EntryName "blob")        (blobFromArrayBuffer blob)    (Just $ FileName (toString Hex blobReference)) formData
+      appendBlob (EntryName "identifier") (blobFromArrayBuffer $ toArrayBuffer blobIdentifier) (Nothing)                                      formData
+      appendBlob (EntryName "blob")       (blobFromArrayBuffer                 blob          ) (Just $ FileName (toString Hex blobReference)) formData
       pure $ formData
   )
   genericRequest connectionState url POST (Just body) RF.ignore
@@ -60,7 +60,7 @@ deleteBlob connectionState blobReference blobIdentifier = do
   let url = joinWith "/" ["blobs", toString Hex blobReference]
   body <- formData <$> (liftEffect $ do
       formData <- new
-      append (EntryName "identifier") (toString Hex blobIdentifier) formData
+      appendBlob (EntryName "identifier") (blobFromArrayBuffer $ toArrayBuffer blobIdentifier) (Nothing) formData
       pure $ formData
   )
   ProxyResponse proxy response <- genericRequest connectionState url DELETE (Just body) RF.ignore

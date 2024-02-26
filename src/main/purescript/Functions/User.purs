@@ -22,7 +22,7 @@ import DataModel.AppError (AppError(..))
 import DataModel.AppState (ProxyResponse(..), AppState, InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.SRPCodec as SRPCodec
-import DataModel.User (MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..))
+import DataModel.User (MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), MasterKey)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Backend (isStatusCodeOk, genericRequest)
@@ -32,6 +32,7 @@ import Functions.SRP as SRP
 type ModifyUserData = { c :: HexString
                       , p :: HexString
                       , s :: HexString
+                      , masterKey :: MasterKey
                       }
 
 changeUserPassword :: AppState -> String -> ExceptT AppError Aff (ProxyResponse ModifyUserData)
@@ -59,6 +60,7 @@ changeUserPassword {srpConf, c: Just oldC, p: Just oldP, username: Just username
     then pure $ ProxyResponse proxy' { c: fromArrayBuffer newC
                                      , p: fromArrayBuffer newP
                                      , s: fromArrayBuffer s
+                                     , masterKey: Tuple masterKeyEncryptedContent V_1
                                      }
     else throwError $ ProtocolError (ResponseError (unwrap response.status))
 changeUserPassword _ _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")

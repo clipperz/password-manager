@@ -1,11 +1,13 @@
 module DataModel.Index where
 
 import Control.Alt ((<#>))
+import Control.Bind (bind, pure)
 import Control.Category ((>>>))
-import Data.Eq (class Eq, eq, (/=))
+import Data.Eq (class Eq, eq)
 import Data.EuclideanRing ((/))
+import Data.Function (($))
 import Data.HexString (HexString, fromArrayBuffer, hex)
-import Data.List (delete, filter)
+import Data.List (delete)
 import Data.List.Types (List(..), (:))
 import Data.Newtype (class Newtype, unwrap)
 import Data.Ord (class Ord, compare)
@@ -82,13 +84,14 @@ newtype Index = Index {entries :: (List CardEntry), identifier :: HexString}
 
 derive instance newtypeIndex :: Newtype Index _
 
-addToIndex :: CardEntry -> Index -> Index
-addToIndex cardEntry (Index index@{entries}) = Index index {entries = (cardEntry : entries)}
+addToIndex :: CardEntry -> Index -> Aff Index
+addToIndex cardEntry (Index {entries}) = do
+  newIndexCardIdentifier <- randomArrayBuffer (256/8) <#> fromArrayBuffer
+  pure $ Index {entries: (cardEntry : entries), identifier: newIndexCardIdentifier}
 
-removeFromIndex :: CardEntry -> Index -> Index
-removeFromIndex cardEntry (Index index@{entries}) = Index index {entries = (delete cardEntry entries)}
-
-updateInIndex :: CardEntry -> CardEntry -> Index -> Index
-updateInIndex oldEntry newEntry (Index index@{entries}) = Index index {entries = (newEntry : filter (\(CardEntry { cardReference }) -> cardReference /= (unwrap oldEntry).cardReference) entries)}
+removeFromIndex :: CardEntry -> Index -> Aff Index
+removeFromIndex cardEntry (Index {entries}) = do
+  newIndexCardIdentifier <- randomArrayBuffer (256/8) <#> fromArrayBuffer
+  pure $ Index {entries: (delete cardEntry entries), identifier: newIndexCardIdentifier}
 
 -- --------------------------------------------

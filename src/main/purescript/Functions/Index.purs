@@ -4,16 +4,13 @@ import Control.Alt ((<#>), (<$>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Error.Class (throwError)
-import Control.Monad.Except.Trans (ExceptT(..), withExceptT, except)
+import Control.Monad.Except.Trans (ExceptT(..), withExceptT)
 import Control.Semigroupoid ((>>>))
 import Crypto.Subtle.Key.Types (CryptoKey)
-import Data.Argonaut.Core (Json)
-import Data.Argonaut.Parser (jsonParser)
 import Data.ArrayBuffer.Types (ArrayBuffer)
-import Data.Codec.Argonaut (decode)
 import Data.EuclideanRing ((/))
 import Data.Function (($))
-import Data.HexString (Base(..), fromArrayBuffer, toArrayBuffer, toString)
+import Data.HexString (fromArrayBuffer, toArrayBuffer)
 import Data.List (List(..), (:))
 import Data.Show (class Show, show)
 import Data.Tuple (Tuple(..))
@@ -27,7 +24,7 @@ import DataModel.SRP (HashFunction)
 import DataModel.User (IndexReference(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Functions.EncodeDecode (decryptWithAesGCM, encryptJson, exportCryptoKeyToHex, generateCryptoKeyAesGCM, importCryptoKeyAesGCM)
+import Functions.EncodeDecode (decryptJson, encryptJson, exportCryptoKeyToHex, generateCryptoKeyAesGCM, importCryptoKeyAesGCM)
 import Functions.SRP (randomArrayBuffer)
 
 createCardEntry :: HashFunction -> Card -> Aff (Tuple ArrayBuffer CardEntry)
@@ -50,9 +47,7 @@ getIndexContent bytes (IndexReference ref) =
   case ref.indexVersion of 
     "V1"    -> do
       cryptoKey     :: CryptoKey   <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer ref.masterKey)
-      decryptedData :: ArrayBuffer <- mapError (ExceptT $ decryptWithAesGCM bytes cryptoKey)
-      parsedJson    :: Json        <- mapError (except $ jsonParser $ toString Dec $ fromArrayBuffer decryptedData)
-      indexV1       :: Index_V1    <- mapError (except $ decode Codec.indexV1Codec parsedJson)
+      indexV1       :: Index_V1    <- mapError (ExceptT $ decryptJson Codec.indexV1Codec cryptoKey bytes)
       pure $ indexFromV1 indexV1
     version -> throwError $ InvalidVersioning version "index"
 

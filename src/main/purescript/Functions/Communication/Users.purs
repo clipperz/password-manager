@@ -36,7 +36,7 @@ import Effect.Class (liftEffect)
 import Functions.ArrayBuffer (concatArrayBuffers)
 import Functions.Communication.Backend (ConnectionState, genericRequest, isStatusCodeOk)
 import Functions.Communication.Blobs (deleteBlob, getBlob, getDecryptedBlob, postBlob)
-import Functions.EncodeDecode (decryptArrayBuffer, encryptArrayBuffer, encryptJson, generateCryptoKeyAesGCM, importCryptoKeyAesGCM)
+import Functions.EncodeDecode (decryptArrayBuffer, encryptArrayBuffer, encryptJson, exportCryptoKeyToHex, generateCryptoKeyAesGCM, importCryptoKeyAesGCM)
 import Functions.Index (getIndexContent)
 import Functions.SRP (prepareV, randomArrayBuffer)
 
@@ -124,16 +124,15 @@ updateUserInfo _ _ =
 
 updateIndex :: AppState -> Index -> ExceptT AppError Aff (ProxyResponse UpdateUserStateUpdateInfo)
 
-updateIndex state@{ c: Just c, p: Just p, proxy, hash: hashFunc, userInfo: Just (UserInfo userInfo@{indexReference: IndexReference oldReference}), index: Just (Index oldIndex), srpConf } (Index newIndex) = do
+updateIndex state@{ c: Just c, p: Just p, proxy, hash: hashFunc, userInfo: Just (UserInfo userInfo@{indexReference: IndexReference oldReference}), index: Just (Index oldIndex), srpConf } newIndex = do
   let connectionState = {proxy, hashFunc, srpConf, c, p}
 
-  newIndexCardIdentifier <- liftAff $ randomArrayBuffer (256/8) <#> fromArrayBuffer
-
   cryptoKey            :: CryptoKey   <- liftAff $ generateCryptoKeyAesGCM
-  indexCardContent     :: ArrayBuffer <- liftAff $ encryptJson Codec.indexCodec cryptoKey (Index newIndex {identifier = newIndexCardIdentifier})
+  indexCardContent     :: ArrayBuffer <- liftAff $ encryptJson Codec.indexCodec cryptoKey newIndex
+  cryptoKeyHex         :: HexString   <- liftAff $ exportCryptoKeyToHex cryptoKey
   indexCardContentHash :: ArrayBuffer <- liftAff $ hashFunc (indexCardContent : Nil)
-  ProxyResponse proxy'   _            <-           postBlob connectionState indexCardContent (fromArrayBuffer indexCardContentHash) newIndexCardIdentifier
-  let newIndexReference = IndexReference         $ oldReference { reference = fromArrayBuffer indexCardContentHash }
+  ProxyResponse proxy'   _            <-           postBlob connectionState indexCardContent (fromArrayBuffer indexCardContentHash) (unwrap newIndex).identifier
+  let newIndexReference = IndexReference         { reference: fromArrayBuffer indexCardContentHash, masterKey: cryptoKeyHex, indexVersion: "V1" }
   -- -------------------
   ProxyResponse proxy'' _             <-           deleteBlob connectionState{proxy = proxy'} oldReference.reference oldIndex.identifier
   -- -------------------

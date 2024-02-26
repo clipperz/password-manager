@@ -13,13 +13,13 @@ import Control.Category (identity, (<<<))
 import Control.Monad.Except.Trans (ExceptT(..), except, runExceptT, throwError)
 import Data.Argonaut.Core (stringify)
 import Data.Argonaut.Parser (jsonParser)
-import Data.Array (filter, foldr, length, snoc)
+import Data.Array (filter, foldM, length, snoc)
 import Data.Bifunctor (lmap)
 import Data.Codec.Argonaut (decode, encode)
 import Data.Codec.Argonaut as CA
 import Data.Either (Either(..))
 import Data.FoldableWithIndex (foldWithIndexM)
-import Data.Function ((#), ($))
+import Data.Function (flip, (#), ($))
 import Data.HTTP.Method (Method(..))
 import Data.HexString (HexString, fromArrayBuffer, hex, toArrayBuffer)
 import Data.HeytingAlgebra (not)
@@ -114,7 +114,7 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
       in do
         ProxyResponse proxy' userUpdateInfo <- runStep (changeUserPassword state newPassword) (WidgetState (spinnerOverlay "Update password" White) page)
         pure (Tuple 
-          (state {proxy = proxy', c = Just userUpdateInfo.c, p = Just userUpdateInfo.p, s = Just userUpdateInfo.s, password = Just newPassword})
+          (state {proxy = proxy', c = Just userUpdateInfo.c, p = Just userUpdateInfo.p, s = Just userUpdateInfo.s, masterKey = Just userUpdateInfo.masterKey, password = Just newPassword})
           (WidgetState hiddenOverlayInfo page)
         )
 
@@ -230,7 +230,7 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
               ProxyResponse proxy'' (Tuple cardsCache'' newCardEntry) <- runStep (postCard connectionState{proxy = proxy'} cardsCache' card) (WidgetState (spinnerOverlay ("Import card " <> show i <> " of " <> show nToImport) White) page)
               pure $ ProxyResponse proxy'' (Tuple cardsCache'' (snoc entries newCardEntry))
             ) (ProxyResponse proxy (Tuple cardsCache [])) cardToImport
-            let updatedIndex                                  = foldr addToIndex index entries        
+            updatedIndex                                     <- liftAff $ foldM (flip addToIndex) index entries
             ProxyResponse proxy'' stateUpdateInfo            <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index" White) page)
 
             pure (Tuple 

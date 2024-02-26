@@ -84,13 +84,13 @@ handleLoginPageEvent (GoToCredentialLoginEvent username) state _ = doNothing (Tu
 loginSteps :: Credentials -> AppState -> Fragment.FragmentState -> Page -> PrepareLoginResult -> ExceptT AppError (Widget HTML) OperationState
 loginSteps cred state@{proxy, hash: hashFunc, srpConf} fragmentState page prepareLoginResult = do
   let connectionState = {proxy, hashFunc, srpConf, c : hex "", p: hex ""}
-  ProxyResponse proxy'   loginStep1Result <- runStep (loginStep1         connectionState                 prepareLoginResult.c                                      ) (WidgetState {status: Spinner, color: Black, message: "SRP step 1"} page)
-  ProxyResponse proxy''  loginStep2Result <- runStep (loginStep2         connectionState{proxy = proxy'} prepareLoginResult.c prepareLoginResult.p loginStep1Result) (WidgetState {status: Spinner, color: Black, message: "SRP step 2"} page)
+  ProxyResponse proxy'   loginStep1Result <- runStep (loginStep1         connectionState                 prepareLoginResult.c                                      ) (WidgetState {status: Spinner, color: Black, message: "SRP step 1"   } page)
+  ProxyResponse proxy''  loginStep2Result <- runStep (loginStep2         connectionState{proxy = proxy'} prepareLoginResult.c prepareLoginResult.p loginStep1Result) (WidgetState {status: Spinner, color: Black, message: "SRP step 2"   } page)
   _                                       <- runStep ((liftAff $ checkM2 srpConf loginStep1Result.aa loginStep2Result.m1 loginStep2Result.kk (toArrayBuffer loginStep2Result.m2)) >>= (\result -> 
                                                       if result
                                                       then pure         unit
                                                       else throwError $ ProtocolError (SRPError "Client M2 doesn't match with server M2")
-                                                     ))                                                                                                       (WidgetState {status: Spinner, color: Black, message: "Validate user"} page)
+                                                     ))                                                                                                              (WidgetState {status: Spinner, color: Black, message: "Validate user"} page)
 
   let stateUpdate = { masterKey:          Just loginStep2Result.masterKey 
                     , username:           Just cred.username

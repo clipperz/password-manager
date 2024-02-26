@@ -3,6 +3,7 @@ package is.clipperz.backend.apis
 import java.io.FileNotFoundException
 
 import is.clipperz.backend.data.HexString
+import is.clipperz.backend.data.HexString.bytesToHex
 import is.clipperz.backend.exceptions.{
     NonWritableArchiveException,
     NonReadableArchiveException,
@@ -34,9 +35,10 @@ val blobsApi: Routes[BlobArchive, Throwable] = Routes(
         .zip(request.body.asMultipartFormStream)
         .flatMap((archive, streamingForm) => streamingForm
             .fields
-            .collect(field => field match {
-                case FormField.Text           ("identifier", value, contentType,                   filename            )    => Identifier(HexString(value))
-                case FormField.StreamingBinary("blob",              contentType, transferEncoding, Some(filename), data)    => Blob(HexString(filename), data)
+            .tap(field => ZIO.log(s"POST FIELD: ${field}"))
+            .collectZIO(field => field match {
+                case FormField.StreamingBinary("identifier",        contentType, transferEncoding,      filename,  data) => data.run(ZSink.collectAll[Byte]).map(_.toArray).map(bytes => Identifier(bytesToHex(bytes)))
+                case FormField.StreamingBinary("blob",              contentType, transferEncoding, Some(filename), data) => ZIO.succeed(Blob(HexString(filename), data))
             })
             .runFoldZIO(BlobData(None, None))((result, field) => field match {
                 case Identifier(value) =>   if result.identifier == None
@@ -48,7 +50,7 @@ val blobsApi: Routes[BlobArchive, Throwable] = Routes(
             })
             .flatMap(blobData => blobData match {
                 case BlobData(Some(Identifier(identifier)), Some(Blob(hash, data))) => archive.saveBlob(hash, identifier, data)
-                case _                                                  => ZIO.fail(new BadRequestException(s"Missing either/both 'blob', 'identifier' fields"))
+                case _                                                              => ZIO.fail(new BadRequestException(s"Missing either/both 'blob', 'identifier' fields"))
             })
         )
         .map(result => Response.ok)
@@ -60,9 +62,11 @@ val blobsApi: Routes[BlobArchive, Throwable] = Routes(
         .zip(request.body.asMultipartFormStream)
         .flatMap((archive, streamingForm) => streamingForm
             .fields
+            .tap(field => ZIO.log(s"DELETE FIELD: ${field}"))
             .collectZIO(field => field match {
-                case FormField.Text("identifier", identifier, _, _) =>
-                    archive.deleteBlob(HexString(hash), HexString(identifier))
+                case FormField.StreamingBinary("identifier", contentType, transferEncoding,      filename,  data)   =>  data.run(ZSink.collectAll[Byte])
+                                                                                                                            .map(_.toArray)
+                                                                                                                            .flatMap(identifierBytes => archive.deleteBlob(HexString(hash), bytesToHex(identifierBytes)))
             })
             .runCount
         )

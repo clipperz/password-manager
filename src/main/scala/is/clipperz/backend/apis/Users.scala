@@ -20,6 +20,7 @@ import zio.{ ZIO, Cause }
 import zio.http.{ Method, Response, Request, Routes, Status, handler, string }
 import zio.json.EncoderOps
 import zio.stream.ZStream
+import is.clipperz.backend.services.CardsSignupData
 
 val usersApi: Routes[BlobArchive & UserArchive & SessionManager, Throwable] = Routes(
     Method.POST / "api" / "users" / string("c") -> (handler: (c: String, request: Request) =>
@@ -42,10 +43,10 @@ val usersApi: Routes[BlobArchive & UserArchive & SessionManager, Throwable] = Ro
                 if HexString(c) == signupData.user.c then
                     // Returns an effect that executes both this effect and the specified effect, in parallel, combining their results into a tuple. If either side fails, then the other side will be interrupted.
                     (   userArchive.saveUser(remoteFromRequest(signupData.user), false)
-                    <&> blobArchive.saveBlob(signupData.indexCardReference, HexString("affb"), ZStream.fromIterable(signupData.indexCardContent.toByteArray))
-                    <&> blobArchive.saveBlob(signupData.userInfoReference,  HexString("affb"), ZStream.fromIterable(signupData.userInfoContent.toByteArray))
+                    <&> blobArchive.saveBlob(signupData.indexCardReference, signupData.indexCardIdentifier, ZStream.fromIterable(signupData.indexCardContent.toByteArray))
+                    <&> blobArchive.saveBlob(signupData.userInfoReference,  signupData.userInfoIdentifier,  ZStream.fromIterable(signupData.userInfoContent.toByteArray))
                     <&> ZIO.foreach(signupData.cards) {
-                            (reference, content) => blobArchive.saveBlob(reference, HexString("affb"), ZStream.fromIterable(content.toByteArray))
+                            cardsSignupData => blobArchive.saveBlob(cardsSignupData.cardReference, cardsSignupData.cardIdentifier, ZStream.fromIterable(cardsSignupData.cardContent.toByteArray))
                         }
                     )
                     .parallelErrors

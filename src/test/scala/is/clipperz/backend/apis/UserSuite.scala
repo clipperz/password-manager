@@ -29,6 +29,7 @@ import is.clipperz.backend.services.OneTimeShareArchive
 import is.clipperz.backend.services.RemoteUserCard
 import is.clipperz.backend.services.RequestUserCard
 import is.clipperz.backend.functions.customErrorHandler
+import is.clipperz.backend.services.CardsSignupData
 
 object UserSpec extends ZIOSpec[SessionManager]:
     override def bootstrap: ZLayer[Any, Any, SessionManager] =
@@ -71,16 +72,18 @@ object UserSpec extends ZIOSpec[SessionManager]:
         ,   "1.0"
         )
     )
-    val preferencesContent = HexString(
+    val userInfoContent = HexString(
         "6a641705a78264af4720e561deffb762d069d6d417631cf4bf0ab5a5f006399cb44782fb22d31381c6ac3495f46d2115f45d0ad384d291be0b3e2c9c0c2ae0ab82f149912fd5ece4d267651f64e9c528d04824f1cc5fd0c59fbfb1539eaca7b4f07333b6aa477b7e83680fe65d03713a67a78d4b9b5504fb27bf20dead824a1de646f21019e8f6378163a7fd1114a341ee565a281d37a49e5e79615fd7e0f7b97cdb5f6a5ac96e1c7c45dffc0e19f905bdea44795d27629c8301cc61648e5ebfedcb27c480af3d71c2cc1d84b071bcf669eca79aa677d1c9e3a5b4b0e119015af5648d153c62eaa890c172a6e2f736736d2c9c8b9f4d55995f2bb2bbf1de8a3b799a6d2686d2a21fae774ccca96a442aab9d187347978cfacec3b9b2e6404521cf7a403a4a8e00d6066eb7db41f431ec5aa437e2244bbb7859ad5cb12b94411d9e42e6f66440da039df051e8faf21fc419cfb00c6e2561b4da1cc98fed86e708c93372b6615bfba45f23c5a7c75b6339632b8dbebaea1ea14d4ab94949211da8d07d0af3b7237e652f96a6c00e2bb796c9438518de6a8e00782c1b2616774de2d9cf117af474d7a1d1ea0dd35653274626c9db4fef2a22ab07a39144d89ebe0566ee13ed14147af6f059e1f56365548f648f2d32ebbd5893dc9cd0a1fcf1280d6f50c67a83d164"
     )
-    val preferencesReference = HexString("f23cb992df6fe7cbe747ec43dd4d033c086d80608f94ce8929da1c5fc647890f")
+    val userInfoReference = HexString("f23cb992df6fe7cbe747ec43dd4d033c086d80608f94ce8929da1c5fc647890f")
+    val userInfoIdentifier = HexString("preferencesidentifier")
     val indexCardContent = HexString(
         "6a641705a78264af4720e561deffb762d069d6d417631cf4bf0ab5a5f006399cb44782fb22d31381c6ac3495f46d2115f45d0ad384d291be0b3e2c9c0c2ae0ab82f149912fd5ece4d267651f64e9c528d04824f1cc5fd0c59fbfb1539eaca7b4f07333b6aa477b7e83680fe65d03713a67a78d4b9b5504fb27bf20dead824a1de646f21019e8f6378163a7fd1114a341ee565a281d37a49e5e79615fd7e0f7b97cdb5f6a5ac96e1c7c45dffc0e19f905bdea44795d27629c8301cc61648e5ebfedcb27c480af3d71c2cc1d84b071bcf669eca79aa677d1c9e3a5b4b0e119015af5648d153c62eaa890c172a6e2f736736d2c9c8b9f4d55995f2bb2bbf1de8a3b799a6d2686d2a21fae774ccca96a442aab9d187347978cfacec3b9b2e6404521cf7a403a4a8e00d6066eb7db41f431ec5aa437e2244bbb7859ad5cb12b94411d9e42e6f66440da039df051e8faf21fc419cfb00c6e2561b4da1cc98fed86e708c93372b6615bfba45f23c5a7c75b6339632b8dbebaea1ea14d4ab94949211da8d07d0af3b7237e652f96a6c00e2bb796c9438518de6a8e00782c1b2616774de2d9cf117af474d7a1d1ea0dd35653274626c9db4fef2a22ab07a39144d89ebe0566ee13ed14147af6f059e1f56365548f648f2d32ebbd5893dc9cd0a1fcf1280d6f50c67a83d164"
     )
     val indexCardReference = HexString("f23cb992df6fe7cbe747ec43dd4d033c086d80608f94ce8929da1c5fc647890f")
+    val indexCardIdentifier = HexString("indexcardidentifier")
 
-    val testSignupData = SignupData(testUser, preferencesReference, preferencesContent, indexCardReference, indexCardContent, Array[(HexString, HexString)]())
+    val testSignupData = SignupData(testUser, userInfoReference, userInfoContent, userInfoIdentifier, indexCardReference, indexCardContent, indexCardIdentifier, Array[CardsSignupData]())
 
     val testUser2 = RequestUserCard(
         c,

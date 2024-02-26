@@ -46,6 +46,7 @@ import is.clipperz.backend.services.SRPStep2Data
 import is.clipperz.backend.services.OneTimeShareArchive
 import java.net.InetAddress
 import is.clipperz.backend.services.RequestUserCard
+import is.clipperz.backend.services.CardsSignupData
 
 object AppSpec extends ZIOSpecDefault:
   val app = Main.completeClipperzBackend
@@ -118,9 +119,11 @@ object AppSpec extends ZIOSpecDefault:
     user = userCard,
     userInfoReference = HexString("726f1d8bc207725f2225623f300b9e78d20685406c4096f97ac8a2c864bd52b4"), 
     userInfoContent = HexString("89d6"), 
+    userInfoIdentifier = HexString("userInfoIdentifier"),
     indexCardReference = HexString("726f1d8bc207725f2225623f300b9e78d20685406c4096f97ac8a2c864bd52b4"),
     indexCardContent = HexString("89d6"),
-    cards = Array[(HexString, HexString)]()
+    indexCardIdentifier = HexString("indexCardIdentifier"),
+    cards = Array[CardsSignupData]()
   )
 
   private def manageRequestWithTollPayment(req: Request): ZIO[ClipperzEnvironment, Any, Response] =
