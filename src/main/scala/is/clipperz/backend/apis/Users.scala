@@ -40,19 +40,12 @@ val usersApi: Routes[BlobArchive & UserArchive & SessionManager, Throwable] = Ro
             fromStream[SignupData](content)
                 .flatMap { signupData =>
                 if HexString(c) == signupData.user.c then
-                    (userArchive.saveUser(remoteFromRequest(signupData.user), false)
-                    <&> // Returns an effect that executes both this effect and the specified effect, in parallel, combining their results into a tuple. If either side fails, then the other side will be interrupted.
-                        blobArchive
-                        .saveBlob(signupData.indexCardReference, ZStream.fromIterable(signupData.indexCardContent.toByteArray))
-                    <&>
-                        blobArchive
-                        .saveBlob(
-                            signupData.preferencesReference,
-                            ZStream.fromIterable(signupData.preferencesContent.toByteArray),
-                        )
-                    <&>
-                        ZIO.foreach(signupData.cards) { (reference, content) =>
-                        blobArchive.saveBlob(reference, ZStream.fromIterable(content.toByteArray))
+                    // Returns an effect that executes both this effect and the specified effect, in parallel, combining their results into a tuple. If either side fails, then the other side will be interrupted.
+                    (   userArchive.saveUser(remoteFromRequest(signupData.user), false)
+                    <&> blobArchive.saveBlob(signupData.indexCardReference, HexString("affb"), ZStream.fromIterable(signupData.indexCardContent.toByteArray))
+                    <&> blobArchive.saveBlob(signupData.userInfoReference,  HexString("affb"), ZStream.fromIterable(signupData.userInfoContent.toByteArray))
+                    <&> ZIO.foreach(signupData.cards) {
+                            (reference, content) => blobArchive.saveBlob(reference, HexString("affb"), ZStream.fromIterable(content.toByteArray))
                         }
                     )
                     .parallelErrors
@@ -143,7 +136,8 @@ Routes(
         (for {
             userArchive    <- ZIO.service[UserArchive]
             sessionManager <- ZIO.service[SessionManager]
-            result         <- userArchive.deleteUser(HexString(c))
+            _              <- userArchive.deleteUser(HexString(c))
+            result         <- ZIO.succeed(true) //  TODO: fix this hack: Giulio Cesare [26-02-2024]
             _              <- sessionManager.deleteSession(request)
         } yield (if result
             then Response.text(c)

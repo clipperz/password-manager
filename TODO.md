@@ -1,5 +1,5 @@
 # TODO
-latest updated on January 10th, 2024
+latest updated on February 18th, 2024 (synched with Linear.app)
 
 ## Scala
 - [ ] code cleanup 
@@ -10,15 +10,24 @@ latest updated on January 10th, 2024
 - [ ] adopt ZIO config for configuration management
 - [ ] collect cache stats via DataDog
 - [ ] fix tests to avoid sequentiality requirement
+- [ ] avoid failing altogether when not finding the DataDog side pod; useful mostly for development environments
 
 
 ## PureScript
 - [ ] PRNG
 - [ ] implement OfflineProxy for offline copy
+- [ ] Edit card: when saving the card, for a little while the old card content is shown, before showing the updated content
+- [ ] Adding a new card when in "narrow mode" show just a purple screen; resizing the page (growing and then shrinking it again) will end up showing the correct form. This may also be just a CSS issue in disguise.
+
+
+## UI
+- [ ] Review `Notes` section, both in 'read mode' (Title "Notes" too big) and in 'edit mode' (`edit`/`preview` button position and label/icon)
+- [ ] Edit card: when the card has no changes, the "save" button is disabled, but the cursor still show the "pointer" mode when hovering. Also, the two tones of green for enabled/disabled are very close and not easy to spot.
 
 
 ## Documentation
 - [ ] update documentation on how to setup developer environment
+- [ ] how to start DataDog side pod to collect stats
 - [ ] update DataDog dashboard to use new ZIO metrics names, and to add ZIO cache stats eventually
 
 

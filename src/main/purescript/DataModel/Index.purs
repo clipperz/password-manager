@@ -1,7 +1,10 @@
 module DataModel.Index where
 
+import Control.Alt ((<#>))
+import Control.Category ((>>>))
 import Data.Eq (class Eq, eq, (/=))
-import Data.HexString (HexString)
+import Data.EuclideanRing ((/))
+import Data.HexString (HexString, fromArrayBuffer, hex)
 import Data.List (delete, filter)
 import Data.List.Types (List(..), (:))
 import Data.Newtype (class Newtype, unwrap)
@@ -9,6 +12,8 @@ import Data.Ord (class Ord, compare)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.String.Common (toLower)
+import Effect.Aff (Aff)
+import Functions.SRP (randomArrayBuffer)
 
 -- --------------------------------------------
 
@@ -21,7 +26,8 @@ newtype CardReference =
   CardReference
     { reference :: HexString
     , key :: HexString
-    , cardVersion :: String
+    , version :: String
+    , identifier :: HexString
     }
 
 derive instance newtypeCardReference :: Newtype CardReference _
@@ -67,20 +73,22 @@ reference (CardEntry entry) = (unwrap entry.cardReference).reference
 -- --------------------------------------------
 
 emptyIndex :: Index
-emptyIndex = Index Nil
+emptyIndex = Index {entries: Nil, identifier: hex("")}
 
-newtype Index = 
-  Index (List CardEntry)
+prepareIndex :: List CardEntry -> Aff Index
+prepareIndex entries = randomArrayBuffer (256/8) <#> (fromArrayBuffer >>> (\identifier -> Index {entries, identifier}))
+
+newtype Index = Index {entries :: (List CardEntry), identifier :: HexString}
 
 derive instance newtypeIndex :: Newtype Index _
 
 addToIndex :: CardEntry -> Index -> Index
-addToIndex cardEntry (Index list) = Index (cardEntry : list) 
+addToIndex cardEntry (Index index@{entries}) = Index index {entries = (cardEntry : entries)}
 
 removeFromIndex :: CardEntry -> Index -> Index
-removeFromIndex cardEntry (Index index) = Index (delete cardEntry index)
+removeFromIndex cardEntry (Index index@{entries}) = Index index {entries = (delete cardEntry entries)}
 
 updateInIndex :: CardEntry -> CardEntry -> Index -> Index
-updateInIndex oldEntry newEntry (Index list) = Index (newEntry : filter (\(CardEntry { cardReference }) -> cardReference /= (unwrap oldEntry).cardReference) list)
+updateInIndex oldEntry newEntry (Index index@{entries}) = Index index {entries = (newEntry : filter (\(CardEntry { cardReference }) -> cardReference /= (unwrap oldEntry).cardReference) entries)}
 
 -- --------------------------------------------

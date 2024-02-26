@@ -5,16 +5,17 @@ import Affjax.ResponseFormat as RF
 import Control.Alt ((<#>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
-import Control.Monad.Except.Trans (ExceptT(..), except, throwError, withExceptT)
+import Control.Category ((<<<))
+import Control.Monad.Except.Trans (ExceptT(..), throwError, withExceptT)
 import Control.Semigroupoid ((>>>))
-import Crypto.Subtle.Key.Types (CryptoKey)
+import Crypto.Subtle.Key.Types (CryptoKey, exportKey, raw)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Bifunctor (lmap)
-import Data.Codec.Argonaut (decode, encode)
-import Data.Function (flip, ($))
-import Data.Functor ((<$>))
+import Data.Codec.Argonaut (encode)
+import Data.EuclideanRing ((/))
+import Data.Function ((#), ($))
 import Data.HTTP.Method (Method(..))
-import Data.HexString (Base(..), HexString, fromArrayBuffer, toArrayBuffer, toString)
+import Data.HexString (Base(..), HexString, fromArrayBuffer, splitHexInHalf, toArrayBuffer, toString)
 import Data.List (List(..), (:))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
@@ -26,41 +27,37 @@ import DataModel.AppError (AppError(..))
 import DataModel.AppState (InvalidStateError(..), ProxyResponse(..), AppState)
 import DataModel.Codec as Codec
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.Index (Index)
+import DataModel.Index (Index(..))
 import DataModel.SRPCodec as SRPCodec
-import DataModel.User (IndexReference(..), MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard(..), UserInfoReferences(..), UserPreferences, UserPreferencesReference(..), MasterKey)
+import DataModel.User (IndexReference(..), MasterKey, MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard(..), UserInfo(..), UserInfoReferences, UserPreferences)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
+import Effect.Class (liftEffect)
+import Functions.ArrayBuffer (concatArrayBuffers)
 import Functions.Communication.Backend (ConnectionState, genericRequest, isStatusCodeOk)
 import Functions.Communication.Blobs (deleteBlob, getBlob, getDecryptedBlob, postBlob)
-import Functions.EncodeDecode (encryptJson, importCryptoKeyAesGCM)
+import Functions.EncodeDecode (decryptArrayBuffer, encryptArrayBuffer, encryptJson, generateCryptoKeyAesGCM, importCryptoKeyAesGCM)
 import Functions.Index (getIndexContent)
-import Functions.SRP (prepareV)
+import Functions.SRP (prepareV, randomArrayBuffer)
 
-getMasterKey :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse MasterKey)
-getMasterKey connectionState c = do
-  let url = joinWith "/" ["users", show c]
-  ProxyResponse newProxy response <- genericRequest connectionState url GET Nothing RF.json
-  if isStatusCodeOk response.status
-    then do
-      newMasterKey <- except $ flip lmap (decode SRPCodec.masterKeyCodec response.body) (show >>> DecodeError >>> ProtocolError)
-      pure $ ProxyResponse newProxy newMasterKey
-    else throwError $ ProtocolError (ResponseError $ unwrap response.status)
+computeMasterKey :: ArrayBuffer -> CryptoKey -> CryptoKey -> Aff MasterKey
+computeMasterKey userInfoHash userInfoKey masterPassword = do
+  arrayBufferKey              <- exportKey raw userInfoKey
+  unencryptedMasterKeyContent <- concatArrayBuffers (userInfoHash : arrayBufferKey : Nil) # liftEffect
+  encryptedMasterKeyContent   <- encryptArrayBuffer masterPassword unencryptedMasterKeyContent
+  pure $ Tuple (fromArrayBuffer encryptedMasterKeyContent) V_1
+
+extractUserInfoReference :: MasterKey -> CryptoKey -> ExceptT AppError Aff UserInfoReferences
+extractUserInfoReference (Tuple masterKeyContent _) masterPassword = do
+  decryptedMasterKeyContent                      <- ExceptT $ decryptArrayBuffer masterPassword (toArrayBuffer masterKeyContent) <#> lmap (ProtocolError <<< CryptoError <<< show)
+  let {before: userInfoHash, after: userInfoKey}  = splitHexInHalf (fromArrayBuffer decryptedMasterKeyContent)
+  pure $ Tuple userInfoHash userInfoKey
 
 computeRemoteUserCard :: AppState -> ExceptT AppError Aff RequestUserCard
 computeRemoteUserCard { c: Just c, p: Just p, s: Just s, masterKey: Just masterKey, srpConf } = do
   v <- withExceptT (show >>> SRPError >>> ProtocolError) $ ExceptT (prepareV srpConf (toArrayBuffer s) (toArrayBuffer p))
   pure $ RequestUserCard { c, v, s, srpVersion: V_6a, originMasterKey: Nothing, masterKey }
 computeRemoteUserCard _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
-
-updateUserCard :: ConnectionState -> HexString -> UserCard -> ExceptT AppError Aff (ProxyResponse MasterKey)
-updateUserCard connectionState c newUserCard = do
-  let url = joinWith "/" ["users", toString Hex c]
-  let body = (json $ encode SRPCodec.userCardCodec newUserCard) :: RequestBody
-  ProxyResponse proxy' response <- genericRequest connectionState url PATCH (Just body) RF.string
-  if isStatusCodeOk response.status
-    then pure $ ProxyResponse proxy' (unwrap newUserCard).masterKey
-    else throwError (ProtocolError $ ResponseError $ unwrap response.status)
 
 deleteUserCard :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse Unit)
 deleteUserCard connectionState c = do
@@ -75,71 +72,80 @@ getIndex connectionState indexRef@(IndexReference { reference }) = do
   ProxyResponse newProxy blob <- getBlob connectionState reference
   getIndexContent blob indexRef <#> ProxyResponse newProxy
 
-getUserPreferences :: ConnectionState -> UserPreferencesReference -> ExceptT AppError Aff (ProxyResponse UserPreferences)
-getUserPreferences connectionState (UserPreferencesReference { reference, key }) = do
+getUserInfo :: ConnectionState -> UserInfoReferences -> ExceptT AppError Aff (ProxyResponse UserInfo)
+getUserInfo connectionState (Tuple reference key) = do
   cryptoKey :: CryptoKey <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer key)
-  getDecryptedBlob connectionState reference Codec.userPreferencesCodec cryptoKey
+  getDecryptedBlob connectionState reference Codec.userInfoCodec cryptoKey
 
 -- ------------
 
-deleteUserInfo :: ConnectionState -> MasterKey -> ExceptT AppError Aff (ProxyResponse Unit)
-deleteUserInfo connectionState (Tuple _ masterKeyEncodingVersion) =
-  case masterKeyEncodingVersion of
-    V_1    -> pure $ ProxyResponse connectionState.proxy unit -- with version 1.0 the userInfoReference record is saved inside the UserCard and not as a separate blob
-    -- "2.0"   -> do
-    --   p <- except $ (note (InvalidStateError $ MissingValue $ "p not present") state.p)
-    --   masterPassword <- ExceptT $ Right <$> KI.importKey raw (toArrayBuffer p) (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
-    --   decryptedMasterKeyContent <- withExceptT (\err -> ProtocolError $ CryptoError $ show err) (ExceptT $ decryptWithAesGCM (toArrayBuffer masterKeyContent) masterPassword)
-    --   { after: hash } <- pure $ splitHexInHalf (fromArrayBuffer decryptedMasterKeyContent)
-    --   void $ deleteBlob hash
+deleteUserInfo :: ConnectionState -> UserInfo -> MasterKey -> ExceptT AppError Aff (ProxyResponse Unit)
+deleteUserInfo connectionState@{p} (UserInfo {identifier}) masterKey = do
+  masterPassword    <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer p)
+  Tuple reference _ <-           extractUserInfoReference masterKey masterPassword
+  deleteBlob connectionState reference identifier
 
-type UpdateUserStateUpdateInfo = {newUserInfoReferences :: UserInfoReferences, newMasterKey :: MasterKey }
+updateUserCard :: ConnectionState -> HexString -> UserCard -> ExceptT AppError Aff (ProxyResponse Unit)
+updateUserCard connectionState c newUserCard = do
+  let url = joinWith "/" ["users", toString Hex c]
+  let body = (json $ encode SRPCodec.userCardCodec newUserCard) :: RequestBody
+  ProxyResponse proxy' response <- genericRequest connectionState url PATCH (Just body) RF.ignore
+  if isStatusCodeOk response.status
+    then pure $ ProxyResponse proxy' unit
+    else throwError (ProtocolError $ ResponseError $ unwrap response.status)
+
+type UpdateUserStateUpdateInfo = {newUserInfo :: UserInfo, newMasterKey :: MasterKey }
+
+updateUserInfo :: AppState -> UserInfo -> ExceptT AppError Aff (ProxyResponse UpdateUserStateUpdateInfo)
+
+updateUserInfo { c: Just c, p: Just p, masterKey: Just originMasterKey, proxy, hash: hashFunc, userInfo: Just (UserInfo oldUserInfo), srpConf } (UserInfo userInfo) = do
+  let connectionState = {proxy, hashFunc, srpConf, c, p}
+  
+  newUserInfoIdentifier :: HexString   <- liftAff $ randomArrayBuffer (256/8) <#> fromArrayBuffer
+  let newUserInfo        = UserInfo                 userInfo {identifier = newUserInfoIdentifier}
+  
+  userInfoKey           :: CryptoKey   <- liftAff $ generateCryptoKeyAesGCM
+  encryptedUserInfo     :: ArrayBuffer <- liftAff $ encryptJson Codec.userInfoCodec userInfoKey newUserInfo
+  userInfoHash          :: ArrayBuffer <- liftAff $ hashFunc (encryptedUserInfo : Nil)
+  ProxyResponse proxy'       _         <-           postBlob connectionState encryptedUserInfo (fromArrayBuffer userInfoHash) newUserInfoIdentifier
+
+  masterPassword        :: CryptoKey   <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer p)
+
+  Tuple oldUserInfoReference _         <-           extractUserInfoReference originMasterKey masterPassword
+  ProxyResponse proxy''      _         <-           deleteBlob connectionState{proxy = proxy'} oldUserInfoReference oldUserInfo.identifier
+
+  newMasterKey          :: MasterKey   <- liftAff $ computeMasterKey userInfoHash userInfoKey masterPassword
+  ProxyResponse proxy'''     _         <-           updateUserCard connectionState{proxy = proxy''} c (UserCard { masterKey: newMasterKey, originMasterKey: fst originMasterKey })
+
+  pure $ ProxyResponse proxy''' { newUserInfo, newMasterKey }
+  
+updateUserInfo _ _ = 
+  throwError $ InvalidStateError (MissingValue "Corrupted State")
 
 updateIndex :: AppState -> Index -> ExceptT AppError Aff (ProxyResponse UpdateUserStateUpdateInfo)
 
-updateIndex { c: Just c, p: Just p, userInfoReferences: Just (UserInfoReferences r@{ indexReference: (IndexReference oldReference) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, index: Just index, srpConf } newIndex = do
+updateIndex state@{ c: Just c, p: Just p, proxy, hash: hashFunc, userInfo: Just (UserInfo userInfo@{indexReference: IndexReference oldReference}), index: Just (Index oldIndex), srpConf } (Index newIndex) = do
   let connectionState = {proxy, hashFunc, srpConf, c, p}
-  cryptoKey            :: CryptoKey   <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer oldReference.masterKey)
-  indexCardContent     :: ArrayBuffer <- liftAff $ encryptJson Codec.indexCodec cryptoKey newIndex
-  indexCardContentHash :: ArrayBuffer <- liftAff $ hashFunc (indexCardContent : Nil)
-  ProxyResponse proxy'   _            <- postBlob connectionState indexCardContent indexCardContentHash
-  -- -------------------
-  let newIndexReference                = IndexReference $ oldReference { reference = fromArrayBuffer indexCardContentHash }
-  let newUserInfoReferences            = UserInfoReferences r { indexReference = newIndexReference }
-  masterPassword       :: CryptoKey   <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer p)
-  masterKeyContent     :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson Codec.userInfoReferencesCodec masterPassword newUserInfoReferences
-  let newUserCard                      = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
-  ProxyResponse proxy'' newMasterKey  <- updateUserCard connectionState{proxy = proxy'} c newUserCard
-  -- -------------------
-  oldIndexCartContent  :: ArrayBuffer <- liftAff $ encryptJson Codec.indexCodec cryptoKey index
 
-  ProxyResponse proxy''' _            <- deleteBlob connectionState{proxy = proxy''} oldIndexCartContent oldReference.reference
-  
-  pure $ ProxyResponse proxy''' { newUserInfoReferences, newMasterKey }
+  newIndexCardIdentifier <- liftAff $ randomArrayBuffer (256/8) <#> fromArrayBuffer
+
+  cryptoKey            :: CryptoKey   <- liftAff $ generateCryptoKeyAesGCM
+  indexCardContent     :: ArrayBuffer <- liftAff $ encryptJson Codec.indexCodec cryptoKey (Index newIndex {identifier = newIndexCardIdentifier})
+  indexCardContentHash :: ArrayBuffer <- liftAff $ hashFunc (indexCardContent : Nil)
+  ProxyResponse proxy'   _            <-           postBlob connectionState indexCardContent (fromArrayBuffer indexCardContentHash) newIndexCardIdentifier
+  let newIndexReference = IndexReference         $ oldReference { reference = fromArrayBuffer indexCardContentHash }
+  -- -------------------
+  ProxyResponse proxy'' _             <-           deleteBlob connectionState{proxy = proxy'} oldReference.reference oldIndex.identifier
+  -- -------------------
+  updateUserInfo (state {proxy = proxy''}) (UserInfo userInfo { indexReference = newIndexReference })
 
 updateIndex _ _ = 
-  throwError $ InvalidStateError (MissingValue "Missing p, c or indexReference")
+  throwError $ InvalidStateError (MissingValue "Corrupted State")
 
 updateUserPreferences :: AppState -> UserPreferences -> ExceptT AppError Aff (ProxyResponse UpdateUserStateUpdateInfo)
 
-updateUserPreferences { c: Just c, p: Just p, srpConf, userInfoReferences: Just (UserInfoReferences r@{ preferencesReference: (UserPreferencesReference { reference, key }) }), masterKey: Just originMasterKey, proxy, hash: hashFunc, userPreferences: Just userPreferences } newUserPreferences = do
-  let connectionState = {proxy, hashFunc, srpConf, c, p}
-  cryptoKey              :: CryptoKey   <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer key)
-  preferencesContent     :: ArrayBuffer <- liftAff $ encryptJson Codec.userPreferencesCodec cryptoKey newUserPreferences
-  preferencesContentHash :: ArrayBuffer <- liftAff $ hashFunc (preferencesContent : Nil)
-  ProxyResponse proxy'   _              <- postBlob connectionState preferencesContent preferencesContentHash
-  -- -------------------
-  let newUserPreferencesReference        = UserPreferencesReference { reference: fromArrayBuffer preferencesContentHash, key}
-  let newUserInfoReferences              = UserInfoReferences r { preferencesReference = newUserPreferencesReference }
-  masterPassword         :: CryptoKey   <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer p)
-  masterKeyContent       :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson Codec.userInfoReferencesCodec masterPassword newUserInfoReferences
-  let newUserCard                        = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
-  ProxyResponse proxy'' newMasterKey    <- updateUserCard connectionState{proxy = proxy'} c newUserCard
-  -- -------------------
-  oldUserPreferencesCartContent         <- liftAff $ encryptJson Codec.userPreferencesCodec cryptoKey userPreferences
-  ProxyResponse proxy''' _              <- deleteBlob connectionState{proxy = proxy''} oldUserPreferencesCartContent reference
-
-  pure $ ProxyResponse proxy''' { newUserInfoReferences, newMasterKey }
+updateUserPreferences state@{ userInfo: Just (UserInfo userInfo) } newUserPreferences = do
+  updateUserInfo state (UserInfo userInfo {userPreferences = newUserPreferences})
 
 updateUserPreferences _ _ =
-  throwError $ InvalidStateError (MissingValue "Missing user preferences reference")
+  throwError $ InvalidStateError (MissingValue "Missing user info")

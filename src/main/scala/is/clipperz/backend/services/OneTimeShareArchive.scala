@@ -40,7 +40,7 @@ implicit val encoder: JsonEncoder[DateTime] = JsonEncoder[String].contramap(_.to
 trait OneTimeShareArchive:
   def getSecret(id: SecretId): Task[OneTimeSecret]
   def saveSecret(content: ZStream[Any, Throwable, Byte]): Task[SecretId]
-  def deleteSecret(id: SecretId): Task[Boolean]
+  def deleteSecret(id: SecretId): Task[Unit]
 
 object OneTimeShareArchive:
 
@@ -48,7 +48,7 @@ object OneTimeShareArchive:
     override def getSecret(id: SecretId): Task[OneTimeSecret] =
       keyBlobArchive.getBlob(id).flatMap(fromStream[OneTimeSecret])
     
-    override def deleteSecret(id: SecretId): Task[Boolean] = 
+    override def deleteSecret(id: SecretId): Task[Unit] = 
       keyBlobArchive.deleteBlob(id)
 
     override def saveSecret(content: ZStream[Any, Throwable, Byte]): Task[SecretId] =

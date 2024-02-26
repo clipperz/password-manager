@@ -14,10 +14,15 @@ import zio.stream.ZStream
 
 case class SignupData(
     user: RequestUserCard,
-    preferencesReference: HexString,
-    preferencesContent: HexString,
+
+    userInfoReference: HexString,
+    // userInfoIdentifier: HexString,
+    userInfoContent: HexString,
+
     indexCardReference: HexString,
+    // indexCardIdentifier: HexString,
     indexCardContent: HexString,
+
     cards: Array[(HexString, HexString)],
   )
 object SignupData:

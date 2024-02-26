@@ -1,5 +1,6 @@
 module Functions.Index where
 
+import Control.Alt ((<#>), (<$>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Error.Class (throwError)
@@ -10,6 +11,7 @@ import Data.Argonaut.Core (Json)
 import Data.Argonaut.Parser (jsonParser)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Codec.Argonaut (decode)
+import Data.EuclideanRing ((/))
 import Data.Function (($))
 import Data.HexString (Base(..), fromArrayBuffer, toArrayBuffer, toString)
 import Data.List (List(..), (:))
@@ -25,19 +27,22 @@ import DataModel.SRP (HashFunction)
 import DataModel.User (IndexReference(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Functions.EncodeDecode (decryptWithAesGCM, encryptJson, exportCryptoKeyToHex, importCryptoKeyAesGCM)
+import Functions.EncodeDecode (decryptWithAesGCM, encryptJson, exportCryptoKeyToHex, generateCryptoKeyAesGCM, importCryptoKeyAesGCM)
+import Functions.SRP (randomArrayBuffer)
 
-createCardEntry :: Card -> CryptoKey -> HashFunction -> Aff (Tuple ArrayBuffer CardEntry)
-createCardEntry card@(Card { content: (CardValues content), archived, timestamp: _ }) key hashf = do
+createCardEntry :: HashFunction -> Card -> Aff (Tuple ArrayBuffer CardEntry)
+createCardEntry hashFunc card@(Card { content: (CardValues content), archived, timestamp: _ }) = do
+  key           <- generateCryptoKeyAesGCM
+  identifier    <- fromArrayBuffer <$> randomArrayBuffer (256/8)
   encryptedCard <- encryptJson Codec.cardCodec key card
-  hash <- hashf (encryptedCard : Nil)
-  exportedKey <- exportCryptoKeyToHex key
+  reference     <- hashFunc (encryptedCard : Nil) <#> fromArrayBuffer 
+  exportedKey   <- exportCryptoKeyToHex key
   let cardEntry = CardEntry { title: content.title
-                               , cardReference: CardReference { reference: fromArrayBuffer hash, key: exportedKey, cardVersion: currentCardVersion }
-                               , archived: archived
-                               , tags: content.tags
-                               , lastUsed: 0.0
-                               }
+                            , tags: content.tags
+                            , archived: archived
+                            , lastUsed: 0.0
+                            , cardReference: CardReference { reference, key: exportedKey, identifier, version: currentCardVersion }
+                            }
   pure $ Tuple encryptedCard cardEntry
 
 getIndexContent :: ArrayBuffer -> IndexReference -> ExceptT AppError Aff Index

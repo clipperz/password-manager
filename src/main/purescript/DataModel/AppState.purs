@@ -12,7 +12,7 @@ import DataModel.AsyncValue (AsyncValue)
 import DataModel.Card (Card)
 import DataModel.Index (Index)
 import DataModel.SRP (HashFunction, SRPConf)
-import DataModel.User (MasterKey, UserInfoReferences, UserPreferences)
+import DataModel.User (MasterKey, UserInfo)
 import Functions.HashCash (TollChallenge)
 
 type Url = String
@@ -57,8 +57,8 @@ type AppState =
   , hash :: HashFunction
   , cardsCache :: CardsCache
   , masterKey :: Maybe MasterKey
-  , userInfoReferences :: Maybe UserInfoReferences
-  , userPreferences :: Maybe UserPreferences
+  -- , userInfoReferences :: Maybe UserInfoReferences --TODO: may consider adding it in state instead of extracting it everytime from masterKey
+  , userInfo :: Maybe UserInfo
   , index :: Maybe Index
   }
 

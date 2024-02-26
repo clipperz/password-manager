@@ -46,7 +46,7 @@ cardManagerInitialState = {
 data CardsManagerInternalEvent = StateUpdate CardManagerState | CardManagerEvent CardManagerEvent
 
 cardsManagerView :: CardManagerState -> Index -> PasswordGeneratorSettings -> Widget HTML (Tuple CardManagerEvent CardManagerState)
-cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archived}, selectedEntry, cardViewState} index@(Index list) userPasswordGeneratorSettings = do
+cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archived}, selectedEntry, cardViewState} index@(Index {entries}) userPasswordGeneratorSettings = do
   res <- div [Props._id "cardsManager", Props.className $ "filterView_" <> getClassNameFromFilterStatus filterViewStatus] [
     indexFilterView filterData index <#> updateFilterData
   , div [Props.className "cardToolbarFrame"] [
@@ -93,7 +93,7 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archiv
     ]
 
     allTags :: Array String
-    allTags = nub $ fold $ (\(CardEntry entry) -> entry.tags) <$> fromFoldable list
+    allTags = nub $ fold $ (\(CardEntry entry) -> entry.tags) <$> fromFoldable entries
 
     handleCardEvents :: CardEvent -> CardsManagerInternalEvent
     handleCardEvents (Edit    cardEntry card) = StateUpdate      $ updateCardView (CardForm $ ModifyCard card cardEntry)
@@ -128,7 +128,7 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archiv
 -- ==================================================================                                                                                                                             
 
 indexView :: Index -> Maybe CardEntry -> Filter -> Boolean -> Widget HTML CardEntry
-indexView (Index entries) selectedEntry filter archived = ol [] (
+indexView (Index {entries}) selectedEntry filter archived = ol [] (
   (fromFoldable sortedCards) <#> (\cardEntry@(CardEntry { title, archived: archived' }) -> 
     li [Props.classList [archivedClass archived', selectedClass cardEntry], cardEntry <$ Props.onClick] [
       text title

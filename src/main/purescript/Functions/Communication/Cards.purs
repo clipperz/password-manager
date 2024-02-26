@@ -4,14 +4,13 @@ import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Monad.Except.Trans (ExceptT)
 import Data.Function (($))
-import Data.HexString (toArrayBuffer)
 import Data.Map (insert, lookup)
+import Data.Map.Internal (delete)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError)
 import DataModel.AppState (CardsCache, ProxyResponse(..))
 import DataModel.Card (Card)
-import DataModel.Codec as Codec
 import DataModel.Index (CardEntry(..), CardReference(..), reference)
 import DataModel.SRP (hashFuncSHA256)
 import Effect.Aff (Aff)
@@ -19,7 +18,6 @@ import Effect.Aff.Class (liftAff)
 import Functions.Card (getCardContent)
 import Functions.Communication.Backend (ConnectionState)
 import Functions.Communication.Blobs (deleteBlob, getBlob, postBlob)
-import Functions.EncodeDecode (encryptJson, generateCryptoKeyAesGCM, importCryptoKeyAesGCM)
 import Functions.Index (createCardEntry)
 
 getCard :: ConnectionState -> CardsCache -> CardEntry -> ExceptT AppError Aff (ProxyResponse (Tuple CardsCache Card))
@@ -28,21 +26,21 @@ getCard connectionState cardsCache cardEntry@(CardEntry entry) = do
   case cardFromCache of
     Just card -> pure $ ProxyResponse connectionState.proxy (Tuple cardsCache card)
     Nothing   -> do
-      ProxyResponse proxy' blob <- getBlob connectionState (reference cardEntry)
+      ProxyResponse proxy blob <- getBlob connectionState (reference cardEntry)
       card                      <- getCardContent blob (entry.cardReference)
       let updatedCardsCache = insert (reference cardEntry) card cardsCache
-      pure $ ProxyResponse proxy' (Tuple updatedCardsCache card)
+      pure $ ProxyResponse proxy (Tuple updatedCardsCache card)
 
-deleteCard :: ConnectionState -> CardReference -> Card -> ExceptT AppError Aff (ProxyResponse String)
-deleteCard connectionState (CardReference { reference, key }) card = do
-  cryptoKey     <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer key)
-  encryptedCard <- liftAff $ encryptJson Codec.cardCodec cryptoKey card
-  deleteBlob connectionState encryptedCard reference
+deleteCard :: ConnectionState -> CardsCache -> CardReference -> ExceptT AppError Aff (ProxyResponse CardsCache)
+deleteCard connectionState cardsCache (CardReference { reference, identifier }) = do
+  ProxyResponse proxy _ <- deleteBlob connectionState reference identifier
+  let updatedCardsCache =  delete identifier cardsCache
+  pure $ ProxyResponse proxy updatedCardsCache
 
-postCard :: ConnectionState -> Card -> ExceptT AppError Aff (ProxyResponse CardEntry)
-postCard connectionState card = do
-  key <- liftAff $ generateCryptoKeyAesGCM
-  Tuple encryptedCard cardEntry@(CardEntry {cardReference: CardReference {reference}}) <- liftAff $ createCardEntry card key hashFuncSHA256
-  ProxyResponse proxy' _ <- postBlob connectionState encryptedCard (toArrayBuffer reference)
-  pure $ ProxyResponse proxy' cardEntry
+postCard :: ConnectionState -> CardsCache -> Card -> ExceptT AppError Aff (ProxyResponse (Tuple CardsCache CardEntry))
+postCard connectionState cardsCache card = do
+  Tuple encryptedCard cardEntry@(CardEntry {cardReference: CardReference {reference, identifier}}) <- liftAff $ createCardEntry hashFuncSHA256 card
+  ProxyResponse proxy _ <- postBlob connectionState encryptedCard reference identifier
+  let updatedCardsCache  = insert reference card cardsCache
+  pure $ ProxyResponse proxy (Tuple updatedCardsCache cardEntry)
 

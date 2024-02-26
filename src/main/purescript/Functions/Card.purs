@@ -38,7 +38,7 @@ import Functions.EncodeDecode (decryptWithAesGCM, importCryptoKeyAesGCM)
 
 getCardContent :: ArrayBuffer -> CardReference -> ExceptT AppError Aff Card
 getCardContent bytes (CardReference ref) =
-  case ref.cardVersion of 
+  case ref.version of 
     "V1"    -> do
       cryptoKey     :: CryptoKey   <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer ref.key)
       decryptedData :: ArrayBuffer <- mapError (ExceptT $ decryptWithAesGCM bytes cryptoKey)

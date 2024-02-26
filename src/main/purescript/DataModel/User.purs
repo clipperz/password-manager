@@ -5,7 +5,6 @@ import Data.Eq (class Eq)
 import Data.HexString (HexString)
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
-import Data.Show (class Show, show)
 import Data.Tuple (Tuple)
 import DataModel.Password (PasswordGeneratorSettings, standardPasswordGeneratorSettings)
 
@@ -54,9 +53,6 @@ newtype IndexReference =
   
 derive instance newtypeIndexReference :: Newtype IndexReference _
 
-instance showIndexReference :: Show IndexReference where
-  show (IndexReference record) = show record
-
 -- --------------------------------------------------------------------------
 
 newtype UserPreferences = 
@@ -67,32 +63,20 @@ newtype UserPreferences =
     }
 derive instance newTypeUserPreferences :: Newtype UserPreferences _
 
-instance showUserPreferences :: Show UserPreferences where
-  show (UserPreferences record) = show record
-
 derive instance eqUserPreferences :: Eq UserPreferences
 
 defaultUserPreferences :: UserPreferences
 defaultUserPreferences = UserPreferences {passwordGeneratorSettings: standardPasswordGeneratorSettings, automaticLock: Right 10}
 
-newtype UserPreferencesReference =
-  UserPreferencesReference
-    { reference :: HexString
-    , key :: HexString
+-- ------------------------------------------------------------------------
+
+newtype UserInfo = 
+  UserInfo
+    { indexReference  :: IndexReference
+    , identifier      :: HexString
+    , userPreferences :: UserPreferences
     }
 
-derive instance newTypeUserPreferencesReference :: Newtype UserPreferencesReference _
+derive instance newTypeUserInfo :: Newtype UserInfo _
 
-instance showUserPreferencesReference :: Show UserPreferencesReference where
-  show (UserPreferencesReference record) = show record
-
-newtype UserInfoReferences = --TODO: change references structure [fsolaroli - 06/01/2024]
-  UserInfoReferences 
-    { preferencesReference :: UserPreferencesReference
-    , indexReference :: IndexReference
-    }
-
-derive instance newTypeUserInfoReferences :: Newtype UserInfoReferences _
-  
-instance showUserInfoReferences :: Show UserInfoReferences where
-  show (UserInfoReferences record) = show record
+type UserInfoReferences = Tuple HexString HexString

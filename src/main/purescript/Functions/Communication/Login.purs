@@ -5,7 +5,7 @@ import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
 import Control.Alt ((<#>))
 import Control.Applicative (pure)
-import Control.Bind (bind)
+import Control.Bind (bind, (=<<))
 import Control.Monad.Except.Trans (ExceptT(..), except, throwError, withExceptT)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Bifunctor (lmap)
@@ -30,14 +30,15 @@ import DataModel.Communication.Login (LoginStep1Response, LoginStep2Response)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials)
 import DataModel.SRP (SRPConf)
+import DataModel.SRPCodec as SRPCodec
 import DataModel.User (MasterKey, UserInfoReferences)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
 import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, loginRequest)
+import Functions.Communication.Users (extractUserInfoReference)
+import Functions.EncodeDecode (importCryptoKeyAesGCM)
 import Functions.SRP as SRP
-import DataModel.SRPCodec as SRPCodec
-import Functions.User (decryptUserInfoReferences)
     
 -- ----------------------------------------------------------------------------
 
@@ -107,7 +108,7 @@ loginStep2 connectionState@{srpConf} c p { aa, bb, a, s } = do
   responseBody :: LoginStep2Response   <- if isStatusCodeOk step2Response.status
                                           then except $     (decode SRPCodec.loginStep2ResponseCodec step2Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err)
                                           else throwError $  ProtocolError $ ResponseError (unwrap step2Response.status)
-  userInfoReferences <- decryptUserInfoReferences responseBody.masterKey p
+  userInfoReferences <- extractUserInfoReference responseBody.masterKey =<< (liftAff $ importCryptoKeyAesGCM $ toArrayBuffer p)
   pure $ ProxyResponse newProxy { m1, kk, m2: responseBody.m2, userInfoReferences, masterKey: responseBody.masterKey }
 
 -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

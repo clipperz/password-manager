@@ -50,7 +50,7 @@ initialFilterData = {
 }
 
 indexFilterView :: FilterData -> Index -> Widget HTML FilterData
-indexFilterView filterData@{archived, filter, searchString} (Index entries) = div [Props._id "filterView"] [
+indexFilterView filterData@{archived, filter, searchString} (Index {entries}) = div [Props._id "filterView"] [
     (filterData {filterViewStatus = FilterViewClosed}) <$ div [Props.onClick, Props.className "mask"] []
   , div [Props.className "content"] [
       div [Props.className "filter"] [

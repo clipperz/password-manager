@@ -24,11 +24,12 @@ import DataModel.AppState (InvalidStateError(..), ProxyResponse(..), AppState)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials, emptyCredentials)
 import DataModel.FragmentState as Fragment
+import DataModel.User (UserInfoReferences)
 import DataModel.WidgetState (CardFormInput(..), CardViewState(..), LoginType(..), Page(..), WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Login (PrepareLoginResult, loginStep1, loginStep2, prepareLogin)
-import Functions.Communication.Users (getIndex, getUserPreferences)
+import Functions.Communication.Users (getIndex, getUserInfo)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultView, doNothing, handleOperationResult, runStep)
 import Functions.Pin (decryptPassphraseWithPin, deleteCredentials, makeKey)
 import Functions.SRP (checkM2)
@@ -83,16 +84,15 @@ handleLoginPageEvent (GoToCredentialLoginEvent username) state _ = doNothing (Tu
 loginSteps :: Credentials -> AppState -> Fragment.FragmentState -> Page -> PrepareLoginResult -> ExceptT AppError (Widget HTML) OperationState
 loginSteps cred state@{proxy, hash: hashFunc, srpConf} fragmentState page prepareLoginResult = do
   let connectionState = {proxy, hashFunc, srpConf, c : hex "", p: hex ""}
-  ProxyResponse proxy'   loginStep1Result <- runStep (loginStep1         connectionState                 prepareLoginResult.c)                                       (WidgetState {status: Spinner, color: Black, message: "SRP step 1"   } page)
-  ProxyResponse proxy''  loginStep2Result <- runStep (loginStep2         connectionState{proxy = proxy'} prepareLoginResult.c prepareLoginResult.p loginStep1Result) (WidgetState {status: Spinner, color: Black, message: "SRP step 2"   } page)
+  ProxyResponse proxy'   loginStep1Result <- runStep (loginStep1         connectionState                 prepareLoginResult.c                                      ) (WidgetState {status: Spinner, color: Black, message: "SRP step 1"} page)
+  ProxyResponse proxy''  loginStep2Result <- runStep (loginStep2         connectionState{proxy = proxy'} prepareLoginResult.c prepareLoginResult.p loginStep1Result) (WidgetState {status: Spinner, color: Black, message: "SRP step 2"} page)
   _                                       <- runStep ((liftAff $ checkM2 srpConf loginStep1Result.aa loginStep2Result.m1 loginStep2Result.kk (toArrayBuffer loginStep2Result.m2)) >>= (\result -> 
                                                       if result
                                                       then pure         unit
                                                       else throwError $ ProtocolError (SRPError "Client M2 doesn't match with server M2")
                                                      ))                                                                                                       (WidgetState {status: Spinner, color: Black, message: "Validate user"} page)
 
-  let stateUpdate = { userInfoReferences: Just loginStep2Result.userInfoReferences 
-                    , masterKey:          Just loginStep2Result.masterKey 
+  let stateUpdate = { masterKey:          Just loginStep2Result.masterKey 
                     , username:           Just cred.username
                     , password:           Just cred.password
                     , s:                  Just loginStep1Result.s
@@ -100,19 +100,19 @@ loginSteps cred state@{proxy, hash: hashFunc, srpConf} fragmentState page prepar
                     , p:                  Just prepareLoginResult.p
                     }
 
-  res                                     <- loadHomePageSteps (merge stateUpdate (state {proxy = proxy''})) fragmentState
+  res                                     <- loadHomePageSteps (merge stateUpdate (state {proxy = proxy''})) loginStep2Result.userInfoReferences fragmentState
 
   pure $ res
 
-loadHomePageSteps :: AppState -> Fragment.FragmentState -> ExceptT AppError (Widget HTML) OperationState
+loadHomePageSteps :: AppState -> UserInfoReferences -> Fragment.FragmentState -> ExceptT AppError (Widget HTML) OperationState
 
-loadHomePageSteps state@{hash: hashFunc, proxy, srpConf, userInfoReferences: Just userInfoReferences, c: Just c, p: Just p} fragmentState = do
+loadHomePageSteps state@{hash: hashFunc, proxy, srpConf, c: Just c, p: Just p} userInfoReference fragmentState = do
   let connectionState = {proxy, hashFunc, srpConf, c, p}
 
-  ProxyResponse proxy'  userPreferences <- runStep (getUserPreferences connectionState                  (unwrap userInfoReferences).preferencesReference) (WidgetState {status: Spinner, color: Black, message: "Get user preferences"} $ Main emptyMainPageWidgetState)
-  ProxyResponse proxy'' index           <- runStep (getIndex           connectionState{ proxy = proxy'} (unwrap userInfoReferences).indexReference)       (WidgetState {status: Spinner, color: Black, message: "Get index"}            $ Main emptyMainPageWidgetState)
+  ProxyResponse proxy'  userInfo <- runStep (getUserInfo connectionState                                 userInfoReference) (WidgetState {status: Spinner, color: Black, message: "Get user info"} $ Main emptyMainPageWidgetState)
+  ProxyResponse proxy'' index    <- runStep (getIndex    connectionState{ proxy = proxy'} (unwrap userInfo).indexReference) (WidgetState {status: Spinner, color: Black, message: "Get index"    } $ Main emptyMainPageWidgetState)
   
-  case (unwrap userPreferences).automaticLock of
+  case (unwrap (unwrap userInfo).userPreferences).automaticLock of
     Right n -> liftEffect (activateTimer n)
     Left  _ -> pure unit
 
@@ -120,9 +120,14 @@ loadHomePageSteps state@{hash: hashFunc, proxy, srpConf, userInfoReferences: Jus
                         Fragment.AddCard card -> CardForm (NewCardFromFragment card)
                         _                     -> NoCard
 
-  pure $ Tuple (state {proxy = proxy'', index = Just index, userPreferences = Just userPreferences}) (WidgetState {status: Hidden, color: Black, message: ""} (Main emptyMainPageWidgetState { index = index, cardManagerState = cardManagerInitialState { cardViewState = cardViewState } }))
+  pure $ Tuple 
+    (state {proxy = proxy'', index = Just index, userInfo = Just userInfo})
+    (WidgetState 
+      {status: Hidden, color: Black, message: ""}
+      (Main emptyMainPageWidgetState { index = index, cardManagerState = cardManagerInitialState { cardViewState = cardViewState } })
+    )
 
-loadHomePageSteps _ _ = do
+loadHomePageSteps _ _ _ = do
   throwError (InvalidStateError $ CorruptedState "")
 
 type MaxPinAttemptsReached = Boolean

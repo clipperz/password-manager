@@ -2,11 +2,11 @@ module Functions.User where
 
 import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
+import Control.Alt ((<#>))
 import Control.Applicative (pure)
 import Control.Bind (bind)
-import Control.Monad.Except.Trans (ExceptT(..), throwError, withExceptT)
+import Control.Monad.Except.Trans (ExceptT(..), throwError)
 import Control.Semigroupoid ((<<<))
-import Crypto.Subtle.Key.Types (CryptoKey)
 import Data.Bifunctor (lmap)
 import Data.Codec.Argonaut (encode)
 import Data.Function (($))
@@ -15,21 +15,18 @@ import Data.HTTP.Method (Method(..))
 import Data.HexString (Base(..), HexString, fromArrayBuffer, toArrayBuffer, toString)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (ProxyResponse(..), AppState, InvalidStateError(..))
-import DataModel.Codec as Codec
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.SRPCodec as SRPCodec
-import DataModel.User (MasterKey, MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserInfoReferences)
+import DataModel.User (MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Effect.Exception as EX
 import Functions.Communication.Backend (isStatusCodeOk, genericRequest)
-import Functions.EncodeDecode (decryptJson, encryptJson, importCryptoKeyAesGCM)
+import Functions.EncodeDecode (decryptArrayBuffer, encryptArrayBuffer, importCryptoKeyAesGCM)
 import Functions.SRP as SRP
 
 type ModifyUserData = { c :: HexString
@@ -45,8 +42,8 @@ changeUserPassword {srpConf, c: Just oldC, p: Just oldP, username: Just username
   newV <- ExceptT $ (lmap (ProtocolError <<< SRPError <<< show)) <$> (SRP.prepareV srpConf s newP)
   oldMasterPassword <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer oldP)
   newMasterPassword <- liftAff $ importCryptoKeyAesGCM newP
-  masterKeyDecryptedContent <- ExceptT $ (lmap (ProtocolError <<< CryptoError <<< show)) <$> decryptJson Codec.userInfoReferencesCodec oldMasterPassword (toArrayBuffer $ masterKeyContent)
-  masterKeyEncryptedContent <- liftAff $ fromArrayBuffer <$> encryptJson Codec.userInfoReferencesCodec newMasterPassword masterKeyDecryptedContent
+  masterKeyDecryptedContent <- ExceptT $ decryptArrayBuffer oldMasterPassword (toArrayBuffer $ masterKeyContent) <#> (lmap (ProtocolError <<< CryptoError <<< show))
+  masterKeyEncryptedContent <- liftAff $ encryptArrayBuffer newMasterPassword  masterKeyDecryptedContent         <#> fromArrayBuffer
   let newUserCard = RequestUserCard { c: fromArrayBuffer newC
                                     , v: newV
                                     , s: fromArrayBuffer s
@@ -65,12 +62,3 @@ changeUserPassword {srpConf, c: Just oldC, p: Just oldP, username: Just username
                                      }
     else throwError $ ProtocolError (ResponseError (unwrap response.status))
 changeUserPassword _ _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
-
-decryptUserInfoReferences :: MasterKey -> HexString -> ExceptT AppError Aff UserInfoReferences
-decryptUserInfoReferences (Tuple encryptedRef _) p = do -- TODO: handle version
-  masterPassword :: CryptoKey <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer p)
-  mapCryptoError $ ExceptT $ decryptJson Codec.userInfoReferencesCodec masterPassword (toArrayBuffer encryptedRef)
-
-  where 
-    mapCryptoError :: forall a. ExceptT EX.Error Aff a -> ExceptT AppError Aff a
-    mapCryptoError = withExceptT (\e -> ProtocolError $ CryptoError $ "Decrypt UserInfoReferences: " <> EX.message e)

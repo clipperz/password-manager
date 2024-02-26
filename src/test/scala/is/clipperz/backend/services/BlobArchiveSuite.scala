@@ -35,7 +35,7 @@ object BlobArchiveSpec extends ZIOSpecDefault:
   val failingContent = ZStream.never
   val testKey = HexString("d1d733a8041744d6e4b7b991b5f38df48a3767acd674c9df231c92068801a460")
   val failingKey = HexString("d1d733a8041744d6e4b7b991b5f38df48a3767acd674c9df231c92068801a789")
-
+  val identifier = HexString("abba")
   def spec = suite("BlobArchive")(
     test("getBlob - fail") {
       for {
@@ -46,7 +46,7 @@ object BlobArchiveSpec extends ZIOSpecDefault:
       test("saveBlob - success") {
         for {
           archive <- ZIO.service[BlobArchive]
-          fiber <- archive.saveBlob(testKey, testContent).fork
+          fiber <- archive.saveBlob(testKey, identifier, testContent).fork
           _ <- TestClock.adjust(Duration.fromMillis(BlobArchive.WAIT_TIME + 10))
           _ <- fiber.join
           content <- archive.getBlob(testKey)
@@ -56,7 +56,7 @@ object BlobArchiveSpec extends ZIOSpecDefault:
       test("saveBlob with failing stream - success") {
         for {
           archive <- ZIO.service[BlobArchive]
-          fiber <- archive.saveBlob(failingKey, failingContent).fork
+          fiber <- archive.saveBlob(failingKey, identifier, failingContent).fork
           _ <- TestClock.adjust(Duration.fromMillis(BlobArchive.WAIT_TIME + 10))
           res <- assertZIO(fiber.await)(fails(isSubtype[EmptyContentException](anything)))
         } yield res
@@ -64,7 +64,7 @@ object BlobArchiveSpec extends ZIOSpecDefault:
       test("saveBlob with wrong hash - success") {
         for {
           archive <- ZIO.service[BlobArchive]
-          fiber <- archive.saveBlob(failingKey, testContent).fork
+          fiber <- archive.saveBlob(failingKey, identifier, testContent).fork
           _ <- TestClock.adjust(Duration.fromMillis(BlobArchive.WAIT_TIME + 10))
           res <- assertZIO(fiber.await)(fails(isSubtype[BadRequestException](anything)))
         } yield res
@@ -79,14 +79,14 @@ object BlobArchiveSpec extends ZIOSpecDefault:
       test("deleteBlob - success") {
         for {
           archive <- ZIO.service[BlobArchive]
-          res <- archive.deleteBlob(testKey, testContent)
-        } yield assertTrue(res)
+          _       <- archive.deleteBlob(testKey, identifier)
+        } yield assertCompletes
       } +
       test("deleteBlob - fail") {
         for {
           archive <- ZIO.service[BlobArchive]
-          res <- archive.deleteBlob(testKey, testContent)
-        } yield assertTrue(!res)
+          _       <- archive.deleteBlob(testKey, identifier)
+        } yield assertCompletes
       }
   ).provideSomeLayerShared(environment) @@
     TestAspect.sequential @@

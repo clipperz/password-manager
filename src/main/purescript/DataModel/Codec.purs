@@ -18,7 +18,7 @@ import DataModel.Index (CardEntry(..), CardReference(..), Index(..))
 import DataModel.IndexVersions.IndexV1 (CardEntry_V1, CardReference_V1, Index_V1)
 import DataModel.Password (PasswordGeneratorSettings)
 import DataModel.Pin (PasswordPin)
-import DataModel.User (IndexReference(..), UserInfoReferences(..), UserPreferences(..), UserPreferencesReference(..))
+import DataModel.User (IndexReference(..), UserInfo(..), UserPreferences(..))
 import DataModel.WidgetState (CardFormInput(..), CardManagerState, CardViewState, ImportState, ImportStep(..), LoginFormData, LoginType(..), MainPageWidgetState, Page(..), UserAreaPage(..), UserAreaState, UserAreaSubmenu(..), WidgetState(..))
 import DataModel.WidgetState (CardViewState(..)) as CardViewState
 import IndexFilterView (Filter(..), FilterData, FilterViewStatus(..))
@@ -191,14 +191,22 @@ mainPageWidgetStateCodec =
     )
 
 -- newtype Index = 
---   Index (List CardEntry)
+--   Index {entries :: (List CardEntry), identifier :: HexString}
 indexCodec :: CA.JsonCodec Index
 indexCodec =
-  wrapIso Index (CAC.list cardEntryCodec)
+  wrapIso Index $
+    CAR.object "index"
+    { entries: CAC.list cardEntryCodec
+    , identifier: hexStringCodec
+    }
 
--- type Index_V1 = List CardEntry_V1
+-- type Index_V1 = {entries :: (List CardEntry_V1), identifier :: HexString}
 indexV1Codec :: CA.JsonCodec Index_V1
-indexV1Codec = CAC.list cardEntryV1Codec
+indexV1Codec = 
+  CAR.object "index"
+    { entries: CAC.list cardEntryV1Codec
+    , identifier: hexStringCodec
+    }
 
 -- newtype CardEntry =
 --   CardEntry
@@ -244,7 +252,8 @@ cardEntryV1Codec =
 --   CardReference
 --     { reference :: HexString
 --     , key :: HexString
---     , cardVersion :: String
+--     , version :: String
+--     , identifier :: HexString
 --     }
 cardReferenceCodec :: CA.JsonCodec CardReference
 cardReferenceCodec = wrapIso CardReference $
@@ -252,14 +261,16 @@ cardReferenceCodec = wrapIso CardReference $
     (CAR.record
       { reference:   hexStringCodec
       , key:         hexStringCodec
-      , cardVersion: CA.string
+      , version: CA.string
+      , identifier:  hexStringCodec
       }
     )
 
 -- type CardReference_V1 =
 --   { reference :: HexString
 --   , key :: HexString
---   , cardVersion :: String
+--   , version :: String
+--   , identifier :: HexString
 --   }
 cardReferenceV1Codec :: CA.JsonCodec CardReference_V1
 cardReferenceV1Codec = 
@@ -267,7 +278,8 @@ cardReferenceV1Codec =
     (CAR.record
       { reference:   hexStringCodec
       , key:         hexStringCodec
-      , cardVersion: CA.string
+      , version: CA.string
+      , identifier:  hexStringCodec
       }
     )
 
@@ -621,33 +633,21 @@ userPreferencesCodec = wrapIso UserPreferences (
     )
 )
 
--- newtype UserInfoReferences = --TODO: change references structure [fsolaroli - 06/01/2024]
---   UserInfoReferences 
---     { preferencesReference :: UserPreferencesReference
---     , indexReference :: IndexReference
+-- newtype UserInfo = 
+--   UserInfo
+--     { indexReference  :: IndexReference
+--     , identifier      :: HexString
+--     , userPreferences :: UserPreferences
 --     }
-userInfoReferencesCodec :: CA.JsonCodec UserInfoReferences
-userInfoReferencesCodec = wrapIso UserInfoReferences $
-  CA.object "UserInfoReferences"
-    (CAR.record
-      { preferencesReference: userPreferencesReferenceCodec
-      , indexReference:       indexReferenceCodec
-      }
-    )
 
--- newtype UserPreferencesReference =
---   UserPreferencesReference
---     { reference :: HexString
---     , key :: HexString
---     }
-userPreferencesReferenceCodec :: CA.JsonCodec UserPreferencesReference
-userPreferencesReferenceCodec = wrapIso UserPreferencesReference $
-  CA.object "UserPreferencesReference"
-    (CAR.record
-      { reference: hexStringCodec
-      , key:       hexStringCodec
-      }
-    )
+userInfoCodec :: CA.JsonCodec UserInfo
+userInfoCodec = wrapIso UserInfo (
+  CAR.object "UserInfo"
+    { indexReference:  indexReferenceCodec
+    , identifier:      hexStringCodec
+    , userPreferences: userPreferencesCodec
+    }
+)
 
 -- newtype IndexReference =
 --   IndexReference

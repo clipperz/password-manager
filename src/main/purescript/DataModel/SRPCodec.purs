@@ -86,11 +86,13 @@ registerUserRequestCodec =
   CAR.object "registerUserRequest"
     { user                 : requestUserCardCodec
     , p                    : Codec.hexStringCodec
-    , preferencesReference : Codec.hexStringCodec
-    , preferencesContent   : Codec.hexStringCodec
+    , userInfoReference    : Codec.hexStringCodec
+    , userInfoContent      : Codec.hexStringCodec
+    , userInfoIdentifier   : Codec.hexStringCodec
     , indexCardReference   : Codec.hexStringCodec
     , indexCardContent     : Codec.hexStringCodec
-    , cards                : CA.array (CAC.tuple Codec.hexStringCodec Codec.hexStringCodec)
+    , indexCardIdentifier  : Codec.hexStringCodec
+    , cards                : CA.array (CAR.object "card" {cardContent: Codec.hexStringCodec, cardReference: Codec.hexStringCodec, cardIdentifier: Codec.hexStringCodec})
     }
 
 userCardCodec :: CA.JsonCodec UserCard

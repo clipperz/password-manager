@@ -11,12 +11,13 @@ import Data.Codec.Argonaut (JsonCodec)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
-import Data.HexString (Base(..), HexString, fromArrayBuffer, toString)
+import Data.HexString (Base(..), HexString, toString)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.String.Common (joinWith)
+import Data.Unit (Unit)
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (ProxyResponse(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
@@ -25,7 +26,7 @@ import Effect.Class (liftEffect)
 import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, genericRequest)
 import Functions.Communication.BlobFromArrayBuffer (blobFromArrayBuffer)
 import Functions.EncodeDecode (decryptJson)
-import Web.XHR.FormData (EntryName(..), FileName(..), appendBlob, new)
+import Web.XHR.FormData (EntryName(..), FileName(..), append, appendBlob, new)
 
 -- ----------------------------------------------------------------------------
 
@@ -43,31 +44,26 @@ getDecryptedBlob connectionState reference codec key = do
   decryptedBlob <- withExceptT (\e -> ProtocolError $ CryptoError $ "Get decrypted blob: " <> show e) (ExceptT $ decryptJson codec key blob)
   pure $ ProxyResponse proxy decryptedBlob
 
-postBlob :: ConnectionState -> ArrayBuffer -> ArrayBuffer -> ExceptT AppError Aff (ProxyResponse (AXW.Response String))
-postBlob connectionState blob hash = do
+postBlob :: ConnectionState -> ArrayBuffer -> HexString -> HexString -> ExceptT AppError Aff (ProxyResponse (AXW.Response Unit))
+postBlob connectionState blob blobReference blobIdentifier = do
   let url = joinWith "/" ["blobs"]
   body <- formData <$> (liftEffect $ do
       formData <- new
-      appendBlob (EntryName "blob") (blobFromArrayBuffer blob) (Just $ FileName (toString Hex (fromArrayBuffer hash))) formData
+      append     (EntryName "indentifier") (toString Hex blobIdentifier)                                                formData
+      appendBlob (EntryName "blob")        (blobFromArrayBuffer blob)    (Just $ FileName (toString Hex blobReference)) formData
       pure $ formData
   )
-  genericRequest connectionState url POST (Just body) RF.string
+  genericRequest connectionState url POST (Just body) RF.ignore
 
-deleteBlob :: ConnectionState -> ArrayBuffer -> HexString -> ExceptT AppError Aff (ProxyResponse String)
-deleteBlob connectionState encryptedBlob reference = do
-  let url = joinWith "/" ["blobs"]
+deleteBlob :: ConnectionState -> HexString -> HexString -> ExceptT AppError Aff (ProxyResponse Unit)
+deleteBlob connectionState blobReference blobIdentifier = do
+  let url = joinWith "/" ["blobs", toString Hex blobReference]
   body <- formData <$> (liftEffect $ do
       formData <- new
-      appendBlob (EntryName "blob") (blobFromArrayBuffer encryptedBlob) (Just $ FileName (toString Hex reference)) formData
+      append (EntryName "identifier") (toString Hex blobIdentifier) formData
       pure $ formData
   )
-  ProxyResponse proxy response <- genericRequest connectionState url DELETE (Just body) RF.string
+  ProxyResponse proxy response <- genericRequest connectionState url DELETE (Just body) RF.ignore
   if isStatusCodeOk response.status
     then pure       $ ProxyResponse proxy response.body
     else throwError $ ProtocolError (ResponseError $ unwrap response.status)
-
-deleteBlobWithReference :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyResponse String)
-deleteBlobWithReference connectionState reference = do
-  ProxyResponse proxy' encryptedBlob <- getBlob connectionState reference
-  deleteBlob connectionState {proxy = proxy'} encryptedBlob reference
-

@@ -116,8 +116,8 @@ object AppSpec extends ZIOSpecDefault:
 
   val signupData = SignupData(
     user = userCard,
-    preferencesReference = HexString("726f1d8bc207725f2225623f300b9e78d20685406c4096f97ac8a2c864bd52b4"), 
-    preferencesContent = HexString("89d6"), 
+    userInfoReference = HexString("726f1d8bc207725f2225623f300b9e78d20685406c4096f97ac8a2c864bd52b4"), 
+    userInfoContent = HexString("89d6"), 
     indexCardReference = HexString("726f1d8bc207725f2225623f300b9e78d20685406c4096f97ac8a2c864bd52b4"),
     indexCardContent = HexString("89d6"),
     cards = Array[(HexString, HexString)]()
