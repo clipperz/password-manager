@@ -56,6 +56,7 @@ import Functions.State (resetState)
 import Functions.Time (formatDateTimeToDate, getCurrentDateTime)
 import Functions.Timer (activateTimer, stopTimer)
 import Functions.User (changeUserPassword)
+import Record (merge)
 import Views.ExportView (ExportEvent(..))
 import Views.LoginFormView (emptyLoginFormData)
 import Views.OverlayView (OverlayColor(..), hiddenOverlayInfo, spinnerOverlay)
@@ -99,7 +100,7 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
           Right n -> liftEffect $ activateTimer n
 
         pure (Tuple 
-          (state {proxy = proxy', userInfo = Just stateUpdateInfo.newUserInfo, masterKey = Just stateUpdateInfo.newMasterKey})
+          (merge stateUpdateInfo state {proxy = proxy'})
           (WidgetState hiddenOverlayInfo page)
         )
             
@@ -236,12 +237,7 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
             ProxyResponse proxy'' stateUpdateInfo            <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index" White) page)
 
             pure (Tuple 
-              (state { proxy      = proxy''
-                     , cardsCache = cardsCache'
-                     , index      = Just updatedIndex
-                     , userInfo   = Just stateUpdateInfo.newUserInfo
-                     , masterKey  = Just stateUpdateInfo.newMasterKey
-                     }
+              (merge stateUpdateInfo state {proxy = proxy'', cardsCache = cardsCache', index = Just updatedIndex}
               )
               (WidgetState
                 hiddenOverlayInfo

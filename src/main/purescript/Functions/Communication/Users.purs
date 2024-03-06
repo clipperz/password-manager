@@ -114,7 +114,7 @@ postUserInfo connectionState@{hashFunc} userInfo@(UserInfo {identifier}) = do
   pure $ ProxyResponse proxy userInfoReference
 
 
-type UpdateUserStateUpdateInfo = {newUserInfo :: UserInfo, newMasterKey :: MasterKey, newUserInfoReferences :: UserInfoReferences }
+type UpdateUserStateUpdateInfo = {userInfo :: Maybe UserInfo, masterKey :: Maybe MasterKey, userInfoReferences :: Maybe UserInfoReferences }
 
 updateUserInfo :: AppState -> UserInfo -> ExceptT AppError Aff (ProxyResponse UpdateUserStateUpdateInfo)
 
@@ -129,7 +129,7 @@ updateUserInfo { c: Just c, p: Just p, masterKey: Just (Tuple originMasterKey _)
   newMasterKey        :: MasterKey             <- liftAff $ computeMasterKey newUserInfoReferences =<< (importCryptoKeyAesGCM (toArrayBuffer p) # liftAff)
   ProxyResponse proxy''' _                     <-           updateUserCard connectionState{proxy = proxy''} c (UserCard { masterKey: newMasterKey, originMasterKey })
 
-  pure $ ProxyResponse proxy''' { newUserInfo, newMasterKey, newUserInfoReferences }
+  pure $ ProxyResponse proxy''' { userInfo: Just newUserInfo, masterKey: Just newMasterKey, userInfoReferences: Just newUserInfoReferences }
   
 updateUserInfo _ _ = 
   throwError $ InvalidStateError (MissingValue "Corrupted State")

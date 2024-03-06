@@ -29,6 +29,7 @@ import Functions.Communication.Blobs (getBlob)
 import Functions.Communication.Cards (deleteCard, postCard)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
 import Functions.Index (updateIndex)
+import Record (merge)
 import Views.AppView (emptyMainPageWidgetState)
 import Views.CardsManagerView (CardManagerEvent(..))
 import Views.OverlayView (OverlayColor(..), hiddenOverlayInfo, spinnerOverlay)
@@ -103,7 +104,7 @@ handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just inde
         ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex)                      (WidgetState (spinnerOverlay "Update index" Black) (loadingMainPage index cardManagerState))
 
         pure (Tuple 
-                (state {proxy = proxy'', index = Just updatedIndex, userInfo = Just stateUpdateInfo.newUserInfo, masterKey = Just stateUpdateInfo.newMasterKey, cardsCache = cardsCache'})
+                (merge stateUpdateInfo state {proxy = proxy'', index = Just updatedIndex, cardsCache = cardsCache'})
                 (WidgetState
                   hiddenOverlayInfo
                   (Main { index:            updatedIndex
@@ -173,14 +174,7 @@ addCardSteps cardManagerState state@{index: Just index, userInfo: Just (UserInfo
   ProxyResponse proxy''  stateUpdateInfo                 <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index" Black) page)
 
   pure (Tuple 
-          (state  { proxy              = proxy''
-                  , index              = Just updatedIndex
-                  , userInfo           = Just stateUpdateInfo.newUserInfo
-                  , masterKey          = Just stateUpdateInfo.newMasterKey
-                  , userInfoReferences = Just stateUpdateInfo.newUserInfoReferences
-                  , cardsCache         = cardsCache'
-                  }
-          )
+          (merge stateUpdateInfo state  {proxy = proxy'', index = Just updatedIndex, cardsCache = cardsCache'})
           (WidgetState
             hiddenOverlayInfo
             (Main { index:            updatedIndex
@@ -203,20 +197,20 @@ editCardSteps cardManagerState state@{index: Just index, proxy, srpConf, hash: h
   updatedIndex                                         <- liftAff (addToIndex cardEntry index >>= removeFromIndex oldCardEntry)
   ProxyResponse proxy'''  stateUpdateInfo              <- runStep (updateIndex (state {proxy = proxy''}) updatedIndex)                                          (WidgetState (spinnerOverlay "Update index"      Black) page)
 
-  pure (Tuple 
-    (state {proxy = proxy''', index = Just updatedIndex, userInfo = Just stateUpdateInfo.newUserInfo, masterKey = Just stateUpdateInfo.newMasterKey, cardsCache = cardsCache''})
-    (WidgetState
-      hiddenOverlayInfo
-      (Main { index:            updatedIndex
-            , credentials:     {username, password}
-            , pinExists: isJust pinEncryptedPassword
-            , userPreferences
-            , userAreaState:    userAreaInitialState
-            , cardManagerState: cardManagerState {cardViewState = (Card updatedCard cardEntry), selectedEntry = Just cardEntry}
-            }
-      )
-    )
-  )
+  pure  (Tuple 
+          (merge stateUpdateInfo state {proxy = proxy''', index = Just updatedIndex, cardsCache = cardsCache''})
+          (WidgetState
+            hiddenOverlayInfo
+            (Main { index:            updatedIndex
+                  , credentials:     {username, password}
+                  , pinExists: isJust pinEncryptedPassword
+                  , userPreferences
+                  , userAreaState:    userAreaInitialState
+                  , cardManagerState: cardManagerState {cardViewState = (Card updatedCard cardEntry), selectedEntry = Just cardEntry}
+                  }
+            )
+          )
+        )
 editCardSteps _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
 
 -- ========================================================================================================================
