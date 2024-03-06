@@ -23,12 +23,12 @@ import DataModel.Index (CardEntry(..), Index, addToIndex, reference, removeFromI
 import DataModel.User (UserInfo(..))
 import DataModel.WidgetState (CardManagerState, CardViewState(..), Page(..), WidgetState(..))
 import Effect.Aff.Class (liftAff)
-import Functions.Card (appendToTitle, archiveCard, getCardContent, restoreCard)
+import Functions.Card (appendToTitle, archiveCard, decryptCard, restoreCard)
 import Functions.Communication.Backend (ConnectionState)
 import Functions.Communication.Blobs (getBlob)
 import Functions.Communication.Cards (deleteCard, postCard)
-import Functions.Communication.Users (updateIndex)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
+import Functions.Index (updateIndex)
 import Views.AppView (emptyMainPageWidgetState)
 import Views.CardsManagerView (CardManagerEvent(..))
 import Views.OverlayView (OverlayColor(..), hiddenOverlayInfo, spinnerOverlay)
@@ -89,8 +89,8 @@ handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just inde
     (CloneCardEvent cardEntry) ->
       do
         ProxyResponse proxy' (Tuple cardsCache' card) <- getCardSteps connectionState cardsCache cardEntry (loadingMainPage index cardManagerState)
-        let cloneCard      = appendToTitle " - copy" <<< (\(DataModel.Card.Card card') -> DataModel.Card.Card card' {archived = false}) $ card
-        res               <- addCardSteps cardManagerState state{proxy = proxy', cardsCache = cardsCache'} cloneCard (loadingMainPage index cardManagerState) "Clone card"
+        let cloneCard                                  = appendToTitle " - copy" <<< (\(DataModel.Card.Card card') -> DataModel.Card.Card card' {archived = false}) $ card
+        res                                           <- addCardSteps cardManagerState state{proxy = proxy', cardsCache = cardsCache'} cloneCard (loadingMainPage index cardManagerState) "Clone card"
         pure res
 
       # runExceptT
@@ -161,7 +161,7 @@ getCardSteps connectionState cardsCache cardEntry@(CardEntry entry) page = do
     Just card -> pure $ ProxyResponse connectionState.proxy (Tuple cardsCache card)
     Nothing   -> do
       ProxyResponse proxy' blob <- runStep (getBlob connectionState (reference cardEntry)) (WidgetState (spinnerOverlay "Get card"     Black) page)  
-      card                      <- runStep (getCardContent blob (entry.cardReference))     (WidgetState (spinnerOverlay "Decrypt card" Black) page)
+      card                      <- runStep (decryptCard blob (entry.cardReference))     (WidgetState (spinnerOverlay "Decrypt card" Black) page)
       let updatedCardsCache      =          insert (reference cardEntry) card cardsCache
       pure $ ProxyResponse proxy' (Tuple updatedCardsCache card)
 
@@ -173,11 +173,12 @@ addCardSteps cardManagerState state@{index: Just index, userInfo: Just (UserInfo
   ProxyResponse proxy''  stateUpdateInfo                 <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index" Black) page)
 
   pure (Tuple 
-          (state  { proxy      = proxy''
-                  , index      = Just updatedIndex
-                  , userInfo   = Just stateUpdateInfo.newUserInfo
-                  , masterKey  = Just stateUpdateInfo.newMasterKey
-                  , cardsCache = cardsCache'
+          (state  { proxy              = proxy''
+                  , index              = Just updatedIndex
+                  , userInfo           = Just stateUpdateInfo.newUserInfo
+                  , masterKey          = Just stateUpdateInfo.newMasterKey
+                  , userInfoReferences = Just stateUpdateInfo.newUserInfoReferences
+                  , cardsCache         = cardsCache'
                   }
           )
           (WidgetState
@@ -270,7 +271,7 @@ editCardSteps _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "State 
 --   ProxyResponse proxy' _ <- mapExceptT lift $ postBlob {proxy, hashFunc: hash} encryptedCard (toArrayBuffer reference)
 --   modify_ (\state -> state {proxy = proxy'})
 --   pure cardEntry
-
+ 
 -- updateIndexWithStateT :: Index -> ExceptT AppError (StateT AppState Aff) Unit
 -- updateIndexWithStateT newIndex = do
 --   state <- get
@@ -286,7 +287,7 @@ editCardSteps _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "State 
 --       let newUserInfoReferences            = UserInfoReferences r { indexReference = newIndexReference }
 --       masterPassword       :: CryptoKey   <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer p)
 --       masterKeyContent     :: HexString   <- liftAff $ fromArrayBuffer <$> encryptJson masterPassword newUserInfoReferences
---       let newUserCard                      = UserCard { masterKey: Tuple masterKeyContent V_1, originMasterKey: fst originMasterKey }
+--       let newUserCard                      = UserCard { masterKey: Tuple masterKeyContentMasterKeyEncodingVersion_1, originMasterKey: fst originMasterKey }
 --       ProxyResponse proxy'' newMasterKey  <- mapExceptT lift $ updateUserCard {proxy: proxy', hashFunc} c newUserCard
 --       modify_ (\state_ -> state_ {proxy = proxy''})
 --       -- -------------------

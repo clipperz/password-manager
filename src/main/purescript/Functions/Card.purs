@@ -1,57 +1,75 @@
 module Functions.Card
-  ( FieldType(..)
-  , addTag
+  ( addTag
   , appendToTitle
   , archiveCard
-  , getCardContent
+  , createCardEntry
+  , decryptCard
+  , encryptCard
   , getFieldType
   , restoreCard
   )
   where
 
-import Control.Applicative (pure)
-import Control.Bind (bind)
-import Control.Monad.Except.Trans (ExceptT(..), except, throwError, withExceptT)
+import Control.Alt ((<#>), (<$>))
+import Control.Bind (bind, pure, (=<<))
+import Control.Monad.Except.Trans (ExceptT(..), withExceptT)
 import Control.Semigroupoid ((>>>))
 import Crypto.Subtle.Key.Types (CryptoKey)
-import Data.Argonaut.Core (Json)
-import Data.Argonaut.Parser (jsonParser)
 import Data.Array (snoc)
 import Data.ArrayBuffer.Types (ArrayBuffer)
-import Data.Codec.Argonaut (decode)
+import Data.Codec.Argonaut as CA
 import Data.Either (Either(..))
-import Data.Function (($))
-import Data.HexString (fromArrayBuffer, toArrayBuffer, toString, Base(..))
+import Data.Function ((#), ($))
+import Data.HexString (HexString, fromArrayBuffer, toArrayBuffer)
+import Data.Identifier (Identifier, computeIdentifier)
+import Data.List (List(..), (:))
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.String.Regex (Regex, test, regex)
 import Data.String.Regex.Flags (noFlags)
+import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError(..))
-import DataModel.Card (Card(..), CardField(..), CardValues(..))
-import DataModel.CardVersions.CardV1 (Card_V1, cardFromV1)
+import DataModel.Card (class CardVersions, Card(..), CardField(..), CardValues(..), CardVersion(..), FieldType(..), currentCardVersion, toCard)
 import DataModel.Codec as Codec
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.Index (CardReference(..))
+import DataModel.Index (CardEntry(..), CardReference(..))
+import DataModel.SRP (HashFunction)
 import Effect.Aff (Aff)
-import Effect.Aff.Class (liftAff)
-import Functions.EncodeDecode (decryptWithAesGCM, importCryptoKeyAesGCM)
+import Functions.EncodeDecode (decryptJson, encryptJson, exportCryptoKeyToHex, generateCryptoKeyAesGCM, importCryptoKeyAesGCM)
 
-getCardContent :: ArrayBuffer -> CardReference -> ExceptT AppError Aff Card
-getCardContent bytes (CardReference ref) =
-  case ref.version of 
-    "V1"    -> do
-      cryptoKey     :: CryptoKey   <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer ref.key)
-      decryptedData :: ArrayBuffer <- mapError (ExceptT $ decryptWithAesGCM bytes cryptoKey)
-      parsedJson    :: Json        <- mapError (except  $ jsonParser $ toString Dec (fromArrayBuffer decryptedData))
-      cardV1        :: Card_V1     <- mapError (except  $ decode Codec.cardV1Codec parsedJson)
-      pure $ cardFromV1 cardV1
-    version -> throwError $ InvalidVersioning version "card"
+decryptCard :: ArrayBuffer -> CardReference -> ExceptT AppError Aff Card
+decryptCard encryptedCard (CardReference {version, key}) =
+  case version of 
+    CardVersion_1    -> decryptCardJson Codec.cardV1Codec
 
   where
+    decryptCardJson :: forall a. CardVersions a => CA.JsonCodec a -> ExceptT AppError Aff Card
+    decryptCardJson codec = toCard <$> ExceptT ((\cryptoKey -> decryptJson codec cryptoKey encryptedCard) =<< (importCryptoKeyAesGCM (toArrayBuffer key))) # mapError
+
     mapError :: forall a e. Show e => ExceptT e Aff a -> ExceptT AppError Aff a
     mapError = withExceptT (show >>> CryptoError >>> ProtocolError)
 
-data FieldType = Email | Url | Passphrase | None
+encryptCard :: Card -> HashFunction -> Aff (Tuple ArrayBuffer CardReference)
+encryptCard card hashFunc = do
+  identifier        :: Identifier  <- computeIdentifier
+  cardKey           :: CryptoKey   <- generateCryptoKeyAesGCM
+  encryptedCard     :: ArrayBuffer <- encryptJson Codec.cardCodec cardKey card
+  cardKeyHex        :: HexString   <- exportCryptoKeyToHex cardKey
+  encryptedCardHash :: HexString   <- hashFunc (encryptedCard : Nil) <#> fromArrayBuffer
+  pure $ Tuple encryptedCard (CardReference { reference: encryptedCardHash, identifier, key: cardKeyHex, version: currentCardVersion } )
+
+-- ------------------------------------------------------------------------
+
+createCardEntry :: HashFunction -> Card -> Aff (Tuple ArrayBuffer CardEntry)
+createCardEntry hashFunc card@(Card { content: (CardValues content), archived, timestamp: _ }) = do
+  Tuple encryptedCard cardReference <- encryptCard card hashFunc
+  let cardEntry  = CardEntry { title: content.title
+                             , tags: content.tags
+                             , archived: archived
+                             , lastUsed: 0.0 --TODO handle lastUsed [fsolaroli - 28/02/2024]
+                             , cardReference
+                             }
+  pure $ Tuple encryptedCard cardEntry
 
 appendToTitle :: String -> Card -> Card
 appendToTitle titleAppend (Card card@{content: CardValues cardValues@{title}}) = Card (card {content = CardValues cardValues {title = title <> titleAppend} })

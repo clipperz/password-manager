@@ -2,15 +2,20 @@ module DataModel.CardVersions.CardV1 where
 
 import Data.Functor ((<$>))
 import Data.Maybe (Maybe)
-import DataModel.Card (Card(..), CardValues(..), CardField(..))
-import DataModel.Password (PasswordGeneratorSettings)
+import Data.Newtype (class Newtype)
+import DataModel.Card (class CardVersions, Card(..), CardField(..), CardValues(..))
 
-type Card_V1 = 
+newtype Card_V1 = Card_V1 
   { content :: CardValues_V1
   , secrets :: Array String
   , archived :: Boolean
   , timestamp :: Number
   }
+
+derive instance newtypeCard_V1 :: Newtype Card_V1 _
+
+instance card_v1 :: CardVersions Card_V1 where
+  toCard (Card_V1 card) = Card card { content = CardValues card.content { fields = CardField <$> card.content.fields } }
 
 type CardValues_V1 = 
   { title   :: String
@@ -23,8 +28,10 @@ type CardField_V1 =
   { name   :: String
   , value  :: String
   , locked :: Boolean
-  , settings :: Maybe PasswordGeneratorSettings
+  , settings :: Maybe PasswordGeneratorSettings_V1
   }
 
-cardFromV1 :: Card_V1 -> Card
-cardFromV1 card = Card card { content = CardValues card.content { fields = CardField <$> card.content.fields } }
+type PasswordGeneratorSettings_V1 = {
+    length              :: Int,
+    characters          :: String
+}

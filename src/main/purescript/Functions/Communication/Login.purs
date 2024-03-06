@@ -5,7 +5,7 @@ import Affjax.RequestBody (RequestBody, json)
 import Affjax.ResponseFormat as RF
 import Control.Alt ((<#>))
 import Control.Applicative (pure)
-import Control.Bind (bind, (=<<))
+import Control.Bind (bind)
 import Control.Monad.Except.Trans (ExceptT(..), except, throwError, withExceptT)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Bifunctor (lmap)
@@ -31,13 +31,11 @@ import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials)
 import DataModel.SRP (SRPConf)
 import DataModel.SRPCodec as SRPCodec
-import DataModel.User (MasterKey, UserInfoReferences)
+import DataModel.User (MasterKey)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
 import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, loginRequest)
-import Functions.Communication.Users (extractUserInfoReference)
-import Functions.EncodeDecode (importCryptoKeyAesGCM)
 import Functions.SRP as SRP
     
 -- ----------------------------------------------------------------------------
@@ -92,7 +90,6 @@ type LogintStep2Data = { aa :: BigInt
 type LoginStep2Result = { m1 :: ArrayBuffer
                         , kk :: ArrayBuffer
                         , m2 :: HexString
-                        , userInfoReferences :: UserInfoReferences
                         , masterKey :: MasterKey
                         }
 
@@ -108,17 +105,6 @@ loginStep2 connectionState@{srpConf} c p { aa, bb, a, s } = do
   responseBody :: LoginStep2Response   <- if isStatusCodeOk step2Response.status
                                           then except $     (decode SRPCodec.loginStep2ResponseCodec step2Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err)
                                           else throwError $  ProtocolError $ ResponseError (unwrap step2Response.status)
-  userInfoReferences <- extractUserInfoReference responseBody.masterKey =<< (liftAff $ importCryptoKeyAesGCM $ toArrayBuffer p)
-  pure $ ProxyResponse newProxy { m1, kk, m2: responseBody.m2, userInfoReferences, masterKey: responseBody.masterKey }
+  pure $ ProxyResponse newProxy { m1, kk, m2: responseBody.m2, masterKey: responseBody.masterKey }
 
 -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-type LoginStateUpdate = {
-  userInfoReferences :: Maybe UserInfoReferences
-, masterKey          :: Maybe MasterKey
-, username           :: Maybe String
-, password           :: Maybe String
-, s                  :: Maybe HexString
-, c                  :: Maybe HexString
-, p                  :: Maybe HexString
-}

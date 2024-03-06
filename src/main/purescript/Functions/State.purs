@@ -19,7 +19,7 @@ import DataModel.AsyncValue (AsyncValue(..))
 import DataModel.Card (Card)
 import DataModel.Index (Index)
 import DataModel.SRP (HashFunction, SRPConf, baseSRPConf, hashFuncSHA256)
-import DataModel.User (MasterKey, UserInfo)
+import DataModel.User (MasterKey, UserInfo, UserInfoReferences)
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Record (merge)
@@ -71,7 +71,7 @@ baseState ∷ { username :: Maybe String
             , hash :: HashFunction
             , cardsCache :: Map HexString Card
             , masterKey :: Maybe MasterKey
-            -- , userInfoReferences :: Maybe UserInfoReferences
+            , userInfoReferences :: Maybe UserInfoReferences
             , userInfo :: Maybe UserInfo
             , index :: Maybe Index
             }
@@ -85,7 +85,7 @@ baseState = { username: Nothing
             , hash: hashFuncSHA256
             , cardsCache: empty
             , masterKey: Nothing
-            -- , userInfoReferences: Nothing 
+            , userInfoReferences: Nothing 
             , userInfo: Nothing
             , index: Nothing
             }

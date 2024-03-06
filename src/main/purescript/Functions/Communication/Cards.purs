@@ -15,10 +15,9 @@ import DataModel.Index (CardEntry(..), CardReference(..), reference)
 import DataModel.SRP (hashFuncSHA256)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
-import Functions.Card (getCardContent)
+import Functions.Card (createCardEntry, decryptCard)
 import Functions.Communication.Backend (ConnectionState)
 import Functions.Communication.Blobs (deleteBlob, getBlob, postBlob)
-import Functions.Index (createCardEntry)
 
 getCard :: ConnectionState -> CardsCache -> CardEntry -> ExceptT AppError Aff (ProxyResponse (Tuple CardsCache Card))
 getCard connectionState cardsCache cardEntry@(CardEntry entry) = do
@@ -27,7 +26,7 @@ getCard connectionState cardsCache cardEntry@(CardEntry entry) = do
     Just card -> pure $ ProxyResponse connectionState.proxy (Tuple cardsCache card)
     Nothing   -> do
       ProxyResponse proxy blob <- getBlob connectionState (reference cardEntry)
-      card                      <- getCardContent blob (entry.cardReference)
+      card                      <- decryptCard blob (entry.cardReference)
       let updatedCardsCache = insert (reference cardEntry) card cardsCache
       pure $ ProxyResponse proxy (Tuple updatedCardsCache card)
 
@@ -43,4 +42,3 @@ postCard connectionState cardsCache card = do
   ProxyResponse proxy _ <- postBlob connectionState encryptedCard reference identifier
   let updatedCardsCache  = insert reference card cardsCache
   pure $ ProxyResponse proxy (Tuple updatedCardsCache cardEntry)
-

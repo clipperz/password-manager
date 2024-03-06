@@ -4,7 +4,7 @@ import Concur.Core (Widget)
 import Concur.React (HTML)
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard, (>>=))
+import Control.Bind (bind, discard, (=<<), (>>=))
 import Control.Category ((<<<))
 import Control.Monad.Except (throwError)
 import Control.Monad.Except.Trans (ExceptT, runExceptT)
@@ -24,13 +24,14 @@ import DataModel.AppState (InvalidStateError(..), ProxyResponse(..), AppState)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials, emptyCredentials)
 import DataModel.FragmentState as Fragment
-import DataModel.User (UserInfoReferences)
 import DataModel.WidgetState (CardFormInput(..), CardViewState(..), LoginType(..), Page(..), WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Login (PrepareLoginResult, loginStep1, loginStep2, prepareLogin)
-import Functions.Communication.Users (getIndex, getUserInfo)
+import Functions.Communication.Users (extractUserInfoReference, getUserInfo)
+import Functions.EncodeDecode (importCryptoKeyAesGCM)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultView, doNothing, handleOperationResult, runStep)
+import Functions.Index (getIndex)
 import Functions.Pin (decryptPassphraseWithPin, deleteCredentials, makeKey)
 import Functions.SRP (checkM2)
 import Functions.Timer (activateTimer)
@@ -91,8 +92,12 @@ loginSteps cred state@{proxy, hash: hashFunc, srpConf} fragmentState page prepar
                                                       then pure         unit
                                                       else throwError $ ProtocolError (SRPError "Client M2 doesn't match with server M2")
                                                      ))                                                                                                              (WidgetState {status: Spinner, color: Black, message: "Validate user"} page)
-
+  userInfoReferences                      <- runStep ( extractUserInfoReference loginStep2Result.masterKey 
+                                                       =<< 
+                                                      (importCryptoKeyAesGCM (prepareLoginResult.p # toArrayBuffer) # liftAff)
+                                                     )                                                                                                                (WidgetState {status: Spinner, color: Black, message: "Validate user"} page)
   let stateUpdate = { masterKey:          Just loginStep2Result.masterKey 
+                    , userInfoReferences: Just userInfoReferences
                     , username:           Just cred.username
                     , password:           Just cred.password
                     , s:                  Just loginStep1Result.s
@@ -100,17 +105,17 @@ loginSteps cred state@{proxy, hash: hashFunc, srpConf} fragmentState page prepar
                     , p:                  Just prepareLoginResult.p
                     }
 
-  res                                     <- loadHomePageSteps (merge stateUpdate (state {proxy = proxy''})) loginStep2Result.userInfoReferences fragmentState
+  res                                     <- loadHomePageSteps (merge stateUpdate (state {proxy = proxy''})) fragmentState
 
   pure $ res
 
-loadHomePageSteps :: AppState -> UserInfoReferences -> Fragment.FragmentState -> ExceptT AppError (Widget HTML) OperationState
+loadHomePageSteps :: AppState -> Fragment.FragmentState -> ExceptT AppError (Widget HTML) OperationState
 
-loadHomePageSteps state@{hash: hashFunc, proxy, srpConf, c: Just c, p: Just p} userInfoReference fragmentState = do
+loadHomePageSteps state@{hash: hashFunc, proxy, srpConf, c: Just c, p: Just p, masterKey: Just (Tuple _ masterKeyEncodingVersion), userInfoReferences: Just userInfoReferences} fragmentState = do
   let connectionState = {proxy, hashFunc, srpConf, c, p}
 
-  ProxyResponse proxy'  userInfo <- runStep (getUserInfo connectionState                                 userInfoReference) (WidgetState {status: Spinner, color: Black, message: "Get user info"} $ Main emptyMainPageWidgetState)
-  ProxyResponse proxy'' index    <- runStep (getIndex    connectionState{ proxy = proxy'} (unwrap userInfo).indexReference) (WidgetState {status: Spinner, color: Black, message: "Get index"    } $ Main emptyMainPageWidgetState)
+  ProxyResponse proxy'  userInfo <- runStep (getUserInfo connectionState                                userInfoReferences (masterKeyEncodingVersion)) (WidgetState {status: Spinner, color: Black, message: "Get user info"} $ Main emptyMainPageWidgetState)
+  ProxyResponse proxy'' index    <- runStep (getIndex    connectionState{ proxy = proxy'} (unwrap userInfo).indexReference                           ) (WidgetState {status: Spinner, color: Black, message: "Get index"    } $ Main emptyMainPageWidgetState)
   
   case (unwrap (unwrap userInfo).userPreferences).automaticLock of
     Right n -> liftEffect (activateTimer n)
@@ -127,7 +132,7 @@ loadHomePageSteps state@{hash: hashFunc, proxy, srpConf, c: Just c, p: Just p} u
       (Main emptyMainPageWidgetState { index = index, cardManagerState = cardManagerInitialState { cardViewState = cardViewState } })
     )
 
-loadHomePageSteps _ _ _ = do
+loadHomePageSteps _ _ = do
   throwError (InvalidStateError $ CorruptedState "")
 
 type MaxPinAttemptsReached = Boolean

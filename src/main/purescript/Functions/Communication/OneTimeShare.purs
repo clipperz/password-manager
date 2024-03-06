@@ -3,12 +3,16 @@ module Functions.Communication.OneTimeShare where
 import Affjax.RequestBody (json)
 import Affjax.ResponseFormat as RF
 import Affjax.ResponseHeader (name, value)
+import Control.Alt ((<#>))
 import Control.Applicative (pure)
 import Control.Bind (bind, (=<<))
+import Control.Category ((>>>))
+import Control.Monad.Except (except)
 import Control.Monad.Except.Trans (ExceptT(..), throwError, withExceptT)
+import Data.Argonaut.Parser as P
 import Data.Array (find)
 import Data.ArrayBuffer.Types (ArrayBuffer)
-import Data.Codec.Argonaut (JsonCodec, encode)
+import Data.Codec.Argonaut (JsonCodec, decode, encode)
 import Data.Either (Either)
 import Data.Eq ((==))
 import Data.Function (flip, (#), ($))
@@ -36,10 +40,6 @@ import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, shareRe
 import Functions.EncodeDecode (importCryptoKeyAesGCM, decryptArrayBuffer, decryptJson, encryptArrayBuffer, encryptJson)
 import Functions.SRP (randomArrayBuffer)
 
-secretVersionFromString :: String -> ExceptT AppError Aff SecretVersion
-secretVersionFromString "V_1" = pure V_1
-secretVersionFromString s     = throwError $ InvalidVersioning "SecretVersion" s
-
 oneTimeSecretVersionHeaderName :: String
 oneTimeSecretVersionHeaderName = "clipperz-onetimesecret-version"
 
@@ -51,7 +51,7 @@ share connectionState encryptedSecret duration = do
   let body = (json $ encode OneTimeShareCodec.secretRequestDataCodec 
       { secret:   fromArrayBuffer encryptedSecret
       , duration: fromDuration duration
-      , version:  V_1
+      , version:  SecretVersion_1
       }
     )
 
@@ -67,8 +67,12 @@ redeem connectionState id = do
   ProxyResponse _ response <- shareRequest connectionState url GET Nothing RF.arrayBuffer
   if isStatusCodeOk response.status
     then do
-      version <- secretVersionFromString $ fromMaybe "V_1" (value <$> find (\header -> (name header) == oneTimeSecretVersionHeaderName) (response.headers))
-      pure $ Tuple version response.body
+      secretVersion :: SecretVersion <- ((value <$> find (\header -> (name header) == oneTimeSecretVersionHeaderName) (response.headers)) <#> (\headerValue -> do
+        headerJson <- (except $ P.jsonParser headerValue)                               # withExceptT (show >>> DecodeError >>> ProtocolError)
+        (              except $ decode OneTimeShareCodec.secretVersionCodec headerJson) # withExceptT (show >>> DecodeError >>> ProtocolError)
+      )) # fromMaybe (pure SecretVersion_1)
+
+      pure $ Tuple secretVersion response.body
     else throwError $ ProtocolError $ ResponseError $ unwrap response.status
 
 -- ====================================================================================
@@ -90,13 +94,13 @@ encryptKeyWithPin key pin = do
   pure encryptedKey
 
 decryptSecret :: forall a. JsonCodec a -> SecretVersion -> PIN -> EncryptedContent -> EncryptedContent -> ExceptT AppError Aff a
-decryptSecret codec V_1 pin encryptedKey encryptedSecret = do
-  pinKey       <- liftAff $ (hashFuncSHA256 $ singleton (toArrayBuffer $ hex pin))
-  decryptedKey <- ((flip decryptArrayBuffer) (toArrayBuffer $ fromArrayBuffer encryptedKey) =<< importCryptoKeyAesGCM pinKey)       # mapError "Get decrypted key"
-  result       <- ((\cryptoKey -> decryptJson codec cryptoKey encryptedSecret)              =<< importCryptoKeyAesGCM decryptedKey) # mapError "Get decrypted blob"
-  pure result
+decryptSecret codec version pin encryptedKey encryptedSecret = case version of
+  SecretVersion_1 -> do
+    pinKey       <- liftAff $ (hashFuncSHA256 $ singleton (toArrayBuffer $ hex pin))
+    decryptedKey <- ((flip decryptArrayBuffer) (toArrayBuffer $ fromArrayBuffer encryptedKey) =<< importCryptoKeyAesGCM pinKey      ) # mapError "Get decrypted key"
+    result       <- ((\cryptoKey -> decryptJson codec cryptoKey encryptedSecret)              =<< importCryptoKeyAesGCM decryptedKey) # mapError "Get decrypted blob"
+    pure result
 
   where
     mapError :: forall a'. String -> Aff (Either EX.Error a') -> ExceptT AppError Aff a'
     mapError errorMessage either = withExceptT (\e -> ProtocolError $ CryptoError $ (errorMessage <> ": " <> show e)) (ExceptT either)
-

@@ -8,8 +8,15 @@ import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import DataModel.Password (PasswordGeneratorSettings)
 
-currentCardVersion :: String
-currentCardVersion = "V1"
+data CardVersion = CardVersion_1
+
+currentCardVersion :: CardVersion
+currentCardVersion = CardVersion_1
+
+instance showCardVersion :: Show CardVersion where
+ show CardVersion_1 = "CardVersion_1"
+
+-- --------------------------------------------
 
 newtype CardField =
   CardField
@@ -64,6 +71,9 @@ instance eqCard :: Eq Card where
 instance showCard :: Show Card where
   show (Card record) = show record
 
+class CardVersions a where
+  toCard :: a -> Card
+
 -- --------------------------------------------
 
 emptyCardField :: CardField
@@ -107,3 +117,5 @@ cardValues1 = CardValues { title: "Bank account (SAMPLE)"
 
 defaultCards :: List Card
 defaultCards = Nil
+
+data FieldType = Email | Url | Passphrase | None

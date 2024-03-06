@@ -3,7 +3,7 @@ module DataModel.Communication.OneTimeShare where
 import Data.HexString (HexString)
 import Data.Time.Duration (Milliseconds, Seconds)
 
-data SecretVersion = V_1
+data SecretVersion = SecretVersion_1
 
 type SecretRequestData = { secret   :: HexString
                          , version  :: SecretVersion

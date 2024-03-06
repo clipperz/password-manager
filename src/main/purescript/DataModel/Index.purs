@@ -1,12 +1,10 @@
 module DataModel.Index where
 
-import Control.Alt ((<#>))
-import Control.Bind (bind, pure)
-import Control.Category ((>>>))
+import Control.Bind (pure, (>>=))
 import Data.Eq (class Eq, eq)
-import Data.EuclideanRing ((/))
 import Data.Function (($))
-import Data.HexString (HexString, fromArrayBuffer, hex)
+import Data.HexString (HexString, hex)
+import Data.Identifier (Identifier, computeIdentifier)
 import Data.List (delete)
 import Data.List.Types (List(..), (:))
 import Data.Newtype (class Newtype, unwrap)
@@ -14,13 +12,18 @@ import Data.Ord (class Ord, compare)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.String.Common (toLower)
+import DataModel.Card (CardVersion)
 import Effect.Aff (Aff)
-import Functions.SRP (randomArrayBuffer)
 
 -- --------------------------------------------
 
-currentIndexVersion :: String
-currentIndexVersion = "V1"
+currentIndexVersion :: IndexVersion
+currentIndexVersion = IndexVersion_1
+
+data IndexVersion = IndexVersion_1
+
+class IndexVersions a where
+  toIndex :: a -> Index
 
 -- --------------------------------------------
 
@@ -28,8 +31,8 @@ newtype CardReference =
   CardReference
     { reference :: HexString
     , key :: HexString
-    , version :: String
-    , identifier :: HexString
+    , version :: CardVersion
+    , identifier :: Identifier
     }
 
 derive instance newtypeCardReference :: Newtype CardReference _
@@ -74,24 +77,26 @@ reference (CardEntry entry) = (unwrap entry.cardReference).reference
 
 -- --------------------------------------------
 
+newtype Index = Index {entries :: (List CardEntry), identifier :: Identifier}
+
+derive instance newtypeIndex :: Newtype Index _
+
 emptyIndex :: Index
 emptyIndex = Index {entries: Nil, identifier: hex("")}
 
 prepareIndex :: List CardEntry -> Aff Index
-prepareIndex entries = randomArrayBuffer (256/8) <#> (fromArrayBuffer >>> (\identifier -> Index {entries, identifier}))
-
-newtype Index = Index {entries :: (List CardEntry), identifier :: HexString}
-
-derive instance newtypeIndex :: Newtype Index _
+prepareIndex entries = 
+  computeIdentifier >>= 
+  (\identifier -> pure $ Index {entries, identifier})
 
 addToIndex :: CardEntry -> Index -> Aff Index
-addToIndex cardEntry (Index {entries}) = do
-  newIndexCardIdentifier <- randomArrayBuffer (256/8) <#> fromArrayBuffer
-  pure $ Index {entries: (cardEntry : entries), identifier: newIndexCardIdentifier}
+addToIndex cardEntry (Index {entries}) = 
+  computeIdentifier >>= 
+  (\identifier -> pure $ Index {entries: (cardEntry : entries), identifier})
 
 removeFromIndex :: CardEntry -> Index -> Aff Index
-removeFromIndex cardEntry (Index {entries}) = do
-  newIndexCardIdentifier <- randomArrayBuffer (256/8) <#> fromArrayBuffer
-  pure $ Index {entries: (delete cardEntry entries), identifier: newIndexCardIdentifier}
+removeFromIndex cardEntry (Index {entries}) =
+  computeIdentifier >>= 
+  (\identifier -> pure $ Index {entries: (delete cardEntry entries), identifier})
 
 -- --------------------------------------------

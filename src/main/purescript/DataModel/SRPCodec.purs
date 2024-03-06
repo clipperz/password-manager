@@ -19,12 +19,12 @@ masterKeyEncodingVersionCodec :: CA.JsonCodec MasterKeyEncodingVersion
 masterKeyEncodingVersionCodec = CA.codec' (\s -> decode CA.string s >>= masterKeyEncodingVersionFromString) (encode CA.string <<< masterKeyEncodingVersionToString)
   where
     masterKeyEncodingVersionToString :: MasterKeyEncodingVersion -> String
-    masterKeyEncodingVersionToString V_1 = "1.0"
+    masterKeyEncodingVersionToString MasterKeyEncodingVersion_1 = "1.0"
 
     masterKeyEncodingVersionFromString :: String -> Either JsonDecodeError MasterKeyEncodingVersion
     masterKeyEncodingVersionFromString string =
       case string of
-        "1.0" -> Right V_1
+        "1.0" -> Right MasterKeyEncodingVersion_1
         _     -> Left (TypeMismatch string)
 
 srpVersionCodec :: CA.JsonCodec SRPVersion

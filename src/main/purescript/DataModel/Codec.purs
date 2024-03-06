@@ -11,14 +11,14 @@ import Data.Maybe (Maybe(..))
 import Data.Profunctor (dimap, wrapIso)
 import Data.Unit (unit)
 import Data.Variant as V
-import DataModel.Card (Card(..), CardField(..), CardValues(..))
-import DataModel.CardVersions.CardV1 (CardValues_V1, Card_V1, CardField_V1)
+import DataModel.Card (Card(..), CardField(..), CardValues(..), CardVersion(..))
+import DataModel.CardVersions.CardV1 (CardField_V1, CardValues_V1, Card_V1(..), PasswordGeneratorSettings_V1)
 import DataModel.Credentials (Credentials)
-import DataModel.Index (CardEntry(..), CardReference(..), Index(..))
-import DataModel.IndexVersions.IndexV1 (CardEntry_V1, CardReference_V1, Index_V1)
+import DataModel.Index (CardEntry(..), CardReference(..), Index(..), IndexVersion(..))
+import DataModel.IndexVersions.IndexV1 (CardEntry_V1, CardReference_V1, Index_V1(..))
 import DataModel.Password (PasswordGeneratorSettings)
 import DataModel.Pin (PasswordPin)
-import DataModel.User (IndexReference(..), UserInfo(..), UserPreferences(..))
+import DataModel.User (IndexReference(..), IndexReference_V1(..), UserInfo(..), UserInfo_V1(..), UserPreferences(..), UserPreferences_V1(..))
 import DataModel.WidgetState (CardFormInput(..), CardManagerState, CardViewState, ImportState, ImportStep(..), LoginFormData, LoginType(..), MainPageWidgetState, Page(..), UserAreaPage(..), UserAreaState, UserAreaSubmenu(..), WidgetState(..))
 import DataModel.WidgetState (CardViewState(..)) as CardViewState
 import IndexFilterView (Filter(..), FilterData, FilterViewStatus(..))
@@ -200,10 +200,10 @@ indexCodec =
     , identifier: hexStringCodec
     }
 
--- type Index_V1 = {entries :: (List CardEntry_V1), identifier :: HexString}
+-- newtype Index_V1 = Index_V1 {entries :: (List CardEntry_V1), identifier :: HexString}
 indexV1Codec :: CA.JsonCodec Index_V1
-indexV1Codec = 
-  CAR.object "index"
+indexV1Codec = wrapIso Index_V1 $
+  CAR.object "index_v1"
     { entries: CAC.list cardEntryV1Codec
     , identifier: hexStringCodec
     }
@@ -252,7 +252,7 @@ cardEntryV1Codec =
 --   CardReference
 --     { reference :: HexString
 --     , key :: HexString
---     , version :: String
+--     , version :: CardVersion
 --     , identifier :: HexString
 --     }
 cardReferenceCodec :: CA.JsonCodec CardReference
@@ -261,7 +261,7 @@ cardReferenceCodec = wrapIso CardReference $
     (CAR.record
       { reference:   hexStringCodec
       , key:         hexStringCodec
-      , version: CA.string
+      , version:     cardVersionCodec
       , identifier:  hexStringCodec
       }
     )
@@ -269,7 +269,7 @@ cardReferenceCodec = wrapIso CardReference $
 -- type CardReference_V1 =
 --   { reference :: HexString
 --   , key :: HexString
---   , version :: String
+--   , version :: CardVersion
 --   , identifier :: HexString
 --   }
 cardReferenceV1Codec :: CA.JsonCodec CardReference_V1
@@ -278,7 +278,7 @@ cardReferenceV1Codec =
     (CAR.record
       { reference:   hexStringCodec
       , key:         hexStringCodec
-      , version: CA.string
+      , version:     cardVersionCodec
       , identifier:  hexStringCodec
       }
     )
@@ -395,6 +395,18 @@ userAreaSubmenuCodec = dimap toVariant fromVariant $ CAV.variantMatch
       , data:    \_ -> Data
       }
 
+-- data CardVersion = CardVersion_1
+cardVersionCodec :: CA.JsonCodec CardVersion
+cardVersionCodec = dimap toVariant fromVariant $ CAV.variantMatch
+    { cardVersion_1: Left unit
+    }
+  where
+    toVariant = case _ of
+      CardVersion_1 -> V.inj (Proxy :: _ "cardVersion_1") unit
+    fromVariant = V.match
+      { cardVersion_1: \_ -> CardVersion_1
+      }
+
 -- newtype Card = 
 --   Card 
 --     { content :: CardValues
@@ -414,14 +426,14 @@ cardCodec = wrapIso Card (
     )
 )
 
--- type Card_V1 = 
+-- newtype Card_V1 = Card_V1 
 --   { content :: CardValues_V1
 --   , secrets :: Array String
 --   , archived :: Boolean
 --   , timestamp :: Number
 --   }
 cardV1Codec :: CA.JsonCodec Card_V1
-cardV1Codec =
+cardV1Codec = wrapIso Card_V1 $
   CAR.object "cardV1"
     { content   : cardValuesV1Codec
     , secrets   : CA.array CA.string
@@ -494,7 +506,7 @@ cardFieldV1Codec =
     { name     : CA.string
     , value    : CA.string
     , locked   : CA.boolean
-    , settings : CAR.optional passwordGeneratorSettingsCodec
+    , settings : CAR.optional passwordGeneratorSettingsV1Codec
     }
 
 -- type PasswordGeneratorSettings = {
@@ -504,6 +516,20 @@ cardFieldV1Codec =
 passwordGeneratorSettingsCodec :: CA.JsonCodec PasswordGeneratorSettings
 passwordGeneratorSettingsCodec = 
   CA.object "PasswordGeneratorSettings"
+    (CAR.record
+      { length     : CA.int
+      , characters : CA.string
+      }
+    )
+
+-- type PasswordGeneratorSettings_V1 = {
+--     length              :: Int,
+--     characters          :: String
+-- }
+
+passwordGeneratorSettingsV1Codec :: CA.JsonCodec PasswordGeneratorSettings_V1
+passwordGeneratorSettingsV1Codec = 
+  CA.object "PasswordGeneratorSettings_V1"
     (CAR.record
       { length     : CA.int
       , characters : CA.string
@@ -633,6 +659,20 @@ userPreferencesCodec = wrapIso UserPreferences (
     )
 )
 
+-- newtype UserPreferences_V1 = 
+--   UserPreferences_V1
+--     { passwordGeneratorSettings :: PasswordGeneratorSettings
+--     , automaticLock :: Either Int Int
+--     }
+
+userPreferencesV1Codec :: CA.JsonCodec UserPreferences_V1
+userPreferencesV1Codec = wrapIso UserPreferences_V1 (
+  CAR.object "UserPreferences_V1"
+    { passwordGeneratorSettings: passwordGeneratorSettingsCodec
+    , automaticLock:             CAC.either CA.int CA.int
+    }
+)
+
 -- newtype UserInfo = 
 --   UserInfo
 --     { indexReference  :: IndexReference
@@ -649,6 +689,34 @@ userInfoCodec = wrapIso UserInfo (
     }
 )
 
+-- newtype UserInfo_V1 = 
+--   UserInfo_V1
+--     { indexReference  :: IndexReference
+--     , identifier      :: HexString
+--     , userPreferences :: UserPreferences
+--     }
+
+userInfoV1Codec :: CA.JsonCodec UserInfo_V1
+userInfoV1Codec = wrapIso UserInfo_V1 (
+  CAR.object "UserInfoV1"
+    { indexReference:  indexReferenceV1Codec
+    , identifier:      hexStringCodec
+    , userPreferences: userPreferencesV1Codec
+    }
+)
+
+-- data IndexVersion = IndexVersion_1
+indexVersionCodec :: CA.JsonCodec IndexVersion
+indexVersionCodec = dimap toVariant fromVariant $ CAV.variantMatch
+    { indexVesion_1: Left unit
+    }
+  where
+    toVariant = case _ of
+      IndexVersion_1 -> V.inj (Proxy :: _ "indexVesion_1") unit 
+    fromVariant = V.match
+      { indexVesion_1: \_ -> IndexVersion_1
+      }
+
 -- newtype IndexReference =
 --   IndexReference
 --     { reference :: HexString
@@ -660,8 +728,25 @@ indexReferenceCodec = wrapIso IndexReference $
   CA.object "IndexReference"
     (CAR.record
       { reference:    hexStringCodec
-      , masterKey:    hexStringCodec
-      , indexVersion: CA.string
+      , key:    hexStringCodec
+      , version: indexVersionCodec
+      }
+    )
+
+-- newtype IndexReference_V1 =
+--   IndexReference_V1
+--     { reference :: HexString
+--     , key       :: HexString
+--     , version   :: IndexVersion
+--     }
+  
+indexReferenceV1Codec :: CA.JsonCodec IndexReference_V1
+indexReferenceV1Codec = wrapIso IndexReference_V1 $
+  CA.object "IndexReferenceV1"
+    (CAR.record
+      { reference:    hexStringCodec
+      , key:    hexStringCodec
+      , version: indexVersionCodec
       }
     )
 

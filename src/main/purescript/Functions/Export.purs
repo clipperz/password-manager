@@ -28,7 +28,7 @@ import Data.String.Pattern (Pattern(..), Replacement(..))
 import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (ProxyResponse(..))
-import DataModel.Card (Card(..), CardValues(..), CardField(..))
+import DataModel.Card (Card(..), CardField(..), CardValues(..), currentCardVersion)
 import DataModel.Codec as Codec
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.SRPCodec as SRPCodec
@@ -68,7 +68,7 @@ prepareUnencryptedContent :: List Card -> String
 prepareUnencryptedContent l = 
   let list = fold $ cardToLi <$> l
       textareaContent = formatText $ AC.stringify $ encode (CAC.list Codec.cardCodec) l
-  in "<ul>" <> list <> "</ul><div><textarea>" <> textareaContent <> "</textarea></div>"
+  in "<ul>" <> list <> "</ul><div><textarea class=\'" <> (AC.stringify $ encode Codec.cardVersionCodec currentCardVersion) <> "\'>" <> textareaContent <> "</textarea></div>"
 
   where
     cardToLi (Card {content: (CardValues {title, tags, fields, notes}), archived, timestamp: _}) =

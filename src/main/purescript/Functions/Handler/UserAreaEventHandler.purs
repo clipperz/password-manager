@@ -8,20 +8,19 @@ import Concur.Core (Widget)
 import Concur.React (HTML)
 import Control.Alt (map, ($>), (<#>), (<$>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard, (=<<), (>>=))
+import Control.Bind (bind, discard, (>>=))
 import Control.Category (identity, (<<<))
-import Control.Monad.Except.Trans (ExceptT(..), except, runExceptT, throwError)
+import Control.Monad.Except (ExceptT(..))
+import Control.Monad.Except.Trans (ExceptT, runExceptT, throwError)
 import Data.Argonaut.Core (stringify)
-import Data.Argonaut.Parser (jsonParser)
 import Data.Array (filter, foldM, length, snoc)
-import Data.Bifunctor (lmap)
-import Data.Codec.Argonaut (decode, encode)
+import Data.Codec.Argonaut (encode)
 import Data.Codec.Argonaut as CA
-import Data.Either (Either(..))
+import Data.Either (Either(..), isRight)
 import Data.FoldableWithIndex (foldWithIndexM)
 import Data.Function (flip, (#), ($))
 import Data.HTTP.Method (Method(..))
-import Data.HexString (HexString, fromArrayBuffer, hex, toArrayBuffer)
+import Data.HexString (HexString, fromArrayBuffer, hex)
 import Data.HeytingAlgebra (not)
 import Data.List (List(..), (:))
 import Data.List as List
@@ -33,10 +32,9 @@ import Data.Tuple (Tuple(..), fst, snd)
 import Data.Unit (Unit, unit)
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (AppState, CardsCache, InvalidStateError(..), ProxyResponse(..), discardResult)
-import DataModel.Card (Card)
+import DataModel.Card (Card, CardVersion(..))
 import DataModel.Card as DataModel.Card
 import DataModel.Codec as Codec
-import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (emptyCredentials)
 import DataModel.FragmentState as Fragment
 import DataModel.Index (CardEntry(..), CardReference(..), Index(..), addToIndex)
@@ -48,11 +46,11 @@ import Functions.Card (addTag)
 import Functions.Communication.Backend (ConnectionState, genericRequest)
 import Functions.Communication.Blobs (deleteBlob, getBlob)
 import Functions.Communication.Cards (deleteCard, getCard, postCard)
-import Functions.Communication.Users (computeRemoteUserCard, deleteUserCard, deleteUserInfo, extractUserInfoReference, updateIndex, updateUserPreferences)
-import Functions.EncodeDecode (importCryptoKeyAesGCM)
+import Functions.Communication.Users (computeRemoteUserCard, deleteUserCard, deleteUserInfo, updateUserPreferences)
 import Functions.Export (BlobsList, appendCardsDataInPlace, getBasicHTML, prepareCardsForUnencryptedExport, prepareHTMLBlob)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
-import Functions.Import (decodeHTML, decodeImport, parseHTMLImport, readFile)
+import Functions.Import (ImportVersion(..), decodeImport, parseImport, readFile)
+import Functions.Index (updateIndex)
 import Functions.Pin (deleteCredentials, makeKey, saveCredentials)
 import Functions.State (resetState)
 import Functions.Time (formatDateTimeToDate, getCurrentDateTime)
@@ -71,7 +69,7 @@ import Web.Storage.Storage (getItem)
 handleUserAreaEvent :: UserAreaEvent -> CardManagerState -> UserAreaState -> AppState -> Fragment.FragmentState -> Widget HTML OperationState
 
 
-handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, srpConf, hash: hashFunc, cardsCache, username: Just username, password: Just password, index: Just index, userInfo: Just userInfo@(UserInfo {indexReference: IndexReference { reference: indexRef}, userPreferences}), c: Just c, p: Just p, masterKey: Just masterKey, pinEncryptedPassword} _ = do
+handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, srpConf, hash: hashFunc, cardsCache, username: Just username, password: Just password, index: Just index, userInfo: Just userInfo@(UserInfo {indexReference: IndexReference { reference: indexRef}, userPreferences}), userInfoReferences: Just userInfoReferences, c: Just c, p: Just p, pinEncryptedPassword} _ = do
   let defaultPage = { index
                     , credentials:      {username, password}
                     , pinExists:        isJust pinEncryptedPassword
@@ -155,7 +153,7 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
         let connectionState = {proxy, hashFunc, srpConf, c, p}
         ProxyResponse proxy'    _ <-          deleteCardsSteps connectionState                   cardsCache       index                                                                     page
         ProxyResponse proxy''   _ <- runStep (deleteBlob       connectionState{proxy = proxy'  } indexRef (unwrap index).identifier) (WidgetState (spinnerOverlay "Delete Index"     White) page)
-        ProxyResponse proxy'''  _ <- runStep (deleteUserInfo   connectionState{proxy = proxy'' } userInfo masterKey                ) (WidgetState (spinnerOverlay "Delete User Info" White) page)
+        ProxyResponse proxy'''  _ <- runStep (deleteUserInfo   connectionState{proxy = proxy'' } userInfo userInfoReferences       ) (WidgetState (spinnerOverlay "Delete User Info" White) page)
         ProxyResponse proxy'''' _ <- runStep (deleteUserCard   connectionState{proxy = proxy'''} c                                 ) (WidgetState (spinnerOverlay "Delete User Card" White) page)
         _                         <- liftEffect $ window >>= localStorage >>= deleteCredentials
         pure $ Tuple 
@@ -175,18 +173,22 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
       in case importState.step of
         Upload    ->
           do
-            toDecode    <- runStep (case importState.content of
-                                    Left  file   -> do
-                                      fileContent     <- readFile file
-                                      codedCardData   <- except $ parseHTMLImport fileContent
-                                      (pure $ decodeHTML codedCardData) <#> Left
-                                    Right string -> (except $ lmap (ProtocolError <<< DecodeError) $ jsonParser string) <#> Right
-                                  ) (WidgetState (spinnerOverlay "Parse File" White) page)
-            
-            result      <- runStep (case toDecode of
-                                    Left  htmlData -> ExceptT $ liftEffect $ decodeImport htmlData
-                                    Right jsonData -> except  $ lmap (ProtocolError <<< DecodeError <<< show) $ decode (CA.array Codec.cardCodec) jsonData
-                                  ) (WidgetState (spinnerOverlay "Decode Data" White) page)
+            result    <- runStep  (case importState.content of
+                                    Left  file   -> readFile file >>= parseImport
+                                    Right string -> flip decodeImport string <$> [Epsilon CardVersion_1, Delta] 
+                                                    # (foldM  (\finalResult singleResult -> do
+                                                                if (isRight finalResult) 
+                                                                then pure $ finalResult
+                                                                else do
+                                                                  res <- runExceptT singleResult
+                                                                  if (isRight res)
+                                                                  then pure $ res
+                                                                  else pure $ finalResult
+                                                              )
+                                                              (Left $ ImportError "Invalid input: unable to decode data")
+                                                      )
+                                                    # ExceptT
+                                  ) (WidgetState (spinnerOverlay "Parse Data" White) page)
 
             currentDate <- runStep ((((<>) "Import_") <<< formatDateTimeToDate) <$> (liftEffect getCurrentDateTime)) (WidgetState (spinnerOverlay "Get current date" White) page)
 
@@ -261,8 +263,7 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
       let page = Main defaultPage
       in do
         let connectionState         =         {proxy, hashFunc, srpConf, c, p}
-        Tuple userInfoRef _        <- runStep (extractUserInfoReference masterKey =<< (liftAff $ importCryptoKeyAesGCM (toArrayBuffer p)))                   (WidgetState (spinnerOverlay ""                  White) page)
-        let references              =          userInfoRef : indexRef : ((\(CardEntry {cardReference: CardReference {reference}}) -> reference) <$> (unwrap index).entries)
+        let references              =         userInfoReferences.reference : indexRef : ((\(CardEntry {cardReference: CardReference {reference}}) -> reference) <$> (unwrap index).entries)
 
         ProxyResponse proxy' blobs <-          downloadBlobsSteps references connectionState page
         remoteUserCard             <- runStep (computeRemoteUserCard state)                                                                                  (WidgetState (spinnerOverlay "Compute user card" White) page)

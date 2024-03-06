@@ -22,7 +22,7 @@ import DataModel.AppError (AppError(..))
 import DataModel.AppState (ProxyResponse(..), AppState, InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.SRPCodec as SRPCodec
-import DataModel.User (MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), MasterKey)
+import DataModel.User (MasterKey, RequestUserCard(..), SRPVersion(..), currentMasterKeyEncodingVersion)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Backend (isStatusCodeOk, genericRequest)
@@ -37,18 +37,23 @@ type ModifyUserData = { c :: HexString
 
 changeUserPassword :: AppState -> String -> ExceptT AppError Aff (ProxyResponse ModifyUserData)
 changeUserPassword {srpConf, c: Just oldC, p: Just oldP, username: Just username, proxy, hash: hashFunc, masterKey: Just (Tuple masterKeyContent _)} newPassword = do
-  s        <- liftAff $ SRP.randomArrayBuffer 32
-  newC     <- liftAff $ SRP.prepareC srpConf username newPassword
-  newP     <- liftAff $ SRP.prepareP srpConf username newPassword
+  s    <- liftAff $ SRP.randomArrayBuffer 32
+  newC <- liftAff $ SRP.prepareC srpConf username newPassword
+  newP <- liftAff $ SRP.prepareP srpConf username newPassword
   newV <- ExceptT $ (lmap (ProtocolError <<< SRPError <<< show)) <$> (SRP.prepareV srpConf s newP)
-  oldMasterPassword <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer oldP)
-  newMasterPassword <- liftAff $ importCryptoKeyAesGCM newP
-  masterKeyDecryptedContent <- ExceptT $ decryptArrayBuffer oldMasterPassword (toArrayBuffer $ masterKeyContent) <#> (lmap (ProtocolError <<< CryptoError <<< show))
-  masterKeyEncryptedContent <- liftAff $ encryptArrayBuffer newMasterPassword  masterKeyDecryptedContent         <#> fromArrayBuffer
+  
+  oldMasterPassword         <- liftAff $ importCryptoKeyAesGCM (toArrayBuffer oldP)
+  masterKeyDecryptedContent <- ExceptT $ decryptArrayBuffer     oldMasterPassword (toArrayBuffer $ masterKeyContent) <#> (lmap (ProtocolError <<< CryptoError <<< show))
+  
+  newMasterPassword         <- liftAff $ importCryptoKeyAesGCM  newP
+  masterKeyEncryptedContent <- liftAff $ encryptArrayBuffer     newMasterPassword  masterKeyDecryptedContent         <#> fromArrayBuffer
+  
+  masterKey                 <- pure    $ Tuple masterKeyEncryptedContent currentMasterKeyEncodingVersion
+  
   let newUserCard = RequestUserCard { c: fromArrayBuffer newC
                                     , v: newV
                                     , s: fromArrayBuffer s
-                                    , masterKey: Tuple masterKeyEncryptedContent V_1
+                                    , masterKey
                                     , srpVersion: V_6a
                                     , originMasterKey: Just $ masterKeyContent
                                     }
@@ -57,10 +62,10 @@ changeUserPassword {srpConf, c: Just oldC, p: Just oldP, username: Just username
   
   ProxyResponse proxy' response <- genericRequest {hashFunc, proxy, srpConf, c: fromArrayBuffer newC, p: fromArrayBuffer newP} url PUT (Just body) RF.ignore
   if isStatusCodeOk response.status
-    then pure $ ProxyResponse proxy' { c: fromArrayBuffer newC
-                                     , p: fromArrayBuffer newP
-                                     , s: fromArrayBuffer s
-                                     , masterKey: Tuple masterKeyEncryptedContent V_1
-                                     }
+    then pure       $ ProxyResponse proxy' { c: fromArrayBuffer newC
+                                           , p: fromArrayBuffer newP
+                                           , s: fromArrayBuffer s
+                                           , masterKey
+                                           }
     else throwError $ ProtocolError (ResponseError (unwrap response.status))
 changeUserPassword _ _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
