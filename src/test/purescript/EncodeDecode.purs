@@ -64,7 +64,7 @@ encodeDecodeSpec =
 encryptDecryptText :: AsciiString -> Aff Result
 encryptDecryptText text' = do
   let text = unwrap text'
-  let encodedText = Encoder.encode Encoder.Utf8 text :: ArrayView Uint8   -- Uint8Array
+  let encodedText = Encoder.encodeUtf8 text :: ArrayView Uint8   -- Uint8Array
   let textBuffer = Data.ArrayBuffer.Typed.buffer encodedText :: ArrayBuffer
 
   key              :: Key.Types.CryptoKey    <- generateCryptoKeyAesGCM
@@ -84,7 +84,7 @@ encryptDecryptText text' = do
 encodeDecodeText :: UnicodeString -> Result
 encodeDecodeText text' = do
   let text = unwrap text'
-  let encodedText = Encoder.encode Encoder.Utf8 text :: ArrayView Uint8   -- Uint8Array
+  let encodedText = Encoder.encodeUtf8 text :: ArrayView Uint8   -- Uint8Array
   let decoded = Decoder.decode Decoder.Utf8 encodedText
   case decoded of
     Left err -> Failed (show err)
