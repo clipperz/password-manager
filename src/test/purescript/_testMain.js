@@ -1,4 +1,4 @@
-const Main = require ("../../../target/output.purescript/Test.Main")
+const Main = require ("../../../target/output.purescript/Test.TestMain")
 
 
 function main () {

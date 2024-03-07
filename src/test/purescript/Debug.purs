@@ -1,4 +1,4 @@
-module Functions.Debug where
+module Test.Debug where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
@@ -10,7 +10,7 @@ import Data.Argonaut.Core (stringify)
 import Data.Codec.Argonaut as CA
 import Data.Eq ((==))
 import Data.Function (($))
-import DataModel.Codec (widgetStateCodec)
+import Test.DebugCodec (widgetStateCodec)
 import DataModel.WidgetState (WidgetState)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)

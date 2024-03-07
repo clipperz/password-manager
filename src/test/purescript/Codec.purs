@@ -15,7 +15,7 @@ import Data.Either (Either(..))
 import Data.Function (($))
 import Data.Identity (Identity)
 import Data.Unit (Unit)
-import DataModel.Codec as Codec
+import Test.DebugCodec as Codec
 import DataModel.Password (standardPasswordGeneratorSettings)
 import Effect.Aff (Aff)
 import Test.Spec (describe, it, SpecT)

@@ -23,7 +23,6 @@ module.exports = (env) => {
 			passwordGenerator:  '/src/main/purescript/_passwordGenerator_main.js',
 			share: 				'/src/main/purescript/_share_main.js',
 			redeem: 			'/src/main/purescript/_redeem_main.js',
-			debug:				'/src/main/purescript/_debugApp_main.js',
 		},
 		output: {
 			filename: env.production ? '[name]-bundle.js' : '[name]-bundle.[fullhash].js',
@@ -39,10 +38,10 @@ module.exports = (env) => {
 			}),
 			// environmental variables definition
 			new webpack.EnvironmentPlugin({
-				CURRENT_COMMIT: env.production ? git('rev-parse HEAD') : "development",
-				APP_URL:	"/" + (env.production ? 'app' : 'api/static/index.html'),
-				SHARE_URL:  "/" + (env.production ? 'share/#' : 'api/static/share_index.html#'),
-				REDEEM_URL: "/" + (env.production ? 'share/redeem/' : 'api/static/redeem_index.html#'),
+				CURRENT_COMMIT:    env.production ? git('rev-parse HEAD') : "development",
+				APP_URL:	"/" + (env.production ? 'app' 				  : 'api/static/index.html'),
+				SHARE_URL:  "/" + (env.production ? 'share/#' 			  : 'api/static/share_index.html#'),
+				REDEEM_URL: "/" + (env.production ? 'share/redeem/' 	  : 'api/static/redeem_index.html#'),
 			}),
 			// app html package configuration
 			new HtmlWebpackPlugin({
@@ -55,18 +54,6 @@ module.exports = (env) => {
 			new HtmlInlineScriptPlugin({
 				htmlMatchPattern: [/index.html$/],
 				scriptMatchPattern: [/app-bundle(.[a-zA-Z0-9]+)?.js/],
-			}),
-			// debug app package configuration
-			new HtmlWebpackPlugin({
-				template: '/src/main/html/debug_index.html',
-				filename: 'debug_index.html',
-				scriptLoading: 'module',
-				chunks: ["debug"],
-				minify: true,
-			}),
-			new HtmlInlineScriptPlugin({
-				htmlMatchPattern: [/debug_index.html$/],
-				scriptMatchPattern: [/debug-bundle(.[a-zA-Z0-9]+)?.js/],
 			}),
 			...(env.production ? [] : [
 				// password generator html package configuration

@@ -13,7 +13,7 @@
         "keep-building": "spago --jobs 10 build --watch --purs-args '--codegen js,sourcemaps -o ./target/output.purescript'",
         "keep-packaging": "webpack watch --config ./webpack.config.js --stats verbose",
         "rebuild": "clear; npm run clean; npm run build",
-        "test-browser": "webpack serve --config ./webpack.test.config.js --stats verbose",
+        "test-browser": "(trap 'kill 0' SIGINT; webpack watch --config ./webpack.test.config.js & webpack serve --config ./webpack.test.config.js --stats verbose)",
         "upgrade-set": "spago upgrade-set"
     },
     "devDependencies": {

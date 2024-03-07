@@ -1,8 +1,8 @@
-const Main = require ("../../../target/output.purescript/DebugAppMain")
+const Main = require ("../../../target/output.purescript/Test.DebugAppMain")
 
-var Mousetrap = require('../js/Mousetrap');
+var Mousetrap = require('../../main/js/Mousetrap');
 
-import "../scss/main.scss";
+import "../../main/scss/main.scss";
 
 function addShortcutsManagement() {
 	Mousetrap.bind('ctrl+alt+m', function(e) {
