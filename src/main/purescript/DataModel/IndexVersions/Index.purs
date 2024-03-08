@@ -1,6 +1,9 @@
-module DataModel.Index where
+module DataModel.IndexVersions.Index where
 
 import Control.Bind (pure, (>>=))
+import Data.Codec.Argonaut as CA
+import Data.Codec.Argonaut.Variant as CAV
+import Data.Either (Either(..))
 import Data.Eq (class Eq, eq)
 import Data.Function (($))
 import Data.HexString (HexString, hex)
@@ -9,21 +12,33 @@ import Data.List (delete)
 import Data.List.Types (List(..), (:))
 import Data.Newtype (class Newtype, unwrap)
 import Data.Ord (class Ord, compare)
+import Data.Profunctor (dimap)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
 import Data.String.Common (toLower)
-import DataModel.Card (CardVersion)
+import Data.Unit (unit)
+import Data.Variant as V
+import DataModel.CardVersions.Card (CardVersion)
 import Effect.Aff (Aff)
+import Type.Proxy (Proxy(..))
 
 -- --------------------------------------------
 
-currentIndexVersion :: IndexVersion
-currentIndexVersion = IndexVersion_1
-
 data IndexVersion = IndexVersion_1
+indexVersionCodec :: CA.JsonCodec IndexVersion
+indexVersionCodec = dimap toVariant fromVariant $ CAV.variantMatch
+    { indexVesion_1: Left unit
+    }
+  where
+    toVariant = case _ of
+      IndexVersion_1 -> V.inj (Proxy :: _ "indexVesion_1") unit 
+    fromVariant = V.match
+      { indexVesion_1: \_ -> IndexVersion_1
+      }
 
 class IndexVersions a where
-  toIndex :: a -> Index
+  toIndex   :: a     -> Index
+  fromIndex :: Index -> a
 
 -- --------------------------------------------
 
@@ -52,7 +67,6 @@ newtype CardEntry =
     , archived :: Boolean
     , tags :: Array String
     , lastUsed :: Number
-    -- , attachment :: Boolean
     }
 
 instance showCardEntry :: Show CardEntry where

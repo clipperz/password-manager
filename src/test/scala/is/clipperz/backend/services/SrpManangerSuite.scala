@@ -24,6 +24,8 @@ import zio.test.TestAspect
 import is.clipperz.backend.exceptions.ResourceNotFoundException
 import zio.http.*
 import is.clipperz.backend.services.RemoteUserCard
+import is.clipperz.backend.services.SRPVersion
+import is.clipperz.backend.services.MasterKeyEncodingVersion
 
 object SrpManangerSpec extends ZIOSpecDefault:
   val samples = 10
@@ -71,10 +73,10 @@ object SrpManangerSpec extends ZIOSpecDefault:
                 c = cHex,
                 s = sHex,
                 v = bigIntToHex(v),
-                srpVersion = "srpVersion_testFullTrip",
+                srpVersion = SRPVersion("srpVersion_testFullTrip"),
                 // originMasterKey = None,
                 // masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
-                masterKey = (HexString("masterKeyContent_testFullTrip"), "masterKeyEncodingVersion_testFullTrip")
+                masterKey = (HexString("masterKeyContent_testFullTrip"), MasterKeyEncodingVersion("masterKeyEncodingVersion_testFullTrip"))
               )
             )
 
@@ -150,10 +152,10 @@ object SrpManangerSpec extends ZIOSpecDefault:
                 c = cHex,
                 s = sHex,
                 v = bigIntToHex(v),
-                srpVersion = "srpVersion_testFullTrip",
+                srpVersion = SRPVersion("srpVersion_testFullTrip"),
                 // originMasterKey = None,
                 // masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
-                masterKey = (HexString("masterKeyContent_testFullTrip"), "masterKeyEncodingVersion_testFullTrip")
+                masterKey = (HexString("masterKeyContent_testFullTrip"), MasterKeyEncodingVersion("masterKeyEncodingVersion_testFullTrip"))
               )
             )
 

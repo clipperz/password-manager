@@ -18,11 +18,12 @@ import Data.Tuple (Tuple(..))
 import Data.Unit (Unit, unit)
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (AppState, InvalidStateError(..), ProxyResponse(..))
-import DataModel.Codec as Codec
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.Index (class IndexVersions, Index(..), IndexVersion(..), currentIndexVersion, toIndex)
-import DataModel.SRP (HashFunction)
-import DataModel.User (IndexReference(..), UserInfo(..))
+import DataModel.IndexVersions.CurrentIndexVersions (currentIndexCodecVersion, currentIndexVersion)
+import DataModel.IndexVersions.Index (class IndexVersions, Index(..), IndexVersion(..), fromIndex, toIndex)
+import DataModel.IndexVersions.IndexV1 (indexV1Codec)
+import DataModel.SRPVersions.SRP (HashFunction)
+import DataModel.UserVersions.User (IndexReference(..), UserInfo(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Backend (ConnectionState)
@@ -33,7 +34,7 @@ import Functions.EncodeDecode (decryptJson, encryptJson, exportCryptoKeyToHex, g
 decryptIndex :: ArrayBuffer -> IndexReference -> ExceptT AppError Aff Index
 decryptIndex encryptedIndex (IndexReference {version, key}) =
   case version of 
-    IndexVersion_1 -> decryptJsonIndex Codec.indexV1Codec
+    IndexVersion_1 -> decryptJsonIndex indexV1Codec
 
   where
     decryptJsonIndex :: forall a. IndexVersions a => JsonCodec a -> ExceptT AppError Aff Index
@@ -45,7 +46,7 @@ decryptIndex encryptedIndex (IndexReference {version, key}) =
 encryptIndex :: Index -> HashFunction -> Aff (Tuple ArrayBuffer IndexReference)
 encryptIndex index hashFunc = do
   indexKey           :: CryptoKey   <- generateCryptoKeyAesGCM
-  encryptedIndex     :: ArrayBuffer <- encryptJson Codec.indexCodec indexKey index
+  encryptedIndex     :: ArrayBuffer <- encryptJson currentIndexCodecVersion indexKey (fromIndex index)
   indexKeyHex        :: HexString   <- exportCryptoKeyToHex indexKey
   encryptedIndexHash :: HexString   <- hashFunc (encryptedIndex : Nil) <#> fromArrayBuffer
   pure $ Tuple encryptedIndex (IndexReference { reference: encryptedIndexHash, key: indexKeyHex, version: currentIndexVersion } )

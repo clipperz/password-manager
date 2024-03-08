@@ -6,17 +6,16 @@ import Data.Codec.Argonaut.Record as CAR
 import Data.Codec.Argonaut.Variant as CAV
 import Data.Either (Either(..))
 import Data.Function (($))
-import Data.HexString (HexString(..))
+import Data.HexString (hexStringCodec)
 import Data.Maybe (Maybe(..))
 import Data.Profunctor (dimap, wrapIso)
 import Data.Unit (unit)
 import Data.Variant as V
-import DataModel.Card (Card(..), CardField(..), CardValues(..), CardVersion(..))
+import DataModel.CardVersions.Card (Card(..), CardField(..), CardValues(..), cardVersionCodec)
 import DataModel.Credentials (Credentials)
-import DataModel.Index (CardEntry(..), CardReference(..), Index(..), IndexVersion(..))
+import DataModel.IndexVersions.Index (CardEntry(..), CardReference(..), Index(..), indexVersionCodec)
 import DataModel.Password (PasswordGeneratorSettings)
-import DataModel.Pin (PasswordPin)
-import DataModel.User (IndexReference(..), UserInfo(..), UserPreferences(..))
+import DataModel.UserVersions.User (IndexReference(..), UserInfo(..), UserPreferences(..))
 import DataModel.WidgetState (CardFormInput(..), CardManagerState, CardViewState, ImportState, ImportStep(..), LoginFormData, LoginType(..), MainPageWidgetState, Page(..), UserAreaPage(..), UserAreaState, UserAreaSubmenu(..), WidgetState(..))
 import DataModel.WidgetState (CardViewState(..)) as CardViewState
 import IndexFilterView (Filter(..), FilterData, FilterViewStatus(..))
@@ -237,10 +236,6 @@ cardReferenceCodec = wrapIso CardReference $
       }
     )
 
--- newtype HexString = HexString String
-hexStringCodec :: CA.JsonCodec HexString
-hexStringCodec = wrapIso HexString CA.string
-
 -- type UserAreaState = {
 --   showUserArea     :: Boolean
 -- , userAreaOpenPage :: UserAreaPage
@@ -347,18 +342,6 @@ userAreaSubmenuCodec = dimap toVariant fromVariant $ CAV.variantMatch
     fromVariant = V.match
       { account: \_ -> Account
       , data:    \_ -> Data
-      }
-
--- data CardVersion = CardVersion_1
-cardVersionCodec :: CA.JsonCodec CardVersion
-cardVersionCodec = dimap toVariant fromVariant $ CAV.variantMatch
-    { cardVersion_1: Left unit
-    }
-  where
-    toVariant = case _ of
-      CardVersion_1 -> V.inj (Proxy :: _ "cardVersion_1") unit
-    fromVariant = V.match
-      { cardVersion_1: \_ -> CardVersion_1
       }
 
 -- newtype Card = 
@@ -570,18 +553,6 @@ userInfoCodec = wrapIso UserInfo (
     }
 )
 
--- data IndexVersion = IndexVersion_1
-indexVersionCodec :: CA.JsonCodec IndexVersion
-indexVersionCodec = dimap toVariant fromVariant $ CAV.variantMatch
-    { indexVesion_1: Left unit
-    }
-  where
-    toVariant = case _ of
-      IndexVersion_1 -> V.inj (Proxy :: _ "indexVesion_1") unit 
-    fromVariant = V.match
-      { indexVesion_1: \_ -> IndexVersion_1
-      }
-
 -- newtype IndexReference =
 --   IndexReference
 --     { reference :: HexString
@@ -597,8 +568,3 @@ indexReferenceCodec = wrapIso IndexReference $
       , version: indexVersionCodec
       }
     )
-
--- type PasswordPin = { padding :: Int, passphrase :: String }
-passwordPinCodec :: CA.JsonCodec PasswordPin
-passwordPinCodec =
-  CAR.object "passwordPin" { padding : CA.int , passphrase : CA.string }

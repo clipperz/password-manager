@@ -21,7 +21,7 @@ import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
 import Data.Unit (Unit, unit)
 import DataModel.AsyncValue as Async
-import DataModel.Card (Card(..), CardField(..), CardValues(..), FieldType(..), emptyCardField)
+import DataModel.CardVersions.Card (Card(..), CardField(..), CardValues(..), FieldType(..), emptyCardField)
 import DataModel.Password (PasswordGeneratorSettings)
 import Effect.Class (liftEffect)
 import Effect.Unsafe (unsafePerformEffect)

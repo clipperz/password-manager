@@ -29,18 +29,18 @@ import Data.String.Regex (Regex, test, regex)
 import Data.String.Regex.Flags (noFlags)
 import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError(..))
-import DataModel.Card (class CardVersions, Card(..), CardField(..), CardValues(..), CardVersion(..), FieldType(..), currentCardVersion, toCard)
-import DataModel.Codec as Codec
+import DataModel.CardVersions.Card (class CardVersions, Card(..), CardField(..), CardValues(..), CardVersion(..), FieldType(..), fromCard, toCard)
+import DataModel.CardVersions.CurrentCardVersions (currentCardCodecVersion, currentCardVersion)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.Index (CardEntry(..), CardReference(..))
-import DataModel.SRP (HashFunction)
+import DataModel.IndexVersions.Index (CardEntry(..), CardReference(..))
+import DataModel.SRPVersions.SRP (HashFunction)
 import Effect.Aff (Aff)
 import Functions.EncodeDecode (decryptJson, encryptJson, exportCryptoKeyToHex, generateCryptoKeyAesGCM, importCryptoKeyAesGCM)
 
 decryptCard :: ArrayBuffer -> CardReference -> ExceptT AppError Aff Card
 decryptCard encryptedCard (CardReference {version, key}) =
   case version of 
-    CardVersion_1    -> decryptCardJson Codec.cardV1Codec
+    CardVersion_1    -> decryptCardJson currentCardCodecVersion
 
   where
     decryptCardJson :: forall a. CardVersions a => CA.JsonCodec a -> ExceptT AppError Aff Card
@@ -53,7 +53,7 @@ encryptCard :: Card -> HashFunction -> Aff (Tuple ArrayBuffer CardReference)
 encryptCard card hashFunc = do
   identifier        :: Identifier  <- computeIdentifier
   cardKey           :: CryptoKey   <- generateCryptoKeyAesGCM
-  encryptedCard     :: ArrayBuffer <- encryptJson Codec.cardCodec cardKey card
+  encryptedCard     :: ArrayBuffer <- encryptJson currentCardCodecVersion cardKey (fromCard card)
   cardKeyHex        :: HexString   <- exportCryptoKeyToHex cardKey
   encryptedCardHash :: HexString   <- hashFunc (encryptedCard : Nil) <#> fromArrayBuffer
   pure $ Tuple encryptedCard (CardReference { reference: encryptedCardHash, identifier, key: cardKeyHex, version: currentCardVersion } )

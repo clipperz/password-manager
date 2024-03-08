@@ -29,10 +29,9 @@ import Data.Time.Duration (Seconds, fromDuration)
 import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (ProxyResponse(..))
-import DataModel.Communication.OneTimeShare (SecretVersion(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.OneTimeShareCodec as OneTimeShareCodec
-import DataModel.SRP (hashFuncSHA256)
+import DataModel.OneTimeShare (SecretVersion(..), secretRequestDataCodec, secretVersionCodec)
+import DataModel.SRPVersions.SRP (hashFuncSHA256)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Exception as EX
@@ -48,7 +47,7 @@ type UUID = String
 share :: ConnectionState -> ArrayBuffer -> Seconds -> ExceptT AppError Aff UUID
 share connectionState encryptedSecret duration = do
   let url  = joinWith "/" ["share"]
-  let body = (json $ encode OneTimeShareCodec.secretRequestDataCodec 
+  let body = (json $ encode secretRequestDataCodec 
       { secret:   fromArrayBuffer encryptedSecret
       , duration: fromDuration duration
       , version:  SecretVersion_1
@@ -69,7 +68,7 @@ redeem connectionState id = do
     then do
       secretVersion :: SecretVersion <- ((value <$> find (\header -> (name header) == oneTimeSecretVersionHeaderName) (response.headers)) <#> (\headerValue -> do
         headerJson <- (except $ P.jsonParser headerValue)                               # withExceptT (show >>> DecodeError >>> ProtocolError)
-        (              except $ decode OneTimeShareCodec.secretVersionCodec headerJson) # withExceptT (show >>> DecodeError >>> ProtocolError)
+        (              except $ decode secretVersionCodec headerJson) # withExceptT (show >>> DecodeError >>> ProtocolError)
       )) # fromMaybe (pure SecretVersion_1)
 
       pure $ Tuple secretVersion response.body

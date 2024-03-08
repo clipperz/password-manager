@@ -42,6 +42,8 @@ import is.clipperz.backend.services.OneTimeShareArchive
 import is.clipperz.backend.services.RequestUserCard
 import is.clipperz.backend.services.RemoteUserCard
 import is.clipperz.backend.functions.customErrorHandler
+import is.clipperz.backend.services.SRPVersion
+import is.clipperz.backend.services.MasterKeyEncodingVersion
 
 object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
   override def bootstrap: ZLayer[Any, Any, UserArchive & BlobArchive] =
@@ -71,12 +73,12 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
     HexString(
       "83fd4a3fc7ec1a37a813a166403ef6b388c5f60e37902b40b4d826ef69f6d88372ba0b9ce777b74e921b9f63e3ddd9e90e0669811fcd8fb4281f8719ec98c244e6dd83ad561a905d908477911f674da4086fe7a9ceadd343f9a930eda9ae29a2ce5bdaca0d2992979f765782d12d0de8ade8745a60395d11ba584abbc08b59d5"
     ),
-    "6a",
+    SRPVersion("6a"),
     (
       HexString(
       "44457969993591d8c38610c6dec54a7cf66426d7cc5614917727d7d2a5e3a78d356055037b8463cc79a1fe122f55ff5709e5b5fcad8478d183f1b30c2e6acdbb"
       ),
-      "1.0"
+      MasterKeyEncodingVersion("1.0")
     ),
   )
   val indexCardContent =

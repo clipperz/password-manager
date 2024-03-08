@@ -13,13 +13,29 @@ import zio.stream.{ ZSink, ZStream }
 
 // ============================================================================
 
+case class MasterKeyEncodingVersion(
+    tag: String
+)
+
+object MasterKeyEncodingVersion:
+  implicit val decoder: JsonDecoder[MasterKeyEncodingVersion] = DeriveJsonDecoder.gen[MasterKeyEncodingVersion]
+  implicit val encoder: JsonEncoder[MasterKeyEncodingVersion] = DeriveJsonEncoder.gen[MasterKeyEncodingVersion]
+  
+case class SRPVersion(
+    tag: String
+)
+      
+object SRPVersion:
+    implicit val decoder: JsonDecoder[SRPVersion] = DeriveJsonDecoder.gen[SRPVersion]
+    implicit val encoder: JsonEncoder[SRPVersion] = DeriveJsonEncoder.gen[SRPVersion]
+
 case class RequestUserCard(
     c: HexString,
     s: HexString,
     v: HexString,
-    srpVersion: String,
+    srpVersion: SRPVersion,
     originMasterKey: Option[HexString],
-    masterKey: (HexString, String)
+    masterKey: (HexString, MasterKeyEncodingVersion)
   )
 
 object RequestUserCard:
@@ -30,8 +46,8 @@ case class RemoteUserCard(
     c: HexString,
     s: HexString,
     v: HexString,
-    srpVersion: String,
-    masterKey: (HexString, String)
+    srpVersion: SRPVersion,
+    masterKey: (HexString, MasterKeyEncodingVersion)
   )
 
 object RemoteUserCard:
@@ -49,7 +65,7 @@ def remoteFromRequest(requestUserCard : RequestUserCard): RemoteUserCard =
 
 case class UserCard(
     originMasterKey: HexString,
-    masterKey: (HexString, String)
+    masterKey: (HexString, MasterKeyEncodingVersion)
 )
 
 object UserCard:

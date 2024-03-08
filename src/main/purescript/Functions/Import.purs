@@ -18,8 +18,8 @@ import Data.String.Regex (match, regex)
 import Data.String.Regex.Flags (noFlags)
 import Data.Traversable (sequence)
 import DataModel.AppError (AppError(..))
-import DataModel.Card (Card(..), CardField(..), CardValues(..), CardVersion(..), toCard)
-import DataModel.Codec as Codec
+import DataModel.CardVersions.Card (Card(..), CardField(..), CardValues(..), CardVersion(..), cardVersionCodec, toCard)
+import DataModel.CardVersions.CurrentCardVersions (currentCardCodecVersion)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
@@ -42,7 +42,7 @@ data ImportVersion = Delta | Epsilon CardVersion
 
 instance showImportVersion :: Show ImportVersion where
   show  Delta      = "Delta"
-  show (Epsilon v) = "Epsilon: " <> (stringify $ encode Codec.cardVersionCodec v)
+  show (Epsilon v) = "Epsilon: " <> (stringify $ encode cardVersionCodec v)
 
 parseImport :: String -> ExceptT AppError Aff (Array Card)
 parseImport html = do
@@ -50,8 +50,8 @@ parseImport html = do
   case (match regex (decodeHTML html) <#> fromFoldable) of
     Just (_ : _ : maybeVersion : (Just cards) : Nil) -> do
       version <- pure $ fromMaybe Delta (Epsilon <$> (
-                                               (decode Codec.cardVersionCodec >>> hush)
-                                           =<< (parseJson                     >>> hush)
+                                               (decode cardVersionCodec >>> hush)
+                                           =<< (parseJson               >>> hush)
                                            =<<  maybeVersion
                                         ))                             
       decodeImport version cards
@@ -63,7 +63,7 @@ decodeImport version cards =
   (\json -> caseJsonArray (throwError $ ImportError "Cannot convert json to json array") (\array -> sequence $ array <#> 
     (\card -> case version of
       Delta                 -> caseJsonObject (throwError $ ImportError "Cannot conver json to json object") decodeDeltaCardObject card
-      Epsilon CardVersion_1 -> (except $ toCard <$> decode Codec.cardV1Codec card) # withExceptT (ProtocolError <<< DecodeError <<< show)
+      Epsilon CardVersion_1 -> (except $ toCard <$> decode currentCardCodecVersion card) # withExceptT (ProtocolError <<< DecodeError <<< show)
     )
   ) json) =<< (except $ lmap (ProtocolError <<< DecodeError <<< show) (jsonParser cards))
 

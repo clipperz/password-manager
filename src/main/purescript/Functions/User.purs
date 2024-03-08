@@ -21,8 +21,9 @@ import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (ProxyResponse(..), AppState, InvalidStateError(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.SRPCodec as SRPCodec
-import DataModel.User (MasterKey, RequestUserCard(..), SRPVersion(..), currentMasterKeyEncodingVersion)
+import DataModel.SRPVersions.CurrentSRPVersions (currentSRPVersion)
+import DataModel.UserVersions.CurrentUserVersions (currentMasterKeyEncodingVersion)
+import DataModel.UserVersions.User (MasterKey, RequestUserCard(..), requestUserCardCodec)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.Communication.Backend (isStatusCodeOk, genericRequest)
@@ -54,11 +55,11 @@ changeUserPassword {srpConf, c: Just oldC, p: Just oldP, username: Just username
                                     , v: newV
                                     , s: fromArrayBuffer s
                                     , masterKey
-                                    , srpVersion: V_6a
+                                    , srpVersion: currentSRPVersion
                                     , originMasterKey: Just $ masterKeyContent
                                     }
   let url         = joinWith "/" [ "users", toString Hex oldC ]
-  let body        = (json $ encode SRPCodec.requestUserCardCodec newUserCard) :: RequestBody
+  let body        = (json $ encode requestUserCardCodec newUserCard) :: RequestBody
   
   ProxyResponse proxy' response <- genericRequest {hashFunc, proxy, srpConf, c: fromArrayBuffer newC, p: fromArrayBuffer newP} url PUT (Just body) RF.ignore
   if isStatusCodeOk response.status

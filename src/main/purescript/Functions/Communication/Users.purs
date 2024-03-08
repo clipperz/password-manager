@@ -24,11 +24,12 @@ import Data.Tuple (Tuple(..))
 import Data.Unit (Unit, unit)
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (AppState, InvalidStateError(..), ProxyResponse(..))
-import DataModel.Codec as Codec
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.SRP (HashFunction)
-import DataModel.SRPCodec as SRPCodec
-import DataModel.User (class UserInfoVersions, MasterKey, MasterKeyEncodingVersion(..), RequestUserCard(..), SRPVersion(..), UserCard(..), UserInfo(..), UserPreferences, UserInfoReferences, currentMasterKeyEncodingVersion, prepareUserInfo, toUserInfo)
+import DataModel.SRPVersions.CurrentSRPVersions (currentSRPVersion)
+import DataModel.SRPVersions.SRP (HashFunction)
+import DataModel.UserVersions.CurrentUserVersions (currentMasterKeyEncodingVersion, currentUserInfoCodecVersion)
+import DataModel.UserVersions.User (class UserInfoVersions, MasterKey, MasterKeyEncodingVersion(..), RequestUserCard(..), UserCard(..), UserInfo(..), UserInfoReferences, UserPreferences, fromUserInfo, prepareUserInfo, toUserInfo, userCardCodec)
+import DataModel.UserVersions.UserV1 (userInfoV1Codec)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -41,13 +42,13 @@ import Functions.SRP (prepareV)
 computeRemoteUserCard :: AppState -> ExceptT AppError Aff RequestUserCard
 computeRemoteUserCard { c: Just c, p: Just p, s: Just s, masterKey: Just masterKey, srpConf } = do
   v <- withExceptT (show >>> SRPError >>> ProtocolError) $ ExceptT (prepareV srpConf (toArrayBuffer s) (toArrayBuffer p))
-  pure $ RequestUserCard { c, v, s, srpVersion: V_6a, originMasterKey: Nothing, masterKey }
+  pure $ RequestUserCard { c, v, s, srpVersion: currentSRPVersion, originMasterKey: Nothing, masterKey }
 computeRemoteUserCard _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
 
 updateUserCard :: ConnectionState -> HexString -> UserCard -> ExceptT AppError Aff (ProxyResponse Unit)
 updateUserCard connectionState c newUserCard = do
   let url = joinWith "/" ["users", toString Hex c]
-  let body = (json $ encode SRPCodec.userCardCodec newUserCard) :: RequestBody
+  let body = (json $ encode userCardCodec newUserCard) :: RequestBody
   ProxyResponse proxy' response <- genericRequest connectionState url PATCH (Just body) RF.ignore
   if isStatusCodeOk response.status
     then pure $ ProxyResponse proxy' unit
@@ -80,7 +81,7 @@ extractUserInfoReference (Tuple masterKeyContent masterKeyEncodingVersion) maste
 decryptUserInfo :: ArrayBuffer -> HexString -> MasterKeyEncodingVersion -> ExceptT AppError Aff UserInfo
 decryptUserInfo encryptedUserInfo key version =
   case version of 
-   MasterKeyEncodingVersion_1 -> decryptJsonUserInfo Codec.userInfoV1Codec
+   MasterKeyEncodingVersion_1 -> decryptJsonUserInfo userInfoV1Codec
 
   where
     decryptJsonUserInfo :: forall a. UserInfoVersions a => JsonCodec a -> ExceptT AppError Aff UserInfo
@@ -92,7 +93,7 @@ decryptUserInfo encryptedUserInfo key version =
 encryptUserInfo :: UserInfo -> HashFunction -> Aff (Tuple ArrayBuffer UserInfoReferences)
 encryptUserInfo userInfo hashFunc = do
   userInfoKey           :: CryptoKey   <- generateCryptoKeyAesGCM
-  encrytedUserInfo      :: ArrayBuffer <- encryptJson Codec.userInfoCodec userInfoKey userInfo
+  encrytedUserInfo      :: ArrayBuffer <- encryptJson currentUserInfoCodecVersion userInfoKey (fromUserInfo userInfo)
   userInfoKeyHex        :: HexString   <- exportCryptoKeyToHex userInfoKey
   encryptedUserInfoHash :: HexString   <- hashFunc (encrytedUserInfo : Nil) <#> fromArrayBuffer
   pure $ Tuple encrytedUserInfo {reference: encryptedUserInfoHash, key: userInfoKeyHex}

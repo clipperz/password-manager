@@ -22,7 +22,7 @@ import Data.String.CodePoints (toCodePointArray)
 import Data.TextDecoder as Decoder
 import Data.TextEncoder as Encoder
 import Data.Unit (Unit)
-import DataModel.Card (Card(..), cardValues0)
+import DataModel.CardVersions.Card (Card(..), cardValues0)
 import Test.DebugCodec as Codec
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)

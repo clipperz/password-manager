@@ -3,8 +3,8 @@ module DataModel.WidgetOperations where
 import Data.Maybe (Maybe)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
-import DataModel.Card (Card)
-import DataModel.Index (CardEntry)
+import DataModel.CardVersions.Card (Card)
+import DataModel.IndexVersions.Index (CardEntry)
 
 data IndexUpdateData = IndexUpdateData IndexUpdateAction (Maybe Card)
 instance showIndexUpdateData :: Show IndexUpdateData where

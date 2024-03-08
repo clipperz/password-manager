@@ -22,11 +22,10 @@ import Data.String.CodeUnits (length, splitAt)
 import Data.Unit (Unit)
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (InvalidStateError(..), AppState)
-import DataModel.Codec as Codec
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials)
-import DataModel.Pin (PasswordPin)
-import DataModel.SRP (HashFunction)
+import DataModel.Pin (PasswordPin, passwordPinCodec)
+import DataModel.SRPVersions.SRP (HashFunction)
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
@@ -53,7 +52,7 @@ decryptPassphraseWithPin hashFunc pin username' pinEncryptedPassword' = do
   username             <- except $ username'             # note (InvalidStateError (CorruptedSavedPassphrase "user not found in local storage"))
   pinEncryptedPassword <- except $ pinEncryptedPassword' # note (InvalidStateError (CorruptedSavedPassphrase "passphrase not found in local storage"))
   key <- liftAff $ generateKeyFromPin hashFunc pin
-  { padding, passphrase } :: PasswordPin <- decryptJson Codec.passwordPinCodec key (toArrayBuffer pinEncryptedPassword) # ExceptT # withExceptT (ProtocolError <<< CryptoError <<< show)
+  { padding, passphrase } :: PasswordPin <- decryptJson passwordPinCodec key (toArrayBuffer pinEncryptedPassword) # ExceptT # withExceptT (ProtocolError <<< CryptoError <<< show)
   let split = toString Dec $ hex $ (splitAt ((length passphrase) - (padding * 2)) passphrase).before
   pure $ { username, password: split }
 
@@ -72,7 +71,7 @@ saveCredentials {username: Just u, password: Just p, hash: hashf} pin storage = 
   paddedPassphrase <- liftAff $ fromArrayBuffer <$> (liftEffect $ concatArrayBuffers ((toArrayBuffer $ hex p) : paddingBytes : Nil))
   let obj = { padding: paddingBytesLength, passphrase: toString Hex paddedPassphrase }
 
-  encryptedCredentials <- liftAff $ fromArrayBuffer <$> encryptJson Codec.passwordPinCodec key obj
+  encryptedCredentials <- liftAff $ fromArrayBuffer <$> encryptJson passwordPinCodec key obj
   liftEffect $ setItem (makeKey "user")        u                                  storage
   liftEffect $ setItem (makeKey "passphrase") (toString Hex encryptedCredentials) storage
   liftEffect $ setItem (makeKey "failures")   (show 0)                            storage

@@ -18,7 +18,8 @@ import Data.String (split)
 import Data.String.Pattern (Pattern(..))
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
-import DataModel.Codec as Codec
+import DataModel.CardVersions.Card (toCard)
+import DataModel.CardVersions.CurrentCardVersions (currentCardCodecVersion)
 import DataModel.FragmentState (FragmentState)
 import DataModel.FragmentState as Fragment
 import Effect (Effect)
@@ -69,7 +70,7 @@ parseFragment fragment = case fragment of
         case (lookup "username" parameters), (lookup "password" parameters) of
           Just username, Just password -> Fragment.Login {username, password}
           _, _ -> Fragment.Unrecognized fragment
-      [ "#addCard", cardData ] -> case decode Codec.cardCodec =<< (lmap TypeMismatch <<< jsonParser) =<< (note MissingValue $ decodeURI cardData) of
+      [ "#addCard", cardData ] -> case toCard <$> (decode currentCardCodecVersion =<< (lmap TypeMismatch <<< jsonParser) =<< (note MissingValue $ decodeURI cardData)) of
         Right card -> Fragment.AddCard card
         Left  _    -> Fragment.Unrecognized fragment
       _ -> Fragment.Empty

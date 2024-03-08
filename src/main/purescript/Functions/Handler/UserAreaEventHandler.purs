@@ -32,13 +32,13 @@ import Data.Tuple (Tuple(..), fst, snd)
 import Data.Unit (Unit, unit)
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (AppState, CardsCache, InvalidStateError(..), ProxyResponse(..), discardResult)
-import DataModel.Card (Card, CardVersion(..))
-import DataModel.Card as DataModel.Card
-import DataModel.Codec as Codec
+import DataModel.CardVersions.Card (Card, CardVersion(..), fromCard)
+import DataModel.CardVersions.Card as DataModel.CardVersions.Card
+import DataModel.CardVersions.CurrentCardVersions (currentCardCodecVersion)
 import DataModel.Credentials (emptyCredentials)
 import DataModel.FragmentState as Fragment
-import DataModel.Index (CardEntry(..), CardReference(..), Index(..), addToIndex)
-import DataModel.User (IndexReference(..), UserInfo(..))
+import DataModel.IndexVersions.Index (CardEntry(..), CardReference(..), Index(..), addToIndex)
+import DataModel.UserVersions.User (IndexReference(..), UserInfo(..))
 import DataModel.WidgetState (CardManagerState, CardViewState(..), ImportStep(..), LoginType(..), Page(..), UserAreaPage(..), UserAreaState, WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -201,7 +201,7 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
                           , credentials: {username, password}
                           , pinExists: isJust pinEncryptedPassword
                           , cardManagerState
-                          , userAreaState : userAreaState {importState = importState {content = Right $ stringify $ encode (CA.array Codec.cardCodec) result, step = Selection, tag = Tuple true currentDate, selection = result <#> (\card@(DataModel.Card.Card r) -> Tuple (not r.archived) card)}}
+                          , userAreaState : userAreaState {importState = importState {content = Right $ stringify $ encode (CA.array currentCardCodecVersion) $ fromCard <$> result, step = Selection, tag = Tuple true currentDate, selection = result <#> (\card@(DataModel.CardVersions.Card.Card r) -> Tuple (not r.archived) card)}}
                           , userPreferences
                           }
 

@@ -17,10 +17,10 @@ import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (AppState, CardsCache, InvalidStateError(..), ProxyResponse(..))
-import DataModel.Card as DataModel.Card
+import DataModel.CardVersions.Card as DataModel.CardVersions.Card
 import DataModel.FragmentState as Fragment
-import DataModel.Index (CardEntry(..), Index, addToIndex, reference, removeFromIndex)
-import DataModel.User (UserInfo(..))
+import DataModel.IndexVersions.Index (CardEntry(..), Index, addToIndex, reference, removeFromIndex)
+import DataModel.UserVersions.User (UserInfo(..))
 import DataModel.WidgetState (CardFormInput(..), CardManagerState, CardViewState(..), Page(..), WidgetState(..))
 import Effect.Aff.Class (liftAff)
 import Functions.Card (appendToTitle, archiveCard, decryptCard, restoreCard)
@@ -90,7 +90,7 @@ handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just inde
     (CloneCardEvent cardEntry) ->
       do
         ProxyResponse proxy' (Tuple cardsCache' card) <- getCardSteps connectionState cardsCache cardEntry (loadingMainPage index cardManagerState)
-        let cloneCard                                  = appendToTitle " - copy" <<< (\(DataModel.Card.Card card') -> DataModel.Card.Card card' {archived = false}) $ card
+        let cloneCard                                  = appendToTitle " - copy" <<< (\(DataModel.CardVersions.Card.Card card') -> DataModel.CardVersions.Card.Card card' {archived = false}) $ card
         res                                           <- addCardSteps cardManagerState state{proxy = proxy', cardsCache = cardsCache'} cloneCard (loadingMainPage index cardManagerState) "Clone card"
         pure res
 
@@ -155,7 +155,7 @@ handleCardManagerEvent _ _ state _ = do
 
 -- ===================================================================================================
 
-getCardSteps :: ConnectionState -> CardsCache -> CardEntry -> Page -> ExceptT AppError (Widget HTML) (ProxyResponse (Tuple CardsCache DataModel.Card.Card))
+getCardSteps :: ConnectionState -> CardsCache -> CardEntry -> Page -> ExceptT AppError (Widget HTML) (ProxyResponse (Tuple CardsCache DataModel.CardVersions.Card.Card))
 getCardSteps connectionState cardsCache cardEntry@(CardEntry entry) page = do
   let cardFromCache = lookup (reference cardEntry) cardsCache
   case cardFromCache of
@@ -166,7 +166,7 @@ getCardSteps connectionState cardsCache cardEntry@(CardEntry entry) page = do
       let updatedCardsCache      =          insert (reference cardEntry) card cardsCache
       pure $ ProxyResponse proxy' (Tuple updatedCardsCache card)
 
-addCardSteps :: CardManagerState -> AppState -> DataModel.Card.Card -> Page -> String -> ExceptT AppError (Widget HTML) OperationState
+addCardSteps :: CardManagerState -> AppState -> DataModel.CardVersions.Card.Card -> Page -> String -> ExceptT AppError (Widget HTML) OperationState
 addCardSteps cardManagerState state@{index: Just index, userInfo: Just (UserInfo {userPreferences}), proxy, hash: hashFunc, srpConf, c: Just c, p: Just p, cardsCache, username: Just username, password: Just password, pinEncryptedPassword} newCard page message = do
   let connectionState = {proxy, hashFunc, srpConf, c, p}
   ProxyResponse proxy'  (Tuple cardsCache' newCardEntry) <- runStep (postCard connectionState cardsCache newCard)       (WidgetState (spinnerOverlay message        Black) page)
@@ -189,7 +189,7 @@ addCardSteps cardManagerState state@{index: Just index, userInfo: Just (UserInfo
         )
 addCardSteps _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
 
-editCardSteps :: CardManagerState -> AppState -> CardEntry -> DataModel.Card.Card -> Page -> ExceptT AppError (Widget HTML) OperationState
+editCardSteps :: CardManagerState -> AppState -> CardEntry -> DataModel.CardVersions.Card.Card -> Page -> ExceptT AppError (Widget HTML) OperationState
 editCardSteps cardManagerState state@{index: Just index, proxy, srpConf, hash: hashFunc, c: Just c, p: Just p, userInfo: Just (UserInfo {userPreferences}), cardsCache, username: Just username, password: Just password, pinEncryptedPassword} oldCardEntry updatedCard page = do
   let connectionState = {proxy, hashFunc, srpConf, c, p}
   ProxyResponse proxy'   (Tuple cardsCache' cardEntry) <- runStep  (postCard connectionState cardsCache updatedCard)                                             (WidgetState (spinnerOverlay "Post updated card" Black) page)
@@ -234,7 +234,7 @@ editCardSteps _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "State 
 --           delayOperation 500 (WidgetState { status: Failed,  message: "error" } page)
 --           pure               (WidgetState { status: Hidden,  message: ""      } page)
 
--- addCardStepsWithStateT :: DataModel.Card.Card -> Page -> String -> ExceptT AppError (StateT AppState (Widget HTML)) WidgetState
+-- addCardStepsWithStateT :: DataModel.CardVersions.Card.Card -> Page -> String -> ExceptT AppError (StateT AppState (Widget HTML)) WidgetState
 -- addCardStepsWithStateT newCard page message = do
 --   {index, userPreferences, cardsCache} <- get
 --   index'                               <-  except $ note (InvalidStateError $ CorruptedState "index not found")             index
@@ -257,7 +257,7 @@ editCardSteps _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "State 
 --           )
 --         )
 
--- postCardWithStateT :: DataModel.Card.Card -> ExceptT AppError (StateT AppState Aff) CardEntry
+-- postCardWithStateT :: DataModel.CardVersions.Card.Card -> ExceptT AppError (StateT AppState Aff) CardEntry
 -- postCardWithStateT card = do
 --   {proxy, hash} <- get
 --   key <- liftAff $ KG.generateKey (KG.aes aesCTR l256) true [encrypt, decrypt, unwrapKey]
