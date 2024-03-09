@@ -13,9 +13,9 @@ import Data.Unit (unit)
 import Data.Variant as V
 import DataModel.CardVersions.Card (Card(..), CardField(..), CardValues(..), cardVersionCodec)
 import DataModel.Credentials (Credentials)
-import DataModel.IndexVersions.Index (CardEntry(..), CardReference(..), Index(..), indexVersionCodec)
+import DataModel.IndexVersions.Index (CardEntry(..), CardReference(..), Index(..))
 import DataModel.Password (PasswordGeneratorSettings)
-import DataModel.UserVersions.User (IndexReference(..), UserInfo(..), UserPreferences(..))
+import DataModel.UserVersions.User (UserPreferences(..))
 import DataModel.WidgetState (CardFormInput(..), CardManagerState, CardViewState, ImportState, ImportStep(..), LoginFormData, LoginType(..), MainPageWidgetState, Page(..), UserAreaPage(..), UserAreaState, UserAreaSubmenu(..), WidgetState(..))
 import DataModel.WidgetState (CardViewState(..)) as CardViewState
 import IndexFilterView (Filter(..), FilterData, FilterViewStatus(..))
@@ -536,35 +536,3 @@ userPreferencesCodec = wrapIso UserPreferences (
       }
     )
 )
-
--- newtype UserInfo = 
---   UserInfo
---     { indexReference  :: IndexReference
---     , identifier      :: HexString
---     , userPreferences :: UserPreferences
---     }
-
-userInfoCodec :: CA.JsonCodec UserInfo
-userInfoCodec = wrapIso UserInfo (
-  CAR.object "UserInfo"
-    { indexReference:  indexReferenceCodec
-    , identifier:      hexStringCodec
-    , userPreferences: userPreferencesCodec
-    }
-)
-
--- newtype IndexReference =
---   IndexReference
---     { reference :: HexString
---     , masterKey :: HexString
---     , indexVersion :: String
---     }
-indexReferenceCodec :: CA.JsonCodec IndexReference --TODO: remove codec that are not versions
-indexReferenceCodec = wrapIso IndexReference $
-  CA.object "IndexReference"
-    (CAR.record
-      { reference:    hexStringCodec
-      , key:    hexStringCodec
-      , version: indexVersionCodec
-      }
-    )

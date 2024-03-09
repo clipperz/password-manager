@@ -41,6 +41,11 @@ Command to run inside of the sbt console to execute tests:
 		- the path `/static/debug_index.html` serve a page for debugging purpose, allowing to view the static page corresponding to a state of the application
 - `t` (or `testAll`): run `test` first and `testPurescript` after that. Note that if a Scala test doesn't pass `testPurescript` will not be executed.
 
+### Debug
+As described in the above, the `testPurescript` command will execute a server that serves on address `localhost:9000/static/debug_index.html` the debug page.
+In the main application, using the key-combination `ctrl+alt+c` (or pressing the `DEBUG` button in the bottom right corner) will copy the app state.
+Keeping the `Shift` key pressed will slow down the operation's animations.
+
 ### Docker images
 ```
 sbt docker:publishLocal

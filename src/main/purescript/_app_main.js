@@ -39,51 +39,21 @@ window.addEventListener("dragover",function(e){
 	e.preventDefault();
   },false);
 
-function addShortcutsManagement() {
-	Mousetrap.bind('ctrl+alt+c', function(e) {
-		document.getElementById("DEBUG").click()
-	});
-
-//     Mousetrap.bind("/", function(ev) {
-//         document.getElementById("generalFilter").focus();
-//         ev.preventDefault();
-//     })
-//     Mousetrap.bind("*", function(ev) {
-//         document.getElementById("generalFilter").value = "";
-//         document.getElementById("generalFilter").focus();
-//         document.getElementById("generalFilter").blur();
-//     })
-//     Mousetrap.bind(["a", "s", "d", "w", "left", "up", "right", "down", "esc", "enter"], function(ev) {
-//         // console.log(ev.key)
-//         if (ev.key === "Escape" && !document.getElementById("shortcutsHelp").classList.contains("hidden")) {
-//             try {
-//                 document.getElementById("shortcutsHelp").classList.add("hidden")
-//             } catch (error) {}
-//         } else {
-//             if (document.getElementById("cardForm") == null && ev.target.nodeName === "BODY") {
-//                 document.getElementById("cardsManager").dispatchEvent(new KeyboardEvent("keydown", ev))
-//             }
-//         }
-//     })
-//     Mousetrap.bind("?", function(ev) {
-//         // console.log(document.getElementById("shortcutsHelp").classList)
-//         document.getElementById("shortcutsHelp").classList.remove("hidden")
-//         // console.log(document.getElementById("shortcutsHelp").classList)
-//     })
-//     Mousetrap.bind("l o c k", function(ev) { // order is important
-//         document.getElementById("lockButton").dispatchEvent(new MouseEvent("click", {
-//             bubbles: true,
-//             cancelable: true,
-//             view: window,
-//         }))
-//     })
-}
-
 function addPreventDefaults() {
     /*
         Dragover events default behaviour must be prevented, but doing so in Purescript causes perfomance problems.
     */
     document.addEventListener("dragover", ev => ev.preventDefault())
+}
+
+function debugAnimation() {
+	window.operationDelay = 0;
+	window.addEventListener("keydown", (e) => {
+		if (e.key === "Shift") { window.operationDelay = 2000; }
+	})
+	window.addEventListener("keyup", (e) => {
+		if (e.key === "Shift") { window.operationDelay = 0; }
+	})
 }
 
 function main () {
@@ -103,9 +73,8 @@ function main () {
         You will probably want to make it a function from String -> Effect ()
     */
     addEventBubblingBlockers();
-    addShortcutsManagement();
     addPreventDefaults();
-
+	debugAnimation();
     Main.main();
 }
 
