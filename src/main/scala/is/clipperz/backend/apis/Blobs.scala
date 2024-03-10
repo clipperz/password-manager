@@ -21,7 +21,6 @@ private case class BlobData(identifier: Option[Identifier], blob: Option[Blob])
 private case class Identifier(value: HexString)
 // private case class Blob(hash: HexString, data: ZStream[Any, Nothing, Byte])
 private case class Blob(filename: String, hash: HexString, data: PathNIO)
-// private case class Blob(hash: HexString, data: PathNIO)
 
 val blobsApi: Routes[BlobArchive, Throwable] = Routes(
     Method.POST / "api" / "blobs" -> handler: (request: Request) =>

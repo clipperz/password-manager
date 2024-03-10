@@ -17,7 +17,7 @@ import zio.{ Chunk, Duration, ZIO, ZLayer, Task }
 import zio.stream.{ ZStream, ZSink }
 import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder }
 import zio.nio.charset.Charset
-import java.nio.file.attribute.FileAttribute
+// import java.nio.file.attribute.FileAttribute
 
 // ----------------------------------------------------------------------------
 

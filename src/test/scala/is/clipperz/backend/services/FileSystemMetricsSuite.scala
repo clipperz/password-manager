@@ -8,7 +8,7 @@ import zio.test.{ ZIOSpecDefault, assertTrue, assert, assertCompletes, assertZIO
 import zio.nio.file.{ FileSystem }
 
 import is.clipperz.backend.middleware.collectFileSystemMetrics
-import java.nio.file.Files
+// import java.nio.file.Files
 import zio.ZIO
 
 object FileSystemMetricsSuite extends ZIOSpecDefault:
