@@ -4,7 +4,7 @@ import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.{ bytesToHex, bigIntToHex }
 import is.clipperz.backend.functions.Conversions.{ bigIntToBytes, bytesToBigInt }
 import is.clipperz.backend.functions.SrpFunctions.SrpFunctionsV6a
-import is.clipperz.backend.exceptions.{ BadRequestException, ResourceNotFoundException }
+import is.clipperz.backend.Exceptions.*
 
 import zio.{ ZIO, ZLayer, Task }
 import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder }

@@ -12,15 +12,12 @@ import zio.test.{ ZIOSpecDefault, check, assertTrue, assert, assertCompletes, as
 import zio.json.EncoderOps
 import is.clipperz.backend.Main
 import java.nio.file.Path
-import _root_.is.clipperz.backend.exceptions.ResourceNotFoundException
-import is.clipperz.backend.functions.FileSystem
+import _root_.is.clipperz.backend.Exceptions.*
 import is.clipperz.backend.functions.crypto.HashFunction
-import is.clipperz.backend.exceptions.EmptyContentException
 import zio.Clock
 import zio.Clock.ClockLive
 import zio.test.TestClock
 import zio.Duration
-import is.clipperz.backend.exceptions.BadRequestException
 import zio.test.Gen
 import is.clipperz.backend.functions.ByteArrays
 import is.clipperz.backend.data.HexString

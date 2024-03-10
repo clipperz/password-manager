@@ -1,41 +1,31 @@
 package is.clipperz.backend.apis
 
-import java.io.FileNotFoundException
-
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.bytesToHex
-import is.clipperz.backend.exceptions.{
-    NonWritableArchiveException,
-    NonReadableArchiveException,
-    FailedConversionException,
-    ResourceNotFoundException,
-    EmptyContentException,
-    BadRequestException
-}
+import is.clipperz.backend.Exceptions.*
 import is.clipperz.backend.functions.{ fromStream }
-import is.clipperz.backend.services.{ BlobArchive }
-import is.clipperz.backend.Main.ClipperzHttpApp
 import is.clipperz.backend.LogAspect
+import is.clipperz.backend.services.{ BlobArchive }
 
 import zio.{ ZIO, Cause, Chunk }
 import zio.http.{ Headers, Body, Method, FormField, Path, Response, Request, Routes, Status, handler }
-import zio.http.Header.{ ContentType, ContentTransferEncoding }
 import zio.http.codec.HeaderCodec
 import zio.http.codec.PathCodec.string
+import zio.http.Header.{ ContentType, ContentTransferEncoding }
 import zio.stream.{ ZStream, ZSink }
+import zio.nio.file.{ Files, Path as PathNIO }
 
 private case class BlobData(identifier: Option[Identifier], blob: Option[Blob])
 private case class Identifier(value: HexString)
 private case class Blob(hash: HexString, data: ZStream[Any, Nothing, Byte])
+// private case class Blob(hash: HexString, data: PathNIO)
 
 val blobsApi: Routes[BlobArchive, Throwable] = Routes(
     Method.POST / "api" / "blobs" -> handler: (request: Request) =>
-        ZIO
-        .service[BlobArchive]
+        ZIO.service[BlobArchive]
         .zip(request.body.asMultipartFormStream)
-        .flatMap((archive, streamingForm) => streamingForm
-            .fields
-            .tap(field => ZIO.log(s"POST FIELD: ${field}"))
+        .flatMap((archive, streamingForm) => 
+            streamingForm.fields
             .collectZIO(field => field match {
                 case FormField.StreamingBinary("identifier",        contentType, transferEncoding,      filename,  data) => data.run(ZSink.collectAll[Byte]).map(_.toArray).map(bytes => Identifier(bytesToHex(bytes)))
                 case FormField.StreamingBinary("blob",              contentType, transferEncoding, Some(filename), data) => ZIO.succeed(Blob(HexString(filename), data))
@@ -54,7 +44,7 @@ val blobsApi: Routes[BlobArchive, Throwable] = Routes(
             })
         )
         .map(result => Response.ok)
-        @@ LogAspect.logAnnotateRequestData(request)
+        // @@ LogAspect.logAnnotateRequestData(request)
 ,
     Method.DELETE / "api" / "blobs" / string("hash") -> handler: (hash: String, request: Request) =>
         ZIO
@@ -62,7 +52,7 @@ val blobsApi: Routes[BlobArchive, Throwable] = Routes(
         .zip(request.body.asMultipartFormStream)
         .flatMap((archive, streamingForm) => streamingForm
             .fields
-            .tap(field => ZIO.log(s"DELETE FIELD: ${field}"))
+            // .tap(field => ZIO.log(s"DELETE FIELD: ${field}"))
             .collectZIO(field => field match {
                 case FormField.StreamingBinary("identifier", contentType, transferEncoding,      filename,  data)   =>  data.run(ZSink.collectAll[Byte])
                                                                                                                             .map(_.toArray)
@@ -73,7 +63,7 @@ val blobsApi: Routes[BlobArchive, Throwable] = Routes(
         .map:
             case 1  => Response.ok
             case _  => Response(status = Status.NotFound)
-        @@ LogAspect.logAnnotateRequestData(request)
+        // @@ LogAspect.logAnnotateRequestData(request)
 ,
     Method.GET / "api" / "blobs" / string("hash") -> handler: (hash: String, request: Request) =>
         ZIO
@@ -87,5 +77,5 @@ val blobsApi: Routes[BlobArchive, Throwable] = Routes(
                             .addHeader("Content-Type", "application/octet-stream"),
             )
         )
-        @@ LogAspect.logAnnotateRequestData(request)
+        // @@ LogAspect.logAnnotateRequestData(request)
 )

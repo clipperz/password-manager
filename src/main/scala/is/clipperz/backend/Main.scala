@@ -6,11 +6,12 @@ import is.clipperz.backend.middleware.{ hashcash, metrics }
 import is.clipperz.backend.services.{ BlobArchive, PRNG, SessionManager, SrpManager, TollManager, UserArchive, OneTimeShareArchive }
 import is.clipperz.backend.services.ChallengeType
 
-import java.nio.file.FileSystems
+// import java.nio.file.FileSystems
+import zio.nio.file.{ Files, FileSystem }
 
 import scala.util.Try
 
-import zio.{ LogLevel, Runtime, ZIOAppArgs, ZIO, ZLayer, durationInt }
+import zio.{ LogLevel, Runtime, Scope, ZIOAppArgs, ZIO, ZLayer, durationInt }
 import zio.logging.LogFormat
 import zio.metrics.connectors.{ MetricsConfig, datadog }
 import zio.http.{ HttpApp, Middleware, Server }
@@ -19,74 +20,89 @@ import zio.http.netty.NettyConfig.LeakDetectionLevel
 import zio.http.Server.RequestStreaming
 
 object Main extends zio.ZIOAppDefault:
-  override val bootstrap =
-    val logFormat = LogFormat.colored |-| LogFormat.spans
-    Runtime.removeDefaultLoggers ++ Runtime.addLogger(CustomLogger.basicColoredLogger(LogLevel.Info)) // >>> SLF4J.slf4j(logFormat)
+    override val bootstrap =
+        val logFormat = LogFormat.colored |-| LogFormat.spans
+        Runtime.removeDefaultLoggers ++ Runtime.addLogger(CustomLogger.basicColoredLogger(LogLevel.Info)) // >>> SLF4J.slf4j(logFormat)
 
-  type ClipperzEnvironment =
-    PRNG & SessionManager & TollManager & UserArchive & BlobArchive & OneTimeShareArchive & SrpManager
+    type ClipperzEnvironment =
+        PRNG & SessionManager & TollManager & UserArchive & BlobArchive & OneTimeShareArchive & SrpManager
 
-  type ClipperzHttpApp = HttpApp[
-    ClipperzEnvironment
-  ]
+    type ClipperzHttpApp = HttpApp[
+        ClipperzEnvironment
+    ]
 
-  val clipperzBackend: ClipperzHttpApp = (
-        usersApi        @@ hashcash(ChallengeType.REGISTER, ChallengeType.CONNECT)
-    ++  loginApi        @@ hashcash(ChallengeType.CONNECT,  ChallengeType.MESSAGE)
-    ++  logoutApi
-    ++  blobsApi        @@ hashcash(ChallengeType.MESSAGE,  ChallengeType.MESSAGE)
-    ++  oneTimeShareApi @@ hashcash(ChallengeType.SHARE,    ChallengeType.SHARE)
-    ++  staticApi
-    ).handleErrorCauseZIO(customErrorHandler)
-     .toHttpApp
+    val clipperzBackend: ClipperzHttpApp = (
+            usersApi        @@ hashcash(ChallengeType.REGISTER, ChallengeType.CONNECT)
+        ++  loginApi        @@ hashcash(ChallengeType.CONNECT,  ChallengeType.MESSAGE)
+        ++  logoutApi
+        ++  blobsApi        @@ hashcash(ChallengeType.MESSAGE,  ChallengeType.MESSAGE)
+        ++  oneTimeShareApi @@ hashcash(ChallengeType.SHARE,    ChallengeType.SHARE)
+        ++  staticApi
+    )
+    .handleErrorCauseZIO(customErrorHandler)
+    .toHttpApp
   
-  val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (Middleware.timeout(10.seconds) ++ metrics()) //TODO: add timeout time to configuration file [fsolaroli - 10/01/2024]
+    val middlewares =
+        Middleware.debug ++                                                         //  print debug info about request and response
+        Middleware.timeout(20.seconds) ++                                           //  TODO: add timeout time to configuration file [fsolaroli - 10/01/2024]
+        Middleware.requestLogging(logRequestBody = true, logResponseBody = true) ++ //  loggingMiddleware
+        metrics()
 
-  val run = ZIOAppArgs.getArgs.flatMap { args =>
-    if args.length == 4 then
-      val blobBasePath         = FileSystems.getDefault().nn.getPath(args(0)).nn
-      val userBasePath         = FileSystems.getDefault().nn.getPath(args(1)).nn
-      val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath(args(2)).nn
-      val port = args(3).toInt
+    // val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (Middleware.timeout(10.seconds) ++ metrics()) //TODO: add timeout time to configuration file [fsolaroli - 10/01/2024]
+    val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ middlewares
 
-      val MB = 1024 * 1024
+    val run: ZIO[Any & ZIOAppArgs & Scope, Any, Any] = ZIOAppArgs.getArgs.flatMap { args =>
+        if args.length == 4
+        then
+            val blobBasePath         = FileSystem.default.getPath(args(0))
+            val userBasePath         = FileSystem.default.getPath(args(1))
+            val oneTimeShareBasePath = FileSystem.default.getPath(args(2))
+            val port = args(3).toInt
 
-      val nThreads: Int = args.headOption.flatMap(x => Try(x.toInt).toOption).getOrElse(0)
+            val MB = 1024 * 1024
 
-      val config        = Server.Config.default
-                            .port(port)
-                            .requestStreaming(RequestStreaming.Enabled)
-      val nettyConfig   = NettyConfig.default
-                            .leakDetection(LeakDetectionLevel.PARANOID)
-                            .maxThreads(nThreads)
+            val nThreads: Int = args.headOption.flatMap(x => Try(x.toInt).toOption).getOrElse(0)
 
-      blobBasePath.toFile().nn.mkdirs()
-      userBasePath.toFile().nn.mkdirs()
-      oneTimeShareBasePath.toFile().nn.mkdirs()
+            val config        = Server.Config.default
+                                    .port(port)
+                                    .requestStreaming(RequestStreaming.Enabled)
+                                    // .enableRequestStreaming                                    
+            val nettyConfig   = NettyConfig.default
+                                    .leakDetection(LeakDetectionLevel.PARANOID)
+                                    .maxThreads(nThreads)
 
-      Server
-        .install(completeClipperzBackend)
-        .flatMap(port =>
-             ZIO.logInfo(s"Server started on port ${port}")
-          *> ZIO.never
-        )
-        .provide(
-          PRNG.live,
-          SessionManager.live(30.minutes), //TODO: add cache timeToLive to configuration file [fsolarol - 10/01/2024]
-          TollManager.live,
-          UserArchive.fs(userBasePath, 2, true),
-          BlobArchive.fs(blobBasePath, 2, true),
-          OneTimeShareArchive.fs(oneTimeShareBasePath, 2, true),
-          SrpManager.v6a(),
-          
-          ZLayer.succeed(config),
-          ZLayer.succeed(nettyConfig),
-          Server.customized,
-          
-          // datadog.datadogLayer,
-          // ZLayer.succeed(datadog.DatadogConfig("dd-agent", 8125)),
-          // ZLayer.succeed(MetricsConfig(100.millis)),
-        )
+            // blobBasePath.toFile().nn.mkdirs()
+            // userBasePath.toFile().nn.mkdirs()
+            // oneTimeShareBasePath.toFile().nn.mkdirs()
 
-    else ZIO.logFatal("Not enough arguments")
-  }
+            Server
+                .install(completeClipperzBackend)
+                .flatMap(port =>
+                    println("SERVER STARTED")
+                    //    Files.createDirectories(blobBasePath)
+                    // *> Files.createDirectories(userBasePath)
+                    // *> Files.createDirectories(oneTimeShareBasePath)
+                    // *> ZIO.logInfo(s"Server started on port ${port}")
+                        ZIO.logInfo(s"Server started on port ${port}")
+                    *> ZIO.never
+                )
+                .provide(
+                    PRNG.live,
+                    SessionManager.live(30.minutes), //TODO: add cache timeToLive to configuration file [fsolarol - 10/01/2024]
+                    TollManager.live,
+                    UserArchive.fs(userBasePath, 2, true),
+                    BlobArchive.fs(blobBasePath, 2, true),
+                    OneTimeShareArchive.fs(oneTimeShareBasePath, 2, true),
+                    SrpManager.v6a(),
+                    
+                    ZLayer.succeed(config),
+                    ZLayer.succeed(nettyConfig),
+                    Server.customized,
+                    
+                    // datadog.datadogLayer,
+                    // ZLayer.succeed(datadog.DatadogConfig("dd-agent", 8125)),
+                    // ZLayer.succeed(MetricsConfig(100.millis)),
+                )
+
+        else ZIO.logFatal("Not enough arguments")
+    }

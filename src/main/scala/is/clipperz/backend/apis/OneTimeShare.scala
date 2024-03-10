@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets
 import is.clipperz.backend.Main.ClipperzHttpApp
 import is.clipperz.backend.LogAspect
 import is.clipperz.backend.data.HexString
-import is.clipperz.backend.exceptions.{ BadRequestException, FailedConversionException, ResourceNotFoundException, NonWritableArchiveException, ResourceExpiredException }
+import is.clipperz.backend.Exceptions.*
 import is.clipperz.backend.functions.fromStream
 import is.clipperz.backend.services.{ SessionManager, SrpManager, SRPStep1Data, SRPStep2Data, OneTimeShareArchive, OneTimeSecret }
 

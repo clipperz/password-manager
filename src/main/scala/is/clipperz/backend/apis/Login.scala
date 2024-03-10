@@ -7,7 +7,7 @@ import is.clipperz.backend.LogAspect
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.functions.{ fromStream }
 import is.clipperz.backend.services.{ SessionManager, SrpManager, SRPStep1Data, SRPStep2Data, SRPStep1Response }
-import is.clipperz.backend.exceptions.{ BadRequestException, FailedConversionException, ResourceNotFoundException }
+import is.clipperz.backend.Exceptions.*
 
 import zio.{ Cause, Chunk, Task, ZIO, durationInt }
 import zio.metrics.Metric

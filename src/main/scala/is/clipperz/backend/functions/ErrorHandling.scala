@@ -1,6 +1,6 @@
 package is.clipperz.backend.functions
 
-import is.clipperz.backend.exceptions.*
+import is.clipperz.backend.Exceptions.*
 import java.time.format.DateTimeParseException
 import zio.{ Cause, ZIO }
 import zio.http.{Body, Response, Status }

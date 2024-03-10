@@ -2,7 +2,7 @@ package is.clipperz.backend.apis
 
 import java.io.File
 import java.nio.charset.StandardCharsets
-import java.nio.file.{ Files, Paths, FileSystems }
+// import java.nio.file.{ Files, Paths, FileSystems }
 import java.security.MessageDigest
 import scala.language.postfixOps
 import zio.{ Chunk, ZIO, Task }
@@ -12,12 +12,13 @@ import zio.test.{ ZIOSpecDefault, assertZIO, assertNever, assertTrue, assert, Te
 import zio.json.EncoderOps
 import zio.http.{ Version, Headers, Method, URL, Request, Body }
 import zio.http.*
+import zio.nio.file.{ Files, FileSystem }
 import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.bytesToHex
 import is.clipperz.backend.functions.crypto.HashFunction
-import java.nio.file.Path
-import is.clipperz.backend.functions.FileSystem
+// import java.nio.file.Path
+// import is.clipperz.backend.functions.FileSystem
 import is.clipperz.backend.services.PRNG
 import is.clipperz.backend.services.SessionManager
 import is.clipperz.backend.services.UserArchive
@@ -40,14 +41,15 @@ import is.clipperz.backend.functions.SrpFunctions
 import is.clipperz.backend.services.SRPStep2Response
 import is.clipperz.backend.services.OneTimeShareArchive
 import is.clipperz.backend.functions.customErrorHandler
+import is.clipperz.backend.TestUtilities
 
 object LogoutSpec extends ZIOSpecDefault:
   val app =  ( logoutApi
              ).handleErrorCauseZIO(customErrorHandler)
               .toHttpApp
-  val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
-  val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
-  val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "one_time_share").nn
+  val blobBasePath = FileSystem.default.getPath("target", "tests", "archive", "blobs")
+  val userBasePath = FileSystem.default.getPath("target", "tests", "archive", "users")
+  val oneTimeShareBasePath = FileSystem.default.getPath("target", "tests", "archive", "one_time_share")
 
   val environment =
     PRNG.live ++
@@ -94,5 +96,7 @@ object LogoutSpec extends ZIOSpecDefault:
     },
   ).provideLayerShared(environment) @@
     TestAspect.sequential @@
-    TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn))) @@
-    TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))
+    // TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn))) @@
+    // TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))
+    TestAspect.beforeAll(TestUtilities.deleteFilesInFolder(blobBasePath)) @@
+    TestAspect.afterAll (TestUtilities.deleteFilesInFolder(blobBasePath))

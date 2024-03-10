@@ -2,7 +2,7 @@ package is.clipperz.backend.services
 
 import java.io.File
 import java.nio.charset.StandardCharsets
-import java.nio.file.{ Files, Paths, FileSystems }
+// import java.nio.file.{ Files, Paths, FileSystems }
 import java.security.MessageDigest
 import scala.language.postfixOps
 import zio.{ Chunk, ZIO }
@@ -12,18 +12,18 @@ import zio.test.{ ZIOSpecDefault, assertTrue, assert, assertCompletes, assertZIO
 import zio.json.EncoderOps
 import zio.http.{ Version, Headers, Method, URL, Request, Body }
 import zio.http.*
+import zio.nio.file.{ Files, FileSystem }
 import is.clipperz.backend.Main
 import java.nio.file.Path
-import _root_.is.clipperz.backend.exceptions.ResourceNotFoundException
-import is.clipperz.backend.functions.FileSystem
-import is.clipperz.backend.exceptions.EmptyContentException
+import _root_.is.clipperz.backend.Exceptions.*
 import zio.Clock
 import zio.Clock.ClockLive
 import zio.test.TestClock
 import zio.Duration
+import is.clipperz.backend.TestUtilities
 
 object KeyBlobArchiveSpec extends ZIOSpecDefault:
-  val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
+  val blobBasePath = FileSystem.default.getPath("target", "tests", "archive", "blobs")
   val keyBlobArchive = KeyBlobArchive.FileSystemKeyBlobArchive(blobBasePath, 1, false)
 
   val testContent = ZStream.fromIterable("testContent".getBytes().nn)
@@ -71,5 +71,7 @@ object KeyBlobArchiveSpec extends ZIOSpecDefault:
       }
   ) @@
     TestAspect.sequential @@
-    TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn))) @@
-    TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))
+    // TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn))) @@
+    TestAspect.beforeAll(TestUtilities.deleteFilesInFolder(blobBasePath)) @@
+    // TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))
+    TestAspect.afterAll (TestUtilities.deleteFilesInFolder(blobBasePath))

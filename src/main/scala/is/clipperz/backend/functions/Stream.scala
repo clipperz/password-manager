@@ -1,6 +1,6 @@
 package is.clipperz.backend.functions
 
-import is.clipperz.backend.exceptions.FailedConversionException
+import is.clipperz.backend.Exceptions.*
 
 import java.nio.charset.StandardCharsets
 

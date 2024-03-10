@@ -1,6 +1,6 @@
 package is.clipperz.backend.apis
 
-import is.clipperz.backend.exceptions.BadRequestException
+import is.clipperz.backend.Exceptions.*
 import is.clipperz.backend.LogAspect
 import is.clipperz.backend.Main.ClipperzHttpApp
 import is.clipperz.backend.services.SessionManager

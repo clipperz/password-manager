@@ -1,18 +1,19 @@
 package is.clipperz.backend.apis
 
 import java.nio.charset.StandardCharsets
-import java.nio.file.FileSystems
+// import java.nio.file.FileSystems
 import zio.ZIO
 import zio.json.EncoderOps
 import zio.test.{ ZIOSpecDefault, assertNever, assertTrue }
 import zio.http.{ Version, Headers, Method, URL, Request, Body }
 import zio.http.*
+import zio.nio.file.{ Files, FileSystem }
 import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.bytesToHex
 import zio.test.TestAspect
 import is.clipperz.backend.functions.fromStream
-import is.clipperz.backend.functions.FileSystem
+// import is.clipperz.backend.functions.FileSystem
 import is.clipperz.backend.services.PRNG
 import is.clipperz.backend.services.SessionManager
 import is.clipperz.backend.services.UserArchive
@@ -30,27 +31,234 @@ import is.clipperz.backend.services.RemoteUserCard
 import is.clipperz.backend.services.RequestUserCard
 import is.clipperz.backend.functions.customErrorHandler
 import is.clipperz.backend.services.CardsSignupData
+import is.clipperz.backend.TestUtilities
 
 object UserSpec extends ZIOSpec[SessionManager]:
+
+    def spec = suite("UserApis")(
+
+        test("GET with no session -> 401") {
+            for {
+                response    <- app.runZIO(prepareGet(c.toString(), true))
+                body        <- response.body.asString
+            } yield allSuccesses(
+                  assertTrue(response.status.code == 401)
+                // , assertTrue(body == "authentication required")
+                , assertTrue(body == "")
+            )
+        },
+
+        test("DELETE no session -> 401") {
+            for {
+                response    <- app.runZIO(prepareDelete(c.toString(), true))
+                body        <- response.body.asString
+            } yield allSuccesses(
+                  assertTrue(response.status.code == 401)
+                // , assertTrue(body == "authentication required")
+                , assertTrue(body == "")
+            )
+        },
+
+        test("GET non existent user -> 404") {
+            for {
+                _           <- prepareSession(c.toString())
+                response    <- app.runZIO(prepareGet(c.toString(), true))
+                body        <- response.body.asString
+            } yield allSuccesses(
+                  assertTrue(response.status.code == 404)
+                // , assertTrue(body == "user not found")
+                , assertTrue(body == "")
+            )
+        } @@ TestAspect.after(deleteSession(prepareGet(c.toString(), true)))
+          @@ TestAspect.before(TestUtilities.deleteFilesInFolder(userBasePath)),
+
+        test("GET no session header -> 401") {
+            for {
+                _           <- prepareSession(c.toString())
+                response    <- app.runZIO(prepareGet(c.toString(), false))
+                body        <- response.body.asString
+            } yield allSuccesses(
+                  assertTrue(response.status.code == 401)
+                // , assertTrue(body == "authentication required")
+                , assertTrue(body == "")
+            )
+        } @@ TestAspect.after(deleteSession(prepareGet(c.toString(), true))),
+
+        test("DELETE non existent user -> 404") {
+            for {
+                _           <- prepareSession(c.toString())
+                response    <- app.runZIO(prepareDelete(c.toString(), true))
+                body        <- response.body.asString
+            } yield allSuccesses(
+                  assertTrue(response.status.code == 404)
+                // , assertTrue(body == "user not found")
+                , assertTrue(body == "")
+            )
+        } @@ TestAspect.after(deleteSession(prepareDelete(c.toString(), true)))
+          @@ TestAspect.before(TestUtilities.deleteFilesInFolder(userBasePath)),
+
+        test("DELETE no session header -> 401") {
+            for {
+                _           <- prepareSession(c.toString())
+                response    <- app.runZIO(prepareDelete(c.toString(), false))
+                body        <- response.body.asString
+            } yield allSuccesses(
+                  assertTrue(response.status.code == 401)
+                // , assertTrue(body == "authentication required")
+                , assertTrue(body == "")
+            )
+        },
+
+        test("POST different c -> 400") {
+            for {
+                response    <- app.runZIO(preparePost("wrongC", testSignupData.toJson, true))
+                body        <- response.body.asString
+            } yield allSuccesses(
+                  assertTrue(response.status.code == 400)
+                // , assertTrue(body == "request not matching corrent user")
+                , assertTrue(body == "")
+            )
+        },
+
+        test("POST wrong data -> 400") {
+            for {
+                response    <- app.runZIO(preparePost("wrongC", "invalidData", true))
+                body        <- response.body.asString
+            } yield allSuccesses(
+                  assertTrue(response.status.code == 400)
+                // , assertTrue(body == "???")
+                , assertTrue(body == "")
+            )
+        },
+
+        test("POST without session header -> 200") {
+            for {
+                response    <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false))
+            } yield allSuccesses(
+                  assertTrue(response.status.code == 200)
+            )
+        } @@ TestAspect.after(TestUtilities.deleteFilesInFolder(userBasePath)),
+
+        test("POST duplicated user -> 409") {
+            for {
+                _           <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false))
+                response    <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false))
+                body        <- response.body.asString
+            } yield allSuccesses(
+                  assertTrue(response.status.code == 409)
+                // , assertTrue(body == "???")
+                , assertTrue(body == "")
+            )
+        } @@ TestAspect.after(TestUtilities.deleteFilesInFolder(userBasePath)),
+
+        test("POST / GET -> 200,200 and content") {
+            for {
+                signup      <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false))
+                _           <- prepareSession(c.toString())
+                response    <- app.runZIO(prepareGet(c.toString(), true))
+                // .flatMap(result =>
+                //     if result.status.code == 200 then
+                //         fromStream[(HexString, String)](result.body.asStream)
+                //         .map(masterKey => assertTrue(result.status.code == 200, masterKey == testUser.masterKey))
+                //     else ZIO.succeed(assertNever(s"Wrong GET result code: ${result.status.code}"))
+                // )
+                masterKey       <- fromStream[(HexString, String)](response.body.asStream)
+            } yield allSuccesses(
+                  assertTrue(signup.status.code == 200)
+                , assertTrue(response.status.code == 200)
+                , assertTrue(masterKey == testUser.masterKey)
+            )
+        } @@ TestAspect.after(deleteSession(prepareGet(c.toString(), true)))
+          @@ TestAspect.after(TestUtilities.deleteFilesInFolder(userBasePath)),
+
+        test("PUT no session -> 401") {
+            for {
+                res <- app.runZIO(preparePut(c.toString(), testUser2.toJson, true)).map(r => r.status.code)
+            } yield assertTrue(res == 401)
+        } @@ TestAspect.after(TestUtilities.deleteFilesInFolder(userBasePath)),
+
+        test("PUT no session header -> 401") {
+            for {
+                _ <- prepareSession(c.toString())
+                putCode <- app.runZIO(preparePut(c.toString(), testUser2.toJson, false)).map(res => res.status.code)
+            } yield assertTrue(putCode == 401)
+        } @@ TestAspect.after(TestUtilities.deleteFilesInFolder(userBasePath)),
+
+        test("PUT non existent user -> 404") {
+            for {
+                _ <- prepareSession(c.toString())
+                putCode <- app.runZIO(preparePut(c.toString(), testUser2.toJson, true)).map(res => res.status.code)
+            } yield assertTrue(putCode == 404)
+        } @@ TestAspect.after(deleteSession(preparePut(c.toString(), testUser2.toJson, true)))
+          @@ TestAspect.after(TestUtilities.deleteFilesInFolder(userBasePath)),
+
+        test("POST / PUT bad data -> _, 400") {
+            for {
+                _ <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false)).map(res => res.status.code)
+                _ <- prepareSession(c.toString())
+                putCode <- app.runZIO(preparePut(c.toString(), "invalidData", true)).map(res => res.status.code)
+            } yield assertTrue(putCode == 400)
+        } @@ TestAspect.after(deleteSession(preparePut(c.toString(), "invalidData", true)))
+          @@ TestAspect.after(TestUtilities.deleteFilesInFolder(userBasePath)),
+
+        test("POST / DELETE -> _, 200") {
+            for {
+                _ <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false))
+                _ <- prepareSession(c.toString())
+                deleteCode <- app.runZIO(prepareDelete(c.toString(), true)).map(res => res.status.code)
+            } yield assertTrue(deleteCode == 200)
+        } @@ TestAspect.after(deleteSession(prepareDelete(c.toString(), true)))
+          @@ TestAspect.after(TestUtilities.deleteFilesInFolder(userBasePath)),
+
+        test("POST / DELETE / GET -> _, 200, 400") {
+            for {
+                _ <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false))
+                _ <- prepareSession(c.toString())
+                deleteCode <- app.runZIO(prepareDelete(c.toString(), true)).map(res => res.status.code)
+                getCode <- app.runZIO(prepareGet(c.toString(), true)).map(res => res.status.code)
+            } yield assertTrue(deleteCode == 200, getCode == 400)
+        } @@ TestAspect.after(deleteSession(prepareGet(c.toString(), true)))
+          @@ TestAspect.after(TestUtilities.deleteFilesInFolder(userBasePath)),
+
+        test("POST / DELETE / GET -> _, 200, 404") {
+            for {
+                _ <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false))
+                _ <- prepareSession(c.toString())
+                deleteCode <- app.runZIO(prepareDelete(c.toString(), true)).map(res => res.status.code)
+                _ <- prepareSession(c.toString())
+                getCode <- app.runZIO(prepareGet(c.toString(), true)).map(res => res.status.code)
+            } yield assertTrue(deleteCode == 200, getCode == 404)
+        } @@ TestAspect.after(deleteSession(prepareGet(c.toString(), true)))
+          @@ TestAspect.after(TestUtilities.deleteFilesInFolder(userBasePath)),
+
+    ).provideLayerShared(environment)
+    @@ TestAspect.sequential
+    @@ TestAspect.afterAll(TestUtilities.deleteFilesInFolder(blobBasePath))
+    @@ TestAspect.afterAll(TestUtilities.deleteFilesInFolder(userBasePath))
+    // @@ TestAspect.after(deleteSession())
+    @@ TestAspect.before(TestUtilities.deleteFilesInFolder(userBasePath))
+
+    // ========================================================================
+
     override def bootstrap: ZLayer[Any, Any, SessionManager] =
         sessionManagerLayer
 
     val app =  (   usersApi
                ).handleErrorCauseZIO(customErrorHandler)
                 .toHttpApp
-    val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
-    val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
-    val oneTimeShareBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "one_time_share").nn
+    val blobBasePath = FileSystem.default.getPath("target", "tests", "archive", "blobs")
+    val userBasePath = FileSystem.default.getPath("target", "tests", "archive", "users")
+    val oneTimeShareBasePath = FileSystem.default.getPath("target", "tests", "archive", "one_time_share")
 
     val sessionManagerLayer = PRNG.live ++ (PRNG.live >>> SessionManager.live())
 
     val environment =
         PRNG.live ++
         sessionManagerLayer ++
-        UserArchive.fs(userBasePath, 2, false) ++
-        BlobArchive.fs(blobBasePath, 2, false) ++
-        OneTimeShareArchive.fs(oneTimeShareBasePath, 2, false) ++
-        ((UserArchive.fs(userBasePath, 2, false) ++ PRNG.live) >>> SrpManager.v6a()) ++
+        UserArchive         .fs(userBasePath,            2, false) ++
+        BlobArchive         .fs(blobBasePath,            2, false) ++
+        OneTimeShareArchive .fs(oneTimeShareBasePath,    2, false) ++
+        ((UserArchive       .fs(userBasePath,            2, false) ++ PRNG.live) >>> SrpManager.v6a()) ++
         (PRNG.live >>> TollManager.live)
 
     val sessionKey = "sessionKey"
@@ -173,133 +381,3 @@ object UserSpec extends ZIOSpec[SessionManager]:
         .flatMap(sessionManager => sessionManager.deleteSession(request))
         .map(_ => ())
 
-    def spec = suite("UserApis")(
-        test("GET with no session -> 401") {
-            for {
-                statusCode <- app.runZIO(prepareGet(c.toString(), true)).map(res => res.status.code)
-            } yield assertTrue(statusCode == 401)
-        },
-        test("DELETE no session -> 401") {
-            for {
-                statusCode <- app.runZIO(prepareDelete(c.toString(), true)).map(res => res.status.code)
-            } yield assertTrue(statusCode == 401)
-        },
-        test("GET non existent user -> 404") {
-            for {
-                _ <- prepareSession(c.toString())
-                statusCode <- app.runZIO(prepareGet(c.toString(), true)).map(res => res.status.code)
-            } yield assertTrue(statusCode == 404)
-        } @@ TestAspect.after(deleteSession(prepareGet(c.toString(), true)))
-          @@ TestAspect.before(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-        test("GET no session header -> 401") {
-            for {
-                _ <- prepareSession(c.toString())
-                statusCode <- app.runZIO(prepareGet(c.toString(), false)).map(res => res.status.code)
-            } yield assertTrue(statusCode == 401)
-        } @@ TestAspect.after(deleteSession(prepareGet(c.toString(), true))),
-        test("DELETE non existent user -> 404") {
-            for {
-                _ <- prepareSession(c.toString())
-                statusCode <- app.runZIO(prepareDelete(c.toString(), true)).map(res => res.status.code)
-            } yield assertTrue(statusCode == 404)
-        } @@ TestAspect.after(deleteSession(prepareDelete(c.toString(), true)))
-          @@ TestAspect.before(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-        test("DELETE no session header -> 401") {
-            for {
-                _ <- prepareSession(c.toString())
-                statusCode <- app.runZIO(prepareDelete(c.toString(), false)).map(res => res.status.code)
-            } yield assertTrue(statusCode == 401)
-        },
-        test("POST different c -> 400") {
-            for {
-                statusCode <- app.runZIO(preparePost("wrongC", testSignupData.toJson, true)).map(res => res.status.code)
-            } yield assertTrue(statusCode == 400)
-        },
-        test("POST wrong data -> 400") {
-            for {
-                statusCode <- app.runZIO(preparePost("wrongC", "invalidData", true)).map(res => res.status.code)
-            } yield assertTrue(statusCode == 400)
-        },
-        test("POST without session header -> 200") {
-            for {
-                statusCode <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false)).map(res => res.status.code)
-            } yield assertTrue(statusCode == 200)
-        } @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-        test("POST duplicated user -> 409") {
-            for {
-                _ <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false)).map(res => res.status.code)
-                statusCode <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false)).map(res => res.status.code)
-            } yield assertTrue(statusCode == 409)
-        } @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-        test("POST / GET -> 200,200 and content") {
-            for {
-                postCode <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false)).map(res => res.status.code)
-                _   <- prepareSession(c.toString())
-                res <- app.runZIO(prepareGet(c.toString(), true)).flatMap(result =>
-                if result.status.code == 200 then
-                    fromStream[(HexString, String)](result.body.asStream)
-                    .map(masterKey => assertTrue(result.status.code == 200, masterKey == testUser.masterKey))
-                else ZIO.succeed(assertNever(s"Wrong GET result code: ${result.status.code}"))
-                )
-            } yield allSuccesses(assertTrue(postCode == 200), res)
-        } @@ TestAspect.after(deleteSession(prepareGet(c.toString(), true)))
-          @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-        test("PUT no session -> 401") {
-            for {
-                res <- app.runZIO(preparePut(c.toString(), testUser2.toJson, true)).map(r => r.status.code)
-            } yield assertTrue(res == 401)
-        } @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-        test("PUT no session header -> 401") {
-            for {
-                _ <- prepareSession(c.toString())
-                putCode <- app.runZIO(preparePut(c.toString(), testUser2.toJson, false)).map(res => res.status.code)
-            } yield assertTrue(putCode == 401)
-        } @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-        test("PUT non existent user -> 404") {
-            for {
-                _ <- prepareSession(c.toString())
-                putCode <- app.runZIO(preparePut(c.toString(), testUser2.toJson, true)).map(res => res.status.code)
-            } yield assertTrue(putCode == 404)
-        } @@ TestAspect.after(deleteSession(preparePut(c.toString(), testUser2.toJson, true)))
-          @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-        test("POST / PUT bad data -> _, 400") {
-            for {
-                _ <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false)).map(res => res.status.code)
-                _ <- prepareSession(c.toString())
-                putCode <- app.runZIO(preparePut(c.toString(), "invalidData", true)).map(res => res.status.code)
-            } yield assertTrue(putCode == 400)
-        } @@ TestAspect.after(deleteSession(preparePut(c.toString(), "invalidData", true)))
-          @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-        test("POST / DELETE -> _, 200") {
-            for {
-                _ <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false))
-                _ <- prepareSession(c.toString())
-                deleteCode <- app.runZIO(prepareDelete(c.toString(), true)).map(res => res.status.code)
-            } yield assertTrue(deleteCode == 200)
-        } @@ TestAspect.after(deleteSession(prepareDelete(c.toString(), true)))
-          @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-        test("POST / DELETE / GET -> _, 200, 400") {
-            for {
-                _ <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false))
-                _ <- prepareSession(c.toString())
-                deleteCode <- app.runZIO(prepareDelete(c.toString(), true)).map(res => res.status.code)
-                getCode <- app.runZIO(prepareGet(c.toString(), true)).map(res => res.status.code)
-            } yield assertTrue(deleteCode == 200, getCode == 400)
-        } @@ TestAspect.after(deleteSession(prepareGet(c.toString(), true)))
-          @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-        test("POST / DELETE / GET -> _, 200, 404") {
-            for {
-                _ <- app.runZIO(preparePost(c.toString(), testSignupData.toJson, false))
-                _ <- prepareSession(c.toString())
-                deleteCode <- app.runZIO(prepareDelete(c.toString(), true)).map(res => res.status.code)
-                _ <- prepareSession(c.toString())
-                getCode <- app.runZIO(prepareGet(c.toString(), true)).map(res => res.status.code)
-            } yield assertTrue(deleteCode == 200, getCode == 404)
-        } @@ TestAspect.after(deleteSession(prepareGet(c.toString(), true)))
-          @@ TestAspect.after(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),
-    ).provideLayerShared(environment)
-    @@ TestAspect.sequential
-    @@ TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(blobBasePath.toFile().nn)))
-    @@ TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn)))
-    // @@ TestAspect.after(deleteSession())
-    // @@ TestAspect.before(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))),

@@ -1,15 +1,7 @@
 package is.clipperz.backend.apis
 
 import is.clipperz.backend.data.{ HexString, Base }
-import is.clipperz.backend.exceptions.{
-  NonWritableArchiveException,
-  NonReadableArchiveException,
-  FailedConversionException,
-  BadRequestException,
-  ResourceConflictException,
-  ResourceNotFoundException,
-  ConflictualRequestException,
-}
+import is.clipperz.backend.Exceptions.*
 import is.clipperz.backend.functions.{ fromStream }
 import is.clipperz.backend.Main.ClipperzHttpApp
 import is.clipperz.backend.middleware.authorizedMiddleware

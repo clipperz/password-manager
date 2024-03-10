@@ -1,6 +1,6 @@
 package is.clipperz.backend.services
 
-import is.clipperz.backend.exceptions.BadRequestException
+import is.clipperz.backend.Exceptions.*
 import is.clipperz.backend.data.HexString.bytesToHex
 
 import java.util.concurrent.TimeUnit

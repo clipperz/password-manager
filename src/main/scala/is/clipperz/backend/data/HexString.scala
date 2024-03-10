@@ -34,7 +34,7 @@ class HexString private (private val s: String):
 
 //this.toString == x.toString
 
-object HexString:
+object HexString:   //  TODO: make `HeString` Chunk aware, both Chunk[Byte] and Chunk[Char]
   def apply(s: String): HexString =
     if s.isEmpty()
     then throw new IllegalArgumentException("Cannot create HexString from empty string")
