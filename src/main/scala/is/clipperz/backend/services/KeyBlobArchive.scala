@@ -20,6 +20,7 @@ type Key = String
 trait KeyBlobArchive:
     def saveBlob             (key: Key, content:  ZStream[Any, Throwable, Byte]): Task[Unit]
     def saveBlobWithMetadata (key: Key, content:  ZStream[Any, Throwable, Byte], metadata: ZStream[Any, Throwable, Byte]): Task[Unit]
+    def saveBlobWithMetadata_fromPath (key: Key, content:  Path, metadata: ZStream[Any, Throwable, Byte]): Task[Unit]
     def getBlob              (key: Key): Task[ZStream[Any, Throwable, Byte]]
     def getMetadata          (key: Key): Task[ZStream[Any, Throwable, Byte]]
     def deleteBlob           (key: Key): Task[Unit]
@@ -68,12 +69,19 @@ object KeyBlobArchive:
                 case ex: NonReadableArchiveException => ZIO.fail(ex)
                 case ex => ZIO.fail(new NonWritableArchiveException(s"${ex}"))
 
+        private def moveFile (key: Key, content: Path): Task[Unit] =
+            getBlobPath(key, true)
+            .map(path => pathForContentType(key, path, ContentType.Blob))
+            .flatMap(path => Files.move(content, path))
+
         private  def saveMetadata (key: Key, metadata: ZStream[Any, Throwable, Byte]): Task[Unit]   = saveData(key, ContentType.Metadata, metadata)
         override def saveBlob     (key: Key, content:  ZStream[Any, Throwable, Byte]): Task[Unit]   = saveData(key, ContentType.Blob,     content)
 
         override def saveBlobWithMetadata (key: Key, content: ZStream[Any, Throwable, Byte], metadata: ZStream[Any, Throwable, Byte]): Task[Unit] =
             saveBlob(key, content) <&> saveMetadata(key, metadata)
 
+        override def saveBlobWithMetadata_fromPath (key: Key, content:  Path, metadata: ZStream[Any, Throwable, Byte]): Task[Unit] =
+            moveFile(key, content) <&> saveMetadata(key, metadata)
 
         override def deleteBlob (key: Key): Task[Unit] =
             getBlobPath(key, false)
@@ -105,8 +113,6 @@ object KeyBlobArchive:
                 case (false, _,     false) => ZIO.fail(new ResourceNotFoundException(s"Referenced blob does not exists"))
                 case (false, _,     true ) => Files.createDirectories(path) *> ZIO.succeed(path)
             })
-            
-
 
     object FileSystemKeyBlobArchive:
         def apply (

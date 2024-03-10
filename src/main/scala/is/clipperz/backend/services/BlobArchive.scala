@@ -29,6 +29,7 @@ trait BlobArchive:
     def getBlob             (hash: BlobHash): Task[ZStream[Any, Throwable, Byte]]
     def getBlobIdentifier   (hash: BlobHash): Task[HexString]
     def saveBlob            (hash: BlobHash, identifier: HexString, content:  ZStream[Any, Throwable, Byte]): Task[BlobHash]
+    def saveBlob_path       (identifier: HexString, filename: String, hash: BlobHash, content: Path): Task[BlobHash]
     // def getReadyToSaveBlob  (hash: BlobHash, identifier: HexString, content:  ZStream[Any, Throwable, Byte]): Task[BlobHash]
     // def commitSavedBlob     (hash: BlobHash, identifier: HexString): Task[BlobHash]
     def deleteBlob          (hash: BlobHash, identifier: HexString): Task[Unit]
@@ -81,6 +82,7 @@ object BlobArchive:
                     case ex: EmptyContentException => ZIO.fail(ex)
                     case ex => ZIO.fail(new NonWritableArchiveException(s"${ex}"))
 */
+
         private def _saveBlob_nio (hash: BlobHash, identifier: HexString, content: ZStream[Any, Throwable, Byte]): Task[BlobHash] =
            ZIO.scoped:
                 Files.createTempFileInScoped(dir=tmpDir, suffix=".tmp", prefix=None, fileAttributes = Nil)
@@ -130,6 +132,15 @@ object BlobArchive:
         // override def getReadyToSaveBlob(hash: BlobHash, identifier: HexString, content: ZStream[Any, Throwable, Byte]): Task[BlobHash] =
             // _saveBlob(hash, identifier, content)
             _saveBlob_nio(hash, identifier, content)
+
+        override def saveBlob_path(identifier: HexString, filename: String, hash: BlobHash, content: Path): Task[BlobHash] =
+            if HexString(filename) == hash
+            then 
+                Charset.Standard.utf8.encodeString(identifier.toString())
+                .map(ZStream.fromChunk)
+                .flatMap(identifierStream => keyBlobArchive.saveBlobWithMetadata_fromPath(filename, content, identifierStream))
+                .map(_ => hash)
+            else ZIO.fail(new BadRequestException(s"Hash of content does not match with hash field provided"))
 
         // override def commitSavedBlob     (hash: BlobHash, identifier: HexString): Task[BlobHash] =
         //     ???

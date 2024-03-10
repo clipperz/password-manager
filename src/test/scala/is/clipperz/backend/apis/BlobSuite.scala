@@ -56,7 +56,7 @@ object BlobSpec extends ZIOSpecDefault:
                 assertTrue(response.status.code == 200)
             // ,   assertTrue(body                 == validBlobHash.toString)
             )
-        } @@ TestAspect.timeout(10.second),
+        } @@ TestAspect.timeout(2.second),
 
         test("GET blob") {
             for {
@@ -158,7 +158,7 @@ object BlobSpec extends ZIOSpecDefault:
     @@ TestAspect.timeout(30.second)
     @@ TestAspect.before   (TestUtilities.deleteFilesInFolder(blobBasePath))
     @@ TestAspect.beforeAll(TestUtilities.deleteFilesInFolder(blobBasePath))
-    @@ TestAspect.afterAll (TestUtilities.deleteFilesInFolder(blobBasePath))
+    // @@ TestAspect.afterAll (TestUtilities.deleteFilesInFolder(blobBasePath))
 
     // ========================================================================
 
