@@ -233,7 +233,7 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
               ProxyResponse proxy'' (Tuple cardsCache'' newCardEntry) <- runStep (postCard connectionState{proxy = proxy'} cardsCache' card) (WidgetState (spinnerOverlay ("Import card " <> show i <> " of " <> show nToImport) White) page)
               pure $ ProxyResponse proxy'' (Tuple cardsCache'' (snoc entries newCardEntry))
             ) (ProxyResponse proxy (Tuple cardsCache [])) cardToImport
-            updatedIndex                                     <- liftAff $ foldM (flip addToIndex) index entries
+            updatedIndex                                     <- runStep (foldM (flip addToIndex) index entries # liftAff)   (WidgetState (spinnerOverlay "Update index" White) page)
             ProxyResponse proxy'' stateUpdateInfo            <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index" White) page)
 
             pure (Tuple 
