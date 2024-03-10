@@ -6,6 +6,7 @@ module Data.HexString
   , hex
   , hexChars
   , hexLength
+  , hexStringCodec
   , isHex
   , isHexRegex
   , splitHexAt
@@ -20,6 +21,7 @@ import Control.Semigroupoid ((>>>))
 import Data.Array.NonEmpty (fromArray, toArray, singleton, NonEmptyArray)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.BigInt (BigInt, fromBase, toBase)
+import Data.Codec.Argonaut as CA
 import Data.Either (hush, Either)
 import Data.Eq (class Eq, eq, (==))
 import Data.EuclideanRing (mod, (/))
@@ -28,6 +30,7 @@ import Data.Functor ((<$>))
 import Data.Maybe (Maybe, maybe, fromMaybe)
 import Data.Newtype (class Newtype)
 import Data.Ord (class Ord)
+import Data.Profunctor (wrapIso)
 import Data.Semigroup ((<>))
 import Data.Show (class Show)
 import Data.String (toLower, toUpper)
@@ -64,6 +67,9 @@ instance arbitraryHexString :: Arbitrary HexString where
 hexChars :: NonEmptyArray Char
 hexChars = fromMaybe (singleton '0') $ fromArray ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'a', 'b', 'c', 'd', 'e', 'f']
 -- ----------------------------------------------------------------
+
+hexStringCodec :: CA.JsonCodec HexString
+hexStringCodec = wrapIso HexString CA.string
 
 fromArrayBuffer :: ArrayBuffer -> HexString
 fromArrayBuffer = arrayBufferToHex >>> hex

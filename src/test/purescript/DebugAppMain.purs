@@ -1,4 +1,4 @@
-module DebugAppMain (main) where
+module Test.DebugAppMain (main) where
 
 import Concur.Core (Widget)
 import Concur.Core.FRP (demand, fireOnce, loopW)
@@ -20,16 +20,15 @@ import Data.Function (($))
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.String (Pattern(..), stripPrefix)
 import Data.Unit (Unit, unit)
-import DataModel.Codec (widgetStateCodec)
-import DataModel.Codec as Codec
 import DataModel.WidgetState (WidgetState)
 import Effect (Effect)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Foreign (unsafeToForeign)
 import Functions.Clipboard (getClipboardContent)
-import Functions.Debug (formatJsonString)
 import JSURI (decodeURIComponent)
+import Test.Debug (formatJsonString)
+import Test.DebugCodec (widgetStateCodec)
 import Views.AppView (appView)
 import Web.HTML (window)
 import Web.HTML.History (DocumentTitle(..), URL(..), replaceState)
@@ -46,7 +45,7 @@ debugApp Nothing = do
   hash_ <- liftEffect $ (hash =<< location =<< window) <#> (\s -> stripPrefix (Pattern "#") s >>= decodeURIComponent)
   (maybe (liftAff $ getClipboardContent) (pure <<< Just) hash_) >>= getWidgetState true Nothing >>= loop
 
-debugApp defaultState = getWidgetState false Nothing ((stringify <<< CA.encode Codec.widgetStateCodec) <$> defaultState) >>= loop
+debugApp defaultState = getWidgetState false Nothing ((stringify <<< CA.encode widgetStateCodec) <$> defaultState) >>= loop
 
 loop :: WidgetState -> Widget HTML Unit
 loop widgetState = do

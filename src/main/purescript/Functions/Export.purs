@@ -28,11 +28,10 @@ import Data.String.Pattern (Pattern(..), Replacement(..))
 import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (ProxyResponse(..))
-import DataModel.Card (Card(..), CardValues(..), CardField(..))
-import DataModel.Codec as Codec
+import DataModel.CardVersions.Card (Card(..), CardField(..), CardValues(..), cardVersionCodec, fromCard)
+import DataModel.CardVersions.CurrentCardVersions (currentCardCodecVersion, currentCardVersion)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.SRPCodec as SRPCodec
-import DataModel.User (RequestUserCard)
+import DataModel.UserVersions.User (RequestUserCard, requestUserCardCodec)
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
@@ -67,8 +66,8 @@ formatText = (replaceAll (Pattern "<") (Replacement "&lt;")) <<< (replaceAll (Pa
 prepareUnencryptedContent :: List Card -> String
 prepareUnencryptedContent l = 
   let list = fold $ cardToLi <$> l
-      textareaContent = formatText $ AC.stringify $ encode (CAC.list Codec.cardCodec) l
-  in "<ul>" <> list <> "</ul><div><textarea>" <> textareaContent <> "</textarea></div>"
+      textareaContent = formatText $ AC.stringify $ encode (CAC.list currentCardCodecVersion) $ fromCard <$> l
+  in "<ul>" <> list <> "</ul><div><textarea class=\'" <> (AC.stringify $ encode cardVersionCodec currentCardVersion) <> "\'>" <> textareaContent <> "</textarea></div>"
 
   where
     cardToLi (Card {content: (CardValues {title, tags, fields, notes}), archived, timestamp: _}) =
@@ -89,8 +88,8 @@ getBasicHTML connectionState = do
 appendCardsDataInPlace :: Document -> List (Tuple HexString HexString) -> RequestUserCard -> ExceptT AppError Aff Document
 appendCardsDataInPlace doc blobList requestUserCard = do
   let blobsContent     = "const blobs = { "          <> (fold $ (\(Tuple k v) -> "\"" <> show k <> "\": \"" <> show v <> "\", " ) <$> blobList) <> "}"
-  let userCardContent  = "const userCard = "         <> (AC.stringify $ encode SRPCodec.requestUserCardCodec requestUserCard)
-  currentDateTime <- liftEffect getCurrentDateTime
+  let userCardContent  = "const userCard = "         <> (AC.stringify $ encode requestUserCardCodec requestUserCard)
+  currentDateTime     <- liftEffect getCurrentDateTime
   let offlineTimestamp = "const offlineTimestamp = '" <> ((either identity identity $ formatDateTime "ddd, D MMMM YYYY HH:mm:ss" currentDateTime) <> " UTC'")
   let prepareContent   = "window.blobs = blobs; window.userCard = userCard; window.offlineTimestamp = offlineTimestamp;"
   let nodeContent      = userCardContent <> ";\n" <> blobsContent <> ";\n" <> offlineTimestamp <> ";\n" <> prepareContent

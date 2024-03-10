@@ -27,6 +27,6 @@ instance prettyShowAppError :: PrettyShow AppError where
   prettyShow (CannotInitState _)         = "Cannot init state, please try to reload"
   prettyShow (InvalidOperationError _)   = "Invalid operation error, something was not programmed correctly."
   prettyShow (InvalidVersioning elem _)  = elem <> " is encoded in an unsupported version" 
-  prettyShow (UnhandledCondition     _)  = "" -- TODO?
+  prettyShow (UnhandledCondition     _)  = ""
 
 derive instance eqAppError :: Eq AppError

@@ -3,7 +3,9 @@
 const decodeHTML = function(s) {
     var txt = document.createElement("textarea");
     txt.innerHTML = s;
-    return txt.value;
+	var result = txt.value;
+	txt.remove();
+    return result;
 }
 
 const _readFile = function (file) { 

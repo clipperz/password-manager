@@ -17,7 +17,7 @@ import Data.Maybe (Maybe(..))
 import Data.Ord (compare, (<))
 import Data.Semigroup ((<>))
 import Data.String (Pattern(..), contains, toLower)
-import DataModel.Index (CardEntry(..), Index(..))
+import DataModel.IndexVersions.Index (CardEntry(..), Index(..))
 import Views.SimpleWebComponents (simpleTextInputWidgetWithFocus)
 
 numberOfRecent :: Int

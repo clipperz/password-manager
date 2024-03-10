@@ -9,10 +9,10 @@ import Data.Semigroup ((<>))
 import Data.Show (class Show)
 import Data.Unit (Unit, unit)
 import DataModel.AsyncValue (AsyncValue)
-import DataModel.Card (Card)
-import DataModel.Index (Index)
-import DataModel.SRP (HashFunction, SRPConf)
-import DataModel.User (MasterKey, UserInfo)
+import DataModel.CardVersions.Card (Card)
+import DataModel.IndexVersions.Index (Index)
+import DataModel.SRPVersions.SRP (HashFunction, SRPConf)
+import DataModel.UserVersions.User (MasterKey, UserInfo, UserInfoReferences)
 import Functions.HashCash (TollChallenge)
 
 type Url = String
@@ -57,7 +57,7 @@ type AppState =
   , hash :: HashFunction
   , cardsCache :: CardsCache
   , masterKey :: Maybe MasterKey
-  -- , userInfoReferences :: Maybe UserInfoReferences --TODO: may consider adding it in state instead of extracting it everytime from masterKey
+  , userInfoReferences :: Maybe UserInfoReferences
   , userInfo :: Maybe UserInfo
   , index :: Maybe Index
   }

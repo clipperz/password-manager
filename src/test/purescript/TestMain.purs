@@ -1,4 +1,4 @@
-module Test.Main where
+module Test.TestMain where
 
 import Control.Bind (bind, discard)
 import Data.Function (($))

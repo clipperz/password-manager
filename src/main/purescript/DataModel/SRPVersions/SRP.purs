@@ -1,18 +1,39 @@
-module DataModel.SRP where
+module DataModel.SRPVersions.SRP where
 
 import Control.Bind (bind)
 import Crypto.Subtle.Hash (digest, sha256, sha1, HashingFunction)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.BigInt (BigInt, fromInt)
+import Data.Codec.Argonaut as CA
+import Data.Codec.Argonaut.Variant as CAV
+import Data.Either (Either(..))
 import Data.Function (($))
 import Data.HexString (hex, toBigInt)
 import Data.List (List(..), (:))
 import Data.Maybe (fromMaybe)
+import Data.Profunctor (dimap)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
+import Data.Unit (unit)
+import Data.Variant as V
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.ArrayBuffer (concatArrayBuffers)
+import Type.Proxy (Proxy(..))
+
+-- --------------------------------------------
+
+data SRPVersion = SRPVersion_6a
+srpVersionCodec :: CA.JsonCodec SRPVersion
+srpVersionCodec = dimap toVariant fromVariant $ CAV.variantMatch
+    { v_6a: Left unit
+    }
+  where
+    toVariant = case _ of
+      SRPVersion_6a -> V.inj (Proxy :: _ "v_6a") unit 
+    fromVariant = V.match
+      { v_6a: \_ -> SRPVersion_6a
+      }
 
 -- --------------------------------------------
 

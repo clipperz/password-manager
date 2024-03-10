@@ -15,7 +15,7 @@ import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Tuple (Tuple(..))
 import Data.Unit (Unit)
-import DataModel.SRP(group1024, SRPConf, bigInt0, hashFuncSHA256, hashFuncSHA1, concatKDF, SRPError(..))
+import DataModel.SRPVersions.SRP(group1024, SRPConf, bigInt0, hashFuncSHA256, hashFuncSHA1, concatKDF, SRPError(..))
 import Functions.SRP as SRP
 import Effect.Aff (Aff)
 import Test.Spec (describe, it, SpecT)

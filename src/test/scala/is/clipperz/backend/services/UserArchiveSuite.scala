@@ -34,15 +34,15 @@ object UserArchiveSpec extends ZIOSpecDefault:
     c,
     HexString("adc"),
     HexString("adcf"),
-    "srpVersion_test",
-    (HexString("masterKeyContent_test"), "masterKeyEncodingVersion_test")
+    SRPVersion("srpVersion_test"),
+    (HexString("masterKeyContent_test"), MasterKeyEncodingVersion("masterKeyEncodingVersion_test"))
   )
   val testUser2 = RemoteUserCard(
     c,
     HexString("adc2"),
     HexString("adcf2"),
-    "srpVersion_test",
-    (HexString("masterKeyContent_test"), "masterKeyEncodingVersion_test")
+    SRPVersion("srpVersion_test"),
+    (HexString("masterKeyContent_test"), MasterKeyEncodingVersion("masterKeyEncodingVersion_test"))
   )
 
   def spec = suite("UserArchive")(

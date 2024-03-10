@@ -2,7 +2,7 @@ module DataModel.FragmentState where
 
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
-import DataModel.Card (Card)
+import DataModel.CardVersions.Card (Card)
 import DataModel.Credentials (Credentials)
 
 data FragmentState = Registration | Login Credentials | AddCard Card | Unrecognized String | Empty

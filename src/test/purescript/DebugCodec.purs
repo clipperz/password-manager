@@ -1,4 +1,4 @@
-module DataModel.Codec where
+module Test.DebugCodec where
 
 import Data.Codec.Argonaut as CA
 import Data.Codec.Argonaut.Common as CAC
@@ -6,19 +6,16 @@ import Data.Codec.Argonaut.Record as CAR
 import Data.Codec.Argonaut.Variant as CAV
 import Data.Either (Either(..))
 import Data.Function (($))
-import Data.HexString (HexString(..))
+import Data.HexString (hexStringCodec)
 import Data.Maybe (Maybe(..))
 import Data.Profunctor (dimap, wrapIso)
 import Data.Unit (unit)
 import Data.Variant as V
-import DataModel.Card (Card(..), CardField(..), CardValues(..))
-import DataModel.CardVersions.CardV1 (CardValues_V1, Card_V1, CardField_V1)
+import DataModel.CardVersions.Card (Card(..), CardField(..), CardValues(..), cardVersionCodec)
 import DataModel.Credentials (Credentials)
-import DataModel.Index (CardEntry(..), CardReference(..), Index(..))
-import DataModel.IndexVersions.IndexV1 (CardEntry_V1, CardReference_V1, Index_V1)
+import DataModel.IndexVersions.Index (CardEntry(..), CardReference(..), Index(..))
 import DataModel.Password (PasswordGeneratorSettings)
-import DataModel.Pin (PasswordPin)
-import DataModel.User (IndexReference(..), UserInfo(..), UserPreferences(..))
+import DataModel.UserVersions.User (UserPreferences(..))
 import DataModel.WidgetState (CardFormInput(..), CardManagerState, CardViewState, ImportState, ImportStep(..), LoginFormData, LoginType(..), MainPageWidgetState, Page(..), UserAreaPage(..), UserAreaState, UserAreaSubmenu(..), WidgetState(..))
 import DataModel.WidgetState (CardViewState(..)) as CardViewState
 import IndexFilterView (Filter(..), FilterData, FilterViewStatus(..))
@@ -200,14 +197,6 @@ indexCodec =
     , identifier: hexStringCodec
     }
 
--- type Index_V1 = {entries :: (List CardEntry_V1), identifier :: HexString}
-indexV1Codec :: CA.JsonCodec Index_V1
-indexV1Codec = 
-  CAR.object "index"
-    { entries: CAC.list cardEntryV1Codec
-    , identifier: hexStringCodec
-    }
-
 -- newtype CardEntry =
 --   CardEntry
 --     { title :: String
@@ -228,31 +217,12 @@ cardEntryCodec = wrapIso CardEntry $
       , lastUsed:      CA.number
       }
     )
-  
--- type CardEntry_V1 = 
---   { title :: String
---   , cardReference :: CardReference_V1
---   , archived :: Boolean
---   , tags :: Array String
---   , lastUsed :: Number
---   }
-cardEntryV1Codec :: CA.JsonCodec CardEntry_V1
-cardEntryV1Codec = 
-  CA.object "CardEntry"
-    (CAR.record
-      { title:         CA.string
-      , cardReference: cardReferenceV1Codec
-      , archived:      CA.boolean
-      , tags:          CA.array CA.string
-      , lastUsed:      CA.number
-      }
-    )
 
 -- newtype CardReference =
 --   CardReference
 --     { reference :: HexString
 --     , key :: HexString
---     , version :: String
+--     , version :: CardVersion
 --     , identifier :: HexString
 --     }
 cardReferenceCodec :: CA.JsonCodec CardReference
@@ -261,31 +231,10 @@ cardReferenceCodec = wrapIso CardReference $
     (CAR.record
       { reference:   hexStringCodec
       , key:         hexStringCodec
-      , version: CA.string
+      , version:     cardVersionCodec
       , identifier:  hexStringCodec
       }
     )
-
--- type CardReference_V1 =
---   { reference :: HexString
---   , key :: HexString
---   , version :: String
---   , identifier :: HexString
---   }
-cardReferenceV1Codec :: CA.JsonCodec CardReference_V1
-cardReferenceV1Codec = 
-  CA.object "CardReference"
-    (CAR.record
-      { reference:   hexStringCodec
-      , key:         hexStringCodec
-      , version: CA.string
-      , identifier:  hexStringCodec
-      }
-    )
-
--- newtype HexString = HexString String
-hexStringCodec :: CA.JsonCodec HexString
-hexStringCodec = wrapIso HexString CA.string
 
 -- type UserAreaState = {
 --   showUserArea     :: Boolean
@@ -414,21 +363,6 @@ cardCodec = wrapIso Card (
     )
 )
 
--- type Card_V1 = 
---   { content :: CardValues_V1
---   , secrets :: Array String
---   , archived :: Boolean
---   , timestamp :: Number
---   }
-cardV1Codec :: CA.JsonCodec Card_V1
-cardV1Codec =
-  CAR.object "cardV1"
-    { content   : cardValuesV1Codec
-    , secrets   : CA.array CA.string
-    , archived  : CA.boolean
-    , timestamp : CA.number
-    }
-
 -- newtype CardValues = 
 --   CardValues
 --     { title   :: String
@@ -448,21 +382,6 @@ cardValuesCodec = wrapIso CardValues (
     )
 )
 
--- type CardValues_V1 = 
---   { title   :: String
---   , tags    :: Array String
---   , fields  :: Array CardField_V1
---   , notes   :: String
---   }
-cardValuesV1Codec :: CA.JsonCodec CardValues_V1
-cardValuesV1Codec = 
-  CAR.object "cardValuesV1"
-    { title   : CA.string
-    , tags    : CA.array CA.string
-    , fields  : CA.array cardFieldV1Codec
-    , notes   : CA.string
-    }
-
 -- newtype CardField =
 --   CardField
 --     { name   :: String
@@ -481,21 +400,6 @@ cardFieldCodec = wrapIso CardField (
       }
     )
 )
-
--- type CardField_V1 =
---   { name   :: String
---   , value  :: String
---   , locked :: Boolean
---   , settings :: Maybe PasswordGeneratorSettings
---   }
-cardFieldV1Codec :: CA.JsonCodec CardField_V1
-cardFieldV1Codec =
-  CAR.object "cardFieldV1"
-    { name     : CA.string
-    , value    : CA.string
-    , locked   : CA.boolean
-    , settings : CAR.optional passwordGeneratorSettingsCodec
-    }
 
 -- type PasswordGeneratorSettings = {
 --     length              :: Int,
@@ -632,40 +536,3 @@ userPreferencesCodec = wrapIso UserPreferences (
       }
     )
 )
-
--- newtype UserInfo = 
---   UserInfo
---     { indexReference  :: IndexReference
---     , identifier      :: HexString
---     , userPreferences :: UserPreferences
---     }
-
-userInfoCodec :: CA.JsonCodec UserInfo
-userInfoCodec = wrapIso UserInfo (
-  CAR.object "UserInfo"
-    { indexReference:  indexReferenceCodec
-    , identifier:      hexStringCodec
-    , userPreferences: userPreferencesCodec
-    }
-)
-
--- newtype IndexReference =
---   IndexReference
---     { reference :: HexString
---     , masterKey :: HexString
---     , indexVersion :: String
---     }
-indexReferenceCodec :: CA.JsonCodec IndexReference
-indexReferenceCodec = wrapIso IndexReference $
-  CA.object "IndexReference"
-    (CAR.record
-      { reference:    hexStringCodec
-      , masterKey:    hexStringCodec
-      , indexVersion: CA.string
-      }
-    )
-
--- type PasswordPin = { padding :: Int, passphrase :: String }
-passwordPinCodec :: CA.JsonCodec PasswordPin
-passwordPinCodec =
-  CAR.object "passwordPin" { padding : CA.int , passphrase : CA.string }

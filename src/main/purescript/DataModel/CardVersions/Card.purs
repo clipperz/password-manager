@@ -1,15 +1,37 @@
-module DataModel.Card where
+module DataModel.CardVersions.Card where
 
+import Data.Codec.Argonaut as CA
+import Data.Codec.Argonaut.Variant as CAV
+import Data.Either (Either(..))
 import Data.Eq (class Eq, eq)
+import Data.Function (($))
 import Data.List.Types (List(..))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
+import Data.Profunctor (dimap)
 import Data.Semigroup ((<>))
 import Data.Show (class Show, show)
+import Data.Unit (unit)
+import Data.Variant as V
 import DataModel.Password (PasswordGeneratorSettings)
+import Type.Proxy (Proxy(..))
 
-currentCardVersion :: String
-currentCardVersion = "V1"
+data CardVersion = CardVersion_1
+cardVersionCodec :: CA.JsonCodec CardVersion
+cardVersionCodec = dimap toVariant fromVariant $ CAV.variantMatch
+    { cardVersion_1: Left unit
+    }
+  where
+    toVariant = case _ of
+      CardVersion_1 -> V.inj (Proxy :: _ "cardVersion_1") unit
+    fromVariant = V.match
+      { cardVersion_1: \_ -> CardVersion_1
+      }
+
+instance showCardVersion :: Show CardVersion where
+ show CardVersion_1 = "CardVersion_1"
+
+-- --------------------------------------------
 
 newtype CardField =
   CardField
@@ -34,7 +56,6 @@ newtype CardValues =
     { title   :: String
     , tags    :: Array String
     , fields  :: Array CardField
-    -- , attachments :: ?? --TODO
     , notes   :: String
     }
 
@@ -63,6 +84,11 @@ instance eqCard :: Eq Card where
 
 instance showCard :: Show Card where
   show (Card record) = show record
+
+class CardVersions a where
+  toCard   :: a    -> Card
+  fromCard :: Card -> a
+
 
 -- --------------------------------------------
 
@@ -107,3 +133,5 @@ cardValues1 = CardValues { title: "Bank account (SAMPLE)"
 
 defaultCards :: List Card
 defaultCards = Nil
+
+data FieldType = Email | Url | Passphrase | None
