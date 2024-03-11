@@ -1,6 +1,7 @@
 module Functions.Handler.CardManagerEventHandler
   ( getCardSteps
   , handleCardManagerEvent
+  , loadingMainPage
   )
   where
 
@@ -100,7 +101,7 @@ handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just inde
     (DeleteCardEvent cardEntry) ->
       do
         ProxyResponse proxy'  cardsCache'     <- runStep (deleteCard connectionState cardsCache (unwrap cardEntry).cardReference) (WidgetState (spinnerOverlay "Delete card"  Black) (loadingMainPage index cardManagerState))
-        updatedIndex                          <- liftAff (removeFromIndex cardEntry index)
+        updatedIndex                          <- runStep ((removeFromIndex cardEntry index) # liftAff)                            (WidgetState (spinnerOverlay "Update index" Black) (loadingMainPage index cardManagerState))
         ProxyResponse proxy'' stateUpdateInfo <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex)                      (WidgetState (spinnerOverlay "Update index" Black) (loadingMainPage index cardManagerState))
 
         pure (Tuple 
@@ -170,7 +171,7 @@ addCardSteps :: CardManagerState -> AppState -> DataModel.CardVersions.Card.Card
 addCardSteps cardManagerState state@{index: Just index, userInfo: Just (UserInfo {userPreferences}), proxy, hash: hashFunc, srpConf, c: Just c, p: Just p, cardsCache, username: Just username, password: Just password, pinEncryptedPassword} newCard page message = do
   let connectionState = {proxy, hashFunc, srpConf, c, p}
   ProxyResponse proxy'  (Tuple cardsCache' newCardEntry) <- runStep (postCard connectionState cardsCache newCard)       (WidgetState (spinnerOverlay message        Black) page)
-  updatedIndex                                           <- liftAff (addToIndex newCardEntry index)
+  updatedIndex                                           <- runStep (addToIndex newCardEntry index # liftAff)           (WidgetState (spinnerOverlay "Update index" Black) page)
   ProxyResponse proxy''  stateUpdateInfo                 <- runStep (updateIndex (state {proxy = proxy'}) updatedIndex) (WidgetState (spinnerOverlay "Update index" Black) page)
 
   pure (Tuple 
@@ -212,6 +213,7 @@ editCardSteps cardManagerState state@{index: Just index, proxy, srpConf, hash: h
           )
         )
 editCardSteps _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
+
 
 -- ========================================================================================================================
 
