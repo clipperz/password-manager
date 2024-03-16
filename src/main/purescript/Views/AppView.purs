@@ -18,22 +18,25 @@ import DataModel.IndexVersions.Index (emptyIndex)
 import DataModel.UserVersions.User (defaultUserPreferences)
 import DataModel.WidgetState (MainPageWidgetState, Page(..), UserAreaState, WidgetState(..), CardManagerState)
 import Effect.Class (liftEffect)
+import Functions.Donations (DonationLevel(..))
 import Functions.EnvironmentalVariables (currentCommit)
 import Test.Debug (debugState)
 import Views.CardsManagerView (CardManagerEvent, cardManagerInitialState, cardsManagerView)
 import Views.Components (footerComponent, proxyInfoComponent)
+import Views.DonationViews (DonationPageEvent, donationPage, donationReminder)
 import Views.LoginFormView (LoginPageEvent, emptyLoginFormData, loginPage)
 import Views.OverlayView (overlay)
 import Views.SignupFormView (SignupPageEvent, emptyDataForm, signupFormView)
 import Views.UserAreaView (UserAreaEvent, userAreaInitialState, userAreaView)
 
 emptyMainPageWidgetState :: MainPageWidgetState
-emptyMainPageWidgetState = { index: emptyIndex, credentials: emptyCredentials, pinExists: false, userAreaState: userAreaInitialState, cardManagerState: cardManagerInitialState, userPreferences: defaultUserPreferences }
+emptyMainPageWidgetState = { index: emptyIndex, credentials: emptyCredentials, pinExists: false, userAreaState: userAreaInitialState, cardManagerState: cardManagerInitialState, donationLevel: DonationOk, userPreferences: defaultUserPreferences }
 
 data PageEvent = LoginPageEvent           LoginPageEvent
                | SignupPageEvent          SignupPageEvent
                | MainPageCardManagerEvent CardManagerEvent CardManagerState
                | MainPageUserAreaEvent    UserAreaEvent    CardManagerState UserAreaState
+               | DonationPageEvent        DonationPageEvent
 
 appView :: WidgetState -> Widget HTML PageEvent
 appView widgetState@(WidgetState overlayInfo page) =
@@ -45,11 +48,6 @@ appView widgetState@(WidgetState overlayInfo page) =
     appPages :: Widget HTML PageEvent
     appPages = div [Props.className "mainDiv"] [
       headerPage page (Loading Nothing) []
-    , LoginPageEvent <$> headerPage page (Login emptyLoginFormData) [
-        loginPage $ case page of
-          Login loginFormData -> loginFormData
-          _                   -> emptyLoginFormData
-      ]
     , SignupPageEvent <$> headerPage page (Signup emptyDataForm) [ do
         let credentials = case page of
                             Signup credentials' -> credentials'
@@ -57,14 +55,27 @@ appView widgetState@(WidgetState overlayInfo page) =
         
         (signupFormView credentials)
       ]
+    , LoginPageEvent <$> headerPage page (Login emptyLoginFormData) [
+        loginPage $ case page of
+          Login loginFormData -> loginFormData
+          _                   -> emptyLoginFormData
+      ]
+    , DonationPageEvent <$> headerPage page (Donation DonationOk) [ do
+        let donationLevel = case page of
+                              Donation donationLevel' -> donationLevel'
+                              _                       -> DonationOk
+        donationPage donationLevel
+
+    ]
     , div [Props.classList (Just <$> ["page", "main", show $ location (Main emptyMainPageWidgetState) page])] [ do
-        let {index, userAreaState, credentials, pinExists, cardManagerState, userPreferences} = case page of
+        let {index, userAreaState, credentials, pinExists, cardManagerState, userPreferences, donationLevel} = case page of
                                         Main homePageWidgetState' -> homePageWidgetState'
                                         _                         -> emptyMainPageWidgetState
         
         div [Props._id "homePage"] [
           ( MainPageCardManagerEvent                         # uncurry) <$> cardsManagerView cardManagerState index (unwrap userPreferences).passwordGeneratorSettings
         , ((MainPageUserAreaEvent # flip $ cardManagerState) # uncurry) <$> userAreaView userAreaState userPreferences credentials pinExists
+        , (DonationPageEvent)                                           <$> donationReminder donationLevel
         ] 
       ]
     ]
@@ -77,21 +88,25 @@ instance showPagePosition :: Show PagePosition where
 
 location :: Page -> Page -> PagePosition
 location referencePage currentPage = case referencePage, currentPage of
-  Loading _, Loading _ -> CenterPosition
-  Login   _, Login   _ -> CenterPosition
-  Signup  _, Signup  _ -> CenterPosition
-  Main    _, Main    _ -> CenterPosition
+  Loading  _, Loading  _ -> CenterPosition
+  Login    _, Login    _ -> CenterPosition
+  Signup   _, Signup   _ -> CenterPosition
+  Main     _, Main     _ -> CenterPosition
+  Donation _, Donation _ -> CenterPosition
 
-  Loading _, _         -> LeftPosition
-  Signup  _, Login   _ -> LeftPosition
-  _,         Main    _ -> LeftPosition
-  _,         _         -> RightPosition
+  Loading  _, _          -> LeftPosition
+  Signup   _, Login    _ -> LeftPosition
+  Login    _, Donation _ -> LeftPosition
+  Signup   _, Donation _ -> LeftPosition
+  _,          Main     _ -> LeftPosition
+  _,          _          -> RightPosition
 
 pageClassName :: Page -> String
-pageClassName (Loading _) = "loading"
-pageClassName (Login _)   = "login"
-pageClassName (Signup _)  = "signup"
-pageClassName (Main _)    = "main"
+pageClassName (Loading _)  = "loading"
+pageClassName (Login _)    = "login"
+pageClassName (Signup _)   = "signup"
+pageClassName (Main _)     = "main"
+pageClassName (Donation _) = "donation"
 
 headerPage :: forall a. Page -> Page -> Array (Widget HTML a) -> Widget HTML a
 headerPage currentPage page innerContent = do

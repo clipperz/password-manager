@@ -2,10 +2,10 @@ module DataModel.UserVersions.CurrentUserVersions where
 
 import Data.Codec.Argonaut (JsonCodec)
 import DataModel.UserVersions.User (MasterKeyEncodingVersion(..))
-import DataModel.UserVersions.UserV1 (UserInfo_V1, userInfoV1Codec)
+import DataModel.UserVersions.UserCodecs (UserInfo_V2, userInfoV2Codec)
 
 currentMasterKeyEncodingVersion :: MasterKeyEncodingVersion
-currentMasterKeyEncodingVersion = MasterKeyEncodingVersion_1
+currentMasterKeyEncodingVersion = MasterKeyEncodingVersion_2
 
-currentUserInfoCodecVersion :: JsonCodec UserInfo_V1
-currentUserInfoCodecVersion = userInfoV1Codec
+currentUserInfoCodecVersion :: JsonCodec UserInfo_V2
+currentUserInfoCodecVersion = userInfoV2Codec

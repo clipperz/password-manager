@@ -29,6 +29,7 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Login (PrepareLoginResult, loginStep1, loginStep2, prepareLogin)
 import Functions.Communication.Users (extractUserInfoReference, getUserInfo)
+import Functions.Donations (DonationLevel(..), computeDonationLevel)
 import Functions.EncodeDecode (importCryptoKeyAesGCM)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultView, doNothing, handleOperationResult, runStep)
 import Functions.Index (getIndex)
@@ -95,7 +96,7 @@ loginSteps cred state@{proxy, hash: hashFunc, srpConf} fragmentState page prepar
   userInfoReferences                      <- runStep ( extractUserInfoReference loginStep2Result.masterKey 
                                                        =<< 
                                                       (importCryptoKeyAesGCM (prepareLoginResult.p # toArrayBuffer) # liftAff)
-                                                     )                                                                                                                (WidgetState {status: Spinner, color: Black, message: "Validate user"} page)
+                                                     )                                                                                                               (WidgetState {status: Spinner, color: Black, message: "Validate user"} page)
   let stateUpdate = { masterKey:          Just loginStep2Result.masterKey 
                     , userInfoReferences: Just userInfoReferences
                     , username:           Just cred.username
@@ -105,18 +106,18 @@ loginSteps cred state@{proxy, hash: hashFunc, srpConf} fragmentState page prepar
                     , p:                  Just prepareLoginResult.p
                     }
 
-  res                                     <- loadHomePageSteps (merge stateUpdate (state {proxy = proxy''})) fragmentState
+  res                                     <- loadHomePageSteps (merge stateUpdate (state {proxy = proxy''})) page fragmentState
 
   pure $ res
 
-loadHomePageSteps :: AppState -> Fragment.FragmentState -> ExceptT AppError (Widget HTML) OperationState
+loadHomePageSteps :: AppState -> Page -> Fragment.FragmentState -> ExceptT AppError (Widget HTML) OperationState
 
-loadHomePageSteps state@{hash: hashFunc, proxy, srpConf, c: Just c, p: Just p, masterKey: Just (Tuple _ masterKeyEncodingVersion), userInfoReferences: Just userInfoReferences} fragmentState = do
+loadHomePageSteps state@{hash: hashFunc, proxy, srpConf, c: Just c, p: Just p, masterKey: Just (Tuple _ masterKeyEncodingVersion), userInfoReferences: Just userInfoReferences} page fragmentState = do
   let connectionState = {proxy, hashFunc, srpConf, c, p}
 
-  ProxyResponse proxy'  userInfo <- runStep (getUserInfo connectionState                                userInfoReferences (masterKeyEncodingVersion)) (WidgetState {status: Spinner, color: Black, message: "Get user info"} $ Main emptyMainPageWidgetState)
-  ProxyResponse proxy'' index    <- runStep (getIndex    connectionState{ proxy = proxy'} (unwrap userInfo).indexReference                           ) (WidgetState {status: Spinner, color: Black, message: "Get index"    } $ Main emptyMainPageWidgetState)
-  
+  ProxyResponse proxy'  userInfo <- runStep (getUserInfo connectionState                                userInfoReferences (masterKeyEncodingVersion)) (WidgetState {status: Spinner, color: Black, message: "Get user info"} page)
+  ProxyResponse proxy'' index    <- runStep (getIndex    connectionState{ proxy = proxy'} (unwrap userInfo).indexReference                           ) (WidgetState {status: Spinner, color: Black, message: "Get index"    } page)
+  donationLevel                  <- runStep (computeDonationLevel index userInfo # liftEffect                                                        ) (WidgetState {status: Spinner, color: Black, message: "Get index"    } page)
   case (unwrap (unwrap userInfo).userPreferences).automaticLock of
     Right n -> liftEffect (activateTimer n)
     Left  _ -> pure unit
@@ -126,13 +127,15 @@ loadHomePageSteps state@{hash: hashFunc, proxy, srpConf, c: Just c, p: Just p, m
                         _                     -> NoCard
 
   pure $ Tuple 
-    (state {proxy = proxy'', index = Just index, userInfo = Just userInfo})
+    (state {proxy = proxy'', index = Just index, userInfo = Just userInfo, donationLevel = Just donationLevel})
     (WidgetState 
-      {status: Hidden, color: Black, message: ""}
-      (Main emptyMainPageWidgetState { index = index, cardManagerState = cardManagerInitialState { cardViewState = cardViewState } })
+      hiddenOverlayInfo
+      case donationLevel of
+        DonationWarning -> (Donation donationLevel)
+        _               -> (Main emptyMainPageWidgetState { index = index, cardManagerState = cardManagerInitialState { cardViewState = cardViewState }, donationLevel = donationLevel })
     )
 
-loadHomePageSteps _ _ = do
+loadHomePageSteps _ _ _ = do
   throwError (InvalidStateError $ CorruptedState "")
 
 type MaxPinAttemptsReached = Boolean

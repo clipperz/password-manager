@@ -70,13 +70,14 @@ import Web.Storage.Storage (getItem)
 handleUserAreaEvent :: UserAreaEvent -> CardManagerState -> UserAreaState -> AppState -> Fragment.FragmentState -> Widget HTML OperationState
 
 
-handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, srpConf, hash: hashFunc, cardsCache, username: Just username, password: Just password, index: Just index, userInfo: Just userInfo@(UserInfo {indexReference: IndexReference { reference: indexRef}, userPreferences}), userInfoReferences: Just userInfoReferences, c: Just c, p: Just p, pinEncryptedPassword} _ = do
+handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, srpConf, hash: hashFunc, cardsCache, username: Just username, password: Just password, index: Just index, userInfo: Just userInfo@(UserInfo {indexReference: IndexReference { reference: indexRef}, userPreferences}), userInfoReferences: Just userInfoReferences, c: Just c, p: Just p, pinEncryptedPassword, donationLevel: Just donationLevel} _ = do
   let defaultPage = { index
                     , credentials:      {username, password}
                     , pinExists:        isJust pinEncryptedPassword
                     , userPreferences
                     , userAreaState
                     , cardManagerState
+                    , donationLevel
                     }
 
   case userAreaEvent of
@@ -197,13 +198,13 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
                     state $
                     WidgetState
                       hiddenOverlayInfo $
-                      Main { index
-                          , credentials: {username, password}
-                          , pinExists: isJust pinEncryptedPassword
-                          , cardManagerState
-                          , userAreaState : userAreaState {importState = importState {content = Right $ stringify $ encode (CA.array currentCardCodecVersion) $ fromCard <$> result, step = Selection, tag = Tuple true currentDate, selection = result <#> (\card@(DataModel.CardVersions.Card.Card r) -> Tuple (not r.archived) card)}}
-                          , userPreferences
-                          }
+                      Main defaultPage  { userAreaState = userAreaState 
+                                                            { importState = importState
+                                                                              { content = Right $ stringify $ encode (CA.array currentCardCodecVersion) $ fromCard <$> result
+                                                                              , step = Selection, tag = Tuple true currentDate, selection = result <#> (\card@(DataModel.CardVersions.Card.Card r) -> Tuple (not r.archived) card)
+                                                                              }
+                                                            }
+                                        }
 
           # runExceptT
           >>= handleOperationResult state page true White
@@ -213,13 +214,7 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
                         state $
                         WidgetState
                           hiddenOverlayInfo $
-                          Main { index
-                              , credentials: {username, password}
-                              , pinExists: isJust pinEncryptedPassword
-                              , cardManagerState
-                              , userAreaState : userAreaState {importState = importState {step = Confirm}}
-                              , userPreferences
-                              }
+                          Main defaultPage { userAreaState = userAreaState {importState = importState {step = Confirm}} }
         
         Confirm   ->
           do
@@ -241,13 +236,10 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
               )
               (WidgetState
                 hiddenOverlayInfo
-                (Main { index:            updatedIndex
-                      , credentials:      {username, password}
-                      , pinExists: isJust pinEncryptedPassword
-                      , userPreferences
-                      , userAreaState:    userAreaInitialState
-                      , cardManagerState: cardManagerState {cardViewState = NoCard, selectedEntry = Nothing}
-                      }
+                (Main defaultPage { index            = updatedIndex
+                                  , userAreaState    = userAreaInitialState
+                                  , cardManagerState = cardManagerState {cardViewState = NoCard, selectedEntry = Nothing}
+                                  }
                 )
               )
           )

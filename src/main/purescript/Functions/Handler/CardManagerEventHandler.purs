@@ -40,9 +40,18 @@ loadingMainPage :: Index -> CardManagerState -> Page
 loadingMainPage index cardManagerState = Main emptyMainPageWidgetState { index = index, cardManagerState = cardManagerState }
 
 handleCardManagerEvent :: CardManagerEvent -> CardManagerState -> AppState -> Fragment.FragmentState -> Widget HTML OperationState
-handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just index, userInfo: Just (UserInfo {userPreferences}), proxy, srpConf, hash: hashFunc, c: Just c, p: Just p, username: Just username, password: Just password, pinEncryptedPassword, cardsCache} _ = do
+handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just index, userInfo: Just (UserInfo {userPreferences}), proxy, srpConf, hash: hashFunc, c: Just c, p: Just p, username: Just username, password: Just password, pinEncryptedPassword, cardsCache, donationLevel: Just donationLevel} _ = do
   let connectionState = {proxy, hashFunc, srpConf, c, p}
   
+  let defaultPage = { index
+                    , credentials:      {username, password}
+                    , pinExists:        isJust pinEncryptedPassword
+                    , userPreferences
+                    , userAreaState: userAreaInitialState
+                    , cardManagerState
+                    , donationLevel
+                    }
+
   case cardManagerEvent of
 
     (OpenUserAreaEvent) -> 
@@ -50,31 +59,19 @@ handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just inde
                   state
                   (WidgetState
                     hiddenOverlayInfo
-                    (Main { index
-                          , credentials:   {username, password}
-                          , pinExists: isJust pinEncryptedPassword
-                          , userAreaState: userAreaInitialState {showUserArea = true}
-                          , cardManagerState
-                          , userPreferences
-                          }
+                    (Main defaultPage { userAreaState = userAreaInitialState {showUserArea = true} }
                     )
                   )
                 )
     
     (OpenCardViewEvent cardEntry) -> 
       do
-        ProxyResponse proxy' (Tuple cardsCache' card) <- getCardSteps connectionState cardsCache cardEntry (Main { index, credentials: {username, password}, pinExists: isJust pinEncryptedPassword, userAreaState: userAreaInitialState, cardManagerState, userPreferences})
+        ProxyResponse proxy' (Tuple cardsCache' card) <- getCardSteps connectionState cardsCache cardEntry (Main defaultPage)
         pure (Tuple
                 state {proxy = proxy', cardsCache = cardsCache'}
                 (WidgetState
                   hiddenOverlayInfo
-                  (Main { index
-                        , credentials:      {username, password}
-                        , pinExists: isJust pinEncryptedPassword
-                        , userPreferences
-                        , userAreaState:    userAreaInitialState
-                        , cardManagerState: cardManagerState {selectedEntry = (Just cardEntry), cardViewState = Card card cardEntry}
-                        }
+                  (Main defaultPage { cardManagerState = cardManagerState {selectedEntry = (Just cardEntry), cardViewState = Card card cardEntry} }
                   )
                 )
               )
@@ -108,13 +105,9 @@ handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just inde
                 (merge stateUpdateInfo state {proxy = proxy'', index = Just updatedIndex, cardsCache = cardsCache'})
                 (WidgetState
                   hiddenOverlayInfo
-                  (Main { index:            updatedIndex
-                        , credentials:      {username, password}
-                        , pinExists: isJust pinEncryptedPassword
-                        , userPreferences
-                        , userAreaState:    userAreaInitialState
-                        , cardManagerState: cardManagerState {cardViewState = NoCard, selectedEntry = Nothing}
-                        }
+                  (Main defaultPage { index            = updatedIndex
+                                    , cardManagerState = cardManagerState {cardViewState = NoCard, selectedEntry = Nothing}
+                                    }
                   )
                 )
             )
@@ -168,7 +161,7 @@ getCardSteps connectionState cardsCache cardEntry@(CardEntry entry) page = do
       pure $ ProxyResponse proxy' (Tuple updatedCardsCache card)
 
 addCardSteps :: CardManagerState -> AppState -> DataModel.CardVersions.Card.Card -> Page -> String -> ExceptT AppError (Widget HTML) OperationState
-addCardSteps cardManagerState state@{index: Just index, userInfo: Just (UserInfo {userPreferences}), proxy, hash: hashFunc, srpConf, c: Just c, p: Just p, cardsCache, username: Just username, password: Just password, pinEncryptedPassword} newCard page message = do
+addCardSteps cardManagerState state@{index: Just index, userInfo: Just (UserInfo {userPreferences}), proxy, hash: hashFunc, srpConf, c: Just c, p: Just p, cardsCache, username: Just username, password: Just password, pinEncryptedPassword, donationLevel: Just donationLevel} newCard page message = do
   let connectionState = {proxy, hashFunc, srpConf, c, p}
   ProxyResponse proxy'  (Tuple cardsCache' newCardEntry) <- runStep (postCard connectionState cardsCache newCard)       (WidgetState (spinnerOverlay message        Black) page)
   updatedIndex                                           <- runStep (addToIndex newCardEntry index # liftAff)           (WidgetState (spinnerOverlay "Update index" Black) page)
@@ -184,6 +177,7 @@ addCardSteps cardManagerState state@{index: Just index, userInfo: Just (UserInfo
                   , userPreferences
                   , userAreaState:    userAreaInitialState
                   , cardManagerState: cardManagerState {cardViewState = Card newCard newCardEntry, selectedEntry = Just newCardEntry}
+                  , donationLevel
                   }
             )
           )
@@ -191,7 +185,7 @@ addCardSteps cardManagerState state@{index: Just index, userInfo: Just (UserInfo
 addCardSteps _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
 
 editCardSteps :: CardManagerState -> AppState -> CardEntry -> DataModel.CardVersions.Card.Card -> Page -> ExceptT AppError (Widget HTML) OperationState
-editCardSteps cardManagerState state@{index: Just index, proxy, srpConf, hash: hashFunc, c: Just c, p: Just p, userInfo: Just (UserInfo {userPreferences}), cardsCache, username: Just username, password: Just password, pinEncryptedPassword} oldCardEntry updatedCard page = do
+editCardSteps cardManagerState state@{index: Just index, proxy, srpConf, hash: hashFunc, c: Just c, p: Just p, userInfo: Just (UserInfo {userPreferences}), cardsCache, username: Just username, password: Just password, pinEncryptedPassword, donationLevel: Just donationLevel} oldCardEntry updatedCard page = do
   let connectionState = {proxy, hashFunc, srpConf, c, p}
   ProxyResponse proxy'   (Tuple cardsCache' cardEntry) <- runStep  (postCard connectionState cardsCache updatedCard)                                             (WidgetState (spinnerOverlay "Post updated card" Black) page)
   ProxyResponse proxy''         cardsCache''           <- runStep  (deleteCard  connectionState{proxy = proxy'} cardsCache' (unwrap oldCardEntry).cardReference) (WidgetState (spinnerOverlay "Delete old card"   Black) page)
@@ -208,6 +202,7 @@ editCardSteps cardManagerState state@{index: Just index, proxy, srpConf, hash: h
                   , userPreferences
                   , userAreaState:    userAreaInitialState
                   , cardManagerState: cardManagerState {cardViewState = (Card updatedCard cardEntry), selectedEntry = Just cardEntry}
+                  , donationLevel
                   }
             )
           )

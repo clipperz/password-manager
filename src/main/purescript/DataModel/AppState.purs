@@ -13,6 +13,7 @@ import DataModel.CardVersions.Card (Card)
 import DataModel.IndexVersions.Index (Index)
 import DataModel.SRPVersions.SRP (HashFunction, SRPConf)
 import DataModel.UserVersions.User (MasterKey, UserInfo, UserInfoReferences)
+import Functions.Donations (DonationLevel)
 import Functions.HashCash (TollChallenge)
 
 type Url = String
@@ -59,6 +60,7 @@ type AppState =
   , masterKey :: Maybe MasterKey
   , userInfoReferences :: Maybe UserInfoReferences
   , userInfo :: Maybe UserInfo
+  , donationLevel :: Maybe DonationLevel
   , index :: Maybe Index
   }
 

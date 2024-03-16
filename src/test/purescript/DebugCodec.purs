@@ -18,6 +18,7 @@ import DataModel.Password (PasswordGeneratorSettings)
 import DataModel.UserVersions.User (UserPreferences(..))
 import DataModel.WidgetState (CardFormInput(..), CardManagerState, CardViewState, ImportState, ImportStep(..), LoginFormData, LoginType(..), MainPageWidgetState, Page(..), UserAreaPage(..), UserAreaState, UserAreaSubmenu(..), WidgetState(..))
 import DataModel.WidgetState (CardViewState(..)) as CardViewState
+import Functions.Donations (DonationLevel(..))
 import IndexFilterView (Filter(..), FilterData, FilterViewStatus(..))
 import Type.Proxy (Proxy(..))
 import Views.OverlayView (OverlayColor(..), OverlayStatus(..), OverlayInfo)
@@ -86,26 +87,28 @@ overlayColorCodec = dimap toVariant fromVariant $ CAV.variantMatch
       , white: \_  -> White
       }
 
-
--- data Page = Loading (Maybe Page) | Login LoginFormData | Signup SignupDataForm | Main MainPageWidgetState
+-- data Page = Loading (Maybe Page) | Login LoginFormData | Signup SignupDataForm | Main MainPageWidgetState | Donation DonationLevel
 pageCodec :: CA.JsonCodec Page
 pageCodec = dimap toVariant fromVariant $ CAV.variantMatch
-    { loading: Left  Nothing-- Right (CAR.maybe pageCodec)
-    , login:   Right loginFormDataCodec
-    , signup:  Right signupDataFormCodec
-    , main:    Right mainPageWidgetStateCodec
+    { loading:  Left  Nothing-- Right (CAR.maybe pageCodec)
+    , login:    Right loginFormDataCodec
+    , signup:   Right signupDataFormCodec
+    , main:     Right mainPageWidgetStateCodec
+    , donation: Right donationLevelCodec
     }
   where
     toVariant = case _ of
-      Loading _   -> V.inj (Proxy :: _ "loading") Nothing
-      Login   lfd -> V.inj (Proxy :: _ "login"  ) lfd
-      Signup  sdf -> V.inj (Proxy :: _ "signup" ) sdf
-      Main   mpws -> V.inj (Proxy :: _ "main"   ) mpws
+      Loading _   -> V.inj (Proxy :: _ "loading" ) Nothing
+      Login   lfd -> V.inj (Proxy :: _ "login"   ) lfd
+      Signup  sdf -> V.inj (Proxy :: _ "signup"  ) sdf
+      Main   mpws -> V.inj (Proxy :: _ "main"    ) mpws
+      Donation dl -> V.inj (Proxy :: _ "donation") dl
     fromVariant = V.match
-      { loading: Loading
-      , login:   Login
-      , signup:  Signup
-      , main:    Main
+      { loading:  Loading
+      , login:    Login
+      , signup:   Signup
+      , main:     Main
+      , donation: Donation
       }
 
 -- type LoginFormData = 
@@ -173,6 +176,7 @@ signupDataFormCodec =
 -- , userAreaState                 :: UserAreaState
 -- , cardManagerState              :: CardManagerState
 -- , userPreferences               :: UserPreferences
+-- , donationLevel :: DonationLevel
 -- }
 mainPageWidgetStateCodec :: CA.JsonCodec MainPageWidgetState
 mainPageWidgetStateCodec = 
@@ -184,6 +188,7 @@ mainPageWidgetStateCodec =
       , userAreaState:    userAreaStateCodec
       , cardManagerState: cardManagerStateCodec
       , userPreferences:  userPreferencesCodec
+      , donationLevel:    donationLevelCodec
       }
     )
 
@@ -536,3 +541,21 @@ userPreferencesCodec = wrapIso UserPreferences (
       }
     )
 )
+
+-- data DonationLevel = DonationOk | DonationInfo | DonationWarning
+donationLevelCodec :: CA.JsonCodec DonationLevel
+donationLevelCodec = dimap toVariant fromVariant $ CAV.variantMatch
+    { donationOk      : Left unit
+    , donationInfo    : Left unit
+    , donationWarning : Left unit
+    }
+  where
+    toVariant = case _ of
+      DonationOk      -> V.inj (Proxy :: _ "donationOk"     ) unit
+      DonationInfo    -> V.inj (Proxy :: _ "donationInfo"   ) unit
+      DonationWarning -> V.inj (Proxy :: _ "donationWarning") unit
+    fromVariant = V.match
+      { donationOk:      \_ -> DonationOk
+      , donationInfo:    \_ -> DonationInfo
+      , donationWarning: \_ -> DonationWarning
+      }

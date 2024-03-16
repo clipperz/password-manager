@@ -1,6 +1,6 @@
 "use strict"
 
-const _readFile = function (target) { 
+const _readFile = function (target) {
     return (onError, onSuccess) => {
         let result = new Promise((resolve, reject) => {
             var file = target.files[0];
@@ -18,10 +18,10 @@ const _readFile = function (target) {
         return (cancelError, cancelerError, cancelerSuccess) => {
         // Handle however you'd cancel the `o` (if the API supports it)
         }
-    }; 
+    };
 };
 
-const _readFileFromDrop = function (event) { 
+const _readFileFromDrop = function (event) {
     return (onError, onSuccess) => {
         let result = new Promise((resolve, reject) => {
             var file = event.dataTransfer.files[0];
@@ -41,6 +41,20 @@ const _readFileFromDrop = function (event) {
         }
     }; 
 };
+
+const _getWindowMessage = function() {
+	return (onError, onSuccess) => {
+		let result = new Promise((resolve, reject) => {
+			window.addEventListener('message', (event) => {
+				resolve(event.data)
+			})
+        });
+
+        result.then(onSuccess).catch(onError);
+        return (cancelError, cancelerError, cancelerSuccess) => {
+        }
+	}
+}
 
 const renderElement = function(element) {
     return element.innerHTML;
@@ -70,6 +84,7 @@ const cursorToEnd = function(ev) {
 export {
     _readFile,
     _readFileFromDrop,
+	_getWindowMessage,
     renderElement,
     _getXClickCoordinates,
     _getYClickCoordinates,

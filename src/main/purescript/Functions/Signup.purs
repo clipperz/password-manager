@@ -26,7 +26,8 @@ import DataModel.IndexVersions.Index (CardEntry(..), CardReference(..), Index, p
 import DataModel.SRPVersions.CurrentSRPVersions (currentSRPVersion)
 import DataModel.SRPVersions.SRP (SRPConf, SRPError)
 import DataModel.UserVersions.CurrentUserVersions (currentUserInfoCodecVersion)
-import DataModel.UserVersions.User (MasterKey, RequestUserCard(..), UserInfo, defaultUserPreferences, fromUserInfo, prepareUserInfo)
+import DataModel.UserVersions.User (MasterKey, RequestUserCard(..), UserInfo, defaultUserPreferences, prepareUserInfo)
+import DataModel.UserVersions.UserCodecs (fromUserInfo)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.Card (createCardEntry)
@@ -56,7 +57,7 @@ prepareSignupParameters srpConf form = runExceptT $ do
   userInfo             :: UserInfo    <- liftAff $ prepareUserInfo indexReference defaultUserPreferences
 
   userInfoCryptoKey    :: CryptoKey   <- liftAff $ generateCryptoKeyAesGCM
-  encryptedUserInfo    :: ArrayBuffer <- liftAff $ encryptJson currentUserInfoCodecVersion userInfoCryptoKey (fromUserInfo userInfo) --TODO: change to current...Codec
+  encryptedUserInfo    :: ArrayBuffer <- liftAff $ encryptJson currentUserInfoCodecVersion userInfoCryptoKey (fromUserInfo userInfo)
   userInfoHash         :: ArrayBuffer <- liftAff $ srpConf.hash (encryptedUserInfo : Nil)
 
   userInfoCryptoKeyHex :: HexString   <- liftAff $ exportCryptoKeyToHex userInfoCryptoKey

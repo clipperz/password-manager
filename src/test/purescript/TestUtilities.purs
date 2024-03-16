@@ -15,7 +15,6 @@ import Data.Tuple (Tuple)
 import Data.Unit (Unit)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect, class MonadEffect)
-import Effect.Class.Console (log)
 import Effect.Exception (message, Error)
 import Random.LCG (Seed)
 import Test.QuickCheck (quickCheckPure', Result, class Testable, checkResults, printSummary, randomSeed)
@@ -50,8 +49,8 @@ showQuickCheckResultsInBrowser testName resultList = do
   _ <- if null errorLogStrings then
         sequence $ (pure <<< logTest <<< (parseGoodString "")) <$> ((testName <> " (" <> (show (length resultList)) <> " tests)") : Nil)
       else do
-        log $ "Test '" <> testName <> "': " <> (printSummary result)
-        sequence $ log <$> errorLogStrings
+        pure $ logTest $ "Test '" <> testName <> "': " <> (printSummary result)
+        pure $ logTest <$> errorLogStrings
   fail $ show errorLogStrings
 
 quickCheckAffInBrowser :: forall prop. TestableAff prop => String -> Int -> prop -> Aff Unit

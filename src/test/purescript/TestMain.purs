@@ -8,6 +8,7 @@ import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log)
 import Test.Codec (codecSpec)
+import Test.Donations (donationSpec)
 import Test.EncodeDecode (encodeDecodeSpec)
 import Test.HashCash (hashCashSpec)
 import Test.HexString (hexSpec)
@@ -27,4 +28,5 @@ main = launchAff_ $ do
     hashCashSpec
     importSpec
     codecSpec
+    donationSpec
   liftEffect $ log "END TESTS"

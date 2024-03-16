@@ -22,6 +22,7 @@ import DataModel.SRPVersions.SRP (HashFunction, SRPConf, baseSRPConf, hashFuncSH
 import DataModel.UserVersions.User (MasterKey, UserInfo, UserInfoReferences)
 import Effect (Effect)
 import Effect.Class (liftEffect)
+import Functions.Donations (DonationLevel)
 import Record (merge)
 import Web.DOM (Element, Node)
 import Web.DOM.Element (fromNode, id)
@@ -74,6 +75,7 @@ baseState ∷ { username :: Maybe String
             , userInfoReferences :: Maybe UserInfoReferences
             , userInfo :: Maybe UserInfo
             , index :: Maybe Index
+            , donationLevel :: Maybe DonationLevel
             }
 baseState = { username: Nothing
             , password: Nothing
@@ -88,4 +90,5 @@ baseState = { username: Nothing
             , userInfoReferences: Nothing 
             , userInfo: Nothing
             , index: Nothing
+            , donationLevel: Nothing
             }

@@ -1,17 +1,18 @@
 module DataModel.UserVersions.User where
 
 import Control.Alternative (pure)
-import Control.Bind ((>>=))
+import Control.Bind (bind)
 import Data.Codec.Argonaut as CA
 import Data.Codec.Argonaut.Common as CAC
 import Data.Codec.Argonaut.Record as CAR
 import Data.Codec.Argonaut.Variant as CAV
+import Data.DateTime (DateTime)
 import Data.Either (Either(..))
 import Data.Eq (class Eq)
 import Data.Function (($))
 import Data.HexString (HexString, hexStringCodec)
 import Data.Identifier (Identifier, computeIdentifier)
-import Data.Maybe (Maybe)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Profunctor (dimap, wrapIso)
 import Data.Tuple (Tuple)
@@ -24,16 +25,19 @@ import Effect.Aff (Aff)
 import Type.Proxy (Proxy(..))
 
 
-data MasterKeyEncodingVersion = MasterKeyEncodingVersion_1
+data MasterKeyEncodingVersion = MasterKeyEncodingVersion_1 | MasterKeyEncodingVersion_2
 masterKeyEncodingVersionCodec :: CA.JsonCodec MasterKeyEncodingVersion
 masterKeyEncodingVersionCodec = dimap toVariant fromVariant $ CAV.variantMatch
     { masterKeyEncodingVersion_1: Left unit
+    , masterKeyEncodingVersion_2: Left unit
     }
   where
     toVariant = case _ of
       MasterKeyEncodingVersion_1 -> V.inj (Proxy :: _ "masterKeyEncodingVersion_1") unit 
+      MasterKeyEncodingVersion_2 -> V.inj (Proxy :: _ "masterKeyEncodingVersion_2") unit 
     fromVariant = V.match
       { masterKeyEncodingVersion_1: \_ -> MasterKeyEncodingVersion_1
+      , masterKeyEncodingVersion_2: \_ -> MasterKeyEncodingVersion_2
       }
 
 type MasterKey = Tuple HexString MasterKeyEncodingVersion
@@ -110,20 +114,20 @@ defaultUserPreferences = UserPreferences {passwordGeneratorSettings: standardPas
 
 newtype UserInfo = 
   UserInfo
-    { indexReference  :: IndexReference
-    , identifier      :: Identifier
-    , userPreferences :: UserPreferences
+    { indexReference     :: IndexReference
+    , identifier         :: Identifier
+    , userPreferences    :: UserPreferences
+    , dateOfLastDonation :: Maybe DateTime
     }
 
 derive instance newTypeUserInfo :: Newtype UserInfo _
 
 class UserInfoVersions a where
-  toUserInfo   :: a        -> UserInfo
-  fromUserInfo :: UserInfo -> a
+  toUserInfo :: a -> UserInfo
 
 type UserInfoReferences = {reference :: HexString, key :: HexString}
 
 prepareUserInfo :: IndexReference -> UserPreferences -> Aff UserInfo
-prepareUserInfo indexReference userPreferences = 
-  computeIdentifier >>=
-  (\identifier -> pure $ UserInfo {indexReference, userPreferences, identifier})
+prepareUserInfo indexReference userPreferences = do
+  identifier <- computeIdentifier
+  pure $ UserInfo {indexReference, userPreferences, identifier, dateOfLastDonation: Nothing}
