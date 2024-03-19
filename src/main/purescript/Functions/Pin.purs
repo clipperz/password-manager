@@ -1,6 +1,6 @@
 module Functions.Pin where
 
-import Bytes (asArrayBuffer)
+import Control.Alt ((<#>))
 import Control.Alternative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (ExceptT(..), except, throwError, withExceptT)
@@ -30,10 +30,10 @@ import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Effect.Fortuna (randomBytes)
 import Functions.ArrayBuffer (concatArrayBuffers)
 import Functions.Communication.OneTimeShare (PIN)
 import Functions.EncodeDecode (decryptJson, encryptJson, importCryptoKeyAesGCM)
+import Functions.SRP (randomArrayBuffer)
 import Web.Storage.Storage (Storage, removeItem, setItem)
 
 makeKey :: String -> String
@@ -67,11 +67,11 @@ saveCredentials {username: Just u, password: Just p, hash: hashf} pin storage = 
   key <- liftAff $ (generateKeyFromPin hashf pin)
   -- 256 bits
   let paddingBytesLength = (256 - 16 * length (toString Hex (hex p))) / 8
-  paddingBytes     <- liftAff $ asArrayBuffer   <$> (randomBytes paddingBytesLength)
+  paddingBytes     <- liftAff $ randomArrayBuffer paddingBytesLength
   paddedPassphrase <- liftAff $ fromArrayBuffer <$> (liftEffect $ concatArrayBuffers ((toArrayBuffer $ hex p) : paddingBytes : Nil))
   let obj = { padding: paddingBytesLength, passphrase: toString Hex paddedPassphrase }
 
-  encryptedCredentials <- liftAff $ fromArrayBuffer <$> encryptJson passwordPinCodec key obj
+  encryptedCredentials <- encryptJson passwordPinCodec key obj <#> fromArrayBuffer # liftAff
   liftEffect $ setItem (makeKey "user")        u                                  storage
   liftEffect $ setItem (makeKey "passphrase") (toString Hex encryptedCredentials) storage
   liftEffect $ setItem (makeKey "failures")   (show 0)                            storage
