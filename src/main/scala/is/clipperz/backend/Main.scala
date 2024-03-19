@@ -71,24 +71,20 @@ object Main extends zio.ZIOAppDefault:
                                     .leakDetection(LeakDetectionLevel.PARANOID)
                                     .maxThreads(nThreads)
 
-            // blobBasePath.toFile().nn.mkdirs()
-            // userBasePath.toFile().nn.mkdirs()
-            // oneTimeShareBasePath.toFile().nn.mkdirs()
-
+            ( Files.createDirectories(blobBasePath) <&> 
+              Files.createDirectories(userBasePath) <&> 
+              Files.createDirectories(oneTimeShareBasePath)
+            ) *>
             Server
                 .install(completeClipperzBackend)
                 .flatMap(port =>
                     println("SERVER STARTED")
-                    //    Files.createDirectories(blobBasePath)
-                    // *> Files.createDirectories(userBasePath)
-                    // *> Files.createDirectories(oneTimeShareBasePath)
-                    // *> ZIO.logInfo(s"Server started on port ${port}")
                         ZIO.logInfo(s"Server started on port ${port}")
-                    *> ZIO.never
+                    *>  ZIO.never
                 )
                 .provide(
                     PRNG.live,
-                    SessionManager.live(30.minutes), //TODO: add cache timeToLive to configuration file [fsolarol - 10/01/2024]
+                    SessionManager.live(30.minutes), //TODO: add cache timeToLive to configuration file [fsolaroli - 10/01/2024]
                     TollManager.live,
                     UserArchive.fs(userBasePath, 2, true),
                     BlobArchive.fs(blobBasePath, 2, true),
@@ -99,9 +95,9 @@ object Main extends zio.ZIOAppDefault:
                     ZLayer.succeed(nettyConfig),
                     Server.customized,
                     
-                    // datadog.datadogLayer,
-                    // ZLayer.succeed(datadog.DatadogConfig("dd-agent", 8125)),
-                    // ZLayer.succeed(MetricsConfig(100.millis)),
+                    datadog.datadogLayer,
+                    ZLayer.succeed(datadog.DatadogConfig("dd-agent", 8125)),
+                    ZLayer.succeed(MetricsConfig(100.millis)),
                 )
 
         else ZIO.logFatal("Not enough arguments")
