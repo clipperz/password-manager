@@ -46,7 +46,7 @@ instance showImportVersion :: Show ImportVersion where
 
 parseImport :: String -> ExceptT AppError Aff (Array Card)
 parseImport html = do
-  regex <- except $ regex "<textarea( class=\'(.+)\')?>(.+)<\\/textarea>" noFlags # lmap (\_ -> ImportError "The regex written by the developers is not correct")
+  regex <- except $ regex "<textarea( class=\'(.+)\')?>([\\s\\S]+)<\\/textarea>" noFlags # lmap (\_ -> ImportError "The regex written by the developers is not correct")
   case (match regex (decodeHTML html) <#> fromFoldable) of
     Just (_ : _ : maybeVersion : (Just cards) : Nil) -> do
       version <- pure $ fromMaybe Delta (Epsilon <$> (
@@ -56,7 +56,7 @@ parseImport html = do
                                         ))                             
       decodeImport version cards
     _                                                -> 
-      throwError $ ImportError "Invalid file: unable to decode data"
+      throwError $ ImportError ("Invalid file: unable to decode data [" <> decodeHTML html <> "]")
 
 decodeImport :: ImportVersion -> String -> ExceptT AppError Aff (Array Card)
 decodeImport version cards = 

@@ -1,21 +1,30 @@
 module Test.Import where
 
+import Control.Alt ((<#>))
+import Control.Alternative (pure, (*>))
 import Control.Bind (discard, bind)
 import Control.Monad.Except (runExceptT)
 import Data.Array (filter, head, length)
 import Data.Either (Either(..), isRight)
 import Data.Eq ((==))
-import Data.Function (($))
+import Data.Function ((#), ($))
 import Data.Functor ((<$>))
 import Data.Identity (Identity)
+import Data.List (List(..), fromFoldable, (:))
 import Data.Maybe (Maybe(..))
+import Data.Semigroup ((<>))
+import Data.Show (show)
 import Data.Unit (Unit)
 import DataModel.CardVersions.Card (Card(..), CardValues(..), CardField(..))
 import Effect.Aff (Aff)
+import Effect.Class (liftEffect)
+import Effect.Console (log)
+import Functions.Export (prepareUnencryptedContent)
 import Functions.Import (ImportVersion(..), decodeImport, parseImport)
+import Test.QuickCheck (Result(..), (<?>))
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual, shouldSatisfy)
-import TestUtilities (makeTestableOnBrowser)
+import TestUtilities (makeTestableOnBrowser, quickCheckAffInBrowser)
 
 importSpec :: SpecT Aff Unit Identity Unit
 importSpec  =
@@ -73,6 +82,17 @@ importSpec  =
       result <- runExceptT $ parseImport html_data
       makeTestableOnBrowser importHTML             result  shouldSatisfy  isRight
       makeTestableOnBrowser importHTML (length <$> result) shouldEqual   (Right 5)
+
+    let exportImport = "Export then import html"
+    it exportImport do
+      quickCheckAffInBrowser exportImport 100 (\card -> do
+        let cards     = card : Nil
+        let htmlData  = prepareUnencryptedContent cards
+        result       <- runExceptT $ parseImport htmlData <#> fromFoldable
+        case result of
+          Left  err -> liftEffect $ log ("HTML DATA => " <> htmlData <> "\nERROR => " <> show err) *> (Failed (show err) # pure)
+          Right res -> cards == res <?> ((show cards) <> " /= " <> (show res)) # pure
+      )
     
     where
       html_data = """<style type="text/css">body {font-family: 'DejaVu Sans Mono', monospace;margin: 0px;}header {padding: 10px;border-bottom: 2px solid black;}header p span {font-weight: bold;}h1 {margin: 0px;}h2 {margin: 0px;padding-top: 10px;}h3 {margin: 0px;}h5 {margin: 0px;color: gray;}ul {margin: 0px;padding: 0px;}div > ul > li {border-bottom: 1px solid black;padding: 10px;}div > ul > li.archived {background-color: #ddd;}ul > li > ul > li {font-size: 9pt;display: inline-block;}ul > li > ul > li:after {content: ",";padding-right: 5px;}ul > li > ul > li:last-child:after {content: "";padding-right: 0px;}dl {}dt {color: gray;font-size: 9pt;}dd {margin: 0px;margin-bottom: 5px;padding-left: 10px;font-size: 13pt;}div > div {background-color: black;color: white;padding: 10px;}li p, dd.hidden {white-space: pre-wrap;word-wrap: break-word;font-family: monospace;}textarea {display: none}a {color: white;}@media print {div > div, header > div {display: none !important;}div > ul > li.archived {color: #ddd;}ul > li {page-break-inside: avoid;} }</style><div><header><h1>Your data on Clipperz</h1><h5>Export generated on 20240305 at 22:05</h5></header><ul><li class=""><h2>teste - copy - copy - copy - copy</h2><ul> </ul><div><dl><dt>username</dt><dd class=""></dd><dt>password</dt><dd class="hidden"></dd></dl></div><p></p></li><li class=""><h2>teste - copy - copy - copy</h2><ul> </ul><div><dl><dt>username</dt><dd class=""></dd><dt>password</dt><dd class="hidden"></dd></dl></div><p></p></li><li class=""><h2>teste - copy - copy</h2><ul> </ul><div><dl><dt>username</dt><dd class=""></dd><dt>password</dt><dd class="hidden"></dd></dl></div><p></p></li><li class=""><h2>teste - copy</h2><ul> </ul><div><dl><dt>username</dt><dd class=""></dd><dt>password</dt><dd class="hidden"></dd></dl></div><p></p></li><li class=""><h2>teste</h2><ul> </ul><div><dl><dt>username</dt><dd class=""></dd><dt>password</dt><dd class="hidden"></dd></dl></div><p></p></li></ul><div><textarea class='{"tag":"cardVersion_1"}'>[{"archived":false,"content":{"fields":[{"locked":false,"name":"username","value":""},{"locked":true,"name":"password","value":""}],"notes":"","tags":[],"title":"teste - copy - copy - copy - copy"},"secrets":[],"timestamp":1709674334662},{"archived":false,"content":{"fields":[{"locked":false,"name":"username","value":""},{"locked":true,"name":"password","value":""}],"notes":"","tags":[],"title":"teste - copy - copy - copy"},"secrets":[],"timestamp":1709674334662},{"archived":false,"content":{"fields":[{"locked":false,"name":"username","value":""},{"locked":true,"name":"password","value":""}],"notes":"","tags":[],"title":"teste - copy - copy"},"secrets":[],"timestamp":1709674334662},{"archived":false,"content":{"fields":[{"locked":false,"name":"username","value":""},{"locked":true,"name":"password","value":""}],"notes":"","tags":[],"title":"teste - copy"},"secrets":[],"timestamp":1709674334662},{"archived":false,"content":{"fields":[{"locked":false,"name":"username","value":""},{"locked":true,"name":"password","value":""}],"notes":"","tags":[],"title":"teste"},"secrets":[],"timestamp":1709674334662}]</textarea></div></div>"""
