@@ -1,5 +1,6 @@
 module DataModel.CardVersions.Card where
 
+import Control.Alt ((<$>))
 import Data.Codec.Argonaut as CA
 import Data.Codec.Argonaut.Variant as CAV
 import Data.Either (Either(..))
@@ -14,6 +15,7 @@ import Data.Show (class Show, show)
 import Data.Unit (unit)
 import Data.Variant as V
 import DataModel.Password (PasswordGeneratorSettings)
+import Test.QuickCheck (class Arbitrary, arbitrary)
 import Type.Proxy (Proxy(..))
 
 data CardVersion = CardVersion_1
@@ -49,6 +51,9 @@ instance eqCardField :: Eq CardField where
 instance showCardField :: Show CardField where
   show (CardField { name, value, locked }) = "[" <> show locked <> "] " <> name <> ": " <> value
 
+instance arbitratryCardField :: Arbitrary CardField where
+  arbitrary = CardField <$> arbitrary
+
 -- --------------------------------------------
 
 newtype CardValues = 
@@ -66,6 +71,9 @@ instance eqCardValues :: Eq CardValues where
 
 instance showCardValues :: Show CardValues where
   show (CardValues record) = show record
+
+instance arbitraryCardValues :: Arbitrary CardValues where
+  arbitrary = CardValues <$> arbitrary
 
 -- --------------------------------------------
 
@@ -88,6 +96,9 @@ instance showCard :: Show Card where
 class CardVersions a where
   toCard   :: a    -> Card
   fromCard :: Card -> a
+
+instance arbitraryCard :: Arbitrary Card where
+  arbitrary = Card <$> arbitrary
 
 
 -- --------------------------------------------
