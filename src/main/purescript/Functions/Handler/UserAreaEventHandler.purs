@@ -47,7 +47,7 @@ import Functions.Communication.Backend (ConnectionState, genericRequest)
 import Functions.Communication.Blobs (deleteBlob, getBlob)
 import Functions.Communication.Cards (deleteCard, getCard, postCard)
 import Functions.Communication.Users (computeRemoteUserCard, deleteUserCard, deleteUserInfo, updateUserPreferences)
-import Functions.Export (BlobsList, appendCardsDataInPlace, getBasicHTML, prepareCardsForUnencryptedExport, prepareHTMLBlob)
+import Functions.Export (BlobsList, appendCardsDataInPlace, getBasicHTML, prepareUnencryptedExport, prepareHTMLBlob)
 import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
 import Functions.Import (ImportVersion(..), decodeImport, parseImport, readFile)
 import Functions.Index (updateIndex)
@@ -269,7 +269,7 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
       in do
         let connectionState = {proxy, hashFunc, srpConf, c, p}
         ProxyResponse proxy' (Tuple cardsCache' cardList) <-                       downloadCardsSteps (unwrap index).entries cardsCache connectionState page
-        doc                                               <- runStep (liftEffect $ prepareCardsForUnencryptedExport cardList)                                     (WidgetState (spinnerOverlay "Create document"   White) page)
+        doc                                               <- runStep (liftEffect $ prepareUnencryptedExport cardList)                                             (WidgetState (spinnerOverlay "Create document"   White) page)
         date                                              <- runStep (liftEffect $ formatDateTimeToDate <$> getCurrentDateTime)                                   (WidgetState (spinnerOverlay ""                  White) page)
         _                                                 <- runStep (liftEffect $ download doc (date <> "_Clipperz_Export_" <> username <> ".html") "text/html") (WidgetState (spinnerOverlay "Download document" White) page)
                                   

@@ -8,6 +8,10 @@ const decodeHTML = function(s) {
     return result;
 }
 
+const createFile = function(blob) {
+	return (new File([blob], "filename"))
+}
+
 const _readFile = function (file) { 
     return (onError, onSuccess) => {
         let result = new Promise((resolve, reject) => {
@@ -29,6 +33,7 @@ const _readFile = function (file) {
 };
 
 export {
+	createFile,
     decodeHTML,
 	_readFile
 }

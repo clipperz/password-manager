@@ -20,6 +20,7 @@ import Data.HexString (HexString)
 import Data.List (List)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType (MediaType(..))
+import Data.MediaType.Common (textHTML)
 import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
 import Data.Show (show)
@@ -49,8 +50,8 @@ unencryptedExportStyle = "body {font-family: 'DejaVu Sans Mono', monospace;margi
 
 type BlobsList = List (Tuple HexString HexString)
 
-prepareCardsForUnencryptedExport :: List Card -> Effect String
-prepareCardsForUnencryptedExport cardList = do
+prepareUnencryptedExport :: List Card -> Effect Blob
+prepareUnencryptedExport cardList = do
   dt <- getCurrentDateTime
   let date = formatDateTimeToDate dt
   let time = formatDateTimeToTime dt
@@ -58,7 +59,7 @@ prepareCardsForUnencryptedExport cardList = do
   let htmlDocString1 = "<div><header><h1>Your data on Clipperz</h1><h5>Export generated on " <> date <> " at " <> time <> "</h5></header>"
   let htmlDocString2 = "</div>"
   let htmlDocContent = prepareUnencryptedContent cardList
-  pure $ styleString <> htmlDocString1 <> htmlDocContent <> htmlDocString2
+  pure (fromString (styleString <> htmlDocString1 <> htmlDocContent <> htmlDocString2) textHTML)
 
 formatText :: String -> String
 formatText = (replaceAll (Pattern "<") (Replacement "&lt;")) <<< (replaceAll (Pattern "&") (Replacement "&amp;"))

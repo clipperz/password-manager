@@ -27,6 +27,7 @@ import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 import Effect.Class (liftEffect)
 import Foreign.Object (Object, lookup, values)
 import Functions.Time (getCurrentTimestamp)
+import Web.File.Blob (Blob)
 import Web.File.File (File)
 
 foreign import _readFile :: File -> EffectFnAff String
@@ -38,6 +39,8 @@ readFile maybeFile = do
 
 foreign import decodeHTML :: String -> String
 
+foreign import createFile :: Blob -> File
+
 data ImportVersion = Delta | Epsilon CardVersion
 
 instance showImportVersion :: Show ImportVersion where
@@ -46,7 +49,7 @@ instance showImportVersion :: Show ImportVersion where
 
 parseImport :: String -> ExceptT AppError Aff (Array Card)
 parseImport html = do
-  regex <- except $ regex "<textarea( class=\'(.+)\')?>([\\s\\S]+)<\\/textarea>" noFlags # lmap (\_ -> ImportError "The regex written by the developers is not correct")
+  regex <- except $ regex "<textarea( class=\'({\"tag\":\".+\"})\')?>(\\[[\\s\\S]+\\])<\\/textarea>" noFlags # lmap (\_ -> ImportError "The regex written by the developers is not correct")
   case (match regex (decodeHTML html) <#> fromFoldable) of
     Just (_ : _ : maybeVersion : (Just cards) : Nil) -> do
       version <- pure $ fromMaybe Delta (Epsilon <$> (

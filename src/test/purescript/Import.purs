@@ -1,8 +1,8 @@
 module Test.Import where
 
 import Control.Alt ((<#>))
-import Control.Alternative (pure, (*>))
-import Control.Bind (discard, bind)
+import Control.Alternative (pure)
+import Control.Bind (bind, discard, (=<<))
 import Control.Monad.Except (runExceptT)
 import Data.Array (filter, head, length)
 import Data.Either (Either(..), isRight)
@@ -15,12 +15,11 @@ import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
 import Data.Show (show)
 import Data.Unit (Unit)
-import DataModel.CardVersions.Card (Card(..), CardValues(..), CardField(..))
+import DataModel.CardVersions.Card (Card(..), CardField(..), CardValues(..))
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
-import Effect.Console (log)
-import Functions.Export (prepareUnencryptedContent)
-import Functions.Import (ImportVersion(..), decodeImport, parseImport)
+import Functions.Export (prepareUnencryptedExport)
+import Functions.Import (ImportVersion(..), createFile, decodeImport, parseImport, readFile)
 import Test.QuickCheck (Result(..), (<?>))
 import Test.Spec (describe, it, SpecT)
 import Test.Spec.Assertions (shouldEqual, shouldSatisfy)
@@ -75,7 +74,6 @@ importSpec  =
                                                      }
                            }
       makeTestableOnBrowser importArchivedCard ((\a -> filter (\(Card { content: CardValues { title } }) -> title == "AOL ") a) <$> decodeResult) shouldEqual (Right $ [result])
-      -- makeTestableOnBrowser importArchivedCard ((\a -> index a 3) <$> decodeResult) shouldEqual (Right $ Just result)
          
     let importHTML = "Import html"
     it importHTML do
@@ -85,16 +83,32 @@ importSpec  =
 
     let exportImport = "Export then import html"
     it exportImport do
-      quickCheckAffInBrowser exportImport 100 (\card -> do
-        let cards     = card : Nil
-        let htmlData  = prepareUnencryptedContent cards
-        result       <- runExceptT $ parseImport htmlData <#> fromFoldable
-        case result of
-          Left  err -> liftEffect $ log ("HTML DATA => " <> htmlData <> "\nERROR => " <> show err) *> (Failed (show err) # pure)
-          Right res -> cards == res <?> ((show cards) <> " /= " <> (show res)) # pure
-      )
+      quickCheckAffInBrowser exportImport 100 exportImportProp
+    
+    let exportImportProblematicInput = "Export then import html problematic input"
+    it exportImportProblematicInput do
+      let problematicCard = Card  { archived: false 
+                                  , content: CardValues { fields: [ CardField { locked: false , name: "username" , settings: Nothing , value: "马上免费注册" }
+                                                                  , CardField { locked: true  , name: "password" , settings: Nothing , value: "马上免费注册" }
+                                                                  ]
+                                                        , notes: "非常掘客 / 新闻"
+                                                        , tags: []
+                                                        , title: "非常掘客 / 新闻"
+                                                        }
+                                  , secrets: []
+                                  , timestamp: 0.0 }
+      quickCheckAffInBrowser exportImportProblematicInput 1 (\(_ :: Unit) -> exportImportProp problematicCard)
     
     where
+      exportImportProp card = do
+        let cards     = card : Nil
+        htmlData     <- prepareUnencryptedExport cards # liftEffect
+        let htmlFile  = createFile htmlData
+        result       <- runExceptT $ (parseImport =<< readFile (Just htmlFile)) <#> fromFoldable
+        case result of
+          Left  err -> Failed (show err)                                       # pure
+          Right res -> cards == res <?> ((show cards) <> " /= " <> (show res)) # pure
+
       html_data = """<style type="text/css">body {font-family: 'DejaVu Sans Mono', monospace;margin: 0px;}header {padding: 10px;border-bottom: 2px solid black;}header p span {font-weight: bold;}h1 {margin: 0px;}h2 {margin: 0px;padding-top: 10px;}h3 {margin: 0px;}h5 {margin: 0px;color: gray;}ul {margin: 0px;padding: 0px;}div > ul > li {border-bottom: 1px solid black;padding: 10px;}div > ul > li.archived {background-color: #ddd;}ul > li > ul > li {font-size: 9pt;display: inline-block;}ul > li > ul > li:after {content: ",";padding-right: 5px;}ul > li > ul > li:last-child:after {content: "";padding-right: 0px;}dl {}dt {color: gray;font-size: 9pt;}dd {margin: 0px;margin-bottom: 5px;padding-left: 10px;font-size: 13pt;}div > div {background-color: black;color: white;padding: 10px;}li p, dd.hidden {white-space: pre-wrap;word-wrap: break-word;font-family: monospace;}textarea {display: none}a {color: white;}@media print {div > div, header > div {display: none !important;}div > ul > li.archived {color: #ddd;}ul > li {page-break-inside: avoid;} }</style><div><header><h1>Your data on Clipperz</h1><h5>Export generated on 20240305 at 22:05</h5></header><ul><li class=""><h2>teste - copy - copy - copy - copy</h2><ul> </ul><div><dl><dt>username</dt><dd class=""></dd><dt>password</dt><dd class="hidden"></dd></dl></div><p></p></li><li class=""><h2>teste - copy - copy - copy</h2><ul> </ul><div><dl><dt>username</dt><dd class=""></dd><dt>password</dt><dd class="hidden"></dd></dl></div><p></p></li><li class=""><h2>teste - copy - copy</h2><ul> </ul><div><dl><dt>username</dt><dd class=""></dd><dt>password</dt><dd class="hidden"></dd></dl></div><p></p></li><li class=""><h2>teste - copy</h2><ul> </ul><div><dl><dt>username</dt><dd class=""></dd><dt>password</dt><dd class="hidden"></dd></dl></div><p></p></li><li class=""><h2>teste</h2><ul> </ul><div><dl><dt>username</dt><dd class=""></dd><dt>password</dt><dd class="hidden"></dd></dl></div><p></p></li></ul><div><textarea class='{"tag":"cardVersion_1"}'>[{"archived":false,"content":{"fields":[{"locked":false,"name":"username","value":""},{"locked":true,"name":"password","value":""}],"notes":"","tags":[],"title":"teste - copy - copy - copy - copy"},"secrets":[],"timestamp":1709674334662},{"archived":false,"content":{"fields":[{"locked":false,"name":"username","value":""},{"locked":true,"name":"password","value":""}],"notes":"","tags":[],"title":"teste - copy - copy - copy"},"secrets":[],"timestamp":1709674334662},{"archived":false,"content":{"fields":[{"locked":false,"name":"username","value":""},{"locked":true,"name":"password","value":""}],"notes":"","tags":[],"title":"teste - copy - copy"},"secrets":[],"timestamp":1709674334662},{"archived":false,"content":{"fields":[{"locked":false,"name":"username","value":""},{"locked":true,"name":"password","value":""}],"notes":"","tags":[],"title":"teste - copy"},"secrets":[],"timestamp":1709674334662},{"archived":false,"content":{"fields":[{"locked":false,"name":"username","value":""},{"locked":true,"name":"password","value":""}],"notes":"","tags":[],"title":"teste"},"secrets":[],"timestamp":1709674334662}]</textarea></div></div>"""
 
       joe_clipperzData = """
