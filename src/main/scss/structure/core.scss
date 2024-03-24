@@ -271,8 +271,16 @@ html {
 
 					div.dialog {
 						width: 100%;
-						height: 90vh;
+						// height: 90vh;
+						height: 80%;
 						top: 3%;
+                        background-color: #6e49b3;
+                        // background-color: #4e2f7a;
+
+                        iframe {
+                            width: 100%;
+                            height: 100%;
+                        }
 					}
 				}
 
