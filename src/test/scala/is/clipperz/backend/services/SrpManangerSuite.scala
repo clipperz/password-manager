@@ -34,7 +34,8 @@ object SrpManangerSpec extends ZIOSpecDefault:
   val blobBasePath = FileSystem.default.getPath("target", "tests", "archive", "blobs")
   val userBasePath = FileSystem.default.getPath("target", "tests", "archive", "users")
 
-  val archive = UserArchive.fs(userBasePath, 2, false)
+  val keyBlobArchiveFolderDepth = 16
+  val archive = UserArchive.fs(userBasePath, keyBlobArchiveFolderDepth, false)
 
   val layers =
     archive ++

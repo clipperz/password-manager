@@ -49,8 +49,11 @@ import is.clipperz.backend.services.MasterKeyEncodingVersion
 import is.clipperz.backend.TestUtilities
 
 object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
+    val keyBlobArchiveFolderDepth = 16
+
     override def bootstrap: ZLayer[Any, Any, UserArchive & BlobArchive] =
-        UserArchive.fs(userBasePath, 2, false) ++ BlobArchive.fs(blobBasePath, 2, false)
+        UserArchive.fs(userBasePath, keyBlobArchiveFolderDepth, false) ++
+        BlobArchive.fs(blobBasePath, keyBlobArchiveFolderDepth, false)
 
     val app =   loginApi
                 .handleErrorCauseZIO(customErrorHandler)
@@ -62,10 +65,10 @@ object LoginSpec extends ZIOSpec[UserArchive & BlobArchive]:
     val environment =
         PRNG.live ++
         (PRNG.live >>> SessionManager.live()) ++
-        UserArchive.fs(userBasePath, 2, false) ++
-        BlobArchive.fs(blobBasePath, 2, false) ++
-        OneTimeShareArchive.fs(oneTimeShareBasePath, 2, false) ++
-        ((UserArchive.fs(userBasePath, 2, false) ++ PRNG.live) >>> SrpManager.v6a()) ++
+        UserArchive.fs(userBasePath, keyBlobArchiveFolderDepth, false) ++
+        BlobArchive.fs(blobBasePath, keyBlobArchiveFolderDepth, false) ++
+        OneTimeShareArchive.fs(oneTimeShareBasePath, keyBlobArchiveFolderDepth, false) ++
+        ((UserArchive.fs(userBasePath, keyBlobArchiveFolderDepth, false) ++ PRNG.live) >>> SrpManager.v6a()) ++
         (PRNG.live >>> TollManager.live)
 
     val c = HexString("7815018e9d84b5b0f319c87dee46c8876e85806823500e03e72c5d66e5d40456")

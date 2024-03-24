@@ -51,13 +51,15 @@ object LogoutSpec extends ZIOSpecDefault:
   val userBasePath = FileSystem.default.getPath("target", "tests", "archive", "users")
   val oneTimeShareBasePath = FileSystem.default.getPath("target", "tests", "archive", "one_time_share")
 
+  val keyBlobArchiveFolderDepth = 16
+
   val environment =
     PRNG.live ++
       (PRNG.live >>> SessionManager.live()) ++
-      UserArchive.fs(userBasePath, 2, false) ++
-      BlobArchive.fs(blobBasePath, 2, false) ++
-      OneTimeShareArchive.fs(oneTimeShareBasePath, 2, false) ++
-      ((UserArchive.fs(userBasePath, 2, false) ++ PRNG.live) >>> SrpManager.v6a()) ++
+      UserArchive.fs(userBasePath, keyBlobArchiveFolderDepth, false) ++
+      BlobArchive.fs(blobBasePath, keyBlobArchiveFolderDepth, false) ++
+      OneTimeShareArchive.fs(oneTimeShareBasePath, keyBlobArchiveFolderDepth, false) ++
+      ((UserArchive.fs(userBasePath, keyBlobArchiveFolderDepth, false) ++ PRNG.live) >>> SrpManager.v6a()) ++
       (PRNG.live >>> TollManager.live)
 
   val sessionKey = "sessionKey"
