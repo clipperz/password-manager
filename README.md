@@ -36,13 +36,13 @@ Command to run inside of the sbt console to execute tests:
 	- `testOnly {path of the test suit}` (ex: `testOnly is.clipperz.backend.SrpFunctionsConversionsSuite`): run a specific test suite
 	- `Test/run`: show a list of all the test suits from which you can choose one to run
 - Purescript
-	- `testPurescript`: starts a server on `localhost:9000`
+	- `testPurescript`: starts a server on `https://localhost:9000`
 		- the path `/static/test_index.html` serve a page that runs the Purescript tests on browser and prints the result in the page itself
 		- the path `/static/debug_index.html` serve a page for debugging purpose, allowing to view the static page corresponding to a state of the application
 - `t` (or `testAll`): run `test` first and `testPurescript` after that. Note that if a Scala test doesn't pass `testPurescript` will not be executed.
 
 ### Debug
-As described in the above, the `testPurescript` command will execute a server that serves on address `localhost:9000/static/debug_index.html` the debug page.
+As described in the above, the `testPurescript` command will execute a server that serves on address `https://localhost:9000/static/debug_index.html` the debug page.
 In the main application, using the key-combination `ctrl+alt+c` (or pressing the `DEBUG` button in the bottom right corner) will copy the app state.
 Keeping the `Shift` key pressed will slow down the operation's animations.
 
