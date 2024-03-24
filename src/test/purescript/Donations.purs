@@ -12,6 +12,7 @@ import Data.Identity (Identity)
 import Data.List (fromFoldable)
 import Data.Maybe (Maybe(..))
 import Data.Ring ((-), (+))
+import Data.Set (empty)
 import Data.Time.Duration (negateDuration)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
@@ -57,7 +58,7 @@ donationSpec  =
 
 computeDonationLevelFromRawData :: Int -> Maybe DateTime -> Effect DonationLevel
 computeDonationLevelFromRawData numberOfCards dateOfLastDonation = 
-  let emptyCardEntry      = CardEntry      { title: "", tags: [], lastUsed: 0.0, archived: false, cardReference: CardReference {identifier: hex "", key: hex "", reference: hex "", version: currentCardVersion}}
+  let emptyCardEntry      = CardEntry      { title: "", tags: empty, lastUsed: 0.0, archived: false, cardReference: CardReference {identifier: hex "", key: hex "", reference: hex "", version: currentCardVersion}}
       emptyIndexReference = IndexReference { reference: hex "", key: hex "", version: currentIndexVersion}
       index               = Index          { entries: fromFoldable $ replicate numberOfCards emptyCardEntry, identifier: hex "" }
       userInfo            = UserInfo       { dateOfLastDonation, identifier: hex "", userPreferences: defaultUserPreferences, indexReference: emptyIndexReference}

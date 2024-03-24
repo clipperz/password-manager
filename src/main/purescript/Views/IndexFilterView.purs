@@ -6,7 +6,7 @@ import Concur.React.DOM (div, form, input, int, label, li, ol, span, text)
 import Concur.React.Props as Props
 import Control.Alt (($>), (<#>))
 import Control.Category (identity, (>>>))
-import Data.Array (any, elem, nub, null, sort, (:))
+import Data.Array (any, nub, sort, (:))
 import Data.Eq (class Eq, (==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
@@ -16,6 +16,7 @@ import Data.List as List
 import Data.Maybe (Maybe(..))
 import Data.Ord (compare, (<))
 import Data.Semigroup ((<>))
+import Data.Set (isEmpty, member, toUnfoldable)
 import Data.String (Pattern(..), contains, toLower)
 import DataModel.IndexVersions.Index (CardEntry(..), Index(..))
 
@@ -79,7 +80,7 @@ indexFilterView filterData@{archived, filter, searchString} (Index {entries}) = 
           span [Props.className "tags"] [text "Tags"]
         , ol [Props._id "tagFilter"] (
                 (\tag -> getFilterListElement (Tag tag) tag [] (filter == Tag tag)) 
-            <$> (sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) 
+            <$> (sort $ nub $ fold $ (\(CardEntry { tags }) -> toUnfoldable tags) 
             <$> (shownEntries entries Nothing archived))
           )
         ] <#> updateFilter
@@ -131,8 +132,8 @@ filteredEntries :: Filter -> List CardEntry -> List CardEntry
 filteredEntries filter = case filter of
   Search searchString'  -> if searchString' == ""
                            then identity
-                           else List.filter (\(CardEntry entry) -> any (contains (Pattern (toLower searchString'))) (toLower <$> (entry.title : entry.tags))) -- TODO: may be improved with a proper information retrieval system [fsolaroli - 27/11/2023]
-  Tag    tag'           ->      List.filter (\(CardEntry entry) -> elem tag' entry.tags)                                                                     
-  Untagged              ->      List.filter (\(CardEntry entry) -> null      entry.tags)                                                                     
+                           else List.filter (\(CardEntry entry) -> any (contains (Pattern (toLower searchString'))) (toLower <$> (entry.title : toUnfoldable entry.tags))) -- TODO: may be improved with a proper information retrieval system [fsolaroli - 27/11/2023]
+  Tag    tag'           ->      List.filter (\(CardEntry entry) -> member  tag' entry.tags)                                                                     
+  Untagged              ->      List.filter (\(CardEntry entry) -> isEmpty      entry.tags)                                                                     
   Recent                ->      List.sortBy (\(CardEntry e1) (CardEntry e2) -> compare e1.lastUsed e2.lastUsed) >>> List.takeEnd numberOfRecent
   All                   ->      identity      

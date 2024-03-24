@@ -14,6 +14,7 @@ import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not, (&&))
 import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
+import Data.Set (isEmpty, toUnfoldable)
 import Data.Unit (unit)
 import DataModel.CardVersions.Card (Card(..), CardField(..), CardValues(..))
 import DataModel.IndexVersions.Index (CardEntry)
@@ -84,10 +85,10 @@ secretSignal { creationDate, expirationDate, secretId } = li_ [] do
 cardContent :: forall a. CardValues -> Widget HTML a
 cardContent (CardValues {title: t, tags: ts, fields: fs, notes: n}) = div [Props._id "cardContent"] [
   h3  [Props.className "card_title"]  [text t]
-, if (null ts) then (text "") else div [Props.className "card_tags"] [ul  []   $ (\s -> li' [text s]) <$> ts]
-, if (null fs) then (text "") else div [Props.className "card_fields"] $ cardField <$> fs
+, if (isEmpty ts) then (text "") else div [Props.className "card_tags"] [ul [] $ (\s -> li' [text s]) <$> (toUnfoldable ts)]
+, if (null    fs) then (text "") else div [Props.className "card_fields"] $ cardField <$> fs
 , div [Props.className "card_notes"] [
-    if (null ts && null fs) then (text "") else h3 [] [text "Notes"]
+    if (isEmpty ts && null fs) then (text "") else h3 [] [text "Notes"]
   , div [Props.className "markdown-body", Props.dangerouslySetInnerHTML { __html: unsafePerformEffect $ renderString n}] []
   ]
 ]

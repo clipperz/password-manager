@@ -13,6 +13,8 @@ import Data.Identity (Identity)
 import Data.List (List(..), fromFoldable, (:))
 import Data.Maybe (Maybe(..))
 import Data.Semigroup ((<>))
+import Data.Set (empty)
+import Data.Set as Set
 import Data.Show (show)
 import Data.Unit (Unit)
 import DataModel.CardVersions.Card (Card(..), CardField(..), CardValues(..))
@@ -47,7 +49,7 @@ importSpec  =
                            , archived: false
                            , secrets: []
                            , content: CardValues { title: "Amazon.com"
-                                                     , tags: ["shopping"]
+                                                     , tags: Set.fromFoldable ["shopping"]
                                                      , fields: [ CardField { name: "email", value: "joe@clipperz.com", locked: false, settings: Nothing }
                                                                , CardField { name: "password", value: "8gJcYP~bJh#PMfA[|eU", locked: true, settings: Nothing }
                                                                , CardField { name: "URL", value: "https://www.amazon.com", locked: false, settings: Nothing }
@@ -65,7 +67,7 @@ importSpec  =
                            , archived: true
                            , secrets: []
                            , content: CardValues { title: "AOL "
-                                                     , tags: ["", "social"]
+                                                     , tags: Set.fromFoldable ["", "social"]
                                                      , fields: [ CardField { name: "URL", value: "http://www.aol.com", locked: false, settings: Nothing }
                                                                , CardField { name: "ID", value: "88440023", locked: false, settings: Nothing }
                                                                , CardField { name: "password", value: "I9EJpXaOzNoNATZB0NjUcUZYBa", locked: true, settings: Nothing }
@@ -92,7 +94,7 @@ importSpec  =
                                                                   , CardField { locked: true  , name: "password" , settings: Nothing , value: "马上免费注册" }
                                                                   ]
                                                         , notes: "非常掘客 / 新闻"
-                                                        , tags: []
+                                                        , tags: empty
                                                         , title: "非常掘客 / 新闻"
                                                         }
                                   , secrets: []

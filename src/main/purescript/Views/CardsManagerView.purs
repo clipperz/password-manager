@@ -9,18 +9,19 @@ import Control.Alternative ((*>))
 import Control.Applicative (pure)
 import Control.Bind (bind, (>>=))
 import Control.Category ((<<<))
-import Data.Array (foldl, fromFoldable, mapWithIndex, nub)
+import Data.Array (foldl, fromFoldable, mapWithIndex)
 import Data.CommutativeRing (add)
 import Data.Either (Either(..))
 import Data.Eq ((/=), (==))
 import Data.Function (flip, (#), ($))
 import Data.Functor ((<$>), (<$))
-import Data.List (List, elemIndex, fold, index, length)
+import Data.List (List, elemIndex, index, length)
 import Data.List as List
 import Data.Maybe (Maybe(..), maybe)
 import Data.Ord (max, min)
 import Data.Ring (sub, (-))
 import Data.Semigroup ((<>))
+import Data.Set (Set, unions)
 import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
 import DataModel.CardVersions.Card (Card, emptyCard)
@@ -134,8 +135,8 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archiv
     , (CardManagerEvent OpenUserAreaEvent) <$ div [Props.className "menu"] [button [Props.onClick] [text "menu"]]
     ]
 
-    allTags :: Array String
-    allTags = nub $ fold $ (\(CardEntry entry) -> entry.tags) <$> fromFoldable entries
+    allTags :: Set String
+    allTags = unions $ (\(CardEntry entry) -> entry.tags) <$> fromFoldable entries
 
     shortcutsHandlers :: List CardEntry -> Widget HTML CardsManagerInternalEvent
     shortcutsHandlers sortedCards =

@@ -14,6 +14,7 @@ import Data.Newtype (class Newtype, unwrap)
 import Data.Ord (class Ord, compare)
 import Data.Profunctor (dimap)
 import Data.Semigroup ((<>))
+import Data.Set (Set)
 import Data.Show (class Show, show)
 import Data.String.Common (toLower)
 import Data.Unit (unit)
@@ -65,7 +66,7 @@ newtype CardEntry =
     { title :: String
     , cardReference :: CardReference
     , archived :: Boolean
-    , tags :: Array String
+    , tags :: Set String
     , lastUsed :: Number
     }
 

@@ -218,7 +218,7 @@ cardEntryCodec = wrapIso CardEntry $
       { title:         CA.string
       , cardReference: cardReferenceCodec
       , archived:      CA.boolean
-      , tags:          CA.array CA.string
+      , tags:          CAC.set CA.string
       , lastUsed:      CA.number
       }
     )
@@ -380,7 +380,7 @@ cardValuesCodec = wrapIso CardValues (
   CA.object "CardValues"
     (CAR.record
       { title  : CA.string
-      , tags   : CA.array CA.string
+      , tags   : CAC.set CA.string
       , fields : CA.array cardFieldCodec
       , notes  : CA.string
       }

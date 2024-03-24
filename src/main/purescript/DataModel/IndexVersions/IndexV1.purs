@@ -10,6 +10,7 @@ import Data.Identifier (Identifier)
 import Data.List (List)
 import Data.Newtype (class Newtype)
 import Data.Profunctor (wrapIso)
+import Data.Set (Set)
 import DataModel.CardVersions.Card (CardVersion, cardVersionCodec)
 import DataModel.IndexVersions.Index (class IndexVersions, CardEntry(..), CardReference(..), Index(..))
 
@@ -25,7 +26,7 @@ type CardEntry_V1 =
   { title :: String
   , cardReference :: CardReference_V1
   , archived :: Boolean
-  , tags :: Array String
+  , tags :: Set String
   , lastUsed :: Number
   }
 cardEntryV1Codec :: CA.JsonCodec CardEntry_V1
@@ -34,7 +35,7 @@ cardEntryV1Codec =
     { title:         CA.string
     , cardReference: cardReferenceV1Codec
     , archived:      CA.boolean
-    , tags:          CA.array CA.string
+    , tags:          CAC.set CA.string
     , lastUsed:      CA.number
     }
 

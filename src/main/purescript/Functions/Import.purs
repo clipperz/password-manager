@@ -12,6 +12,7 @@ import Data.Codec.Argonaut (decode, encode)
 import Data.Either (Either, hush, note)
 import Data.List (List(..), fromFoldable, (:))
 import Data.Maybe (fromMaybe, Maybe(..))
+import Data.Set as Set
 import Data.String (split)
 import Data.String.Pattern (Pattern(..))
 import Data.String.Regex (match, regex)
@@ -85,7 +86,7 @@ decodeDeltaCardObject obj = do
               , secrets: []
               , archived: archived
               , content: CardValues { title: title
-                                    , tags: tags
+                                    , tags: Set.fromFoldable tags
                                     , fields: fields
                                     , notes: notes
                                     }

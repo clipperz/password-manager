@@ -8,6 +8,7 @@ import Control.Monad.Except (throwError)
 import Control.Monad.Except.Trans (ExceptT(..), except)
 import Control.Semigroupoid ((<<<))
 import Data.Argonaut.Core as AC
+import Data.Array as Array
 import Data.Codec.Argonaut (encode)
 import Data.Codec.Argonaut.Common as CAC
 import Data.Either (Either(..), either, note)
@@ -23,6 +24,7 @@ import Data.MediaType (MediaType(..))
 import Data.MediaType.Common (textHTML)
 import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
+import Data.Set (toUnfoldable)
 import Data.Show (show)
 import Data.String.Common (replaceAll)
 import Data.String.Pattern (Pattern(..), Replacement(..))
@@ -73,7 +75,7 @@ prepareUnencryptedContent l =
   where
     cardToLi (Card {content: (CardValues {title, tags, fields, notes}), archived, timestamp: _}) =
       let archivedTxt = if archived then "archived" else ""
-          tagsLis = fold $ (\t -> "<li>" <> (formatText t) <> "</li>") <$> tags
+          tagsLis = Array.fold $ (\t -> "<li>" <> (formatText t) <> "</li>") <$> (toUnfoldable tags)
           fieldsDts = fold $  (\(CardField {name, value, locked}) -> "<dt>" <> (formatText name) <> "</dt><dd class=\"" <> (if locked then "hidden" else "") <> "\">" <> (formatText value) <> "</dd>") <$> fields
           liContent = "<h2>" <> (formatText title) <> "</h2><ul> " <> tagsLis <> "</ul><div><dl>" <> fieldsDts <> "</dl></div><p>" <> (formatText notes) <> "</p>"
       in "<li class=\"" <> archivedTxt <> "\">" <> liContent <> "</li>"
