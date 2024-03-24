@@ -51,7 +51,8 @@ object Main extends zio.ZIOAppDefault:
     // val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (Middleware.timeout(10.seconds) ++ metrics()) //TODO: add timeout time to configuration file [fsolaroli - 10/01/2024]
     val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ middlewares
 
-    val keyBlobArchiveFolderDepth = 16
+    // val keyBlobArchiveFolderDepth = 16
+    val keyBlobArchiveFolderDepth = 2
 
     val run: ZIO[Any & ZIOAppArgs & Scope, Any, Any] = ZIOAppArgs.getArgs.flatMap { args =>
         if args.length == 4
