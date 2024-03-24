@@ -35,6 +35,10 @@ html {
 							& > .mask {
 								@include mask();
 							}
+
+                            div.content {
+                                z-index: 20;
+                            }
                         }
                     }
 
@@ -49,7 +53,8 @@ html {
 
                         div.content {
                             position: relative;
-                            z-index: 20;
+                            // z-index: 20;
+                            z-index: 7;
 
                             height: 100%;
                             overflow: hidden;
