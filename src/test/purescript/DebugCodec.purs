@@ -420,17 +420,17 @@ passwordGeneratorSettingsCodec =
     )
 
 -- type CardManagerState = { 
---   filterData    :: FilterData
--- , selectedEntry :: Maybe CardEntry
--- , cardViewState :: CardViewState
+--   filterData       :: FilterData
+-- , highlightedEntry :: Maybe Int
+-- , cardViewState    :: CardViewState
 -- }
 cardManagerStateCodec :: CA.JsonCodec CardManagerState
 cardManagerStateCodec =
   CA.object "CardManagerState"
     (CAR.record
-      { filterData    : filterDataCodec
-      , selectedEntry : CAR.optional cardEntryCodec
-      , cardViewState : cardViewStateCodec
+      { filterData       : filterDataCodec
+      , highlightedEntry : CAR.optional CA.int
+      , cardViewState    : cardViewStateCodec
       }
     )
 

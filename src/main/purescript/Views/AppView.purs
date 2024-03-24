@@ -2,7 +2,7 @@ module Views.AppView where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (a, div, h1, h3, header, li, p, span, text, ul)
+import Concur.React.DOM (a, div, h1, h3, header, li, text, ul)
 import Concur.React.Props as Props
 import Control.Alt ((<|>))
 import Control.Bind (bind)
@@ -73,9 +73,9 @@ appView widgetState@(WidgetState overlayInfo page) =
                                         _                         -> emptyMainPageWidgetState
         
         div [Props._id "homePage"] [
-          ( MainPageCardManagerEvent                         # uncurry) <$> cardsManagerView cardManagerState index (unwrap userPreferences).passwordGeneratorSettings
+          ( MainPageCardManagerEvent                         # uncurry) <$> cardsManagerView cardManagerState index (unwrap userPreferences).passwordGeneratorSettings false
         , ((MainPageUserAreaEvent # flip $ cardManagerState) # uncurry) <$> userAreaView userAreaState userPreferences credentials pinExists
-        , (DonationPageEvent)                                           <$> donationReminder donationLevel
+        , ( DonationPageEvent                                         ) <$> donationReminder donationLevel
         ] 
       ]
     ]
@@ -118,7 +118,6 @@ headerPage currentPage page innerContent = do
     , div [Props.className "body"] innerContent
     , otherComponent
     , footerComponent commitHash
-    , shortcutsDiv
     ]
   ]
 
@@ -140,14 +139,3 @@ otherComponent =
       ]
     ]
   ]
-
-shortcutsDiv :: forall a. Widget HTML a
-shortcutsDiv = div [Props._id "shortcutsHelp", Props.className "hidden"] [
-  p [] [span [] [text "/"]], p [] [text "search"]
-, p [] [span [] [text "*"]], p [] [text "reset search"]
-, p [] [span [] [text "Enter, d, RightArrow"]], p [] [text "open card"]
-, p [] [span [] [text "Escape, a, LeftArrow"]], p [] [text "close card"]
-, p [] [span [] [text "w, UpArrow, s, DownArrow"]], p [] [text "Navigate between cards"]
-, p [] [span [] [text "lock"]], p [] [text "Lock"]
-]
-

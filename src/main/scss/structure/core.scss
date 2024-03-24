@@ -62,7 +62,7 @@ html {
                                 overflow: hidden;
                                 flex: auto;
                                 
-								div#searchForm {
+								form#searchForm {
 									display: flex;
 									flex-direction: row;
 									// justify-content: space-between;
@@ -554,7 +554,12 @@ $extraWide-minSize: 1100px;
 								}
                             }
                         }
+
                     }
+
+					.shortcutsHelp .helpBox {
+						width: calc(100vw - 250px - 40px);
+					}
 
 					div.donationButton {
 						left: 250px;

@@ -56,6 +56,21 @@ const _getWindowMessage = function() {
 	}
 }
 
+const _keyboardShortcut = function(shortcut) {
+	return (onError, onSuccess) => {
+		let result = new Promise((resolve, reject) => {
+			Mousetrap.bind(shortcut, function(e) {
+				e.preventDefault();
+				resolve()
+			});
+        });
+
+        result.then(onSuccess).catch(onError);
+        return (cancelError, cancelerError, cancelerSuccess) => {
+        }
+	}
+}
+
 const renderElement = function(element) {
     return element.innerHTML;
 }
@@ -81,34 +96,30 @@ const cursorToEnd = function(ev) {
 	}
 }
 
+const focus = function(id) {
+	return function() {
+		document.getElementById(id).focus();
+		return;
+	}
+}
+
+const blur = function(id) {
+	return function() {
+		document.getElementById(id).blur();
+		return;
+	}
+}
+
 export {
     _readFile,
     _readFileFromDrop,
 	_getWindowMessage,
+	_keyboardShortcut,
     renderElement,
     _getXClickCoordinates,
     _getYClickCoordinates,
     printEvent,
-	cursorToEnd
+	cursorToEnd,
+	focus,
+	blur
 }
-
-// function _randomBytes(n) { return (onError, onSuccess) => {
-//     let result = new Promise((resolve, reject) => {
-//         setTimeout(() => {
-//             var i;
-//             let result = new Uint8Array(n);  
-
-//             for (i=0; i<n; i++) {
-//                 result[i] = _randomByte();
-//             }
-
-//             resolve(result);
-//         }, gratuitousTimeout);
-//     });
-
-//     result.then(onSuccess).catch(onError);
-//     return (cancelError, cancelerError, cancelerSuccess) => {
-// 		console.log(cancelError)
-//       // Handle however you'd cancel the `o` (if the API supports it)
-//     }
-// }; }

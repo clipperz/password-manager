@@ -238,7 +238,7 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
                 hiddenOverlayInfo
                 (Main defaultPage { index            = updatedIndex
                                   , userAreaState    = userAreaInitialState
-                                  , cardManagerState = cardManagerState {cardViewState = NoCard, selectedEntry = Nothing}
+                                  , cardManagerState = cardManagerState {cardViewState = NoCard, highlightedEntry = Nothing}
                                   }
                 )
               )
