@@ -11,6 +11,7 @@ import Control.Applicative (pure)
 import Control.Bind (bind, (>>=))
 import Control.Category ((<<<))
 import Control.Monad.Except.Trans (ExceptT, runExceptT, throwError)
+import Data.Either (Either(..))
 import Data.Function ((#), ($))
 import Data.Map (insert, lookup)
 import Data.Maybe (Maybe(..), isJust, isNothing)
@@ -64,14 +65,22 @@ handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just inde
                   )
                 )
     
-    (OpenCardViewEvent cardEntry) -> 
+    (OpenCardViewEvent (Left highlightedEntry)) -> 
+      doNothing (Tuple 
+                  state 
+                  (WidgetState
+                    hiddenOverlayInfo
+                    (Main defaultPage { cardManagerState = cardManagerState {cardViewState = NoCard, highlightedEntry = highlightedEntry}})
+                  )
+                )
+    (OpenCardViewEvent (Right cardEntry)) -> 
       do
         ProxyResponse proxy' (Tuple cardsCache' card) <- getCardSteps connectionState cardsCache cardEntry (Main defaultPage)
         pure (Tuple
                 state {proxy = proxy', cardsCache = cardsCache'}
                 (WidgetState
                   hiddenOverlayInfo
-                  (Main defaultPage { cardManagerState = cardManagerState {selectedEntry = (Just cardEntry), cardViewState = Card card cardEntry} }
+                  (Main defaultPage { cardManagerState = cardManagerState {highlightedEntry = Nothing, cardViewState = Card card cardEntry} }
                   )
                 )
               )
@@ -106,7 +115,7 @@ handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just inde
                 (WidgetState
                   hiddenOverlayInfo
                   (Main defaultPage { index            = updatedIndex
-                                    , cardManagerState = cardManagerState {cardViewState = NoCard, selectedEntry = Nothing}
+                                    , cardManagerState = cardManagerState {cardViewState = NoCard, highlightedEntry = Nothing}
                                     }
                   )
                 )
@@ -176,7 +185,7 @@ addCardSteps cardManagerState state@{index: Just index, userInfo: Just (UserInfo
                   , pinExists: isJust pinEncryptedPassword
                   , userPreferences
                   , userAreaState:    userAreaInitialState
-                  , cardManagerState: cardManagerState {cardViewState = Card newCard newCardEntry, selectedEntry = Just newCardEntry}
+                  , cardManagerState: cardManagerState {cardViewState = Card newCard newCardEntry, highlightedEntry = Nothing}
                   , donationLevel
                   }
             )
@@ -201,7 +210,7 @@ editCardSteps cardManagerState state@{index: Just index, proxy, srpConf, hash: h
                   , pinExists: isJust pinEncryptedPassword
                   , userPreferences
                   , userAreaState:    userAreaInitialState
-                  , cardManagerState: cardManagerState {cardViewState = (Card updatedCard cardEntry), selectedEntry = Just cardEntry}
+                  , cardManagerState: cardManagerState {cardViewState = (Card updatedCard cardEntry), highlightedEntry = Nothing}
                   , donationLevel
                   }
             )

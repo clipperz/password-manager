@@ -9,7 +9,7 @@
         "clean-test": "rm -rf target/output.purescript/test.js",
         "nuke": "npm run clean-node; npm run clean-spago; npm run clean-purescript; npm run clean-webpack",
         "docs": "spago docs --open",
-        "package": "webpack build --config ./webpack.config.js --stats verbose",
+        "package": "webpack build --config ./webpack.config.js",
         "keep-building": "spago --jobs 10 build --watch --purs-args '--codegen js,sourcemaps -o ./target/output.purescript'",
         "keep-packaging": "webpack watch --config ./webpack.config.js --stats verbose",
         "rebuild": "clear; npm run clean; npm run build",

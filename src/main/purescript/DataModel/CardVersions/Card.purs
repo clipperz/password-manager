@@ -1,6 +1,8 @@
 module DataModel.CardVersions.Card where
 
-import Control.Alt ((<$>))
+import Control.Alt ((<#>), (<$>))
+import Control.Alternative (pure)
+import Control.Bind (bind)
 import Data.Codec.Argonaut as CA
 import Data.Codec.Argonaut.Variant as CAV
 import Data.Either (Either(..))
@@ -11,6 +13,7 @@ import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Profunctor (dimap)
 import Data.Semigroup ((<>))
+import Data.Set (Set, empty, fromFoldable)
 import Data.Show (class Show, show)
 import Data.Unit (unit)
 import Data.Variant as V
@@ -59,7 +62,7 @@ instance arbitratryCardField :: Arbitrary CardField where
 newtype CardValues = 
   CardValues
     { title   :: String
-    , tags    :: Array String
+    , tags    :: Set String
     , fields  :: Array CardField
     , notes   :: String
     }
@@ -73,7 +76,12 @@ instance showCardValues :: Show CardValues where
   show (CardValues record) = show record
 
 instance arbitraryCardValues :: Arbitrary CardValues where
-  arbitrary = CardValues <$> arbitrary
+  arbitrary = CardValues <$> do
+    title  <- arbitrary
+    tags   <- arbitrary <#> (\(array :: Array String) -> fromFoldable array)
+    fields <- arbitrary
+    notes  <- arbitrary
+    pure $ {title, tags, fields, notes}
 
 -- --------------------------------------------
 
@@ -111,36 +119,13 @@ emptyCard = Card { timestamp: 0.0
                     , archived: false
                     , secrets: []
                     , content: CardValues { title: ""
-                                              , tags: []
+                                              , tags: empty
                                               , fields: [ CardField { name: "username", value: "", locked: false, settings: Nothing }
                                                         , CardField { name: "password", value: "", locked: true,  settings: Nothing }
                                                         ]
                                               , notes: ""
                                               }
                     }
-
-card0 :: Card
-card0 = Card { timestamp: 0.0 , archived: false, secrets: [], content: cardValues0 }
-card1 :: Card
-card1 = Card { timestamp: 0.0 , archived: false, secrets: [], content: cardValues1 }
-
-cardValues0 :: CardValues
-cardValues0 = CardValues { title: "Mail account (SAMPLE)"
-                      , tags: ["mail", "sample"]
-                      , fields: [ (CardField {name: "username", value: "sample@mail.com", locked: false, settings: Nothing})
-                                , (CardField {name: "password", value: "i3k^{flhadhse93na[{%oq[;6-", locked: true, settings: Nothing})]
-                      , notes: "Mail account notes"}
-
-cardValues1 :: CardValues
-cardValues1 = CardValues { title: "Bank account (SAMPLE)"
-                      , tags: ["finance", "sample"]
-                      , fields: [ (CardField {name: "IBAN", value: "DE89370400440532015007", locked: false, settings: Nothing})
-                                , (CardField {name: "password", value: "?)E%[9=GcgzaAftgP[LSEK7JJv", locked: true, settings: Nothing})
-                                , (CardField {name: "User ID", value: "76238784", locked: false, settings: Nothing})
-                                , (CardField {name: "Web", value: "https://www.db.com", locked: false, settings: Nothing})
-                                , (CardField {name: "Bank", value: "Deutsche Bank", locked: false, settings: Nothing})
-                                , (CardField {name: "Branch n.", value: "774942", locked: false, settings: Nothing})]
-                      , notes: ""}
 
 defaultCards :: List Card
 defaultCards = Nil

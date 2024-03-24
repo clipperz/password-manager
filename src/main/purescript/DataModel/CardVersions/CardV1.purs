@@ -1,12 +1,14 @@
 module DataModel.CardVersions.CardV1 where
 
 import Data.Codec.Argonaut as CA
+import Data.Codec.Argonaut.Common as CAC
 import Data.Codec.Argonaut.Record as CAR
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Profunctor (wrapIso)
+import Data.Set (Set)
 import DataModel.CardVersions.Card (class CardVersions, Card(..), CardField(..), CardValues(..))
 
 newtype Card_V1 = Card_V1 
@@ -34,7 +36,7 @@ instance card_v1 :: CardVersions Card_V1 where
 
 type CardValues_V1 = 
   { title   :: String
-  , tags    :: Array String
+  , tags    :: Set String
   , fields  :: Array CardField_V1
   , notes   :: String
   }
@@ -42,7 +44,7 @@ cardValuesV1Codec :: CA.JsonCodec CardValues_V1
 cardValuesV1Codec = 
   CAR.object "cardValuesV1"
     { title   : CA.string
-    , tags    : CA.array CA.string
+    , tags    : CAC.set CA.string
     , fields  : CA.array cardFieldV1Codec
     , notes   : CA.string
     }

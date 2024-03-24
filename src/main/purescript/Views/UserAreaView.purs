@@ -9,17 +9,20 @@ import Control.Applicative (pure)
 import Control.Bind (bind)
 import Control.Category ((<<<))
 import Data.Eq ((==))
-import Data.Function (($))
+import Data.Function ((#), ($))
 import Data.Functor ((<$>))
 import Data.HeytingAlgebra (not)
 import Data.Map (Map, fromFoldable, insert, lookup)
 import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Monoid ((<>))
 import Data.Tuple (Tuple(..))
 import DataModel.Credentials (Credentials)
 import DataModel.UserVersions.User (UserPreferences)
 import DataModel.WidgetState (UserAreaPage(..), UserAreaState, UserAreaSubmenu(..), ImportState)
+import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.EnvironmentalVariables (currentCommit)
+import Functions.Events (keyboardShortcut)
 import Functions.State (isOffline)
 import Views.ChangePasswordView (changePasswordView)
 import Views.Components (Enabled(..), footerComponent)
@@ -47,15 +50,19 @@ data UserAreaInternalEvent = StateUpdate UserAreaState | UserAreaEvent UserAreaE
 userAreaView :: UserAreaState -> UserPreferences -> Credentials -> Boolean -> Widget HTML (Tuple UserAreaEvent UserAreaState)
 userAreaView state@{showUserArea, userAreaOpenPage, importState, userAreaSubmenus} userPreferences credentials pinExists = do
   commitHash <- liftEffect currentCommit
-  res <- div [Props._id "userPage", Props.className (if showUserArea then "open" else "closed")] [
-    div [Props.onClick, Props.className "mask"] [] $> UserAreaEvent CloseUserAreaEvent
-  , div [Props.className "panel"] [
-      header [] [div [] [button [Props.onClick] [text "menu"]]] $> UserAreaEvent CloseUserAreaEvent
-    , userAreaMenu
-    , footerComponent commitHash
-    ]
-  , userAreaInternalView
-  ]
+  res <- (
+    (div [Props._id "userPage", Props.className (if showUserArea then "open" else "closed")] [
+      div [Props.onClick, Props.className "mask"] [] $> UserAreaEvent CloseUserAreaEvent
+    , div [Props.className "panel"] [
+        header [] [div [] [button [Props.onClick] [text "menu"]]] $> UserAreaEvent CloseUserAreaEvent
+      , userAreaMenu
+      , footerComponent commitHash
+      ]
+    , userAreaInternalView
+    ])
+    <> 
+    ((keyboardShortcut ["l o c k"] # liftAff) $> UserAreaEvent LockEvent)
+  )
   case res of
     StateUpdate updatedState -> userAreaView updatedState userPreferences credentials pinExists
     UserAreaEvent event      -> pure $ (Tuple event state)

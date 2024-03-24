@@ -27,7 +27,6 @@ module Views.SimpleWebComponents
   , simpleTextAreaSignal
   , simpleTextAreaWidget
   , simpleTextInputWidget
-  , simpleTextInputWidgetWithFocus
   , simpleUserSignal
   , simpleVerifiedPasswordSignal
   , submenu
@@ -123,20 +122,6 @@ simpleFileInputWidget className lbl = do
     fromSyntheticEvent se = do
       nve <- liftEffect $ currentTarget se
       liftAff $ readFile nve
-
-simpleTextInputWidgetWithFocus :: String -> Widget HTML String -> String -> String -> Widget HTML String
-simpleTextInputWidgetWithFocus className lbl placeholder s = do
-  label [Props.className className] [
-    span [Props.className "label"] [lbl]
-  , input [
-      Props._type "text"
-    , Props.placeholder placeholder
-    , Props.value s
-    , Props.disabled false
-    , Props.unsafeTargetValue <$> Props.onChange
-    , Props.unsafeTargetValue <$> Props.onFocus
-    ]
-  ]
 
 simpleTextInputWidget :: String -> Widget HTML String -> String -> String -> Widget HTML String
 simpleTextInputWidget className lbl placeholder s = simpleInputWidget className lbl false placeholder s "text"

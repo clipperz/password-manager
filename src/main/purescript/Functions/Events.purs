@@ -1,8 +1,11 @@
 module Functions.Events
   ( _getYClickCoordinates
+  , blur
   , cursorToEnd
+  , focus
   , getClickCoordinates
   , getWindowMessage
+  , keyboardShortcut
   , printEvent
   , readFile
   , readFileFromDrop
@@ -25,12 +28,17 @@ foreign import _readFileFromDrop :: forall r. SyntheticEvent_ (currentTarget :: 
 
 foreign import _getWindowMessage :: Unit -> EffectFnAff String
 
+foreign import _keyboardShortcut :: Array String -> EffectFnAff Unit
+
 foreign import _getXClickCoordinates :: SyntheticMouseEvent -> Int
 foreign import _getYClickCoordinates :: SyntheticMouseEvent -> Int
 
 foreign import printEvent :: forall r. SyntheticEvent_ (currentTarget :: NativeEventTarget | r) -> Effect Unit
 
 foreign import cursorToEnd :: forall r. SyntheticEvent_ (currentTarget :: NativeEventTarget | r) -> Effect Unit
+
+foreign import focus :: String -> Effect Unit
+foreign import blur :: String -> Effect Unit
 
 readFile :: NativeEventTarget -> Aff String
 readFile ev = fromEffectFnAff (_readFile ev)
@@ -43,3 +51,6 @@ getClickCoordinates ev = Tuple (_getXClickCoordinates ev) (_getYClickCoordinates
 
 getWindowMessage :: Aff String
 getWindowMessage = fromEffectFnAff (_getWindowMessage unit)
+
+keyboardShortcut :: Array String -> Aff Unit
+keyboardShortcut = fromEffectFnAff <<< _keyboardShortcut

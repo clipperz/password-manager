@@ -15,7 +15,6 @@ import Control.Bind (bind, pure, (=<<))
 import Control.Monad.Except.Trans (ExceptT(..), withExceptT)
 import Control.Semigroupoid ((>>>))
 import Crypto.Subtle.Key.Types (CryptoKey)
-import Data.Array (snoc)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Codec.Argonaut as CA
 import Data.Either (Either(..))
@@ -24,6 +23,7 @@ import Data.HexString (HexString, fromArrayBuffer, toArrayBuffer)
 import Data.Identifier (Identifier, computeIdentifier)
 import Data.List (List(..), (:))
 import Data.Semigroup ((<>))
+import Data.Set (insert)
 import Data.Show (class Show, show)
 import Data.String.Regex (Regex, test, regex)
 import Data.String.Regex.Flags (noFlags)
@@ -75,7 +75,7 @@ appendToTitle :: String -> Card -> Card
 appendToTitle titleAppend (Card card@{content: CardValues cardValues@{title}}) = Card (card {content = CardValues cardValues {title = title <> titleAppend} })
 
 addTag :: String -> Card -> Card
-addTag tag (Card card@{content: CardValues cardValues@{tags}}) = Card (card {content = CardValues cardValues {tags = snoc tags tag}})
+addTag tag (Card card@{content: CardValues cardValues@{tags}}) = Card (card {content = CardValues cardValues {tags = insert tag tags}})
 
 archiveCard :: Card -> Card
 archiveCard (Card card) = Card card {archived = true}
