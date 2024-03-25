@@ -11,7 +11,6 @@ import Control.Applicative (pure)
 import Control.Bind (bind, (>>=))
 import Control.Category ((<<<))
 import Control.Monad.Except.Trans (ExceptT, runExceptT, throwError)
-import Data.Either (Either(..))
 import Data.Function ((#), ($))
 import Data.Map (insert, lookup)
 import Data.Maybe (Maybe(..), isJust, isNothing)
@@ -23,17 +22,17 @@ import DataModel.CardVersions.Card as DataModel.CardVersions.Card
 import DataModel.FragmentState as Fragment
 import DataModel.IndexVersions.Index (CardEntry(..), Index, addToIndex, reference, removeFromIndex)
 import DataModel.UserVersions.User (UserInfo(..))
-import DataModel.WidgetState (CardFormInput(..), CardManagerState, CardViewState(..), Page(..), WidgetState(..))
+import DataModel.WidgetState (CardFormInput(..), CardManagerState, CardViewState(..), Page(..), WidgetState(..), MainPageWidgetState)
 import Effect.Aff.Class (liftAff)
 import Functions.Card (appendToTitle, archiveCard, decryptCard, restoreCard)
 import Functions.Communication.Backend (ConnectionState)
 import Functions.Communication.Blobs (getBlob)
 import Functions.Communication.Cards (deleteCard, postCard)
-import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
+import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, noOperation, handleOperationResult, runStep)
 import Functions.Index (updateIndex)
 import Record (merge)
 import Views.AppView (emptyMainPageWidgetState)
-import Views.CardsManagerView (CardManagerEvent(..))
+import Views.CardsManagerView (CardManagerEvent(..), NavigateCardsEvent(..))
 import Views.OverlayView (OverlayColor(..), hiddenOverlayInfo, spinnerOverlay)
 import Views.UserAreaView (userAreaInitialState)
 
@@ -56,7 +55,7 @@ handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just inde
   case cardManagerEvent of
 
     (OpenUserAreaEvent) -> 
-      doNothing (Tuple 
+      noOperation (Tuple 
                   state
                   (WidgetState
                     hiddenOverlayInfo
@@ -64,29 +63,39 @@ handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just inde
                     )
                   )
                 )
-    
-    (OpenCardViewEvent (Left highlightedEntry)) -> 
-      doNothing (Tuple 
-                  state 
+
+    (ShowShortcutsEvent show) ->
+      updateCardManagerState defaultPage cardManagerState {showShortcutsHelp = show}
+
+    (ChangeFilterEvent filterData) ->
+      updateCardManagerState defaultPage cardManagerState { filterData = filterData
+                                                          , highlightedEntry = Nothing 
+                                                          }
+
+    (NavigateCardsEvent navigationEvent) ->
+      case navigationEvent of
+        Move             i -> updateCardManagerState defaultPage (cardManagerState {                                 highlightedEntry = Just i })
+        Close       maybei -> updateCardManagerState defaultPage (cardManagerState {cardViewState = NoCard,          highlightedEntry = maybei })
+        Open   Nothing     -> doNothing defaultPage
+        Open  (Just entry) -> do
+          ProxyResponse proxy' (Tuple cardsCache' card) <- getCardSteps connectionState cardsCache entry (Main defaultPage)
+          pure (Tuple
+                  state {proxy = proxy', cardsCache = cardsCache'}
                   (WidgetState
                     hiddenOverlayInfo
-                    (Main defaultPage { cardManagerState = cardManagerState {cardViewState = NoCard, highlightedEntry = highlightedEntry}})
+                    (Main defaultPage { cardManagerState =  cardManagerState {cardViewState = Card card entry, highlightedEntry = Nothing} }
+                    )
                   )
                 )
-    (OpenCardViewEvent (Right cardEntry)) -> 
-      do
-        ProxyResponse proxy' (Tuple cardsCache' card) <- getCardSteps connectionState cardsCache cardEntry (Main defaultPage)
-        pure (Tuple
-                state {proxy = proxy', cardsCache = cardsCache'}
-                (WidgetState
-                  hiddenOverlayInfo
-                  (Main defaultPage { cardManagerState = cardManagerState {highlightedEntry = Nothing, cardViewState = Card card cardEntry} }
-                  )
-                )
-              )
-      # runExceptT
-      >>= handleOperationResult state defaultErrorPage (isNothing $ lookup (reference cardEntry) cardsCache) Black
+          # runExceptT
+          >>= handleOperationResult state defaultErrorPage (isNothing $ lookup (reference entry) cardsCache) Black
     
+    (OpenCardFormEvent maybeCard) ->
+      updateCardManagerState defaultPage cardManagerState { cardViewState = CardForm $ case maybeCard of
+                                                              Nothing                     -> NewCard
+                                                              Just (Tuple cardEntry card) -> ModifyCard card cardEntry
+                                                          }
+
     (AddCardEvent card) ->
       do
         res <- addCardSteps cardManagerState state card (loadingMainPage index cardManagerState {cardViewState = CardForm (NewCardFromFragment card)}) "Add card"
@@ -124,7 +133,7 @@ handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just inde
       # runExceptT
       >>= handleOperationResult state defaultErrorPage true Black
 
-    (EditCardEvent oldCardEntry updatedCard) ->
+    (EditCardEvent (Tuple oldCardEntry updatedCard)) ->
       do
         editCardSteps cardManagerState state oldCardEntry updatedCard (loadingMainPage index cardManagerState {cardViewState = CardForm (ModifyCard updatedCard oldCardEntry) })
       
@@ -150,6 +159,22 @@ handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just inde
 
       # runExceptT
       >>= handleOperationResult state defaultErrorPage true Black
+
+  where
+    updateCardManagerState :: MainPageWidgetState -> CardManagerState -> Widget HTML OperationState
+    updateCardManagerState mainPageState cardManagerState' = 
+      noOperation (Tuple 
+                    state
+                    (WidgetState
+                      hiddenOverlayInfo
+                      (Main mainPageState { cardManagerState = cardManagerState' }
+                      )
+                    )
+                  )
+    
+    doNothing :: MainPageWidgetState -> Widget HTML OperationState
+    doNothing mainPageState =  noOperation (Tuple state (WidgetState hiddenOverlayInfo (Main mainPageState)))
+
 
 handleCardManagerEvent _ _ state _ = do
   throwError $ InvalidStateError (CorruptedState "State is corrupted")

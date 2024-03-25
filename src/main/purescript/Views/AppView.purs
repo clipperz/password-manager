@@ -73,7 +73,7 @@ appView widgetState@(WidgetState overlayInfo page) =
                                         _                         -> emptyMainPageWidgetState
         
         div [Props._id "homePage"] [
-          ( MainPageCardManagerEvent                         # uncurry) <$> cardsManagerView cardManagerState index (unwrap userPreferences).passwordGeneratorSettings false
+          ( MainPageCardManagerEvent                         # uncurry) <$> cardsManagerView cardManagerState index (unwrap userPreferences).passwordGeneratorSettings
         , ((MainPageUserAreaEvent # flip $ cardManagerState) # uncurry) <$> userAreaView userAreaState userPreferences credentials pinExists
         , ( DonationPageEvent                                         ) <$> donationReminder donationLevel
         ] 
