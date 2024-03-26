@@ -66,5 +66,5 @@ handleOperationResult state page showDone color = either
 delayOperation :: Int -> WidgetState -> Widget HTML Unit
 delayOperation time widgetState = ((liftAff $ delay (Milliseconds $ toNumber time)) <|> (unit <$ appView widgetState))
 
-doNothing :: OperationState -> Widget HTML OperationState 
-doNothing operationState@(Tuple _ widgetState) = (pure operationState) <|> (unsafeCoerce unit <$ appView widgetState)
+noOperation :: OperationState -> Widget HTML OperationState 
+noOperation operationState@(Tuple _ widgetState) = (pure operationState) <|> (unsafeCoerce unit <$ appView widgetState)

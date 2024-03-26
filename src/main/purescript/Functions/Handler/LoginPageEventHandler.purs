@@ -31,7 +31,7 @@ import Functions.Communication.Login (PrepareLoginResult, loginStep1, loginStep2
 import Functions.Communication.Users (extractUserInfoReference, getUserInfo)
 import Functions.Donations (DonationLevel(..), computeDonationLevel)
 import Functions.EncodeDecode (importCryptoKeyAesGCM)
-import Functions.Handler.GenericHandlerFunctions (OperationState, defaultView, doNothing, handleOperationResult, runStep)
+import Functions.Handler.GenericHandlerFunctions (OperationState, defaultView, noOperation, handleOperationResult, runStep)
 import Functions.Index (getIndex)
 import Functions.Pin (decryptPassphraseWithPin, deleteCredentials, makeKey)
 import Functions.SRP (checkM2)
@@ -76,10 +76,10 @@ handleLoginPageEvent (LoginPinEvent pin) state@{hash, srpConf, username, pinEncr
     initialPage = Login emptyLoginFormData {pin = pin, loginType = PinLogin}
 
 
-handleLoginPageEvent (GoToSignupEvent cred) state _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Signup emptyDataForm {username = cred.username, password = cred.password})))
+handleLoginPageEvent (GoToSignupEvent cred) state _ = noOperation (Tuple state (WidgetState hiddenOverlayInfo (Signup emptyDataForm {username = cred.username, password = cred.password})))
 
 
-handleLoginPageEvent (GoToCredentialLoginEvent username) state _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Login emptyLoginFormData {credentials = {username, password: ""}})))
+handleLoginPageEvent (GoToCredentialLoginEvent username) state _ = noOperation (Tuple state (WidgetState hiddenOverlayInfo (Login emptyLoginFormData {credentials = {username, password: ""}})))
 
 -- ========================================================================================================================
 

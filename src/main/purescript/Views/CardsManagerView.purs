@@ -7,11 +7,10 @@ import Concur.React.Props as Props
 import Control.Alt (($>), (<#>), (<|>))
 import Control.Alternative ((*>))
 import Control.Applicative (pure)
-import Control.Bind (bind, (>>=))
-import Control.Category ((<<<))
+import Control.Bind ((>>=))
+import Control.Category ((<<<), (>>>))
 import Data.Array (foldl, fromFoldable, mapWithIndex)
 import Data.CommutativeRing (add)
-import Data.Either (Either(..))
 import Data.Eq ((/=), (==))
 import Data.Function (flip, (#), ($))
 import Data.Functor ((<$>), (<$))
@@ -22,7 +21,7 @@ import Data.Ord (max, min)
 import Data.Ring (sub, (-))
 import Data.Semigroup ((<>))
 import Data.Set (Set, unions)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), swap)
 import Data.Unit (unit)
 import DataModel.CardVersions.Card (Card, emptyCard)
 import DataModel.IndexVersions.Index (CardEntry(..), Index(..))
@@ -36,28 +35,31 @@ import Views.CardViews (CardEvent(..), cardView)
 import Views.Components (proxyInfoComponent)
 import Views.CreateCardView (createCardView)
 
-data CardManagerEvent = AddCardEvent                Card
-                      | CloneCardEvent    CardEntry
-                      | DeleteCardEvent   CardEntry
-                      | EditCardEvent     CardEntry Card
-                      | ArchiveCardEvent  CardEntry
-                      | RestoreCardEvent  CardEntry
-                      | OpenCardViewEvent (Either (Maybe Int) CardEntry)
+data CardManagerEvent = AddCardEvent                 Card
+                      | CloneCardEvent     CardEntry
+                      | DeleteCardEvent    CardEntry
+                      | EditCardEvent      (Tuple CardEntry Card)
+                      | ArchiveCardEvent   CardEntry
+                      | RestoreCardEvent   CardEntry
+                      | OpenCardFormEvent  (Maybe (Tuple CardEntry Card))
                       | OpenUserAreaEvent
+                      | ShowShortcutsEvent Boolean
+                      | ChangeFilterEvent  FilterData
+                      | NavigateCardsEvent NavigateCardsEvent
+
+data NavigateCardsEvent = Move Int | Open (Maybe CardEntry) | Close (Maybe Int)
 
 cardManagerInitialState :: CardManagerState
 cardManagerInitialState = {
   filterData: initialFilterData
 , highlightedEntry: Nothing
 , cardViewState: NoCard
+, showShortcutsHelp: false
 }
 
-data CardsManagerInternalEvent = StateUpdate CardManagerState | ShowShortcuts Boolean | CardManagerEvent CardManagerEvent
-
-cardsManagerView :: CardManagerState -> Index -> PasswordGeneratorSettings -> Boolean -> Widget HTML (Tuple CardManagerEvent CardManagerState)
-cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archived, searchString}, highlightedEntry, cardViewState} index'@(Index {entries}) userPasswordGeneratorSettings showShortcutsHelp = do
-  let sortedCards = List.sort $ filteredEntries filter (shownEntries entries selectedEntry archived)
-  res <- div [Props._id "cardsManager", Props.className $ "filterView_" <> getClassNameFromFilterStatus filterViewStatus] [
+cardsManagerView :: CardManagerState -> Index -> PasswordGeneratorSettings -> Widget HTML (Tuple CardManagerEvent CardManagerState)
+cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archived, searchString}, highlightedEntry, cardViewState, showShortcutsHelp} index'@(Index {entries}) userPasswordGeneratorSettings = do
+  div [Props._id "cardsManager", Props.className $ "filterView_" <> getClassNameFromFilterStatus filterViewStatus] [
     indexFilterView filterData index' >>= updateFilterData
   , div [Props.className "cardToolbarFrame"] [
       toolbarHeader "frame"
@@ -66,43 +68,42 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archiv
         div [Props._id "indexView"] [
           toolbarHeader "cardList"
         , div [Props.className "addCard"] [
-            button [Props.onClick, Props.className "addCard" ] [span [] [text "add card"]] $> (StateUpdate state { cardViewState = CardForm NewCard })
+            button [Props.onClick, Props.className "addCard" ] [span [] [text "add card"]] $> OpenCardFormEvent Nothing
           ]
-        , (indexView sortedCards (getHighlightedEntry sortedCards)) <#> (CardManagerEvent <<< OpenCardViewEvent <<< Right)
+        , (indexView sortedCards getHighlightedEntry) <#> (NavigateCardsEvent <<< Open <<< Just)
         ]
       , div [Props._id "card"] [
           mainStageView cardViewState
         ]
       ]
     ]
-  ] <> shortcutsHandlers sortedCards
+  ] <> shortcutsHandlers
     <> shortcutsHelp     showShortcutsHelp
-
-  case res of
-    CardManagerEvent event    -> pure $ Tuple event state
-    StateUpdate      newState -> cardsManagerView newState index' userPasswordGeneratorSettings showShortcutsHelp
-    ShowShortcuts    show     -> cardsManagerView state    index' userPasswordGeneratorSettings show
+  <#> (Tuple state >>> swap)
 
   where
+    sortedCards :: List CardEntry
+    sortedCards  = List.sort $ filteredEntries filter (shownEntries entries selectedEntry archived)
+
     selectedEntry :: Maybe CardEntry
     selectedEntry = case cardViewState of
       Card                 _ entry  -> Just entry
       CardForm (ModifyCard _ entry) -> Just entry
       _                             -> Nothing
 
-    getHighlightedEntry :: List CardEntry -> Maybe Int
-    getHighlightedEntry entries' = highlightedEntry <|> (selectedEntry >>= flip elemIndex entries')
+    getHighlightedEntry :: Maybe Int
+    getHighlightedEntry = highlightedEntry <|> (selectedEntry >>= flip elemIndex sortedCards)
 
-    increaseIndex :: List CardEntry -> Int -> Int
-    increaseIndex entries' numberOfCards = min (numberOfCards-1) (maybe 0 (add 1)      (getHighlightedEntry entries'))
+    increaseIndex :: Int -> Int
+    increaseIndex numberOfCards = min (numberOfCards-1) (maybe 0 (add 1)      getHighlightedEntry)
     
-    decreaseIndex :: List CardEntry ->        Int
-    decreaseIndex entries'               = max  0                (maybe 0 (flip sub 1) (getHighlightedEntry entries'))
+    decreaseIndex ::        Int
+    decreaseIndex               = max  0                (maybe 0 (flip sub 1) getHighlightedEntry)
 
     getCardToOpen :: List CardEntry -> Maybe CardEntry
     getCardToOpen entries' = highlightedEntry >>= (index entries')
 
-    updateFilterData :: FilterData -> Widget HTML CardsManagerInternalEvent
+    updateFilterData :: FilterData -> Widget HTML CardManagerEvent
     updateFilterData filterData' = 
       case filterData'.filterViewStatus of
         FilterViewClosed -> blur  "searchInputField" # liftEffect
@@ -110,13 +111,7 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archiv
           case filterData'.filter of
             Search _     -> focus "searchInputField" # liftEffect
             _            -> pure unit
-      $> StateUpdate  ( state { filterData = filterData'
-                              , highlightedEntry = Nothing 
-                              }
-                      )
-
-    updateCardView :: CardViewState -> CardManagerState
-    updateCardView cardViewState' = (state { cardViewState = cardViewState' })
+        $> ChangeFilterEvent filterData'
 
     getFilterHeader :: forall a. Filter -> Widget HTML a
     getFilterHeader f =
@@ -128,32 +123,32 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archiv
         Search searchString' -> span [] [text searchString']
         Tag    tag           -> span [] [text tag]
 
-    toolbarHeader :: String -> Widget HTML CardsManagerInternalEvent
+    toolbarHeader :: String -> Widget HTML CardManagerEvent
     toolbarHeader className = header [Props.className className] [
       div [Props.className "tags"] [button [Props.onClick] [text "tags"]] *> updateFilterData (filterData {filterViewStatus = FilterViewOpen})
     , div [Props.className "selection"] [getFilterHeader filter]
-    , (CardManagerEvent OpenUserAreaEvent) <$ div [Props.className "menu"] [button [Props.onClick] [text "menu"]]
+    , OpenUserAreaEvent <$ div [Props.className "menu"] [button [Props.onClick] [text "menu"]]
     ]
 
     allTags :: Set String
     allTags = unions $ (\(CardEntry entry) -> entry.tags) <$> fromFoldable entries
 
-    shortcutsHandlers :: List CardEntry -> Widget HTML CardsManagerInternalEvent
-    shortcutsHandlers sortedCards =
-         ((keyboardShortcut ["*"                  ] # liftAff) *> updateFilterData initialFilterData)
-      <> ((keyboardShortcut ["/"                  ] # liftAff) *> updateFilterData filterData {filterViewStatus = FilterViewOpen, filter = Search searchString})
-      <> ((keyboardShortcut ["j", "down"          ] # liftAff) $> StateUpdate state {highlightedEntry = Just (increaseIndex sortedCards (length sortedCards))})
-      <> ((keyboardShortcut ["k", "up"            ] # liftAff) $> StateUpdate state {highlightedEntry = Just (decreaseIndex sortedCards                     )})
-      <> ((keyboardShortcut ["l", "right", "enter"] # liftAff) $> maybe (StateUpdate state) (CardManagerEvent <<< OpenCardViewEvent <<< Right) (getCardToOpen sortedCards))
+    shortcutsHandlers :: Widget HTML CardManagerEvent
+    shortcutsHandlers =
+         ((keyboardShortcut ["*"                  ] # liftAff) *>  updateFilterData initialFilterData)
+      <> ((keyboardShortcut ["/"                  ] # liftAff) *>  updateFilterData filterData {filterViewStatus = FilterViewOpen, filter = Search searchString})
+      <> ((keyboardShortcut ["j", "down"          ] # liftAff) $> (NavigateCardsEvent $ Move (increaseIndex (length sortedCards))))
+      <> ((keyboardShortcut ["k", "up"            ] # liftAff) $> (NavigateCardsEvent $ Move (decreaseIndex                     )))
+      <> ((keyboardShortcut ["l", "right", "enter"] # liftAff) $> (NavigateCardsEvent $ Open (getCardToOpen sortedCards         )))
       <> ((keyboardShortcut ["h", "left" , "esc"  ] # liftAff) $> if showShortcutsHelp
-                                                                  then  (ShowShortcuts false)
-                                                                  else  (CardManagerEvent <<< OpenCardViewEvent <<< Left ) (getHighlightedEntry sortedCards))
-      <> ((keyboardShortcut ["?"                  ] # liftAff) $> ShowShortcuts true)
+                                                             then  ShowShortcutsEvent   false
+                                                             else (NavigateCardsEvent $ Close getHighlightedEntry                ))
+      <> ((keyboardShortcut ["?"                  ] # liftAff) $>  ShowShortcutsEvent   true                                      )
 
-    mainStageView :: CardViewState -> Widget HTML CardsManagerInternalEvent
+    mainStageView :: CardViewState -> Widget HTML CardManagerEvent
     mainStageView  NoCard                  = div [] []
     mainStageView (Card card cardEntry)    = cardView card cardEntry <#> handleCardEvents
-    mainStageView (CardForm cardFormInput) = createCardView inputCard allTags userPasswordGeneratorSettings <#> (maybe (StateUpdate $ updateCardView viewCardStateUpdate) (CardManagerEvent <<< outputEvent))
+    mainStageView (CardForm cardFormInput) = createCardView inputCard allTags userPasswordGeneratorSettings <#> (maybe (NavigateCardsEvent $ viewCardStateUpdate) outputEvent)
       where
 
         inputCard = case cardFormInput of
@@ -162,27 +157,26 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archiv
           ModifyCard          card _ -> card
         
         viewCardStateUpdate = case cardFormInput of
-          NewCard                   -> NoCard
-          NewCardFromFragment _     -> NoCard 
-          ModifyCard card cardEntry -> Card card cardEntry
+          NewCard                   -> Close  Nothing
+          NewCardFromFragment _     -> Close  getHighlightedEntry 
+          ModifyCard _    cardEntry -> Open  (Just cardEntry)
 
         outputEvent = case cardFormInput of
           NewCard                -> AddCardEvent
           NewCardFromFragment _  -> AddCardEvent
-          ModifyCard _ cardEntry -> EditCardEvent cardEntry
+          ModifyCard _ cardEntry -> EditCardEvent <<< Tuple cardEntry
 
-    handleCardEvents :: CardEvent -> CardsManagerInternalEvent
-    handleCardEvents (Edit    cardEntry card) = StateUpdate      $ updateCardView (CardForm $ ModifyCard card cardEntry)
-    handleCardEvents (Clone   cardEntry     ) = CardManagerEvent (CloneCardEvent   cardEntry)
-    handleCardEvents (Archive cardEntry     ) = CardManagerEvent (ArchiveCardEvent cardEntry)
-    handleCardEvents (Restore cardEntry     ) = CardManagerEvent (RestoreCardEvent cardEntry)
-    handleCardEvents (Delete  cardEntry     ) = CardManagerEvent (DeleteCardEvent  cardEntry)
-    handleCardEvents (Exit                  ) = StateUpdate $ state { cardViewState = NoCard }
-
+    handleCardEvents :: CardEvent -> CardManagerEvent
+    handleCardEvents (Edit    cardEntry card) = OpenCardFormEvent $ Just (Tuple cardEntry card)
+    handleCardEvents (Clone   cardEntry     ) = CloneCardEvent   cardEntry
+    handleCardEvents (Archive cardEntry     ) = ArchiveCardEvent cardEntry
+    handleCardEvents (Restore cardEntry     ) = RestoreCardEvent cardEntry
+    handleCardEvents (Delete  cardEntry     ) = DeleteCardEvent  cardEntry
+    handleCardEvents (Exit                  ) = NavigateCardsEvent $ Close getHighlightedEntry
 
 -- ==================================================================                                                                                                                             
 
-shortcutsHelp :: Boolean -> Widget HTML CardsManagerInternalEvent
+shortcutsHelp :: Boolean -> Widget HTML CardManagerEvent
 shortcutsHelp showShortcutsHelp = div [Props.classList [Just "shortcutsHelp", Just "disableOverlay", hiddenClass]] [
   div [Props.className "mask", Props.onClick] []
 , div [Props.className "helpBox"] [
@@ -212,7 +206,7 @@ shortcutsHelp showShortcutsHelp = div [Props.classList [Just "shortcutsHelp", Ju
                                 ] 
     ]
   ]
-] $> (ShowShortcuts false)
+] $> ShowShortcutsEvent false
   where
     helpBlock :: forall a. String 
                         -> Array (Tuple (Array (Tuple String (Maybe String))) String) 

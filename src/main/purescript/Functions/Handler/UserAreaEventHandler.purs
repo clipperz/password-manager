@@ -48,7 +48,7 @@ import Functions.Communication.Blobs (deleteBlob, getBlob)
 import Functions.Communication.Cards (deleteCard, getCard, postCard)
 import Functions.Communication.Users (computeRemoteUserCard, deleteUserCard, deleteUserInfo, updateUserPreferences)
 import Functions.Export (BlobsList, appendCardsDataInPlace, getBasicHTML, prepareUnencryptedExport, prepareHTMLBlob)
-import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
+import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, noOperation, handleOperationResult, runStep)
 import Functions.Import (ImportVersion(..), decodeImport, parseImport, readFile)
 import Functions.Index (updateIndex)
 import Functions.Pin (deleteCredentials, makeKey, saveCredentials)
@@ -82,7 +82,7 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
 
   case userAreaEvent of
     (CloseUserAreaEvent) -> 
-      doNothing (Tuple 
+      noOperation (Tuple 
                   state
                   (WidgetState
                     hiddenOverlayInfo
@@ -210,7 +210,7 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
           >>= handleOperationResult state page true White
       
         Selection ->
-          doNothing $ Tuple 
+          noOperation $ Tuple 
                         state $
                         WidgetState
                           hiddenOverlayInfo $

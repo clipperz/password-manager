@@ -78,7 +78,8 @@ data CardViewState = NoCard | Card Card CardEntry | CardForm CardFormInput
 derive instance eqCardViewState :: Eq CardViewState
 
 type CardManagerState = { 
-  filterData       :: FilterData
-, highlightedEntry :: Maybe Int
-, cardViewState    :: CardViewState
+  filterData        :: FilterData
+, highlightedEntry  :: Maybe Int
+, cardViewState     :: CardViewState
+, showShortcutsHelp :: Boolean
 }

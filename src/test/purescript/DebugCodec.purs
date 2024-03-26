@@ -423,6 +423,7 @@ passwordGeneratorSettingsCodec =
 --   filterData       :: FilterData
 -- , highlightedEntry :: Maybe Int
 -- , cardViewState    :: CardViewState
+-- , showShortcutsHelp:: Boolean
 -- }
 cardManagerStateCodec :: CA.JsonCodec CardManagerState
 cardManagerStateCodec =
@@ -431,6 +432,7 @@ cardManagerStateCodec =
       { filterData       : filterDataCodec
       , highlightedEntry : CAR.optional CA.int
       , cardViewState    : cardViewStateCodec
+      , showShortcutsHelp: CA.boolean
       }
     )
 

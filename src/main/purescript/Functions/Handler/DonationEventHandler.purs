@@ -22,7 +22,7 @@ import Effect.Class (liftEffect)
 import Effect.Now (nowDateTime)
 import Functions.Communication.Users (updateUserInfo)
 import Functions.Donations (DonationLevel(..), computeDonationLevel)
-import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, doNothing, handleOperationResult, runStep)
+import Functions.Handler.GenericHandlerFunctions (OperationState, defaultErrorPage, noOperation, handleOperationResult, runStep)
 import Record (merge)
 import Views.AppView (emptyMainPageWidgetState)
 import Views.CardsManagerView (cardManagerInitialState)
@@ -67,7 +67,7 @@ handleDonationPageEvent donationPageEvent state@{username: Just username, passwo
       # runExceptT
       >>= handleOperationResult state defaultErrorPage true Black
 
-    CloseDonationPage -> doNothing (Tuple state $ WidgetState hiddenOverlayInfo (Main defaultPage))
+    CloseDonationPage -> noOperation (Tuple state $ WidgetState hiddenOverlayInfo (Main defaultPage))
 
 handleDonationPageEvent _ state _ = do
   throwError $ InvalidStateError (CorruptedState "State is corrupted")
