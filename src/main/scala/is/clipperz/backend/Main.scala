@@ -74,10 +74,10 @@ object Main extends zio.ZIOAppDefault:
                                     .leakDetection(LeakDetectionLevel.PARANOID)
                                     .maxThreads(nThreads)
 
-            ( Files.createDirectories(blobBasePath) <&> 
-              Files.createDirectories(userBasePath) <&> 
-              Files.createDirectories(oneTimeShareBasePath)
-            ) *>
+            // ( Files.createDirectories(blobBasePath) <&> 
+            //   Files.createDirectories(userBasePath) <&> 
+            //   Files.createDirectories(oneTimeShareBasePath)
+            // ) *>
             Server
                 .install(completeClipperzBackend)
                 .flatMap(port =>
