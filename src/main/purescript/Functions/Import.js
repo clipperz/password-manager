@@ -3,7 +3,13 @@
 const decodeHTML = function(s) {
     var txt = document.createElement("textarea");
     txt.innerHTML = s;
-    return txt.value;
+	var result = txt.value;
+	txt.remove();
+    return result;
+}
+
+const createFile = function(blob) {
+	return (new File([blob], "filename"))
 }
 
 const _readFile = function (file) { 
@@ -27,6 +33,7 @@ const _readFile = function (file) {
 };
 
 export {
+	createFile,
     decodeHTML,
 	_readFile
 }

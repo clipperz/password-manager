@@ -7,6 +7,7 @@ module Views.Components
   , dynamicWrapper
   , entropyMeter
   , footerComponent
+  , proxyInfoComponent
   , verySimpleInputWidget
   )
   where
@@ -15,6 +16,7 @@ import Concur.Core (Widget)
 import Concur.React (HTML)
 import Concur.React.DOM (a, div, footer, input, label, span, text)
 import Concur.React.Props as Props
+import Control.Bind (bind)
 import Data.EuclideanRing ((/))
 import Data.Function (($))
 import Data.Functor ((<$>))
@@ -24,7 +26,10 @@ import Data.Newtype (class Newtype, unwrap)
 import Data.Semigroup ((<>))
 import Data.Semiring ((*))
 import Data.Show (show)
+import Data.Unit (unit)
+import Effect.Class (liftEffect)
 import Functions.Password (computePasswordEntropy, passwordStrengthClass, standardPasswordStrengthFunction)
+import Functions.State (_readTimestamp, isOffline)
 
 newtype ClassName = ClassName String
 derive instance newtypeCharacterSet :: Newtype ClassName _
@@ -69,4 +74,12 @@ footerComponent commit =
       , a [Props.href ("https://github.com/clipperz/password-manager/commit/" <> commit), Props.target "_black"] [text commit]
       ]
     ]
+  ]
+
+proxyInfoComponent :: Array (Maybe String) -> forall a. Widget HTML a
+proxyInfoComponent classes = do
+  offline   <- liftEffect $ isOffline
+  div [Props.classList ([Just "proxyInfo", if offline then Just "OFFLINE" else Nothing] <> classes)] [
+    span [Props.className "proxyDescription"] [text $ if offline then "Offline copy" else ""]
+  , span [Props.className "proxyDetails"]     [text $ _readTimestamp unit]
   ]

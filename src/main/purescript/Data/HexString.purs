@@ -5,8 +5,11 @@ module Data.HexString
   , fromBigInt
   , hex
   , hexChars
+  , hexLength
+  , hexStringCodec
   , isHex
   , isHexRegex
+  , splitHexAt
   , splitHexInHalf
   , toArrayBuffer
   , toBigInt
@@ -18,6 +21,7 @@ import Control.Semigroupoid ((>>>))
 import Data.Array.NonEmpty (fromArray, toArray, singleton, NonEmptyArray)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.BigInt (BigInt, fromBase, toBase)
+import Data.Codec.Argonaut as CA
 import Data.Either (hush, Either)
 import Data.Eq (class Eq, eq, (==))
 import Data.EuclideanRing (mod, (/))
@@ -26,10 +30,11 @@ import Data.Functor ((<$>))
 import Data.Maybe (Maybe, maybe, fromMaybe)
 import Data.Newtype (class Newtype)
 import Data.Ord (class Ord)
+import Data.Profunctor (wrapIso)
 import Data.Semigroup ((<>))
 import Data.Show (class Show)
 import Data.String (toLower, toUpper)
-import Data.String.CodeUnits (length, splitAt, dropWhile, fromCharArray)
+import Data.String.CodeUnits (dropWhile, fromCharArray, length, splitAt)
 import Data.String.Common (replaceAll)
 import Data.String.Pattern (Pattern(..), Replacement(..))
 import Data.String.Regex (regex, Regex, test)
@@ -63,6 +68,9 @@ hexChars :: NonEmptyArray Char
 hexChars = fromMaybe (singleton '0') $ fromArray ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'A', 'B', 'C', 'D', 'E', 'F', 'a', 'b', 'c', 'd', 'e', 'f']
 -- ----------------------------------------------------------------
 
+hexStringCodec :: CA.JsonCodec HexString
+hexStringCodec = wrapIso HexString CA.string
+
 fromArrayBuffer :: ArrayBuffer -> HexString
 fromArrayBuffer = arrayBufferToHex >>> hex
 
@@ -72,6 +80,9 @@ fromBigInt n = hex $ toBase 16 n
 hex :: String -> HexString
 hex s = normalizeHex $ HexString if isHex s then s else hexEncode s
 
+hexLength :: HexString -> Int
+hexLength (HexString s) = length s
+
 isHexRegex :: Either String Regex
 isHexRegex = (regex "^[0-9a-fA-F ]+$" noFlags)
 
@@ -79,7 +90,10 @@ isHex :: String -> Boolean
 isHex s = maybe false (\reg -> test reg s) (hush isHexRegex)
 
 splitHexInHalf :: HexString -> { before :: HexString, after :: HexString }
-splitHexInHalf (HexString s) = let split = (splitAt ((length s) / 2) s)
+splitHexInHalf hexString = splitHexAt (hexLength hexString / 2) hexString
+
+splitHexAt :: Int -> HexString -> { before :: HexString, after :: HexString }
+splitHexAt position (HexString s) = let split = (splitAt position s)
   in { before: hex split.before, after: hex split.after }
 
 normalizeHex :: HexString -> HexString

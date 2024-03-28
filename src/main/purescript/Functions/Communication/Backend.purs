@@ -11,31 +11,34 @@ module Functions.Communication.Backend
   )
   where
 
-import Affjax.RequestBody (RequestBody, json)
+import Affjax.RequestBody (RequestBody(..), json)
 import Affjax.RequestHeader (RequestHeader(..))
 import Affjax.ResponseFormat as RF
 import Affjax.ResponseHeader (ResponseHeader, name, value)
 import Affjax.StatusCode (StatusCode(..))
 import Affjax.Web as AXW
 import Control.Alt ((<#>))
+import Control.Alternative ((*>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard, (>>=))
-import Control.Category ((>>>))
+import Control.Bind (bind, (>>=))
+import Control.Category ((<<<), (>>>))
 import Control.Monad.Except (except, runExceptT)
 import Control.Monad.Except.Trans (ExceptT(..), throwError, withExceptT)
-import Data.Array (filter)
+import Data.Argonaut.Core (stringify)
+import Data.Array (filter, init, last)
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Bifunctor (lmap)
 import Data.BigInt (BigInt, fromInt)
 import Data.Boolean (otherwise)
 import Data.Codec.Argonaut (decode, encode)
+import Data.Codec.Argonaut as CA
 import Data.Codec.Argonaut.Record as CAR
 import Data.Either (Either(..), note)
 import Data.Eq ((==))
 import Data.Function ((#), ($))
 import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
-import Data.HexString (HexString, fromArrayBuffer, fromBigInt, hex, toArrayBuffer, toBigInt)
+import Data.HexString (HexString, fromArrayBuffer, fromBigInt, hex, hexStringCodec, toArrayBuffer, toBigInt)
 import Data.HeytingAlgebra ((&&))
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..))
@@ -43,27 +46,34 @@ import Data.Newtype (unwrap)
 import Data.Ord ((<=), (>=))
 import Data.Semigroup ((<>))
 import Data.Show (show)
-import Data.String.Common (joinWith)
-import Data.Time.Duration (Milliseconds(..))
+import Data.String.Common (joinWith, split)
+import Data.String.Pattern (Pattern(..))
+import Data.Time.Duration (Milliseconds(..), Seconds(..), fromDuration)
+import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..))
 import Data.Unfoldable (fromMaybe)
 import Data.Unit (Unit, unit)
 import DataModel.AppError (AppError(..))
-import DataModel.AppState (Proxy(..), ProxyResponse(..))
+import DataModel.AppState (BackendSessionState, Proxy(..), ProxyResponse(..))
 import DataModel.AsyncValue (AsyncValue(..), arrayFromAsyncValue)
-import DataModel.Codec as Codec
 import DataModel.Communication.FromString (class FromString)
+import DataModel.Communication.FromString as BCFS
+import DataModel.Communication.Login (LoginStep2Response, loginStep1ResponseCodec, loginStep2ResponseCodec)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.SRP (SRPConf, HashFunction)
-import DataModel.User (MasterKey)
+import DataModel.SRPVersions.SRP (HashFunction, SRPConf)
+import DataModel.UserVersions.User (MasterKey, RequestUserCard(..), requestUserCardCodec)
+import Effect (Effect)
 import Effect.Aff (Aff, delay)
 import Effect.Aff.Class (liftAff)
+import Effect.Class (liftEffect)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
 import Functions.HashCash (TollChallenge, computeReceipt)
 import Functions.SRP as SRP
-import DataModel.SRPCodec as SRPCodec
 import Prim.Row (class Nub, class Union)
 import Record (merge)
+
+foreign import _readBlob     :: String -> String
+foreign import _readUserCard :: Unit   -> String
 
 -- ==================================================
 
@@ -78,6 +88,19 @@ type ConnectionState = {
 , c        :: HexString
 , p        :: HexString
 }
+
+loginStep1RequestCodec :: CA.JsonCodec {c :: HexString, aa :: HexString}
+loginStep1RequestCodec = 
+  CAR.object "loginStep1Request" 
+    { c:  hexStringCodec
+    , aa: hexStringCodec
+    }
+
+loginStep2RequestCodec :: CA.JsonCodec {m1 :: HexString}
+loginStep2RequestCodec = 
+  CAR.object "loginStep2Request"
+    { m1: hexStringCodec
+    }
 
 -- ----------------------------------------------------------------------------
 
@@ -105,14 +128,6 @@ createHeaders (StaticProxy _) = []
 
 -- ----------------------------------------------------------------------------
 
-foreign import _readBlob :: String -> String
-
-foreign import _readUserCard :: Unit -> String
-
-requestWithoutAuthorization :: forall a. FromString a => ConnectionState -> Path -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AppError Aff (ProxyResponse (AXW.Response a))
-requestWithoutAuthorization connectionState@{proxy} path method body responseFormat = 
-  (manageGenericRequest proxy path method body responseFormat) >>= (manageGenericResponse connectionState path method body responseFormat)
-
 loginRequest :: forall a. FromString a => ConnectionState -> Path -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AppError Aff (ProxyResponse (AXW.Response a))
 loginRequest = requestWithoutAuthorization
 
@@ -123,28 +138,27 @@ shareRequest :: forall a. FromString a => ConnectionState -> Path -> Method -> M
 shareRequest = requestWithoutAuthorization
 
 genericRequest :: forall a. FromString a => ConnectionState -> Path -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AppError Aff (ProxyResponse (AXW.Response a))
-genericRequest connectionState@{proxy} path method body responseFormat =
-  ((manageGenericRequest proxy path method body responseFormat) >>= (manageGenericResponse connectionState path method body responseFormat)) # (manageAuth connectionState path method body responseFormat)
+genericRequest connectionState path method body responseFormat =
+  (manageGenericRequestAndResponse connectionState path method body responseFormat) # (manageAuth connectionState path method body responseFormat)
 
-manageGenericRequest :: forall a. FromString a => Proxy -> Path -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AppError Aff (AXW.Response a)
-manageGenericRequest proxy path method body responseFormat = do
+requestWithoutAuthorization :: forall a. FromString a => ConnectionState -> Path -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AppError Aff (ProxyResponse (AXW.Response a))
+requestWithoutAuthorization connectionState path method body responseFormat =
+   manageGenericRequestAndResponse connectionState path method body responseFormat
+
+-- ------------------------
+
+manageGenericRequestAndResponse :: forall a. FromString a => ConnectionState -> Path -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AppError Aff (ProxyResponse (AXW.Response a))
+manageGenericRequestAndResponse connectionState@{proxy, hashFunc, srpConf} path method body responseFormat = do
   case proxy of
-    (OnlineProxy baseUrl tollManager _) -> do
-       case tollManager.toll of
-        Loading (Just _) -> do
-          -- small delay to prevent js single thread to block in recourive calling and let the time to the computation of the toll receipt inside forkAff to finish
-          liftAff $ delay $ Milliseconds 1.0 -- TODO: may be changed from busy waiting to waiting for a signal
-          manageGenericRequest proxy path method body responseFormat
-        _                -> do -- Loading Nothing || Done _
-          withExceptT ProtocolError (doOnlineRequest baseUrl)
-          -- manageResponse response.status response
-          
-
-    (StaticProxy _) -> do
-      -- withExceptT ProtocolError $ doOfflineRequest session
-      throwError $ ProtocolError (ResponseError 500)
+    (OnlineProxy baseUrl tollManager _) -> 
+      case tollManager.toll of
+        Loading (Just _)  -> (liftAff $ delay $ Milliseconds 1.0) *> -- small delay to prevent js single thread to block in recourive calling and let the time to the computation of the toll receipt inside forkAff to finish
+                              manageGenericRequestAndResponse connectionState path method body responseFormat 
+        _                 ->  withExceptT ProtocolError (doOnlineRequest  baseUrl) >>= manageOnlineResponse
+    (StaticProxy session) ->  withExceptT ProtocolError (doOfflineRequest session)
   
-  where
+  where 
+  
     doOnlineRequest :: String -> ExceptT ProtocolError Aff (AXW.Response a)
     doOnlineRequest baseUrl =
       ExceptT $ lmap (\e -> RequestError e) <$> AXW.request (
@@ -152,12 +166,110 @@ manageGenericRequest proxy path method body responseFormat = do
             url            = joinWith "/" [baseUrl, path]
           , method         = Left method
           , headers        = createHeaders proxy
-          , timeout        = Just (Milliseconds 10000.0)
+          , timeout        = Just $ fromDuration (Seconds 10.0)
           , content        = body
           , responseFormat = responseFormat
         }
       )
 
+    manageOnlineResponse :: AXW.Response a -> ExceptT AppError Aff (ProxyResponse (AXW.Response a))
+    manageOnlineResponse response@{status}
+      | status == StatusCode 402 =
+          case extractChallenge response.headers, extractSession response.headers of
+            Just challenge, Just session -> do
+                  receipt <- liftAff $ computeReceipt hashFunc challenge
+                  genericRequest connectionState { proxy = (updateToll { toll: Done receipt, currentChallenge: Just challenge } >>> updateSession (Just session)) proxy } path method body responseFormat
+            _, _ ->
+                  throwError $ ProtocolError (IllegalResponse "HashCash and Session headers not present or wrong")
+      | isStatusCodeOk status =
+          case extractChallenge response.headers, extractSession response.headers of
+            Just challenge, Just session -> do
+                  receipt  <- liftAff $ computeReceipt hashFunc challenge --TODO this is not async anymore
+                  pure $ ProxyResponse (updateToll { toll: Done receipt   , currentChallenge: Just challenge } >>> updateSession (Just session) $ proxy) response
+            _, _ ->
+                  pure $ ProxyResponse (updateToll { toll: Loading Nothing, currentChallenge: Nothing        } >>> updateSession  Nothing       $ proxy) response
+      | otherwise =
+                  throwError $ ProtocolError (ResponseError (unwrap status))
+
+    doOfflineRequest :: Maybe BackendSessionState -> ExceptT ProtocolError Aff (ProxyResponse (AXW.Response a))
+    doOfflineRequest sessionState =
+      let pieces = split (Pattern "/") path
+          type' = (joinWith "/") <$> (init pieces)
+          ref' = last pieces      
+      in case method of
+        GET -> case type', ref' of
+          Just "blobs", Just ref -> do
+            result <- liftEffect $ BCFS.fromString $ _readBlob ref
+            pure $ ProxyResponse (StaticProxy sessionState) (responseOk result)
+
+          Just "users", Just _   -> do
+            result <- liftEffect $ BCFS.fromString $ _readUserCard unit
+            pure $ ProxyResponse (StaticProxy sessionState) (responseOk result)
+          
+          Nothing, _       -> throwError $ IllegalRequest ("Malformed url: " <> path)
+          _      , Nothing -> throwError $ IllegalRequest ("Malformed url: " <> path)
+          _      , _       -> throwError $ ResponseError 501
+
+        POST -> case type', ref', body of
+          Just "login/step1", Just _, (Just (Json step)) -> do
+            {aa}       <- except  $  decode loginStep1RequestCodec step # lmap (DecodeError <<< show)
+            uc         <- ExceptT $ (BCFS.fromString $ _readUserCard unit) <#> (decode requestUserCardCodec >>> lmap (DecodeError <<< show)) # liftEffect
+            {s, bb, b} <-            offlineLoginStep1 uc
+            response   <- liftEffect $ BCFS.fromString (stringify $ encode loginStep1ResponseCodec {s, bb})
+            pure $ ProxyResponse (StaticProxy $ Just {b, aa, bb}) (responseOk response)
+
+          Just "login/step2", Just _, (Just (Json step)) -> do
+            {m1}            <- except     $  decode loginStep2RequestCodec step # lmap (DecodeError <<< show)
+            uc              <- ExceptT    $ (BCFS.fromString $ _readUserCard unit) <#> (decode requestUserCardCodec >>> lmap (DecodeError <<< show)) # liftEffect
+            maybeResponse   <-               offlineLoginStep2 uc m1 sessionState
+            encodedResponse <- liftEffect $  sequence (encodeResponse loginStep2ResponseCodec <$> maybeResponse)
+            case encodedResponse of
+              (Just response) -> pure       $ ProxyResponse (StaticProxy sessionState) (responseOk response)
+              (Nothing)       -> throwError $ ResponseError 400 -- TODO
+
+          _, Just "logout", _ -> emptyResponse (StaticProxy Nothing)
+          
+          Nothing, _       , _ -> throwError $ IllegalRequest ("Malformed url: " <> path)
+          _      , Nothing , _ -> throwError $ IllegalRequest ("Malformed url: " <> path)
+          _      , _       , _ -> throwError $ ResponseError 501
+        
+        _   -> throwError $ ResponseError 501
+
+      where
+        encodeResponse :: forall b. CA.JsonCodec b -> (b -> Effect a)
+        encodeResponse codec = encode codec >>> stringify >>> BCFS.fromString
+
+        emptyResponse :: Proxy -> ExceptT ProtocolError Aff (ProxyResponse (AXW.Response a))
+        emptyResponse proxy' = do
+          emptyResponseBody <- liftEffect $ BCFS.fromString $ stringify $ encode CA.string ""
+          pure $ ProxyResponse proxy' (responseOk emptyResponseBody)
+
+        responseOk :: a -> AXW.Response a
+        responseOk responseBody = { body: responseBody, headers: [], status: StatusCode 200, statusText: "OK" }
+
+        offlineLoginStep1 :: RequestUserCard -> ExceptT ProtocolError Aff { s :: HexString, bb :: HexString, b :: HexString }
+        offlineLoginStep1 (RequestUserCard {v, s}) = do
+          v'         <- except  $     toBigInt v           #  note (SRPError "Cannot covert v from HexString to BigInt") 
+          Tuple b bb <- ExceptT $ SRP.prepareB srpConf v' <#> lmap (SRPError <<< show)
+          pure { s, bb: fromBigInt bb, b: fromBigInt b }
+
+        offlineLoginStep2 :: RequestUserCard -> HexString -> Maybe BackendSessionState -> ExceptT ProtocolError Aff (Maybe LoginStep2Response)
+        offlineLoginStep2  _                                     _    Nothing             = throwError $ ResponseError 501
+        offlineLoginStep2 (RequestUserCard {v, c, s, masterKey}) m1' (Just { b, bb, aa }) = do
+          let m1 = toArrayBuffer m1'
+          b'      <- except  $     toBigInt b                #  note (SRPError "Cannot covert b from HexString to BigInt") 
+          bb'     <- except  $     toBigInt bb               #  note (SRPError "Cannot covert b from HexString to BigInt") 
+          aa'     <- except  $     toBigInt aa               #  note (SRPError "Cannot covert b from HexString to BigInt") 
+          v'      <- except  $     toBigInt v                #  note (SRPError "Cannot covert v from HexString to BigInt") 
+          u       <- ExceptT $ SRP.prepareU srpConf aa' bb' <#> lmap (SRPError <<< show)
+          secret  <- pure    $ SRP.computeSServer srpConf aa' v' b' u
+          kk      <- liftAff $ SRP.prepareK srpConf secret
+          check   <- liftAff $ SRP.checkM1  srpConf c s aa' bb' kk m1
+          if check 
+          then do
+            m2 <- liftAff $ fromArrayBuffer <$> (SRP.prepareM2 srpConf aa' m1 kk)
+            pure $  Just { m2, masterKey }
+          else pure Nothing
 
 manageAuth :: forall a. FromString a => ConnectionState -> Path -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> ExceptT AppError Aff (ProxyResponse (AXW.Response a)) -> ExceptT AppError Aff (ProxyResponse (AXW.Response a))
 manageAuth connectionState@{ srpConf, c, p } path method body responseFormat exceptT = do
@@ -169,11 +281,11 @@ manageAuth connectionState@{ srpConf, c, p } path method body responseFormat exc
         -- this implementation is copied from Functions.Communication.Login functions to avoid circular dependency
         -- login step1
         (Tuple a aa) <- withExceptT (\err -> ProtocolError $ SRPError $ show err) (ExceptT $ SRP.prepareA srpConf)
-        let urlStep1  = joinWith "/" ["login", "step1", show c] :: String
-        let bodyStep1 = json $ encode (CAR.object "loginStep1Request" {c: Codec.hexStringCodec, aa: Codec.hexStringCodec}) { c, aa: fromBigInt aa }  :: RequestBody
+        let urlStep1  = joinWith "/" ["login", "step1", show c]
+        let bodyStep1 = json $ encode loginStep1RequestCodec { c, aa: fromBigInt aa } :: RequestBody
         ProxyResponse proxy' step1Response <- loginRequest connectionState urlStep1 POST (Just bodyStep1) RF.json
         {s, bb: bb_} :: {s :: HexString, bb :: HexString} <- if isStatusCodeOk step1Response.status
-                                                          then except     $ (decode SRPCodec.loginStep1ResponseCodec step1Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err) 
+                                                          then except     $ (decode loginStep1ResponseCodec step1Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err) 
                                                           else throwError $  ProtocolError (ResponseError (unwrap step1Response.status))
         bb :: BigInt <- except $ (toBigInt bb_) # note (ProtocolError $ SRPError "Error in converting B from String to BigInt")
         _ <-  if bb == fromInt (0)
@@ -185,11 +297,11 @@ manageAuth connectionState@{ srpConf, c, p } path method body responseFormat exc
         ss :: BigInt      <- (ExceptT $ SRP.prepareSClient srpConf aa bb x a) # withExceptT (\err -> ProtocolError $ SRPError $ show err)
         kk :: ArrayBuffer <-  liftAff $ SRP.prepareK  srpConf ss
         m1 :: ArrayBuffer <-  liftAff $ SRP.prepareM1 srpConf c s aa bb kk
-        let urlStep2  = joinWith "/" ["login", "step2", show c]      :: String
-        let bodyStep2 = json $ encode (CAR.object "loginStep2Request" {m1: Codec.hexStringCodec}) { m1: fromArrayBuffer m1 } :: RequestBody
+        let urlStep2  = joinWith "/" ["login", "step2", show c]
+        let bodyStep2 = json $ encode loginStep2RequestCodec { m1: fromArrayBuffer m1 } :: RequestBody
         ProxyResponse proxy'' step2Response <- loginRequest connectionState{proxy = proxy'} urlStep2 POST (Just bodyStep2) RF.json
         {m2, masterKey: _} :: {m2 :: HexString, masterKey :: MasterKey} <-  if isStatusCodeOk step2Response.status
-                                                                            then except $     (decode SRPCodec.loginStep2ResponseCodec step2Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err)
+                                                                            then except $     (decode loginStep2ResponseCodec step2Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err)
                                                                             else throwError $  ProtocolError $ ResponseError (unwrap step2Response.status)
         
         --
@@ -201,23 +313,14 @@ manageAuth connectionState@{ srpConf, c, p } path method body responseFormat exc
       
       _ -> throwError $ err'
 
-manageGenericResponse :: forall a. FromString a => ConnectionState -> Path -> Method -> Maybe RequestBody -> RF.ResponseFormat a -> AXW.Response a -> ExceptT AppError Aff (ProxyResponse (AXW.Response a))
-manageGenericResponse connectionState@{proxy, hashFunc} path method body responseFormat response@{status}
-  | status == StatusCode 402 =
-      case extractChallenge response.headers, extractSession response.headers of
-        Just challenge, Just session -> do
-              receipt <- liftAff $ computeReceipt hashFunc challenge
-              genericRequest connectionState { proxy = (updateToll { toll: Done receipt, currentChallenge: Just challenge } >>> updateSession (Just session)) proxy } path method body responseFormat
-        _, _ -> throwError $ ProtocolError (IllegalResponse "HashCash and Session headers not present or wrong")
-  | isStatusCodeOk status =
-      case extractChallenge response.headers, extractSession response.headers of
-        Just challenge, Just session -> do
-              receipt  <- liftAff $ computeReceipt hashFunc challenge --TODO this is not async anymore
-              pure $ ProxyResponse (updateToll { toll: Done receipt, currentChallenge: Just challenge } >>> updateSession (Just session) $ proxy) response
-        _, _ ->
-              pure $ ProxyResponse (updateToll { toll: Loading Nothing, currentChallenge: Nothing }     >>> updateSession Nothing        $ proxy) response
-  | otherwise = throwError $ ProtocolError (ResponseError (unwrap status))
-    
+isStatusCodeOk :: StatusCode -> Boolean
+isStatusCodeOk code = (code >= (StatusCode 200)) && (code <= (StatusCode 299))
+
+
+-- ----------------------------------------------------------------------------------------
+-- PRIVATE HELPER FUNCTIONS
+-- ----------------------------------------------------------------------------------------
+
 updateToll :: forall r1 r2.
      Union  r1 ( currentChallenge :: Maybe TollChallenge, toll :: AsyncValue HexString) r2
   => Nub    r2 ( currentChallenge :: Maybe TollChallenge, toll :: AsyncValue HexString)
@@ -231,7 +334,7 @@ updateSession _          offline@(StaticProxy _)             = offline
 
 extractChallenge :: Array ResponseHeader -> Maybe TollChallenge
 extractChallenge headers =
-  let tollArray = filter (\a -> name a == tollHeaderName) headers
+  let tollArray = filter (\a -> name a == tollHeaderName)     headers
       costArray = filter (\a -> name a == tollCostHeaderName) headers
   in case tollArray, costArray of
       [tollHeader], [costHeader] -> (\cost -> { toll: hex $ value tollHeader, cost }) <$> fromString (value costHeader)
@@ -243,89 +346,3 @@ extractSession headers =
   in case sessionArray of
     [sessionHeader] -> Just $ hex (value sessionHeader)
     _               -> Nothing
-
-    -- doOfflineRequest :: Maybe BackendSessionState -> ExceptT ProtocolError Aff (Tuple Proxy (AXW.Response a))
-    -- doOfflineRequest sessionState =
-    --   let pieces = split (Pattern "/") path
-    --       type' = (joinWith "/") <$> (init pieces)
-    --       ref' = last pieces
-      
-    --   in case method of
-    --     GET -> do
-    --       case type', ref' of
-    --         Nothing  , _           -> throwError $ IllegalRequest ("Malformed url: " <> path)
-    --         _        , Nothing     -> throwError $ IllegalRequest ("Malformed url: " <> path)
-
-    --         Just "blobs", Just ref -> do
-    --           result <- liftEffect $ BCFS.fromString $ _readBlob ref
-    --           pure $ Tuple (OfflineProxy sessionState) { body: result, headers: [], status: StatusCode 200, statusText: "OK" }
-
-    --         Just "users", Just _   -> do
-    --           result <- liftEffect $ BCFS.fromString $ _readUserCard unit
-    --           pure $ Tuple (OfflineProxy sessionState) { body: result, headers: [], status: StatusCode 200, statusText: "OK"}
-            
-    --         _           , _        -> throwError $ ResponseError 501
-
-    --     POST -> do
-    --       case type', ref', body of
-    --         Nothing  , _       , _       -> throwError $ IllegalRequest ("Malformed url: " <> path)
-    --         _        , Nothing , _       -> throwError $ IllegalRequest ("Malformed url: " <> path)
-
-    --         Just "login/step1", Just _, (Just (Json step)) -> do
-    --           stepData :: { c :: HexString, aa :: HexString } <- except $ lmap (\e -> DecodeError $ show e) $ decodeJson step
-    --           uc <- ExceptT $ (\v -> lmap (\e -> DecodeError $ show e) $ decodeJson v) <$> (liftEffect $ BCFS.fromString $ _readUserCard unit)
-    --           {s, bb, b} <- offlineLoginStep1 srpConf uc
-    --           let newSession = BackendSessionState { b, aa: stepData.aa , bb}
-    --           let jsonString = stringify $ encodeJson {s, bb}
-    --           res <- liftEffect $ BCFS.fromString jsonString
-    --           pure $ Tuple (OfflineProxy $ Just newSession) { body: res, headers: [], status: StatusCode 200, statusText: "OK" }
-
-    --         Just "login/step2", Just _, (Just (Json step)) -> do
-    --           stepData :: { m1 :: HexString } <- except $ lmap (\e -> DecodeError $ show e) $ decodeJson step
-    --           uc <- ExceptT $ (\v -> lmap (\e -> DecodeError $ show e) $ decodeJson v) <$> (liftEffect $ BCFS.fromString $ _readUserCard unit)
-    --           BackendSessionState session <- except $ note (SRPError "cannot find A, b and B") sessionState
-    --           mResponse <- offlineLoginStep2 srpConf uc stepData.m1 session
-    --           case ((encodeJson >>> stringify >>> BCFS.fromString) <$> mResponse) of
-    --             Nothing -> do
-    --               log $ "login/step2 error in mJsonString"
-    --               throwError $ ResponseError 400 -- TODO
-    --             (Just a) -> do
-    --               res <- liftEffect $ a
-    --               pure $ Tuple (OfflineProxy sessionState) { body: res, headers: [], status: StatusCode 200, statusText: "OK" }
-
-    --         Just "logout", _, _ -> do
-    --           res <- runExceptT $ do
-    --             liftAff $ liftEffect $ BCFS.fromString ""
-    --           case res of 
-    --             Left _ ->  throwError $ ResponseError 500
-    --             Right a -> pure $ Tuple (OfflineProxy Nothing) { body: a, headers: [], status: StatusCode 200, statusText: "OK" }
-            
-    --         _, _, _ -> throwError $ ResponseError 501
-        
-    --     _   -> throwError $ ResponseError 501
-
-isStatusCodeOk :: StatusCode -> Boolean
-isStatusCodeOk code = (code >= (StatusCode 200)) && (code <= (StatusCode 299))
-
--- offlineLoginStep1 :: SRPConf -> RequestUserCard -> ExceptT ProtocolError Aff { s :: HexString, bb :: HexString, b :: HexString }
--- offlineLoginStep1 srpConf (RequestUserCard r) = do
---   v <- except $ note (SRPError "Cannot covert v from HexString to BigInt") (toBigInt r.v)
---   (Tuple b bb) <- ExceptT $ (lmap (\e -> SRPError $ show e)) <$> (SRP.prepareB srpConf v)
---   pure { s: r.s, bb: fromBigInt bb, b: fromBigInt b }
-
--- offlineLoginStep2 :: SRPConf -> RequestUserCard -> HexString -> BackendSessionRecord -> ExceptT ProtocolError Aff (Maybe LoginStep2Response)
--- offlineLoginStep2 srpConf (RequestUserCard r) m1' { b, bb, aa } = do
---   let m1 = toArrayBuffer m1'
---   b'       <- except  $ (toBigInt b)  # note (SRPError "Cannot covert b from HexString to BigInt") 
---   bb'      <- except  $ (toBigInt bb) # note (SRPError "Cannot covert b from HexString to BigInt") 
---   aa'      <- except  $ (toBigInt aa) # note (SRPError "Cannot covert b from HexString to BigInt") 
---   v       <- except  $ (toBigInt r.v) # note (SRPError "Cannot covert v from HexString to BigInt") 
---   u       <- ExceptT $ (lmap (\e -> SRPError $ show e)) <$> SRP.prepareU srpConf aa' bb' 
---   secret  <- pure    $ SRP.computeSServer srpConf aa' v b' u
---   kk      <- liftAff $ SRP.prepareK srpConf secret
---   check   <- liftAff $ SRP.checkM1 srpConf r.c r.s aa' bb' kk m1
---   if check then do
---     m2 <- liftAff $ fromArrayBuffer <$> (SRP.prepareM2 srpConf aa' m1 kk)
---     pure $ Just { m2, encUserInfoReferences: fst r.masterKey }
---   else pure Nothing
-  

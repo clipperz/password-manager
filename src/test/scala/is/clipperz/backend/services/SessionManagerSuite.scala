@@ -1,8 +1,8 @@
 package is.clipperz.backend.services
 
 import java.io.File
-import java.nio.charset.StandardCharsets
-import java.nio.file.{ Files, Paths, FileSystems }
+// import java.nio.charset.StandardCharsets
+// import java.nio.file.{ Files, Paths, FileSystems }
 import java.security.MessageDigest
 import scala.language.postfixOps
 import zio.{ Chunk, ZIO }
@@ -14,16 +14,13 @@ import zio.json.EncoderOps
 import zio.http.{ Version, Headers, Method, URL, Request, Body }
 import zio.http.*
 import is.clipperz.backend.Main
-import java.nio.file.Path
-import _root_.is.clipperz.backend.exceptions.ResourceNotFoundException
-import is.clipperz.backend.functions.FileSystem
-import is.clipperz.backend.exceptions.EmptyContentException
+// import java.nio.file.Path
+import _root_.is.clipperz.backend.Exceptions.*
 import zio.Clock
 import zio.Clock.ClockLive
 import zio.test.TestClock
 import zio.Duration
 import zio.durationInt
-import is.clipperz.backend.exceptions.BadRequestException
 import scala.collection.immutable.HashMap
 
 object SessionManagerSpec extends ZIOSpecDefault:

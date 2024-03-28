@@ -2,11 +2,11 @@ module IndexFilterView where
 
 import Concur.Core (Widget)
 import Concur.React (HTML)
-import Concur.React.DOM (div, input, int, label, li, ol, span, text)
+import Concur.React.DOM (div, form, input, int, label, li, ol, span, text)
 import Concur.React.Props as Props
 import Control.Alt (($>), (<#>))
 import Control.Category (identity, (>>>))
-import Data.Array (any, elem, nub, null, sort, (:))
+import Data.Array (any, nub, sort, (:))
 import Data.Eq (class Eq, (==))
 import Data.Function (($))
 import Data.Functor ((<$>), (<$))
@@ -16,9 +16,9 @@ import Data.List as List
 import Data.Maybe (Maybe(..))
 import Data.Ord (compare, (<))
 import Data.Semigroup ((<>))
+import Data.Set (isEmpty, member, toUnfoldable)
 import Data.String (Pattern(..), contains, toLower)
-import DataModel.Index (CardEntry(..), Index(..))
-import Views.SimpleWebComponents (simpleTextInputWidgetWithFocus)
+import DataModel.IndexVersions.Index (CardEntry(..), Index(..))
 
 numberOfRecent :: Int
 numberOfRecent =  10
@@ -50,7 +50,7 @@ initialFilterData = {
 }
 
 indexFilterView :: FilterData -> Index -> Widget HTML FilterData
-indexFilterView filterData@{archived, filter, searchString} (Index entries) = div [Props._id "filterView"] [
+indexFilterView filterData@{archived, filter, searchString} (Index {entries}) = div [Props._id "filterView"] [
     (filterData {filterViewStatus = FilterViewClosed}) <$ div [Props.onClick, Props.className "mask"] []
   , div [Props.className "content"] [
       div [Props.className "filter"] [
@@ -59,13 +59,30 @@ indexFilterView filterData@{archived, filter, searchString} (Index entries) = di
         , getFilterListElement Recent   "Recent"   ["recentCards"]   (filter == Recent)
         , getFilterListElement Untagged "Untagged" ["untaggedCards"] (filter == Untagged)
         ] <#> updateFilter
-      , div [Props._id "searchForm", Props.classList [searchFormClassName]] [
-          simpleTextInputWidgetWithFocus "search" (text "search") "search" searchString
-        , span [Props.className "count"] [int $ filterCardsNumber (Search searchString)]
-        ] <#> (\search -> filterData {filter = Search search, searchString = search})
+      , form  [ Props._id "searchForm"
+              , Props.classList [searchFormClassName]
+              , Props.onSubmit $> filterData {filterViewStatus = FilterViewClosed}
+              ] [
+                label [Props.className "search"] [
+                  span [Props.className "label"] [text "search"]
+                , input [ Props._type "text"
+                        , Props.placeholder "search"
+                        , Props._id "searchInputField"
+                        , Props.value searchString
+                        , Props.disabled false
+                        , Props.unsafeTargetValue <$> Props.onChange
+                        , Props.unsafeTargetValue <$> Props.onFocus
+                        ] <#> (\search -> filterData {filter = Search search, searchString = search})
+                ]
+              , span [Props.className "count"] [int $ filterCardsNumber (Search searchString)]
+              ]
       , div [Props.className "tags"] [
           span [Props.className "tags"] [text "Tags"]
-        , ol [Props._id "tagFilter"] ((\tag -> getFilterListElement (Tag tag) tag [] (filter == Tag tag)) <$> (sort $ nub $ fold $ (\(CardEntry { tags }) -> tags) <$> (shownEntries entries Nothing archived)))
+        , ol [Props._id "tagFilter"] (
+                (\tag -> getFilterListElement (Tag tag) tag [] (filter == Tag tag)) 
+            <$> (sort $ nub $ fold $ (\(CardEntry { tags }) -> toUnfoldable tags) 
+            <$> (shownEntries entries Nothing archived))
+          )
         ] <#> updateFilter
       ]
     , div [Props._id "archivedFilterArea"] [
@@ -91,7 +108,7 @@ indexFilterView filterData@{archived, filter, searchString} (Index entries) = di
     archivedCardsNumber = length $ List.filter (\(CardEntry r) -> r.archived) entries
 
     updateFilter :: Filter -> FilterData
-    updateFilter newFilter = filterData { filter = newFilter }
+    updateFilter newFilter = filterData { filter = newFilter, filterViewStatus = FilterViewClosed }
 
     getFilterListElement :: Filter -> String -> Array String -> Boolean -> Widget HTML Filter
     getFilterListElement filter' label classes isSelected = li [Props.classList $ [if isSelected then Just "selected" else Nothing] <> (Just <$> classes), filter' <$ Props.onClick] [
@@ -114,9 +131,9 @@ shownEntries entries selectedEntry archived = List.filter (\(CardEntry r) -> arc
 filteredEntries :: Filter -> List CardEntry -> List CardEntry
 filteredEntries filter = case filter of
   Search searchString'  -> if searchString' == ""
-                                  then identity
-                                  else List.filter (\(CardEntry entry) -> any (contains (Pattern (toLower searchString'))) (toLower <$> (entry.title : entry.tags))) -- TODO: may be improved with a proper information retrieval system [fsolaroli - 27/11/2023]
-  Tag    tag'           ->             List.filter (\(CardEntry entry) -> elem tag' entry.tags)                                                                     
-  Untagged              ->             List.filter (\(CardEntry entry) -> null      entry.tags)                                                                     
-  Recent                ->             List.sortBy (\(CardEntry e1) (CardEntry e2) -> compare e1.lastUsed e2.lastUsed) >>> List.takeEnd numberOfRecent
-  All                   ->             identity      
+                           then identity
+                           else List.filter (\(CardEntry entry) -> any (contains (Pattern (toLower searchString'))) (toLower <$> (entry.title : toUnfoldable entry.tags))) -- TODO: may be improved with a proper information retrieval system [fsolaroli - 27/11/2023]
+  Tag    tag'           ->      List.filter (\(CardEntry entry) -> member  tag' entry.tags)                                                                     
+  Untagged              ->      List.filter (\(CardEntry entry) -> isEmpty      entry.tags)                                                                     
+  Recent                ->      List.sortBy (\(CardEntry e1) (CardEntry e2) -> compare e1.lastUsed e2.lastUsed) >>> List.takeEnd numberOfRecent
+  All                   ->      identity      

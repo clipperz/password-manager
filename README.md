@@ -26,18 +26,25 @@ Necessary tools:
 
 ### Building and running the application
 All the building and running of the application is managed by sbt, that under the hood uses yarn to manage the Purescript side.
-On a console, in the base folder run `sbt` to open the sbt console, after that the command `r` (or `runAll`) builds the whole project, both Scala and Purescript and then starts the Scala server that also serves the frontend at `localhost:8090/index.html`.
+On a console, in the base folder run `sbt` to open the sbt console, after that the command `r` (or `runAll`) builds the whole project, both Scala and Purescript and then starts the Scala server that also serves the frontend at `localhost:8090/api/static/index.html`.
  
 ### Running tests
 Command to run inside of the sbt console to execute tests:
 - Scala
 	- `Test/compile`: compiles the tests
 	- `test`: runs all the Scala tests
-	- `Test/test {path of the test suit}` (ex: `Test/test is.clipperz.backend.SrpFunctionsConversionsSuite`): run a specific test suite
+	- `testOnly {path of the test suit}` (ex: `testOnly is.clipperz.backend.SrpFunctionsConversionsSuite`): run a specific test suite
 	- `Test/run`: show a list of all the test suits from which you can choose one to run
 - Purescript
-	- `testPurescript`: starts a server on `localhost:1234` that runs all the Purescript tests on browser and prints the result in the browser console
+	- `testPurescript`: starts a server on `https://localhost:9000`
+		- the path `/static/test_index.html` serve a page that runs the Purescript tests on browser and prints the result in the page itself
+		- the path `/static/debug_index.html` serve a page for debugging purpose, allowing to view the static page corresponding to a state of the application
 - `t` (or `testAll`): run `test` first and `testPurescript` after that. Note that if a Scala test doesn't pass `testPurescript` will not be executed.
+
+### Debug
+As described in the above, the `testPurescript` command will execute a server that serves on address `https://localhost:9000/static/debug_index.html` the debug page.
+In the main application, using the key-combination `ctrl+alt+c` (or pressing the `DEBUG` button in the bottom right corner) will copy the app state.
+Keeping the `Shift` key pressed will slow down the operation's animations.
 
 ### Docker images
 ```
@@ -54,3 +61,5 @@ To run:
 ```
 docker run -p 8080:8080 -v ${PWD}/target/archive/user:/archive/user -v ${PWD}/target/archive/blob:/archive/blob clipperz
 ```
+
+

@@ -17,13 +17,13 @@ import Data.String.Common (joinWith)
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (Proxy(..), ProxyResponse(..))
 import DataModel.Communication.ProtocolError (ProtocolError(..))
+import DataModel.Communication.Signup (registerUserRequestCodec)
 import DataModel.Credentials (Credentials)
-import DataModel.SRP (SRPConf, HashFunction)
-import DataModel.User (RequestUserCard(..))
+import DataModel.SRPVersions.SRP (SRPConf, HashFunction)
+import DataModel.UserVersions.User (RequestUserCard(..))
 import Effect.Aff (Aff)
 import Functions.Communication.Backend (isStatusCodeOk, signupRequest)
 import Functions.Communication.Login (PrepareLoginResult)
-import DataModel.SRPCodec as SRPCodec
 import Functions.Signup (prepareSignupParameters)
 
 type SessionKey = HexString
@@ -35,9 +35,9 @@ signupUser       (StaticProxy _)     _        _       _           = throwError $
 signupUser proxy@(OnlineProxy _ _ _) hashFunc srpConf credentials = do
   request@{user: RequestUserCard u, p} <- flip withExceptT (ExceptT (prepareSignupParameters srpConf credentials)) (show >>> SRPError >>> ProtocolError)
   let path  = joinWith "/" ["users", show u.c]
-  let body = (json $ encode SRPCodec.registerUserRequestCodec request) :: RequestBody
+  let body = (json $ encode registerUserRequestCodec request) :: RequestBody
   --- ---------------------------
-  ProxyResponse newProxy response <- signupRequest {proxy, hashFunc, srpConf, c: hex "", p: hex ""} path POST (Just body) RF.string
+  ProxyResponse newProxy response <- signupRequest {proxy, hashFunc, srpConf, c: hex "", p: hex ""} path POST (Just body) RF.ignore
   if isStatusCodeOk response.status
     then pure $ ProxyResponse newProxy {c: u.c, p: p}
     else throwError $ ProtocolError (ResponseError (unwrap response.status))

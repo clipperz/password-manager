@@ -1,19 +1,14 @@
 package is.clipperz.backend.middleware
 
-import zio.ZIO
-import zio.Task
-import zio.json.EncoderOps
-import zio.http.{ Headers, Request, Response, Status }
-import zio.http.* //TODO: fix How do you import `!!` and `/`?
 import is.clipperz.backend.data.HexString
-import is.clipperz.backend.functions.{ fromString }
-import is.clipperz.backend.services.{ ChallengeType, SessionManager, TollManager, TollChallenge }
+import is.clipperz.backend.functions.{ customErrorHandler, customMapError, fromString }
 import is.clipperz.backend.Main.ClipperzHttpApp
-import is.clipperz.backend.services.Session
-import zio.http.Status.InternalServerError
-import zio.http.Status.Unauthorized
-import is.clipperz.backend.functions.customErrorHandler
-import is.clipperz.backend.functions.customMapError
+import is.clipperz.backend.services.{ ChallengeType, Session, SessionManager, TollManager, TollChallenge }
+
+import zio.{ ZIO, Task }
+import zio.json.EncoderOps
+import zio.http.{ HandlerAspect, Headers, Middleware, Request, Response, Status }
+import zio.http.Status.{ InternalServerError, Unauthorized }
 
 type SessionMiddleware = HandlerAspect[SessionManager, Any]
 

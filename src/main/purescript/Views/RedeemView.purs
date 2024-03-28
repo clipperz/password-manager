@@ -24,8 +24,8 @@ import Data.Monoid ((<>))
 import Data.Ord ((<), (>))
 import Data.String (length)
 import Data.Unit (Unit, unit)
-import DataModel.Card (Card(..))
-import DataModel.Codec as Codec
+import DataModel.CardVersions.Card (Card(..), toCard)
+import DataModel.CardVersions.CurrentCardVersions (currentCardCodecVersion)
 import Effect.Aff (Milliseconds(..), delay)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -78,7 +78,7 @@ redeemView (Enabled enabled) = do
 redeemedView :: String -> Widget HTML Unit
 redeemedView secret = do
   result <- div [Props.className "redeemedView"] [
-    false <$ case decode Codec.cardCodec =<< (lmap TypeMismatch $ jsonParser secret) of
+    false <$ case toCard <$> (decode currentCardCodecVersion =<< (lmap TypeMismatch $ jsonParser secret)) of
       Right (Card {content}) -> div [Props.className "redeemedCard"] [
                                   text ("Here is your secret card:")
                                 , cardContent content

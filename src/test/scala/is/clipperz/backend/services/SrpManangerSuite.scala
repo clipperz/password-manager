@@ -1,7 +1,8 @@
 package is.clipperz.backend.apis
 
-import java.nio.file.FileSystems
+// import java.nio.file.FileSystems
 import zio.ZIO
+import zio.nio.file.{ FileSystem }
 import zio.stream.ZStream
 import zio.test.{ ZIOSpecDefault, assertTrue, assertNever, assertZIO, check }
 import zio.test.Assertion.{ fails, isSubtype, anything, isTrue }
@@ -21,17 +22,20 @@ import is.clipperz.backend.services.SRPStep1Data
 import is.clipperz.backend.services.SRPStep2Data
 import is.clipperz.backend.TestUtilities
 import zio.test.TestAspect
-import is.clipperz.backend.exceptions.ResourceNotFoundException
+import is.clipperz.backend.Exceptions.*
 import zio.http.*
 import is.clipperz.backend.services.RemoteUserCard
+import is.clipperz.backend.services.SRPVersion
+import is.clipperz.backend.services.MasterKeyEncodingVersion
 
 object SrpManangerSpec extends ZIOSpecDefault:
   val samples = 10
 
-  val blobBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "blobs").nn
-  val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
+  val blobBasePath = FileSystem.default.getPath("target", "tests", "archive", "blobs")
+  val userBasePath = FileSystem.default.getPath("target", "tests", "archive", "users")
 
-  val archive = UserArchive.fs(userBasePath, 2, false)
+  val keyBlobArchiveFolderDepth = 16
+  val archive = UserArchive.fs(userBasePath, keyBlobArchiveFolderDepth, false)
 
   val layers =
     archive ++
@@ -71,10 +75,10 @@ object SrpManangerSpec extends ZIOSpecDefault:
                 c = cHex,
                 s = sHex,
                 v = bigIntToHex(v),
-                srpVersion = "srpVersion_testFullTrip",
+                srpVersion = SRPVersion("srpVersion_testFullTrip"),
                 // originMasterKey = None,
                 // masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
-                masterKey = (HexString("masterKeyContent_testFullTrip"), "masterKeyEncodingVersion_testFullTrip")
+                masterKey = (HexString("masterKeyContent_testFullTrip"), MasterKeyEncodingVersion("masterKeyEncodingVersion_testFullTrip"))
               )
             )
 
@@ -150,10 +154,10 @@ object SrpManangerSpec extends ZIOSpecDefault:
                 c = cHex,
                 s = sHex,
                 v = bigIntToHex(v),
-                srpVersion = "srpVersion_testFullTrip",
+                srpVersion = SRPVersion("srpVersion_testFullTrip"),
                 // originMasterKey = None,
                 // masterKeyEncodingVersion = "masterKeyEncodingVersion_testFullTrip",
-                masterKey = (HexString("masterKeyContent_testFullTrip"), "masterKeyEncodingVersion_testFullTrip")
+                masterKey = (HexString("masterKeyContent_testFullTrip"), MasterKeyEncodingVersion("masterKeyEncodingVersion_testFullTrip"))
               )
             )
 

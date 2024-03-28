@@ -3,14 +3,17 @@ module Functions.Export where
 import Affjax.ResponseFormat as RF
 import Control.Applicative (pure)
 import Control.Bind (bind, discard)
+import Control.Category (identity)
 import Control.Monad.Except (throwError)
 import Control.Monad.Except.Trans (ExceptT(..), except)
 import Control.Semigroupoid ((<<<))
 import Data.Argonaut.Core as AC
+import Data.Array as Array
 import Data.Codec.Argonaut (encode)
 import Data.Codec.Argonaut.Common as CAC
-import Data.Either (Either(..), note)
+import Data.Either (Either(..), either, note)
 import Data.Foldable (fold)
+import Data.Formatter.DateTime (formatDateTime)
 import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
@@ -18,26 +21,27 @@ import Data.HexString (HexString)
 import Data.List (List)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.MediaType (MediaType(..))
+import Data.MediaType.Common (textHTML)
 import Data.Newtype (unwrap)
 import Data.Semigroup ((<>))
+import Data.Set (toUnfoldable)
 import Data.Show (show)
 import Data.String.Common (replaceAll)
 import Data.String.Pattern (Pattern(..), Replacement(..))
 import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (ProxyResponse(..))
-import DataModel.Card (Card(..), CardValues(..), CardField(..))
-import DataModel.Codec as Codec
+import DataModel.CardVersions.Card (Card(..), CardField(..), CardValues(..), cardVersionCodec, fromCard)
+import DataModel.CardVersions.CurrentCardVersions (currentCardCodecVersion, currentCardVersion)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
-import DataModel.SRPCodec as SRPCodec
-import DataModel.User (RequestUserCard)
+import DataModel.UserVersions.User (RequestUserCard, requestUserCardCodec)
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, genericRequest)
 import Functions.Events (renderElement)
 import Functions.State (offlineDataId)
-import Functions.Time (getCurrentDateTime, formatDateTimeToDate, formatDateTimeToTime)
+import Functions.Time (formatDateTimeToDate, formatDateTimeToTime, getCurrentDateTime)
 import Web.DOM.Document (Document, documentElement, toNode, createElement)
 import Web.DOM.Element as EL
 import Web.DOM.Node (lastChild, firstChild, insertBefore, setTextContent)
@@ -48,8 +52,8 @@ unencryptedExportStyle = "body {font-family: 'DejaVu Sans Mono', monospace;margi
 
 type BlobsList = List (Tuple HexString HexString)
 
-prepareCardsForUnencryptedExport :: List Card -> Effect String
-prepareCardsForUnencryptedExport cardList = do
+prepareUnencryptedExport :: List Card -> Effect Blob
+prepareUnencryptedExport cardList = do
   dt <- getCurrentDateTime
   let date = formatDateTimeToDate dt
   let time = formatDateTimeToTime dt
@@ -57,7 +61,7 @@ prepareCardsForUnencryptedExport cardList = do
   let htmlDocString1 = "<div><header><h1>Your data on Clipperz</h1><h5>Export generated on " <> date <> " at " <> time <> "</h5></header>"
   let htmlDocString2 = "</div>"
   let htmlDocContent = prepareUnencryptedContent cardList
-  pure $ styleString <> htmlDocString1 <> htmlDocContent <> htmlDocString2
+  pure (fromString (styleString <> htmlDocString1 <> htmlDocContent <> htmlDocString2) textHTML)
 
 formatText :: String -> String
 formatText = (replaceAll (Pattern "<") (Replacement "&lt;")) <<< (replaceAll (Pattern "&") (Replacement "&amp;"))
@@ -65,13 +69,13 @@ formatText = (replaceAll (Pattern "<") (Replacement "&lt;")) <<< (replaceAll (Pa
 prepareUnencryptedContent :: List Card -> String
 prepareUnencryptedContent l = 
   let list = fold $ cardToLi <$> l
-      textareaContent = formatText $ AC.stringify $ encode (CAC.list Codec.cardCodec) l
-  in "<ul>" <> list <> "</ul><div><textarea>" <> textareaContent <> "</textarea></div>"
+      textareaContent = formatText $ AC.stringify $ encode (CAC.list currentCardCodecVersion) $ fromCard <$> l
+  in "<ul>" <> list <> "</ul><div><textarea class=\'" <> (AC.stringify $ encode cardVersionCodec currentCardVersion) <> "\'>" <> textareaContent <> "</textarea></div>"
 
   where
     cardToLi (Card {content: (CardValues {title, tags, fields, notes}), archived, timestamp: _}) =
       let archivedTxt = if archived then "archived" else ""
-          tagsLis = fold $ (\t -> "<li>" <> (formatText t) <> "</li>") <$> tags
+          tagsLis = Array.fold $ (\t -> "<li>" <> (formatText t) <> "</li>") <$> (toUnfoldable tags)
           fieldsDts = fold $  (\(CardField {name, value, locked}) -> "<dt>" <> (formatText name) <> "</dt><dd class=\"" <> (if locked then "hidden" else "") <> "\">" <> (formatText value) <> "</dd>") <$> fields
           liContent = "<h2>" <> (formatText title) <> "</h2><ul> " <> tagsLis <> "</ul><div><dl>" <> fieldsDts <> "</dl></div><p>" <> (formatText notes) <> "</p>"
       in "<li class=\"" <> archivedTxt <> "\">" <> liContent <> "</li>"
@@ -86,10 +90,12 @@ getBasicHTML connectionState = do
 
 appendCardsDataInPlace :: Document -> List (Tuple HexString HexString) -> RequestUserCard -> ExceptT AppError Aff Document
 appendCardsDataInPlace doc blobList requestUserCard = do
-  let blobsContent = "const blobs = { " <> (fold $ (\(Tuple k v) -> "\"" <> show k <> "\": \"" <> show v <> "\", " ) <$> blobList) <> "}"
-  let userCardContent = "const userCard = " <> (AC.stringify $ encode SRPCodec.requestUserCardCodec requestUserCard)
-  let prepareContent = "window.blobs = blobs; window.userCard = userCard;"
-  let nodeContent = userCardContent <> ";\n" <> blobsContent <> ";\n" <> prepareContent
+  let blobsContent     = "const blobs = { "          <> (fold $ (\(Tuple k v) -> "\"" <> show k <> "\": \"" <> show v <> "\", " ) <$> blobList) <> "}"
+  let userCardContent  = "const userCard = "         <> (AC.stringify $ encode requestUserCardCodec requestUserCard)
+  currentDateTime     <- liftEffect getCurrentDateTime
+  let offlineTimestamp = "const offlineTimestamp = '" <> ((either identity identity $ formatDateTime "ddd, D MMMM YYYY HH:mm:ss" currentDateTime) <> " UTC'")
+  let prepareContent   = "window.blobs = blobs; window.userCard = userCard; window.offlineTimestamp = offlineTimestamp;"
+  let nodeContent      = userCardContent <> ";\n" <> blobsContent <> ";\n" <> offlineTimestamp <> ";\n" <> prepareContent
 
   let asNode = toNode doc
   html <- ExceptT $ (note $ UnhandledCondition "TODO") <$> (liftEffect $ lastChild asNode)

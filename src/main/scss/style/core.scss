@@ -1,4 +1,5 @@
 @import "./palette.scss";
+@import "../structure/mixin.scss";
 
 // @media (prefers-color-scheme: light) {
 // 	html {
@@ -32,6 +33,8 @@ div.page {
     div.content {
         display: flex;
         flex-direction: column;
+
+		@include offlineHeader();
 
         header {
             width: 100%;
@@ -105,9 +108,89 @@ div.page {
 	}
 }
 
-#shortcutsHelp {
+.shortcutsHelp {
 	&.hidden {
 		visibility: hidden;
 		display: none;
+	}
+
+	.helpBox {
+		width: calc(100vw - 40px);
+		box-sizing: border-box;
+		position: fixed;
+		right: 20px;
+		z-index: 50;
+		padding-top: 4px;
+        top: 20px;
+		color: white;
+		padding: 30px;
+		border-radius: 20px;
+		background-color: rgba(0, 0, 0, 0.75);
+
+		header {
+			border-bottom: 1px solid white;
+			padding-bottom: 6px;
+
+			button.close {
+				float: right;
+				display: block;
+				font-family: 'clipperz-icons';
+				font-feature-settings: "liga" 1, "dlig" 1;
+				-webkit-font-smoothing: antialiased;
+				text-rendering: optimizeLegibility;
+				cursor: pointer;
+				background: transparent;
+				color: white;
+				border: 0;
+				position: relative;
+    			bottom: 16px;
+			}
+		}
+
+		.helpContent {
+			padding-top: 4px;
+			
+			.helpBlock {
+				padding-top: 8px;
+
+				h4 { 
+					font-size: 10pt;
+					margin-left: 160px;
+					color: yellow;
+					padding-bottom: 3px;
+				}
+
+				dl { 
+					font-size: 9pt; 
+
+					dt {
+						float: left;
+						clear: left;
+						width: 160px;
+						text-align: right;
+						padding-right: 4px;
+
+						&::after { content: ":"; }
+
+						span {
+							vertical-align: middle;
+
+							&.key 	   { color: yellow; }
+
+							&.operator { 
+								font-size: 7pt; 
+								padding-left: 4px;
+    							padding-right: 4px;
+							}
+						}
+					}
+
+					dd {
+						margin-left: 160px;
+						padding-bottom: 4px;
+					}
+				}
+			}
+		}
 	}
 }

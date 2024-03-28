@@ -5,24 +5,18 @@ import Data.Either (Either)
 import Data.Eq (class Eq)
 import Data.Map (Map)
 import Data.Maybe (Maybe)
-import Data.Show (class Show)
 import Data.Tuple (Tuple)
-import DataModel.Card (Card)
+import DataModel.CardVersions.Card (Card)
 import DataModel.Credentials (Credentials)
-import DataModel.Index (CardEntry, Index)
-import DataModel.User (UserPreferences)
+import DataModel.IndexVersions.Index (CardEntry, Index)
+import DataModel.UserVersions.User (UserPreferences)
+import Functions.Donations (DonationLevel)
 import IndexFilterView (FilterData)
 import Views.OverlayView (OverlayInfo)
 import Views.SignupFormView (SignupDataForm)
 import Web.File.File (File)
 
-data Page = Loading (Maybe Page) | Login LoginFormData | Signup SignupDataForm | Main MainPageWidgetState
-
-instance showPage :: Show Page where
-  show (Loading _) = "Loading"
-  show (Login _)   = "Login"
-  show (Signup _)  = "Signup"
-  show (Main _)    = "Main"
+data Page = Loading (Maybe Page) | Login LoginFormData | Signup SignupDataForm | Main MainPageWidgetState | Donation DonationLevel
 
 -- ========================================================================
 
@@ -64,26 +58,28 @@ derive instance ordUserAreaSubmenus :: Ord UserAreaSubmenu
 -- ========================================================================
 
 type MainPageWidgetState = {
-  index                         :: Index
-, credentials                   :: Credentials
-, pinExists                     :: Boolean
-, userAreaState                 :: UserAreaState
-, cardManagerState              :: CardManagerState
-, userPreferences               :: UserPreferences
+  index             :: Index
+, credentials       :: Credentials
+, pinExists         :: Boolean
+, userAreaState     :: UserAreaState
+, cardManagerState  :: CardManagerState
+, userPreferences   :: UserPreferences
+, donationLevel     :: DonationLevel
 }
 
 data WidgetState = WidgetState OverlayInfo Page
 
 -- -------------------------------------
 
-data CardFormInput = NewCard (Maybe Card) | ModifyCard Card CardEntry -- TODO NewCard | NewCardFromFragment Card | ModifyCard Card CardEntry [fsolaroli - 03/12/2023]
+data CardFormInput = NewCard | NewCardFromFragment Card | ModifyCard Card CardEntry
 derive instance eqCardFormInput :: Eq CardFormInput
 
 data CardViewState = NoCard | Card Card CardEntry | CardForm CardFormInput
 derive instance eqCardViewState :: Eq CardViewState
 
 type CardManagerState = { 
-  filterData    :: FilterData
-, selectedEntry :: Maybe CardEntry
-, cardViewState :: CardViewState
+  filterData        :: FilterData
+, highlightedEntry  :: Maybe Int
+, cardViewState     :: CardViewState
+, showShortcutsHelp :: Boolean
 }

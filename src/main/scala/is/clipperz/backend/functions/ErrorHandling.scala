@@ -1,12 +1,9 @@
 package is.clipperz.backend.functions
 
-import zio.Cause
-import zio.ZIO
-import zio.http.Response
-import is.clipperz.backend.exceptions.*
-import zio.http.Status
+import is.clipperz.backend.Exceptions.*
 import java.time.format.DateTimeParseException
-import zio.http.Body
+import zio.{ Cause, ZIO }
+import zio.http.{Body, Response, Status }
 
 def customErrorHandler(c: Cause[Throwable]): ZIO[Any, Nothing, Response] =
     val err = c.failureOption.getOrElse(c.dieOption.getOrElse(new Exception())) 

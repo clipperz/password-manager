@@ -1,12 +1,12 @@
 package is.clipperz.backend.services
 
-import zio.{ ZIO, Layer, ZLayer, Tag, Task }
-import zio.internal.stacktracer.Tracer
-import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder, EncoderOps }
-
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.functions.ByteArrays
 import is.clipperz.backend.functions.crypto.HashFunction
+
+import zio.{ ZIO, Layer, ZLayer, Tag, Task }
+import zio.internal.stacktracer.Tracer
+import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder, EncoderOps }
 
 type TollCost = Int // bit
 type TollReceipt = HexString

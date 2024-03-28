@@ -3,90 +3,76 @@ module Test.EncodeDecode where
 import Functions.EncodeDecode
 
 import Control.Applicative (pure)
-import Control.Bind (bind, discard, (>>=))
-import Crypto.Subtle.Constants.AES as AES
-import Crypto.Subtle.Encrypt as Encrypt
-import Crypto.Subtle.Key.Generate as Key.Generate
+import Control.Bind (bind, discard, (=<<))
+import Control.Category ((<<<))
 import Crypto.Subtle.Key.Types as Key.Types
-import Data.ArrayBuffer.Typed as Data.ArrayBuffer.Typed
-import Data.ArrayBuffer.Types (ArrayBuffer, ArrayView, Uint8)
+import Data.Argonaut.Core (stringify)
+import Data.Argonaut.Decode (parseJson)
+import Data.Bifunctor (lmap)
+import Data.Codec.Argonaut (decode, encode)
+import Data.Codec.Argonaut as CA
 import Data.Either (Either(..))
-import Data.Eq ((==))
+import Data.Eq (class Eq, (==))
 import Data.Function (($))
-import Data.Functor ((<$>))
+import Data.HexString (fromArrayBuffer)
 import Data.Identity (Identity)
-import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
-import Data.Ring ((*))
 import Data.Semigroup ((<>))
-import Data.Show (show)
+import Data.Show (class Show, show)
 import Data.String.CodePoints (toCodePointArray)
-import Data.TextDecoder as Decoder
-import Data.TextEncoder as Encoder
 import Data.Unit (Unit)
-import DataModel.Card (Card(..), cardValues0)
-import DataModel.Codec as Codec
 import Effect.Aff (Aff)
-import Effect.Class (liftEffect)
-import Effect.Exception (Error, error)
-import Functions.ArrayBuffer (emptyByteArrayBuffer)
-import Test.QuickCheck ((<?>), (===), Result(..))
+import Test.DebugCodec as Codec
+import Test.QuickCheck (Result(..), (/==), (<?>))
 import Test.Spec (describe, it, SpecT)
-import Test.Spec.Assertions (shouldEqual)
-import TestClasses (AsciiString, UnicodeString)
-import TestUtilities (makeTestableOnBrowser, quickCheckAffInBrowser, failOnBrowser, makeQuickCheckOnBrowser)
+import TestClasses (UnicodeString, unicodeStringCodec)
+import TestUtilities (makeQuickCheckOnBrowser, quickCheckAffInBrowser)
 
 encodeDecodeSpec :: SpecT Aff Unit Identity Unit
 encodeDecodeSpec = 
   describe "EncodeDecode" do
-    let samples = 50
+    let samples = 100
 
-    let encodeDecode = "encodes then decode unicode strings"
+    let encodeDecode = "encodes then decode "
     it encodeDecode do
-      makeQuickCheckOnBrowser encodeDecode samples encodeDecodeText
+      makeQuickCheckOnBrowser (encodeDecode <> "unicode strings") samples encodeDecodeText
     let encryptDecrypt = "encrypt then decrypt ascii strings"
     it encryptDecrypt do
-      quickCheckAffInBrowser encryptDecrypt samples encryptDecryptText
+      quickCheckAffInBrowser encryptDecrypt samples (encryptDecryptWithCodec unicodeStringCodec)
     let encryptDecryptJson = "encrypt then decrypt using json"
     it encryptDecryptJson do
-      let card@(Card r) = Card { content: cardValues0, secrets: [], timestamp: 1661377622.0, archived: false }
-      masterKey :: Key.Types.CryptoKey <- Key.Generate.generateKey (Key.Generate.aes AES.aesCTR AES.l256) true [Key.Types.encrypt, Key.Types.decrypt, Key.Types.unwrapKey]
-      encrypted <- encryptJson Codec.cardCodec masterKey card
-      result    <- decryptJson Codec.cardCodec masterKey encrypted
-      case result of
-        Left err -> failOnBrowser encryptDecryptJson (show err)
-        Right (Card decrypted) -> makeTestableOnBrowser encryptDecryptJson decrypted shouldEqual r
+      quickCheckAffInBrowser (encryptDecryptJson <> " -- Card") samples (encryptDecryptWithCodec Codec.cardCodec)
+    let encryptSameContent = "encrypt same content"
+    it encryptSameContent do
+      quickCheckAffInBrowser encryptSameContent samples (\value -> do
+        masterKey :: Key.Types.CryptoKey <- generateCryptoKeyAesGCM
+        encrypted1 <- encryptJson Codec.cardCodec masterKey value
+        encrypted2 <- encryptJson Codec.cardCodec masterKey value
+        pure $ (fromArrayBuffer encrypted1) /== (fromArrayBuffer encrypted2)
+      )
 
+encryptDecryptWithCodec :: forall a. Eq a => Show a =>  CA.JsonCodec a -> a -> Aff Result
+encryptDecryptWithCodec codec value = do
+  masterKey :: Key.Types.CryptoKey <- generateCryptoKeyAesGCM
+  encrypted <- encryptJson codec masterKey value
+  result    <- decryptJson codec masterKey encrypted
+  pure $ case result of
+    Left err -> Failed (show err)
+    Right res  -> value == res <?> ((show value) <> " /= " <> (show res))
 
-encryptDecryptText :: AsciiString -> Aff Result
-encryptDecryptText text' = do
-  let text = unwrap text'
-  let encodedText = Encoder.encode Encoder.Utf8 text :: ArrayView Uint8   -- Uint8Array
-  let textBuffer = Data.ArrayBuffer.Typed.buffer encodedText :: ArrayBuffer
-  let blockSize' = 16 :: Int
-  let blockSizeInBits' = blockSize' * 8 :: Int
-  let emptyCounter = emptyByteArrayBuffer blockSize' :: ArrayBuffer
-  let algorithm = (Encrypt.aesCTR emptyCounter blockSizeInBits') :: Encrypt.EncryptAlgorithm
-
-  key              :: Key.Types.CryptoKey    <- Key.Generate.generateKey (Key.Generate.aes AES.aesCTR AES.l256) false [Key.Types.encrypt, Key.Types.decrypt]
-
-  encryptedData     :: ArrayBuffer     <- Encrypt.encrypt algorithm key textBuffer
-
-  decryptedData :: Maybe ArrayBuffer <- Encrypt.decrypt algorithm key encryptedData
-  decryptedDataView :: Either Error (ArrayView Uint8) <- case decryptedData of
-      Nothing -> pure $ Left (error "Something went wrong")
-      Just d  -> liftEffect $ Right <$> (Data.ArrayBuffer.Typed.whole d)
-
-  let decoded = (decryptedDataView >>= (Decoder.decode Decoder.Utf8)  :: (Either Error String))
-  pure $ case decoded of
-    Left err -> Failed $ show err
-    Right s -> text === s
+encodeDecodeWithCodec :: forall a. Eq a => Show a =>  CA.JsonCodec a -> a -> Result
+encodeDecodeWithCodec codec value = do
+  let encoded =  stringify   $ encode codec value
+  let decoded = (lmap show <<< decode codec       ) =<< lmap show (parseJson encoded)
+  case decoded of
+    Left  err -> Failed (show err)
+    Right res -> value == res <?> ((show value) <> " /= " <> (show res))
 
 encodeDecodeText :: UnicodeString -> Result
 encodeDecodeText text' = do
   let text = unwrap text'
-  let encodedText = Encoder.encode Encoder.Utf8 text :: ArrayView Uint8   -- Uint8Array
-  let decoded = Decoder.decode Decoder.Utf8 encodedText
+  let encodedText = stringify $ encode CA.string text
+  let decoded = (lmap show <<< decode CA.string) =<< lmap show (parseJson encodedText)
   case decoded of
     Left err -> Failed (show err)
     Right t -> text == t <?> (text <> " /= " <> t <> " => " <> (show (toCodePointArray text)) <> " /= " <> (show (toCodePointArray t)))

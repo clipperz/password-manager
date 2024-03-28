@@ -1,8 +1,8 @@
 package is.clipperz.backend.services
 
 import java.io.File
-import java.nio.charset.StandardCharsets
-import java.nio.file.{ Files, Paths, FileSystems }
+// import java.nio.charset.StandardCharsets
+// import java.nio.file.{ Files, Paths, FileSystems }
 import java.security.MessageDigest
 import scala.language.postfixOps
 import zio.{ Chunk, ZIO, Task }
@@ -11,16 +11,13 @@ import zio.test.Assertion.{ nothing, isTrue, isFalse, throws, throwsA, fails, is
 import zio.test.{ ZIOSpecDefault, check, assertTrue, assert, assertCompletes, assertNever, assertZIO, TestAspect }
 import zio.json.EncoderOps
 import is.clipperz.backend.Main
-import java.nio.file.Path
-import _root_.is.clipperz.backend.exceptions.ResourceNotFoundException
-import is.clipperz.backend.functions.FileSystem
+// import java.nio.file.Path
+import _root_.is.clipperz.backend.Exceptions.*
 import is.clipperz.backend.functions.crypto.HashFunction
-import is.clipperz.backend.exceptions.EmptyContentException
 import zio.Clock
 import zio.Clock.ClockLive
 import zio.test.TestClock
 import zio.Duration
-import is.clipperz.backend.exceptions.BadRequestException
 import zio.test.Gen
 import is.clipperz.backend.functions.ByteArrays
 import is.clipperz.backend.data.HexString

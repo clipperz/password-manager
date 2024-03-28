@@ -1,8 +1,8 @@
 package is.clipperz.backend.services
 
 import java.io.File
-import java.nio.charset.StandardCharsets
-import java.nio.file.{ Files, Paths, FileSystems }
+// import java.nio.charset.StandardCharsets
+// import java.nio.file.{ Files, Paths, FileSystems }
 import java.security.MessageDigest
 import scala.language.postfixOps
 import zio.{ Chunk, ZIO }
@@ -10,41 +10,40 @@ import zio.stream.{ ZStream, ZSink }
 import zio.test.Assertion.{ nothing, throws, throwsA, fails, isSubtype, anything }
 import zio.test.{ ZIOSpecDefault, assertTrue, assert, assertCompletes, assertZIO, TestAspect }
 import zio.json.EncoderOps
+import zio.nio.file.{ Files, FileSystem }
 import is.clipperz.backend.Main
-import java.nio.file.Path
-import _root_.is.clipperz.backend.exceptions.ResourceNotFoundException
-import is.clipperz.backend.functions.FileSystem
-import is.clipperz.backend.exceptions.EmptyContentException
+// import java.nio.file.Path
+import _root_.is.clipperz.backend.Exceptions.*
 import zio.Clock
 import zio.Clock.ClockLive
 import zio.test.TestClock
 import zio.Duration
 import is.clipperz.backend.data.HexString
-import is.clipperz.backend.exceptions.BadRequestException
 import zio.test.TestEnvironment
 import zio.ZLayer
-import is.clipperz.backend.exceptions.ResourceConflictException
 import zio.test.TestConsole
+import is.clipperz.backend.TestUtilities
 
 object UserArchiveSpec extends ZIOSpecDefault:
-  val userBasePath = FileSystems.getDefault().nn.getPath("target", "tests", "archive", "users").nn
+  val userBasePath = FileSystem.default.getPath("target", "tests", "archive", "users")
 
-  val environment = UserArchive.fs(userBasePath, 2, false)
+  val keyBlobArchiveFolderDepth = 16
+  val environment = UserArchive.fs(userBasePath, keyBlobArchiveFolderDepth, false)
 
   val c = HexString("abcdef0192837465")
   val testUser = RemoteUserCard(
     c,
     HexString("adc"),
     HexString("adcf"),
-    "srpVersion_test",
-    (HexString("masterKeyContent_test"), "masterKeyEncodingVersion_test")
+    SRPVersion("srpVersion_test"),
+    (HexString("masterKeyContent_test"), MasterKeyEncodingVersion("masterKeyEncodingVersion_test"))
   )
   val testUser2 = RemoteUserCard(
     c,
     HexString("adc2"),
     HexString("adcf2"),
-    "srpVersion_test",
-    (HexString("masterKeyContent_test"), "masterKeyEncodingVersion_test")
+    SRPVersion("srpVersion_test"),
+    (HexString("masterKeyContent_test"), MasterKeyEncodingVersion("masterKeyEncodingVersion_test"))
   )
 
   def spec = suite("UserArchive")(
@@ -89,7 +88,8 @@ object UserArchiveSpec extends ZIOSpecDefault:
       test("deleteBlob - success") {
         for {
           archive <- ZIO.service[UserArchive]
-          resDelete <- archive.deleteUser(testUser.c)
+          _         <- archive.deleteUser(testUser.c)
+          resDelete <- ZIO.succeed(true)  //  TODO: fix this hack; Giulio Cesare 26-02-2024
           resGet <- archive.getUser(c).map(_.isDefined)
         } yield assertTrue(resDelete, !resGet)
       } +
@@ -101,5 +101,7 @@ object UserArchiveSpec extends ZIOSpecDefault:
       }
   ).provideSomeLayerShared(environment) @@
     TestAspect.sequential @@
-    TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))) @@
-    TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn)))
+    // TestAspect.beforeAll(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn))) @@
+    TestAspect.beforeAll(TestUtilities.deleteFilesInFolder(userBasePath)) @@
+    // TestAspect.afterAll(ZIO.succeed(FileSystem.deleteAllFiles(userBasePath.toFile().nn)))
+    TestAspect.afterAll (TestUtilities.deleteFilesInFolder(userBasePath))

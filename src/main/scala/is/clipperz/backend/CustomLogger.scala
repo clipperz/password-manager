@@ -1,21 +1,11 @@
 package is.clipperz.backend
 
-import zio.ZLogger
-import zio.Trace
-import zio.LogLevel
-import zio.FiberId
-import zio.Cause
-import zio.FiberRefs
-import zio.LogSpan
-import zio.logging.LogFormat
-import zio.logging.console
-import zio.ZLayer
-import zio.logging.LogColor
-import zio.logging.LoggerNameExtractor
-import java.time.format.DateTimeFormatter
-import zio.logging.LogFilter
-import zio.logging.LogGroup
 import org.slf4j.LoggerFactory
+
+import java.time.format.DateTimeFormatter
+
+import zio.{ Cause, FiberId, FiberRefs, LogLevel, LogSpan, Trace, ZLayer, ZLogger }
+import zio.logging.{ LogColor, LogFormat, LoggerNameExtractor, LogFilter, LogGroup, console }
 
 object CustomLogger:
   val basicLogger: ZLogger[String, Unit] =

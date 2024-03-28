@@ -1,13 +1,11 @@
 module Functions.Pin where
 
-import Bytes (asArrayBuffer)
+import Control.Alt ((<#>))
 import Control.Alternative (pure)
 import Control.Bind (bind, discard)
 import Control.Monad.Except.Trans (ExceptT(..), except, throwError, withExceptT)
 import Control.Semigroupoid ((<<<))
-import Crypto.Subtle.Constants.AES (aesCTR)
-import Crypto.Subtle.Key.Import as KI
-import Crypto.Subtle.Key.Types (encrypt, decrypt, raw, unwrapKey, CryptoKey)
+import Crypto.Subtle.Key.Types (CryptoKey)
 import Data.Either (note)
 import Data.Eq ((==))
 import Data.EuclideanRing ((/))
@@ -24,19 +22,18 @@ import Data.String.CodeUnits (length, splitAt)
 import Data.Unit (Unit)
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (InvalidStateError(..), AppState)
-import DataModel.Codec as Codec
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials)
-import DataModel.Pin (PasswordPin)
-import DataModel.SRP (HashFunction)
+import DataModel.Pin (PasswordPin, passwordPinCodec)
+import DataModel.SRPVersions.SRP (HashFunction)
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
-import Effect.Fortuna (randomBytes)
 import Functions.ArrayBuffer (concatArrayBuffers)
 import Functions.Communication.OneTimeShare (PIN)
-import Functions.EncodeDecode (decryptJson, encryptJson)
+import Functions.EncodeDecode (decryptJson, encryptJson, importCryptoKeyAesGCM)
+import Functions.SRP (randomArrayBuffer)
 import Web.Storage.Storage (Storage, removeItem, setItem)
 
 makeKey :: String -> String
@@ -48,14 +45,14 @@ isPinValid p = (length p) == 5
 generateKeyFromPin :: HashFunction -> String -> Aff CryptoKey
 generateKeyFromPin hashf pin = do
   pinBuffer <- hashf $ (toArrayBuffer $ hex pin) : Nil
-  KI.importKey raw pinBuffer (KI.aes aesCTR) false [encrypt, decrypt, unwrapKey]
+  importCryptoKeyAesGCM pinBuffer
 
 decryptPassphraseWithPin :: HashFunction -> PIN -> Maybe String -> Maybe HexString -> ExceptT AppError Aff Credentials
 decryptPassphraseWithPin hashFunc pin username' pinEncryptedPassword' = do  
   username             <- except $ username'             # note (InvalidStateError (CorruptedSavedPassphrase "user not found in local storage"))
   pinEncryptedPassword <- except $ pinEncryptedPassword' # note (InvalidStateError (CorruptedSavedPassphrase "passphrase not found in local storage"))
   key <- liftAff $ generateKeyFromPin hashFunc pin
-  { padding, passphrase } :: PasswordPin <- decryptJson Codec.passwordPinCodec key (toArrayBuffer pinEncryptedPassword) # ExceptT # withExceptT (ProtocolError <<< CryptoError <<< show)
+  { padding, passphrase } :: PasswordPin <- decryptJson passwordPinCodec key (toArrayBuffer pinEncryptedPassword) # ExceptT # withExceptT (ProtocolError <<< CryptoError <<< show)
   let split = toString Dec $ hex $ (splitAt ((length passphrase) - (padding * 2)) passphrase).before
   pure $ { username, password: split }
 
@@ -70,11 +67,11 @@ saveCredentials {username: Just u, password: Just p, hash: hashf} pin storage = 
   key <- liftAff $ (generateKeyFromPin hashf pin)
   -- 256 bits
   let paddingBytesLength = (256 - 16 * length (toString Hex (hex p))) / 8
-  paddingBytes     <- liftAff $ asArrayBuffer   <$> (randomBytes paddingBytesLength)
+  paddingBytes     <- liftAff $ randomArrayBuffer paddingBytesLength
   paddedPassphrase <- liftAff $ fromArrayBuffer <$> (liftEffect $ concatArrayBuffers ((toArrayBuffer $ hex p) : paddingBytes : Nil))
   let obj = { padding: paddingBytesLength, passphrase: toString Hex paddedPassphrase }
 
-  encryptedCredentials <- liftAff $ fromArrayBuffer <$> encryptJson Codec.passwordPinCodec key obj
+  encryptedCredentials <- encryptJson passwordPinCodec key obj <#> fromArrayBuffer # liftAff
   liftEffect $ setItem (makeKey "user")        u                                  storage
   liftEffect $ setItem (makeKey "passphrase") (toString Hex encryptedCredentials) storage
   liftEffect $ setItem (makeKey "failures")   (show 0)                            storage

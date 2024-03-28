@@ -6,30 +6,25 @@ import Data.Map.Internal (Map)
 import Data.Maybe (Maybe)
 import Data.PrettyShow (class PrettyShow)
 import Data.Semigroup ((<>))
-import Data.Show (class Show, show)
+import Data.Show (class Show)
 import Data.Unit (Unit, unit)
 import DataModel.AsyncValue (AsyncValue)
-import DataModel.Card (Card)
-import DataModel.Index (Index)
-import DataModel.SRP (HashFunction, SRPConf)
-import DataModel.User (MasterKey, UserInfoReferences, UserPreferences)
+import DataModel.CardVersions.Card (Card)
+import DataModel.IndexVersions.Index (Index)
+import DataModel.SRPVersions.SRP (HashFunction, SRPConf)
+import DataModel.UserVersions.User (MasterKey, UserInfo, UserInfoReferences)
+import Functions.Donations (DonationLevel)
 import Functions.HashCash (TollChallenge)
 
 type Url = String
 type Path = String
 type SessionKey = HexString
 
-type BackendSessionRecord = {
+type BackendSessionState = {
   b  :: HexString
 , aa :: HexString
 , bb :: HexString
 }
-data BackendSessionState = BackendSessionState BackendSessionRecord
-
-derive instance eqBackendSessionState :: Eq BackendSessionState
-
-instance showBackendSessionState :: Show BackendSessionState where
-  show (BackendSessionState r) = show r
 
 type TollManager = {
   toll             :: AsyncValue HexString
@@ -64,7 +59,8 @@ type AppState =
   , cardsCache :: CardsCache
   , masterKey :: Maybe MasterKey
   , userInfoReferences :: Maybe UserInfoReferences
-  , userPreferences :: Maybe UserPreferences
+  , userInfo :: Maybe UserInfo
+  , donationLevel :: Maybe DonationLevel
   , index :: Maybe Index
   }
 

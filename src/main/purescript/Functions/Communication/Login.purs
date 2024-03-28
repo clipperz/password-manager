@@ -17,7 +17,7 @@ import Data.Eq ((==))
 import Data.Function ((#), ($))
 import Data.Functor ((<$>))
 import Data.HTTP.Method (Method(..))
-import Data.HexString (HexString, fromArrayBuffer, fromBigInt, toArrayBuffer, toBigInt)
+import Data.HexString (HexString, fromArrayBuffer, fromBigInt, hexStringCodec, toArrayBuffer, toBigInt)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
 import Data.Show (show)
@@ -25,19 +25,16 @@ import Data.String.Common (joinWith)
 import Data.Tuple (Tuple(..))
 import DataModel.AppError (AppError(..))
 import DataModel.AppState (ProxyResponse(..))
-import DataModel.Codec as Codec
-import DataModel.Communication.Login (LoginStep1Response, LoginStep2Response)
+import DataModel.Communication.Login (LoginStep1Response, LoginStep2Response, loginStep1ResponseCodec, loginStep2ResponseCodec)
 import DataModel.Communication.ProtocolError (ProtocolError(..))
 import DataModel.Credentials (Credentials)
-import DataModel.SRP (SRPConf)
-import DataModel.User (MasterKey, UserInfoReferences)
+import DataModel.SRPVersions.SRP (SRPConf)
+import DataModel.UserVersions.User (MasterKey)
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Functions.ArrayBuffer (arrayBufferToBigInt)
 import Functions.Communication.Backend (ConnectionState, isStatusCodeOk, loginRequest)
 import Functions.SRP as SRP
-import DataModel.SRPCodec as SRPCodec
-import Functions.User (decryptUserInfoReferences)
     
 -- ----------------------------------------------------------------------------
 
@@ -70,10 +67,10 @@ loginStep1 :: ConnectionState -> HexString -> ExceptT AppError Aff (ProxyRespons
 loginStep1 connectionState@{srpConf} c = do
   (Tuple a aa) <- withExceptT (\err -> ProtocolError $ SRPError $ show err) (ExceptT $ SRP.prepareA srpConf)
   let url  = joinWith "/" ["login", "step1", show c] :: String
-  let body = json $ encode (CAR.object "loginStep1Request" {c: Codec.hexStringCodec, aa: Codec.hexStringCodec}) { c, aa: fromBigInt aa }  :: RequestBody
+  let body = json $ encode (CAR.object "loginStep1Request" {c: hexStringCodec, aa: hexStringCodec}) { c, aa: fromBigInt aa }  :: RequestBody
   ProxyResponse newProxy step1Response <- loginRequest connectionState url POST (Just body) RF.json
   responseBody :: LoginStep1Response <- if isStatusCodeOk step1Response.status
-                                          then except     $ (decode SRPCodec.loginStep1ResponseCodec step1Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err) 
+                                          then except     $ (decode loginStep1ResponseCodec step1Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err) 
                                           else throwError $  ProtocolError (ResponseError (unwrap step1Response.status))
   bb :: BigInt <- except $ (toBigInt responseBody.bb) # note (ProtocolError $ SRPError "Error in converting B from String to BigInt")
   if bb == fromInt (0)
@@ -91,7 +88,6 @@ type LogintStep2Data = { aa :: BigInt
 type LoginStep2Result = { m1 :: ArrayBuffer
                         , kk :: ArrayBuffer
                         , m2 :: HexString
-                        , userInfoReferences :: UserInfoReferences
                         , masterKey :: MasterKey
                         }
 
@@ -102,22 +98,11 @@ loginStep2 connectionState@{srpConf} c p { aa, bb, a, s } = do
   kk :: ArrayBuffer <-  liftAff $ SRP.prepareK  srpConf ss
   m1 :: ArrayBuffer <-  liftAff $ SRP.prepareM1 srpConf c s aa bb kk
   let url  = joinWith "/" ["login", "step2", show c]      :: String
-  let body = json $ encode (CAR.object "loginStep2Request" {m1: Codec.hexStringCodec}) { m1: fromArrayBuffer m1 } :: RequestBody
+  let body = json $ encode (CAR.object "loginStep2Request" {m1: hexStringCodec}) { m1: fromArrayBuffer m1 } :: RequestBody
   ProxyResponse newProxy step2Response <- loginRequest connectionState url POST (Just body) RF.json
   responseBody :: LoginStep2Response   <- if isStatusCodeOk step2Response.status
-                                          then except $     (decode SRPCodec.loginStep2ResponseCodec step2Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err)
+                                          then except $     (decode loginStep2ResponseCodec step2Response.body) # lmap (\err -> ProtocolError $ DecodeError $ show err)
                                           else throwError $  ProtocolError $ ResponseError (unwrap step2Response.status)
-  userInfoReferences <- decryptUserInfoReferences responseBody.masterKey p
-  pure $ ProxyResponse newProxy { m1, kk, m2: responseBody.m2, userInfoReferences, masterKey: responseBody.masterKey }
+  pure $ ProxyResponse newProxy { m1, kk, m2: responseBody.m2, masterKey: responseBody.masterKey }
 
 -- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-type LoginStateUpdate = {
-  userInfoReferences :: Maybe UserInfoReferences
-, masterKey          :: Maybe MasterKey
-, username           :: Maybe String
-, password           :: Maybe String
-, s                  :: Maybe HexString
-, c                  :: Maybe HexString
-, p                  :: Maybe HexString
-}

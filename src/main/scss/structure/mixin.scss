@@ -25,6 +25,38 @@
 	}
 }
 
+@mixin offlineHeader () {
+	div.proxyInfo {
+		&.OFFLINE {
+			display: block;
+			visibility: visible;
+			background-color: #1863a1;
+			color: white;
+			padding: 8px 10px 6px 10px;
+			font-size: 9pt;
+			text-align: center;
+			border-bottom: 1px solid white;
+
+			& > .proxyDetails {
+				visibility: hidden;
+				display: none;
+			}
+
+			&.withDate {
+				text-align: left;
+				
+				& > .proxyDetails {
+					visibility: visible;
+					display: inline-block;
+					&::before {
+						content: ' : ';
+					}
+				}
+			}
+		}
+	}
+}
+
 @mixin dontBreakOut () {
 	/* These are technically the same, but use both */
 	overflow-wrap: break-word;
@@ -171,10 +203,10 @@
 }
 
 @mixin mask () {
-	position: absolute;
+	position: fixed;
 	top: 0;
 	left: 0;
-	width: 100vw;
+	width: 200vw;
 	height: 100vh;
 	z-index: 10;
 	background-color: rgba(0, 0, 0, 0.5);

@@ -20,7 +20,7 @@ import Data.Maybe (Maybe(..))
 import Data.Show (show)
 import Data.Tuple (Tuple(..))
 import Data.Unit (unit)
-import DataModel.User (UserPreferences(..))
+import DataModel.UserVersions.User (UserPreferences(..))
 import Views.PasswordGenerator (settingsWidget)
 import Views.SimpleWebComponents (simpleButton)
 

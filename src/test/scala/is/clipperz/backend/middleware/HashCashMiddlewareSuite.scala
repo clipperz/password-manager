@@ -1,8 +1,8 @@
 package is.clipperz.backend.middleware
 
 import java.io.File
-import java.nio.charset.StandardCharsets
-import java.nio.file.{ Files, Paths, FileSystems }
+// import java.nio.charset.StandardCharsets
+// import java.nio.file.{ Files, Paths, FileSystems }
 import java.security.MessageDigest
 import scala.language.postfixOps
 import zio.{ Chunk, ZIO, Task }
@@ -16,8 +16,8 @@ import is.clipperz.backend.Main
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.data.HexString.bytesToHex
 import is.clipperz.backend.functions.crypto.HashFunction
-import java.nio.file.Path
-import is.clipperz.backend.functions.FileSystem
+// import java.nio.file.Path
+// import is.clipperz.backend.functions.FileSystem
 import is.clipperz.backend.services.PRNG
 import is.clipperz.backend.services.SessionManager
 import is.clipperz.backend.services.UserArchive

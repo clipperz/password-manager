@@ -12,7 +12,7 @@ import DataModel.AppState (ProxyResponse(..), AppState)
 import DataModel.FragmentState as Fragment
 import DataModel.WidgetState (LoginFormData, LoginType(..), Page(..), WidgetState(..))
 import Functions.Communication.Signup (signupUser)
-import Functions.Handler.GenericHandlerFunctions (OperationState, doNothing, handleOperationResult, runStep)
+import Functions.Handler.GenericHandlerFunctions (OperationState, noOperation, handleOperationResult, runStep)
 import Functions.Handler.LoginPageEventHandler (loginSteps)
 import Views.LoginFormView (emptyLoginFormData)
 import Views.OverlayView (OverlayColor(..), hiddenOverlayInfo, spinnerOverlay)
@@ -37,4 +37,4 @@ handleSignupPageEvent (SignupEvent cred) state@{proxy, hash, srpConf} fragmentSt
     initialPage = Signup $ getSignupDataFromCredentials cred
 
 
-handleSignupPageEvent (GoToLoginEvent cred) state _ = doNothing $ Tuple state (WidgetState hiddenOverlayInfo (Login (getLoginFormData state) {credentials = cred}))
+handleSignupPageEvent (GoToLoginEvent cred) state _ = noOperation $ Tuple state (WidgetState hiddenOverlayInfo (Login (getLoginFormData state) {credentials = cred}))

@@ -1,6 +1,6 @@
 let upstream =
-      https://github.com/purescript/package-sets/releases/download/psc-0.15.14-20240105/packages.dhall
-        sha256:cb9e69b2a7e9ed56a34b42c113ac780d90ef3ab9d82d2704f46f6c2c20dbf78c
+      https://github.com/purescript/package-sets/releases/download/psc-0.15.14-20240227/packages.dhall
+        sha256:c9633eb78193aac138d7debbc907bfedb8f2e3025ef5a874b8dbc1f35b75eef4
 
 in  upstream
   with bigints =

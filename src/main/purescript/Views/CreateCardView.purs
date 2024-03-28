@@ -9,30 +9,31 @@ import Control.Alt ((<|>))
 import Control.Applicative (pure)
 import Control.Bind (bind, discard, (=<<))
 import Control.Semigroupoid ((<<<))
-import Data.Array (difference, elem, filter, singleton, snoc, sort)
+import Data.Array (filter, singleton, snoc, sort)
 import Data.Eq ((==), (/=))
 import Data.Function (($))
 import Data.Functor ((<$), (<$>))
 import Data.HeytingAlgebra (not)
 import Data.Maybe (Maybe(..), isJust, maybe, fromMaybe)
 import Data.Semigroup ((<>))
+import Data.Set (Set, difference, fromFoldable, member, toUnfoldable)
 import Data.String (null)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst)
 import Data.Unit (Unit, unit)
 import DataModel.AsyncValue as Async
-import DataModel.Card (Card(..), CardField(..), CardValues(..), emptyCardField)
+import DataModel.CardVersions.Card (Card(..), CardField(..), CardValues(..), FieldType(..), emptyCardField)
 import DataModel.Password (PasswordGeneratorSettings)
 import Effect.Class (liftEffect)
 import Effect.Unsafe (unsafePerformEffect)
-import Functions.Card (getFieldType, FieldType(..))
+import Functions.Card (getFieldType)
 import Functions.Time (getCurrentTimestamp)
 import MarkdownIt (renderString)
 import Views.Components (dynamicWrapper, entropyMeter)
 import Views.PasswordGenerator (passwordGenerator)
 import Views.SimpleWebComponents (confirmationWidget, dragAndDropAndRemoveList, simpleButton)
 
-createCardView :: Card -> Array String -> PasswordGeneratorSettings -> Widget HTML (Maybe Card)
+createCardView :: Card -> Set String -> PasswordGeneratorSettings -> Widget HTML (Maybe Card)
 createCardView card allTags passwordGeneratorSettings = do
   mCard <- div [Props._id "cardForm"] [
     mask
@@ -119,7 +120,7 @@ createCardView card allTags passwordGeneratorSettings = do
         Nothing -> pure $ Just tag'
         Just _  -> pure $ Nothing
 
-    inputTagSignal :: String -> Array String -> Signal HTML (Tuple String Boolean)
+    inputTagSignal :: String -> Set String -> Signal HTML (Tuple String Boolean)
     inputTagSignal newTag tags = do
 
       loopW (Tuple newTag false) (\(Tuple value _) -> do
@@ -131,18 +132,18 @@ createCardView card allTags passwordGeneratorSettings = do
               , Props.placeholder "add tag"
               , Props.value value
               , Props.list "tags-list"
-              , (\e -> Tuple (Props.unsafeTargetValue e) (elem (Props.unsafeTargetValue e) (difference allTags tags))) <$> Props.onInput
+              , (\e -> Tuple (Props.unsafeTargetValue e) (member (Props.unsafeTargetValue e) (difference allTags tags))) <$> Props.onInput
               ]
-            , datalist [Props._id "tags-list"] ((\t -> option [] [text t]) <$> (difference allTags tags))
+            , datalist [Props._id "tags-list"] ((\t -> option [] [text t]) <$> (toUnfoldable $ difference allTags tags))
           ]
         ] 
         pure result
       )
 
-    tagsSignal :: String -> Array String -> Signal HTML (Tuple String (Array String))
+    tagsSignal :: String -> Set String -> Signal HTML (Tuple String (Array String))
     tagsSignal newTag tags = div_ [Props.className "tags"] do
       ul_ [] do
-        tags' <- (\ts -> ((maybe [] singleton) =<< filter isJust ts)) <$> (sequence $ tagSignal <$> sort tags)
+        tags' <- (\ts -> ((maybe [] singleton) =<< filter isJust ts)) <$> (sequence $ tagSignal <$> (sort $ toUnfoldable tags))
         li_ [Props.className "addTag"] do
           Tuple newTag' addTag <- inputTagSignal newTag tags
           case addTag of
@@ -186,7 +187,7 @@ createCardView card allTags passwordGeneratorSettings = do
           pure $ {
             newTag: newTag'
           , preview: preview'
-          , card: Card { content: (CardValues {title: title', tags: tags', fields: fields', notes: notes'})
+          , card: Card { content: (CardValues {title: title', tags: fromFoldable tags', fields: fields', notes: notes'})
                        , secrets: []
                        , archived: archived
                        , timestamp
@@ -205,6 +206,6 @@ createCardView card allTags passwordGeneratorSettings = do
         confirmation <- (false <$ simpleButton "active cancel" "cancel" false Nothing) <|> (confirmationWidget "Are you sure you want to exit without saving?")
         if confirmation then pure Nothing else (cancelButton v)
 
-    saveButton v = 
+    saveButton v =
       -- simpleButton "save" "save" ((not isNew && card == v) || (isNew && v == emptyCard)) (Just v)
       simpleButton "save" "save" (card == v) (Just v)

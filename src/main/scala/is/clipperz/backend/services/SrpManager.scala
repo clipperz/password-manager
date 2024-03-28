@@ -1,24 +1,40 @@
 package is.clipperz.backend.services
 
-import zio.{ ZIO, ZLayer, Task }
-import zio.stream.ZStream
-import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder }
 import is.clipperz.backend.data.HexString
-import is.clipperz.backend.data.HexString.*
-import is.clipperz.backend.functions.Conversions.*
+import is.clipperz.backend.data.HexString.{ bytesToHex, bigIntToHex }
+import is.clipperz.backend.functions.Conversions.{ bigIntToBytes, bytesToBigInt }
 import is.clipperz.backend.functions.SrpFunctions.SrpFunctionsV6a
-import is.clipperz.backend.exceptions.ResourceNotFoundException
-import is.clipperz.backend.exceptions.BadRequestException
+import is.clipperz.backend.Exceptions.*
+
+import zio.{ ZIO, ZLayer, Task }
+import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder }
+import zio.stream.ZStream
 
 // ============================================================================
 
+case class CardsSignupData(
+    cardContent: HexString,
+    cardReference: HexString,
+    cardIdentifier: HexString
+)
+
+object CardsSignupData:
+  implicit val decoder: JsonDecoder[CardsSignupData] = DeriveJsonDecoder.gen[CardsSignupData]
+  implicit val encoder: JsonEncoder[CardsSignupData] = DeriveJsonEncoder.gen[CardsSignupData]
+
+
 case class SignupData(
     user: RequestUserCard,
-    preferencesReference: HexString,
-    preferencesContent: HexString,
+
+    userInfoReference: HexString,
+    userInfoIdentifier: HexString,
+    userInfoContent: HexString,
+
     indexCardReference: HexString,
+    indexCardIdentifier: HexString,
     indexCardContent: HexString,
-    cards: Array[(HexString, HexString)],
+
+    cards: Array[CardsSignupData],
   )
 object SignupData:
   implicit val decoder: JsonDecoder[SignupData] = DeriveJsonDecoder.gen[SignupData]
@@ -41,7 +57,7 @@ object SRPStep2Data:
   implicit val decoder: JsonDecoder[SRPStep2Data] = DeriveJsonDecoder.gen[SRPStep2Data]
   implicit val encoder: JsonEncoder[SRPStep2Data] = DeriveJsonEncoder.gen[SRPStep2Data]
 
-case class SRPStep2Response(m2: HexString, masterKey: (HexString, String))
+case class SRPStep2Response(m2: HexString, masterKey: (HexString, MasterKeyEncodingVersion))
 object SRPStep2Response:
   implicit val decoder: JsonDecoder[SRPStep2Response] = DeriveJsonDecoder.gen[SRPStep2Response]
   implicit val encoder: JsonEncoder[SRPStep2Response] = DeriveJsonEncoder.gen[SRPStep2Response]

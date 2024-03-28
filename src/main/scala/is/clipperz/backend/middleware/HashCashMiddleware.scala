@@ -1,23 +1,18 @@
 package is.clipperz.backend.middleware
 
-import java.util.NoSuchElementException
 import is.clipperz.backend.data.HexString
+import is.clipperz.backend.Exceptions.*
 import is.clipperz.backend.functions.{ fromString, customMapError }
-import is.clipperz.backend.services.{ ChallengeType, SessionManager, TollManager, TollChallenge }
 import is.clipperz.backend.Main.ClipperzHttpApp
-import is.clipperz.backend.exceptions.BadRequestException
 import is.clipperz.backend.LogAspect
-import is.clipperz.backend.services.PRNG
-import is.clipperz.backend.services.UserArchive
-import is.clipperz.backend.services.BlobArchive
-import is.clipperz.backend.services.OneTimeShareArchive
-import is.clipperz.backend.services.SrpManager
+import is.clipperz.backend.services.{ ChallengeType, SessionManager, TollManager, TollChallenge, PRNG, BlobArchive, OneTimeShareArchive, SessionKey, SrpManager, UserArchive }
+
+import java.util.NoSuchElementException
+
 import zio.{ZIO, Cause, Trace}
-import zio.json.EncoderOps
-import zio.http.{ Headers, Request, Response, Status }
-import zio.http.* //TODO: fix How do you import `!!` and `/`?
+import zio.http.{ Handler, HandlerAspect, Header, Headers, Middleware, Request, Response, Routes, Status }
 import zio.http.Handler.RequestHandlerSyntax
-import is.clipperz.backend.services.SessionKey
+import zio.json.EncoderOps
 
 type TollMiddleware = HandlerAspect[TollManager & SessionManager, Any]
 

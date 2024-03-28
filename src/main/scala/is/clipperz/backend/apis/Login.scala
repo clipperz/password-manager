@@ -6,20 +6,17 @@ import is.clipperz.backend.Main.ClipperzHttpApp
 import is.clipperz.backend.LogAspect
 import is.clipperz.backend.data.HexString
 import is.clipperz.backend.functions.{ fromStream }
-import is.clipperz.backend.services.{ SessionManager, SrpManager, SRPStep1Data, SRPStep2Data }
-import is.clipperz.backend.exceptions.{ BadRequestException, FailedConversionException, ResourceNotFoundException }
+import is.clipperz.backend.services.{ SessionManager, SrpManager, SRPStep1Data, SRPStep2Data, SRPStep1Response }
+import is.clipperz.backend.Exceptions.*
 
-import zio.{ Cause, Chunk, Task, ZIO }
-import zio.durationInt
+import zio.{ Cause, Chunk, Task, ZIO, durationInt }
 import zio.metrics.Metric
-import zio.json.EncoderOps
-import zio.http.{ Method, Path, Response, Request, Status }
+import zio.http.{ Method, Path, Response, Request, Routes, Status, handler }
+import zio.http.codec.PathCodec.string
 import zio.http.Header.HeaderType
-import zio.http.*
-import zio.http.endpoint.openapi.OpenAPIGen
 import zio.http.endpoint.Endpoint
-import zio.json.JsonEncoder
-import is.clipperz.backend.services.SRPStep1Response
+import zio.http.endpoint.openapi.OpenAPIGen
+import zio.json.{ EncoderOps, JsonEncoder }
 import zio.json.ast.Json
 
 val loginApi: Routes[SessionManager & SrpManager, Throwable] = Routes(

@@ -1,8 +1,7 @@
 package is.clipperz.backend.apis
 
 import java.io.File
-import zio.http.{ Method, Request, Path, Handler }
-import zio.http.* //TODO: fix How do you import `!!` and `/`?
+import zio.http.{ Handler, Method, Path, Request, Routes, handler, trailing }
 import is.clipperz.backend.Main.ClipperzHttpApp
 import zio.metrics.{ Metric, MetricLabel }
 import zio.ZIO

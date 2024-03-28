@@ -72,11 +72,17 @@ div#userPage {
 							background-color: #333;
 						}
 
+
 						button {
 							padding: 10px;
 							padding-left: 20px;
 							font-weight: 300;
 							font-size: 14pt;
+
+							&:disabled {
+								color: #c0c0c0;
+								cursor: not-allowed;
+							}
 						}
 					}
 				}

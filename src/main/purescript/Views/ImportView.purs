@@ -11,15 +11,16 @@ import Control.Bind (bind, (>>=))
 import Control.Category ((>>>))
 import Data.Array (concat, filter, head, length)
 import Data.Either (Either(..), fromRight)
-import Data.Function ((#), ($))
+import Data.Function (flip, (#), ($))
 import Data.Functor ((<$>), (<$))
 import Data.HeytingAlgebra (not)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Semigroup ((<>))
+import Data.Set (insert, toUnfoldable)
 import Data.Show (show)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst, snd, swap)
-import DataModel.Card (Card(..), CardValues(..), CardField(..))
+import DataModel.CardVersions.Card (Card(..), CardValues(..), CardField(..))
 import DataModel.WidgetState (ImportState, ImportStep(..))
 import React.SyntheticEvent (NativeEventTarget, SyntheticEvent_)
 import Unsafe.Coerce (unsafeCoerce)
@@ -151,7 +152,7 @@ importView state@{step, content, selection, tag} = do
     cardContentView (Card {content: (CardValues {title: t, tags: ts, fields: fs, notes: n})}) newTag = 
       div [Props.className "cardContent"] [
         h3 [Props.className "card_title"]    [text t]
-      , ul [Props.className "card_tags"]   $ (\s -> li' [text s]) <$> (maybe ts (\nt -> ts <> [nt]) newTag)
+      , ul [Props.className "card_tags"]   $ (\s -> li' [text s]) <$> (maybe ts (flip insert ts) newTag # toUnfoldable)
       , dl [Props.className "card_fields"] $  concat $ (\(CardField {name, value, locked}) -> [
             dt [] [text name]
           , dd [Props.classList [if locked then (Just "password") else Nothing]] [

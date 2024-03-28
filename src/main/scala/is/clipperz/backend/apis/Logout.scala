@@ -1,14 +1,14 @@
 package is.clipperz.backend.apis
 
-import zio.ZIO
-import zio.http.{ Method, Path, Response, Request }
-import zio.http.* //TODO: fix How do you import `Root` and `/`?
-import is.clipperz.backend.services.SessionManager
-import is.clipperz.backend.Main.ClipperzHttpApp
-import is.clipperz.backend.exceptions.BadRequestException
-import java.util
-import zio.Cause
+import is.clipperz.backend.Exceptions.*
 import is.clipperz.backend.LogAspect
+import is.clipperz.backend.Main.ClipperzHttpApp
+import is.clipperz.backend.services.SessionManager
+
+import java.util
+
+import zio.{ ZIO, Cause }
+import zio.http.{ Method, Path, Response, Request, Routes, handler }
 
 val logoutApi = Routes(
     Method.POST / "api" / "logout" -> handler: (request: Request) =>

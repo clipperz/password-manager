@@ -1,26 +1,18 @@
 package is.clipperz.backend.apis
-import is.clipperz.backend.data.HexString
-import is.clipperz.backend.exceptions.{
-  NonWritableArchiveException,
-  NonReadableArchiveException,
-  FailedConversionException,
-  BadRequestException,
-  ResourceConflictException,
-  ResourceNotFoundException,
-  ConflictualRequestException,
-}
+
+import is.clipperz.backend.data.{ HexString, Base }
+import is.clipperz.backend.Exceptions.*
 import is.clipperz.backend.functions.{ fromStream }
-import is.clipperz.backend.services.*
 import is.clipperz.backend.Main.ClipperzHttpApp
+import is.clipperz.backend.middleware.authorizedMiddleware
 import is.clipperz.backend.LogAspect
+import is.clipperz.backend.services.{BlobArchive, RequestUserCard, SessionManager, SignupData, UserArchive, UserCard, remoteFromRequest}
 
 import zio.{ ZIO, Cause }
-import zio.http.{ Method, Response, Request, Status }
-import zio.http.*
+import zio.http.{ Method, Response, Request, Routes, Status, handler, string }
 import zio.json.EncoderOps
 import zio.stream.ZStream
-import is.clipperz.backend.data.Base
-import is.clipperz.backend.middleware.authorizedMiddleware
+import is.clipperz.backend.services.CardsSignupData
 
 val usersApi: Routes[BlobArchive & UserArchive & SessionManager, Throwable] = Routes(
     Method.POST / "api" / "users" / string("c") -> (handler: (c: String, request: Request) =>
@@ -41,19 +33,12 @@ val usersApi: Routes[BlobArchive & UserArchive & SessionManager, Throwable] = Ro
             fromStream[SignupData](content)
                 .flatMap { signupData =>
                 if HexString(c) == signupData.user.c then
-                    (userArchive.saveUser(remoteFromRequest(signupData.user), false)
-                    <&> // Returns an effect that executes both this effect and the specified effect, in parallel, combining their results into a tuple. If either side fails, then the other side will be interrupted.
-                        blobArchive
-                        .saveBlob(signupData.indexCardReference, ZStream.fromIterable(signupData.indexCardContent.toByteArray))
-                    <&>
-                        blobArchive
-                        .saveBlob(
-                            signupData.preferencesReference,
-                            ZStream.fromIterable(signupData.preferencesContent.toByteArray),
-                        )
-                    <&>
-                        ZIO.foreach(signupData.cards) { (reference, content) =>
-                        blobArchive.saveBlob(reference, ZStream.fromIterable(content.toByteArray))
+                    // Returns an effect that executes both this effect and the specified effect, in parallel, combining their results into a tuple. If either side fails, then the other side will be interrupted.
+                    (   userArchive.saveUser(remoteFromRequest(signupData.user), false)
+                    <&> blobArchive.saveBlob(signupData.indexCardReference, signupData.indexCardIdentifier, ZStream.fromIterable(signupData.indexCardContent.toByteArray))
+                    <&> blobArchive.saveBlob(signupData.userInfoReference,  signupData.userInfoIdentifier,  ZStream.fromIterable(signupData.userInfoContent.toByteArray))
+                    <&> ZIO.foreach(signupData.cards) {
+                            cardsSignupData => blobArchive.saveBlob(cardsSignupData.cardReference, cardsSignupData.cardIdentifier, ZStream.fromIterable(cardsSignupData.cardContent.toByteArray))
                         }
                     )
                     .parallelErrors
@@ -144,7 +129,8 @@ Routes(
         (for {
             userArchive    <- ZIO.service[UserArchive]
             sessionManager <- ZIO.service[SessionManager]
-            result         <- userArchive.deleteUser(HexString(c))
+            _              <- userArchive.deleteUser(HexString(c))
+            result         <- ZIO.succeed(true) //  TODO: fix this hack: Giulio Cesare [26-02-2024]
             _              <- sessionManager.deleteSession(request)
         } yield (if result
             then Response.text(c)

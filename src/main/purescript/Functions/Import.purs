@@ -1,38 +1,34 @@
 module Functions.Import where
 
-import Control.Applicative (pure)
-import Control.Bind (bind, (=<<), (>>=))
-import Control.Monad.Except (ExceptT, except, runExcept)
-import Control.Semigroupoid ((<<<))
-import Data.Argonaut.Core (Json, caseJsonArray, caseJsonObject, toBoolean, toObject, toString)
+import Prelude
+
+import Control.Monad.Except (ExceptT, except, runExcept, throwError, withExceptT)
+import Data.Argonaut.Core (Json, caseJsonArray, caseJsonObject, stringify, toBoolean, toObject, toString)
+import Data.Argonaut.Decode (parseJson)
 import Data.Argonaut.Parser (jsonParser)
-import Data.Array (head, tail, elem, filter)
-import Data.Array.NonEmpty as ANE
-import Data.Array.NonEmpty.Internal (NonEmptyArray)
+import Data.Array (elem, filter, head, tail)
 import Data.Bifunctor (lmap)
-import Data.Boolean (otherwise)
-import Data.Codec.Argonaut (decode)
-import Data.Either (Either(..), note)
-import Data.Eq (eq, (==))
-import Data.Function (($))
-import Data.Functor ((<$>))
-import Data.HeytingAlgebra (not)
+import Data.Codec.Argonaut (decode, encode)
+import Data.Either (Either, hush, note)
+import Data.List (List(..), fromFoldable, (:))
 import Data.Maybe (fromMaybe, Maybe(..))
+import Data.Set as Set
 import Data.String (split)
-import Data.String.Common (replace)
-import Data.String.Pattern (Pattern(..), Replacement(..))
-import Data.String.Regex (Regex, regex, match)
-import Data.String.Regex.Flags (global)
+import Data.String.Pattern (Pattern(..))
+import Data.String.Regex (match, regex)
+import Data.String.Regex.Flags (noFlags)
 import Data.Traversable (sequence)
 import DataModel.AppError (AppError(..))
-import DataModel.Card (Card(..), CardValues(..), CardField(..))
-import DataModel.Codec as Codec
-import Effect (Effect)
+import DataModel.CardVersions.Card (Card(..), CardField(..), CardValues(..), CardVersion(..), cardVersionCodec, toCard)
+import DataModel.CardVersions.CurrentCardVersions (currentCardCodecVersion)
+import DataModel.Communication.ProtocolError (ProtocolError(..))
 import Effect.Aff (Aff)
 import Effect.Aff.Class (liftAff)
 import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
+import Effect.Class (liftEffect)
 import Foreign.Object (Object, lookup, values)
 import Functions.Time (getCurrentTimestamp)
+import Web.File.Blob (Blob)
 import Web.File.File (File)
 
 foreign import _readFile :: File -> EffectFnAff String
@@ -44,48 +40,40 @@ readFile maybeFile = do
 
 foreign import decodeHTML :: String -> String
 
-parseHTMLImport :: String -> Either AppError String
-parseHTMLImport html = 
-  let eitherRegex = regex "<textarea>.+<\\/textarea>" global
-  in (lmap (\_ -> ImportError "The regex written by the developers is not correct") eitherRegex) >>= useRegex
+foreign import createFile :: Blob -> File
 
-  where 
-    useRegex :: Regex -> Either AppError String
-    useRegex r = useMaybeMatches $ match r html
+data ImportVersion = Delta | Epsilon CardVersion
 
-    useMaybeMatches :: Maybe (NonEmptyArray (Maybe String)) -> Either AppError String
-    useMaybeMatches matches = fromMaybe (Left $ ImportError "Invalid file: no card data found") (useMatches <$> matches)
+instance showImportVersion :: Show ImportVersion where
+  show  Delta      = "Delta"
+  show (Epsilon v) = "Epsilon: " <> (stringify $ encode cardVersionCodec v)
 
-    useMatches :: NonEmptyArray (Maybe String) -> Either AppError String
-    useMatches matches
-      | ANE.length matches == 1 = note (ImportError "Invalid file: no card data found") (useMatch <$> (ANE.head matches))
-      | otherwise               = Left $ ImportError "Invalid file: too many data fields found"
+parseImport :: String -> ExceptT AppError Aff (Array Card)
+parseImport html = do
+  regex <- except $ regex "<textarea( class=\'({\"tag\":\".+\"})\')?>(\\[[\\s\\S]+\\])<\\/textarea>" noFlags # lmap (\_ -> ImportError "The regex written by the developers is not correct")
+  case (match regex (decodeHTML html) <#> fromFoldable) of
+    Just (_ : _ : maybeVersion : (Just cards) : Nil) -> do
+      version <- pure $ fromMaybe Delta (Epsilon <$> (
+                                               (decode cardVersionCodec >>> hush)
+                                           =<< (parseJson               >>> hush)
+                                           =<<  maybeVersion
+                                        ))                             
+      decodeImport version cards
+    _                                                -> 
+      throwError $ ImportError ("Invalid file: unable to decode data [" <> decodeHTML html <> "]")
 
-    useMatch :: String -> String
-    useMatch = (replace (Pattern "<textarea>") (Replacement "")) <<< (replace (Pattern "</textarea>") (Replacement ""))
+decodeImport :: ImportVersion -> String -> ExceptT AppError Aff (Array Card)
+decodeImport version cards = 
+  (\json -> caseJsonArray (throwError $ ImportError "Cannot convert json to json array") (\array -> sequence $ array <#> 
+    (\card -> case version of
+      Delta                 -> caseJsonObject (throwError $ ImportError "Cannot conver json to json object") decodeDeltaCardObject card
+      Epsilon CardVersion_1 -> (except $ toCard <$> decode currentCardCodecVersion card) # withExceptT (ProtocolError <<< DecodeError <<< show)
+    )
+  ) json) =<< (except $ lmap (ProtocolError <<< DecodeError <<< show) (jsonParser cards))
 
-
-decodeImport :: String -> Effect (Either AppError (Array Card))
-decodeImport s = do
-  currentTime <- getCurrentTimestamp
-  let eitherJson = jsonParser s
-  pure $ case eitherJson of
-      Left err -> Left $ ImportError err
-      Right json -> caseJsonArray (Left $ ImportError "Cannot convert json to json array") (\a -> sequence $ (decodeCard currentTime) <$> a) json
-
-decodeCard :: Number -> Json -> Either AppError Card
-decodeCard timestamp json = 
-  let epsilonTryResult = decode Codec.cardCodec json -- assumes version currently in use
-  in case epsilonTryResult of
-    Right _ -> lmap (\_ -> ImportError "Cannot convert json to array of card") epsilonTryResult
-    Left _ -> 
-      let deltaTryResult = caseJsonObject (Left $ ImportError "Cannot conver json to json object") (decodeDeltaCardObject timestamp) json
-      in case deltaTryResult of
-        Right _ -> deltaTryResult
-        Left _ -> Left $ ImportError "Import file is formatted neither by delta nor by epsilon version"
-
-decodeDeltaCardObject :: Number -> Object Json -> Either AppError Card
-decodeDeltaCardObject timestamp obj = runExcept $ do
+decodeDeltaCardObject :: Object Json -> ExceptT AppError Aff Card
+decodeDeltaCardObject obj = do
+  timestamp <- liftEffect getCurrentTimestamp
   titleAndTags :: Array String <- split (Pattern " ") <$> (except $ note (ImportError "Cannot find card label") $ (toString =<< lookup "label" obj))
   let title    = fromMaybe "" $ head titleAndTags
   let tags     = filter (\s -> not $ eq "ARCH" s) $ fromMaybe [] $ tail titleAndTags
@@ -98,10 +86,10 @@ decodeDeltaCardObject timestamp obj = runExcept $ do
               , secrets: []
               , archived: archived
               , content: CardValues { title: title
-                                      , tags: tags
-                                      , fields: fields
-                                      , notes: notes
-                                      }
+                                    , tags: Set.fromFoldable tags
+                                    , fields: fields
+                                    , notes: notes
+                                    }
               }
 
 decodeCardField :: Json -> Either AppError CardField

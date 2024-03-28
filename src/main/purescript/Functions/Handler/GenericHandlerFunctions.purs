@@ -3,9 +3,10 @@ module Functions.Handler.GenericHandlerFunctions where
 import Concur.Core (Widget)
 import Concur.React (HTML)
 import Control.Alt ((<|>))
-import Control.Alternative ((*>))
+import Control.Alternative ((*>), (<*))
 import Control.Applicative (pure)
-import Control.Bind (discard)
+import Control.Bind (discard, (=<<))
+import Control.Category ((<<<))
 import Control.Monad.Except.Trans (ExceptT(..), runExceptT)
 import Data.Either (Either, either)
 import Data.Function ((#), ($))
@@ -18,6 +19,7 @@ import Data.Unit (Unit, unit)
 import DataModel.AppError (AppError)
 import DataModel.AppState (AppState)
 import DataModel.WidgetState (Page(..), WidgetState(..))
+import Effect (Effect)
 import Effect.Aff (Aff, delay)
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
@@ -29,9 +31,13 @@ import Views.OverlayView (OverlayColor, OverlayStatus(..))
 
 type OperationState = Tuple AppState WidgetState
 
+foreign import _operationDelay :: Unit -> Effect Number
+
+operationDelay :: Effect Number 
+operationDelay = _operationDelay unit
+
 runStep :: forall a. ExceptT AppError Aff a -> WidgetState -> ExceptT AppError (Widget HTML) a
-runStep step widgetState = ExceptT $ (step # runExceptT # liftAff) <|> (defaultView widgetState)
--- runStep step widgetState = ExceptT $ ((step # runExceptT # liftAff) <* (liftAff $ delay (Milliseconds 1000.0))) <|> (defaultView widgetState)
+runStep step widgetState = ExceptT $ ((step # runExceptT # liftAff) <* ((liftAff <<< delay <<< Milliseconds) =<< (liftEffect operationDelay))) <|> (defaultView widgetState)
 
 defaultView :: forall a. WidgetState -> Widget HTML a
 defaultView widgetState = (unsafeCoerce unit <$ appView widgetState)
@@ -60,5 +66,5 @@ handleOperationResult state page showDone color = either
 delayOperation :: Int -> WidgetState -> Widget HTML Unit
 delayOperation time widgetState = ((liftAff $ delay (Milliseconds $ toNumber time)) <|> (unit <$ appView widgetState))
 
-doNothing :: OperationState -> Widget HTML OperationState 
-doNothing operationState@(Tuple _ widgetState) = (pure operationState) <|> (unsafeCoerce unit <$ appView widgetState)
+noOperation :: OperationState -> Widget HTML OperationState 
+noOperation operationState@(Tuple _ widgetState) = (pure operationState) <|> (unsafeCoerce unit <$ appView widgetState)

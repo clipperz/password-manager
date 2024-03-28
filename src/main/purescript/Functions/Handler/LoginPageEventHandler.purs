@@ -4,7 +4,7 @@ import Concur.Core (Widget)
 import Concur.React (HTML)
 import Control.Alt ((<|>))
 import Control.Applicative (pure)
-import Control.Bind (bind, discard, (>>=))
+import Control.Bind (bind, discard, (=<<), (>>=))
 import Control.Category ((<<<))
 import Control.Monad.Except (throwError)
 import Control.Monad.Except.Trans (ExceptT, runExceptT)
@@ -28,8 +28,11 @@ import DataModel.WidgetState (CardFormInput(..), CardViewState(..), LoginType(..
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Functions.Communication.Login (PrepareLoginResult, loginStep1, loginStep2, prepareLogin)
-import Functions.Communication.Users (getIndex, getUserPreferences)
-import Functions.Handler.GenericHandlerFunctions (OperationState, defaultView, doNothing, handleOperationResult, runStep)
+import Functions.Communication.Users (extractUserInfoReference, getUserInfo)
+import Functions.Donations (DonationLevel(..), computeDonationLevel)
+import Functions.EncodeDecode (importCryptoKeyAesGCM)
+import Functions.Handler.GenericHandlerFunctions (OperationState, defaultView, noOperation, handleOperationResult, runStep)
+import Functions.Index (getIndex)
 import Functions.Pin (decryptPassphraseWithPin, deleteCredentials, makeKey)
 import Functions.SRP (checkM2)
 import Functions.Timer (activateTimer)
@@ -73,26 +76,29 @@ handleLoginPageEvent (LoginPinEvent pin) state@{hash, srpConf, username, pinEncr
     initialPage = Login emptyLoginFormData {pin = pin, loginType = PinLogin}
 
 
-handleLoginPageEvent (GoToSignupEvent cred) state _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Signup emptyDataForm {username = cred.username, password = cred.password})))
+handleLoginPageEvent (GoToSignupEvent cred) state _ = noOperation (Tuple state (WidgetState hiddenOverlayInfo (Signup emptyDataForm {username = cred.username, password = cred.password})))
 
 
-handleLoginPageEvent (GoToCredentialLoginEvent username) state _ = doNothing (Tuple state (WidgetState hiddenOverlayInfo (Login emptyLoginFormData {credentials = {username, password: ""}})))
+handleLoginPageEvent (GoToCredentialLoginEvent username) state _ = noOperation (Tuple state (WidgetState hiddenOverlayInfo (Login emptyLoginFormData {credentials = {username, password: ""}})))
 
 -- ========================================================================================================================
 
 loginSteps :: Credentials -> AppState -> Fragment.FragmentState -> Page -> PrepareLoginResult -> ExceptT AppError (Widget HTML) OperationState
 loginSteps cred state@{proxy, hash: hashFunc, srpConf} fragmentState page prepareLoginResult = do
   let connectionState = {proxy, hashFunc, srpConf, c : hex "", p: hex ""}
-  ProxyResponse proxy'   loginStep1Result <- runStep (loginStep1         connectionState                 prepareLoginResult.c)                                       (WidgetState {status: Spinner, color: Black, message: "SRP step 1"   } page)
+  ProxyResponse proxy'   loginStep1Result <- runStep (loginStep1         connectionState                 prepareLoginResult.c                                      ) (WidgetState {status: Spinner, color: Black, message: "SRP step 1"   } page)
   ProxyResponse proxy''  loginStep2Result <- runStep (loginStep2         connectionState{proxy = proxy'} prepareLoginResult.c prepareLoginResult.p loginStep1Result) (WidgetState {status: Spinner, color: Black, message: "SRP step 2"   } page)
   _                                       <- runStep ((liftAff $ checkM2 srpConf loginStep1Result.aa loginStep2Result.m1 loginStep2Result.kk (toArrayBuffer loginStep2Result.m2)) >>= (\result -> 
                                                       if result
                                                       then pure         unit
                                                       else throwError $ ProtocolError (SRPError "Client M2 doesn't match with server M2")
-                                                     ))                                                                                                       (WidgetState {status: Spinner, color: Black, message: "Validate user"} page)
-
-  let stateUpdate = { userInfoReferences: Just loginStep2Result.userInfoReferences 
-                    , masterKey:          Just loginStep2Result.masterKey 
+                                                     ))                                                                                                              (WidgetState {status: Spinner, color: Black, message: "Validate user"} page)
+  userInfoReferences                      <- runStep ( extractUserInfoReference loginStep2Result.masterKey 
+                                                       =<< 
+                                                      (importCryptoKeyAesGCM (prepareLoginResult.p # toArrayBuffer) # liftAff)
+                                                     )                                                                                                               (WidgetState {status: Spinner, color: Black, message: "Validate user"} page)
+  let stateUpdate = { masterKey:          Just loginStep2Result.masterKey 
+                    , userInfoReferences: Just userInfoReferences
                     , username:           Just cred.username
                     , password:           Just cred.password
                     , s:                  Just loginStep1Result.s
@@ -100,29 +106,36 @@ loginSteps cred state@{proxy, hash: hashFunc, srpConf} fragmentState page prepar
                     , p:                  Just prepareLoginResult.p
                     }
 
-  res                                     <- loadHomePageSteps (merge stateUpdate (state {proxy = proxy''})) fragmentState
+  res                                     <- loadHomePageSteps (merge stateUpdate (state {proxy = proxy''})) page fragmentState
 
   pure $ res
 
-loadHomePageSteps :: AppState -> Fragment.FragmentState -> ExceptT AppError (Widget HTML) OperationState
+loadHomePageSteps :: AppState -> Page -> Fragment.FragmentState -> ExceptT AppError (Widget HTML) OperationState
 
-loadHomePageSteps state@{hash: hashFunc, proxy, srpConf, userInfoReferences: Just userInfoReferences, c: Just c, p: Just p} fragmentState = do
+loadHomePageSteps state@{hash: hashFunc, proxy, srpConf, c: Just c, p: Just p, masterKey: Just (Tuple _ masterKeyEncodingVersion), userInfoReferences: Just userInfoReferences} page fragmentState = do
   let connectionState = {proxy, hashFunc, srpConf, c, p}
 
-  ProxyResponse proxy'  userPreferences <- runStep (getUserPreferences connectionState                  (unwrap userInfoReferences).preferencesReference) (WidgetState {status: Spinner, color: Black, message: "Get user preferences"} $ Main emptyMainPageWidgetState)
-  ProxyResponse proxy'' index           <- runStep (getIndex           connectionState{ proxy = proxy'} (unwrap userInfoReferences).indexReference)       (WidgetState {status: Spinner, color: Black, message: "Get index"}            $ Main emptyMainPageWidgetState)
-  
-  case (unwrap userPreferences).automaticLock of
+  ProxyResponse proxy'  userInfo <- runStep (getUserInfo connectionState                                userInfoReferences (masterKeyEncodingVersion)) (WidgetState {status: Spinner, color: Black, message: "Get user info"} page)
+  ProxyResponse proxy'' index    <- runStep (getIndex    connectionState{ proxy = proxy'} (unwrap userInfo).indexReference                           ) (WidgetState {status: Spinner, color: Black, message: "Get index"    } page)
+  donationLevel                  <- runStep (computeDonationLevel index userInfo # liftEffect                                                        ) (WidgetState {status: Spinner, color: Black, message: "Get index"    } page)
+  case (unwrap (unwrap userInfo).userPreferences).automaticLock of
     Right n -> liftEffect (activateTimer n)
     Left  _ -> pure unit
 
   let cardViewState = case fragmentState of
-                        Fragment.AddCard card -> CardForm (NewCard $ Just card)
+                        Fragment.AddCard card -> CardForm (NewCardFromFragment card)
                         _                     -> NoCard
 
-  pure $ Tuple (state {proxy = proxy'', index = Just index, userPreferences = Just userPreferences}) (WidgetState {status: Hidden, color: Black, message: ""} (Main emptyMainPageWidgetState { index = index, cardManagerState = cardManagerInitialState { cardViewState = cardViewState } }))
+  pure $ Tuple 
+    (state {proxy = proxy'', index = Just index, userInfo = Just userInfo, donationLevel = Just donationLevel})
+    (WidgetState 
+      hiddenOverlayInfo
+      case donationLevel of
+        DonationWarning -> (Donation donationLevel)
+        _               -> (Main emptyMainPageWidgetState { index = index, cardManagerState = cardManagerInitialState { cardViewState = cardViewState }, donationLevel = donationLevel })
+    )
 
-loadHomePageSteps _ _ = do
+loadHomePageSteps _ _ _ = do
   throwError (InvalidStateError $ CorruptedState "")
 
 type MaxPinAttemptsReached = Boolean
