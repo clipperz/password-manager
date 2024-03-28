@@ -27,7 +27,8 @@ import is.clipperz.backend.TestUtilities
 object UserArchiveSpec extends ZIOSpecDefault:
   val userBasePath = FileSystem.default.getPath("target", "tests", "archive", "users")
 
-  val environment = UserArchive.fs(userBasePath, 2, false)
+  val keyBlobArchiveFolderDepth = 16
+  val environment = UserArchive.fs(userBasePath, keyBlobArchiveFolderDepth, false)
 
   val c = HexString("abcdef0192837465")
   val testUser = RemoteUserCard(

@@ -28,7 +28,8 @@ import is.clipperz.backend.TestUtilities
 object BlobArchiveSpec extends ZIOSpecDefault:
   val blobBasePath = FileSystem.default.getPath("target", "tests", "archive", "blobs")
 
-  val environment = BlobArchive.fs(blobBasePath, 2, false)
+  val keyBlobArchiveFolderDepth = 16
+  val environment = BlobArchive.fs(blobBasePath, keyBlobArchiveFolderDepth, false)
 
   val testContent = ZStream.fromIterable("testContent".getBytes().nn)
   val failingContent = ZStream.never
