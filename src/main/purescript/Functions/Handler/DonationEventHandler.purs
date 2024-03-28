@@ -70,6 +70,6 @@ handleDonationPageEvent donationPageEvent state@{username: Just username, passwo
     CloseDonationPage -> noOperation (Tuple state $ WidgetState hiddenOverlayInfo (Main defaultPage))
 
 handleDonationPageEvent _ state _ = do
-  throwError $ InvalidStateError (CorruptedState "State is corrupted")
+  throwError $ InvalidStateError (CorruptedState "DonationPage")
   # runExceptT
   >>= handleOperationResult state defaultErrorPage true White

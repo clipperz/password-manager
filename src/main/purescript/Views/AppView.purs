@@ -12,7 +12,7 @@ import Data.Maybe (Maybe(..))
 import Data.Monoid ((<>))
 import Data.Newtype (unwrap)
 import Data.Show (class Show, show)
-import Data.Tuple (uncurry)
+import Data.Tuple (Tuple(..), uncurry)
 import DataModel.Credentials (emptyCredentials)
 import DataModel.IndexVersions.Index (emptyIndex)
 import DataModel.UserVersions.User (defaultUserPreferences)
@@ -68,12 +68,12 @@ appView widgetState@(WidgetState overlayInfo page) =
 
     ]
     , div [Props.classList (Just <$> ["page", "main", show $ location (Main emptyMainPageWidgetState) page])] [ do
-        let {index, userAreaState, credentials, pinExists, cardManagerState, userPreferences, donationLevel} = case page of
-                                        Main homePageWidgetState' -> homePageWidgetState'
-                                        _                         -> emptyMainPageWidgetState
+        let Tuple {index, userAreaState, credentials, pinExists, cardManagerState, userPreferences, donationLevel} enableShortcuts = case page of
+                                        Main homePageWidgetState' -> Tuple homePageWidgetState'     true
+                                        _                         -> Tuple emptyMainPageWidgetState false
         
         div [Props._id "homePage"] [
-          ( MainPageCardManagerEvent                         # uncurry) <$> cardsManagerView cardManagerState index (unwrap userPreferences).passwordGeneratorSettings
+          ( MainPageCardManagerEvent                         # uncurry) <$> cardsManagerView cardManagerState index (unwrap userPreferences).passwordGeneratorSettings enableShortcuts
         , ((MainPageUserAreaEvent # flip $ cardManagerState) # uncurry) <$> userAreaView userAreaState userPreferences credentials pinExists
         , ( DonationPageEvent                                         ) <$> donationReminder donationLevel
         ] 

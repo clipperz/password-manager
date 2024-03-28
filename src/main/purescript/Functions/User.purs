@@ -69,4 +69,4 @@ changeUserPassword {srpConf, c: Just oldC, p: Just oldP, username: Just username
                                            , masterKey
                                            }
     else throwError $ ProtocolError (ResponseError (unwrap response.status))
-changeUserPassword _ _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
+changeUserPassword _ _ = throwError $ InvalidStateError (CorruptedState "changePassword")

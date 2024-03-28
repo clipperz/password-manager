@@ -57,8 +57,10 @@ cardManagerInitialState = {
 , showShortcutsHelp: false
 }
 
-cardsManagerView :: CardManagerState -> Index -> PasswordGeneratorSettings -> Widget HTML (Tuple CardManagerEvent CardManagerState)
-cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archived, searchString}, highlightedEntry, cardViewState, showShortcutsHelp} index'@(Index {entries}) userPasswordGeneratorSettings = do
+type EnableShortcuts = Boolean
+
+cardsManagerView :: CardManagerState -> Index -> PasswordGeneratorSettings -> EnableShortcuts -> Widget HTML (Tuple CardManagerEvent CardManagerState)
+cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archived, searchString}, highlightedEntry, cardViewState, showShortcutsHelp} index'@(Index {entries}) userPasswordGeneratorSettings enableShortcuts = do
   div [Props._id "cardsManager", Props.className $ "filterView_" <> getClassNameFromFilterStatus filterViewStatus] [
     indexFilterView filterData index' >>= updateFilterData
   , div [Props.className "cardToolbarFrame"] [
@@ -77,7 +79,7 @@ cardsManagerView state@{filterData: filterData@{filterViewStatus, filter, archiv
         ]
       ]
     ]
-  ] <> shortcutsHandlers
+  ] <> if enableShortcuts then shortcutsHandlers else (text "")
     <> shortcutsHelp     showShortcutsHelp
   <#> (Tuple state >>> swap)
 

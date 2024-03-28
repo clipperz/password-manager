@@ -44,7 +44,7 @@ computeRemoteUserCard :: AppState -> ExceptT AppError Aff RequestUserCard
 computeRemoteUserCard { c: Just c, p: Just p, s: Just s, masterKey: Just masterKey, srpConf } = do
   v <- withExceptT (show >>> SRPError >>> ProtocolError) $ ExceptT (prepareV srpConf (toArrayBuffer s) (toArrayBuffer p))
   pure $ RequestUserCard { c, v, s, srpVersion: currentSRPVersion, originMasterKey: Nothing, masterKey }
-computeRemoteUserCard _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
+computeRemoteUserCard _ = throwError $ InvalidStateError (CorruptedState "computeRemoteUserCard")
 
 updateUserCard :: ConnectionState -> HexString -> UserCard -> ExceptT AppError Aff (ProxyResponse Unit)
 updateUserCard connectionState c newUserCard = do

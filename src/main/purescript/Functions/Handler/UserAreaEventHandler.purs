@@ -292,7 +292,7 @@ handleUserAreaEvent userAreaEvent cardManagerState userAreaState state@{proxy, s
         >>= handleOperationResult state defaultErrorPage true White
 
 handleUserAreaEvent _ _ _ state _ = do
-  throwError $ InvalidStateError (CorruptedState "State is corrupted")
+  throwError $ InvalidStateError (CorruptedState "userAreaEvent")
   # runExceptT
   >>= handleOperationResult state defaultErrorPage true White
 

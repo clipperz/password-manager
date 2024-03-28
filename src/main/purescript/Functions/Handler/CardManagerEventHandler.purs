@@ -177,7 +177,7 @@ handleCardManagerEvent cardManagerEvent cardManagerState state@{index: Just inde
 
 
 handleCardManagerEvent _ _ state _ = do
-  throwError $ InvalidStateError (CorruptedState "State is corrupted")
+  throwError $ InvalidStateError (CorruptedState "cardManagerEvent")
   # runExceptT
   >>= handleOperationResult state defaultErrorPage true Black
 
@@ -216,7 +216,7 @@ addCardSteps cardManagerState state@{index: Just index, userInfo: Just (UserInfo
             )
           )
         )
-addCardSteps _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
+addCardSteps _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "addCardStep")
 
 editCardSteps :: CardManagerState -> AppState -> CardEntry -> DataModel.CardVersions.Card.Card -> Page -> ExceptT AppError (Widget HTML) OperationState
 editCardSteps cardManagerState state@{index: Just index, proxy, srpConf, hash: hashFunc, c: Just c, p: Just p, userInfo: Just (UserInfo {userPreferences}), cardsCache, username: Just username, password: Just password, pinEncryptedPassword, donationLevel: Just donationLevel} oldCardEntry updatedCard page = do
@@ -241,7 +241,7 @@ editCardSteps cardManagerState state@{index: Just index, proxy, srpConf, hash: h
             )
           )
         )
-editCardSteps _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "State is corrupted")
+editCardSteps _ _ _ _ _ = throwError $ InvalidStateError (CorruptedState "editCardStep")
 
 
 -- ========================================================================================================================
