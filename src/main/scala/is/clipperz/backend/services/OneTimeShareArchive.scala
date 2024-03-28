@@ -19,6 +19,7 @@ import java.util.UUID
 import zio.{ Duration, ZIO, ZLayer, Task, Chunk }
 import zio.json.{ JsonDecoder, JsonEncoder, DeriveJsonDecoder, DeriveJsonEncoder }
 import zio.stream.{ ZStream, ZSink }
+import is.clipperz.backend.apis.SecretVersion
 
 // ----------------------------------------------------------------------------
 
@@ -27,7 +28,7 @@ type SecretId = String
 case class OneTimeSecret(
     secret:         HexString,
     expirationDate: DateTime,
-    version:        Option[String]
+    version:        Option[SecretVersion]
 )
 
 object OneTimeSecret:

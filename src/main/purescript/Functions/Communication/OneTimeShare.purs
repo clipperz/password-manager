@@ -67,7 +67,7 @@ redeem connectionState id = do
   if isStatusCodeOk response.status
     then do
       secretVersion :: SecretVersion <- ((value <$> find (\header -> (name header) == oneTimeSecretVersionHeaderName) (response.headers)) <#> (\headerValue -> do
-        headerJson <- (except $ P.jsonParser headerValue)                               # withExceptT (show >>> DecodeError >>> ProtocolError)
+        headerJson <- (except $ P.jsonParser headerValue)             # withExceptT (show >>> DecodeError >>> ProtocolError)
         (              except $ decode secretVersionCodec headerJson) # withExceptT (show >>> DecodeError >>> ProtocolError)
       )) # fromMaybe (pure SecretVersion_1)
 

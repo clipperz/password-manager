@@ -26,8 +26,16 @@ import zio.nio.charset.Charset
 case class OneTimeSecretData (
     secret: HexString,
     duration: Double,
-    version: String
+    version: SecretVersion
 )
+
+case class SecretVersion(
+    tag: String
+)
+
+object SecretVersion:
+    implicit val decoder: JsonDecoder[SecretVersion] = DeriveJsonDecoder.gen[SecretVersion]
+    implicit val encoder: JsonEncoder[SecretVersion] = DeriveJsonEncoder.gen[SecretVersion]
 
 object OneTimeSecretData:
     implicit val decoder: JsonDecoder[OneTimeSecretData] = DeriveJsonDecoder.gen[OneTimeSecretData]
@@ -74,10 +82,10 @@ val oneTimeShareApi = Routes (
                     )
             )
         )
-        .map((version: Option[String], bytes: ZStream[Any, Throwable, Byte]) => 
+        .map((version: Option[SecretVersion], bytes: ZStream[Any, Throwable, Byte]) => 
             Response(
                 status  = Status.Ok,
-                headers = version.map(v => Headers("clipperz-onetimesecret-version", v)).getOrElse(Headers.empty),
+                headers = version.map(v => Headers("clipperz-onetimesecret-version", v.toJson)).getOrElse(Headers.empty),
                 body    = Body.fromStream(bytes),
             )
         ) @@ LogAspect.logAnnotateRequestData(request)
