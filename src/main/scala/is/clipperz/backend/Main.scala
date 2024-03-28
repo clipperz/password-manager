@@ -51,8 +51,8 @@ object Main extends zio.ZIOAppDefault:
     // val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ (Middleware.timeout(10.seconds) ++ metrics()) //TODO: add timeout time to configuration file [fsolaroli - 10/01/2024]
     val completeClipperzBackend: ClipperzHttpApp = clipperzBackend @@ middlewares
 
-    // val keyBlobArchiveFolderDepth = 16
-    val keyBlobArchiveFolderDepth = 2
+    val keyBlobArchiveFolderDepth = 16
+    // val keyBlobArchiveFolderDepth = 2
 
     val run: ZIO[Any & ZIOAppArgs & Scope, Any, Any] = ZIOAppArgs.getArgs.flatMap { args =>
         if args.length == 4
@@ -74,10 +74,10 @@ object Main extends zio.ZIOAppDefault:
                                     .leakDetection(LeakDetectionLevel.PARANOID)
                                     .maxThreads(nThreads)
 
-            ( Files.createDirectories(blobBasePath) <&> 
-              Files.createDirectories(userBasePath) <&> 
-              Files.createDirectories(oneTimeShareBasePath)
-            ) *>
+            // ( Files.createDirectories(blobBasePath) <&> 
+            //   Files.createDirectories(userBasePath) <&> 
+            //   Files.createDirectories(oneTimeShareBasePath)
+            // ) *>
             Server
                 .install(completeClipperzBackend)
                 .flatMap(port =>
@@ -98,9 +98,9 @@ object Main extends zio.ZIOAppDefault:
                     ZLayer.succeed(nettyConfig),
                     Server.customized,
                     
-                    // datadog.datadogLayer,
-                    // ZLayer.succeed(datadog.DatadogConfig("dd-agent", 8125)),
-                    // ZLayer.succeed(MetricsConfig(100.millis)),
+                    datadog.datadogLayer,
+                    ZLayer.succeed(datadog.DatadogConfig("dd-agent", 8125)),
+                    ZLayer.succeed(MetricsConfig(100.millis)),
                 )
 
         else ZIO.logFatal("Not enough arguments")
